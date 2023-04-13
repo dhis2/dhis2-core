@@ -43,7 +43,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -64,8 +63,6 @@ public class DefaultIconService
     private final CustomIconStore customIconStore;
 
     private final FileResourceService fileResourceService;
-
-    private final CurrentUserService currentUserService;
 
     private final Map<String, IconData> standardIcons = Arrays.stream( Icon.values() )
         .map( Icon::getVariants )
@@ -102,7 +99,7 @@ public class DefaultIconService
                 throw new NotFoundException( String.format( "Icon not found: %s", key ) );
             }
 
-            return customIconStore.getIconByKey( key );
+            return iconData;
         }
     }
 
@@ -128,7 +125,7 @@ public class DefaultIconService
     @Override
     public boolean iconExists( String key )
     {
-        return customIconStore.getIconByKey( key ) != null;
+        return standardIcons.get( key ) != null || customIconStore.getIconByKey( key ) != null;
     }
 
     @Override
@@ -223,7 +220,6 @@ public class DefaultIconService
         {
             throw new NotFoundException( String.format( "File resource %s does not exist", fileResource.getUid() ) );
         }
-
     }
 
     private IconData validateCustomIconExists( String key )

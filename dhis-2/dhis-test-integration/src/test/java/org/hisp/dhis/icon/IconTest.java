@@ -31,6 +31,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -51,6 +52,7 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -159,6 +161,21 @@ class IconTest extends TrackerTest
         assertContainsOnly( List.of( "k1", "k2", "k3" ), icon.getKeywords() );
         assertEquals( fileResource.getId(), icon.getFileResource().getId() );
         assertEquals( "Admin User", icon.getCreatedBy().getName() );
+    }
+
+    @Test
+    void shouldFailWhenSavingIconAndStandardIconWithSameKeyExists()
+    {
+        Map<String, IconData> standardIconMap = getAllStandardIcons();
+        String standardIconKey = standardIconMap.values().iterator().next().getKey();
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> iconService.addCustomIcon(
+                new IconData( standardIconKey, "description", List.of( "keyword1" ), new FileResource(),
+                    new User() ) ) );
+
+        String expectedMessage = String.format( "Icon with key %s already exists.", standardIconKey );
+        assertEquals( expectedMessage, exception.getMessage() );
     }
 
     @Test

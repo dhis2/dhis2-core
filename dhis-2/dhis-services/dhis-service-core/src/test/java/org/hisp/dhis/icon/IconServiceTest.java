@@ -127,22 +127,6 @@ class IconServiceTest
     }
 
     @Test
-    void shouldFailWhenSavingIconAndStandardIconWithSameKeyExists()
-        throws NotFoundException
-    {
-        String duplicatedKey = "standard key";
-        when( customIconStore.getIconByKey( duplicatedKey ) ).thenReturn( null );
-        when( iconService.iconExists( duplicatedKey ) ).thenReturn( true );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> iconService.addCustomIcon(
-                new IconData( duplicatedKey, "description", List.of( "keyword1" ), new FileResource(), new User() ) ) );
-
-        String expectedMessage = "Icon with key " + duplicatedKey + " already exists.";
-        assertEquals( expectedMessage, exception.getMessage() );
-    }
-
-    @Test
     void shouldFailWhenSavingIconAndCustomIconWithSameKeyExists()
     {
         String duplicatedKey = "custom key";
