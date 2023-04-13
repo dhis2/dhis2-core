@@ -34,8 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.OpenApi;
@@ -81,7 +79,7 @@ public class DataElementGroupController
     @GetMapping( "/{uid}/operands" )
     public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model,
-        TranslateParams translateParams, HttpServletResponse response )
+        TranslateParams translateParams )
         throws NotFoundException
     {
         WebOptions options = new WebOptions( parameters );

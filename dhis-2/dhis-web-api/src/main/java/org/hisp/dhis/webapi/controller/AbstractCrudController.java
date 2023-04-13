@@ -558,15 +558,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
-        @SuppressWarnings( "unchecked" )
-        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        SubscribableObject object = entity.get( 0 );
+        SubscribableObject object = (SubscribableObject) getEntity( pvUid );
 
         object.subscribe( currentUser );
         manager.updateNoAcl( object );
@@ -773,7 +765,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
-    @SuppressWarnings( "unchecked" )
     public WebMessage unsubscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @CurrentUser User currentUser )
         throws NotFoundException,
@@ -784,14 +775,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
 
-        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        SubscribableObject object = entity.get( 0 );
+        SubscribableObject object = (SubscribableObject) getEntity( pvUid );
 
         object.unsubscribe( currentUser );
         manager.updateNoAcl( object );

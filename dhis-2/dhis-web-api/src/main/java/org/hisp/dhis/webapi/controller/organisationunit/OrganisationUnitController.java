@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.organisationunit;
 
+import static java.lang.Math.max;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.system.util.GeoUtils.getCoordinatesFromGeometry;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -164,8 +165,8 @@ public class OrganisationUnitController
         NotFoundException
     {
         OrganisationUnit parent = getEntity( uid );
-        return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> organisationUnitService.getOrganisationUnitsAtLevel( parent.getLevel() + level, parent ) );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> organisationUnitService
+            .getOrganisationUnitsAtLevel( parent.getLevel() + max( 0, level ), parent ) );
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
