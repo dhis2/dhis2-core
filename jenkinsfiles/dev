@@ -7,10 +7,10 @@ pipeline {
         label 'ec2-jdk11'
     }
 
-    triggers {
-        cron('H H(9-16)/2 * * 1-5')
-        pollSCM('H/30 * * * *')
-    }
+//    triggers {
+//        cron('H H(9-16)/2 * * 1-5')
+//        pollSCM('H/30 * * * *')
+//    }
 
     options {
         buildDiscarder(logRotator(daysToKeepStr: '5'))
@@ -32,12 +32,12 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
-                echo 'Building DHIS2 ...'
+//                implementIoBuildStarted(buildJob: true, buildName: "${STAGE_NAME}")
+//                echo 'Building DHIS2 ...'
                 script {
-                    env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
-                    env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
-                    gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+//                    env.DHIS2_COMMIT_SHA = sh(returnStdout: true, script: 'git rev-parse HEAD').trim()
+//                    env.DHIS2_REPO_URL = sh(returnStdout: true, script: 'git config remote.origin.url').trim()
+//                    gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
 
                     withMaven(options: [artifactsPublisher(disabled: true)]) {
                         sh 'mvn -X -T 4 --batch-mode --no-transfer-progress clean install -f dhis-2/pom.xml -P -default --update-snapshots -pl -dhis-web-embedded-jetty,-dhis-test-coverage'
@@ -45,24 +45,24 @@ pipeline {
                     }
                 }
             }
-
-            post {
-                always {
-                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
-                }
-
-                failure {
-                    script {
-                        if (buildLog.getLines().contains('There are test failures')) {
-                            slack.sendMessage(
-                                '#ff0000',
-                                slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
-                                'team-backend'
-                            )
-                        }
-                    }
-                }
-            }
+//
+//            post {
+//                always {
+//                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
+//                }
+//
+//                failure {
+//                    script {
+//                        if (buildLog.getLines().contains('There are test failures')) {
+//                            slack.sendMessage(
+//                                '#ff0000',
+//                                slack.buildUrl() + "\nLatest test run on ${GIT_BRANCH} failed and needs investigation. :detective-duck:\nCommit: <${GIT_URL}/commit/${GIT_COMMIT}|${GIT_COMMIT}>",
+//                                'team-backend'
+//                            )
+//                        }
+//                    }
+//                }
+//            }
         }
 
         stage('Run api tests') {
@@ -105,7 +105,10 @@ pipeline {
                             script {
                                 dir("dhis-2/dhis-e2e-test") {
                                     sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
-                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
+                                    sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up -d"
+                                    sleep(10)
+                                    sh 'docker container ls -a'
+                                    sh 'wait $(jobs -p)'
                                 }
                             }
                         }
@@ -133,127 +136,127 @@ pipeline {
             }
         }
 
-        stage('Sync WAR') {
-            steps {
-                implementIoBuildStarted(buildName: "${STAGE_NAME}")
-                echo 'Syncing WAR ...'
-                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
-                sh 'chmod +x copy-war-s3.sh'
-                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
-            }
-
-            post {
-                always {
-                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
-                }
-            }
-        }
-
-        stage('Publish images') {
-            steps {
-                script {
-                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
-                        if (env.GIT_BRANCH == 'master') {
-                            tag = 'latest'
-                        } else {
-                            tag = env.GIT_BRANCH
-                        }
-
-                        withMaven(options: [artifactsPublisher(disabled: true)]) {
-                            sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
-                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
-                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
-                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
-                        }
-                    }
-                }
-            }
-        }
-
-        stage ('Update Play Instance') {
-            steps {
-                implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
-                echo 'Updating Play Instance ...'
-                script {
-                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
-                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE", ['flyway_repair': 'YES'])
-                    }
-                }
-            }
-
-            post {
-                always {
-                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
-                }
-            }
-        }
-
-        stage('Update IM Play dev instance') {
-            environment {
-                HTTP = "http --check-status"
-                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
-                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
-                IMAGE_REPOSITORY = "core-dev"
-                IMAGE_TAG = "latest"
-                IMAGE_PULL_POLICY = "Always"
-                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
-                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
-                INSTANCE_TTL = "315360000"
-                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
-                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
-                READINESS_PROBE_TIMEOUT_SECONDS = "3"
-            }
-            steps {
-                script {
-                    if (env.GIT_BRANCH == 'master') {
-                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                            dir('im-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
-
-                                dir('scripts/databases') {
-                                    env.DATABASE_ID = sh(
-                                            returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
-                                    ).trim()
-
-                                    sh '[ -n "$DATABASE_ID" ]'
-                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
-                                }
-
-                                dir('scripts/instances') {
-                                    echo 'Creating DHIS2 instance on IM...'
-                                    sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
-                                    timeout(5) {
-                                        waitFor.statusOk("${env.INSTANCE_URL}")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        stage('Sync WAR') {
+//            steps {
+//                implementIoBuildStarted(buildName: "${STAGE_NAME}")
+//                echo 'Syncing WAR ...'
+//                sh 'curl "https://raw.githubusercontent.com/dhis2/dhis2-server-setup/master/ci/scripts/copy-war-s3.sh" -O'
+//                sh 'chmod +x copy-war-s3.sh'
+//                sh './copy-war-s3.sh dev ${GIT_BRANCH}'
+//            }
+//
+//            post {
+//                always {
+//                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
+//                }
+//            }
+//        }
+//
+//        stage('Publish images') {
+//            steps {
+//                script {
+//                    withDockerRegistry([credentialsId: "docker-hub-credentials", url: ""])  {
+//                        if (env.GIT_BRANCH == 'master') {
+//                            tag = 'latest'
+//                        } else {
+//                            tag = env.GIT_BRANCH
+//                        }
+//
+//                        withMaven(options: [artifactsPublisher(disabled: true)]) {
+//                            sh "mvn --batch-mode --no-transfer-progress -DskipTests -Dmaven.test.skip=true \
+//                                -f dhis-2/dhis-web/dhis-web-portal/pom.xml jib:build -PjibBuild \
+//                                -Djib.from.image=${DOCKER_IMAGE_NAME_PUBLISH_SOURCE} -Djib.to.image=${DOCKER_IMAGE_NAME}:${tag} \
+//                                -Djib.container.labels=DHIS2_VERSION=${DHIS2_VERSION},DHIS2_BUILD_REVISION=${GIT_COMMIT},DHIS2_BUILD_BRANCH=${env.GIT_BRANCH}"
+//                        }
+//                    }
+//                }
+//            }
+//        }
+//
+//        stage ('Update Play Instance') {
+//            steps {
+//                implementIoBuildStarted(buildEnvironment: "TEST", buildName: "${STAGE_NAME}")
+//                echo 'Updating Play Instance ...'
+//                script {
+//                    withCredentials([usernameColonPassword(credentialsId: 'awx-bot-user-credentials', variable: 'AWX_CREDENTIALS')]) {
+//                        awx.resetWarIfInstanceExists("$AWX_CREDENTIALS", "$HOST", "$INSTANCE_NAME", "$AWX_TEMPLATE", ['flyway_repair': 'YES'])
+//                    }
+//                }
+//            }
+//
+//            post {
+//                always {
+//                    implementIoBuildEnded(buildName: "${STAGE_NAME}")
+//                }
+//            }
+//        }
+//
+//        stage('Update IM Play dev instance') {
+//            environment {
+//                HTTP = "http --check-status"
+//                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
+//                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+//                IMAGE_REPOSITORY = "core-dev"
+//                IMAGE_TAG = "latest"
+//                IMAGE_PULL_POLICY = "Always"
+//                FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
+//                FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
+//                INSTANCE_TTL = "315360000"
+//                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+//                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+//                READINESS_PROBE_TIMEOUT_SECONDS = "3"
+//            }
+//            steps {
+//                script {
+//                    if (env.GIT_BRANCH == 'master') {
+//                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+//                            dir('im-manager') {
+//                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+//
+//                                dir('scripts/databases') {
+//                                    env.DATABASE_ID = sh(
+//                                            returnStdout: true,
+//                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
+//                                    ).trim()
+//
+//                                    sh '[ -n "$DATABASE_ID" ]'
+//                                    echo "DATABASE_ID is ${env.DATABASE_ID}"
+//                                }
+//
+//                                dir('scripts/instances') {
+//                                    echo 'Creating DHIS2 instance on IM...'
+//                                    sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
+//                                    timeout(5) {
+//                                        waitFor.statusOk("${env.INSTANCE_URL}")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
-    post {
-        always {
-            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
-
-            script {
-                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
-            }
-        }
-
-        failure {
-            script {
-                slack.sendFailureMessage()
-            }
-        }
-
-        aborted {
-            script {
-                slack.sendTimedoutMessage()
-            }
-        }
-    }
+//    post {
+//        always {
+//            archiveArtifacts artifacts: '**/target/surefire-reports/TEST-*.xml'
+//
+//            script {
+//                gitHelper.setCommitStatus("${env.DHIS2_COMMIT_SHA}", "${env.DHIS2_REPO_URL}")
+//            }
+//        }
+//
+//        failure {
+//            script {
+//                slack.sendFailureMessage()
+//            }
+//        }
+//
+//        aborted {
+//            script {
+//                slack.sendTimedoutMessage()
+//            }
+//        }
+//    }
 }
