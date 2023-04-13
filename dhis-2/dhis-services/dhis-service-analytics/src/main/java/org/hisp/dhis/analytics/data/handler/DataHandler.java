@@ -149,7 +149,6 @@ import org.hisp.dhis.dataelement.DataElementOperand.TotalType;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -273,23 +272,7 @@ public class DataHandler
         List<ExpressionDimensionItem> expressionDimensionItems )
     {
         return expressionDimensionItems.stream()
-            .map( edi -> {
-                IndicatorType indicatorType = new IndicatorType();
-                indicatorType.setNumber( true );
-                indicatorType.setFactor( 1 );
-
-                Indicator indicator = new Indicator();
-                indicator.setUid( edi.getUid() );
-                indicator.setName( edi.getName() );
-                indicator.setCode( edi.getCode() );
-                indicator.setIndicatorType( indicatorType );
-                indicator.setNumerator( edi.getExpression() );
-                indicator.setNumeratorDescription( edi.getDescription() );
-                indicator.setDenominator( "1" );
-                indicator.setAnnualized( false );
-
-                return indicator;
-            } ).collect( toList() );
+            .map( edi -> edi.toIndicator() ).collect( toList() );
     }
 
     private void addIndicatorValues( DataQueryParams dataQueryParams, DataQueryParams dataSourceParams,
