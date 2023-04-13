@@ -34,7 +34,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang3.StringUtils;
@@ -48,6 +47,7 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.schema.descriptors.DataElementGroupSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
@@ -81,21 +81,15 @@ public class DataElementGroupController
     @GetMapping( "/{uid}/operands" )
     public String getOperands( @PathVariable( "uid" ) String uid, @RequestParam Map<String, String> parameters,
         Model model,
-        TranslateParams translateParams, HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        TranslateParams translateParams, HttpServletResponse response )
+        throws NotFoundException
     {
         WebOptions options = new WebOptions( parameters );
         setTranslationParams( translateParams );
-        List<DataElementGroup> dataElementGroups = getEntity( uid, NO_WEB_OPTIONS );
-
-        if ( dataElementGroups.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataElementGroup not found for uid: " + uid ) );
-        }
 
         WebMetadata metadata = new WebMetadata();
         List<DataElementOperand> dataElementOperands = Lists
-            .newArrayList( dataElementCategoryService.getOperands( dataElementGroups.get( 0 ).getMembers() ) );
+            .newArrayList( dataElementCategoryService.getOperands( getEntity( uid ).getMembers() ) );
         Collections.sort( dataElementOperands );
 
         metadata.setDataElementOperands( dataElementOperands );
@@ -119,24 +113,17 @@ public class DataElementGroupController
     @GetMapping( "/{uid}/operands/query/{q}" )
     public String getOperandsByQuery( @PathVariable( "uid" ) String uid,
         @PathVariable( "q" ) String q, @RequestParam Map<String, String> parameters, TranslateParams translateParams,
-        Model model,
-        HttpServletRequest request, HttpServletResponse response )
-        throws Exception
+        Model model )
+        throws NotFoundException
     {
         WebOptions options = new WebOptions( parameters );
         setTranslationParams( translateParams );
-        List<DataElementGroup> dataElementGroups = getEntity( uid, NO_WEB_OPTIONS );
-
-        if ( dataElementGroups.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataElementGroup not found for uid: " + uid ) );
-        }
 
         WebMetadata metadata = new WebMetadata();
         List<DataElementOperand> dataElementOperands = Lists.newArrayList();
 
         for ( DataElementOperand dataElementOperand : dataElementCategoryService
-            .getOperands( dataElementGroups.get( 0 ).getMembers() ) )
+            .getOperands( getEntity( uid ).getMembers() ) )
         {
             if ( dataElementOperand.getDisplayName().toLowerCase().contains( q.toLowerCase() ) )
             {

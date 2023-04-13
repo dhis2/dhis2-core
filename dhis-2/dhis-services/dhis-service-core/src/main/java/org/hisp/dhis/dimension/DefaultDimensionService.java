@@ -83,7 +83,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
@@ -97,6 +96,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -334,11 +334,12 @@ public class DefaultDimensionService
 
     @Override
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
+        throws NotFoundException
     {
         BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
         if ( dimension == null )
         {
-            throw new IllegalQueryException( "Dimension does not exist: " + uid );
+            throw new NotFoundException( "Dimension does not exist: " + uid );
         }
         BaseDimensionalObject copy = mergeService.clone( dimension );
 

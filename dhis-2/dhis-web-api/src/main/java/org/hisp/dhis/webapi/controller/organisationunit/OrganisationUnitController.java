@@ -44,8 +44,11 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dxf2.common.TranslateParams;
+import org.hisp.dhis.dxf2.common.OrderParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeQuery;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeService;
@@ -65,10 +68,12 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
+import org.hisp.dhis.webapi.webdomain.StreamingJsonRoot;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -124,6 +129,84 @@ public class OrganisationUnitController
         orgUnitMergeService.merge( orgUnitMergeService.getFromQuery( query ) );
 
         return ok( "Organisation units merged" );
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
+    @GetMapping( "/{uid}/children" )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildren(
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException,
+        NotFoundException
+    {
+        OrganisationUnit parent = getEntity( uid );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false,
+            params -> List.copyOf( parent.getChildren() ) );
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
+    @GetMapping( value = "/{uid}/children", params = "level" )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getChildrenWithLevel(
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @RequestParam int level,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException,
+        NotFoundException
+    {
+        OrganisationUnit parent = getEntity( uid );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false,
+            params -> organisationUnitService.getOrganisationUnitsAtLevel( parent.getLevel() + level, parent ) );
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
+    @GetMapping( "/{uid}/descendants" )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getDescendants(
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException,
+        NotFoundException
+    {
+        OrganisationUnit parent = getEntity( uid );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false,
+            params -> organisationUnitService.getOrganisationUnitWithChildren( parent.getUid() ) );
+    }
+
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
+    @GetMapping( "/{uid}/ancestors" )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getAncestors(
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException,
+        NotFoundException
+    {
+        OrganisationUnit parent = getEntity( uid );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> {
+            List<OrganisationUnit> res = new ArrayList<>();
+            res.addAll( parent.getAncestors() );
+            Collections.reverse( res );
+            res.add( 0, parent );
+            return res;
+        } );
     }
 
     @Override
@@ -232,77 +315,30 @@ public class OrganisationUnitController
         return list;
     }
 
-    @Override
-    protected List<OrganisationUnit> getEntity( String uid, WebOptions options )
-    {
-        OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
-
-        List<OrganisationUnit> organisationUnits = Lists.newArrayList();
-
-        if ( organisationUnit == null )
-        {
-            return organisationUnits;
-        }
-
-        if ( options.contains( "includeChildren" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.add( organisationUnit );
-            organisationUnits.addAll( organisationUnit.getChildren() );
-        }
-        else if ( options.contains( "includeDescendants" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.addAll( organisationUnitService.getOrganisationUnitWithChildren( uid ) );
-        }
-        else if ( options.contains( "includeAncestors" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            organisationUnits.add( organisationUnit );
-            List<OrganisationUnit> ancestors = organisationUnit.getAncestors();
-            Collections.reverse( ancestors );
-            organisationUnits.addAll( ancestors );
-        }
-        else if ( options.contains( "level" ) )
-        {
-            options.getOptions().put( "useWrapper", "true" );
-            int level = options.getInt( "level" );
-            int ouLevel = organisationUnit.getLevel();
-            int targetLevel = ouLevel + level;
-            organisationUnits
-                .addAll( organisationUnitService.getOrganisationUnitsAtLevel( targetLevel, organisationUnit ) );
-        }
-        else
-        {
-            organisationUnits.add( organisationUnit );
-        }
-
-        return organisationUnits;
-    }
-
+    @OpenApi.Param( name = "fields", value = String[].class )
+    @OpenApi.Param( name = "filter", value = String[].class )
+    @OpenApi.Params( WebOptions.class )
+    @OpenApi.Response( ObjectListResponse.class )
     @GetMapping( "/{uid}/parents" )
-    public @ResponseBody List<OrganisationUnit> getEntityList( @PathVariable( "uid" ) String uid,
-        @RequestParam Map<String, String> parameters, TranslateParams translateParams )
+    public @ResponseBody ResponseEntity<StreamingJsonRoot<OrganisationUnit>> getParents(
+        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String uid,
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException,
+        NotFoundException
     {
-        setTranslationParams( translateParams );
-        OrganisationUnit organisationUnit = manager.get( getEntityClass(), uid );
-        List<OrganisationUnit> organisationUnits = Lists.newArrayList();
-
-        if ( organisationUnit != null )
-        {
-            OrganisationUnit organisationUnitParent = organisationUnit.getParent();
-
-            while ( organisationUnitParent != null )
+        OrganisationUnit root = getEntity( uid );
+        return getObjectList( rpParameters, orderParams, response, currentUser, false, params -> {
+            OrganisationUnit parent = root.getParent();
+            List<OrganisationUnit> res = new ArrayList<>();
+            while ( parent != null )
             {
-                organisationUnits.add( organisationUnitParent );
-                organisationUnitParent = organisationUnitParent.getParent();
+                res.add( parent );
+                parent = parent.getParent();
             }
-        }
-
-        WebMetadata metadata = new WebMetadata();
-        metadata.setOrganisationUnits( organisationUnits );
-
-        return organisationUnits;
+            return res;
+        } );
     }
 
     @GetMapping( value = { "", ".geojson" }, produces = { "application/json+geo",
