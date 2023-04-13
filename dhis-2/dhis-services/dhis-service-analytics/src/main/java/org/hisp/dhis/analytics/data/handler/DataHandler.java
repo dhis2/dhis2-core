@@ -286,7 +286,6 @@ public class DataHandler
                 indicator.setNumerator( edi.getExpression() );
                 indicator.setNumeratorDescription( edi.getDescription() );
                 indicator.setDenominator( "1" );
-                indicator.setDecimals( 1 );
                 indicator.setAnnualized( false );
 
                 return indicator;
