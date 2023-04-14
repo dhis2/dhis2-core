@@ -734,6 +734,7 @@ public class DefaultDataQueryService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
     {
         final List<OrganisationUnit> units = new ArrayList<>();
