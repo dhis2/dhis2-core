@@ -40,9 +40,7 @@ import org.hisp.dhis.common.auth.HttpBasicAuth;
 import org.hisp.dhis.eventhook.targets.JmsTarget;
 import org.hisp.dhis.eventhook.targets.KafkaTarget;
 import org.hisp.dhis.scheduling.JobParameters;
-import org.hisp.dhis.system.util.AnnotationUtils;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonStreamContext;
 import com.fasterxml.jackson.databind.SerializerProvider;
@@ -198,8 +196,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         Class<?> klass = object.getClass();
 
-        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
-            || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
+        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass );
     }
 }
 
