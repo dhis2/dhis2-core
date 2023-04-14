@@ -60,7 +60,7 @@ class EventImportWithMetadataTest extends SingleSetupIntegrationTestBase
     private RenderService _renderService;
 
     @Autowired
-    private CsvEventService csvEventService;
+    private CsvEventService<Event> csvEventService;
 
     @Autowired
     private EventService eventService;
