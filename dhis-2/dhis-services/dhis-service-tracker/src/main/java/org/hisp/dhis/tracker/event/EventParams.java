@@ -38,5 +38,5 @@ public class EventParams
 
     public static final EventParams FALSE = new EventParams( false );
 
-    private boolean includeRelationships;
+    boolean includeRelationships;
 }

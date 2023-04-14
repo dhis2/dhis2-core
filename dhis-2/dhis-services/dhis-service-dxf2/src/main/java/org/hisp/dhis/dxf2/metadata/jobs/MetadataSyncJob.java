@@ -43,9 +43,7 @@ import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncService;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.dxf2.metadata.sync.exception.DhisVersionMismatchException;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
-import org.hisp.dhis.dxf2.sync.SyncUtils;
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -134,13 +132,6 @@ public class MetadataSyncJob implements Job
             String customMessage = "Exception occurred while executing metadata sync task." + e.getMessage();
             log.error( customMessage, e );
         }
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        return SyncUtils.validateRemoteServerAvailability( synchronizationManager, MetadataSyncJob.class )
-            .orElse( null );
     }
 
     protected void runSyncTask( MetadataRetryContext context, MetadataSyncJobParameters params,
