@@ -350,7 +350,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                 Set<TrackedEntityAttributeValue> tetAttributeValues = trackedEntity.getTrackedEntityAttributeValues()
                     .stream()
                     .filter( att -> tetAttributes.contains( att.getAttribute().getUid() ) )
-                    .collect( Collectors.toSet() );
+                    .collect( Collectors.toCollection( LinkedHashSet::new ) );
                 trackedEntity.setTrackedEntityAttributeValues( tetAttributeValues );
             }
         }
@@ -388,69 +388,75 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         result.setCreatedByUserInfo( trackedEntity.getCreatedByUserInfo() );
         result.setLastUpdatedByUserInfo( trackedEntity.getLastUpdatedByUserInfo() );
         result.setGeometry( trackedEntity.getGeometry() );
-
         if ( params.isIncludeRelationships() )
         {
-            Set<RelationshipItem> items = new HashSet<>();
-
-            for ( RelationshipItem relationshipItem : trackedEntity.getRelationshipItems() )
-            {
-                org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
-
-                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
-                {
-                    items.add( relationshipItem );
-                }
-            }
-
-            result.setRelationshipItems( items );
+            result.setRelationshipItems( getRelationshipItems( trackedEntity, params, user ) );
         }
-
         if ( params.isIncludeEnrollments() )
         {
-            Set<ProgramInstance> programInstances = new HashSet<>();
-
-            for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
-            {
-                if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
-                    && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
-                {
-                    Set<ProgramStageInstance> events = new HashSet<>();
-                    for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
-                    {
-                        if ( params.isIncludeDeleted() || !programStageInstance.isDeleted() )
-                        {
-                            events.add( programStageInstance );
-                        }
-                    }
-                    programInstance.setProgramStageInstances( events );
-                    programInstances.add( programInstance );
-                }
-            }
-
-            result.setProgramInstances( programInstances );
+            result.setProgramInstances( getProgramInstances( trackedEntity, params, user ) );
         }
-
         if ( params.isIncludeProgramOwners() )
         {
             result.setProgramOwners( trackedEntity.getProgramOwners() );
         }
-
-        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes( user );
-        Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
-
-        for ( TrackedEntityAttributeValue attributeValue : trackedEntity.getTrackedEntityAttributeValues() )
-        {
-            if ( readableAttributes.contains( attributeValue.getAttribute() ) )
-            {
-                attributeValues.add( attributeValue );
-            }
-        }
-        result.setTrackedEntityAttributeValues( attributeValues );
+        result.setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( trackedEntity, user ) );
 
         return result;
+    }
+
+    private Set<RelationshipItem> getRelationshipItems( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
+        User user )
+    {
+        Set<RelationshipItem> items = new HashSet<>();
+
+        for ( RelationshipItem relationshipItem : trackedEntity.getRelationshipItems() )
+        {
+            Relationship daoRelationship = relationshipItem.getRelationship();
+
+            if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
+                && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+            {
+                items.add( relationshipItem );
+            }
+        }
+        return items;
+    }
+
+    private Set<ProgramInstance> getProgramInstances( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
+        User user )
+    {
+        Set<ProgramInstance> programInstances = new HashSet<>();
+
+        for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
+        {
+            if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
+                && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
+            {
+                Set<ProgramStageInstance> events = new HashSet<>();
+                for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+                {
+                    if ( params.isIncludeDeleted() || !programStageInstance.isDeleted() )
+                    {
+                        events.add( programStageInstance );
+                    }
+                }
+                programInstance.setProgramStageInstances( events );
+                programInstances.add( programInstance );
+            }
+        }
+        return programInstances;
+    }
+
+    private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance trackedEntity,
+        User user )
+    {
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes( user );
+        return trackedEntity.getTrackedEntityAttributeValues()
+            .stream()
+            .filter( av -> readableAttributes.contains( av.getAttribute() ) )
+            .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 
     private RelationshipItem withNestedEntity( TrackedEntityInstance trackedEntity, RelationshipItem item )

@@ -300,16 +300,9 @@ public class TrackedEntityAggregate
             }
         }
 
-        Set<TrackedEntityAttributeValue> result = new LinkedHashSet<>();
-        for ( TrackedEntityAttributeValue attributeValue : attributes )
-        {
-            if ( allowedAttributeUids.contains( attributeValue.getAttribute().getUid() ) )
-            {
-                result.add( attributeValue );
-            }
-        }
-
-        return result;
+        return attributes.stream()
+            .filter( av -> allowedAttributeUids.contains( av.getAttribute().getUid() ) )
+            .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 
     /**

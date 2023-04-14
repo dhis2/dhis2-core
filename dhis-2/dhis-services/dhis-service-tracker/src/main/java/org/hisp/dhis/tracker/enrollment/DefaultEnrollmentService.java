@@ -122,57 +122,74 @@ public class DefaultEnrollmentService implements EnrollmentService
         result.setLastUpdatedByUserInfo( programInstance.getLastUpdatedByUserInfo() );
         result.setDeleted( programInstance.isDeleted() );
         result.setComments( programInstance.getComments() );
-
         if ( params.isIncludeEvents() )
         {
-            Set<ProgramStageInstance> programStageInstances = new HashSet<>();
-
-            for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
-            {
-                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
-                    && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
-                {
-                    programStageInstances.add( programStageInstance );
-                }
-            }
-
-            result.setProgramStageInstances( programStageInstances );
+            result.setProgramStageInstances( getProgramStageInstances( user, programInstance, params ) );
         }
-
         if ( params.isIncludeRelationships() )
         {
-            Set<RelationshipItem> relationshipItems = new HashSet<>();
-
-            for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
-            {
-                org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
-                if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                    && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
-                {
-                    relationshipItems.add( relationshipItem );
-                }
-            }
-
-            result.setRelationshipItems( relationshipItems );
+            result.setRelationshipItems( getRelationshipItems( user, programInstance, params ) );
         }
-
         if ( params.isIncludeAttributes() )
         {
-            Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
-                .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
-            Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
-
-            for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
-                .getTrackedEntityAttributeValues() )
-            {
-                if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
-                {
-                    attributeValues.add( trackedEntityAttributeValue );
-                }
-            }
-            result.getEntityInstance().setTrackedEntityAttributeValues( attributeValues );
+            result.getEntityInstance()
+                .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( user, programInstance ) );
         }
+
         return result;
+    }
+
+    private Set<ProgramStageInstance> getProgramStageInstances( User user, ProgramInstance programInstance,
+        EnrollmentParams params )
+    {
+        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+
+        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        {
+            if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
+                && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
+            {
+                programStageInstances.add( programStageInstance );
+            }
+        }
+        return programStageInstances;
+    }
+
+    private Set<RelationshipItem> getRelationshipItems( User user, ProgramInstance programInstance,
+        EnrollmentParams params )
+    {
+        Set<RelationshipItem> relationshipItems = new HashSet<>();
+
+        for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
+        {
+            org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
+            if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
+                && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+            {
+                relationshipItems.add( relationshipItem );
+            }
+        }
+
+        return relationshipItems;
+    }
+
+    private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( User user,
+        ProgramInstance programInstance )
+    {
+        Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
+            .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+        Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
+
+        for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+            .getTrackedEntityAttributeValues() )
+        {
+            if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
+            {
+                attributeValues.add( trackedEntityAttributeValue );
+            }
+        }
+
+        return attributeValues;
     }
 
     @Override
