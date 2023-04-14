@@ -66,7 +66,7 @@ class RequestParamUtils
     }
 
     private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
-        .filter( QueryOperator::isComparison ).map( Enum::toString )
+        .filter( QueryOperator::isDateOrNumericComparison ).map( Enum::toString )
         .collect( Collectors.joining( "|" ) );
 
     /**

@@ -67,7 +67,9 @@ public enum QueryOperator
 
     private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of( LIKE, NLIKE, ILIKE, NILIKE );
 
-    private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of( GT, GE, LT, LE );
+    private static final Set<QueryOperator> DATE_OR_NUMERIC_RANGE_OPERATORS = EnumSet.of( GT, GE, LT, LE );
+
+    private static final Set<QueryOperator> WORD_RANGE_OPERATORS = EnumSet.of( SW, EW );
 
     private final String value;
 
@@ -115,8 +117,13 @@ public enum QueryOperator
         return IN == this;
     }
 
-    public boolean isComparison()
+    public boolean isDateOrNumericComparison()
     {
-        return COMPARISON_OPERATORS.contains( this );
+        return DATE_OR_NUMERIC_RANGE_OPERATORS.contains( this );
+    }
+
+    public boolean isWordComparison()
+    {
+        return WORD_RANGE_OPERATORS.contains( this );
     }
 }

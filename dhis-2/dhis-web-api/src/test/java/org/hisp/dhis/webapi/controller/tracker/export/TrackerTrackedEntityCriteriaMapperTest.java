@@ -356,6 +356,22 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
+    void shouldCreateQueryFiltersWhenAttributesHasMultipleFiltersForWordRange()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":sw:hello", TEA_1_UID + ":ew:world" ) );
+
+        List<QueryFilter> queryFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.SW, "hello" ),
+            new QueryFilter( QueryOperator.EW, "world" ) ), queryFilters );
+    }
+
+    @Test
     void testFilterWhenMultipleTEAFiltersAreRepeated()
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10", TEA_1_UID + ":lt:20",

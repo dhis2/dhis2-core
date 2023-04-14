@@ -175,35 +175,45 @@ public class TrackerTrackedEntityCriteriaMapper
         return params;
     }
 
+    /**
+     * We only allow attributes query filters to be duplicated for words range.
+     * We otherwise throw a bad request if an attribute id has multiple filters
+     * defined
+     *
+     * @param attributeItems
+     * @throws BadRequestException
+     */
     private void validateDuplicatedAttributeFilters( List<QueryItem> attributeItems )
         throws BadRequestException
     {
         Set<DimensionalItemObject> duplicatedAttributes = getDuplicatedAttributes( attributeItems );
 
-        if ( !duplicatedAttributes.isEmpty() )
+        List<String> errorMessages = new ArrayList<>();
+        for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
         {
-            List<String> errorMessages = new ArrayList<>();
-            for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
+            List<QueryFilter> attributeFilters = attributeItems.stream()
+                .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
+                .flatMap( i -> i.getFilters().stream() )
+                .collect( Collectors.toList() );
+
+            if ( !(attributeFilters.stream()
+                .filter( f -> f.getOperator().isWordComparison() )
+                .count() == attributeFilters.size() && attributeFilters.size() == 2) )
             {
-                List<String> duplicateDFilters = getDuplicateDFilters( attributeItems, duplicatedAttribute );
+                List<String> duplication = attributeFilters.stream().map( f -> f.getOperator() + ":" + f.getFilter() )
+                    .collect( Collectors.toList() );
+
                 String message = MessageFormat.format( "Filter for attribute {0} was specified more than once. " +
                     "Try to define a single filter with multiple operators [{0}:{1}]",
-                    duplicatedAttribute.getUid(), StringUtils.join( duplicateDFilters, ':' ) );
+                    duplicatedAttribute.getUid(), StringUtils.join( duplication, ':' ) );
                 errorMessages.add( message );
             }
+        }
 
+        if ( !errorMessages.isEmpty() )
+        {
             throw new BadRequestException( StringUtils.join( errorMessages, ", " ) );
         }
-    }
-
-    private List<String> getDuplicateDFilters( List<QueryItem> attributeItems,
-        DimensionalItemObject duplicatedAttribute )
-    {
-        return attributeItems.stream()
-            .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
-            .flatMap( q -> q.getFilters().stream() )
-            .map( f -> f.getOperator() + ":" + f.getFilter() )
-            .collect( Collectors.toList() );
     }
 
     private Set<DimensionalItemObject> getDuplicatedAttributes( List<QueryItem> attributeItems )
