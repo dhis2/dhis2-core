@@ -3,9 +3,10 @@ version: "3.8"
 services:
   web:
     image: "${DHIS2_IMAGE:-dhis2/core-dev:local}"
+    # Only container ports are specified, as the E2E tests run in parallel in Jenkins and using explicit host ports causes collision
     ports:
-      - 127.0.0.1:8080:8080 # DHIS2
-      - 127.0.0.1:8081:8081 # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
+      - "8080" # DHIS2
+      - "8081" # Debugger: connect using commandline flag -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:8081
     volumes:
       - ./config/dhis2_home/dhis.conf:/opt/dhis2/dhis.conf:ro
     environment:
