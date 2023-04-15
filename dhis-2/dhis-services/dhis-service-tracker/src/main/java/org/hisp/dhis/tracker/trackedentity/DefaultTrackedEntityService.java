@@ -27,39 +27,26 @@
  */
 package org.hisp.dhis.tracker.trackedentity;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.BooleanUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.commons.util.TextUtils;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -74,11 +61,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.relationship.RelationshipService;
+import org.hisp.dhis.tracker.trackedentity.aggregates.TrackedEntityAggregate;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -90,8 +76,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 {
     private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
 
-    private final RelationshipService relationshipService;
-
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final TrackedEntityTypeService trackedEntityTypeService;
@@ -102,13 +86,15 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private final TrackedEntityInstanceAggregate trackedEntityInstanceAggregate;
+    private final TrackedEntityAggregate trackedEntityAggregate;
 
     private final ProgramService programService;
 
+    private final RelationshipService relationshipService;
+
     @Override
     public List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityInstanceParams params )
+        TrackedEntityParams params )
     {
         if ( queryParams == null )
         {
@@ -122,318 +108,38 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             return Collections.emptyList();
         }
 
-        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityInstanceAggregate.find( ids, params,
-            queryParams ).stream().map( this::map ).collect( Collectors.toList() );
+        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityAggregate.find( ids, params,
+            queryParams );
+        // We need to return the full models for relationship items (i.e. trackedEntity, enrollment and event). The
+        // getRelationship() implementations of the stores do not provide that functionality right now.
+        if ( params.isIncludeRelationships() )
+        {
+            trackedEntityInstances.forEach( this::mapRelationshipItem );
+        }
+        if ( params.getEnrollmentParams().isIncludeRelationships() )
+        {
+            trackedEntityInstances.forEach( t -> t.getProgramInstances().forEach( this::mapRelationshipItem ) );
+        }
+        if ( params.getEventParams().isIncludeRelationships() )
+        {
+            trackedEntityInstances.forEach( t -> t.getProgramInstances()
+                .forEach( e -> e.getProgramStageInstances().forEach( this::mapRelationshipItem ) ) );
+        }
 
         addSearchAudit( trackedEntityInstances, queryParams.getUser() );
 
         return trackedEntityInstances;
     }
 
-    private TrackedEntityInstance map( org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance tei )
-    {
-        if ( tei == null )
-        {
-            return null;
-        }
-
-        TrackedEntityInstance result = new TrackedEntityInstance();
-        result.setUid( tei.getTrackedEntityInstance() );
-        OrganisationUnit orgUnit = new OrganisationUnit();
-        orgUnit.setUid( tei.getOrgUnit() );
-        result.setOrganisationUnit( orgUnit );
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid( tei.getTrackedEntityType() );
-        result.setTrackedEntityType( trackedEntityType );
-        result.setCreated( DateUtils.parseDate( tei.getCreated() ) );
-        result.setCreatedAtClient( DateUtils.parseDate( tei.getCreatedAtClient() ) );
-        result.setLastUpdated( DateUtils.parseDate( tei.getLastUpdated() ) );
-        result.setLastUpdatedAtClient( DateUtils.parseDate( tei.getLastUpdatedAtClient() ) );
-        result.setInactive( tei.isInactive() );
-        result.setGeometry( tei.getGeometry() );
-        result.setDeleted( BooleanUtils.toBoolean( tei.isDeleted() ) );
-        result.setPotentialDuplicate( BooleanUtils.toBoolean( tei.isPotentialDuplicate() ) );
-        result.setStoredBy( tei.getStoredBy() );
-        result.setCreatedByUserInfo( tei.getCreatedByUserInfo() );
-        result.setLastUpdatedByUserInfo( tei.getLastUpdatedByUserInfo() );
-
-        result.setRelationshipItems(
-            mapTrackedEntityRelationshipItem( tei.getTrackedEntityInstance(), tei.getRelationships() ) );
-        result.setProgramInstances( Optional.ofNullable( tei.getEnrollments() ).orElseGet( ArrayList::new ).stream()
-            .map( this::map ).collect( Collectors.toSet() ) );
-        result.setProgramOwners( Optional.ofNullable( tei.getProgramOwners() ).orElseGet( ArrayList::new ).stream()
-            .map( this::map ).collect( Collectors.toSet() ) );
-        result.setTrackedEntityAttributeValues(
-            Optional.ofNullable( tei.getAttributes() ).orElseGet( ArrayList::new ).stream().map( this::map )
-                .collect( Collectors.toSet() ) );
-
-        return result;
-    }
-
-    private TrackedEntityProgramOwner map( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner )
-    {
-        if ( programOwner == null )
-        {
-            return null;
-        }
-
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( programOwner.getTrackedEntityInstance() );
-
-        Program program = new Program();
-        program.setUid( programOwner.getProgram() );
-
-        OrganisationUnit organisationUnit = new OrganisationUnit();
-        organisationUnit.setUid( programOwner.getOwnerOrgUnit() );
-
-        return new TrackedEntityProgramOwner( trackedEntityInstance, program, organisationUnit );
-    }
-
-    private TrackedEntityAttributeValue map( org.hisp.dhis.dxf2.events.trackedentity.Attribute att )
-    {
-        if ( att == null )
-        {
-            return null;
-        }
-
-        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
-        attribute.setUid( att.getAttribute() );
-        attribute.setValueType( att.getValueType() );
-        // note: dxf2 only stores the displayName which is cannot be set on TEA as it's computed from the name
-        // this mapping is going to be removed once we have migrated the aggregate code (very soon!)
-        attribute.setName( att.getDisplayName() );
-        attribute.setCode( att.getCode() );
-        attribute.setSkipSynchronization( att.isSkipSynchronization() );
-        TrackedEntityAttributeValue result = new TrackedEntityAttributeValue();
-        result.setAttribute( attribute );
-        result.setCreated( DateUtils.parseDate( att.getCreated() ) );
-        result.setLastUpdated( DateUtils.parseDate( att.getLastUpdated() ) );
-        result.setValue( att.getValue() );
-        result.setStoredBy( att.getStoredBy() );
-        return result;
-    }
-
-    private ProgramInstance map( Enrollment enrollment )
-    {
-        if ( enrollment == null )
-        {
-            return null;
-        }
-
-        ProgramInstance result = new ProgramInstance();
-        result.setUid( enrollment.getEnrollment() );
-
-        if ( StringUtils.isNotEmpty( enrollment.getTrackedEntityInstance() ) )
-        {
-            TrackedEntityInstance tei = new TrackedEntityInstance();
-            TrackedEntityType type = new TrackedEntityType();
-            type.setUid( enrollment.getTrackedEntityType() );
-            tei.setTrackedEntityType( type );
-            tei.setUid( enrollment.getTrackedEntityInstance() );
-
-            // tei owns all attributes in trackedEntityAttributeValues while programs only present a subset of them
-            // the program attributes are the ones attached to the enrollment
-            tei.setTrackedEntityAttributeValues(
-                Optional.ofNullable( enrollment.getAttributes() ).orElseGet( ArrayList::new ).stream().map( this::map )
-                    .collect( Collectors.toSet() ) );
-
-            result.setEntityInstance( tei );
-        }
-
-        if ( StringUtils.isNotEmpty( enrollment.getOrgUnit() ) )
-        {
-            OrganisationUnit orgUnit = new OrganisationUnit();
-            orgUnit.setUid( enrollment.getOrgUnit() );
-            orgUnit.setName( enrollment.getOrgUnitName() );
-            result.setOrganisationUnit( orgUnit );
-        }
-
-        result.setGeometry( enrollment.getGeometry() );
-        result.setCreated( DateUtils.parseDate( enrollment.getCreated() ) );
-        result.setCreatedAtClient( DateUtils.parseDate( enrollment.getCreatedAtClient() ) );
-        result.setLastUpdated( DateUtils.parseDate( enrollment.getLastUpdated() ) );
-        result.setLastUpdatedAtClient( DateUtils.parseDate( enrollment.getLastUpdatedAtClient() ) );
-
-        Program program = new Program();
-        program.setUid( enrollment.getProgram() );
-        result.setProgram( program );
-
-        if ( enrollment.getStatus() != null )
-        {
-            result.setStatus( enrollment.getStatus().getProgramStatus() );
-        }
-        result.setEnrollmentDate( enrollment.getEnrollmentDate() );
-        result.setIncidentDate( enrollment.getIncidentDate() );
-        result.setFollowup( enrollment.getFollowup() );
-        result.setEndDate( enrollment.getCompletedDate() );
-        result.setCompletedBy( enrollment.getCompletedBy() );
-        result.setStoredBy( enrollment.getStoredBy() );
-        result.setCreatedByUserInfo( enrollment.getCreatedByUserInfo() );
-        result.setLastUpdatedByUserInfo( enrollment.getLastUpdatedByUserInfo() );
-        result.setDeleted( BooleanUtils.toBoolean( enrollment.isDeleted() ) );
-
-        result.setRelationshipItems(
-            mapEnrollmentRelationshipItem( enrollment.getEnrollment(), enrollment.getRelationships() ) );
-        result
-            .setProgramStageInstances( Optional.ofNullable( enrollment.getEvents() ).orElseGet( ArrayList::new )
-                .stream().map( this::map ).collect( Collectors.toSet() ) );
-        result.setComments( Optional.ofNullable( enrollment.getNotes() ).orElseGet( ArrayList::new ).stream()
-            .map( this::map ).collect( Collectors.toList() ) );
-
-        return result;
-    }
-
-    private TrackedEntityComment map( org.hisp.dhis.dxf2.events.event.Note note )
-    {
-        if ( note == null )
-        {
-            return null;
-        }
-
-        TrackedEntityComment result = new TrackedEntityComment();
-        result.setUid( note.getNote() );
-        result.setCommentText( note.getValue() );
-        result.setCreator( note.getStoredBy() );
-        result.setCreated( DateUtils.parseDate( note.getStoredDate() ) );
-        result.setLastUpdated( note.getLastUpdated() );
-        if ( note.getLastUpdatedBy() != null )
-        {
-            User user = new User();
-            user.setId( note.getLastUpdatedBy().getId() );
-            user.setUid( note.getLastUpdatedBy().getUid() );
-            user.setCode( note.getLastUpdatedBy().getCode() );
-            user.setUsername( note.getLastUpdatedBy().getUsername() );
-            user.setFirstName( note.getLastUpdatedBy().getFirstName() );
-            user.setSurname( note.getLastUpdatedBy().getSurname() );
-            result.setLastUpdatedBy( user );
-        }
-        return result;
-    }
-
-    private ProgramStageInstance map( org.hisp.dhis.dxf2.events.event.Event event )
-    {
-        if ( event == null )
-        {
-            return null;
-        }
-
-        ProgramStageInstance result = new ProgramStageInstance();
-        result.setUid( event.getEvent() );
-        result.setStatus( event.getStatus() );
-        result.setExecutionDate( DateUtils.parseDate( event.getEventDate() ) );
-        result.setDueDate( DateUtils.parseDate( event.getDueDate() ) );
-        result.setStoredBy( event.getStoredBy() );
-        result.setCompletedBy( event.getCompletedBy() );
-        result.setCompletedDate( DateUtils.parseDate( event.getCompletedDate() ) );
-        result.setCreated( DateUtils.parseDate( event.getCreated() ) );
-        result.setCreatedByUserInfo( event.getCreatedByUserInfo() );
-        result.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
-        result.setCreatedAtClient( DateUtils.parseDate( event.getCreatedAtClient() ) );
-        result.setLastUpdated( DateUtils.parseDate( event.getLastUpdated() ) );
-        result.setLastUpdatedAtClient( DateUtils.parseDate( event.getLastUpdatedAtClient() ) );
-        result.setGeometry( event.getGeometry() );
-        result.setDeleted( BooleanUtils.toBoolean( event.isDeleted() ) );
-
-        if ( StringUtils.isNotEmpty( event.getAssignedUser() ) )
-        {
-            User assignedUser = new User();
-            assignedUser.setUid( event.getAssignedUser() );
-            assignedUser.setUsername( event.getAssignedUserUsername() );
-            assignedUser.setName( event.getAssignedUserDisplayName() );
-            assignedUser.setFirstName( event.getAssignedUserFirstName() );
-            assignedUser.setSurname( event.getAssignedUserSurname() );
-            result.setAssignedUser( assignedUser );
-        }
-
-        if ( StringUtils.isNotEmpty( event.getOrgUnit() ) )
-        {
-            OrganisationUnit orgUnit = new OrganisationUnit();
-            orgUnit.setUid( event.getOrgUnit() );
-            orgUnit.setName( event.getOrgUnitName() );
-            result.setOrganisationUnit( orgUnit );
-        }
-
-        ProgramInstance programInstance = new ProgramInstance();
-        result.setProgramInstance( programInstance );
-        programInstance.setUid( event.getEnrollment() );
-        programInstance.setFollowup( event.getFollowup() );
-        if ( event.getEnrollmentStatus() != null )
-        {
-            programInstance.setStatus( event.getEnrollmentStatus().getProgramStatus() );
-        }
-
-        Program program = new Program();
-        program.setUid( event.getProgram() );
-        programInstance.setProgram( program );
-
-        if ( StringUtils.isNotEmpty( event.getTrackedEntityInstance() ) )
-        {
-            TrackedEntityInstance tei = new TrackedEntityInstance();
-            tei.setUid( event.getTrackedEntityInstance() );
-            programInstance.setEntityInstance( tei );
-        }
-
-        ProgramStage programStage = new ProgramStage();
-        programStage.setUid( event.getProgramStage() );
-        result.setProgramStage( programStage );
-
-        if ( StringUtils.isNotEmpty( event.getAttributeOptionCombo() ) )
-        {
-            CategoryOptionCombo coc = new CategoryOptionCombo();
-            coc.setUid( event.getAttributeOptionCombo() );
-            result.setAttributeOptionCombo( coc );
-            if ( StringUtils.isNotEmpty( event.getAttributeCategoryOptions() ) )
-            {
-                Set<CategoryOption> cos = TextUtils
-                    .splitToSet( event.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).stream().map( o -> {
-                        CategoryOption co = new CategoryOption();
-                        co.setUid( o );
-                        return co;
-                    } ).collect( Collectors.toSet() );
-                coc.setCategoryOptions( cos );
-            }
-        }
-
-        result.setRelationshipItems( mapEventRelationshipItem( event.getEvent(), event.getRelationships() ) );
-        result.setEventDataValues(
-            Optional.ofNullable( event.getDataValues() ).orElseGet( HashSet::new ).stream().map( this::map )
-                .collect( Collectors.toSet() ) );
-        result.setComments(
-            Optional.ofNullable( event.getNotes() ).orElseGet( ArrayList::new ).stream().map( this::map )
-                .collect( Collectors.toList() ) );
-
-        return result;
-    }
-
-    private EventDataValue map( org.hisp.dhis.dxf2.events.event.DataValue dataValue )
-    {
-        if ( dataValue == null )
-        {
-            return null;
-        }
-
-        EventDataValue result = new EventDataValue();
-        result.setCreated( DateUtils.parseDate( dataValue.getCreated() ) );
-        result.setCreatedByUserInfo( dataValue.getCreatedByUserInfo() );
-        result.setLastUpdated( DateUtils.parseDate( dataValue.getLastUpdated() ) );
-        result.setLastUpdatedByUserInfo( dataValue.getLastUpdatedByUserInfo() );
-        result.setDataElement( dataValue.getDataElement() );
-        result.setValue( dataValue.getValue() );
-        result.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
-        result.setStoredBy( dataValue.getStoredBy() );
-        return result;
-    }
-
-    private Set<RelationshipItem> mapTrackedEntityRelationshipItem( String uid,
-        Collection<org.hisp.dhis.dxf2.events.trackedentity.Relationship> relationships )
+    private void mapRelationshipItem( TrackedEntityInstance trackedEntity )
     {
         Set<RelationshipItem> result = new HashSet<>();
 
-        for ( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship : relationships )
+        for ( RelationshipItem item : trackedEntity.getRelationshipItems() )
         {
-            Relationship rel = relationshipService.findRelationshipByUid( relationship.getRelationship() ).get();
+            Relationship rel = relationshipService.findRelationshipByUid( item.getRelationship().getUid() ).get();
             if ( rel.getFrom().getTrackedEntityInstance() != null
-                && uid.equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
+                && trackedEntity.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
             {
                 RelationshipItem from = rel.getFrom();
                 from.setRelationship( rel );
@@ -446,19 +152,19 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                 result.add( to );
             }
         }
-        return result;
+
+        trackedEntity.setRelationshipItems( result );
     }
 
-    private Set<RelationshipItem> mapEnrollmentRelationshipItem( String uid,
-        Collection<org.hisp.dhis.dxf2.events.trackedentity.Relationship> relationships )
+    private void mapRelationshipItem( ProgramInstance enrollment )
     {
         Set<RelationshipItem> result = new HashSet<>();
 
-        for ( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship : relationships )
+        for ( RelationshipItem item : enrollment.getRelationshipItems() )
         {
-            Relationship rel = relationshipService.findRelationshipByUid( relationship.getRelationship() ).get();
-            if ( rel.getFrom().getProgramInstance() != null
-                && uid.equals( rel.getFrom().getProgramInstance().getUid() ) )
+            Relationship rel = relationshipService.findRelationshipByUid( item.getRelationship().getUid() ).get();
+            if ( rel.getFrom().getTrackedEntityInstance() != null
+                && enrollment.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
             {
                 RelationshipItem from = rel.getFrom();
                 from.setRelationship( rel );
@@ -471,19 +177,19 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                 result.add( to );
             }
         }
-        return result;
+
+        enrollment.setRelationshipItems( result );
     }
 
-    private Set<RelationshipItem> mapEventRelationshipItem( String uid,
-        Collection<org.hisp.dhis.dxf2.events.trackedentity.Relationship> relationships )
+    private void mapRelationshipItem( ProgramStageInstance event )
     {
         Set<RelationshipItem> result = new HashSet<>();
 
-        for ( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship : relationships )
+        for ( RelationshipItem item : event.getRelationshipItems() )
         {
-            Relationship rel = relationshipService.findRelationshipByUid( relationship.getRelationship() ).get();
-            if ( rel.getFrom().getProgramStageInstance() != null
-                && uid.equals( rel.getFrom().getProgramStageInstance().getUid() ) )
+            Relationship rel = relationshipService.findRelationshipByUid( item.getRelationship().getUid() ).get();
+            if ( rel.getFrom().getTrackedEntityInstance() != null
+                && event.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
             {
                 RelationshipItem from = rel.getFrom();
                 from.setRelationship( rel );
@@ -496,7 +202,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                 result.add( to );
             }
         }
-        return result;
+
+        event.setRelationshipItems( result );
     }
 
     private void addSearchAudit( List<TrackedEntityInstance> trackedEntityInstances, User user )
@@ -533,7 +240,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
     @Override
     public TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier,
-        TrackedEntityInstanceParams params )
+        TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException
     {
@@ -574,7 +281,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
     private TrackedEntityInstance getTei( TrackedEntityInstance daoTrackedEntityInstance,
         String programIdentifier,
-        TrackedEntityInstanceParams params, User user )
+        TrackedEntityParams params, User user )
     {
         if ( daoTrackedEntityInstance == null )
         {

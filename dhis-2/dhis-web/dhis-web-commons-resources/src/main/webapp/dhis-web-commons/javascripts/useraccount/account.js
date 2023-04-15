@@ -16,9 +16,6 @@ var validationRules = {
       required: true,
       rangelength: [8, 40],
       password: true,
-      remote: {
-            url: "../../api/account/validatePassword",
-            type: "post"}
     },
     retypePassword: {
       required: true,
@@ -71,33 +68,6 @@ $(document).ready(function() {
     }
   });
 });
-
-function checkPasswordForUsername() {
-
-  var userName = $("#username").val();
-  var passWord = $("#password").val();
-  if (passWord) {
-    if (userName) {
-      if ((passWord.indexOf(userName) !== -1) ||  (userName.indexOf(passWord) !== -1)) {
-        alert( i18n_username_in_password );
-        $("#password").val("");      }
-    }
-  }
-
-}
-
-function checkPasswordForEmail() {
-  var email = $("#email").val();
-  var passWord = $("#password").val();
-  if (passWord) {
-    if (email) {
-      if ((passWord.indexOf(email) !== -1) ||  (email.indexOf(passWord) !== -1)) {
-        alert( i18n_email_in_password );
-        $("#password").val("");
-      }
-    }
-  }
-}
 
 function accountSubmitHandler() {
   if( recaptchaEnabled() ) {

@@ -126,6 +126,7 @@ public class DefaultCacheProvider
         teiAttributesCache,
         programTeiAttributesCache,
         userGroupUIDCache,
+        oldTrackerSecurityCache,
         securityCache,
         runningJobsInfo,
         completedJobsInfo,
@@ -582,6 +583,17 @@ public class DefaultCacheProvider
     {
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.userGroupUIDCache.name() )
+            .expireAfterWrite( 10, TimeUnit.MINUTES )
+            .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
+    }
+
+    @Override
+    public <V> Cache<V> createOldTrackerSecurityCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.oldTrackerSecurityCache.name() )
             .expireAfterWrite( 10, TimeUnit.MINUTES )
             .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
             .forceInMemory()
