@@ -111,7 +111,7 @@ public class TrackedEntityInstanceAggregate
         teiAttributesCache = cacheProvider.createTeiAttributesCache();
         programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
         userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
-        securityCache = cacheProvider.createSecurityCache();
+        securityCache = cacheProvider.createOldTrackerSecurityCache();
     }
 
     /**
