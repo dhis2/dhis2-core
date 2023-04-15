@@ -57,6 +57,7 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.GridValueMeta;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
@@ -112,6 +113,12 @@ public class ListGrid
     private PerformanceMetrics performanceMetrics;
 
     /**
+     * Collection of the value meta information. Origin description of the
+     * repeatable stage value.
+     */
+    private List<GridValueMeta> gridValueMetaInfo;
+
+    /**
      * A Map which can hold internal arbitrary meta data. Will not be
      * serialized.
      */
@@ -154,6 +161,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
+        this.gridValueMetaInfo = new ArrayList<>();
         this.grid = new ArrayList<>();
     }
 
@@ -166,6 +174,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
+        this.gridValueMetaInfo = new ArrayList<>();
         this.grid = new ArrayList<>();
     }
 
@@ -371,6 +380,18 @@ public class ListGrid
         return internalMetaData;
     }
 
+    /**
+     * @param gridValueMeta
+     * @return
+     */
+    @Override
+    public Grid addGridValueMeta( GridValueMeta gridValueMeta )
+    {
+        gridValueMetaInfo.add( gridValueMeta );
+
+        return this;
+    }
+
     @Override
     public Grid setInternalMetaData( Map<String, Object> internalMetaData )
     {
@@ -383,6 +404,16 @@ public class ListGrid
     public PerformanceMetrics getPerformanceMetrics()
     {
         return performanceMetrics;
+    }
+
+    /**
+     * @return
+     */
+    @Override
+    @JsonProperty
+    public List<GridValueMeta> getGridValueMetaInfo()
+    {
+        return gridValueMetaInfo;
     }
 
     @Override

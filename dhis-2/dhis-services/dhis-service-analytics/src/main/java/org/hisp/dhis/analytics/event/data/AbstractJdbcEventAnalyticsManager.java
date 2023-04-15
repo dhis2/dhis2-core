@@ -366,7 +366,25 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( QueryItem queryItem : params.getItems() )
         {
-            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
+
+            columns.add( columnAndAlias.asSql() );
+
+            //  sql select snippet for the value meta => existence of repetition
+            //  it will be used in response grid:
+            //  "gridValueMetaInfo": [
+            //      {
+            //          "rowIndex": 0,
+            //          "status": "SET",
+            //          "columnIndex": 16
+            //      }
+            //  ]
+            if ( queryItem.hasRepeatableStageParams() )
+            {
+                String column = " exists (" + columnAndAlias.column + ")";
+                String alias = columnAndAlias.alias + ".exists";
+                columns.add( (new ColumnAndAlias( column, alias )).asSql() );
+            }
         }
 
         return columns;

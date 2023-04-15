@@ -74,6 +74,7 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.GridValueMeta;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
@@ -217,7 +218,26 @@ public abstract class AbstractAnalyticsService
 
         addHeaders( params, grid );
 
+        // ---------------------------------------------------------------------
+        // ValueMeta
+        // ---------------------------------------------------------------------
+
+        finalizeValueMeta( grid );
+
         return grid;
+    }
+
+    /**
+     * Add columnIndex value into gridValueMetaInfo items based on grid header
+     * name
+     *
+     * @param grid the {@link Grid}.
+     */
+    private void finalizeValueMeta( Grid grid )
+    {
+        List<GridValueMeta> gridValueMetaInfo = grid.getGridValueMetaInfo();
+
+        gridValueMetaInfo.forEach( m -> m.setColumnIndex( grid.getIndexOfHeader( m.getColumnName() ) ) );
     }
 
     /**

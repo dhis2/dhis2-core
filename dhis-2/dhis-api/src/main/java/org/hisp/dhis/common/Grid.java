@@ -103,9 +103,23 @@ public interface Grid
     Map<String, Object> getInternalMetaData();
 
     /**
+     * Adds GridValueMeta Object
+     *
+     * @param gridValueMeta @link GridValueMeta
+     */
+    Grid addGridValueMeta( GridValueMeta gridValueMeta );
+
+    /**
      * Returns performance metrics.
      */
     PerformanceMetrics getPerformanceMetrics();
+
+    /**
+     * Getter
+     *
+     * @return collection of GridValueMeta
+     */
+    List<GridValueMeta> getGridValueMetaInfo();
 
     /**
      * Sets a map of internal meta-data.

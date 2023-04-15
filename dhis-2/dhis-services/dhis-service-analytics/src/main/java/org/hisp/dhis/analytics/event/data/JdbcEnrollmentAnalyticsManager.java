@@ -42,8 +42,10 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -58,6 +60,8 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridValueMeta;
+import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
@@ -159,8 +163,42 @@ public class JdbcEnrollmentAnalyticsManager
             for ( int i = 0; i < grid.getHeaders().size(); ++i )
             {
                 addGridValue( grid, grid.getHeaders().get( i ), i + 1, rowSet, params );
+
+                addValueMetaInfo( grid, rowSet, grid.getHeaders().get( i ).getName() );
             }
         }
+    }
+
+    /**
+     * Add value meta info into the grid. Value meta info is information about
+     * origin of the repeatable stage value.
+     *
+     * @param grid the {@link Grid}.
+     * @param rowSet the {@link SqlRowSet}.
+     * @param columnName the {@link String}.
+     */
+    private void addValueMetaInfo( Grid grid, SqlRowSet rowSet, String columnName )
+    {
+        int gridRowIndex = grid.getRows().size() - 1;
+
+        Optional<String> valueMetaInfoColumnName = Arrays.stream( rowSet.getMetaData().getColumnNames() )
+            .filter( (columnName + ".exists")::equalsIgnoreCase )
+            .findFirst();
+
+        if ( valueMetaInfoColumnName.isPresent() )
+        {
+            boolean isDefined = rowSet.getBoolean( valueMetaInfoColumnName.get() );
+
+            boolean isSet = rowSet.getObject( columnName + ".exists" ) != null;
+
+            grid.addGridValueMeta(
+                new GridValueMeta( columnName, gridRowIndex, getGridValueStatus( isDefined, isSet ) ) );
+        }
+    }
+
+    private GridValueStatus getGridValueStatus( boolean isDefined, boolean isSet )
+    {
+        return isDefined ? isSet ? GridValueStatus.SET : GridValueStatus.UNSET : GridValueStatus.UNDEFINED;
     }
 
     @Override
