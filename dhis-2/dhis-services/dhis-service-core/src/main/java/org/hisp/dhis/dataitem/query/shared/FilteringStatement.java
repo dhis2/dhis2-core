@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
@@ -51,6 +52,8 @@ import static org.hisp.dhis.dataitem.query.shared.StatementUtil.ilikeFiltering;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.ilikeOrFiltering;
 import static org.hisp.dhis.dataitem.query.shared.StatementUtil.inFiltering;
 
+import lombok.NoArgsConstructor;
+
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
@@ -58,13 +61,10 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class FilteringStatement
 {
     private static final String REGEX_FOR_WORDS_FILTERING = "[\\s@&.?$+-]+";
-
-    private FilteringStatement()
-    {
-    }
 
     /**
      * Returns a SQL string related to UID equality to be reused as part of data
@@ -74,7 +74,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String uidFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String uidFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasNonBlankStringPresence( paramsMap, UID ) )
         {
@@ -92,7 +92,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String programIdFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String programIdFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasNonBlankStringPresence( paramsMap, PROGRAM_ID ) )
         {
@@ -110,7 +110,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String nameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String nameFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
@@ -131,8 +131,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String nameFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+    public static String nameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, NAME ) )
         {
@@ -150,7 +149,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String shortNameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String shortNameFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, SHORT_NAME ) )
         {
@@ -172,8 +171,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String shortNameFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+    public static String shortNameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, SHORT_NAME ) )
         {
@@ -191,7 +189,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String displayNameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String displayNameFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
@@ -213,8 +211,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String displayNameFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+    public static String displayNameFiltering( String columnOne, String columnTwo, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_NAME ) )
         {
@@ -232,7 +229,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String displayShortNameFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String displayShortNameFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
         {
@@ -254,8 +251,8 @@ public class FilteringStatement
      * @param paramsMap
      * @return the uid SQL comparison
      */
-    public static String displayShortNameFiltering( final String columnOne, final String columnTwo,
-        final MapSqlParameterSource paramsMap )
+    public static String displayShortNameFiltering( String columnOne, String columnTwo,
+        MapSqlParameterSource paramsMap )
     {
         if ( hasStringPresence( paramsMap, DISPLAY_SHORT_NAME ) )
         {
@@ -273,7 +270,7 @@ public class FilteringStatement
      * @param paramsMap
      * @return the "in" SQL statement
      */
-    public static String valueTypeFiltering( final String column, final MapSqlParameterSource paramsMap )
+    public static String valueTypeFiltering( String column, MapSqlParameterSource paramsMap )
     {
         if ( hasSetPresence( paramsMap, VALUE_TYPES ) )
         {
@@ -294,15 +291,15 @@ public class FilteringStatement
      * @param paramsMap
      * @return the SQL string
      */
-    public static String identifiableTokenFiltering( final String idColumn, final String codeColumn,
-        final String displayNameColumn, final String programNameColumn, final MapSqlParameterSource paramsMap )
+    public static String identifiableTokenFiltering( String idColumn, String codeColumn, String displayNameColumn,
+        String programNameColumn, MapSqlParameterSource paramsMap )
     {
         if ( hasNonBlankStringPresence( paramsMap, IDENTIFIABLE_TOKEN_COMPARISON ) )
         {
-            final String[] filteringWords = defaultIfNull(
+            String[] filteringWords = defaultIfNull(
                 (String) paramsMap.getValue( IDENTIFIABLE_TOKEN_COMPARISON ), EMPTY ).split( "," );
 
-            final OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder( paramsMap );
+            OptionalFilterBuilder optionalFilterBuilder = new OptionalFilterBuilder( paramsMap );
 
             optionalFilterBuilder
                 .append( ifAny( createRegexConditionForIdentifier( idColumn, filteringWords, SPACED_OR, ".*" ) ),
@@ -320,14 +317,14 @@ public class FilteringStatement
         return EMPTY;
     }
 
-    private static String createRegexConditionForPhrase( final String column, final String[] filteringWords,
-        final String spacedAndOr, final String regexMatch )
+    private static String createRegexConditionForPhrase( String column, String[] filteringWords,
+        String spacedAndOr, String regexMatch )
     {
         if ( filteringWords != null && filteringWords.length > 0 && isNotBlank( column ) )
         {
-            final StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+            StringBuilder orConditions = new StringBuilder( SPACED_LEFT_PARENTHESIS );
 
-            for ( final String word : filteringWords )
+            for ( String word : filteringWords )
             {
                 orConditions
                     .append(
@@ -345,14 +342,14 @@ public class FilteringStatement
         return EMPTY;
     }
 
-    private static String createRegexConditionForIdentifier( final String column, final String[] filteringWords,
-        final String spacedAndOr, final String regexMatch )
+    private static String createRegexConditionForIdentifier( String column, String[] filteringWords,
+        String spacedAndOr, String regexMatch )
     {
         // Should only trigger when there is no more than one word in the
         // filtering.
         if ( filteringWords != null && filteringWords.length == 1 && isNotBlank( column ) )
         {
-            final StringBuilder condition = new StringBuilder( SPACED_LEFT_PARENTHESIS );
+            StringBuilder condition = new StringBuilder( SPACED_LEFT_PARENTHESIS );
 
             condition
                 .append(
@@ -374,7 +371,7 @@ public class FilteringStatement
      * @param anyString
      * @return the exact same value provided as argument.
      */
-    public static String ifAny( final String anyString )
+    public static String ifAny( String anyString )
     {
         return anyString;
     }
@@ -385,7 +382,7 @@ public class FilteringStatement
      * @param anyString
      * @return the exact same value provided as argument.
      */
-    public static String ifSet( final String anyString )
+    public static String ifSet( String anyString )
     {
         return anyString;
     }
@@ -396,7 +393,7 @@ public class FilteringStatement
      * @param anyString
      * @return the exact same value provided as argument.
      */
-    public static String always( final String anyString )
+    public static String always( String anyString )
     {
         return anyString;
     }
@@ -408,9 +405,9 @@ public class FilteringStatement
      * @param paramsMap
      * @return the "root junction" ('and' OR 'or')
      */
-    public static String rootJunction( final MapSqlParameterSource paramsMap )
+    public static String rootJunction( MapSqlParameterSource paramsMap )
     {
-        final String defaultRootJunction = "and";
+        String defaultRootJunction = "and";
 
         if ( hasNonBlankStringPresence( paramsMap, ROOT_JUNCTION ) )
         {

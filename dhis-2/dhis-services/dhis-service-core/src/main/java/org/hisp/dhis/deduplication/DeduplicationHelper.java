@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
@@ -97,7 +96,7 @@ public class DeduplicationHelper
             .map( rel -> rel.getRelationship().getUid() ).collect( Collectors.toSet() );
 
         Set<String> validEnrollments = duplicate.getProgramInstances().stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         for ( String tea : mergeObject.getTrackedEntityAttributes() )
@@ -144,13 +143,13 @@ public class DeduplicationHelper
 
         Set<String> programUidOfExistingEnrollments = original.getProgramInstances().stream()
             .map( ProgramInstance::getProgram )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         String duplicateEnrollment = duplicate.getProgramInstances().stream()
             .filter( pi -> mergeObject.getEnrollments().contains( pi.getUid() ) )
             .map( ProgramInstance::getProgram )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .filter( programUidOfExistingEnrollments::contains )
             .findAny()
             .orElse( null );
@@ -164,12 +163,12 @@ public class DeduplicationHelper
          * Step 4: Make sure no relationships will become self-referencing.
          */
         Set<String> relationshipsToMergeUids = relationshipsToMerge.stream()
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         String selfReferencingRelationship = original.getRelationshipItems().stream()
             .map( RelationshipItem::getRelationship )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .filter( relationshipsToMergeUids::contains )
             .findFirst()
             .orElse( null );

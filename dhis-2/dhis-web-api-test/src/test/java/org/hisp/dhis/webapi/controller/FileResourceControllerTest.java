@@ -49,6 +49,13 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest
         JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
             .getObject( "fileResource" );
         assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+
+        String uid = savedObject.getString( "id" ).string();
+        JsonObject fr = GET( "/fileResources/{uid}", uid ).content();
+        assertEquals( "ORG_UNIT", fr.getString( "domain" ).string() );
+
+        JsonObject large = GET( "/fileResources/{uid}?dimension=LARGE", uid ).content();
+        assertEquals( "ORG_UNIT", large.getString( "domain" ).string() );
     }
 
     @Test

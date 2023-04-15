@@ -117,18 +117,18 @@ public class DefaultEnrollmentService implements EnrollmentService
 
         if ( params.isIncludeEvents() )
         {
+            Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+
             for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
             {
-                Set<ProgramStageInstance> programStageInstances = new HashSet<>();
-
                 if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
                     && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
                 {
                     programStageInstances.add( programStageInstance );
                 }
-
-                result.setProgramStageInstances( programStageInstances );
             }
+
+            result.setProgramStageInstances( programStageInstances );
         }
 
         if ( params.isIncludeRelationships() )

@@ -43,7 +43,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsDimensionsService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -99,7 +99,7 @@ class DefaultTeiAnalyticsDimensionsService implements TeiAnalyticsDimensionsServ
     {
         return Optional.of( program )
             .map( Program::getTrackedEntityType )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .filter( uid -> StringUtils.equals( uid, trackedEntityTypeId ) )
             .isPresent();
     }

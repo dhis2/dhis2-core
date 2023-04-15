@@ -46,6 +46,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.fileresource.events.FileDeletedEvent;
 import org.hisp.dhis.fileresource.events.FileSavedEvent;
 import org.hisp.dhis.fileresource.events.ImageFileSavedEvent;
+import org.hisp.dhis.period.PeriodService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -64,6 +65,9 @@ class FileResourceServiceTest
 {
     @Mock
     private FileResourceStore fileResourceStore;
+
+    @Mock
+    private PeriodService periodService;
 
     @Mock
     private SessionFactory sessionFactory;
@@ -94,7 +98,8 @@ class FileResourceServiceTest
     @BeforeEach
     public void setUp()
     {
-        subject = new DefaultFileResourceService( fileResourceStore, sessionFactory, fileResourceContentStore,
+        subject = new DefaultFileResourceService( fileResourceStore, periodService, sessionFactory,
+            fileResourceContentStore,
             imageProcessingService, fileEventPublisher );
     }
 

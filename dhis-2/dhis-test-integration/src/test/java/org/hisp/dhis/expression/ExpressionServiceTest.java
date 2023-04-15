@@ -71,10 +71,10 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.QueryModifiers;
@@ -1440,7 +1440,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
         List<OrganisationUnitGroup> items = expressionService.getOrgUnitGroupCountGroups( indicators );
         assertEquals( 3, items.size() );
-        List<String> nameList = items.stream().map( BaseIdentifiableObject::getName ).sorted()
+        List<String> nameList = items.stream().map( IdentifiableObject::getName ).sorted()
             .collect( Collectors.toList() );
         String names = String.join( ",", nameList );
         assertEquals( "OugA,OugB,OugC", names );

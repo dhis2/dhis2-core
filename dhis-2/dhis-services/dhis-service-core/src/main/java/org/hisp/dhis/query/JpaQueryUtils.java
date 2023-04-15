@@ -44,7 +44,7 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.hibernate.jsonb.type.JsonbFunctions;
 import org.hisp.dhis.schema.Property;
@@ -422,7 +422,7 @@ public class JpaQueryUtils
 
     private static String getGroupsIds( User user )
     {
-        return getGroupsIds( user.getGroups().stream().map( BaseIdentifiableObject::getUid ).collect( toList() ) );
+        return getGroupsIds( user.getGroups().stream().map( IdentifiableObject::getUid ).collect( toList() ) );
     }
 
     private static String getGroupsIds( List<String> userGroupIds )

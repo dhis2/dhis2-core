@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
@@ -219,13 +219,13 @@ public class RelationshipTypeObjectBundleHook
             trackedEntityType = trackedEntityTypeService.getTrackedEntityType( trackedEntityType.getUid() );
 
             Set<String> trackedEntityTypeAttributes = Optional.ofNullable( trackedEntityType )
-                .map( t -> t.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
+                .map( t -> t.getTrackedEntityAttributes().stream().map( IdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) )
                 .orElse( new HashSet<>() );
 
             Set<String> programTrackedEntityAttributes = Optional.ofNullable( constraint.getProgram() )
                 .map( p -> programService.getProgram( p.getUid() ) )
-                .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
+                .map( p -> p.getTrackedEntityAttributes().stream().map( IdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) )
                 .orElse( new HashSet<>() );
 
@@ -289,7 +289,7 @@ public class RelationshipTypeObjectBundleHook
             Program program = programService.getProgram( constraint.getProgram().getUid() );
 
             Set<String> trackedEntityAttributes = Optional.ofNullable( program ).filter( Program::isRegistration )
-                .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
+                .map( p -> p.getTrackedEntityAttributes().stream().map( IdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) )
                 .orElse( new HashSet<>() );
 
@@ -340,18 +340,18 @@ public class RelationshipTypeObjectBundleHook
         }
 
         Program program = programService.getProgram(
-            Optional.ofNullable( constraint.getProgram() ).map( BaseIdentifiableObject::getUid )
+            Optional.ofNullable( constraint.getProgram() ).map( IdentifiableObject::getUid )
                 .orElse( StringUtils.EMPTY ) );
         ProgramStage programStage = constraint.getProgramStage();
 
         Set<String> dataElementIds = Optional.ofNullable( programStage )
             .map( ps -> programStageService.getProgramStage( ps.getUid() ) )
             .map(
-                s -> s.getDataElements().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() ) )
+                s -> s.getDataElements().stream().map( IdentifiableObject::getUid ).collect( Collectors.toSet() ) )
             .orElse( new HashSet<>() );
 
         Set<String> trackedEntityAttributesIds = Optional.ofNullable( program )
-            .map( p -> p.getTrackedEntityAttributes().stream().map( BaseIdentifiableObject::getUid )
+            .map( p -> p.getTrackedEntityAttributes().stream().map( IdentifiableObject::getUid )
                 .collect( Collectors.toSet() ) )
             .orElse( new HashSet<>() );
 

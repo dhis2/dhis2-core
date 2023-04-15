@@ -56,7 +56,8 @@ import com.google.common.collect.Lists;
  */
 @JacksonXmlRootElement( localName = "category", namespace = DxfNamespaces.DXF_2_0 )
 public class Category
-    extends BaseDimensionalObject implements SystemDefaultMetadataObject
+    extends BaseDimensionalObject
+    implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 

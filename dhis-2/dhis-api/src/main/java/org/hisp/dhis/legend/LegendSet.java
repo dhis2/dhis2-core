@@ -49,7 +49,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "legendSet", namespace = DxfNamespaces.DXF_2_0 )
 public class LegendSet
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String symbolizer;
 

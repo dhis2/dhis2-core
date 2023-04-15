@@ -1,16 +1,15 @@
 {
-  "system": {
-    "rev": "1e9ad0f",
-    "version": "2.32-SNAPSHOT",
-    "date": "2019-01-28T11:34:56.545"
-  },
+  "system": [
+    "rev",
+    "version",
+    "date"
+  ],
   "trackedEntityTypes": [
     {
       "created": "2020-05-31T08:59:52.758",
       "lastUpdated": "2020-05-31T11:41:22.419",
       "name": "Person",
       "id": "nEenWmSyUEp",
-      "publicAccess": "rw------",
       "description": "person",
       "maxTeiCountToReturn": 0,
       "allowAuditLog": false,
@@ -22,11 +21,16 @@
       "user": {
         "id": "M5zQapPyTZI"
       },
-      "userGroupAccesses": [],
       "attributeValues": [],
       "trackedEntityTypeAttributes": [],
       "translations": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "users": [
@@ -109,7 +113,6 @@
       "created": "2019-01-28T11:23:20.906",
       "name": "ProgramA",
       "shortName": "ProgramA",
-      "publicAccess": "rw------",
       "completeEventsExpiryDays": 0,
       "ignoreOverdueEvents": false,
       "skipOffline": false,
@@ -181,10 +184,15 @@
           "userAccesses": []
         }
       ],
-      "userGroupAccesses": [],
       "programSections": [],
       "attributeValues": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "userRoles": [
@@ -194,9 +202,7 @@
       "lastUpdated": "2019-01-28T11:03:39.381",
       "name": "Superuser",
       "id": "yrB6vc5Ip3r",
-      "publicAccess": "--------",
       "description": "Superuser",
-      "userGroupAccesses": [],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -232,7 +238,13 @@
         "F_UNCOMPLETE_EVENT"
       ],
       "translations": [],
-      "userAccesses": []
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "trackedEntityAttributes": [
@@ -244,7 +256,6 @@
       "shortName": "Attribute_Integer",
       "aggregationType": "SUM",
       "displayInListNoProgram": false,
-      "publicAccess": "rw------",
       "pattern": "",
       "skipSynchronization": false,
       "generated": false,
@@ -261,10 +272,15 @@
         "id": "M5zQapPyTZI"
       },
       "translations": [],
-      "userGroupAccesses": [],
       "attributeValues": [],
-      "userAccesses": [],
-      "legendSets": []
+      "legendSets": [],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "programRules": [

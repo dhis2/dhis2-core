@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.replaceEach;
+
+import lombok.NoArgsConstructor;
 
 /**
  * This class keeps basic SQL statements/keywords/constants so they can be
@@ -35,12 +38,9 @@ import static org.apache.commons.lang3.StringUtils.replaceEach;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class StatementUtil
 {
-    private StatementUtil()
-    {
-    }
-
     public static final String SPACED_SELECT = " select ";
 
     public static final String SPACED_WHERE = " where ";
@@ -67,7 +67,7 @@ public class StatementUtil
      * @param value the value where characters will ve replaced.
      * @return the input value with the characters replaced.
      */
-    public static String addIlikeReplacingCharacters( final String value )
+    public static String addIlikeReplacingCharacters( String value )
     {
         return replaceEach( value, new String[] { "%", "," }, new String[] { "\\%", "\\," } );
     }
@@ -80,7 +80,7 @@ public class StatementUtil
      * @param namedParam
      * @return the SQL string
      */
-    public static String inFiltering( final String column, final String namedParam )
+    public static String inFiltering( String column, String namedParam )
     {
         return SPACED_LEFT_PARENTHESIS + column + " in (:" + namedParam + ")" + SPACED_RIGHT_PARENTHESIS;
     }
@@ -93,7 +93,7 @@ public class StatementUtil
      * @param namedParam
      * @return the SQL string
      */
-    public static String ilikeFiltering( final String column, final String namedParam )
+    public static String ilikeFiltering( String column, String namedParam )
     {
         return SPACED_LEFT_PARENTHESIS + column + ILIKE + namedParam + SPACED_RIGHT_PARENTHESIS;
     }
@@ -108,8 +108,7 @@ public class StatementUtil
      * @param namedParam
      * @return the SQL string
      */
-    public static String ilikeOrFiltering( final String columnOne, final String columnTwo,
-        final String namedParam )
+    public static String ilikeOrFiltering( String columnOne, String columnTwo, String namedParam )
     {
         return SPACED_LEFT_PARENTHESIS + columnOne + ILIKE + namedParam + " or " + columnTwo + ILIKE
             + namedParam + SPACED_RIGHT_PARENTHESIS;
@@ -123,7 +122,7 @@ public class StatementUtil
      * @param namedParam
      * @return the SQL string
      */
-    public static String equalsFiltering( final String column, final String namedParam )
+    public static String equalsFiltering( String column, String namedParam )
     {
         return SPACED_LEFT_PARENTHESIS + column + EQUAL + namedParam + SPACED_RIGHT_PARENTHESIS;
     }

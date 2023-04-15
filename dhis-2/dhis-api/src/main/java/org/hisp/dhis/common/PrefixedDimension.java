@@ -66,7 +66,7 @@ public class PrefixedDimension
     {
         return Stream.of( program, programStage )
             .filter( Objects::nonNull )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.joining( DIMENSION_IDENTIFIER_SEP ) );
     }
 }

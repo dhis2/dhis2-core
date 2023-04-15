@@ -53,7 +53,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "indicator", namespace = DxfNamespaces.DXF_2_0 )
 public class Indicator
-    extends BaseDataDimensionalItemObject implements MetadataObject
+    extends BaseDataDimensionalItemObject
+    implements MetadataObject
 {
     private boolean annualized;
 
