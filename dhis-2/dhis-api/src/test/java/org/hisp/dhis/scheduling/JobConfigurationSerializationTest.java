@@ -31,7 +31,6 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -69,7 +68,6 @@ class JobConfigurationSerializationTest
                 + "      \"jobStatus\": \"SCHEDULED\",\n" + "      \"displayName\": \"Test Analytic\",\n"
                 + "      \"enabled\": true,\n" + "      \"leaderOnlyJob\": true,\n"
                 + "      \"externalAccess\": false,\n" + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
-                + "      \"nextExecutionTime\": \"2019-03-27T02:00:00.000\",\n"
                 + "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n"
                 + "      \"lastRuntimeExecution\": \"00:00:00.060\",\n"
                 + "      \"lastExecutedStatus\": \"COMPLETED\",\n"
@@ -89,7 +87,6 @@ class JobConfigurationSerializationTest
         assertTrue( jc.isEnabled() );
         assertTrue( jc.isLeaderOnlyJob() );
         assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        assertNull( jc.getNextExecutionTime() );
         assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
         assertNotNull( jc.getJobParameters() );
         assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
@@ -115,7 +112,6 @@ class JobConfigurationSerializationTest
                 + "      \"jobStatus\": \"SCHEDULED\",\n" + "      \"displayName\": \"Test Analytic\",\n"
                 + "      \"enabled\": false,\n" + "      \"leaderOnlyJob\": true,\n"
                 + "      \"externalAccess\": false,\n" + "      \"jobType\": \"ANALYTICS_TABLE\",\n"
-                + "      \"nextExecutionTime\": \"2019-03-27T02:00:00.000\",\n"
                 + "      \"cronExpression\": \"0 0 12 ? * MON-FRI\",\n"
                 + "      \"lastRuntimeExecution\": \"00:00:00.060\",\n"
                 + "      \"lastExecutedStatus\": \"COMPLETED\",\n"
@@ -135,7 +131,6 @@ class JobConfigurationSerializationTest
         assertFalse( jc.isEnabled() );
         assertTrue( jc.isLeaderOnlyJob() );
         assertEquals( JobType.ANALYTICS_TABLE, jc.getJobType() );
-        assertNull( jc.getNextExecutionTime() );
         assertEquals( "0 0 12 ? * MON-FRI", jc.getCronExpression() );
         assertNotNull( jc.getJobParameters() );
         assertEquals( (Integer) 2, ((AnalyticsJobParameters) jc.getJobParameters()).getLastYears() );
