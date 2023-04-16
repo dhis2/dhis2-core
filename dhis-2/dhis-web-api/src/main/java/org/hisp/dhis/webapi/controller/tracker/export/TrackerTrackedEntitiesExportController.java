@@ -49,7 +49,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -60,6 +59,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -108,7 +108,7 @@ public class TrackerTrackedEntitiesExportController
     private final FieldFilterService fieldFilterService;
 
     @Nonnull
-    private final CsvEventService<TrackedEntity> csvEventService;
+    private final CsvService<TrackedEntity> csvEventService;
 
     private final TrackedEntityFieldsParamMapper fieldsMapper;
 
@@ -189,7 +189,7 @@ public class TrackerTrackedEntitiesExportController
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"" );
         }
 
-        csvEventService.writeEvents( outputStream, trackedEntityInstances, !skipHeader );
+        csvEventService.write( outputStream, trackedEntityInstances, !skipHeader );
     }
 
     @GetMapping( value = "{id}" )
@@ -223,6 +223,6 @@ public class TrackerTrackedEntitiesExportController
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"" );
-        csvEventService.writeEvents( outputStream, List.of( trackedEntity ), !skipHeader );
+        csvEventService.write( outputStream, List.of( trackedEntity ), !skipHeader );
     }
 }

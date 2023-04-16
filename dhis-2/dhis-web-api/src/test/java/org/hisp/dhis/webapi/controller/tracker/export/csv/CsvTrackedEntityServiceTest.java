@@ -44,10 +44,10 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.junit.jupiter.api.Test;
 import org.locationtech.jts.geom.Geometry;
 
-class TrackerCsvTrackedEntityServiceTest
+class CsvTrackedEntityServiceTest
 {
 
-    private TrackerCsvTrackedEntityService service = new TrackerCsvTrackedEntityService();
+    private final CsvTrackedEntityService service = new CsvTrackedEntityService();
 
     private Instant instant;
 
@@ -63,7 +63,7 @@ class TrackerCsvTrackedEntityServiceTest
         Geometry geometry = geometryJSON.read( "{\"type\":\"Point\", \"coordinates\": " + pointCoordinates + " }" );
         trackedEntity.setGeometry( geometry );
 
-        service.writeEvents( out, List.of( trackedEntity ), false );
+        service.write( out, List.of( trackedEntity ), false );
         assertEquals( "\"Test tracked entity\",," + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,\"POINT (40 5)\",5.0,40.0,,,,,,,,,\n", out.toString() );
     }
@@ -80,7 +80,7 @@ class TrackerCsvTrackedEntityServiceTest
         Geometry geometry = geometryJSON.read( "{\"type\":\"LineString\", \"coordinates\": " + lineCoordinates + " }" );
         trackedEntity.setGeometry( geometry );
 
-        service.writeEvents( out, List.of( trackedEntity ), false );
+        service.write( out, List.of( trackedEntity ), false );
         assertEquals( "\"Test tracked entity\",," + instant.toString()
             + ",,,,\"Test org unit\",false,false,false,\"LINESTRING (40 5, 41 6)\",,,,,,,,,,,\n", out.toString() );
     }
@@ -98,7 +98,7 @@ class TrackerCsvTrackedEntityServiceTest
         Geometry geometry = geometryJSON.read( "{\"type\":\"Point\", \"coordinates\": " + pointCoordinates + " }" );
         trackedEntities.get( 1 ).setGeometry( geometry );
 
-        service.writeEvents( out, trackedEntities, false );
+        service.write( out, trackedEntities, false );
         assertEquals(
             "\"Test tracked entity\",," + instant.toString() + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n" +
                 "\"Test tracked entity\",," + instant
@@ -124,7 +124,7 @@ class TrackerCsvTrackedEntityServiceTest
         Attribute attribute2 = createAttribute( "attribute 2", ValueType.TEXT, "Text test" );
         trackedEntities.get( 2 ).setAttributes( Arrays.asList( attribute1, attribute2 ) );
 
-        service.writeEvents( out, trackedEntities, false );
+        service.write( out, trackedEntities, false );
         assertEquals(
             "\"Test tracked entity\",," + instant.toString() + ",,,,\"Test org unit\",false,false,false,,,,,,,,,,,,\n" +
                 "\"Test tracked entity\",," + instant
