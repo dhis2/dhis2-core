@@ -113,4 +113,10 @@ class TrackerEventCriteria extends PagingAndSortingCriteriaAdapter
     private Set<String> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
+
+    @Override
+    public boolean isLegacy()
+    {
+        return false;
+    }
 }

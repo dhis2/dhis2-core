@@ -162,7 +162,7 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
     private Date eventOccurredBefore;
 
     /**
-     * Indicates whether not to include meta data in the response.
+     * Indicates whether not to include metadata in the response.
      */
     private boolean skipMeta;
 

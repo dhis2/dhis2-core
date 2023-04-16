@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
-
 import java.util.Date;
-import java.util.Optional;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
@@ -80,41 +75,4 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
     {
         return false;
     }
-
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return translate( dtoFieldName, DtoToEntityFieldTranslator.values() );
-    }
-
-    /**
-     * Dto to database field translator for new tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.Enrollment fields, just with different
-         * case
-         *
-         * example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient -->
-         * UPDATED_AT_CLIENT
-         */
-        ENROLLMENT( "uid" ),
-        CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" ),
-        UPDATED_AT_CLIENT( "lastUpdatedAtClient" ),
-        TRACKED_ENTITY( "pi.entityInstance.uid" ),
-        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" ),
-        ENROLLED_AT( "enrollmentDate" ),
-        OCCURRED_AT( "incidentDate" ),
-        COMPLETED_AT( "endDate" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
 }

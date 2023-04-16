@@ -27,14 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
-
-import java.util.Optional;
-
 import lombok.EqualsAndHashCode;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
@@ -144,57 +138,4 @@ class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
     {
         return false;
     }
-
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return isLegacy ? translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() )
-            : translate( dtoFieldName, DtoToEntityFieldTranslator.values() );
-    }
-
-    /**
-     * Dto to database field translator for new tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum DtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.tracker.domain.Enrollment fields, just with different
-         * case
-         * <p>
-         * example: org.hisp.dhis.tracker.domain.Enrollment.updatedAtClient -->
-         * UPDATED_AT_CLIENT
-         */
-        CREATED_AT( "created" ),
-        UPDATED_AT( "lastUpdated" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
-    /**
-     * Dto to database field translator for old tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
-         * different case
-         * <p>
-         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
-         * --> LAST_UPDATED
-         */
-        RELATIONSHIP( "uid" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
 }
