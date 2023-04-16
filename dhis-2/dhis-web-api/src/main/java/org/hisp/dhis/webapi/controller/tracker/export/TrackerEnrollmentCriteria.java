@@ -69,10 +69,4 @@ public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
     private String enrollment;
 
     private boolean includeDeleted;
-
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
 }

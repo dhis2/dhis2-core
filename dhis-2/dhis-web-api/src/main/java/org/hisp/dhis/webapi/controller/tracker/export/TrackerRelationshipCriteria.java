@@ -132,10 +132,4 @@ class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
         }
         return this.identifierClass;
     }
-
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
 }

@@ -186,10 +186,4 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
      * is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
-
-    @Override
-    public boolean isLegacy()
-    {
-        return false;
-    }
 }
