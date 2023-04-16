@@ -96,6 +96,12 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest
         assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/ancestors", ou22 ).content(), "L22", "L1", "L0" );
     }
 
+    @Test
+    void testGetParents()
+    {
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/parents", ou21 ).content(), "L1", "L0" );
+    }
+
     private void assertListOfOrganisationUnits( JsonObject response, String... names )
     {
         JsonList<JsonIdentifiableObject> units = response.getList( "organisationUnits", JsonIdentifiableObject.class );
