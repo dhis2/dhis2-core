@@ -308,9 +308,9 @@ public class CollectionUtils
 
         entries.add( Map.entry( key, value ) );
 
-        for ( int i = 0; i < keysAndValues.length; i += 2 )
+        for ( int i = 1; i < keysAndValues.length; i += 2 )
         {
-            entries.add( Map.entry( (K) keysAndValues[i], (V) keysAndValues[i + 1] ) );
+            entries.add( Map.entry( (K) keysAndValues[i - 1], (V) keysAndValues[i] ) );
         }
 
         return Map.ofEntries( entries.toArray( new Map.Entry[entries.size()] ) );
