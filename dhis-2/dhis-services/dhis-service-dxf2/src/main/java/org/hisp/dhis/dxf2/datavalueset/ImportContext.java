@@ -212,6 +212,11 @@ public final class ImportContext
         return this;
     }
 
+    public void addRejected( int index )
+    {
+        summary.addRejected( index );
+    }
+
     public void addConflict( String object, String value )
     {
         summary.addConflict( object, value );
