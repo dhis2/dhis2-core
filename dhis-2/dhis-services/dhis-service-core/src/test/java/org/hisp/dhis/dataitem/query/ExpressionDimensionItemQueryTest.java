@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.validation.validator.relationship;
+package org.hisp.dhis.dataitem.query;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Enrico Colasante
+ * Unit tests for {@link ExpressionDimensionItemQuery} class.
+ *
+ * @author maikel arabori
  */
-class ValidationUtils
+class ExpressionDimensionItemQueryTest
 {
-
-    private ValidationUtils()
+    @Test
+    void testGetStatementContainsOwnerCheck()
     {
-        throw new IllegalStateException( "Utility class" );
-    }
+        // Given
+        MapSqlParameterSource anyMap = new MapSqlParameterSource();
+        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
-    {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
-        {
-            return TrackerType.TRACKED_ENTITY;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
-    }
+        // When
+        String statement = query.getStatement( anyMap );
 
-    public static String getUidFromRelationshipItem( RelationshipItem item )
-    {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
+        // Then
+        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
     }
 }

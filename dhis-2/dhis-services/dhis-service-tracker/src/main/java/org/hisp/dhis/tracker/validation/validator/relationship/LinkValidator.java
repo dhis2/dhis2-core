@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,41 +27,35 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.tracker.TrackerType;
-import org.hisp.dhis.tracker.domain.RelationshipItem;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
 
-/**
- * @author Enrico Colasante
- */
-class ValidationUtils
+import java.util.Objects;
+
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
+
+public class LinkValidator implements Validator<Relationship>
 {
-
-    private ValidationUtils()
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
     {
-        throw new IllegalStateException( "Utility class" );
+        validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
     }
 
-    public static TrackerType relationshipItemValueType( RelationshipItem item )
+    private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
     {
-        if ( StringUtils.isNotEmpty( item.getTrackedEntity() ) )
+        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
         {
-            return TrackerType.TRACKED_ENTITY;
+            reporter.addError( relationship, E4000, relationship.getRelationship() );
         }
-        else if ( StringUtils.isNotEmpty( item.getEnrollment() ) )
-        {
-            return TrackerType.ENROLLMENT;
-        }
-        else if ( StringUtils.isNotEmpty( item.getEvent() ) )
-        {
-            return TrackerType.EVENT;
-        }
-        return null;
     }
 
-    public static String getUidFromRelationshipItem( RelationshipItem item )
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
     {
-        return ObjectUtils.firstNonNull( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() );
+        return strategy.isCreate();
     }
 }
