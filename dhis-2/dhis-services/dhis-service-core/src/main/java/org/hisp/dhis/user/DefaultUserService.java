@@ -862,6 +862,7 @@ public class DefaultUserService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public String getDisplayName( String userUid )
     {
         return userDisplayNameCache.get( userUid, c -> userStore.getDisplayName( userUid ) );

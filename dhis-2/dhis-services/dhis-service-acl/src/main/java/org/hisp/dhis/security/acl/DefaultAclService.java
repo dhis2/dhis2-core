@@ -55,6 +55,7 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Default ACL implementation that uses SchemaDescriptors to get authorities /
@@ -64,6 +65,7 @@ import org.springframework.stereotype.Service;
  */
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.security.acl.AclService" )
+@Transactional( readOnly = true )
 public class DefaultAclService implements AclService
 {
     public static final String INPUT_OBJECT_CAN_T_BE_OF_TYPE_CLASS = "Input object can't be of type Class!";

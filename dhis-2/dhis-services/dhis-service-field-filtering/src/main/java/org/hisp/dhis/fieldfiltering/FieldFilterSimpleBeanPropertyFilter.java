@@ -195,8 +195,10 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
         }
 
         Class<?> klass = object.getClass();
-
-        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass );
+        //|| AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
+        // catOptionCombos = adding ~5.5 times (from ~190ms to ~1.05secs)
+        // programs = adding ~2 times (from ~570ms to ~1.10secs)
+        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass );// || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
     }
 }
 
