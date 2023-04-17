@@ -210,6 +210,8 @@ public class JdbcEnrollmentAnalyticsManager
             }
             catch ( InvalidResultSetAccessException ignored )
             {
+                // when .exists extension of column name does not indicate boolean flag,
+                // value will not be added and method returns false
             }
         }
 
@@ -218,7 +220,12 @@ public class JdbcEnrollmentAnalyticsManager
 
     private GridValueStatus getGridValueStatus( boolean isDefined, boolean isSet )
     {
-        return isDefined ? isSet ? GridValueStatus.SET : GridValueStatus.UNSET : GridValueStatus.UNDEFINED;
+        if ( !isDefined )
+        {
+            return GridValueStatus.UNDEFINED;
+        }
+
+        return isSet ? GridValueStatus.SET : GridValueStatus.UNSET;
     }
 
     @Override
