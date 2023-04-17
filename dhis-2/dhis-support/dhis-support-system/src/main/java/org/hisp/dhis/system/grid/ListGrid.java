@@ -123,7 +123,7 @@ public class ListGrid
      * Transformed collection of the value meta information for better
      * javascript handling. Describe origin of the repeatable stage value.
      */
-    private Map<String, Map<String, Object>> rowContext;
+    private Map<Integer, Map<Integer, Object>> rowContext;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -169,7 +169,7 @@ public class ListGrid
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
         this.gridValueMetaInfo = new ArrayList<>();
-        this.rowContext = new TreeMap<>( Comparator.comparing( Integer::valueOf ) );
+        this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -183,7 +183,7 @@ public class ListGrid
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
         this.gridValueMetaInfo = new ArrayList<>();
-        this.rowContext = new TreeMap<>( Comparator.comparing( Integer::valueOf ) );
+        this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -402,7 +402,7 @@ public class ListGrid
     }
 
     @Override
-    public Grid addRowContext( Map<String, Map<String, Object>> rowContext )
+    public Grid addRowContext( Map<Integer, Map<Integer, Object>> rowContext )
     {
         this.rowContext = rowContext;
 
@@ -434,7 +434,7 @@ public class ListGrid
 
     @Override
     @JsonProperty
-    public Map<String, Map<String, Object>> getRowContext()
+    public Map<Integer, Map<Integer, Object>> getRowContext()
     {
         return rowContext;
     }

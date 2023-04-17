@@ -109,7 +109,7 @@ public interface Grid
      */
     Grid addGridValueMeta( GridValueMeta gridValueMeta );
 
-    Map<String, Map<String, Object>> getRowContext();
+    Map<Integer, Map<Integer, Object>> getRowContext();
 
     /**
      * Returns performance metrics.
@@ -572,7 +572,7 @@ public interface Grid
      * @param rowContext
      * @return Grid instance
      */
-    Grid addRowContext( Map<String, Map<String, Object>> rowContext );
+    Grid addRowContext( Map<Integer, Map<Integer, Object>> rowContext );
 
     /**
      * Adds a reference.
