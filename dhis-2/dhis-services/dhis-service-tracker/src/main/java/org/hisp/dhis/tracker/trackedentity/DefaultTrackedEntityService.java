@@ -43,6 +43,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
@@ -97,185 +98,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     private final EnrollmentService enrollmentService;
 
     private final EventService eventService;
-
-    @Override
-    public List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
-        TrackedEntityParams params )
-        throws ForbiddenException,
-        NotFoundException
-    {
-        if ( queryParams == null )
-        {
-            return Collections.emptyList();
-        }
-
-        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, false, false );
-
-        if ( ids.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-
-        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityAggregate.find( ids, params,
-            queryParams );
-        // We need to return the full models for relationship items (i.e. trackedEntity, enrollment and event) in our API. The aggregate stores currently do not support that, so we need to fetch the entities individually.
-        if ( params.isIncludeRelationships() )
-        {
-            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
-            {
-                mapRelationshipItem( trackedEntity );
-            }
-        }
-        if ( params.getEnrollmentParams().isIncludeRelationships() )
-        {
-            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
-            {
-                for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
-                {
-                    mapRelationshipItem( trackedEntity, programInstance );
-                }
-            }
-        }
-        if ( params.getEventParams().isIncludeRelationships() )
-        {
-            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
-            {
-                for ( ProgramInstance enrollment : trackedEntity.getProgramInstances() )
-                {
-                    for ( ProgramStageInstance event : enrollment.getProgramStageInstances() )
-                    {
-                        mapRelationshipItem( trackedEntity, event );
-                    }
-                }
-            }
-        }
-
-        addSearchAudit( trackedEntityInstances, queryParams.getUser() );
-
-        return trackedEntityInstances;
-    }
-
-    private void mapRelationshipItem( TrackedEntityInstance trackedEntity )
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Set<RelationshipItem> result = new HashSet<>();
-
-        for ( RelationshipItem item : trackedEntity.getRelationshipItems() )
-        {
-            Relationship rel = item.getRelationship();
-            RelationshipItem from = withNestedEntity( trackedEntity, rel.getFrom() );
-            from.setRelationship( rel );
-            rel.setFrom( from );
-            RelationshipItem to = withNestedEntity( trackedEntity, rel.getTo() );
-            to.setRelationship( rel );
-            rel.setTo( to );
-
-            if ( rel.getFrom().getTrackedEntityInstance() != null
-                && trackedEntity.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
-            {
-                result.add( from );
-            }
-            else
-            {
-                result.add( to );
-            }
-        }
-
-        trackedEntity.setRelationshipItems( result );
-    }
-
-    private void mapRelationshipItem( TrackedEntityInstance trackedEntity, ProgramInstance enrollment )
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Set<RelationshipItem> result = new HashSet<>();
-
-        for ( RelationshipItem item : enrollment.getRelationshipItems() )
-        {
-            Relationship rel = item.getRelationship();
-            RelationshipItem from = withNestedEntity( trackedEntity, rel.getFrom() );
-            from.setRelationship( rel );
-            rel.setFrom( from );
-            RelationshipItem to = withNestedEntity( trackedEntity, rel.getTo() );
-            to.setRelationship( rel );
-            rel.setTo( to );
-
-            if ( rel.getFrom().getTrackedEntityInstance() != null
-                && enrollment.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
-            {
-                result.add( from );
-            }
-            else
-            {
-                result.add( to );
-            }
-        }
-
-        enrollment.setRelationshipItems( result );
-    }
-
-    private void mapRelationshipItem( TrackedEntityInstance trackedEntity, ProgramStageInstance event )
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Set<RelationshipItem> result = new HashSet<>();
-
-        for ( RelationshipItem item : event.getRelationshipItems() )
-        {
-            Relationship rel = item.getRelationship();
-            RelationshipItem from = withNestedEntity( trackedEntity, rel.getFrom() );
-            from.setRelationship( rel );
-            rel.setFrom( from );
-            RelationshipItem to = withNestedEntity( trackedEntity, rel.getTo() );
-            to.setRelationship( rel );
-            rel.setTo( to );
-
-            if ( rel.getFrom().getTrackedEntityInstance() != null
-                && event.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
-            {
-                result.add( from );
-            }
-            else
-            {
-                result.add( to );
-            }
-        }
-
-        event.setRelationshipItems( result );
-    }
-
-    private void addSearchAudit( List<TrackedEntityInstance> trackedEntityInstances, User user )
-    {
-        if ( trackedEntityInstances.isEmpty() )
-        {
-            return;
-        }
-        final String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
-        Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
-            .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
-
-        List<TrackedEntityInstanceAudit> auditable = trackedEntityInstances
-            .stream()
-            .filter( Objects::nonNull )
-            .filter( tei -> tei.getTrackedEntityType() != null )
-            .filter( tei -> tetMap.get( tei.getTrackedEntityType().getUid() ).isAllowAuditLog() )
-            .map(
-                tei -> new TrackedEntityInstanceAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
-            .collect( Collectors.toList() );
-
-        if ( !auditable.isEmpty() )
-        {
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
-        }
-    }
-
-    @Override
-    public int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
-        boolean skipSearchScopeValidation )
-    {
-        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
-    }
 
     @Override
     public TrackedEntityInstance getTrackedEntity( String uid, TrackedEntityParams params )
@@ -494,5 +316,171 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         }
 
         return result;
+    }
+
+    @Override
+    public List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+        TrackedEntityParams params )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        if ( queryParams == null )
+        {
+            return Collections.emptyList();
+        }
+
+        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, false, false );
+
+        if ( ids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+
+        List<TrackedEntityInstance> trackedEntityInstances = this.trackedEntityAggregate.find( ids, params,
+            queryParams );
+
+        mapRelationshipItems( trackedEntityInstances, params );
+
+        addSearchAudit( trackedEntityInstances, queryParams.getUser() );
+
+        return trackedEntityInstances;
+    }
+
+    /**
+     * We need to return the full models for relationship items (i.e.
+     * trackedEntity, enrollment and event) in our API. The aggregate stores
+     * currently do not support that, so we need to fetch the entities
+     * individually.
+     */
+    private void mapRelationshipItems( List<TrackedEntityInstance> trackedEntityInstances, TrackedEntityParams params )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        if ( params.isIncludeRelationships() )
+        {
+            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
+            {
+                mapRelationshipItems( trackedEntity );
+            }
+        }
+        if ( params.getEnrollmentParams().isIncludeRelationships() )
+        {
+            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
+            {
+                for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
+                {
+                    mapRelationshipItems( programInstance, trackedEntity );
+                }
+            }
+        }
+        if ( params.getEventParams().isIncludeRelationships() )
+        {
+            for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
+            {
+                for ( ProgramInstance enrollment : trackedEntity.getProgramInstances() )
+                {
+                    for ( ProgramStageInstance event : enrollment.getProgramStageInstances() )
+                    {
+                        mapRelationshipItems( event, trackedEntity );
+                    }
+                }
+            }
+        }
+    }
+
+    private void mapRelationshipItems( TrackedEntityInstance trackedEntity )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Set<RelationshipItem> result = new HashSet<>();
+
+        for ( RelationshipItem item : trackedEntity.getRelationshipItems() )
+        {
+            result.add( mapRelationshipItem( item, trackedEntity, trackedEntity ) );
+        }
+
+        trackedEntity.setRelationshipItems( result );
+    }
+
+    private void mapRelationshipItems( ProgramInstance enrollment, TrackedEntityInstance trackedEntity )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Set<RelationshipItem> result = new HashSet<>();
+
+        for ( RelationshipItem item : enrollment.getRelationshipItems() )
+        {
+            result.add( mapRelationshipItem( item, enrollment, trackedEntity ) );
+        }
+
+        enrollment.setRelationshipItems( result );
+    }
+
+    private void mapRelationshipItems( ProgramStageInstance event, TrackedEntityInstance trackedEntity )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Set<RelationshipItem> result = new HashSet<>();
+
+        for ( RelationshipItem item : event.getRelationshipItems() )
+        {
+            result.add( mapRelationshipItem( item, event, trackedEntity ) );
+        }
+
+        event.setRelationshipItems( result );
+    }
+
+    private RelationshipItem mapRelationshipItem( RelationshipItem item, BaseIdentifiableObject itemOwner,
+        TrackedEntityInstance trackedEntity )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Relationship rel = item.getRelationship();
+        RelationshipItem from = withNestedEntity( trackedEntity, rel.getFrom() );
+        from.setRelationship( rel );
+        rel.setFrom( from );
+        RelationshipItem to = withNestedEntity( trackedEntity, rel.getTo() );
+        to.setRelationship( rel );
+        rel.setTo( to );
+
+        if ( rel.getFrom().getTrackedEntityInstance() != null
+            && itemOwner.getUid().equals( rel.getFrom().getTrackedEntityInstance().getUid() ) )
+        {
+            return from;
+        }
+
+        return to;
+    }
+
+    private void addSearchAudit( List<TrackedEntityInstance> trackedEntityInstances, User user )
+    {
+        if ( trackedEntityInstances.isEmpty() )
+        {
+            return;
+        }
+        final String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
+        Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
+            .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
+
+        List<TrackedEntityInstanceAudit> auditable = trackedEntityInstances
+            .stream()
+            .filter( Objects::nonNull )
+            .filter( tei -> tei.getTrackedEntityType() != null )
+            .filter( tei -> tetMap.get( tei.getTrackedEntityType().getUid() ).isAllowAuditLog() )
+            .map(
+                tei -> new TrackedEntityInstanceAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
+            .collect( Collectors.toList() );
+
+        if ( !auditable.isEmpty() )
+        {
+            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
+        }
+    }
+
+    @Override
+    public int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+        boolean skipSearchScopeValidation )
+    {
+        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 }
