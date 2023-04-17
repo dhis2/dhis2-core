@@ -272,7 +272,7 @@ public class DataExportParams
     }
 
     /**
-     * Indicates whether this parameters represents a single data value set,
+     * Indicates whether these parameters represent a single data value set,
      * implying that it contains exactly one of data sets, periods and
      * organisation units.
      */
