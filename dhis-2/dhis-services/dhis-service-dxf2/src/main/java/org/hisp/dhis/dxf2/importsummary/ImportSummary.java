@@ -29,6 +29,7 @@ package org.hisp.dhis.dxf2.importsummary;
 
 import static org.hisp.dhis.dxf2.importsummary.ImportStatus.ERROR;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,8 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     private int totalConflictOccurrenceCount = 0;
 
     private final Map<String, ImportConflict> conflicts = new LinkedHashMap<>();
+
+    private final List<Integer> rejectedIndexes = new ArrayList<>();
 
     private String dataSetComplete;
 
@@ -182,6 +185,18 @@ public class ImportSummary extends AbstractWebMessageResponse implements ImportC
     {
         this.importCount = importCount;
         return this;
+    }
+
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public List<Integer> getRejectedIndexes()
+    {
+        return rejectedIndexes;
+    }
+
+    public void addRejected( int index )
+    {
+        rejectedIndexes.add( index );
     }
 
     @Override

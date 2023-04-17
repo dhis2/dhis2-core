@@ -25,26 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.hisp.dhis.tracker.trackedentity.aggregates.query.ProgramAttributeQuery.COLUMNS.PI_UID;
+import static org.hisp.dhis.tracker.trackedentity.aggregates.query.ProgramAttributeQuery.getColumnName;
 
-/**
- * tracker.export is currently made independent of dxf2. We are in a transition
- * period where some mappers are duplicated. This mapper will be removed once
- * tracker.export is independent of dxf2.
- */
-@Mapper( uses = {
-    Dxf2RelationshipItemMapper.class,
-    InstantMapper.class } )
-interface Dxf2RelationshipMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.Relationship, Relationship>
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
+
+public class ProgramAttributeRowCallbackHandler
+    extends
+    AbstractMapper<TrackedEntityAttributeValue>
+    implements AttributeMapper
 {
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Override
-    Relationship from( org.hisp.dhis.dxf2.events.trackedentity.Relationship relationship );
+    TrackedEntityAttributeValue getItem( ResultSet rs )
+        throws SQLException
+    {
+        return getAttribute( rs );
+    }
+
+    @Override
+    String getKeyColumn()
+    {
+        return getColumnName( PI_UID );
+    }
 }

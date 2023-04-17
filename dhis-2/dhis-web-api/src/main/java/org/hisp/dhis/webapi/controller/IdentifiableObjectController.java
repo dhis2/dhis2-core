@@ -27,7 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.util.List;
+import static java.lang.String.format;
+
 import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
@@ -36,6 +37,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
@@ -57,11 +59,15 @@ public class IdentifiableObjectController
 
     @Override
     @SuppressWarnings( "unchecked" )
-    public List<IdentifiableObject> getEntity( String uid, WebOptions options )
+    public IdentifiableObject getEntity( String uid, WebOptions options )
+        throws NotFoundException
     {
         Optional<IdentifiableObject> object = (Optional<IdentifiableObject>) manager.find( uid );
-
-        return object.isPresent() ? List.of( object.get() ) : List.of();
+        if ( object.isEmpty() )
+        {
+            throw new NotFoundException( format( "No identifiable object with id `%s` exists", uid ) );
+        }
+        return object.get();
     }
 
     @Override

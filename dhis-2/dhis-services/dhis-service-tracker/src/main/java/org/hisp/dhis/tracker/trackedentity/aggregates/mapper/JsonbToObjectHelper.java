@@ -25,18 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.tracker.trackedentity.aggregates.mapper;
 
-import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Optional;
+import java.util.function.Consumer;
 
-@Mapper
-public interface Dxf2ProgramOwnerMapper
-    extends ViewMapper<org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner, ProgramOwner>
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
+
+import org.hisp.dhis.program.UserInfoSnapshot;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+@NoArgsConstructor( access = AccessLevel.PRIVATE )
+class JsonbToObjectHelper
 {
-    @Mapping( target = "orgUnit", source = "ownerOrgUnit" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Override
-    ProgramOwner from( org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner programOwner );
+
+    private static final ObjectMapper MAPPER;
+
+    static
+    {
+        MAPPER = new ObjectMapper();
+        MAPPER.configure( SerializationFeature.FAIL_ON_EMPTY_BEANS, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        MAPPER.configure( DeserializationFeature.FAIL_ON_INVALID_SUBTYPE, false );
+    }
+
+    static void setUserInfoSnapshot( ResultSet rs, String columnName,
+        Consumer<UserInfoSnapshot> applier )
+        throws SQLException
+    {
+        Optional.ofNullable( rs.getObject( columnName ) )
+            .map( Object::toString )
+            .map( JsonbToObjectHelper::safelyConvert )
+            .ifPresent( applier );
+    }
+
+    @SneakyThrows
+    static UserInfoSnapshot safelyConvert( String userInfoSnapshotAsString )
+    {
+        return MAPPER.readValue( userInfoSnapshotAsString, UserInfoSnapshot.class );
+    }
 }

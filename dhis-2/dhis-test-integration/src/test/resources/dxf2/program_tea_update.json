@@ -2,7 +2,7 @@
   "programStages": [
     {
       "created": "2016-03-11T07:00:48.241+0000",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "CPP34zTxaSf",
       "name": "ProgramStageA",
       "captureCoordinates": false,
@@ -56,10 +56,10 @@
           }
         }
       ],
-      "notificationTemplates": [ ],
+      "notificationTemplates": [],
       "displayGenerateEventBox": false,
       "preGenerateUID": false,
-      "programStageSections": [ ]
+      "programStageSections": []
     },
     {
       "remindCompleted": false,
@@ -68,9 +68,9 @@
       "minDaysFromStart": 0,
       "lastUpdated": "2016-03-11T07:01:02.882+0000",
       "allowGenerateNextVisit": false,
-      "notificationTemplates": [ ],
+      "notificationTemplates": [],
       "displayGenerateEventBox": false,
-      "programStageSections": [ ],
+      "programStageSections": [],
       "preGenerateUID": false,
       "openAfterEnrollment": false,
       "repeatable": false,
@@ -113,7 +113,7 @@
       "generatedByEnrollmentDate": false,
       "captureCoordinates": false,
       "created": "2016-03-11T07:01:02.878+0000",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "id": "xx7OzjHZDc8",
       "blockEntryForm": false,
       "program": {
@@ -131,21 +131,25 @@
       },
       "shortName": "DataElementShortA",
       "created": "2016-03-11T06:58:21.302+0000",
-      "attributeValues": [ ],
-      "userGroupAccesses": [ ],
+      "attributeValues": [],
       "id": "XzGnBlUcB87",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "valueType": "NUMBER",
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "lastUpdated": "2016-03-11T06:58:21.304+0000",
       "code": "DataElementCodeA",
       "zeroIsSignificant": false,
-      "aggregationType": "SUM"
+      "aggregationType": "SUM",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "A3U6uPM3H58",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "domainType": "TRACKER",
-      "publicAccess": "rw------",
       "lastUpdated": "2016-03-11T06:58:40.963+0000",
       "code": "DataElementCodeB",
       "aggregationType": "SUM",
@@ -155,36 +159,46 @@
       "user": {
         "id": "A3U6uPM3H58"
       },
-      "attributeValues": [ ],
+      "attributeValues": [],
       "created": "2016-03-11T06:58:40.961+0000",
-      "userGroupAccesses": [ ],
       "id": "qS4lxayqVRv",
-      "aggregationLevels": [ ],
-      "valueType": "NUMBER"
+      "aggregationLevels": [],
+      "valueType": "NUMBER",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "A3U6uPM3H58",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "code": "DataElementCodeC",
       "zeroIsSignificant": false,
       "aggregationType": "SUM",
-      "publicAccess": "rw------",
       "lastUpdated": "2016-03-11T06:58:59.840+0000",
       "domainType": "TRACKER",
       "valueType": "NUMBER",
-      "aggregationLevels": [ ],
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
+      "aggregationLevels": [],
+      "attributeValues": [],
       "created": "2016-03-11T06:58:59.839+0000",
       "id": "FAa7f8OxYmu",
       "name": "DataElementC",
       "user": {
         "id": "A3U6uPM3H58"
       },
-      "shortName": "DataElementShortC"
+      "shortName": "DataElementShortC",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "A3U6uPM3H58",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "domainType": "TRACKER",
       "lastUpdated": "2016-03-11T06:59:19.043+0000",
-      "publicAccess": "rw------",
       "zeroIsSignificant": false,
       "aggregationType": "SUM",
       "code": "DataElementCodeD",
@@ -194,17 +208,23 @@
       "shortName": "DataElementShortD",
       "name": "DataElementD",
       "id": "OmOMKxMZca9",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "created": "2016-03-11T06:59:19.041+0000",
-      "userGroupAccesses": [ ],
-      "aggregationLevels": [ ],
-      "valueType": "NUMBER"
+      "aggregationLevels": [],
+      "valueType": "NUMBER",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "A3U6uPM3H58",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "trackedEntityTypes": [
     {
       "created": "2016-03-11T06:56:14.000+0000",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "description": "Person",
       "id": "vmZxWXOw5CD",
       "lastUpdated": "2016-03-11T06:56:14.000+0000",
@@ -216,7 +236,7 @@
       "trackedEntityType": {
         "id": "vmZxWXOw5CD"
       },
-      "notificationTemplates": [ ],
+      "notificationTemplates": [],
       "programTrackedEntityAttributes": [
         {
           "created": "2016-03-11T07:00:28.968+0000",
@@ -248,14 +268,13 @@
       "onlyEnrollOnce": false,
       "dataEntryMethod": false,
       "selectIncidentDatesInFuture": false,
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "skipOffline": false,
       "lastUpdated": "2016-03-11T07:00:28.972+0000",
       "incidentDateLabel": "Incident Date",
-      "publicAccess": "--------",
       "displayFrontPageList": false,
       "selectEnrollmentDatesInFuture": false,
-      "validationCriterias": [ ],
+      "validationCriterias": [],
       "programStages": [
         {
           "id": "CPP34zTxaSf"
@@ -272,12 +291,18 @@
       "programType": "WITH_REGISTRATION",
       "name": "ProgramA",
       "id": "lVYxQwbXaj7",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "created": "2016-03-11T07:00:28.954+0000",
-      "userGroupAccesses": [ ],
       "version": 1,
       "enrollmentDateLabel": "Enrollment Date",
-      "displayIncidentDate": true
+      "displayIncidentDate": true,
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": "A3U6uPM3H58",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "organisationUnits": [
@@ -292,7 +317,7 @@
       "id": "AOin24YR0Dh",
       "lastUpdated": "2016-03-11T06:57:30.540+0000",
       "created": "2016-03-11T06:57:30.514+0000",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "description": "",
       "path": "/AOin24YR0Dh",
       "featureType": "NONE"
