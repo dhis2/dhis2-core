@@ -78,6 +78,7 @@ import org.hisp.dhis.dxf2.metadata.Metadata;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -246,20 +247,13 @@ public class DataSetController
         @RequestParam( value = "orgUnit", defaultValue = "", required = false ) List<String> orgUnits,
         @RequestParam( value = "comment", defaultValue = "true", required = false ) boolean comment,
         TranslateParams translateParams, HttpServletResponse response )
-        throws IOException,
-        WebMessageException
+        throws NotFoundException
     {
         setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
-
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
 
         Period pe = periodService.getPeriod( period );
 
-        return dataValueSetService.getDataValueSetTemplate( dataSets.get( 0 ), pe, orgUnits, comment, orgUnitIdScheme,
+        return dataValueSetService.getDataValueSetTemplate( getEntity( uid ), pe, orgUnits, comment, orgUnitIdScheme,
             dataElementIdScheme );
     }
 
@@ -274,26 +268,20 @@ public class DataSetController
         @RequestParam( required = false ) boolean metaData,
         TranslateParams translateParams )
         throws IOException,
-        WebMessageException
+        NotFoundException
     {
         setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
-
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "Data set not found for uid: " + uid ) );
-        }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new NotFoundException( OrganisationUnit.class, orgUnit );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
 
-        return getForm( dataSets, ou, pe, categoryOptions, metaData );
+        return getForm( List.of( getEntity( uid ) ), ou, pe, categoryOptions, metaData );
     }
 
     @GetMapping( value = "/{uid}/form", produces = { APPLICATION_XML_VALUE, TEXT_XML_VALUE } )
@@ -305,33 +293,26 @@ public class DataSetController
         @RequestParam( required = false ) boolean metaData,
         TranslateParams translateParams, HttpServletResponse response )
         throws IOException,
-        WebMessageException
+        NotFoundException
     {
         setTranslationParams( translateParams );
-        List<DataSet> dataSets = getEntity( uid, NO_WEB_OPTIONS );
-
-        if ( dataSets.isEmpty() )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
 
         OrganisationUnit ou = manager.get( OrganisationUnit.class, orgUnit );
 
         if ( ou == null )
         {
-            throw new WebMessageException( notFound( "Organisation unit does not exist: " + orgUnit ) );
+            throw new NotFoundException( OrganisationUnit.class, orgUnit );
         }
 
         Period pe = PeriodType.getPeriodFromIsoString( period );
 
-        Form form = getForm( dataSets, ou, pe, categoryOptions, metaData );
+        Form form = getForm( List.of( getEntity( uid ) ), ou, pe, categoryOptions, metaData );
 
         renderService.toXml( response.getOutputStream(), form );
     }
 
     private Form getForm( List<DataSet> dataSets, OrganisationUnit ou, Period pe, String categoryOptions,
         boolean metaData )
-        throws IOException
     {
         DataSet dataSet = dataSets.get( 0 );
 
@@ -370,16 +351,10 @@ public class DataSetController
         RequestMethod.POST }, consumes = TEXT_HTML_VALUE )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void updateCustomDataEntryFormHtml( @PathVariable( "uid" ) String uid,
-        @RequestBody String formContent,
-        HttpServletResponse response )
-        throws Exception
+        @RequestBody String formContent )
+        throws NotFoundException
     {
-        DataSet dataSet = dataSetService.getDataSet( uid );
-
-        if ( dataSet == null )
-        {
-            throw new WebMessageException( notFound( "DataSet not found for uid: " + uid ) );
-        }
+        DataSet dataSet = getEntity( uid );
 
         DataEntryForm form = dataSet.getDataEntryForm();
 
