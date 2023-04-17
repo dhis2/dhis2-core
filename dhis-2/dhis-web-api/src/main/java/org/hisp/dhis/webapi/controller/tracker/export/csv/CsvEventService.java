@@ -78,47 +78,7 @@ public class CsvEventService
 
         for ( Event event : events )
         {
-            CsvEventDataValue templateDataValue = new CsvEventDataValue();
-            templateDataValue.setEvent( event.getEvent() );
-            templateDataValue.setStatus( event.getStatus() != null ? event.getStatus().name() : null );
-            templateDataValue.setProgram( event.getProgram() );
-            templateDataValue.setProgramStage( event.getProgramStage() );
-            templateDataValue.setEnrollment( event.getEnrollment() );
-            templateDataValue.setOrgUnit( event.getOrgUnit() );
-            templateDataValue.setOrgUnitName( event.getOrgUnitName() );
-            templateDataValue.setOccurredAt( event.getOccurredAt() == null ? null : event.getOccurredAt().toString() );
-            templateDataValue
-                .setScheduledAt( event.getScheduledAt() == null ? null : event.getScheduledAt().toString() );
-            templateDataValue.setFollowup( event.isFollowup() );
-            templateDataValue.setDeleted( event.isDeleted() );
-            templateDataValue.setCreatedAt( event.getCreatedAt() == null ? null : event.getCreatedAt().toString() );
-            templateDataValue.setCreatedAtClient(
-                event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString() );
-            templateDataValue.setUpdatedAt( event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString() );
-            templateDataValue.setUpdatedAtClient(
-                event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
-            templateDataValue
-                .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
-            templateDataValue.setUpdatedBy( event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername() );
-            templateDataValue.setStoredBy( event.getStoredBy() );
-            templateDataValue
-                .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
-            templateDataValue.setCompletedBy( event.getCompletedBy() );
-            templateDataValue.setAttributeOptionCombo( event.getAttributeOptionCombo() );
-            templateDataValue.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
-            templateDataValue
-                .setAssignedUser( event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername() );
-
-            if ( event.getGeometry() != null )
-            {
-                templateDataValue.setGeometry( event.getGeometry().toText() );
-
-                if ( event.getGeometry().getGeometryType().equals( "Point" ) )
-                {
-                    templateDataValue.setLongitude( event.getGeometry().getCoordinate().x );
-                    templateDataValue.setLatitude( event.getGeometry().getCoordinate().y );
-                }
-            }
+            CsvEventDataValue templateDataValue = map( event );
 
             if ( event.getDataValues().isEmpty() )
             {
@@ -128,25 +88,76 @@ public class CsvEventService
 
             for ( DataValue value : event.getDataValues() )
             {
-                CsvEventDataValue dataValue = new CsvEventDataValue( templateDataValue );
-                dataValue.setDataElement( value.getDataElement() );
-                dataValue.setValue( value.getValue() );
-                dataValue.setProvidedElsewhere( value.isProvidedElsewhere() );
-                dataValue
-                    .setCreatedAtDataValue( value.getCreatedAt() == null ? null : value.getCreatedAt().toString() );
-                dataValue
-                    .setUpdatedAtDataValue( value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString() );
-
-                if ( value.getStoredBy() != null )
-                {
-                    dataValue.setStoredBy( value.getStoredBy() );
-                }
-
-                dataValues.add( dataValue );
+                dataValues.add( map( value, templateDataValue ) );
             }
         }
 
         writer.writeValue( outputStream, dataValues );
+    }
+
+    private static CsvEventDataValue map( Event event )
+    {
+        CsvEventDataValue result = new CsvEventDataValue();
+        result.setEvent( event.getEvent() );
+        result.setStatus( event.getStatus() != null ? event.getStatus().name() : null );
+        result.setProgram( event.getProgram() );
+        result.setProgramStage( event.getProgramStage() );
+        result.setEnrollment( event.getEnrollment() );
+        result.setOrgUnit( event.getOrgUnit() );
+        result.setOrgUnitName( event.getOrgUnitName() );
+        result.setOccurredAt( event.getOccurredAt() == null ? null : event.getOccurredAt().toString() );
+        result
+            .setScheduledAt( event.getScheduledAt() == null ? null : event.getScheduledAt().toString() );
+        result.setFollowup( event.isFollowup() );
+        result.setDeleted( event.isDeleted() );
+        result.setCreatedAt( event.getCreatedAt() == null ? null : event.getCreatedAt().toString() );
+        result.setCreatedAtClient(
+            event.getCreatedAtClient() == null ? null : event.getCreatedAtClient().toString() );
+        result.setUpdatedAt( event.getUpdatedAt() == null ? null : event.getUpdatedAt().toString() );
+        result.setUpdatedAtClient(
+            event.getUpdatedAtClient() == null ? null : event.getUpdatedAtClient().toString() );
+        result
+            .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
+        result.setUpdatedBy( event.getUpdatedBy() == null ? null : event.getUpdatedBy().getUsername() );
+        result.setStoredBy( event.getStoredBy() );
+        result
+            .setCompletedAt( event.getCompletedAt() == null ? null : event.getCompletedAt().toString() );
+        result.setCompletedBy( event.getCompletedBy() );
+        result.setAttributeOptionCombo( event.getAttributeOptionCombo() );
+        result.setAttributeCategoryOptions( event.getAttributeCategoryOptions() );
+        result
+            .setAssignedUser( event.getAssignedUser() == null ? null : event.getAssignedUser().getUsername() );
+
+        if ( event.getGeometry() != null )
+        {
+            result.setGeometry( event.getGeometry().toText() );
+
+            if ( event.getGeometry().getGeometryType().equals( "Point" ) )
+            {
+                result.setLongitude( event.getGeometry().getCoordinate().x );
+                result.setLatitude( event.getGeometry().getCoordinate().y );
+            }
+        }
+        return result;
+    }
+
+    private static CsvEventDataValue map( DataValue value, CsvEventDataValue base )
+    {
+        CsvEventDataValue result = new CsvEventDataValue( base );
+        result.setDataElement( value.getDataElement() );
+        result.setValue( value.getValue() );
+        result.setProvidedElsewhere( value.isProvidedElsewhere() );
+        result
+            .setCreatedAtDataValue( value.getCreatedAt() == null ? null : value.getCreatedAt().toString() );
+        result
+            .setUpdatedAtDataValue( value.getUpdatedAt() == null ? null : value.getUpdatedAt().toString() );
+
+        if ( value.getStoredBy() != null )
+        {
+            result.setStoredBy( value.getStoredBy() );
+        }
+
+        return result;
     }
 
     @Override
@@ -179,39 +190,7 @@ public class CsvEventService
 
             if ( !Objects.equals( event.getEvent(), dataValue.getEvent() ) )
             {
-                event = new Event();
-                event.setEvent( dataValue.getEvent() );
-                event.setStatus( StringUtils.isEmpty( dataValue.getStatus() )
-                    ? EventStatus.ACTIVE
-                    : Enum.valueOf( EventStatus.class, dataValue.getStatus() ) );
-                event.setProgram( dataValue.getProgram() );
-                event.setProgramStage( dataValue.getProgramStage() );
-                event.setEnrollment( dataValue.getEnrollment() );
-                event.setOrgUnit( dataValue.getOrgUnit() );
-                event.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAt() ) );
-                event.setCreatedAtClient( DateUtils.instantFromDateAsString( dataValue.getCreatedAtClient() ) );
-                event.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAt() ) );
-                event.setUpdatedAtClient( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtClient() ) );
-                event.setOccurredAt( DateUtils.instantFromDateAsString( dataValue.getOccurredAt() ) );
-                event.setScheduledAt( DateUtils.instantFromDateAsString( dataValue.getScheduledAt() ) );
-                event.setCompletedAt( DateUtils.instantFromDateAsString( dataValue.getCompletedAt() ) );
-                event.setCompletedBy( dataValue.getCompletedBy() );
-                event.setStoredBy( dataValue.getStoredBy() );
-                event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
-                event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
-                event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
-
-                if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
-                {
-                    event.setGeometry( new WKTReader()
-                        .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
-                }
-                else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
-                {
-                    event.setGeometry( new WKTReader()
-                        .read( "Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")" ) );
-                }
-
+                event = map( dataValue );
                 events.add( event );
             }
 
@@ -232,5 +211,44 @@ public class CsvEventService
         }
 
         return events;
+    }
+
+    private static Event map( CsvEventDataValue dataValue )
+        throws ParseException
+    {
+        Event event;
+        event = new Event();
+        event.setEvent( dataValue.getEvent() );
+        event.setStatus( StringUtils.isEmpty( dataValue.getStatus() )
+            ? EventStatus.ACTIVE
+            : Enum.valueOf( EventStatus.class, dataValue.getStatus() ) );
+        event.setProgram( dataValue.getProgram() );
+        event.setProgramStage( dataValue.getProgramStage() );
+        event.setEnrollment( dataValue.getEnrollment() );
+        event.setOrgUnit( dataValue.getOrgUnit() );
+        event.setCreatedAt( DateUtils.instantFromDateAsString( dataValue.getCreatedAt() ) );
+        event.setCreatedAtClient( DateUtils.instantFromDateAsString( dataValue.getCreatedAtClient() ) );
+        event.setUpdatedAt( DateUtils.instantFromDateAsString( dataValue.getUpdatedAt() ) );
+        event.setUpdatedAtClient( DateUtils.instantFromDateAsString( dataValue.getUpdatedAtClient() ) );
+        event.setOccurredAt( DateUtils.instantFromDateAsString( dataValue.getOccurredAt() ) );
+        event.setScheduledAt( DateUtils.instantFromDateAsString( dataValue.getScheduledAt() ) );
+        event.setCompletedAt( DateUtils.instantFromDateAsString( dataValue.getCompletedAt() ) );
+        event.setCompletedBy( dataValue.getCompletedBy() );
+        event.setStoredBy( dataValue.getStoredBy() );
+        event.setAttributeOptionCombo( dataValue.getAttributeOptionCombo() );
+        event.setAttributeCategoryOptions( dataValue.getAttributeCategoryOptions() );
+        event.setAssignedUser( User.builder().username( dataValue.getAssignedUser() ).build() );
+
+        if ( StringUtils.isNotBlank( dataValue.getGeometry() ) )
+        {
+            event.setGeometry( new WKTReader()
+                .read( TRIM_SINGLE_QUOTES.matcher( dataValue.getGeometry() ).replaceAll( "" ) ) );
+        }
+        else if ( dataValue.getLongitude() != null && dataValue.getLatitude() != null )
+        {
+            event.setGeometry( new WKTReader()
+                .read( "Point(" + dataValue.getLongitude() + " " + dataValue.getLatitude() + ")" ) );
+        }
+        return event;
     }
 }
