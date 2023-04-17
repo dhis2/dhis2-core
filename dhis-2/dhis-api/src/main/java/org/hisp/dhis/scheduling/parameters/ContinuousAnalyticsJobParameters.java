@@ -30,86 +30,47 @@ package org.hisp.dhis.scheduling.parameters;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class ContinuousAnalyticsJobParameters
-    implements JobParameters
+@Getter
+@Setter
+@NoArgsConstructor
+public class ContinuousAnalyticsJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 4613054056442276592L;
-
     /**
      * The hour of day at which the full analytics table update will be invoked.
      */
+    @JsonProperty
     private Integer fullUpdateHourOfDay = 0;
 
     /**
      * The number of last years of data to include in the full analytics table
      * update.
      */
+    @JsonProperty
     private Integer lastYears;
 
     /**
      * The types of analytics tables for which to skip update.
      */
+    @JsonProperty
     private Set<AnalyticsTableType> skipTableTypes = new HashSet<>();
-
-    public ContinuousAnalyticsJobParameters()
-    {
-    }
 
     public ContinuousAnalyticsJobParameters( Integer fullUpdateHourOfDay, Integer lastYears,
         Set<AnalyticsTableType> skipTableTypes )
     {
         this.fullUpdateHourOfDay = fullUpdateHourOfDay;
         this.lastYears = lastYears;
-        this.skipTableTypes = skipTableTypes;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getFullUpdateHourOfDay()
-    {
-        return fullUpdateHourOfDay;
-    }
-
-    public void setFullUpdateHourOfDay( Integer fullUpdateHourOfDay )
-    {
-        this.fullUpdateHourOfDay = fullUpdateHourOfDay;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getLastYears()
-    {
-        return lastYears;
-    }
-
-    public void setLastYears( Integer lastYears )
-    {
-        this.lastYears = lastYears;
-    }
-
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "skipTableTypes", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "skipTableType", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<AnalyticsTableType> getSkipTableTypes()
-    {
-        return skipTableTypes;
-    }
-
-    public void setSkipTableTypes( Set<AnalyticsTableType> skipTableTypes )
-    {
         this.skipTableTypes = skipTableTypes;
     }
 }

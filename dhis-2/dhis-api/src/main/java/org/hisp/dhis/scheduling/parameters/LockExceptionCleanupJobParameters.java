@@ -29,19 +29,20 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Jan Bernitt
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+@Getter
+@Setter
 public class LockExceptionCleanupJobParameters implements JobParameters
 {
     /**
@@ -49,14 +50,8 @@ public class LockExceptionCleanupJobParameters implements JobParameters
      * {@link org.hisp.dhis.dataset.LockException}s is considered expired and
      * subject to clean-up.
      */
-    private Integer expiresAfterMonths;
-
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getExpiresAfterMonths()
-    {
-        return expiresAfterMonths;
-    }
+    private Integer expiresAfterMonths;
 
     @Override
     public Optional<ErrorReport> validate()

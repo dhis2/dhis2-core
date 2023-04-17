@@ -28,7 +28,7 @@
       "shortName": "Country",
       "description": "",
       "id": "x3gVvpbVgqy",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "path": "/x3gVvpbVgqy",
       "featureType": "NONE",
       "user": {
@@ -40,13 +40,13 @@
   "categoryOptions": [
     {
       "id": "JYiFOMKa25J",
-      "userGroupAccesses": [ ],
-      "attributeValues": [ ],
+      "userGroupAccesses": [],
+      "attributeValues": [],
       "shortName": "Female",
       "name": "Female",
       "created": "2016-03-08T07:28:50.372+0000",
       "lastUpdated": "2016-03-08T07:28:50.374+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
@@ -57,13 +57,13 @@
     },
     {
       "shortName": "Male",
-      "userGroupAccesses": [ ],
+      "userGroupAccesses": [],
       "id": "tdaMRD34m8o",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "lastUpdated": "2016-03-08T07:28:44.217+0000",
       "name": "Male",
       "created": "2016-03-08T07:28:44.214+0000",
-      "organisationUnits": [ ],
+      "organisationUnits": [],
       "user": {
         "id": "T12jeH7KPzk"
       },
