@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 import static com.google.common.collect.Maps.immutableEntry;
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
-import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.createPredictionDisaggregator;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -136,7 +135,7 @@ class PredictionContextGeneratorTest
     private final Predictor predictorA = createPredictor( deA, cocD, "A", expressionA, null, periodA.getPeriodType(),
         Set.of( ouLevel1 ), 0, 0, 0 );
 
-    private final PredictionDisaggregator preDisA = createPredictionDisaggregator( predictorA, cocD, emptyList() );
+    private final PredictionDisaggregator preDisA = new PredictionDisaggregator( predictorA, emptyList() );
 
     // -------------------------------------------------------------------------
     // Format prediction contexts for ease of reading.
@@ -213,7 +212,7 @@ class PredictionContextGeneratorTest
     {
         List<Map.Entry<Period, Map<DimensionalItemObject, Object>>> entries = new ArrayList<>( entrySet );
 
-        entries.sort( Comparator.comparing( e -> e.getKey() ) );
+        entries.sort( Comparator.comparing( Map.Entry::getKey ) );
 
         return entries;
     }
@@ -299,7 +298,7 @@ class PredictionContextGeneratorTest
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX, cocD, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -326,7 +325,7 @@ class PredictionContextGeneratorTest
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX, cocD, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -375,7 +374,7 @@ class PredictionContextGeneratorTest
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX, cocD, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -393,7 +392,7 @@ class PredictionContextGeneratorTest
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX, cocD, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
