@@ -59,7 +59,6 @@ import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.GridValueMeta;
-import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
@@ -124,7 +123,7 @@ public class ListGrid
      * Transformed collection of the value meta information for better
      * javascript handling. Describe origin of the repeatable stage value.
      */
-    private Map<String, Map<String, GridValueStatus>> rowContext;
+    private Map<String, Map<String, Object>> rowContext;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -403,7 +402,7 @@ public class ListGrid
     }
 
     @Override
-    public Grid addRowContext( Map<String, Map<String, GridValueStatus>> rowContext )
+    public Grid addRowContext( Map<String, Map<String, Object>> rowContext )
     {
         this.rowContext = rowContext;
 
@@ -435,7 +434,7 @@ public class ListGrid
 
     @Override
     @JsonProperty
-    public Map<String, Map<String, GridValueStatus>> getRowContext()
+    public Map<String, Map<String, Object>> getRowContext()
     {
         return rowContext;
     }

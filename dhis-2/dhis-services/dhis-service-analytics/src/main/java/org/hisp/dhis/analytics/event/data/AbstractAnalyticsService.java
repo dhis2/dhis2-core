@@ -239,15 +239,17 @@ public abstract class AbstractAnalyticsService
     {
         List<GridValueMeta> gridValueMetaInfo = grid.getGridValueMetaInfo();
 
-        Map<String, Map<String, GridValueStatus>> rowContext = grid.getRowContext();
+        Map<String, Map<String, Object>> rowContext = grid.getRowContext();
 
         gridValueMetaInfo.forEach( m -> {
-            Map<String, GridValueStatus> column = rowContext.get( m.getRowIndex().toString() );
+            Map<String, Object> column = rowContext.get( m.getRowIndex().toString() );
             if ( column == null )
             {
                 column = new HashMap<>();
             }
-            column.put( Integer.toString( grid.getIndexOfHeader( m.getColumnName() ) ), m.getStatus() );
+
+            column.put( Integer.toString( grid.getIndexOfHeader( m.getColumnName() ) ),
+                Map.of( "type", m.getStatus() ) );
             rowContext.put( Integer.toString( m.getRowIndex() ), column );
         } );
 
