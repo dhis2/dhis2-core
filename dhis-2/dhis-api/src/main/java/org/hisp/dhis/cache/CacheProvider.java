@@ -126,6 +126,9 @@ public interface CacheProvider
 
     <V> Cache<V> createUserGroupUIDCache();
 
+    // TODO(tracker): remove with old tracker
+    <V> Cache<V> createOldTrackerSecurityCache();
+
     <V> Cache<V> createSecurityCache();
 
     <V> Cache<V> createRunningJobsInfoCache();

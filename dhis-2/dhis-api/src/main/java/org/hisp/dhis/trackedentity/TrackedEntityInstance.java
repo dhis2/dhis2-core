@@ -59,8 +59,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class TrackedEntityInstance
     extends SoftDeletableObject
 {
-    public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
-
     private Date createdAtClient;
 
     private Date lastUpdatedAtClient;

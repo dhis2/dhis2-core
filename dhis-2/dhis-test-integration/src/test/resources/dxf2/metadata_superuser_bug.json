@@ -6,8 +6,6 @@
       "lastUpdated": "2016-03-01T13:38:17.187+0000",
       "name": "Superuser",
       "id": "gETZb5SDObu",
-      "publicAccess": "--------",
-      "userGroupAccesses": [ ],
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
         "ALL",
@@ -43,8 +41,15 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "dataSets": [ ],
-      "programs": [ ]
+      "dataSets": [],
+      "programs": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

@@ -35,8 +35,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.pushanalysis.PushAnalysis;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -50,6 +53,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PushAnalysisJobParameters implements JobParameters
 {
     @JsonProperty( required = true )
+    @OpenApi.Property( { UID[].class, PushAnalysis.class } )
     private List<String> pushAnalysis = new ArrayList<>();
 
     public PushAnalysisJobParameters( String pushAnalysis )

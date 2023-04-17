@@ -37,9 +37,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.validation.ValidationRuleGroup;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.collect.Lists;
@@ -60,6 +63,7 @@ public class MonitoringJobParameters implements JobParameters
     private int relativeEnd;
 
     @JsonProperty
+    @OpenApi.Property( { UID[].class, ValidationRuleGroup.class } )
     private List<String> validationRuleGroups = new ArrayList<>();
 
     @JsonProperty

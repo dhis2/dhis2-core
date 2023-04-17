@@ -1498,6 +1498,9 @@ public class User
         {
             userCredentialsDto.setUserRoles( roles );
         }
+
+        userCredentialsDto.setTwoFA( this.isTwoFactorEnabled() );
+
         return userCredentialsDto;
     }
 

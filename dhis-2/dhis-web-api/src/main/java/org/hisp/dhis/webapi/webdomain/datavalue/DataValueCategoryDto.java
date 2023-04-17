@@ -38,7 +38,7 @@ import lombok.experimental.Accessors;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+import org.hisp.dhis.common.UID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

@@ -382,7 +382,6 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             log.debug( "Job executed successfully: '{}'. Time used: '{}'", configuration.getName(), duration );
         }
         configuration.setJobStatus( JobStatus.SCHEDULED );
-        configuration.setNextExecutionTime( null );
         configuration.setLastExecuted( new Date( clock.getStartTime() ) );
         configuration.setLastRuntimeExecution( duration );
 
