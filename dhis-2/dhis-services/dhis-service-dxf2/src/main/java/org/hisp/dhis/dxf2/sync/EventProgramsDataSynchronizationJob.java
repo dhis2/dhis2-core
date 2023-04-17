@@ -29,12 +29,9 @@ package org.hisp.dhis.dxf2.sync;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Optional;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.dxf2.synch.SynchronizationManager;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
@@ -93,14 +90,5 @@ public class EventProgramsDataSynchronizationJob extends SynchronizationJob
             notifier.notify( jobConfiguration, "Event programs data sync failed: " + e.getMessage() );
             messageService.sendSystemErrorNotification( "Event programs data sync failed", e );
         }
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            EventProgramsDataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
     }
 }

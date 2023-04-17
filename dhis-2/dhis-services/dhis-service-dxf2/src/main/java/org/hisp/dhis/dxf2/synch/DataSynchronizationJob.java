@@ -29,12 +29,9 @@ package org.hisp.dhis.dxf2.synch;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.Optional;
-
 import org.hisp.dhis.dxf2.sync.CompleteDataSetRegistrationSynchronization;
 import org.hisp.dhis.dxf2.sync.DataValueSynchronization;
 import org.hisp.dhis.dxf2.sync.SynchronizationJob;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.JobType;
@@ -94,14 +91,5 @@ public class DataSynchronizationJob extends SynchronizationJob
         notifier.notify( jobConfiguration, "Complete data set registration sync successful" );
 
         notifier.notify( jobConfiguration, "Data value and Complete data set registration sync successful" );
-    }
-
-    @Override
-    public ErrorReport validate()
-    {
-        Optional<ErrorReport> errorReport = validateRemoteServerAvailability( synchronizationManager,
-            DataSynchronizationJob.class );
-
-        return errorReport.orElse( super.validate() );
     }
 }
