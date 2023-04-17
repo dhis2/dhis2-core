@@ -318,6 +318,8 @@ class PredictionDataValueFetcherTest
         foundValueE = new FoundDimensionItemValue( orgUnitB, periodC, aocC, dataElementOperandX, 50.0 );
         foundValueAB = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandAB, 75.0 );
 
+        when( categoryService.getAllCategoryOptionCombos() ).thenReturn( List.of( cocA, cocB, aocC, aocD ) );
+
         fetcher = new PredictionDataValueFetcher( dataValueService, categoryService, currentUserOrgUnits );
     }
 
@@ -328,11 +330,6 @@ class PredictionDataValueFetcherTest
     @Test
     void testGetDataValues()
     {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
@@ -373,11 +370,6 @@ class PredictionDataValueFetcherTest
     @Test
     void testGetDataValuesWithAllDisaggregations()
     {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );

@@ -27,27 +27,24 @@
  */
 package org.hisp.dhis.predictor;
 
-import static java.util.Collections.emptyMap;
-import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableList;
-import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.getSortedOptions;
-import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
+import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.Builder;
-import lombok.extern.slf4j.Slf4j;
+import lombok.Getter;
 
-import org.apache.activemq.artemis.utils.collections.ConcurrentHashSet;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.MapMap;
+import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.period.Period;
@@ -57,43 +54,56 @@ import com.google.common.collect.ImmutableSet;
 /**
  * Generator of disaggregated predictions.
  * <p>
- * If the predictor output data element has a non-default (disaggregation)
- * category combo (CC), and the predictor output (category) option combo (COC)
- * is null, this means that all disaggregations (COCs) of the output data
- * element are computed independently: one prediction for each COC.
+ * If the predictor output category option combo (COC) is null, then all
+ * disaggregations (COCs) of the output data element are computed independently,
+ * one prediction for each COC.
  * <p>
- * For each data element in the generator expression having a CC matching that
- * of the output data element, we will fetch all the COCs of that data element
- * independently. When generating the prediction for each COC, we will use the
- * corresponding COC from each such data element. (This does not apply to data
- * element operands where an explicit COC is specified. They are used as
- * specified.)
+ * When making disaggregated predictions, values for any data elements in the
+ * expression (not within data element operands) are fetched with all category
+ * option combos instead of summed at a lower level. This allows them to be
+ * summed here with the COCs filtered as needed.
+ * <p>
+ * For each disaggregated prediction, exclude any COC values where an option, or
+ * any other option from the same category, is an option for the output data
+ * element and not present in the currently-predicted COC.
+ * <p>
+ * Examples:
+ * <ol>
+ * <li>If the output data element's category combo includes the category sex
+ * which has options F and M, then input data having a category option of F or M
+ * will be included only when it matches the output option (if the other options
+ * are also compatible) and will never be included when the output option does
+ * not match.</li>
+ * <li>Suppose the purpose of the output data element is to count only positive
+ * test results and the output data element's category combo includes a category
+ * positiveOnly that has a single option POSITIVE. Suppose the input data COC
+ * has a category called result that has two values POSITIVE and NEGATIVE. In
+ * this case data with COC containing result=POSITIVE will be included in the
+ * output (if the other options are also compatible), but data with a COC
+ * containing RESULT=NEGATIVE will not (because NEGATIVE is part of a category
+ * that also includes POSITIVE, and POSITIVE is one of the options in the output
+ * data element's category combo.)</li>
+ * <li>Suppose the input data COC has a category called result that has two
+ * values POSITIVE and NEGATIVE, and the output data element's category combo
+ * has no categories with either POSITIVE or NEGATIVE. In that case input data
+ * values with either POSITIVE or NEGATIVE will be included in the output (when
+ * the other options in the COC are compatible.)</li>
+ * </ol>
  *
  * @author Jim Grace
  */
-@Slf4j
-@Builder
 public class PredictionDisaggregator
 {
     /**
-     * The predictor being used.
+     * The items we will fetch the data for, including fetching any existing
+     * predictions.
+     * <p>
+     * If this is a disaggregation prediction, then replace every data element
+     * with a wildcard data element operand, to collect all category option
+     * combo values for that data element.
      */
-    private final Predictor predictor;
-
-    /**
-     * The system default category option combination.
-     */
-    private final CategoryOptionCombo defaultCOC;
-
-    /**
-     * The items in the generator and skipTest expressions.
-     */
-    private final Collection<DimensionalItemObject> items;
-
-    /**
-     * The output data element's category combination.
-     */
-    private final CategoryCombo outputCatCombo;
+    @Getter
+    private final Set<DimensionalItemObject> disaggregatedItems;
 
     /**
      * Whether we are generating disaggregated predictions.
@@ -101,91 +111,39 @@ public class PredictionDisaggregator
     private final boolean disagPredictions;
 
     /**
-     * List for warnings of disaggregations we could not map.
+     * The output category option combos.
      */
-    private final Set<DataElementOperand> unmappedDeos = new ConcurrentHashSet<>();
+    private final Set<CategoryOptionCombo> outputCocs;
 
     /**
-     * When disaggregated predictions are used, this maps sorted options to the
-     * output category option combination for the output data element.
+     * All the output category combo's options' UIDs.
      */
-    @Builder.Default
-    private final Map<String, String> sortedOptionsToCoc = emptyMap();
+    private final Set<String> allOutputOptions;
 
     /**
-     * UIDs of the data element category combos that will be mapped to the
-     * output category option combination of the output data element.
+     * Whether a combination of outputCOC and inputCOC should be included.
      */
-    @Builder.Default
-    private final Set<String> mappedCategoryCombos = emptySet();
+    private final MapMap<Long, Long, Boolean> allowedCocs = new MapMap<>();
 
-    /**
-     * Gets the items we will fetch the data for, including fetching any
-     * existing predictions.
-     * <p>
-     * If this is a disaggregation prediction, then replace any matching data
-     * elements (those with the same CC as the output data element) with a
-     * wildcard data element operand, to collect all category option combos for
-     * that data element.
-     *
-     * @return items to fetch data for
-     */
-    public Set<DimensionalItemObject> getDisaggregatedItems()
+    public PredictionDisaggregator( Predictor predictor, Collection<DimensionalItemObject> items )
     {
-        if ( !disagPredictions )
-        {
-            return new ImmutableSet.Builder<DimensionalItemObject>()
-                .add( getOutputDataElementOperand() )
-                .addAll( items ).build();
-        }
+        CategoryCombo outputCatCombo = predictor.getOutput().getCategoryCombo();
+
+        this.outputCocs = outputCatCombo.getOptionCombos();
+        this.allOutputOptions = outputCatCombo.getCategoryOptions().stream()
+            .map( CategoryOption::getUid ).collect( toSet() );
+
+        this.disagPredictions = (predictor.getOutputCombo() == null);
 
         Set<DimensionalItemObject> inputItems = new ImmutableSet.Builder<DimensionalItemObject>()
-            .add( predictor.getOutput() ) // Will be disaggregated below
+            .add( new DataElementOperand( predictor.getOutput(), predictor.getOutputCombo() ) )
             .addAll( items ).build();
 
-        Set<DimensionalItemObject> itemSet = new HashSet<>();
-
-        for ( DimensionalItemObject item : inputItems )
+        if ( disagPredictions )
         {
-            if ( item instanceof DataElement &&
-                mappedCategoryCombos.contains( ((DataElement) item).getCategoryCombo().getUid() ) )
-            {
-                itemSet.add( new DataElementOperand( (DataElement) item, null ) );
-            }
-            else
-            {
-                itemSet.add( item );
-            }
+            inputItems = inputItems.stream().map( this::convertDataElement ).collect( toSet() );
         }
-
-        return itemSet;
-    }
-
-    /**
-     * Gets the prediction output category option combo (COC). If we are
-     * predicting for every COC in the output data element return null. If we
-     * are predicting for only one COC, return that COC.
-     *
-     * @return Prediction output category option combo
-     */
-    public CategoryOptionCombo getOutputCoc()
-    {
-        return (disagPredictions)
-            ? null
-            : firstNonNull( predictor.getOutputCombo(), defaultCOC );
-    }
-
-    /**
-     * Gets a data element operand representing the prediction output. The data
-     * element operand will always include the output data element. If we are
-     * predicting for every COC in the output data element the COC will be null.
-     * If we are predicting for only one COC, that will be the COC.
-     *
-     * @return Prediction output data element operand
-     */
-    public DataElementOperand getOutputDataElementOperand()
-    {
-        return new DataElementOperand( predictor.getOutput(), getOutputCoc() );
+        this.disaggregatedItems = inputItems;
     }
 
     /**
@@ -209,21 +167,27 @@ public class PredictionDisaggregator
             .collect( toUnmodifiableList() );
     }
 
-    public void issueMappingWarnings()
-    {
-        if ( !unmappedDeos.isEmpty() )
-        {
-            String deos = unmappedDeos.stream()
-                .map( deo -> deo.getDataElement().getUid() + "." + deo.getCategoryOptionCombo().getUid() )
-                .collect( joining( ", " ) );
-
-            log.warn( String.format( "Predictor %s unmapped input disaggregations: %s", predictor.getUid(), deos ) );
-        }
-    }
-
     // -------------------------------------------------------------------------
     // Supportive Methods
     // -------------------------------------------------------------------------
+
+    /**
+     * Convert any DataElement to a DataElementOperand with a null COC (acting
+     * as a wildcard) so all disaggregations of the data element will be
+     * collected independently for filtering. If this is a DataElementOperand,
+     * just pass it through.
+     */
+    private DimensionalItemObject convertDataElement( DimensionalItemObject item )
+    {
+        if ( item instanceof DataElement )
+        {
+            DataElementOperand deo = new DataElementOperand( (DataElement) item, null );
+            deo.setQueryMods( item.getQueryMods() );
+            return deo;
+        }
+
+        return item;
+    }
 
     /**
      * Disaggregates a prediction context into a list of prediction contexts,
@@ -231,7 +195,7 @@ public class PredictionDisaggregator
      */
     private List<PredictionContext> disagregateContext( PredictionContext context )
     {
-        return outputCatCombo.getOptionCombos().stream()
+        return outputCocs.stream()
             .map( coc -> getDisaggregatedContext( context, coc ) )
             .collect( toUnmodifiableList() );
     }
@@ -249,13 +213,11 @@ public class PredictionDisaggregator
     }
 
     /**
-     * Creates a period value map with the original data elements restored that
-     * were disaggregated (if the disaggregation has data). The data element is
-     * given the value of the data element operand with the given COC.
+     * Creates a period value map with the data values that are allowed for the
+     * given output COC.
      * <p>
-     * The disaggregated data element operand values are also retained in the
-     * map because it is possible that the expression could contain data element
-     * operands with explicit COCs as well.
+     * Map values are created for each allowed data element operand and also for
+     * the data element to which it belongs, in case one or both are needed.
      */
     private MapMap<Period, DimensionalItemObject, Object> disaggregatePeriodValueMap( CategoryOptionCombo coc,
         MapMap<Period, DimensionalItemObject, Object> periodValueMap )
@@ -271,16 +233,15 @@ public class PredictionDisaggregator
                 DimensionalItemObject item = e2.getKey();
                 Object value = e2.getValue();
 
-                disMap.putEntry( period, item, value );
+                // All the DEs should have been converted to DEOs:
+                assert (item instanceof DataElementOperand);
 
-                if ( item instanceof DataElementOperand )
+                DataElementOperand deo = (DataElementOperand) item;
+
+                if ( isAllowed( coc, deo.getCategoryOptionCombo() ) )
                 {
-                    DataElementOperand deo = (DataElementOperand) item;
-
-                    if ( coc.getUid().equals( getCoc( deo ) ) )
-                    {
-                        disMap.putEntry( period, deo.getDataElement(), value );
-                    }
+                    disMap.putEntry( period, item, value );
+                    addIntoMap( disMap, period, deo.getDataElement(), value );
                 }
             }
         }
@@ -289,28 +250,100 @@ public class PredictionDisaggregator
     }
 
     /**
-     * If a DEO's input COC maps to an output COC, returns the output COC, else
-     * returns null.
+     * Tests whether the input value COC is allowed for this output COC.
      * <p>
-     * If the input data element should map to the output COCs, but this COC
-     * does not map, add the DEO to the list of unmapped DEOs so we can log it.
+     * This uses a {@link MapMap} to cache the results of whether the COC is
+     * allowed. Initially a {@link CachingMap} was used with a key as the
+     * concatenation of the COC UIDs. However, this is used so intensively that
+     * a substantial amount of time was spent hashing the 22-character keys to
+     * see if the key existed in the map. The current code is much faster.
      */
-    private String getCoc( DataElementOperand deo )
+    private boolean isAllowed( CategoryOptionCombo outCoc, CategoryOptionCombo inCoc )
     {
-        if ( !mappedCategoryCombos.contains( deo.getDataElement().getCategoryCombo().getUid() ) )
+        Boolean cached = allowedCocs.getValue( outCoc.getId(), inCoc.getId() );
+
+        if ( cached != null )
         {
-            return null;
+            return cached;
         }
 
-        String sortedOptions = getSortedOptions( deo.getCategoryOptionCombo() );
+        boolean computed = computeAllowed( outCoc, inCoc );
 
-        String coc = sortedOptionsToCoc.get( sortedOptions );
+        allowedCocs.putEntry( outCoc.getId(), inCoc.getId(), computed );
 
-        if ( coc == null )
+        return computed;
+    }
+
+    /**
+     * Computes whether the input COC is allowed for this output COC.
+     * <p>
+     * For each input category, if any of the category options are found in the
+     * output, then this category is subject to filtering.
+     * <p>
+     * If the category is subject to filtering, then only allow data where the
+     * input category option is present in the output option combo.
+     */
+    private boolean computeAllowed( CategoryOptionCombo outCoc, CategoryOptionCombo inCoc )
+    {
+        for ( Category inC : inCoc.getCategoryCombo().getCategories() )
         {
-            unmappedDeos.add( deo );
+            if ( outputIncludesAnyOptionFromCategory( inC ) &&
+                !outputComboIncludesCategoryOption( outCoc, inC, inCoc ) )
+            {
+                return false;
+            }
         }
 
-        return coc;
+        return true;
+    }
+
+    /**
+     * Tests whether the output category options include at least one option
+     * from the given category.
+     */
+    private boolean outputIncludesAnyOptionFromCategory( Category inC )
+    {
+        for ( CategoryOption inCo : inC.getCategoryOptions() )
+        {
+            if ( allOutputOptions.contains( inCo.getUid() ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Tests whether the output category option combo for this prediction
+     * contains the given option from a given input category.
+     */
+    private boolean outputComboIncludesCategoryOption( CategoryOptionCombo outCoc, Category inC,
+        CategoryOptionCombo inCoc )
+    {
+        for ( CategoryOption inCo : inCoc.getCategoryOptions() )
+        {
+            // Find the input option that matches this input category:
+            if ( inC.getCategoryOptions().contains( inCo ) )
+            {
+                return outCoc.getCategoryOptions().contains( inCo );
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Adds the input value into the map. If the value already exists in the
+     * map, adds the new value to the existing value.
+     */
+    private void addIntoMap( MapMap<Period, DimensionalItemObject, Object> disMap, Period period,
+        DimensionalItemObject item, Object value )
+    {
+        Object valueSoFar = disMap.getValue( period, item );
+
+        Object valueToStore = (valueSoFar == null) ? value : addDoubleObjects( value, valueSoFar );
+
+        disMap.putEntry( period, item, valueToStore );
     }
 }
