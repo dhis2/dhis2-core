@@ -101,7 +101,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.6.0</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
-    <datasource-proxy.version>1.8.1</datasource-proxy.version>
+    <datasource-proxy.version>1.9</datasource-proxy.version>
 
     <!-- Servlet -->
     <javax.servlet-api.version>4.0.1</javax.servlet-api.version>
