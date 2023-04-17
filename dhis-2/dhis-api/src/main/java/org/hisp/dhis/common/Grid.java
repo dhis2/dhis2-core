@@ -109,6 +109,8 @@ public interface Grid
      */
     Grid addGridValueMeta( GridValueMeta gridValueMeta );
 
+    Map<String, Map<String, GridValueStatus>> getRowContext();
+
     /**
      * Returns performance metrics.
      */
@@ -563,6 +565,14 @@ public interface Grid
      * @param plans the list of execution plans.
      */
     Grid addPerformanceMetrics( List<ExecutionPlan> plans );
+
+    /**
+     * Adds Row Context, describe origin of values (columns) inside the row
+     *
+     * @param rowContext
+     * @return Grid instance
+     */
+    Grid addRowContext( Map<String, Map<String, GridValueStatus>> rowContext );
 
     /**
      * Adds a reference.

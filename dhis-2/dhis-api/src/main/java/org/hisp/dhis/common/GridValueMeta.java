@@ -29,14 +29,8 @@ package org.hisp.dhis.common;
 
 import java.io.Serializable;
 
-import javax.annotation.Nonnull;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Part of the response grid. The object is used for description of repeatable
@@ -44,22 +38,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 @Getter
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class GridValueMeta implements Serializable
 {
-    @JsonIgnore
-    @Nonnull
     private final String columnName;
 
-    @JsonProperty
-    @Nonnull
     private final Integer rowIndex;
 
-    @JsonProperty
-    @Nonnull
     private final GridValueStatus status;
-
-    @JsonProperty
-    @Setter
-    private Integer columnIndex;
 }

@@ -75,6 +75,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.GridValueMeta;
+import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
@@ -222,7 +223,7 @@ public abstract class AbstractAnalyticsService
         // ValueMeta
         // ---------------------------------------------------------------------
 
-        finalizeValueMeta( grid );
+        addRowContext( grid );
 
         return grid;
     }
@@ -233,11 +234,26 @@ public abstract class AbstractAnalyticsService
      *
      * @param grid the {@link Grid}.
      */
-    private void finalizeValueMeta( Grid grid )
+    private void addRowContext( Grid grid )
     {
         List<GridValueMeta> gridValueMetaInfo = grid.getGridValueMetaInfo();
 
-        gridValueMetaInfo.forEach( m -> m.setColumnIndex( grid.getIndexOfHeader( m.getColumnName() ) ) );
+        Map<String, Map<String, GridValueStatus>> rowContext = grid.getRowContext();
+
+        gridValueMetaInfo.forEach( m -> {
+            Map<String, GridValueStatus> column = rowContext.get( m.getRowIndex().toString() );
+
+            if ( column == null )
+            {
+                column = new HashMap<>();
+            }
+
+            column.put( Integer.toString( grid.getIndexOfHeader( m.getColumnName() ) ), m.getStatus() );
+
+            rowContext.put( Integer.toString( m.getRowIndex() ), column );
+        } );
+
+        grid.addRowContext( rowContext );
     }
 
     /**

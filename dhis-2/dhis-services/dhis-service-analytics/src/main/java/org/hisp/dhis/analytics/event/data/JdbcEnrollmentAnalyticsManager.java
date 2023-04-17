@@ -78,6 +78,7 @@ import org.hisp.dhis.util.DateUtils;
 import org.locationtech.jts.util.Assert;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.jdbc.BadSqlGrammarException;
+import org.springframework.jdbc.InvalidResultSetAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -160,11 +161,19 @@ public class JdbcEnrollmentAnalyticsManager
 
             grid.addRow();
 
+            //columnOffset is synchronization tool for <<grid headers>> and <<rowSet column>> indexes.
+            //RowSet contains more columns than headers. There are values for repeatable stages coupled to meta information.
+            //This information is delivered always in the next column in rowSet and has to be skipped by addGridValue.
+            int columnOffset = 0;
+
             for ( int i = 0; i < grid.getHeaders().size(); ++i )
             {
-                addGridValue( grid, grid.getHeaders().get( i ), i + 1, rowSet, params );
+                addGridValue( grid, grid.getHeaders().get( i ), i + 1 + columnOffset, rowSet, params );
 
-                addValueMetaInfo( grid, rowSet, grid.getHeaders().get( i ).getName() );
+                if ( addValueMetaInfo( grid, rowSet, grid.getHeaders().get( i ).getName() ) )
+                {
+                    ++columnOffset;
+                }
             }
         }
     }
@@ -176,8 +185,9 @@ public class JdbcEnrollmentAnalyticsManager
      * @param grid the {@link Grid}.
      * @param rowSet the {@link SqlRowSet}.
      * @param columnName the {@link String}.
+     * @return true when ValueMetaInfo added
      */
-    private void addValueMetaInfo( Grid grid, SqlRowSet rowSet, String columnName )
+    private boolean addValueMetaInfo( Grid grid, SqlRowSet rowSet, String columnName )
     {
         int gridRowIndex = grid.getRows().size() - 1;
 
@@ -187,13 +197,23 @@ public class JdbcEnrollmentAnalyticsManager
 
         if ( valueMetaInfoColumnName.isPresent() )
         {
-            boolean isDefined = rowSet.getBoolean( valueMetaInfoColumnName.get() );
+            try
+            {
+                boolean isDefined = rowSet.getBoolean( valueMetaInfoColumnName.get() );
 
-            boolean isSet = rowSet.getObject( columnName + ".exists" ) != null;
+                boolean isSet = rowSet.getObject( columnName ) != null;
 
-            grid.addGridValueMeta(
-                new GridValueMeta( columnName, gridRowIndex, getGridValueStatus( isDefined, isSet ) ) );
+                grid.addGridValueMeta(
+                    new GridValueMeta( columnName, gridRowIndex, getGridValueStatus( isDefined, isSet ) ) );
+
+                return true;
+            }
+            catch ( InvalidResultSetAccessException ignored )
+            {
+            }
         }
+
+        return false;
     }
 
     private GridValueStatus getGridValueStatus( boolean isDefined, boolean isSet )

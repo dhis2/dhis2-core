@@ -58,6 +58,7 @@ import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.GridValueMeta;
+import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
@@ -113,10 +114,16 @@ public class ListGrid
     private PerformanceMetrics performanceMetrics;
 
     /**
-     * Collection of the value meta information. Origin description of the
+     * Collection of the value meta information. Describe origin of the
      * repeatable stage value.
      */
     private List<GridValueMeta> gridValueMetaInfo;
+
+    /**
+     * Transformed collection of the value meta information for better
+     * javascript handling. Describe origin of the repeatable stage value.
+     */
+    private Map<String, Map<String, GridValueStatus>> rowContext;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -162,6 +169,7 @@ public class ListGrid
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
         this.gridValueMetaInfo = new ArrayList<>();
+        this.rowContext = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -175,6 +183,7 @@ public class ListGrid
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
         this.gridValueMetaInfo = new ArrayList<>();
+        this.rowContext = new HashMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -393,6 +402,14 @@ public class ListGrid
     }
 
     @Override
+    public Grid addRowContext( Map<String, Map<String, GridValueStatus>> rowContext )
+    {
+        this.rowContext = rowContext;
+
+        return this;
+    }
+
+    @Override
     public Grid setInternalMetaData( Map<String, Object> internalMetaData )
     {
         this.internalMetaData = internalMetaData;
@@ -410,10 +427,16 @@ public class ListGrid
      * @return
      */
     @Override
-    @JsonProperty
     public List<GridValueMeta> getGridValueMetaInfo()
     {
         return gridValueMetaInfo;
+    }
+
+    @Override
+    @JsonProperty
+    public Map<String, Map<String, GridValueStatus>> getRowContext()
+    {
+        return rowContext;
     }
 
     @Override
