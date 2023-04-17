@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -127,7 +128,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -262,14 +262,16 @@ public class UserController
     }
 
     @Override
-    protected List<User> getEntity( String uid, WebOptions options )
+    @Nonnull
+    protected User getEntity( String uid, WebOptions options )
+        throws NotFoundException
     {
-        List<User> users = Lists.newArrayList();
-        Optional<User> user = Optional.ofNullable( userService.getUser( uid ) );
-
-        user.ifPresent( users::add );
-
-        return users;
+        User user = userService.getUser( uid );
+        if ( user == null )
+        {
+            throw new NotFoundException( User.class, uid );
+        }
+        return user;
     }
 
     @Override
@@ -518,6 +520,11 @@ public class UserController
             return conflict( "Username must be specified" );
         }
 
+        if ( !ValidationUtils.usernameIsValid( username, false ) )
+        {
+            return conflict( "Username is not valid" );
+        }
+
         if ( userService.getUserByUsername( username ) != null )
         {
             return conflict( "Username already taken: " + username );
@@ -638,7 +645,8 @@ public class UserController
         HttpServletResponse response )
         throws IOException,
         ForbiddenException,
-        ConflictException
+        ConflictException,
+        NotFoundException
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
@@ -653,18 +661,15 @@ public class UserController
         HttpServletRequest request )
         throws IOException,
         ConflictException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         User inputUser = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
-        if ( users.isEmpty() )
-        {
-            throw new ConflictException( getEntityName() + " does not exist: " + pvUid );
-        }
+        User user = getEntity( pvUid );
 
         // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), inputUser );
+        populateUserCredentialsDtoCopyOnlyChanges( user, inputUser );
 
         return importReport( updateUser( pvUid, inputUser ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -672,18 +677,14 @@ public class UserController
 
     protected ImportReport updateUser( String userUid, User inputUser )
         throws ConflictException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
-        List<User> users = getEntity( userUid, NO_WEB_OPTIONS );
-
-        if ( users.isEmpty() )
-        {
-            throw new ConflictException( getEntityName() + " does not exist: " + userUid );
-        }
+        User user = getEntity( userUid );
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
+        if ( !aclService.canUpdate( currentUser, user ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to update this user." );
         }
@@ -693,16 +694,16 @@ public class UserController
         // (in case it gets detached)
         currentUser.getAllAuthorities();
 
-        inputUser.setId( users.get( 0 ).getId() );
+        inputUser.setId( user.getId() );
         inputUser.setUid( userUid );
-        mergeLastLoginAttribute( users.get( 0 ), inputUser );
+        mergeLastLoginAttribute( user, inputUser );
 
         boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
 
         List<String> groupsUids = getUids( inputUser.getGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
-            || !currentUser.canModifyUser( users.get( 0 ) ) )
+            || !currentUser.canModifyUser( user ) )
         {
             throw new ConflictException(
                 "You must have permissions to create user, " +

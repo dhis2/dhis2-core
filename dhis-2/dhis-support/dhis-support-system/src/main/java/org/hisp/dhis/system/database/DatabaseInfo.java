@@ -72,7 +72,6 @@ public class DatabaseInfo
         this.user = null;
         this.url = null;
         this.databaseVersion = null;
-        this.spatialSupport = false;
     }
 
     /**

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -84,6 +85,7 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
+import org.hisp.dhis.util.CheckedFunction;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -191,13 +193,25 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
     @Value
     @OpenApi.Shared( value = false )
-    private static class ObjectListResponse
+    protected static class ObjectListResponse
     {
         @OpenApi.Property
         Pager pager;
 
         @OpenApi.Property( name = "path$", value = OpenApi.EntityType[].class )
         List<Object> entries;
+    }
+
+    @Value
+    public static class ListParams
+    {
+        WebMetadata metadata;
+
+        WebOptions options;
+
+        List<String> filters;
+
+        List<Order> orders;
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
@@ -208,6 +222,17 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
     public @ResponseBody ResponseEntity<StreamingJsonRoot<T>> getObjectList(
         @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
         HttpServletResponse response, @CurrentUser User currentUser )
+        throws ForbiddenException,
+        BadRequestException
+    {
+        return getObjectList( rpParameters, orderParams, response, currentUser, !rpParameters.containsKey( "query" ),
+            params -> getEntityList( params.metadata, params.options, params.filters, params.orders ) );
+    }
+
+    protected final ResponseEntity<StreamingJsonRoot<T>> getObjectList(
+        @RequestParam Map<String, String> rpParameters, OrderParams orderParams,
+        HttpServletResponse response, User currentUser, boolean countTotal,
+        CheckedFunction<ListParams, List<T>> fetchList )
         throws ForbiddenException,
         BadRequestException
     {
@@ -231,7 +256,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
         forceFiltering( options, filters );
 
-        List<T> entities = getEntityList( metadata, options, filters, orders );
+        List<T> entities = fetchList.apply( new ListParams( metadata, options, filters, orders ) );
 
         Pager pager = metadata.getPager();
 
@@ -239,7 +264,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         {
             long totalCount;
 
-            if ( options.getOptions().containsKey( "query" ) )
+            if ( !countTotal )
             {
                 totalCount = entities.size();
 
@@ -453,31 +478,22 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         cachePrivate( response );
 
         WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
+        T entity = getEntity( pvUid, options );
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
             getPaginationData( options ), options.getRootJunction() );
         query.setUser( currentUser );
-        query.setObjects( entities );
+        query.setObjects( List.of( entity ) );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
-        entities = (List<T>) queryService.query( query );
+        List<T> entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true );
         handleAttributeValues( entities, fields );
 
-        for ( T entity : entities )
-        {
-            postProcessResponseEntity( entity, options, rpParameters );
-        }
+        entities.forEach( e -> postProcessResponseEntity( e, options, rpParameters ) );
 
-        return ResponseEntity.ok( new StreamingJsonRoot<>( null, entities.size() > 1 ? getSchema().getPlural() : null,
-            FieldFilterParams.of( entities, fields ) ) );
+        return ResponseEntity.ok( new StreamingJsonRoot<>( null, null, FieldFilterParams.of( entities, fields ) ) );
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
@@ -527,28 +543,20 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         throws NotFoundException
     {
         WebOptions options = new WebOptions( parameters );
-        List<T> entities = getEntity( uid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), uid );
-        }
+        T entity = getEntity( uid, options );
 
         Query query = queryService.getQueryFromUrl( getEntityClass(), filters, new ArrayList<>(),
             getPaginationData( options ), options.getRootJunction() );
         query.setUser( currentUser );
-        query.setObjects( entities );
+        query.setObjects( List.of( entity ) );
         query.setDefaults( Defaults.valueOf( options.get( "defaults", DEFAULTS ) ) );
 
-        entities = (List<T>) queryService.query( query );
+        List<T> entities = (List<T>) queryService.query( query );
 
         handleLinksAndAccess( entities, fields, true );
         handleAttributeValues( entities, fields );
 
-        for ( T entity : entities )
-        {
-            postProcessResponseEntity( entity, options, parameters );
-        }
+        entities.forEach( e -> postProcessResponseEntity( entity, options, parameters ) );
 
         FieldFilterParams<T> filterParams = FieldFilterParams.of( entities, fields );
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( filterParams );
@@ -656,16 +664,18 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
         return entitySimpleName;
     }
 
-    protected final List<T> getEntity( String uid )
+    @Nonnull
+    protected final T getEntity( String uid )
+        throws NotFoundException
     {
         return getEntity( uid, NO_WEB_OPTIONS );
     }
 
-    protected List<T> getEntity( String uid, WebOptions options )
+    @Nonnull
+    protected T getEntity( String uid, WebOptions options )
+        throws NotFoundException
     {
-        ArrayList<T> list = new ArrayList<>();
-        getEntity( uid, getEntityClass() ).ifPresent( list::add );
-        return list; // TODO consider ACL
+        return getEntity( uid, getEntityClass() ).orElseThrow( () -> new NotFoundException( getEntityClass(), uid ) );
     }
 
     protected final <E extends IdentifiableObject> java.util.Optional<E> getEntity( String uid, Class<E> entityType )
