@@ -79,7 +79,7 @@
     <spring-retry.version>1.2.4.RELEASE</spring-retry.version>
     <spring-restdocs-mockmvc.version>2.0.4.RELEASE</spring-restdocs-mockmvc.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.2.RELEASE</lettuce.version>
+    <lettuce.version>6.2.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.15.2</flyway-core.version>
