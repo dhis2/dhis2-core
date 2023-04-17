@@ -28,6 +28,7 @@
 package org.hisp.dhis.commons.collection;
 
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,19 +49,17 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Utility methods for operations on various collections.
  *
  * @author Morten Olav Hansen
  */
+@NoArgsConstructor( access = PRIVATE )
 public class CollectionUtils
 {
     public static final String[] STRING_ARR = new String[0];
-
-    private CollectionUtils()
-    {
-        throw new UnsupportedOperationException( "util" );
-    }
 
     /**
      * Performs a flat mapping of the given collection using the given mapping
