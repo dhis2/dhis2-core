@@ -147,7 +147,7 @@ public enum ValidationCode
     /* Relationship */
     E4000( "Relationship: `{0}` cannot link to itself" ),
     E4001(
-        "Relationship item `{0}` for relationship `{1}` is invalid: an item must link exactly one of trackedEntity, enrollment, event." ),
+        "Relationship item `{0}` for relationship `{1}` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." ),
     E4006( "Could not find relationship type: `{0}`." ),
     E4010( "Relationship type `{0}` constraint requires a {1} but a {2} was found." ),
     E4012( "Could not find `{0}`: `{1}`, linked to relationship." ),

@@ -28,9 +28,14 @@
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.tracker.validation.ValidationCode.E1124;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
 
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.tracker.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.validation.Reporter;
 import org.hisp.dhis.tracker.validation.Validator;
 
@@ -44,9 +49,19 @@ class MandatoryFieldsValidator
     public void validate( Reporter reporter, TrackerBundle bundle,
         Relationship relationship )
     {
-        reporter.addErrorIfNull( relationship.getFrom(), relationship, E1124, "from" );
-        reporter.addErrorIfNull( relationship.getTo(), relationship, E1124, "to" );
+        reporter.addErrorIf( () -> relationship.getFrom() == null || hasUnexpectedReferences( relationship.getFrom() ),
+            relationship, E4001, "from", relationship.getRelationship() );
+        reporter.addErrorIf( () -> relationship.getTo() == null || hasUnexpectedReferences( relationship.getTo() ),
+            relationship, E4001, "to", relationship.getRelationship() );
+
         reporter.addErrorIf( () -> relationship.getRelationshipType().isBlank(), relationship, E1124,
             "relationshipType" );
+    }
+
+    private boolean hasUnexpectedReferences( RelationshipItem item )
+    {
+        return Stream.of( item.getTrackedEntity(), item.getEnrollment(), item.getEvent() )
+            .filter( StringUtils::isNotBlank )
+            .count() != 1;
     }
 }
