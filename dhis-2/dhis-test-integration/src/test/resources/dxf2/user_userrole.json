@@ -7,11 +7,8 @@
       "href": "https://play.dhis2.org/dev/api/userRoles/xJZBzAHI88H",
       "id": "xJZBzAHI88H",
       "displayName": "User manager",
-      "publicAccess": "--------",
       "description": "User manager",
-      "externalAccess": false,
       "favorite": false,
-      "userGroupAccesses": [],
       "attributeValues": [],
       "authorities": [
         "M_dhis-web-maintenance-user",
@@ -19,7 +16,14 @@
         "M_dhis-web-dashboard",
         "F_USER_DELETE",
         "F_USER_ADD"
-      ]
+      ],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "created": "2014-12-26T14:21:00.602",
@@ -28,11 +32,8 @@
       "href": "https://play.dhis2.org/dev/api/userRoles/xJZBzAHI88H",
       "id": "tMYCXBU3TPD",
       "displayName": "Data entry clerk",
-      "publicAccess": "--------",
       "description": "Data entry clerk",
-      "externalAccess": false,
       "favorite": false,
-      "userGroupAccesses": [],
       "attributeValues": [],
       "authorities": [
         "F_DATAVALUE_DELETE",
@@ -44,7 +45,14 @@
         "M_dhis-web-dashboard",
         "F_DATAVALUE_ADD",
         "M_dhis-web-maps"
-      ]
+      ],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "date": "2016-03-12T06:21:34.667+0000",
@@ -93,26 +101,26 @@
           "id": "inVD5SdytkT"
         }
       ],
-        "user": {
-          "id": "enHApD3I6Ho"
+      "user": {
+        "id": "enHApD3I6Ho"
+      },
+      "cogsDimensionConstraints": [],
+      "selfRegistered": false,
+      "catDimensionConstraints": [],
+      "lastLogin": "2016-03-12T06:21:02.226+0000",
+      "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
+      "userRoles": [
+        {
+          "id": "xJZBzAHI88H"
         },
-        "cogsDimensionConstraints": [],
-        "selfRegistered": false,
-        "catDimensionConstraints": [],
-        "lastLogin": "2016-03-12T06:21:02.226+0000",
-        "passwordLastUpdated": "2016-03-12T06:21:02.226+0000",
-        "userRoles": [
-          {
-            "id": "xJZBzAHI88H"
-          },
-          {
-            "id": "tMYCXBU3TPD"
-          }
-        ],
-        "username": "UserB",
-        "invitation": false,
-        "disabled": false,
-        "externalAuth": false,
+        {
+          "id": "tMYCXBU3TPD"
+        }
+      ],
+      "username": "UserB",
+      "invitation": false,
+      "disabled": false,
+      "externalAuth": false,
       "teiSearchOrganisationUnits": [],
       "id": "MwhEJUnTHkn",
       "attributeValues": []
@@ -135,26 +143,26 @@
           "id": "inVD5SdytkT"
         }
       ],
-        "username": "UserAA",
-        "userRoles": [
-          {
-            "id": "xJZBzAHI88H"
-          },
-          {
-            "id": "tMYCXBU3TPD"
-          }
-        ],
-        "invitation": false,
-        "disabled": false,
-        "externalAuth": false,
-        "cogsDimensionConstraints": [],
-        "user": {
-          "id": "enHApD3I6Ho"
+      "username": "UserAA",
+      "userRoles": [
+        {
+          "id": "xJZBzAHI88H"
         },
-        "selfRegistered": false,
-        "catDimensionConstraints": [],
-        "lastLogin": "2016-03-12T06:20:43.407+0000",
-        "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
+        {
+          "id": "tMYCXBU3TPD"
+        }
+      ],
+      "invitation": false,
+      "disabled": false,
+      "externalAuth": false,
+      "cogsDimensionConstraints": [],
+      "user": {
+        "id": "enHApD3I6Ho"
+      },
+      "selfRegistered": false,
+      "catDimensionConstraints": [],
+      "lastLogin": "2016-03-12T06:20:43.407+0000",
+      "passwordLastUpdated": "2016-03-12T06:20:43.407+0000",
       "teiSearchOrganisationUnits": []
     }
   ]

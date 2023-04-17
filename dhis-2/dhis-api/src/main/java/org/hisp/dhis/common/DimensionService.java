@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.user.User;
 
 /**
@@ -56,7 +57,8 @@ public interface DimensionService
 
     List<DimensionalObject> getDimensionConstraints();
 
-    DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead );
+    DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
+        throws NotFoundException;
 
     void mergeAnalyticalObject( BaseAnalyticalObject object );
 

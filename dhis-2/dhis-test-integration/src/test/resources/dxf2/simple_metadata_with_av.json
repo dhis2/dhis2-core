@@ -4,20 +4,25 @@
       "user": {
         "id": "ueKaFVdR8Fz"
       },
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "created": "2016-02-17T06:15:06.079+0000",
       "zeroIsSignificant": false,
-      "attributeValues": [ ],
+      "attributeValues": [],
       "code": "DataElementCodeA",
-      "publicAccess": "rw------",
       "aggregationType": "SUM",
       "domainType": "AGGREGATE",
-      "userGroupAccesses": [ ],
       "shortName": "DataElementShortA",
       "name": "DataElementA",
       "id": "SG4HuKlNEFH",
       "lastUpdated": "2016-02-17T06:15:59.378+0000",
-      "valueType": "TEXT"
+      "valueType": "TEXT",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
       "lastUpdated": "2016-02-17T06:16:08.180+0000",
@@ -25,30 +30,33 @@
       "shortName": "DataElementShortB",
       "name": "DataElementB",
       "id": "CCwk5Yx440o",
-      "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
       "aggregationType": "SUM",
-      "publicAccess": "rw------",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "code": "DataElementCodeB",
       "created": "2016-02-17T06:15:49.487+0000",
       "zeroIsSignificant": false,
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "user": {
         "id": "ueKaFVdR8Fz"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
       }
     },
     {
-      "publicAccess": "rw------",
       "aggregationType": "SUM",
       "shortName": "DataElementShortC",
       "name": "DataElementC",
       "id": "j5PneRdU7WT",
       "domainType": "AGGREGATE",
-      "userGroupAccesses": [ ],
       "lastUpdated": "2016-02-27T03:17:13.827+0000",
       "valueType": "TEXT",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "user": {
         "id": "ueKaFVdR8Fz"
       },
@@ -72,12 +80,17 @@
           },
           "lastUpdated": "2016-02-27T03:17:13.830+0000"
         }
-      ]
+      ],
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
+      }
     },
     {
-      "publicAccess": "rw------",
       "aggregationType": "SUM",
-      "userGroupAccesses": [ ],
       "domainType": "AGGREGATE",
       "id": "k90AVpBahO4",
       "name": "DataElementD",
@@ -87,7 +100,7 @@
       "user": {
         "id": "ueKaFVdR8Fz"
       },
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "zeroIsSignificant": false,
       "created": "2016-02-27T03:17:51.961+0000",
       "attributeValues": [
@@ -108,20 +121,27 @@
           "created": "2016-02-27T03:17:51.892+0000"
         }
       ],
-      "code": "DataElementCodeD"
+      "code": "DataElementCodeD",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "options": [
     {
       "code": "Gender_Female",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "lastUpdated": "2016-02-27T03:09:09.734+0000",
       "name": "Female",
       "id": "uBDO9S6MdoE",
       "created": "2016-02-27T03:09:09.734+0000"
     },
     {
-      "attributeValues": [ ],
+      "attributeValues": [],
       "code": "Gender_Male",
       "lastUpdated": "2016-02-27T03:09:03.161+0000",
       "id": "IoxIRLL7ZTU",
@@ -133,7 +153,6 @@
   "userRoles": [
     {
       "lastUpdated": "2016-02-17T06:14:12.260+0000",
-      "userGroupAccesses": [ ],
       "created": "2016-02-17T06:14:12.260+0000",
       "name": "Superuser",
       "id": "rKLtmQLRMU8",
@@ -172,9 +191,15 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
-      "dataSets": [ ],
-      "programs": [ ],
-      "publicAccess": "--------"
+      "dataSets": [],
+      "programs": [],
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "organisationUnitLevels": [
@@ -196,7 +221,7 @@
       "featureType": "NONE",
       "lastUpdated": "2016-02-17T06:17:01.228+0000",
       "code": "OrgUnitCodeA",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "uuid": "6ea86a20-1eb1-4bbd-87ea-948ee1e01f20",
       "description": "",
       "created": "2016-02-17T06:17:01.218+0000",
@@ -208,7 +233,7 @@
   "trackedEntityTypes": [
     {
       "lastUpdated": "2016-02-17T06:25:08.000+0000",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "description": "Person",
       "created": "2016-02-17T06:25:08.000+0000",
       "name": "Person",
@@ -306,20 +331,19 @@
         }
       ],
       "validCompleteOnly": false,
-      "attributeValues": [ ],
+      "attributeValues": [],
       "code": "DataSetCodeA",
       "fieldCombinationRequired": false,
       "user": {
         "id": "ueKaFVdR8Fz"
       },
-      "userGroupAccesses": [ ],
       "openFuturePeriods": 0,
       "noValueRequiresComment": false,
       "shortName": "DataSetShortA",
       "name": "DataSetA",
-      "indicators": [ ],
+      "indicators": [],
       "renderHorizontally": false,
-      "compulsoryDataElementOperands": [ ],
+      "compulsoryDataElementOperands": [],
       "id": "DSaKQTwN4qg",
       "lastUpdated": "2016-02-17T06:19:18.986+0000",
       "expiryDays": 0,
@@ -328,9 +352,15 @@
       "skipOffline": false,
       "periodType": "Monthly",
       "version": 1,
-      "publicAccess": "rw------",
       "notifyCompletingUser": false,
-      "mobile": false
+      "mobile": false,
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "users": [
@@ -338,7 +368,7 @@
       "id": "ueKaFVdR8Fz",
       "firstName": "admin",
       "created": "2016-02-17T06:14:12.250+0000",
-      "dataViewOrganisationUnits": [ ],
+      "dataViewOrganisationUnits": [],
       "attributeValues": [
         {
           "attribute": {
@@ -364,25 +394,24 @@
         }
       ],
       "lastUpdated": "2016-02-17T06:14:12.250+0000",
-        "cogsDimensionConstraints": [ ],
-        "catDimensionConstraints": [ ],
-        "invitation": false,
-        "username": "admin",
-        "selfRegistered": false,
-        "disabled": false,
-        "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
-        "externalAuth": false,
-        "userRoles": [
-          {
-            "id": "rKLtmQLRMU8"
-          }
-        ],
-        "lastLogin": "2016-02-17T06:14:12.274+0000"
+      "cogsDimensionConstraints": [],
+      "catDimensionConstraints": [],
+      "invitation": false,
+      "username": "admin",
+      "selfRegistered": false,
+      "disabled": false,
+      "passwordLastUpdated": "2016-02-17T06:14:12.274+0000",
+      "externalAuth": false,
+      "userRoles": [
+        {
+          "id": "rKLtmQLRMU8"
+        }
+      ],
+      "lastLogin": "2016-02-17T06:14:12.274+0000"
     }
   ],
   "optionSets": [
     {
-      "publicAccess": "rw------",
       "version": 1,
       "user": {
         "id": "ueKaFVdR8Fz"
@@ -418,8 +447,14 @@
           "id": "uBDO9S6MdoE"
         }
       ],
-      "userGroupAccesses": [ ],
-      "created": "2016-02-27T03:08:49.239+0000"
+      "created": "2016-02-27T03:08:49.239+0000",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "ueKaFVdR8Fz",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }
