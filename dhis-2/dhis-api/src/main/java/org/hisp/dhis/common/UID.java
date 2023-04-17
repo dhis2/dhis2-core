@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,21 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters.jackson;
+package org.hisp.dhis.common;
 
-import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
+import lombok.NoArgsConstructor;
 
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-
-public class MonitoringJobParametersDeserializer extends AbstractJobParametersDeserializer<MonitoringJobParameters>
+/**
+ * A "virtual" UID type that is "context-sensitive" and points to a UID of the
+ * current {@code Api.Endpoint}'s
+ * {@link org.hisp.dhis.common.OpenApi.EntityType}.
+ * <p>
+ * In other words by using this type in {@link OpenApi.Param#value()} the
+ * annotated parameter becomes a UID string of the controllers' entity type.
+ *
+ * @author Jan Bernitt
+ */
+@NoArgsConstructor
+public final class UID
 {
-    public MonitoringJobParametersDeserializer()
-    {
-        super( MonitoringJobParameters.class, CustomJobParameters.class );
-    }
-
-    @JsonDeserialize
-    public static class CustomJobParameters extends MonitoringJobParameters
-    {
-    }
 }
