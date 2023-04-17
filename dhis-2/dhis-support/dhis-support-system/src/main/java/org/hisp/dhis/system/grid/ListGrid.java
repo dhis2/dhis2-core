@@ -45,6 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import net.sf.jasperreports.engine.JRException;
@@ -169,7 +170,7 @@ public class ListGrid
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
         this.gridValueMetaInfo = new ArrayList<>();
-        this.rowContext = new HashMap<>();
+        this.rowContext = new TreeMap<>( Comparator.comparing( Integer::valueOf ) );
         this.grid = new ArrayList<>();
     }
 
@@ -183,7 +184,7 @@ public class ListGrid
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
         this.gridValueMetaInfo = new ArrayList<>();
-        this.rowContext = new HashMap<>();
+        this.rowContext = new TreeMap<>( Comparator.comparing( Integer::valueOf ) );
         this.grid = new ArrayList<>();
     }
 

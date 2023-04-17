@@ -28,12 +28,16 @@
 package org.hisp.dhis.common;
 
 /**
- * Enum for for description of repeatable stage, element value status, inside
- * the grid row collection
+ * Enum for description of repeatable stage value
  */
 public enum GridValueStatus
 {
+    //stage repetition does not exist
     UNDEFINED,
+
+    //value is not set
     UNSET,
+
+    //value is set
     SET
 }

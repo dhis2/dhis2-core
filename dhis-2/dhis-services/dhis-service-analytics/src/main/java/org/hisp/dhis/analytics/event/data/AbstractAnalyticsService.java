@@ -220,7 +220,7 @@ public abstract class AbstractAnalyticsService
         addHeaders( params, grid );
 
         // ---------------------------------------------------------------------
-        // ValueMeta
+        // RowContext
         // ---------------------------------------------------------------------
 
         addRowContext( grid );
@@ -229,8 +229,9 @@ public abstract class AbstractAnalyticsService
     }
 
     /**
-     * Add columnIndex value into gridValueMetaInfo items based on grid header
-     * name
+     * Add information about row context. The row context is based on origin of
+     * repeatable stage value. Please see the {@link GridValueStatus}
+     *
      *
      * @param grid the {@link Grid}.
      */
@@ -242,14 +243,11 @@ public abstract class AbstractAnalyticsService
 
         gridValueMetaInfo.forEach( m -> {
             Map<String, GridValueStatus> column = rowContext.get( m.getRowIndex().toString() );
-
             if ( column == null )
             {
                 column = new HashMap<>();
             }
-
             column.put( Integer.toString( grid.getIndexOfHeader( m.getColumnName() ) ), m.getStatus() );
-
             rowContext.put( Integer.toString( m.getRowIndex() ), column );
         } );
 

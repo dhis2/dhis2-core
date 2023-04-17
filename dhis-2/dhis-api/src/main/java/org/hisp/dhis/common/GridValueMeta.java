@@ -33,8 +33,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * Part of the response grid. The object is used for description of repeatable
- * stage, element value, inside the grid row collection.
+ * The object is used for description of repeatable stage and its value.
  *
  */
 @Getter
@@ -46,4 +45,5 @@ public class GridValueMeta implements Serializable
     private final Integer rowIndex;
 
     private final GridValueStatus status;
+
 }
