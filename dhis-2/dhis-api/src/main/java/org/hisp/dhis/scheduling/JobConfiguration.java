@@ -31,6 +31,7 @@ import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.schema.annotation.Property.Value.FALSE;
 
+import java.time.Clock;
 import java.util.Date;
 
 import javax.annotation.Nonnull;
@@ -119,7 +120,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
     private JobStatus jobStatus;
 
-    private Date nextExecutionTime;
+    private transient Date nextExecutionTime;
 
     private JobStatus lastExecutedStatus = JobStatus.NOT_STARTED;
 
@@ -293,6 +294,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     public void setCronExpression( String cronExpression )
     {
         this.cronExpression = cronExpression;
+        this.nextExecutionTime = null; // invalidate
     }
 
     @JacksonXmlProperty
@@ -374,27 +376,22 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public Date getNextExecutionTime()
     {
-        return nextExecutionTime;
+        return nextExecutionTimeAfter( Clock.systemDefaultZone() );
     }
 
-    /**
-     * Only set next execution time if the job is not continuous.
-     */
-    public void setNextExecutionTime( Date nextExecutionTime )
+    public Date nextExecutionTimeAfter( Clock time )
     {
-        if ( cronExpression == null || cronExpression.equals( "" ) || cronExpression.equals( "* * * * * ?" ) )
+        if ( time == null || cronExpression == null || cronExpression.equals( "" )
+            || cronExpression.equals( "* * * * * ?" ) )
         {
-            return;
+            return null;
         }
-
-        if ( nextExecutionTime != null )
+        if ( nextExecutionTime == null || !nextExecutionTime.toInstant().isAfter( time.instant() ) )
         {
-            this.nextExecutionTime = nextExecutionTime;
+            this.nextExecutionTime = new CronTrigger( cronExpression )
+                .nextExecutionTime( new SimpleTriggerContext( time ) );
         }
-        else
-        {
-            this.nextExecutionTime = new CronTrigger( cronExpression ).nextExecutionTime( new SimpleTriggerContext() );
-        }
+        return nextExecutionTime;
     }
 
     @JacksonXmlProperty
