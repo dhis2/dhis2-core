@@ -128,9 +128,9 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
         optionSetDataElement = createDataElement( 'P' );
         optionSetDataElement.setUid( OPTION_SET_DATA_ELEMENT_ID );
         OptionSet optionSet = new OptionSet();
-        Option option = new Option( "10", "10" );
+        Option option = new Option( "ten", "10" );
         optionSet.setOptions( List.of( option ) );
-        optionSet.setValueType( ValueType.NUMBER );
+        optionSet.setValueType( ValueType.TEXT );
         optionSetDataElement.setOptionSet( optionSet );
         ProgramStageDataElement programStageDataElementOptionSet = createProgramStageDataElement( secondProgramStage,
             optionSetDataElement, 0 );
@@ -165,6 +165,27 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
         Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
 
         assertDataValueWasNotAssignedAndErrorIsPresent( VALID_OPTION_VALUE, dataValue, warning );
+    }
+
+    @Test
+    void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty()
+    {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
+            "", VALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+
+        assertTrue( dataValue.isPresent() );
+        assertEquals( VALID_OPTION_VALUE, dataValue.get().getValue() );
+        assertTrue( warning.isPresent() );
+        assertEquals( WARNING, warning.get().getIssueType() );
     }
 
     @Test
