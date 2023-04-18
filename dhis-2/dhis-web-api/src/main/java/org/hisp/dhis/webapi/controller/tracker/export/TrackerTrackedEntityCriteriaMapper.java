@@ -121,7 +121,7 @@ public class TrackerTrackedEntityCriteriaMapper
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( orgUnitIds, user, program );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             orgUnits.addAll( user.getOrganisationUnits() );
@@ -220,7 +220,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .collect( Collectors.toSet() );
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user, Program program )
+    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
         throws BadRequestException,
         ForbiddenException
     {
