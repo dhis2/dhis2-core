@@ -39,5 +39,15 @@ public enum RepeatableStageValueStatus
     UNSET,
 
     //value is set
-    SET
+    SET;
+
+    public static RepeatableStageValueStatus of( boolean isDefined, boolean isSet )
+    {
+        if ( !isDefined )
+        {
+            return RepeatableStageValueStatus.UNDEFINED;
+        }
+
+        return isSet ? RepeatableStageValueStatus.SET : RepeatableStageValueStatus.UNSET;
+    }
 }

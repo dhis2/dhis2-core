@@ -371,7 +371,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             columns.add( columnAndAlias.asSql() );
 
             // does repeatable stage exist?
-            if ( queryItem.hasRepeatableStageParams() )
+            if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
+                && queryItem.hasRepeatableStageParams() )
             {
                 String column = " exists (" + columnAndAlias.column + ")";
                 String alias = columnAndAlias.alias + ".exists";

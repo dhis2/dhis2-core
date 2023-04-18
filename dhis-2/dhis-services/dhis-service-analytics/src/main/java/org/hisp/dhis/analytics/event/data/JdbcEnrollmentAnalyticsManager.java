@@ -215,7 +215,7 @@ public class JdbcEnrollmentAnalyticsManager
 
                 Map<String, RepeatableStageValueStatus> colValueType = new HashMap<>();
 
-                colValueType.put( "type", getGridValueStatus( isDefined, isSet ) );
+                colValueType.put( "repeatableStageValueStatus", RepeatableStageValueStatus.of( isDefined, isSet ) );
 
                 row.put( columnName, colValueType );
 
@@ -231,16 +231,6 @@ public class JdbcEnrollmentAnalyticsManager
         }
 
         return false;
-    }
-
-    private RepeatableStageValueStatus getGridValueStatus( boolean isDefined, boolean isSet )
-    {
-        if ( !isDefined )
-        {
-            return RepeatableStageValueStatus.UNDEFINED;
-        }
-
-        return isSet ? RepeatableStageValueStatus.SET : RepeatableStageValueStatus.UNSET;
     }
 
     @Override
