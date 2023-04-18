@@ -63,7 +63,8 @@ import org.hisp.dhis.tracker.report.TimingsStats;
 import org.hisp.dhis.tracker.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
 import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
-import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,7 +95,7 @@ class TrackerImportControllerTest
     private TrackerAsyncImporter asyncImporter;
 
     @Mock
-    private TrackerCsvEventService csvEventService;
+    private CsvService<Event> csvEventService;
 
     @Mock
     private Notifier notifier;
@@ -146,7 +147,7 @@ class TrackerImportControllerTest
             .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
             .andExpect( content().contentType( "application/json" ) );
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( asyncImporter ).importTracker( any(), any(), any() );
     }
 
@@ -209,7 +210,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( syncImporter ).importTracker( any() );
 
         try
@@ -277,7 +278,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( syncImporter ).importTracker( any() );
 
         try

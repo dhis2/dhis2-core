@@ -57,17 +57,17 @@ import org.locationtech.jts.io.ParseException;
 
 import com.google.common.io.Files;
 
-class TrackerCsvEventServiceTest
+class CsvEventServiceTest
 {
 
-    private TrackerCsvEventService service;
+    private CsvEventService service;
 
     private GeometryFactory geometryFactory;
 
     @BeforeEach
     void setUp()
     {
-        service = new TrackerCsvEventService();
+        service = new CsvEventService();
         geometryFactory = new GeometryFactory();
     }
 
@@ -80,7 +80,7 @@ class TrackerCsvEventServiceTest
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        service.writeEvents( out, Collections.singletonList( new Event() ), false );
+        service.write( out, Collections.singletonList( new Event() ), false );
 
         assertEquals( ",ACTIVE,,,,,,,,,,,false,false,,,,,,,,,,,,,,,,,\n", out.toString() );
     }
@@ -98,7 +98,7 @@ class TrackerCsvEventServiceTest
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        service.writeEvents( out, Collections.singletonList( event ), false );
+        service.write( out, Collections.singletonList( event ), false );
 
         assertEquals( "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,,,,,,,\n", out.toString() );
     }
@@ -128,7 +128,7 @@ class TrackerCsvEventServiceTest
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
-        service.writeEvents( out, Collections.singletonList( event ), false );
+        service.write( out, Collections.singletonList( event ), false );
 
         assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,yellow,,true,,,\n" );
         assertInCSV( out, "BuA2R2Gr4vt,ACTIVE,,,,,,,,,,,true,false,,,,,,,,,,,color,purple,,true,,,\n" );
@@ -150,7 +150,7 @@ class TrackerCsvEventServiceTest
         File event = new File( "src/test/resources/controller/tracker/csv/event.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
 
-        List<Event> events = service.readEvents( inputStream, true );
+        List<Event> events = service.read( inputStream, true );
 
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
@@ -185,7 +185,7 @@ class TrackerCsvEventServiceTest
         File event = new File( "src/test/resources/controller/tracker/csv/completeEvent.csv" );
         InputStream inputStream = Files.asByteSource( event ).openStream();
 
-        List<Event> events = service.readEvents( inputStream, false );
+        List<Event> events = service.read( inputStream, false );
 
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
@@ -233,7 +233,7 @@ class TrackerCsvEventServiceTest
 
         InputStream in = new ByteArrayInputStream( csv.getBytes( StandardCharsets.UTF_8 ) );
 
-        List<Event> events = service.readEvents( in, false );
+        List<Event> events = service.read( in, false );
 
         assertFalse( events.isEmpty() );
         assertEquals( 1, events.size() );
