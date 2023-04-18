@@ -121,9 +121,4 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
     {
         return skipPaging;
     }
-
-    public interface EntityNameSupplier
-    {
-        String getEntityName();
-    }
 }
