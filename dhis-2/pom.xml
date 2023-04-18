@@ -111,7 +111,7 @@
         <!-- Jackson -->
         <jackson.version>2.14.2</jackson.version>
         <jackson-datatype-jts.version>1.0-2.7</jackson-datatype-jts.version>
-        <jackson-datatype-hibernate5.version>2.11.2</jackson-datatype-hibernate5.version>
+        <jackson-datatype-hibernate5.version>2.14.2</jackson-datatype-hibernate5.version>
         <classmate.version>1.5.1</classmate.version>
         <geojson-jackson.version>1.14</geojson-jackson.version>
 
