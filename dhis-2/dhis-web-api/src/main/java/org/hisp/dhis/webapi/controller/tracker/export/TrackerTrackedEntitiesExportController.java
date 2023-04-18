@@ -116,7 +116,8 @@ public class TrackerTrackedEntitiesExportController
     PagingWrapper<ObjectNode> getTrackedEntities( TrackerTrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
@@ -155,7 +156,8 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
         throws IOException,
         BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
         TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,

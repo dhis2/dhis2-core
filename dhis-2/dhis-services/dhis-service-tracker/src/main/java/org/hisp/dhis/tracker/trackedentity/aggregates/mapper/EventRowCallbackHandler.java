@@ -37,6 +37,7 @@ import java.sql.SQLException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
@@ -127,16 +128,24 @@ public class EventRowCallbackHandler
         categoryOptionCombo.setCategoryOptions( categoryOptions );
         event.setAttributeOptionCombo( categoryOptionCombo );
 
-        User assignedUser = new User();
-        assignedUser.setUid( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER ) ) );
-        assignedUser.setUsername( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_USERNAME ) ) );
-        assignedUser.setFirstName( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_FIRST_NAME ) ) );
-        assignedUser.setSurname( rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_SURNAME ) ) );
-        if ( assignedUser.getFirstName() != null && assignedUser.getSurname() != null )
+        String assignedUserUid = rs.getString( getColumnName( COLUMNS.ASSIGNED_USER ) );
+        String assignedUserUsername = rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_USERNAME ) );
+        String assignedUserFirstName = rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_FIRST_NAME ) );
+        String assignedUserSurname = rs.getString( getColumnName( COLUMNS.ASSIGNED_USER_SURNAME ) );
+        if ( StringUtils.isNotEmpty( assignedUserUid ) || StringUtils.isNotEmpty( assignedUserUsername )
+            || StringUtils.isNotEmpty( assignedUserFirstName ) || StringUtils.isNotEmpty( assignedUserSurname ) )
         {
-            assignedUser.setName( assignedUser.getFirstName() + " " + assignedUser.getSurname() );
+            User assignedUser = new User();
+            assignedUser.setUid( assignedUserUid );
+            assignedUser.setUsername( assignedUserUsername );
+            assignedUser.setFirstName( assignedUserFirstName );
+            assignedUser.setSurname( assignedUserSurname );
+            if ( assignedUser.getFirstName() != null && assignedUser.getSurname() != null )
+            {
+                assignedUser.setName( assignedUser.getFirstName() + " " + assignedUser.getSurname() );
+            }
+            event.setAssignedUser( assignedUser );
         }
-        event.setAssignedUser( assignedUser );
 
         return event;
     }

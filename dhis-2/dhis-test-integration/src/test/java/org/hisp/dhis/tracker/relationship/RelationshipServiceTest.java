@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -98,8 +100,6 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private ProgramInstance piA;
 
-    private ProgramInstance piB;
-
     @Override
     protected void setUpTest()
         throws Exception
@@ -155,7 +155,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         psiA.setOrganisationUnit( orgUnit );
         manager.save( psiA, false );
 
-        piB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
+        ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
             orgUnit );
         inaccessiblePsi = new ProgramStageInstance();
         inaccessiblePsi.setProgramInstance( piB );
@@ -223,6 +223,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     @Test
     void shouldNotReturnRelationshipByTrackedEntityInstanceIfUserHasNoAccessToTrackedEntityType()
+        throws ForbiddenException,
+        NotFoundException
     {
         Relationship accessible = relationship( teiA, teiB );
         relationship( teiA, inaccessibleTei, teiToInaccessibleTeiType );
@@ -236,6 +238,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     @Test
     void shouldNotReturnRelationshipByProgramInstanceIfUserHasNoAccessToRelationshipType()
+        throws ForbiddenException,
+        NotFoundException
     {
         Relationship accessible = relationship( teiA, piA );
         relationship( teiB, piA, teiToPiInaccessibleType );
@@ -249,6 +253,8 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     @Test
     void shouldNotReturnRelationshipByProgramStageInstanceIfUserHasNoAccessToProgramStage()
+        throws ForbiddenException,
+        NotFoundException
     {
         Relationship accessible = relationship( teiA, psiA );
         relationship( psiA, inaccessiblePsi );
