@@ -39,8 +39,5 @@ public interface EventService
 
     ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
 
-    ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
-        boolean skipOwnershipCheck, EventParams eventParams );
-
     void validate( EventSearchParams params, User user );
 }

@@ -25,48 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
-import java.util.Date;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-/**
- * Represents query parameters sent to
- * {@link TrackerEnrollmentsExportController}.
- */
-@Data
-@NoArgsConstructor
-public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+public interface CsvService<T>
 {
-    private String orgUnit;
+    void write( OutputStream outputStream, List<T> events, boolean withHeader )
+        throws IOException;
 
-    private OrganisationUnitSelectionMode ouMode;
-
-    private String program;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private Date updatedAfter;
-
-    private String updatedWithin;
-
-    private Date enrolledAfter;
-
-    private Date enrolledBefore;
-
-    private String trackedEntityType;
-
-    private String trackedEntity;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+    List<T> read( InputStream inputStream, boolean skipFirst )
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }
