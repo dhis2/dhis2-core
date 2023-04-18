@@ -27,23 +27,17 @@
  */
 package org.hisp.dhis.common;
 
-import java.io.Serializable;
-
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
 /**
- * The object is used for description of repeatable stage and its value.
- *
+ * Enum for description of repeatable stage value
  */
-@Getter
-@AllArgsConstructor
-public class GridValueMeta implements Serializable
+public enum RepeatableStageValueStatus
 {
-    private final String columnName;
+    //repeating of the repeatable stage does not exist
+    UNDEFINED,
 
-    private final Integer rowIndex;
+    //value is not set
+    UNSET,
 
-    private final GridValueStatus status;
-
+    //value is set
+    SET
 }

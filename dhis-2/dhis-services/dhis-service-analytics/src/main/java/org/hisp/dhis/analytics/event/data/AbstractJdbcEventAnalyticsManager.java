@@ -370,15 +370,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             columns.add( columnAndAlias.asSql() );
 
-            //  sql select snippet for the value meta => existence of repetition
-            //  it will be used in response grid:
-            //  "gridValueMetaInfo": [
-            //      {
-            //          "rowIndex": 0,
-            //          "status": "SET",
-            //          "columnIndex": 16
-            //      }
-            //  ]
+            // does repeatable stage exist?
             if ( queryItem.hasRepeatableStageParams() )
             {
                 String column = " exists (" + columnAndAlias.column + ")";

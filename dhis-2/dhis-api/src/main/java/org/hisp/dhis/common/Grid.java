@@ -102,6 +102,9 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
+    /**
+     * Returns a map of row contextual data.
+     */
     Map<Integer, Map<String, Object>> getRowContext();
 
     /**
@@ -553,12 +556,13 @@ public interface Grid
     Grid addPerformanceMetrics( List<ExecutionPlan> plans );
 
     /**
-     * Adds Row Context, describe origin of values (columns) inside the row
+     * Set Row Context, the contextual information describing origin of values
+     * (columns) inside the row
      *
      * @param rowContext
      * @return Grid instance
      */
-    Grid addRowContext( Map<Integer, Map<String, Object>> rowContext );
+    Grid setRowContext( Map<Integer, Map<String, Object>> rowContext );
 
     /**
      * Adds a reference.

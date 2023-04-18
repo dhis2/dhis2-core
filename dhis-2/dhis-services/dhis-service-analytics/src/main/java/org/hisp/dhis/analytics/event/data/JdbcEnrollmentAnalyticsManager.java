@@ -62,10 +62,10 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
+import org.hisp.dhis.common.RepeatableStageValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -162,9 +162,9 @@ public class JdbcEnrollmentAnalyticsManager
 
             grid.addRow();
 
-            //columnOffset is synchronization tool for <<grid headers>> and <<rowSet column>> indexes.
-            //RowSet contains more columns than headers. There are values for repeatable stages coupled to meta information.
-            //This information is delivered always in the next column in rowSet and has to be skipped by addGridValue.
+            // columnOffset is synchronization aid for <<grid headers>> and <<rowSet columns>> indexes.
+            // The amount of headers must not match to amount of columns due the additional ones
+            // describing the repeating of repeatable stage.
             int columnOffset = 0;
 
             for ( int i = 0; i < grid.getHeaders().size(); ++i )
@@ -213,7 +213,7 @@ public class JdbcEnrollmentAnalyticsManager
                     row = new HashMap<>();
                 }
 
-                Map<String, GridValueStatus> colValueType = new HashMap<>();
+                Map<String, RepeatableStageValueStatus> colValueType = new HashMap<>();
 
                 colValueType.put( "type", getGridValueStatus( isDefined, isSet ) );
 
@@ -233,14 +233,14 @@ public class JdbcEnrollmentAnalyticsManager
         return false;
     }
 
-    private GridValueStatus getGridValueStatus( boolean isDefined, boolean isSet )
+    private RepeatableStageValueStatus getGridValueStatus( boolean isDefined, boolean isSet )
     {
         if ( !isDefined )
         {
-            return GridValueStatus.UNDEFINED;
+            return RepeatableStageValueStatus.UNDEFINED;
         }
 
-        return isSet ? GridValueStatus.SET : GridValueStatus.UNSET;
+        return isSet ? RepeatableStageValueStatus.SET : RepeatableStageValueStatus.UNSET;
     }
 
     @Override

@@ -381,7 +381,7 @@ public class ListGrid
     }
 
     @Override
-    public Grid addRowContext( Map<Integer, Map<String, Object>> rowContext )
+    public Grid setRowContext( Map<Integer, Map<String, Object>> rowContext )
     {
         this.rowContext = rowContext;
 

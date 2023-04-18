@@ -75,12 +75,12 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RepeatableStageValueStatus;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
@@ -230,7 +230,7 @@ public abstract class AbstractAnalyticsService
 
     /**
      * Add information about row context. The row context is based on origin of
-     * repeatable stage value. Please see the {@link GridValueStatus}
+     * repeatable stage value. Please see the {@link RepeatableStageValueStatus}
      *
      *
      * @param grid the {@link Grid}.
@@ -249,7 +249,7 @@ public abstract class AbstractAnalyticsService
             newRowContext.put( rowKey, newCols );
         } );
 
-        grid.addRowContext( newRowContext );
+        grid.setRowContext( newRowContext );
     }
 
     /**
