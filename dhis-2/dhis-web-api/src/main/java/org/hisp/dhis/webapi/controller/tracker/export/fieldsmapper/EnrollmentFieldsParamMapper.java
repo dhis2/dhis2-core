@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.springframework.stereotype.Component;
 

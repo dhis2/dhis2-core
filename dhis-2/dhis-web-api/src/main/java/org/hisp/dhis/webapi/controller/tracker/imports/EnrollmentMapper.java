@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
@@ -43,11 +43,11 @@ import org.mapstruct.Mapping;
     UserMapper.class,
     MetadataIdentifierMapper.class
 } )
-interface EnrollmentMapper extends DomainMapper<Enrollment, org.hisp.dhis.tracker.domain.Enrollment>
+interface EnrollmentMapper extends DomainMapper<Enrollment, org.hisp.dhis.tracker.imports.domain.Enrollment>
 {
     @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
     @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Enrollment from( Enrollment enrollment,
+    org.hisp.dhis.tracker.imports.domain.Enrollment from( Enrollment enrollment,
         @Context TrackerIdSchemeParams idSchemeParams );
 
 }

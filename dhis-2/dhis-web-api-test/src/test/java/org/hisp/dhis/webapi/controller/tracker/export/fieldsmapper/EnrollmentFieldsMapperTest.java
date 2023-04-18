@@ -33,7 +33,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 import java.util.stream.Stream;
 
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
-import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
