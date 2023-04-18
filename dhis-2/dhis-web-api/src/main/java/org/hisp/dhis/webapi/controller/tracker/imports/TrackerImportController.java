@@ -61,7 +61,7 @@ import org.hisp.dhis.tracker.report.ImportReport;
 import org.hisp.dhis.tracker.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -97,7 +97,7 @@ public class TrackerImportController
 
     private final TrackerImportService trackerImportService;
 
-    private final TrackerCsvEventService csvEventService;
+    private final CsvService<Event> csvEventService;
 
     private final Notifier notifier;
 
@@ -149,7 +149,7 @@ public class TrackerImportController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
-        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        List<Event> events = csvEventService.read( inputStream, skipFirst );
 
         Body body = Body.builder()
             .events( events )
@@ -182,7 +182,7 @@ public class TrackerImportController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
-        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        List<Event> events = csvEventService.read( inputStream, skipFirst );
         Body body = Body.builder()
             .events( events )
             .build();

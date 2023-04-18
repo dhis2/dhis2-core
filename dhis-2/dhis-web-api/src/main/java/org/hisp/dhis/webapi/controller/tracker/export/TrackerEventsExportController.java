@@ -60,7 +60,7 @@ import org.hisp.dhis.tracker.event.EventSearchParams;
 import org.hisp.dhis.tracker.event.EventService;
 import org.hisp.dhis.tracker.event.Events;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.export.csv.TrackerCsvEventService;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.EventFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -99,7 +99,7 @@ public class TrackerEventsExportController
     private final ProgramStageInstanceService programStageInstanceService;
 
     @Nonnull
-    private final TrackerCsvEventService csvEventService;
+    private final CsvService<Event> csvEventService;
 
     @Nonnull
     private final FieldFilterService fieldFilterService;
@@ -166,7 +166,7 @@ public class TrackerEventsExportController
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"events.csv.gz\"" );
         }
 
-        csvEventService.writeEvents( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
+        csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
     }
 
     private boolean areAllEnrollmentsInvalid( TrackerEventCriteria eventCriteria, EventSearchParams eventSearchParams )

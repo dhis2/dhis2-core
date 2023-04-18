@@ -40,7 +40,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
@@ -64,6 +68,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 
@@ -402,6 +407,60 @@ class UserControllerTest extends DhisControllerConvenienceTest
 
         User userAfter = userService.getUser( peter.getUid() );
         assertEquals( "test", userAfter.getOpenId() );
+    }
+
+    @Test
+    void testRemoveCogCatDimFromUserCredentialsLegacyFormat()
+    {
+        CategoryOption coA = createCategoryOption( 'A' );
+        CategoryOption coB = createCategoryOption( 'B' );
+        categoryService.addCategoryOption( coA );
+        categoryService.addCategoryOption( coB );
+
+        Category caA = createCategory( 'A', coA );
+        Category caB = createCategory( 'B', coB );
+        categoryService.addCategory( caA );
+        categoryService.addCategory( caB );
+
+        Set<Category> catDimensionConstraints = Sets.newHashSet( caA, caB );
+
+        CategoryOptionGroupSet categoryOptionGroupSet = new CategoryOptionGroupSet();
+        categoryOptionGroupSet.setAutoFields();
+        categoryOptionGroupSet.setName( "cogA" );
+        categoryOptionGroupSet.setShortName( "cogA" );
+        manager.save( categoryOptionGroupSet );
+
+        User userByUsername = userService.getUserByUsername( peter.getUsername() );
+
+        userByUsername.setCogsDimensionConstraints( Sets.newHashSet( categoryOptionGroupSet ) );
+        userByUsername.setCatDimensionConstraints( catDimensionConstraints );
+
+        userService.updateUser( userByUsername );
+
+        JsonObject user = GET( "/users/{id}", peter.getUid() ).content();
+
+        JsonArray constraints = user.getArray( "catDimensionConstraints" );
+        assertEquals( 2, constraints.size() );
+
+        String emptyCatDim = "{'catDimensionConstraints':[]}";
+        JsonElement emptyCatDimJsonElm = new Gson().fromJson( emptyCatDim, JsonElement.class );
+        String emptyCogDim = "{'cogsDimensionConstraints':[]}";
+        JsonElement emptyCogDimJsonElm = new Gson().fromJson( emptyCogDim, JsonElement.class );
+
+        com.google.gson.JsonObject userJsonObject = new Gson().fromJson( user.toString(), JsonElement.class )
+            .getAsJsonObject();
+
+        userJsonObject.add( "userCredentials", emptyCatDimJsonElm );
+        userJsonObject.add( "userCredentials", emptyCogDimJsonElm );
+
+        PUT( "/37/users/" + peter.getUid(), userJsonObject.toString() );
+
+        User userAfter = userService.getUser( peter.getUid() );
+        Set<CategoryOptionGroupSet> cogsDimensionConstraintsAfter = userAfter.getCogsDimensionConstraints();
+        Set<Category> catDimensionConstraintsAfter = userAfter.getCatDimensionConstraints();
+
+        assertEquals( 0, cogsDimensionConstraintsAfter.size() );
+        assertEquals( 0, catDimensionConstraintsAfter.size() );
     }
 
     @Test

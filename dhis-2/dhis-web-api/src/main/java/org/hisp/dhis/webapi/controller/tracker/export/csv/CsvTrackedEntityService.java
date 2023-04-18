@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.springframework.stereotype.Service;
@@ -45,13 +44,13 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvParser;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
-@Service( "org.hisp.dhis.dxf2.events.enrollment.TrackedEntityService" )
-public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEntity>
+@Service( "org.hisp.dhis.webapi.controller.tracker.export.csv.CsvTrackedEntityService" )
+public class CsvTrackedEntityService implements CsvService<TrackedEntity>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );
 
     @Override
-    public void writeEvents( OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader )
+    public void write( OutputStream outputStream, List<TrackedEntity> trackedEntities, boolean withHeader )
         throws IOException
     {
         final CsvSchema csvSchema = CSV_MAPPER.schemaFor( CsvTrackedEntity.class )
@@ -132,7 +131,7 @@ public class TrackerCsvTrackedEntityService implements CsvEventService<TrackedEn
     }
 
     @Override
-    public List<TrackedEntity> readEvents( InputStream inputStream, boolean skipFirst )
+    public List<TrackedEntity> read( InputStream inputStream, boolean skipFirst )
     {
         return Collections.emptyList();
     }
