@@ -50,7 +50,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 
     <minimum-maven.version>3.6.0</minimum-maven.version>
-    <minimum-java.version>11</minimum-java.version>
+    <minimum-java.version>17</minimum-java.version>
 
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
@@ -72,7 +72,7 @@
     <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
 
     <!-- Security -->
-    <spring-security.version>5.8.2</spring-security.version>
+    <spring-security.version>5.8.3</spring-security.version>
     <spring-security-oauth2.version>2.5.2.RELEASE</spring-security-oauth2.version>
     <spring-security-jwt.version>1.1.1.RELEASE</spring-security-jwt.version>
     <bcprov-jdk15on.version>1.70</bcprov-jdk15on.version>
@@ -633,6 +633,7 @@
           <version>${lombok-maven-plugin.version}</version>
         </plugin>
         <plugin>
+          <!-- Note: Remove /.mvn/jvm.config when replacing speedy-spotless -->
           <groupId>io.committed</groupId>
           <artifactId>speedy-spotless-maven-plugin</artifactId>
           <version>${speedy-spotless-maven-plugin.version}</version>
