@@ -45,8 +45,11 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -58,6 +61,8 @@ import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.interpretation.InterpretationService;
 import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.node.NodeService;
@@ -85,7 +90,6 @@ import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -115,58 +119,62 @@ import com.google.common.collect.Sets;
 @Controller
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequestMapping( "/me" )
+@RequiredArgsConstructor
 public class MeController
 {
-    @Autowired
-    private UserService userService;
+    @Nonnull
+    private final UserService userService;
 
-    @Autowired
-    private UserControllerUtils userControllerUtils;
+    @Nonnull
+    private final UserControllerUtils userControllerUtils;
 
-    @Autowired
+    @Nonnull
     protected ContextService contextService;
 
-    @Autowired
-    private RenderService renderService;
+    @Nonnull
+    private final RenderService renderService;
 
-    @Autowired
-    private FieldFilterService fieldFilterService;
+    @Nonnull
+    private final FieldFilterService fieldFilterService;
 
-    @Autowired
-    private org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
+    @Nonnull
+    private final org.hisp.dhis.fieldfilter.FieldFilterService oldFieldFilterService;
 
-    @Autowired
-    private IdentifiableObjectManager manager;
+    @Nonnull
+    private final IdentifiableObjectManager manager;
 
-    @Autowired
-    private PasswordManager passwordManager;
+    @Nonnull
+    private final PasswordManager passwordManager;
 
-    @Autowired
-    private MessageService messageService;
+    @Nonnull
+    private final MessageService messageService;
 
-    @Autowired
-    private InterpretationService interpretationService;
+    @Nonnull
+    private final InterpretationService interpretationService;
 
-    @Autowired
-    private NodeService nodeService;
+    @Nonnull
+    private final NodeService nodeService;
 
-    @Autowired
-    private UserSettingService userSettingService;
+    @Nonnull
+    private final UserSettingService userSettingService;
 
-    @Autowired
-    private PasswordValidationService passwordValidationService;
+    @Nonnull
+    private final PasswordValidationService passwordValidationService;
 
-    @Autowired
-    private ProgramService programService;
+    @Nonnull
+    private final ProgramService programService;
 
-    @Autowired
-    private DataSetService dataSetService;
+    @Nonnull
+    private final DataSetService dataSetService;
 
-    @Autowired
-    private AclService aclService;
+    @Nonnull
+    private final AclService aclService;
 
-    @Autowired
-    private DataApprovalLevelService approvalLevelService;
+    @Nonnull
+    private final DataApprovalLevelService approvalLevelService;
+
+    @Nonnull
+    private final FileResourceService fileResourceService;
 
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
@@ -263,6 +271,25 @@ public class MeController
         {
             throw new WebMessageException(
                 conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+        }
+
+        FileResource avatar = currentUser.getAvatar();
+        if ( avatar != null )
+        {
+            FileResource fileResource = fileResourceService.getFileResource( avatar.getUid() );
+            if ( fileResource == null )
+            {
+                throw new WebMessageException(
+                    conflict( "File does not exist" ) );
+            }
+
+            if ( !fileResource.getCreatedBy().getUid().equals( currentUser.getUid() ) )
+            {
+                throw new WebMessageException(
+                    conflict( "Not the owner of the file" ) );
+            }
+
+            currentUser.setAvatar( fileResource );
         }
 
         manager.update( currentUser );
