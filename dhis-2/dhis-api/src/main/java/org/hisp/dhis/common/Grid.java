@@ -102,26 +102,12 @@ public interface Grid
      */
     Map<String, Object> getInternalMetaData();
 
-    /**
-     * Adds GridValueMeta Object
-     *
-     * @param gridValueMeta @link GridValueMeta
-     */
-    Grid addGridValueMeta( GridValueMeta gridValueMeta );
-
-    Map<Integer, Map<Integer, Object>> getRowContext();
+    Map<Integer, Map<String, Object>> getRowContext();
 
     /**
      * Returns performance metrics.
      */
     PerformanceMetrics getPerformanceMetrics();
-
-    /**
-     * Getter
-     *
-     * @return collection of GridValueMeta
-     */
-    List<GridValueMeta> getGridValueMetaInfo();
 
     /**
      * Sets a map of internal meta-data.
@@ -572,7 +558,7 @@ public interface Grid
      * @param rowContext
      * @return Grid instance
      */
-    Grid addRowContext( Map<Integer, Map<Integer, Object>> rowContext );
+    Grid addRowContext( Map<Integer, Map<String, Object>> rowContext );
 
     /**
      * Adds a reference.

@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import lombok.RequiredArgsConstructor;
 
@@ -74,7 +75,6 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.GridValueMeta;
 import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
@@ -223,7 +223,7 @@ public abstract class AbstractAnalyticsService
         // RowContext
         // ---------------------------------------------------------------------
 
-        addRowContext( grid );
+        setRowContextColumns( grid );
 
         return grid;
     }
@@ -235,24 +235,21 @@ public abstract class AbstractAnalyticsService
      *
      * @param grid the {@link Grid}.
      */
-    private void addRowContext( Grid grid )
+    private void setRowContextColumns( Grid grid )
     {
-        List<GridValueMeta> gridValueMetaInfo = grid.getGridValueMetaInfo();
+        Map<Integer, Map<String, Object>> oldRowContext = grid.getRowContext();
 
-        Map<Integer, Map<Integer, Object>> rowContext = grid.getRowContext();
+        Map<Integer, Map<String, Object>> newRowContext = new TreeMap<>();
 
-        gridValueMetaInfo.forEach( m -> {
-            Map<Integer, Object> column = rowContext.get( m.getRowIndex() );
-            if ( column == null )
-            {
-                column = new HashMap<>();
-            }
-
-            column.put( grid.getIndexOfHeader( m.getColumnName() ), Map.of( "type", m.getStatus() ) );
-            rowContext.put( m.getRowIndex(), column );
+        oldRowContext.keySet().forEach( rowKey -> {
+            Map<String, Object> newCols = new HashMap<>();
+            Map<String, Object> cols = oldRowContext.get( rowKey );
+            cols.keySet().forEach(
+                colKey -> newCols.put( Integer.toString( grid.getIndexOfHeader( colKey ) ), cols.get( colKey ) ) );
+            newRowContext.put( rowKey, newCols );
         } );
 
-        grid.addRowContext( rowContext );
+        grid.addRowContext( newRowContext );
     }
 
     /**

@@ -58,7 +58,6 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.common.ExecutionPlan;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.GridValueMeta;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PerformanceMetrics;
 import org.hisp.dhis.common.Reference;
@@ -114,16 +113,10 @@ public class ListGrid
     private PerformanceMetrics performanceMetrics;
 
     /**
-     * Collection of the value meta information. Describe origin of the
-     * repeatable stage value.
-     */
-    private List<GridValueMeta> gridValueMetaInfo;
-
-    /**
      * Transformed collection of the value meta information for better
      * javascript handling. Describe origin of the repeatable stage value.
      */
-    private Map<Integer, Map<Integer, Object>> rowContext;
+    private Map<Integer, Map<String, Object>> rowContext;
 
     /**
      * A Map which can hold internal arbitrary meta data. Will not be
@@ -168,7 +161,6 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
-        this.gridValueMetaInfo = new ArrayList<>();
         this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
@@ -182,7 +174,6 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
-        this.gridValueMetaInfo = new ArrayList<>();
         this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
@@ -389,20 +380,8 @@ public class ListGrid
         return internalMetaData;
     }
 
-    /**
-     * @param gridValueMeta
-     * @return
-     */
     @Override
-    public Grid addGridValueMeta( GridValueMeta gridValueMeta )
-    {
-        gridValueMetaInfo.add( gridValueMeta );
-
-        return this;
-    }
-
-    @Override
-    public Grid addRowContext( Map<Integer, Map<Integer, Object>> rowContext )
+    public Grid addRowContext( Map<Integer, Map<String, Object>> rowContext )
     {
         this.rowContext = rowContext;
 
@@ -423,18 +402,9 @@ public class ListGrid
         return performanceMetrics;
     }
 
-    /**
-     * @return
-     */
-    @Override
-    public List<GridValueMeta> getGridValueMetaInfo()
-    {
-        return gridValueMetaInfo;
-    }
-
     @Override
     @JsonProperty
-    public Map<Integer, Map<Integer, Object>> getRowContext()
+    public Map<Integer, Map<String, Object>> getRowContext()
     {
         return rowContext;
     }

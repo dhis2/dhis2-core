@@ -44,7 +44,9 @@ import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import lombok.extern.slf4j.Slf4j;
@@ -60,7 +62,6 @@ import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.FallbackCoordinateFieldType;
 import org.hisp.dhis.common.Grid;
-import org.hisp.dhis.common.GridValueMeta;
 import org.hisp.dhis.common.GridValueStatus;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -203,8 +204,22 @@ public class JdbcEnrollmentAnalyticsManager
 
                 boolean isSet = rowSet.getObject( columnName ) != null;
 
-                grid.addGridValueMeta(
-                    new GridValueMeta( columnName, gridRowIndex, getGridValueStatus( isDefined, isSet ) ) );
+                Map<Integer, Map<String, Object>> rowContext = grid.getRowContext();
+
+                Map<String, Object> row = rowContext.get( gridRowIndex );
+
+                if ( row == null )
+                {
+                    row = new HashMap<>();
+                }
+
+                Map<String, GridValueStatus> colValueType = new HashMap<>();
+
+                colValueType.put( "type", getGridValueStatus( isDefined, isSet ) );
+
+                row.put( columnName, colValueType );
+
+                rowContext.put( gridRowIndex, row );
 
                 return true;
             }
