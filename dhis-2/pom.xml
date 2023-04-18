@@ -133,7 +133,7 @@
 
     <!-- GIS -->
     <batik-transcoder.version>1.13</batik-transcoder.version>
-    <batik-codec.version>1.13</batik-codec.version>
+    <batik-codec.version>1.16</batik-codec.version>
     <fop.version>2.5</fop.version>
     <mapstruct.version>1.4.1.Final</mapstruct.version>
     <geotools.version>24.0</geotools.version>
