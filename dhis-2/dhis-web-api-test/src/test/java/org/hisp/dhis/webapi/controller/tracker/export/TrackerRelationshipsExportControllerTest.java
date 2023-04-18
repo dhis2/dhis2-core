@@ -493,9 +493,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
             to.getUid() )
                 .content( HttpStatus.OK ).getList( "instances", JsonRelationship.class );
 
-        JsonAttribute enrollmentAttr = relationships.get( 0 ).getFrom().getEnrollment().getAttributes().get( 0 );
-        assertEquals( tea2.getUid(), enrollmentAttr.getAttribute() );
-        assertEquals( "24", enrollmentAttr.getValue() );
+        JsonList<JsonAttribute> enrollmentAttr = relationships.get( 0 ).getFrom().getEnrollment().getAttributes();
+        assertContainsAll( List.of( tea2.getUid() ), enrollmentAttr, JsonAttribute::getAttribute );
+        assertContainsAll( List.of( "24" ), enrollmentAttr, JsonAttribute::getValue );
         JsonList<JsonAttribute> teiAttributes = relationships.get( 0 ).getTo().getTrackedEntity().getAttributes();
         assertContainsAll( List.of( tea.getUid(), tea2.getUid() ), teiAttributes, JsonAttribute::getAttribute );
         assertContainsAll( List.of( "12", "24" ), teiAttributes, JsonAttribute::getValue );

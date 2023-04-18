@@ -34,5 +34,7 @@ public interface EnrollmentService
 {
     ProgramInstance getEnrollment( String uid, EnrollmentParams params );
 
+    ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params );
+
     Enrollments getEnrollments( ProgramInstanceQueryParams params );
 }

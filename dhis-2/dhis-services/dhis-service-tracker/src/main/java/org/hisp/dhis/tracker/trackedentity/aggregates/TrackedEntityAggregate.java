@@ -34,6 +34,7 @@ import static org.hisp.dhis.tracker.trackedentity.aggregates.ThreadPoolManager.g
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -279,12 +280,9 @@ public class TrackedEntityAggregate
         Set<TrackedEntityAttribute> trackedEntityTypeAttributes, Map<Program, Set<TrackedEntityAttribute>> teaByProgram,
         Context ctx )
     {
-        Set<TrackedEntityAttributeValue> attributeList = new HashSet<>();
-
-        // Nothing to filter from, return empty
         if ( attributes.isEmpty() )
         {
-            return attributeList;
+            return Set.of();
         }
 
         // Add all tet attributes
@@ -302,15 +300,9 @@ public class TrackedEntityAggregate
             }
         }
 
-        for ( TrackedEntityAttributeValue attributeValue : attributes )
-        {
-            if ( allowedAttributeUids.contains( attributeValue.getAttribute().getUid() ) )
-            {
-                attributeList.add( attributeValue );
-            }
-        }
-
-        return attributeList;
+        return attributes.stream()
+            .filter( av -> allowedAttributeUids.contains( av.getAttribute().getUid() ) )
+            .collect( Collectors.toCollection( LinkedHashSet::new ) );
     }
 
     /**
