@@ -35,6 +35,7 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hisp.dhis.analytics.ValidationHelper.validateHeader;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
+import static org.hisp.dhis.analytics.ValidationHelper.validateRowContext;
 
 import java.util.List;
 
@@ -176,5 +177,55 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "COMPLETED",
                 "DiszpKrYNg8",
                 "2313.0" ) );
+    }
+
+    @Test
+    public void queryWithProgramAndRepeatableProgramStage()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=edqlbukwRfQ[-2].vANAXwtLwcT,edqlbukwRfQ[10].vANAXwtLwcT,pe:LAST_12_MONTHS,ou:ImspTQPwCqd" )
+            .add( "headers=ou,ounamehierarchy,edqlbukwRfQ[-2].vANAXwtLwcT,edqlbukwRfQ[10].vANAXwtLwcT" )
+            .add( "stage=edqlbukwRfQ" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=ENROLLMENT" )
+            .add( "desc=enrollmentdate" )
+            .add( "totalPages=false" )
+            .add( "pageSize=2" )
+            .add( "page=4" );
+
+        // When
+        ApiResponse response = enrollmentsActions.query().get( "WSGAb5XwJ3Y", JSON, JSON, params );
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 4 ) ) )
+            .body( "rows", hasSize( equalTo( 2 ) ) );
+
+        validateHeader( response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 2, "edqlbukwRfQ[-2].vANAXwtLwcT", "WHOMCH Hemoglobin value", "NUMBER",
+            "java.lang.Double", false, true,
+            "edqlbukwRfQ", "startIndex:-2 count:1 startDate:null endDate: null", -2 );
+        validateHeader( response, 3, "edqlbukwRfQ[10].vANAXwtLwcT", "WHOMCH Hemoglobin value", "NUMBER",
+            "java.lang.Double", false, true,
+            "edqlbukwRfQ", "startIndex:10 count:1 startDate:null endDate: null", 10 );
+
+        validateRowContext( response, 0, 2, "SET" );
+        validateRowContext( response, 0, 3, "UNDEFINED" );
+        validateRowContext( response, 1, 2, "SET" );
+        validateRowContext( response, 1, 3, "UNDEFINED" );
+
+        validateRow( response, 0,
+            List.of( "VFF7f43dJv4",
+                "Sierra Leone / Kambia / Mambolo / Tombo Wallah CHP",
+                "19.0",
+                "" ) );
+        validateRow( response, 1,
+            List.of( "fdsRQbuuAuh",
+                "Sierra Leone / Port Loko / Masimera / Nonkoba CHP",
+                "10.0",
+                "" ) );
+
     }
 }
