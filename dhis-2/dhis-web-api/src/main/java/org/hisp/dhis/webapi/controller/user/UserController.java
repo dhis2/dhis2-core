@@ -520,6 +520,11 @@ public class UserController
             return conflict( "Username must be specified" );
         }
 
+        if ( !ValidationUtils.usernameIsValid( username, false ) )
+        {
+            return conflict( "Username is not valid" );
+        }
+
         if ( userService.getUserByUsername( username ) != null )
         {
             return conflict( "Username already taken: " + username );
