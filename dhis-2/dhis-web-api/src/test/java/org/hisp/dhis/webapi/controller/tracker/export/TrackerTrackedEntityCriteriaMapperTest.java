@@ -84,7 +84,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -127,7 +126,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     @Mock
     private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Spy
+    @Mock
     private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
