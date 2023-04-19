@@ -226,6 +226,5 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "Sierra Leone / Port Loko / Masimera / Nonkoba CHP",
                 "10.0",
                 "" ) );
-
     }
 }
