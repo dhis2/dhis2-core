@@ -35,7 +35,6 @@ import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.predictor.PredictionDataFilter.filter;
-import static org.hisp.dhis.predictor.PredictionDisaggregatorUtils.createPredictionDisaggregator;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
 
@@ -247,10 +246,10 @@ public class DefaultPredictionService
         ExpressionInfo exInfo = new ExpressionInfo();
         ExpressionParams baseExParams = getBaseExParams( predictor, exInfo );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        PredictionDisaggregator preDis = createPredictionDisaggregator( predictor, defaultCategoryOptionCombo,
-            baseExParams.getItemMap().values() );
+        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, baseExParams.getItemMap().values() );
         Set<DimensionalItemObject> items = preDis.getDisaggregatedItems();
-        DataElementOperand outputDataElementOperand = preDis.getOutputDataElementOperand();
+        DataElementOperand outputDataElementOperand = new DataElementOperand( predictor.getOutput(),
+            predictor.getOutputCombo() );
 
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
@@ -295,7 +294,7 @@ public class DefaultPredictionService
                 List<DataValue> predictions = new ArrayList<>();
 
                 List<PredictionContext> contexts = PredictionContextGenerator.getContexts(
-                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, preDis );
+                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, predictor.getOutputCombo(), preDis );
 
                 for ( PredictionContext c : contexts )
                 {
@@ -335,8 +334,6 @@ public class DefaultPredictionService
         }
 
         predictionWriter.flush();
-
-        preDis.issueMappingWarnings();
     }
 
     // -------------------------------------------------------------------------
