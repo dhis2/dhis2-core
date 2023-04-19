@@ -273,7 +273,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     }
 
     @Test
-    public void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope()
+    void shouldThrowExceptionWhenProgramIsProtectedAndUserNotInCaptureScope()
     {
         clearSecurityContext();
         User mockUser = createUser( "testUser2" );
@@ -292,7 +292,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
     }
 
     @Test
-    public void shouldThrowExceptionWhenProgramIsOpenAndUserNotInSearchScope()
+    void shouldThrowExceptionWhenProgramIsOpenAndUserNotInSearchScope()
     {
         clearSecurityContext();
         User mockUser = createUser( "testUser2" );
