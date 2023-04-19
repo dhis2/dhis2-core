@@ -27,21 +27,40 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+
+/**
+ * Provides basic methods to transform input fields into {@link FieldPath }
+ * based on {@link FieldFilterParser }. It follows the principles of
+ * {@link org.hisp.dhis.fieldfiltering.FieldFilterService}
+ */
+public class FieldsParamMapper
 {
+    private FieldsParamMapper()
+    {
+    }
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    public static final String FIELD_RELATIONSHIPS = "relationships";
+
+    public static final String FIELD_EVENTS = "events";
+
+    public static final String FIELD_ATTRIBUTES = "attributes";
+
+    public static Map<String, FieldPath> rootFields( List<FieldPath> fieldPaths )
+    {
+        Map<String, FieldPath> roots = new HashMap<>();
+        for ( FieldPath p : fieldPaths )
+        {
+            if ( p.isRoot() && (!roots.containsKey( p.getName() ) || p.isExclude()) )
+            {
+                roots.put( p.getName(), p );
+            }
+        }
+        return roots;
+    }
 }

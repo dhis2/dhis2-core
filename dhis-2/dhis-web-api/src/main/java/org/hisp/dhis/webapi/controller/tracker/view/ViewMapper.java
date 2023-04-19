@@ -25,23 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.view;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+public interface ViewMapper<FROM, TO>
 {
+    TO from( FROM from );
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    default List<TO> fromCollection( Collection<FROM> froms )
+    {
+        return Optional.ofNullable( froms )
+            .orElse( Collections.emptySet() )
+            .stream()
+            .map( this::from )
+            .collect( Collectors.toList() );
+    }
 }

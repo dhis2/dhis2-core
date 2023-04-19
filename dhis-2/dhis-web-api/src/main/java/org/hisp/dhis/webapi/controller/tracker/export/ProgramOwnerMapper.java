@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.webapi.controller.tracker.view.ProgramOwner;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper
 public interface ProgramOwnerMapper
-    extends ViewMapper<org.hisp.dhis.trackedentity.TrackedEntityProgramOwner, ProgramOwner>
+    extends ViewMapper<TrackedEntityProgramOwner, ProgramOwner>
 {
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "trackedEntity", source = "entityInstance.uid" )

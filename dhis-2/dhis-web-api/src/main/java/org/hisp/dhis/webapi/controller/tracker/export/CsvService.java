@@ -27,21 +27,17 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+public interface CsvService<T>
 {
+    void write( OutputStream outputStream, List<T> events, boolean withHeader )
+        throws IOException;
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    List<T> read( InputStream inputStream, boolean skipFirst )
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }
