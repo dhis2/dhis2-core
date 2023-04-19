@@ -193,11 +193,6 @@ public class RelationshipsExportController
         throws NotFoundException,
         ForbiddenException
     {
-        if ( identifier == null )
-        {
-            return null;
-        }
-
         Object object = getObjectRetriever( type ).apply( identifier );
         if ( object == null )
         {
