@@ -34,9 +34,9 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.artemis.MessageManager;
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.security.AuthenticationSerializer;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.job.TrackerMessage;
-import org.hisp.dhis.tracker.report.ImportReport;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.job.TrackerMessage;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 

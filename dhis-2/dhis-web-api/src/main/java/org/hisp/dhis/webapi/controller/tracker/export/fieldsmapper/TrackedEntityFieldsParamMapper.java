@@ -39,11 +39,11 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.enrollment.EnrollmentEventsParams;
-import org.hisp.dhis.tracker.enrollment.EnrollmentParams;
-import org.hisp.dhis.tracker.event.EventParams;
-import org.hisp.dhis.tracker.trackedentity.TrackedEntityEnrollmentParams;
-import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentEventsParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityEnrollmentParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.springframework.stereotype.Component;
 

@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.fieldfiltering.FieldPreset;
-import org.hisp.dhis.tracker.event.EventParams;
+import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
