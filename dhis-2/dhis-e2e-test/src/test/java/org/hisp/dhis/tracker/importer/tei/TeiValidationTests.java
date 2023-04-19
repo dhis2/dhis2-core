@@ -227,7 +227,7 @@ public class TeiValidationTests
     }
 
     @Test
-    public void shouldReturnSuccessWhenAttributeMultiTextInvalid()
+    public void shouldReturnSuccessWhenAttributeMultiTextIsValid()
     {
         JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
             .addAttribute( attributeWithMultiText, "TA_NO,TA_YES" )

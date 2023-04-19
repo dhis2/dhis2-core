@@ -718,7 +718,6 @@ class DataValuesValidatorTest
     @Test
     void successValidationDataElementOptionValueIsValid()
     {
-
         DataValue validDataValue = dataValue( "CODE" );
         DataValue nullDataValue = dataValue( null );
 
@@ -751,7 +750,6 @@ class DataValuesValidatorTest
     @Test
     void failValidationDataElementOptionValueIsInValid()
     {
-
         DataValue validDataValue = dataValue( "value" );
         validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
 
@@ -785,7 +783,6 @@ class DataValuesValidatorTest
     @Test
     void successValidationDataElementMultiTextOptionValueIsValid()
     {
-
         DataValue validDataValue = dataValue( "CODE,CODE1" );
         DataValue nullDataValue = dataValue( null );
 
@@ -818,7 +815,6 @@ class DataValuesValidatorTest
     @Test
     void failValidationDataElementMultiTextOptionValueIsInValid()
     {
-
         DataValue validDataValue = dataValue( "CODE1,CODE2" );
         validDataValue.setDataElement( MetadataIdentifier.ofUid( dataElementUid ) );
 
@@ -852,7 +848,6 @@ class DataValuesValidatorTest
     @Test
     void failValidationWhenOrgUnitValueIsInvalid()
     {
-
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
         when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
@@ -878,7 +873,6 @@ class DataValuesValidatorTest
     @Test
     void succeedsValidationWhenOrgUnitValueIsValid()
     {
-
         DataElement validDataElement = dataElement( ValueType.ORGANISATION_UNIT );
         when( preheat.getDataElement( MetadataIdentifier.ofUid( dataElementUid ) ) ).thenReturn( validDataElement );
 
