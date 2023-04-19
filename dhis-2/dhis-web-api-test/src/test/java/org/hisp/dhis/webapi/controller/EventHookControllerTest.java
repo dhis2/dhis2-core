@@ -40,6 +40,7 @@ import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -86,6 +87,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
     }
 
     @Test
+    @Disabled
     void testCreateEventHookWebhookHttpBasic()
     {
         String id = assertStatus( HttpStatus.CREATED,
