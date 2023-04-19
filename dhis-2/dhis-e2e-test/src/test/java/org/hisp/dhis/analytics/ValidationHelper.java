@@ -73,6 +73,57 @@ public class ValidationHelper
     }
 
     /**
+     * Validate/assert all attributes of the given header (represented by the
+     * index), matching each argument with its respective header attribute
+     * value.
+     *
+     * @param response
+     * @param headerIndex
+     * @param name
+     * @param column
+     * @param valueType
+     * @param type
+     * @param hidden
+     * @param meta
+     * @param programStage
+     * @param repeatableStageParams
+     * @param stageOffset
+     */
+
+    public static void validateHeader( ApiResponse response, int headerIndex, String name,
+        String column, String valueType, String type, boolean hidden, boolean meta, String programStage,
+        String repeatableStageParams, int stageOffset )
+    {
+        response.validate()
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].programStage", equalTo( programStage ) )
+            .body( "headers[" + headerIndex + "].repeatableStageParams", equalTo( repeatableStageParams ) )
+            .body( "headers[" + headerIndex + "].stageOffset", equalTo( stageOffset ) );
+    }
+
+    /**
+     * Validate/assert all attributes of the given rowContext (represented by
+     * the row and column index), matching each argument with its respective
+     * repeatableStageValueStatus value.
+     *
+     * @param response
+     * @param rowIndex
+     * @param colIndex
+     * @param repeatableStageValueStatus
+     */
+    public static void validateRowContext( ApiResponse response, int rowIndex, int colIndex,
+        String repeatableStageValueStatus )
+    {
+        response.validate()
+            .body( "rowContext." + rowIndex + "." + colIndex + ".repeatableStageValueStatus",
+                equalTo( repeatableStageValueStatus ) );
+    }
+
+    /**
      * Validate/assert that all values of the given row are present in the given
      * response.
      *
