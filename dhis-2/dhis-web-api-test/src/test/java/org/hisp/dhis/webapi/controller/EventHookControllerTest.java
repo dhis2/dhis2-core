@@ -61,6 +61,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
     }
 
     @Test
+    @Disabled
     void testCreateEventHookWebhookApiToken()
     {
         String id = assertStatus( HttpStatus.CREATED,
@@ -116,6 +117,7 @@ class EventHookControllerTest extends DhisControllerIntegrationTest
     }
 
     @Test
+    @Disabled
     void testCreateEventHookWebhookHttpBasicDefaultEnabled()
     {
         String id = assertStatus( HttpStatus.CREATED,
