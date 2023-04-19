@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -118,7 +117,7 @@ public class EnrollmentsExportController
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
-                    .collect( Collectors.toList() )
+                    .toList()
                 : Collections.emptyList();
         }
 
