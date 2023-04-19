@@ -32,7 +32,7 @@ import java.util.Map;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
-import org.hisp.dhis.dxf2.events.trackedentity.store.TwoParamFunction;
+import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumnWithFallback;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -91,7 +91,7 @@ public class EnrollmentQuery
         .put( COLUMNS.PROGRAM_FEATURE_TYPE, new TableColumn( "p", "featuretype", "program_feature_type" ) )
         .put( COLUMNS.TEI_TYPE_UID, new TableColumn( "tet", "uid", "type_uid" ) )
         .put( COLUMNS.ORGUNIT_UID, new TableColumn( "o", "uid", "ou_uid" ) )
-        .put( COLUMNS.ORGUNIT_NAME, new TwoParamFunction( "coalesce", "ou_displayname.value", "o.name", "ou_name" ) )
+        .put( COLUMNS.ORGUNIT_NAME, new TableColumnWithFallback( "ou_displayname.value", "o.name", "ou_name" ) )
         .build();
 
     public static String getQuery( String userLocale )

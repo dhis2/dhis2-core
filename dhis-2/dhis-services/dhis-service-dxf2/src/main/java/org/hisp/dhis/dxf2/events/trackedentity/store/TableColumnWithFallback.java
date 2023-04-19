@@ -36,10 +36,8 @@ import lombok.Getter;
  */
 @Getter
 @AllArgsConstructor
-public class TwoParamFunction implements QueryElement
+public class TableColumnWithFallback implements QueryElement
 {
-    private String function;
-
     private String column;
 
     private String fallbackColumn;
@@ -49,7 +47,7 @@ public class TwoParamFunction implements QueryElement
     @Override
     public String useInSelect()
     {
-        return this.function + "(" + column + " , " + fallbackColumn + ") as " + alias;
+        return "coalesce(" + column + " , " + fallbackColumn + ") as " + alias;
     }
 
     @Override

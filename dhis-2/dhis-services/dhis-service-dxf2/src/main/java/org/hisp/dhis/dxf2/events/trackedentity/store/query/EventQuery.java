@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.Function;
 import org.hisp.dhis.dxf2.events.trackedentity.store.QueryElement;
 import org.hisp.dhis.dxf2.events.trackedentity.store.Subselect;
 import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumn;
-import org.hisp.dhis.dxf2.events.trackedentity.store.TwoParamFunction;
+import org.hisp.dhis.dxf2.events.trackedentity.store.TableColumnWithFallback;
 
 import com.google.common.collect.ImmutableList;
 
@@ -75,7 +75,7 @@ public class EventQuery
         PROGRAM_UID( new TableColumn( "p", "uid", "prguid" ) ),
         PROGRAM_STAGE_UID( new TableColumn( "ps", "uid", "prgstguid" ) ),
         ORGUNIT_UID( new TableColumn( "o", "uid", "ou_uid" ) ),
-        ORGUNIT_NAME( new TwoParamFunction( "coalesce", "ou_displayname.value", "o.name", "ou_name" ) ),
+        ORGUNIT_NAME( new TableColumnWithFallback( "ou_displayname.value", "o.name", "ou_name" ) ),
         COC_UID( new TableColumn( "coc", "uid", "cocuid" ) ),
         CAT_OPTIONS( new Subselect( "( " +
             "SELECT string_agg(opt.uid::text, ',') " +
@@ -97,9 +97,9 @@ public class EventQuery
             {
                 return ((TableColumn) queryElement).getColumn();
             }
-            if ( queryElement instanceof TwoParamFunction )
+            if ( queryElement instanceof TableColumnWithFallback )
             {
-                return ((TwoParamFunction) queryElement).getColumn();
+                return ((TableColumnWithFallback) queryElement).getColumn();
             }
             if ( queryElement instanceof Function )
             {
