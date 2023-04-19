@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.user;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.user.User.populateUserCredentialsDtoFields;
 import static org.hisp.dhis.webapi.utils.ContextUtils.setNoStore;
 import static org.springframework.http.CacheControl.noStore;
@@ -59,7 +57,8 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dataapproval.DataApprovalLevel;
 import org.hisp.dhis.dataapproval.DataApprovalLevelService;
 import org.hisp.dhis.dataset.DataSetService;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -86,7 +85,6 @@ import org.hisp.dhis.user.UserCredentialsDto;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.UserSettingService;
-import org.hisp.dhis.webapi.controller.exception.NotAuthenticatedException;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.webdomain.Dashboard;
@@ -246,7 +244,6 @@ public class MeController
     @GetMapping( "/dataApprovalWorkflows" )
     public ResponseEntity<ObjectNode> getCurrentUserDataApprovalWorkflows( HttpServletResponse response,
         @CurrentUser( required = true ) User user )
-        throws Exception
     {
         ObjectNode objectNode = userControllerUtils.getUserDataApprovalWorkflows( user );
         return ResponseEntity.ok( objectNode );
@@ -255,8 +252,9 @@ public class MeController
     @PutMapping( value = "", consumes = APPLICATION_JSON_VALUE )
     public void updateCurrentUser( HttpServletRequest request, HttpServletResponse response,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException,
+        throws ConflictException,
         IOException
+
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -269,8 +267,7 @@ public class MeController
 
         if ( user.getWhatsApp() != null && !ValidationUtils.validateWhatsApp( user.getWhatsApp() ) )
         {
-            throw new WebMessageException(
-                conflict( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" ) );
+            throw new ConflictException( "Invalid format for WhatsApp value '" + user.getWhatsApp() + "'" );
         }
 
         FileResource avatar = currentUser.getAvatar();
@@ -279,14 +276,12 @@ public class MeController
             FileResource fileResource = fileResourceService.getFileResource( avatar.getUid() );
             if ( fileResource == null )
             {
-                throw new WebMessageException(
-                    conflict( "File does not exist" ) );
+                throw new ConflictException( "File does not exist" );
             }
 
             if ( !fileResource.getCreatedBy().getUid().equals( currentUser.getUid() ) )
             {
-                throw new WebMessageException(
-                    conflict( "Not the owner of the file" ) );
+                throw new ConflictException( "Not the owner of the file" );
             }
 
             currentUser.setAvatar( fileResource );
@@ -310,8 +305,6 @@ public class MeController
 
     @GetMapping( value = { "/authorization", "/authorities" }, produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Set<String>> getAuthorities( @CurrentUser( required = true ) User currentUser )
-        throws IOException,
-        NotAuthenticatedException
     {
         return ResponseEntity.ok().cacheControl( noStore() )
             .body( currentUser.getAllAuthorities() );
@@ -338,21 +331,21 @@ public class MeController
     @GetMapping( value = "/settings/{key}", produces = APPLICATION_JSON_VALUE )
     public ResponseEntity<Serializable> getSetting( @PathVariable String key,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException,
-        NotAuthenticatedException
+        throws ConflictException,
+        NotFoundException
     {
         Optional<UserSettingKey> keyEnum = UserSettingKey.getByName( key );
 
-        if ( !keyEnum.isPresent() )
+        if ( keyEnum.isEmpty() )
         {
-            throw new WebMessageException( conflict( "Key is not supported: " + key ) );
+            throw new ConflictException( "Key is not supported: " + key );
         }
 
         Serializable value = userSettingService.getUserSetting( keyEnum.get(), currentUser );
 
         if ( value == null )
         {
-            throw new WebMessageException( notFound( "User setting not found for key: " + key ) );
+            throw new NotFoundException( "User setting not found for key: " + key );
         }
 
         return ResponseEntity.ok().cacheControl( noStore() ).body( value );
@@ -362,21 +355,21 @@ public class MeController
     @ResponseStatus( HttpStatus.ACCEPTED )
     public void changePassword( @RequestBody Map<String, String> body,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         String oldPassword = body.get( "oldPassword" );
         String newPassword = body.get( "newPassword" );
 
         if ( StringUtils.isEmpty( oldPassword ) || StringUtils.isEmpty( newPassword ) )
         {
-            throw new WebMessageException( conflict( "OldPassword and newPassword must be provided" ) );
+            throw new ConflictException( "OldPassword and newPassword must be provided" );
         }
 
         boolean valid = passwordManager.matches( oldPassword, currentUser.getPassword() );
 
         if ( !valid )
         {
-            throw new WebMessageException( conflict( "OldPassword is incorrect" ) );
+            throw new ConflictException( "OldPassword is incorrect" );
         }
 
         updatePassword( currentUser, newPassword );
@@ -388,7 +381,7 @@ public class MeController
     @PostMapping( value = "/verifyPassword", consumes = "text/*" )
     public @ResponseBody RootNode verifyPasswordText( @RequestBody String password, HttpServletResponse response,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         return verifyPasswordInternal( password, currentUser );
     }
@@ -396,7 +389,7 @@ public class MeController
     @PostMapping( value = "/validatePassword", consumes = "text/*" )
     public @ResponseBody RootNode validatePasswordText( @RequestBody String password, HttpServletResponse response,
         @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         return validatePasswordInternal( password, currentUser );
     }
@@ -404,7 +397,7 @@ public class MeController
     @PostMapping( value = "/verifyPassword", consumes = APPLICATION_JSON_VALUE )
     public @ResponseBody RootNode verifyPasswordJson( @RequestBody Map<String, String> body,
         HttpServletResponse response, @CurrentUser( required = true ) User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         return verifyPasswordInternal( body.get( "password" ), currentUser );
     }
@@ -442,12 +435,11 @@ public class MeController
     // ------------------------------------------------------------------------------------------------
 
     private RootNode verifyPasswordInternal( String password, User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( password == null )
         {
-            throw new WebMessageException(
-                conflict( "Required attribute 'password' missing or null." ) );
+            throw new ConflictException( "Required attribute 'password' missing or null." );
         }
 
         boolean valid = passwordManager.matches( password, currentUser.getPassword() );
@@ -459,12 +451,11 @@ public class MeController
     }
 
     private RootNode validatePasswordInternal( String password, User currentUser )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( password == null )
         {
-            throw new WebMessageException(
-                conflict( "Required attribute 'password' missing or null." ) );
+            throw new ConflictException( "Required attribute 'password' missing or null." );
         }
 
         CredentialsInfo credentialsInfo = new CredentialsInfo( currentUser.getUsername(), password,
@@ -515,7 +506,7 @@ public class MeController
     }
 
     private void updatePassword( User currentUser, String password )
-        throws WebMessageException
+        throws ConflictException
     {
         if ( !StringUtils.isEmpty( password ) )
         {
@@ -530,7 +521,7 @@ public class MeController
             }
             else
             {
-                throw new WebMessageException( conflict( result.getErrorMessage() ) );
+                throw new ConflictException( result.getErrorMessage() );
             }
         }
     }
