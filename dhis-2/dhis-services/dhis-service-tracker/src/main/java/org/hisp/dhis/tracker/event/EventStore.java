@@ -40,7 +40,5 @@ public interface EventStore
 {
     List<ProgramStageInstance> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
-    List<Map<String, String>> getEventsGrid( EventSearchParams params );
-
     int getEventCount( EventSearchParams params );
 }

@@ -44,8 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -63,9 +61,6 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -79,7 +74,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.springframework.stereotype.Component;
 
 /**
@@ -91,14 +85,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class TrackerEventCriteriaMapper
 {
-
-    /**
-     * Properties other than the {@link Property#isSimple()} ones on
-     * {@link Event} which are valid order query parameter property names. These
-     * need to be supported by the underlying Event store like
-     * {@link JdbcEventStore} see QUERY_PARAM_COL_MAP.
-     */
-    private static final Set<String> NON_EVENT_SORTABLE_PROPERTIES = Set.of( "enrolledAt", "occurredAt" );
+    private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
     private final CurrentUserService currentUserService;
 
@@ -119,19 +106,6 @@ class TrackerEventCriteriaMapper
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final CategoryOptionComboService categoryOptionComboService;
-
-    private final SchemaService schemaService;
-
-    private Schema schema;
-
-    @PostConstruct
-    void setSchema()
-    {
-        if ( schema == null )
-        {
-            schema = schemaService.getDynamicSchema( Event.class );
-        }
-    }
 
     public EventSearchParams map( TrackerEventCriteria criteria )
         throws BadRequestException,
@@ -403,7 +377,7 @@ class TrackerEventCriteriaMapper
 
         if ( de == null )
         {
-            throw new BadRequestException( "Dataelement does not exist: " + item );
+            throw new BadRequestException( "Data element does not exist: " + item );
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
@@ -429,16 +403,12 @@ class TrackerEventCriteriaMapper
             .filter( field -> !CodeGenerator.isValidUid( field ) )
             .collect( Collectors.toSet() );
 
-        Set<String> allowedProperties = schema.getProperties().stream().filter( Property::isSimple )
-            .map( Property::getName ).collect( Collectors.toSet() );
-        allowedProperties.addAll( NON_EVENT_SORTABLE_PROPERTIES );
-
-        requestProperties.removeAll( allowedProperties );
+        requestProperties.removeAll( SORTABLE_PROPERTIES );
         if ( !requestProperties.isEmpty() )
         {
             throw new BadRequestException(
                 String.format( "Order by property `%s` is not supported. Supported are `%s`",
-                    String.join( ", ", requestProperties ), String.join( ", ", allowedProperties ) ) );
+                    String.join( ", ", requestProperties ), String.join( ", ", SORTABLE_PROPERTIES ) ) );
         }
     }
 
