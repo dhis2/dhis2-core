@@ -28,17 +28,18 @@
 package org.hisp.dhis.webapi.controller.dimension;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static java.util.Collections.emptyList;
+import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.Nonnull;
 
 import org.hisp.dhis.analytics.dimension.AnalyticsDimensionService;
 import org.hisp.dhis.common.DataQueryRequest;
@@ -50,7 +51,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.jackson.domain.JsonRoot;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dxf2.common.OrderParams;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfiltering.FieldPath;
@@ -125,15 +126,16 @@ public class DimensionController
         return dimensionalObjects;
     }
 
+    @Nonnull
     @Override
-    protected List<DimensionalObject> getEntity( String uid, WebOptions options )
+    protected DimensionalObject getEntity( String uid, WebOptions options )
+        throws NotFoundException
     {
         if ( isNotBlank( uid ) && isValidUid( uid ) )
         {
-            return newArrayList( dimensionService.getDimensionalObjectCopy( uid, true ) );
+            return dimensionService.getDimensionalObjectCopy( uid, true );
         }
-
-        return emptyList();
+        throw new NotFoundException( format( "No dimensional object with id `%s` exists", uid ) );
     }
 
     @SuppressWarnings( "unchecked" )
@@ -225,7 +227,7 @@ public class DimensionController
     public ResponseEntity<JsonRoot> getDimensionsForDataSet( @PathVariable String uid,
         @RequestParam( value = "links", defaultValue = "true", required = false ) Boolean links,
         @RequestParam( defaultValue = "*" ) List<FieldPath> fields )
-        throws WebMessageException
+        throws NotFoundException
     {
         WebMetadata metadata = new WebMetadata();
 
@@ -233,7 +235,7 @@ public class DimensionController
 
         if ( dataSet == null )
         {
-            throw new WebMessageException( notFound( "Data set not found: " + uid ) );
+            throw new NotFoundException( DataSet.class, uid );
         }
 
         List<DimensionalObject> dimensions = new ArrayList<>();
@@ -244,9 +246,12 @@ public class DimensionController
 
         dimensions = dimensionService.getCanReadObjects( dimensions );
 
-        metadata.setDimensions( dimensions.stream()
-            .map( dim -> dimensionService.getDimensionalObjectCopy( dim.getUid(), true ) )
-            .collect( toList() ) );
+        ArrayList<DimensionalObject> copies = new ArrayList<>();
+        for ( DimensionalObject dim : dimensions )
+        {
+            copies.add( dimensionService.getDimensionalObjectCopy( dim.getUid(), true ) );
+        }
+        metadata.setDimensions( copies );
 
         if ( links )
         {

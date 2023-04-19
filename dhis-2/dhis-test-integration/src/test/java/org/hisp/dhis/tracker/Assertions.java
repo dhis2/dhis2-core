@@ -39,10 +39,10 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.Status;
-import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.junit.jupiter.api.function.Executable;
 
 /**
