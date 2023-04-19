@@ -558,11 +558,24 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     private List<Option> getOptions( ProgramRuleVariable prv )
     {
         // if ProgramRuleVariable will record option name instead of option code and dataElement has associated OptionSet
-        if ( !prv.getUseCodeForOptionSet() && prv.getDataElement().hasOptionSet() )
+        if ( !prv.getUseCodeForOptionSet() )
         {
-            return prv.getDataElement().getOptionSet().getOptions().stream()
-                .map( op -> Option.builder().name( op.getName() ).code( op.getCode() ).build() )
-                .collect( Collectors.toList() );
+            if ( prv.hasDataElement() )
+            {
+                return Optional.ofNullable( prv.getDataElement().getOptionSet() ).map( ops -> ops.getOptions().stream()
+                    .map( op -> Option.builder().name( op.getName() ).code( op.getCode() ).build() )
+                    .toList() ).orElse( List.of() );
+            }
+            else if ( prv.hasTrackedEntityAttribute() )
+            {
+                return Optional.ofNullable( prv.getAttribute().getOptionSet() ).map( ops -> ops.getOptions().stream()
+                    .map( op -> Option.builder().name( op.getName() ).code( op.getCode() ).build() )
+                    .toList() ).orElse( List.of() );
+            }
+            else
+            {
+                return List.of();
+            }
         }
         else
         {
