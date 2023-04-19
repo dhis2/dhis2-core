@@ -37,12 +37,11 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Represents query parameters sent to
- * {@link TrackerEnrollmentsExportController}.
+ * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
 @Data
 @NoArgsConstructor
-public class TrackerEnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String orgUnit;
 

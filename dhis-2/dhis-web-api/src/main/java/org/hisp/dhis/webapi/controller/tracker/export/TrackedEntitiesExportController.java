@@ -77,10 +77,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @OpenApi.Tags( "tracker" )
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerTrackedEntitiesExportController.TRACKED_ENTITIES )
+@RequestMapping( value = RESOURCE_PATH + "/" + TrackedEntitiesExportController.TRACKED_ENTITIES )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class TrackerTrackedEntitiesExportController
+public class TrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
@@ -99,7 +99,7 @@ public class TrackerTrackedEntitiesExportController
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
     @Nonnull
-    private final TrackerTrackedEntityCriteriaMapper criteriaMapper;
+    private final TrackedEntityCriteriaMapper criteriaMapper;
 
     @Nonnull
     private final TrackedEntityService trackedEntityService;
@@ -113,7 +113,7 @@ public class TrackerTrackedEntitiesExportController
     private final TrackedEntityFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getTrackedEntities( TrackerTrackedEntityCriteria criteria,
+    PagingWrapper<ObjectNode> getTrackedEntities( TrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException,
@@ -150,7 +150,7 @@ public class TrackerTrackedEntitiesExportController
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_CSV_ZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvTrackedEntities( TrackerTrackedEntityCriteria criteria,
+    public void getCsvTrackedEntities( TrackedEntityCriteria criteria,
         HttpServletResponse response,
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )

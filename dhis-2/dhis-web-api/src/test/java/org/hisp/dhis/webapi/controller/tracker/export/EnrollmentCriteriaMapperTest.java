@@ -64,7 +64,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
-class TrackerEnrollmentCriteriaMapperTest
+class EnrollmentCriteriaMapperTest
 {
 
     private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
@@ -93,7 +93,7 @@ class TrackerEnrollmentCriteriaMapperTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @InjectMocks
-    private TrackerEnrollmentCriteriaMapper mapper;
+    private EnrollmentCriteriaMapper mapper;
 
     private OrganisationUnit orgUnit1;
 
@@ -142,7 +142,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
 
         mapper.map( criteria );
 
@@ -157,7 +157,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
@@ -168,7 +168,7 @@ class TrackerEnrollmentCriteriaMapperTest
     @Test
     void testMappingOrgUnitNotFound()
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setOrgUnit( "unknown;" + ORG_UNIT_2_UID );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -179,7 +179,7 @@ class TrackerEnrollmentCriteriaMapperTest
     @Test
     void testMappingOrgUnitNotPartOfSearchScope()
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setOrgUnit( ORG_UNIT_1_UID );
         when( organisationUnitService.isInUserHierarchy( ORG_UNIT_1_UID,
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
@@ -194,7 +194,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setProgram( PROGRAM_UID );
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
@@ -205,7 +205,7 @@ class TrackerEnrollmentCriteriaMapperTest
     @Test
     void testMappingProgramNotFound()
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setProgram( "unknown" );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -218,7 +218,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
@@ -229,7 +229,7 @@ class TrackerEnrollmentCriteriaMapperTest
     @Test
     void testMappingTrackedEntityTypeNotFound()
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntityType( "unknown" );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -242,7 +242,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntity( TRACKED_ENTITY_UID );
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
@@ -253,7 +253,7 @@ class TrackerEnrollmentCriteriaMapperTest
     @Test
     void testMappingTrackedEntityNotFound()
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntity( "unknown" );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -266,7 +266,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
         OrderCriteria order1 = OrderCriteria.of( "field1", SortDirection.ASC );
         OrderCriteria order2 = OrderCriteria.of( "field2", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
@@ -283,7 +283,7 @@ class TrackerEnrollmentCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackerEnrollmentCriteria criteria = new TrackerEnrollmentCriteria();
+        EnrollmentCriteria criteria = new EnrollmentCriteria();
 
         ProgramInstanceQueryParams params = mapper.map( criteria );
 

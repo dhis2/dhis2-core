@@ -83,7 +83,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
+class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 {
     private static final String TEA_UID = "TvjwTPToKHO";
 

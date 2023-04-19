@@ -40,7 +40,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
-class TrackerRelationshipCriteria extends PagingAndSortingCriteriaAdapter
+class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
 {
 
     private String trackedEntity;

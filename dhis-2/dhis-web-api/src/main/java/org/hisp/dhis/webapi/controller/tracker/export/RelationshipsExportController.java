@@ -72,10 +72,10 @@ import com.google.common.collect.ImmutableMap;
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
-    + TrackerRelationshipsExportController.RELATIONSHIPS )
+    + RelationshipsExportController.RELATIONSHIPS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class TrackerRelationshipsExportController
+public class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
 
@@ -146,7 +146,7 @@ public class TrackerRelationshipsExportController
 
     @GetMapping
     PagingWrapper<ObjectNode> getInstances(
-        TrackerRelationshipCriteria criteria,
+        RelationshipCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         BadRequestException,

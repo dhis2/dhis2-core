@@ -36,14 +36,14 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.jupiter.api.Test;
 
-class TrackerRelationshipCriteriaTest
+class RelationshipCriteriaTest
 {
     @Test
     void getIdentifierParamIfTrackedEntityIsSet()
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -55,7 +55,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -66,7 +66,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
@@ -77,7 +77,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
@@ -88,7 +88,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( TrackedEntityInstance.class, criteria.getIdentifierClass() );
@@ -99,7 +99,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( TrackedEntityInstance.class, criteria.getIdentifierClass() );
@@ -110,7 +110,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -121,7 +121,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( "enrollment", criteria.getIdentifierName() );
@@ -132,7 +132,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( ProgramInstance.class, criteria.getIdentifierClass() );
@@ -143,7 +143,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -154,7 +154,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( "event", criteria.getIdentifierName() );
@@ -165,7 +165,7 @@ class TrackerRelationshipCriteriaTest
         throws BadRequestException
     {
 
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( ProgramStageInstance.class, criteria.getIdentifierClass() );
@@ -174,7 +174,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfNoParamsIsSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
@@ -185,7 +185,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierNameThrowsIfNoParamsIsSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierName );
 
@@ -196,7 +196,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfAllParamsAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -211,7 +211,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierNameThrowsIfAllParamsAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -226,7 +226,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfAllParamsAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -241,7 +241,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -254,7 +254,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfTeiAndEnrollmentAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -267,7 +267,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -280,7 +280,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfTeiAndEnrollmentAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -293,7 +293,7 @@ class TrackerRelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfEnrollmentAndEventAreSet()
     {
-        TrackerRelationshipCriteria criteria = new TrackerRelationshipCriteria();
+        RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 

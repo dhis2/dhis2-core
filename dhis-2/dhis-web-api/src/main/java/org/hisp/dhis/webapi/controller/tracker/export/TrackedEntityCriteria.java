@@ -41,14 +41,13 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Represents query parameters sent to
- * {@link TrackerTrackedEntitiesExportController}.
+ * Represents query parameters sent to {@link TrackedEntitiesExportController}.
  *
  * @author Giuseppe Nespolino
  */
 @Data
 @NoArgsConstructor
-class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
+class TrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 

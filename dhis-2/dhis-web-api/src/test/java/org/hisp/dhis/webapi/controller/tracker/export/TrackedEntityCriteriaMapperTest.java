@@ -89,13 +89,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests {@link TrackerTrackedEntityCriteriaMapper}.
+ * Tests {@link TrackedEntityCriteriaMapper}.
  *
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
-class TrackerTrackedEntityCriteriaMapperTest
+class TrackedEntityCriteriaMapperTest
 {
     public static final String TEA_1_UID = "TvjwTPToKHO";
 
@@ -130,7 +130,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
-    private TrackerTrackedEntityCriteriaMapper mapper;
+    private TrackedEntityCriteriaMapper mapper;
 
     private User user;
 
@@ -144,7 +144,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackerTrackedEntityCriteria criteria;
+    private TrackedEntityCriteria criteria;
 
     @BeforeEach
     public void setUp()
@@ -184,7 +184,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        criteria = new TrackerTrackedEntityCriteria();
+        criteria = new TrackedEntityCriteria();
         criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
     }
 

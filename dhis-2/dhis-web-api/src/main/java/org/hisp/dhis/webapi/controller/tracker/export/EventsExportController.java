@@ -78,10 +78,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @OpenApi.Tags( "tracker" )
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerEventsExportController.EVENTS )
+@RequestMapping( value = RESOURCE_PATH + "/" + EventsExportController.EVENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class TrackerEventsExportController
+public class EventsExportController
 {
     protected static final String EVENTS = "events";
 
@@ -93,7 +93,7 @@ public class TrackerEventsExportController
     private final EventService eventService;
 
     @Nonnull
-    private final TrackerEventCriteriaMapper requestToSearchParams;
+    private final EventCriteriaMapper requestToSearchParams;
 
     @Nonnull
     private final ProgramStageInstanceService programStageInstanceService;
@@ -108,7 +108,7 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
-        TrackerEventCriteria eventCriteria,
+        EventCriteria eventCriteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException
@@ -137,7 +137,7 @@ public class TrackerEventsExportController
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
     public void getCsvEvents(
-        TrackerEventCriteria eventCriteria,
+        EventCriteria eventCriteria,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         HttpServletRequest request )
@@ -169,7 +169,7 @@ public class TrackerEventsExportController
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
     }
 
-    private boolean areAllEnrollmentsInvalid( TrackerEventCriteria eventCriteria, EventSearchParams eventSearchParams )
+    private boolean areAllEnrollmentsInvalid( EventCriteria eventCriteria, EventSearchParams eventSearchParams )
     {
         return !CollectionUtils.isEmpty( eventCriteria.getEnrollments() ) &&
             CollectionUtils.isEmpty( eventSearchParams.getProgramInstances() );

@@ -77,13 +77,13 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps query parameters from {@link TrackerEventsExportController} stored in
- * {@link TrackerEventCriteria} to {@link EventSearchParams} which is used to
- * fetch events from the DB.
+ * Maps query parameters from {@link EventsExportController} stored in
+ * {@link EventCriteria} to {@link EventSearchParams} which is used to fetch
+ * events from the DB.
  */
 @Component( "org.hisp.dhis.webapi.controller.tracker.export.TrackerEventCriteriaMapper" )
 @RequiredArgsConstructor
-class TrackerEventCriteriaMapper
+class EventCriteriaMapper
 {
     private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
@@ -107,7 +107,7 @@ class TrackerEventCriteriaMapper
 
     private final CategoryOptionComboService categoryOptionComboService;
 
-    public EventSearchParams map( TrackerEventCriteria criteria )
+    public EventSearchParams map( EventCriteria criteria )
         throws BadRequestException,
         ForbiddenException
     {

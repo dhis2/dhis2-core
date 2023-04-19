@@ -66,10 +66,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 
 @OpenApi.Tags( "tracker" )
 @RestController
-@RequestMapping( value = RESOURCE_PATH + "/" + TrackerEnrollmentsExportController.ENROLLMENTS )
+@RequestMapping( value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class TrackerEnrollmentsExportController
+public class EnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
@@ -77,7 +77,7 @@ public class TrackerEnrollmentsExportController
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final TrackerEnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
 
     private final EnrollmentService enrollmentService;
 
@@ -87,7 +87,7 @@ public class TrackerEnrollmentsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getInstances(
-        TrackerEnrollmentCriteria trackerEnrollmentCriteria,
+        EnrollmentCriteria enrollmentCriteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
         ForbiddenException
@@ -97,25 +97,25 @@ public class TrackerEnrollmentsExportController
         List<ProgramInstance> enrollmentList;
 
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( trackerEnrollmentCriteria.isIncludeDeleted() );
+            .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
 
-        if ( trackerEnrollmentCriteria.getEnrollment() == null )
+        if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.map( trackerEnrollmentCriteria );
+            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
-            if ( trackerEnrollmentCriteria.isPagingRequest() )
+            if ( enrollmentCriteria.isPagingRequest() )
             {
                 pagingWrapper = pagingWrapper.withPager(
-                    PagingWrapper.Pager.fromLegacy( trackerEnrollmentCriteria, enrollments.getPager() ) );
+                    PagingWrapper.Pager.fromLegacy( enrollmentCriteria, enrollments.getPager() ) );
             }
 
             enrollmentList = enrollments.getEnrollments();
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToSet( trackerEnrollmentCriteria.getEnrollment(),
+            Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
                 ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )

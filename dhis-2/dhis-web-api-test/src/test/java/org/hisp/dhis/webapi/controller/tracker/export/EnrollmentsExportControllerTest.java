@@ -73,7 +73,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackerEnrollmentsExportControllerTest extends DhisControllerConvenienceTest
+class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 {
 
     @Autowired

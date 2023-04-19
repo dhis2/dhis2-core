@@ -59,13 +59,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps query parameters from {@link TrackerEnrollmentsExportController} stored
- * in {@link TrackerEnrollmentCriteria} to {@link ProgramInstanceQueryParams}
- * which is used to fetch enrollments from the DB.
+ * Maps query parameters from {@link EnrollmentsExportController} stored in
+ * {@link EnrollmentCriteria} to {@link ProgramInstanceQueryParams} which is
+ * used to fetch enrollments from the DB.
  */
 @Service( "org.hisp.dhis.webapi.controller.tracker.export.TrackerEnrollmentCriteriaMapper" )
 @RequiredArgsConstructor
-public class TrackerEnrollmentCriteriaMapper
+public class EnrollmentCriteriaMapper
 {
 
     @Nonnull
@@ -84,7 +84,7 @@ public class TrackerEnrollmentCriteriaMapper
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams map( TrackerEnrollmentCriteria criteria )
+    public ProgramInstanceQueryParams map( EnrollmentCriteria criteria )
         throws BadRequestException,
         ForbiddenException
     {

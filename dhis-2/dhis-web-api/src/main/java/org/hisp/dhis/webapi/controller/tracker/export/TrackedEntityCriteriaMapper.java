@@ -75,16 +75,15 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps query parameters from {@link TrackerTrackedEntitiesExportController}
- * stored in {@link TrackerTrackedEntityCriteria} to
- * {@link TrackedEntityInstanceQueryParams} which is used to fetch tracked
- * entities from the DB.
+ * Maps query parameters from {@link TrackedEntitiesExportController} stored in
+ * {@link TrackedEntityCriteria} to {@link TrackedEntityInstanceQueryParams}
+ * which is used to fetch tracked entities from the DB.
  *
  * @author Luciano Fiandesio
  */
 @Component( "org.hisp.dhis.webapi.controller.tracker.export.TrackedEntityCriteriaMapper" )
 @RequiredArgsConstructor
-public class TrackerTrackedEntityCriteriaMapper
+public class TrackedEntityCriteriaMapper
 {
     @Nonnull
     private final CurrentUserService currentUserService;
@@ -105,7 +104,7 @@ public class TrackerTrackedEntityCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
+    public TrackedEntityInstanceQueryParams map( TrackedEntityCriteria criteria )
         throws BadRequestException,
         ForbiddenException
     {
@@ -255,7 +254,7 @@ public class TrackerTrackedEntityCriteriaMapper
         }
     }
 
-    private ProgramStage validateProgramStage( TrackerTrackedEntityCriteria criteria, Program program )
+    private ProgramStage validateProgramStage( TrackedEntityCriteria criteria, Program program )
         throws BadRequestException
     {
 

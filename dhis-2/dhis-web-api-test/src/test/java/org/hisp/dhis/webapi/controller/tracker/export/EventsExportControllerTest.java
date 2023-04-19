@@ -72,7 +72,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class TrackerEventsExportControllerTest extends DhisControllerConvenienceTest
+class EventsExportControllerTest extends DhisControllerConvenienceTest
 {
     private static final String DATA_ELEMENT_VALUE = "value";
 
