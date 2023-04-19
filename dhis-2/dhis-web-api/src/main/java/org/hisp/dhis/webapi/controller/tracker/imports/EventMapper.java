@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
@@ -41,12 +41,12 @@ import org.mapstruct.Mapping;
     InstantMapper.class,
     MetadataIdentifierMapper.class
 } )
-interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.domain.Event>
+interface EventMapper extends DomainMapper<Event, org.hisp.dhis.tracker.imports.domain.Event>
 {
     @Mapping( target = "program", source = "program", qualifiedByName = "programToMetadataIdentifier" )
     @Mapping( target = "programStage", source = "programStage", qualifiedByName = "programStageToMetadataIdentifier" )
     @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
     @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo", qualifiedByName = "attributeOptionComboToMetadataIdentifier" )
     @Mapping( target = "attributeCategoryOptions", source = "attributeCategoryOptions", qualifiedByName = "attributeCategoryOptionsToMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
+    org.hisp.dhis.tracker.imports.domain.Event from( Event event, @Context TrackerIdSchemeParams idSchemeParams );
 }
