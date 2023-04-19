@@ -50,7 +50,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
@@ -114,7 +114,7 @@ public class TrackedEntityInstanceAggregate
         teiAttributesCache = cacheProvider.createTeiAttributesCache();
         programTeiAttributesCache = cacheProvider.createProgramTeiAttributesCache();
         userGroupUIDCache = cacheProvider.createUserGroupUIDCache();
-        securityCache = cacheProvider.createSecurityCache();
+        securityCache = cacheProvider.createOldTrackerSecurityCache();
     }
 
     /**
@@ -140,7 +140,7 @@ public class TrackedEntityInstanceAggregate
                 && !CollectionUtils.isEmpty( user.get().getGroups() ) )
             {
                 userGroupUIDCache.put( user.get().getUid(),
-                    user.get().getGroups().stream().map( BaseIdentifiableObject::getUid )
+                    user.get().getGroups().stream().map( IdentifiableObject::getUid )
                         .collect( Collectors.toList() ) );
             }
         } );
@@ -295,7 +295,7 @@ public class TrackedEntityInstanceAggregate
         // skipSynchronization in case this is a dataSynchronization query
         Set<String> allowedAttributeUids = trackedEntityTypeAttributes.stream()
             .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         for ( Program program : teaByProgram.keySet() )
@@ -304,7 +304,7 @@ public class TrackedEntityInstanceAggregate
             {
                 allowedAttributeUids.addAll( teaByProgram.get( program ).stream()
                     .filter( att -> (!ctx.getParams().isDataSynchronizationQuery() || !att.getSkipSynchronization()) )
-                    .map( BaseIdentifiableObject::getUid )
+                    .map( IdentifiableObject::getUid )
                     .collect( Collectors.toSet() ) );
             }
         }

@@ -49,16 +49,17 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
+import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.export.fieldsmapper.TrackedEntityFieldsParamMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -101,33 +102,31 @@ public class TrackerTrackedEntitiesExportController
     private final TrackerTrackedEntityCriteriaMapper criteriaMapper;
 
     @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    @Nonnull
-    private final TrackedEntitiesSupportService trackedEntitiesSupportService;
+    private final TrackedEntityService trackedEntityService;
 
     @Nonnull
     private final FieldFilterService fieldFilterService;
 
     @Nonnull
-    private final CsvEventService<TrackedEntity> csvEventService;
+    private final CsvService<TrackedEntity> csvEventService;
 
     private final TrackedEntityFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances( TrackerTrackedEntityCriteria criteria,
+    PagingWrapper<ObjectNode> getTrackedEntities( TrackerTrackedEntityCriteria criteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields,
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
-            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceParams, false, false ) );
+            .fromCollection(
+                trackedEntityService.getTrackedEntities( queryParams, trackedEntityInstanceParams ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -135,7 +134,7 @@ public class TrackerTrackedEntitiesExportController
         {
 
             Long count = criteria.isTotalPages()
-                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true )
+                ? (long) trackedEntityService.getTrackedEntityCount( queryParams, true, true )
                 : null;
 
             pagingWrapper = pagingWrapper.withPager(
@@ -157,15 +156,16 @@ public class TrackerTrackedEntitiesExportController
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
         throws IOException,
         BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
             criteria.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
-            .fromCollection( trackedEntityInstanceService.getTrackedEntityInstances( queryParams,
-                trackedEntityInstanceParams, false, false ) );
+            .fromCollection(
+                trackedEntityService.getTrackedEntities( queryParams, trackedEntityInstanceParams ) );
 
         OutputStream outputStream = response.getOutputStream();
 
@@ -191,36 +191,40 @@ public class TrackerTrackedEntitiesExportController
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"" );
         }
 
-        csvEventService.writeEvents( outputStream, trackedEntityInstances, !skipHeader );
+        csvEventService.write( outputStream, trackedEntityInstances, !skipHeader );
     }
 
     @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getTrackedEntityInstanceById( @PathVariable String id,
+    public ResponseEntity<ObjectNode> getTrackedEntityById( @PathVariable String id,
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        throws ForbiddenException,
+        NotFoundException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( fields );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
     @GetMapping( value = "{id}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvTrackedEntityInstanceById( @PathVariable String id,
+    public void getCsvTrackedEntityById( @PathVariable String id,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         @RequestParam( required = false ) String program )
-        throws IOException
+        throws IOException,
+        ForbiddenException,
+        NotFoundException
     {
-        TrackedEntityInstanceParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntitiesSupportService.getTrackedEntityInstance( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
         response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntity.csv\"" );
-        csvEventService.writeEvents( outputStream, List.of( trackedEntity ), !skipHeader );
+        csvEventService.write( outputStream, List.of( trackedEntity ), !skipHeader );
     }
 }

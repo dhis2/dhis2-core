@@ -58,9 +58,9 @@ import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
 import org.hisp.dhis.analytics.common.query.Field;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.analytics.tei.query.context.TeiStaticField;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.GridHeader;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.ValueType;
@@ -106,7 +106,7 @@ public class TeiFields
             teiQueryParams.getTrackedEntityType() )
                 .filter( programTrackedEntityAttribute -> !programAttributesUids
                     .contains( programTrackedEntityAttribute.getUid() ) )
-                .map( BaseIdentifiableObject::getUid )
+                .map( IdentifiableObject::getUid )
                 .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
 
         // TET and program attribute uids.

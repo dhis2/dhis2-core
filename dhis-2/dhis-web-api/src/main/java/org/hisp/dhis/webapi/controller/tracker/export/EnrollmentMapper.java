@@ -27,31 +27,114 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Note;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    Dxf2RelationshipMapper.class,
+    RelationshipMapper.class,
     AttributeMapper.class,
-    NoteMapper.class,
-    EventMapper.class,
     InstantMapper.class,
     UserMapper.class } )
-interface EnrollmentMapper extends ViewMapper<org.hisp.dhis.dxf2.events.enrollment.Enrollment, Enrollment>
+interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment>
 {
-    @Mapping( target = "enrollment", source = "enrollment" )
+    @Mapping( target = "enrollment", source = "uid" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
+    @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
+    @Mapping( target = "program", source = "program.uid" )
+    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
+    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
     @Mapping( target = "enrolledAt", source = "enrollmentDate" )
     @Mapping( target = "occurredAt", source = "incidentDate" )
     @Mapping( target = "followUp", source = "followup" )
+    @Mapping( target = "completedAt", source = "endDate" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "events", source = "programStageInstances" )
+    @Mapping( target = "relationships", source = "relationshipItems" )
+    @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
+    @Mapping( target = "notes", source = "comments" )
+    @Override
+    Enrollment from( ProgramInstance programInstance );
+
+    /**
+     * Maps {@link ProgramInstance#getRelationshipItems()} to
+     * {@link org.hisp.dhis.relationship.Relationship} which is then mapped by
+     * {@link RelationshipMapper}.
+     *
+     */
+    default Set<org.hisp.dhis.relationship.Relationship> map(
+        Set<org.hisp.dhis.relationship.RelationshipItem> relationshipItems )
+    {
+        if ( relationshipItems == null )
+        {
+            return Set.of();
+        }
+
+        return relationshipItems.stream().map( org.hisp.dhis.relationship.RelationshipItem::getRelationship )
+            .collect( Collectors.toSet() );
+    }
+
+    @Mapping( target = "event", source = "uid" )
+    @Mapping( target = "program", source = "programInstance.program.uid" )
+    @Mapping( target = "programStage", source = "programStage.uid" )
+    @Mapping( target = "enrollment", source = "programInstance.uid" )
+    @Mapping( target = "trackedEntity", source = "programInstance.entityInstance.uid" )
+    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
+    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
+    @Mapping( target = "occurredAt", source = "executionDate" )
+    @Mapping( target = "scheduledAt", source = "dueDate" )
+    @Mapping( target = "followup", source = "programInstance.followup" )
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo.uid" )
+    @Mapping( target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions" )
     @Mapping( target = "completedAt", source = "completedDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    Enrollment from( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
+    @Mapping( target = "relationships", source = "relationshipItems" )
+    @Mapping( target = "dataValues", source = "eventDataValues" )
+    @Mapping( target = "notes", source = "comments" )
+    Event from( org.hisp.dhis.program.ProgramStageInstance event );
+
+    @Mapping( target = "note", source = "uid" )
+    @Mapping( target = "storedAt", source = "created" )
+    @Mapping( target = "value", source = "commentText" )
+    @Mapping( target = "createdBy", source = "lastUpdatedBy" )
+    @Mapping( target = "storedBy", source = "creator" )
+    Note from( org.hisp.dhis.trackedentitycomment.TrackedEntityComment comment );
+
+    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
+    // we could not simply export the UIDs.
+    default String from( Set<CategoryOption> categoryOptions )
+    {
+        if ( categoryOptions == null || categoryOptions.isEmpty() )
+        {
+            return "";
+        }
+
+        return categoryOptions.stream()
+            .map( CategoryOption::getUid )
+            .collect( Collectors.joining( ";" ) );
+    }
+
+    @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "createdBy", source = "createdByUserInfo" )
+    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
 }

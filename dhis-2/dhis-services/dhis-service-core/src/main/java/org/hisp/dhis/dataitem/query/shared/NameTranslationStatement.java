@@ -27,28 +27,28 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.LOCALE;
+
+import lombok.NoArgsConstructor;
 
 /**
  * Provides common statements related to name translation.
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class NameTranslationStatement
 {
-    private NameTranslationStatement()
-    {
-    }
-
     /**
      * This method will join the translations column for the given table.
      *
      * @param table the table containing the translation columns
      * @return the joins responsible to bring translated names
      */
-    public static String translationNamesJoinsOn( final String table )
+    public static String translationNamesJoinsOn( String table )
     {
         if ( isNotBlank( table ) )
         {
@@ -66,9 +66,9 @@ public class NameTranslationStatement
      * @param includeProgram if true, it will also join the program table
      * @return the joins responsible to bring translated names
      */
-    public static String translationNamesJoinsOn( final String table, final boolean includeProgram )
+    public static String translationNamesJoinsOn( String table, boolean includeProgram )
     {
-        final StringBuilder joins = new StringBuilder();
+        StringBuilder joins = new StringBuilder();
 
         if ( isNotBlank( table ) )
         {
@@ -105,7 +105,7 @@ public class NameTranslationStatement
      * @param table the table containing the translation columns
      * @return the columns containing the translated names
      */
-    public static String translationNamesColumnsFor( final String table )
+    public static String translationNamesColumnsFor( String table )
     {
         if ( isNotBlank( table ) )
         {
@@ -124,9 +124,9 @@ public class NameTranslationStatement
      * @param includeProgram if true, it will also bring program columns
      * @return the columns containing the translated names
      */
-    public static String translationNamesColumnsFor( final String table, final boolean includeProgram )
+    public static String translationNamesColumnsFor( String table, boolean includeProgram )
     {
-        final StringBuilder columns = new StringBuilder();
+        StringBuilder columns = new StringBuilder();
 
         if ( isNotBlank( table ) )
         {
@@ -151,9 +151,9 @@ public class NameTranslationStatement
         return columns.toString();
     }
 
-    private static String translationNamesColumnsForItem( final String table, final String i18nColumnPrefix )
+    private static String translationNamesColumnsForItem( String table, String i18nColumnPrefix )
     {
-        final StringBuilder columns = new StringBuilder();
+        StringBuilder columns = new StringBuilder();
 
         columns
             .append(

@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -64,6 +65,7 @@ import lombok.Value;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.webmessage.WebMessageResponse;
@@ -122,6 +124,19 @@ final class ApiAnalyse
          * filter based on tags (empty includes all)
          */
         Set<String> tags;
+    }
+
+    private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
+
+    public static void register( Class<?> type, Api.SchemaGenerator generator )
+    {
+        GENERATORS.put( type, generator );
+    }
+
+    static
+    {
+        register( UID.class, SchemaGenerators.UID );
+        register( Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES );
     }
 
     /**
@@ -432,7 +447,8 @@ final class ApiAnalyse
     private static boolean isGeneratorType( Class<?> type )
     {
         return Api.SchemaGenerator.class.isAssignableFrom( type )
-            || Api.SchemaGenerator[].class.isAssignableFrom( type );
+            || Api.SchemaGenerator[].class.isAssignableFrom( type )
+            || GENERATORS.containsKey( type );
     }
 
     private static Api.Schema analyseGeneratorSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
@@ -776,14 +792,12 @@ final class ApiAnalyse
 
     private static Api.SchemaGenerator newGenerator( Class<?> type )
     {
-        try
+        Api.SchemaGenerator generator = GENERATORS.get( type );
+        if ( generator == null )
         {
-            return (Api.SchemaGenerator) type.getConstructor().newInstance();
+            throw new IllegalStateException( "No generator for type: " + type );
         }
-        catch ( Exception ex )
-        {
-            throw new RuntimeException( ex );
-        }
+        return generator;
     }
 
     private static String[] firstNonEmpty( String[] a, String[] b, String[] c )

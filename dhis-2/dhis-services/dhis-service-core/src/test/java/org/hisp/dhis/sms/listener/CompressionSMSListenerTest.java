@@ -38,7 +38,8 @@ import org.hisp.dhis.smscompression.models.SmsMetadata;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.user.User;
 
-abstract class CompressionSMSListenerTest extends
+abstract class CompressionSMSListenerTest
+    extends
     DhisConvenienceTest
 {
     protected static final String SUCCESS_MESSAGE = "1:0::Submission has been processed successfully";

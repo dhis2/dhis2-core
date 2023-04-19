@@ -52,9 +52,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -63,14 +60,12 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -126,10 +121,7 @@ class TrackerEventCriteriaMapperTest
     private DataElementService dataElementService;
 
     @Mock
-    private InputUtils inputUtils;
-
-    @Mock
-    private SchemaService schemaService;
+    private CategoryOptionComboService categoryOptionComboService;
 
     @InjectMocks
     private TrackerEventCriteriaMapper mapper;
@@ -179,22 +171,6 @@ class TrackerEventCriteriaMapperTest
         DataElement de2 = new DataElement();
         de2.setUid( DE_2_UID );
         when( dataElementService.getDataElement( DE_2_UID ) ).thenReturn( de2 );
-
-        Schema eventSchema = new Schema( Event.class, "event", "events" );
-        Property prop1 = new Property();
-        prop1.setName( "programStage" );
-        prop1.setSimple( true );
-        eventSchema.addProperty( prop1 );
-        Property prop2 = new Property();
-        prop2.setName( "dueDate" );
-        prop2.setSimple( true );
-        eventSchema.addProperty( prop2 );
-        Property prop3 = new Property();
-        prop3.setName( "nonSimple" );
-        prop3.setSimple( false );
-        eventSchema.addProperty( prop3 );
-        when( schemaService.getDynamicSchema( Event.class ) ).thenReturn( eventSchema );
-        mapper.setSchema();
     }
 
     @Test
@@ -296,7 +272,7 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( trackedEntityInstance, params.getTrackedEntityInstance() );
+        assertEquals( trackedEntityInstance, params.getTrackedEntity() );
     }
 
     @Test
@@ -345,8 +321,8 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( scheduledAfter, params.getDueDateStart() );
-        assertEquals( scheduledBefore, params.getDueDateEnd() );
+        assertEquals( scheduledAfter, params.getScheduleAtStartDate() );
+        assertEquals( scheduledBefore, params.getScheduleAtEndDate() );
     }
 
     @Test
@@ -365,9 +341,9 @@ class TrackerEventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( updatedAfter, params.getLastUpdatedStartDate() );
-        assertEquals( updatedBefore, params.getLastUpdatedEndDate() );
-        assertEquals( updatedWithin, params.getLastUpdatedDuration() );
+        assertEquals( updatedAfter, params.getUpdatedAtStartDate() );
+        assertEquals( updatedBefore, params.getUpdatedAtEndDate() );
+        assertEquals( updatedWithin, params.getUpdatedAtDuration() );
     }
 
     @Test
@@ -530,46 +506,23 @@ class TrackerEventCriteriaMapperTest
     }
 
     @Test
-    void testOrderByEventSchemaProperties()
+    void shouldMapOrderParameterToOrderCriteriaWhenFieldsAreSortable()
         throws BadRequestException,
         ForbiddenException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setOrder( OrderCriteria.fromOrderString( "programStage:desc,dueDate:asc" ) );
+        criteria.setOrder( OrderCriteria.fromOrderString( "createdAt:asc,programStage:desc,scheduledAt:asc" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertContainsOnly( List.of( new OrderParam( "programStage", SortDirection.DESC ),
-            new OrderParam( "dueDate", SortDirection.ASC ) ), params.getOrders() );
+        assertContainsOnly( List.of(
+            new OrderParam( "createdAt", SortDirection.ASC ),
+            new OrderParam( "programStage", SortDirection.DESC ),
+            new OrderParam( "scheduledAt", SortDirection.ASC ) ), params.getOrders() );
     }
 
     @Test
-    void testOrderBySupportedPropertyNotInEventSchema()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setOrder( OrderCriteria.fromOrderString( "enrolledAt:asc" ) );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertContainsOnly( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ),
-            params.getOrders() );
-    }
-
-    @Test
-    void testOrderFailsForNonSimpleEventProperty()
-    {
-        TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setOrder( OrderCriteria.fromOrderString( "nonSimple:desc" ) );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
-        assertStartsWith( "Order by property `nonSimple` is not supported", exception.getMessage() );
-    }
-
-    @Test
-    void testOrderFailsForUnsupportedProperty()
+    void shouldThrowWhenOrderParameterContainsUnsupportedField()
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setOrder(
@@ -715,7 +668,7 @@ class TrackerEventCriteriaMapperTest
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
 
-        assertEquals( "Dataelement does not exist: " + filterName, exception.getMessage() );
+        assertEquals( "Data element does not exist: " + filterName, exception.getMessage() );
     }
 
     @Test
@@ -790,8 +743,9 @@ class TrackerEventCriteriaMapperTest
         criteria.setAttributeCos( "Cos" );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( inputUtils.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(), true ) )
-            .thenReturn( combo );
+        when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
+            true ) )
+                .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,

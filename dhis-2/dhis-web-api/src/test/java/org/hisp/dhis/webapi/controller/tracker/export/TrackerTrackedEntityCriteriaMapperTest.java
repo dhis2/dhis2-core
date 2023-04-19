@@ -71,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -124,6 +125,9 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Mock
     private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Mock
+    private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
     private TrackerTrackedEntityCriteriaMapper mapper;
@@ -494,7 +498,10 @@ class TrackerTrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
+        criteria.setProgram( PROGRAM_UID );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -512,7 +519,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void testMappingOrgUnitNotInSearchScope()
+    void shouldThrowExceptionWhenOrgUnitNotInScope()
     {
         when( organisationUnitService.isInUserHierarchy( orgUnit1.getUid(),
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
@@ -521,7 +528,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         ForbiddenException e = assertThrows( ForbiddenException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage() );
+        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage() );
     }
 
     @Test
@@ -574,5 +581,94 @@ class TrackerTrackedEntityCriteriaMapperTest
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
         assertEquals( "Invalid order property: invalid", e.getMessage() );
+    }
+
+    @Test
+    void shouldCreateCriteriaFiltersWithFirstOperatorWhenMultipleValidOperandAreNotValid()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setFilter( Set.of( TEA_2_UID + ":like:project:x:eq:2" ) );
+        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+
+        List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "project:x:eq:2" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldThrowBadRequestWhenCriteriaFilterHasOperatorInWrongFormat()
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":lke:value" ) );
+        BadRequestException exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Query item or filter is invalid: " + TEA_1_UID + ":lke:value", exception.getMessage() );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatWithHours()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000 00:00:01:lt:01-01-2001 00:00:01" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000 00:00:01" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001 00:00:01" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatYearMonthDay()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:01-01-2000:lt:01-01-2001" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "01-01-2000" ),
+            new QueryFilter( QueryOperator.LT, "01-01-2001" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria.setFilter( Set.of( TEA_1_UID + ":gt:2020-01-01T00:00:00 +05:30:lt:2021-01-01T00:00:00 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GT, "2020-01-01T00:00:00 +05:30" ),
+            new QueryFilter( QueryOperator.LT, "2021-01-01T00:00:00 +05:30" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria
+            .setFilter( Set.of( TEA_1_UID + ":ge:2020-01-01T00:00:00.001 +05:30:le:2021-01-01T00:00:00.001 +05:30" ) );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30" ),
+            new QueryFilter( QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30" ) ), actualFilters );
     }
 }

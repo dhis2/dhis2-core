@@ -76,7 +76,8 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class AggregateDataSetSMSListenerTest extends
+class AggregateDataSetSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 

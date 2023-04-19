@@ -41,7 +41,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.Partitions;
 import org.hisp.dhis.analytics.cache.AnalyticsCache;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EnrollmentAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
 import org.hisp.dhis.analytics.event.EventDataQueryService;
@@ -103,14 +103,14 @@ class DefaultEventAnalyticsServiceTest
     private AnalyticsCache analyticsCache;
 
     @Mock
-    private SchemaIdResponseMapper schemaIdResponseMapper;
+    private SchemeIdResponseMapper schemeIdResponseMapper;
 
     @BeforeEach
     public void setUp()
     {
         defaultEventAnalyticsService = new DefaultEventAnalyticsService( dataElementService,
             trackedEntityAttributeService, eventAnalyticsManager, eventDataQueryService, securityManager, queryPlanner,
-            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemaIdResponseMapper );
+            eventQueryValidator, databaseInfo, analyticsCache, enrollmentAnalyticsManager, schemeIdResponseMapper );
     }
 
     @Test
@@ -128,7 +128,7 @@ class DefaultEventAnalyticsServiceTest
 
         defaultEventAnalyticsService.getEvents( mockParams );
 
-        verify( schemaIdResponseMapper, atMost( 1 ) ).getSchemeIdResponseMap( mockParams );
+        verify( schemeIdResponseMapper, atMost( 1 ) ).getSchemeIdResponseMap( mockParams );
     }
 
     @Test
@@ -146,7 +146,7 @@ class DefaultEventAnalyticsServiceTest
 
         defaultEventAnalyticsService.getEvents( mockParams );
 
-        verify( schemaIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
+        verify( schemeIdResponseMapper, never() ).getSchemeIdResponseMap( mockParams );
     }
 
     private EventQueryParams mockEventQueryParams( OrganisationUnit mockOrgUnit, Program mockProgram,

@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker;
 
-import static org.hisp.dhis.tracker.TrackerIdScheme.ATTRIBUTE;
-import static org.hisp.dhis.tracker.TrackerIdScheme.CODE;
-import static org.hisp.dhis.tracker.TrackerIdScheme.NAME;
-import static org.hisp.dhis.tracker.TrackerIdScheme.UID;
+import static org.hisp.dhis.tracker.imports.TrackerIdScheme.ATTRIBUTE;
+import static org.hisp.dhis.tracker.imports.TrackerIdScheme.CODE;
+import static org.hisp.dhis.tracker.imports.TrackerIdScheme.NAME;
+import static org.hisp.dhis.tracker.imports.TrackerIdScheme.UID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
@@ -41,7 +41,8 @@ import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.domain.MetadataIdentifier;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.junit.jupiter.api.Test;
 
 class TrackerIdSchemeParamTest

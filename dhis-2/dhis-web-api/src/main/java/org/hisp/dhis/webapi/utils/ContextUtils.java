@@ -129,7 +129,7 @@ public class ContextUtils
 
     private final WebCache webCache;
 
-    public ContextUtils( final WebCache webCache )
+    public ContextUtils( WebCache webCache )
     {
         checkNotNull( webCache );
 

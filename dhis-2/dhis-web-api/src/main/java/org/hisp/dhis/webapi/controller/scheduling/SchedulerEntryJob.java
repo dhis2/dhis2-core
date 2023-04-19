@@ -32,10 +32,10 @@ import java.util.Date;
 import lombok.Value;
 
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobStatus;
 import org.hisp.dhis.scheduling.JobType;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 class SchedulerEntryJob
 {
     @JsonProperty
-    @OpenApi.Property( { SchemaGenerators.UID.class, JobConfiguration.class } )
+    @OpenApi.Property( { UID.class, JobConfiguration.class } )
     String id;
 
     @JsonProperty

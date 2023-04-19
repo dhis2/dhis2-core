@@ -93,7 +93,7 @@ class TeiSqlQueryTest extends DhisConvenienceTest
         // given
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( createTrackedEntityType( 'A' ) )
-            .commonParams( stubSortingCommonParams( null, StringUtils.EMPTY, "ouname" ) )
+            .commonParams( stubSortingCommonParams( null, 1, "ouname" ) )
             .build();
 
         // when
@@ -114,19 +114,19 @@ class TeiSqlQueryTest extends DhisConvenienceTest
 
         TeiQueryParams teiQueryParams = TeiQueryParams.builder()
             .trackedEntityType( createTrackedEntityType( 'A' ) )
-            .commonParams( stubSortingCommonParams( createProgram( 'A' ), "0", dimensionalObject ) )
+            .commonParams( stubSortingCommonParams( createProgram( 'A' ), 1, dimensionalObject ) )
             .build();
 
         // when
         String sql = sqlQueryCreatorService.getSqlQueryCreator( teiQueryParams ).createForSelect().getStatement();
 
         // then
-        assertTrue( sql.contains( " order by \"prabcdefghA[0].pgabcdefghS[0].abc\" desc nulls last" ) );
+        assertTrue( sql.contains( " order by \"prabcdefghA[1].pgabcdefghS[1].abc\" desc nulls last" ) );
         assertTrue( sql.contains(
-            "(\"prabcdefghA[0].pgabcdefghS[0]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[0].pgabcdefghS[0].abc\"" ) );
+            "(\"prabcdefghA[1].pgabcdefghS[1]\".\"eventdatavalues\" -> 'abc' ->> 'value')::TEXT as \"prabcdefghA[1].pgabcdefghS[1].abc\"" ) );
     }
 
-    private CommonParams stubSortingCommonParams( Program program, String offset, Object dimensionalObject )
+    private CommonParams stubSortingCommonParams( Program program, int offset, Object dimensionalObject )
     {
         ElementWithOffset<Program> prg = program == null
             ? ElementWithOffset.emptyElementWithOffset()

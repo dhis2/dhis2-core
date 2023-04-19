@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.replaceOnce;
 
+import java.util.EnumSet;
 import java.util.Set;
 
 import lombok.Getter;
@@ -62,9 +63,11 @@ public enum QueryOperator
     ILIKE( "ilike" ),
     NILIKE( "not ilike" );
 
-    private static final Set<QueryOperator> EQ_OPERATORS = Set.of( EQ, NE, NEQ, IEQ, NIEQ );
+    private static final Set<QueryOperator> EQ_OPERATORS = EnumSet.of( EQ, NE, NEQ, IEQ, NIEQ );
 
-    private static final Set<QueryOperator> LIKE_OPERATORS = Set.of( LIKE, NLIKE, ILIKE, NILIKE );
+    private static final Set<QueryOperator> LIKE_OPERATORS = EnumSet.of( LIKE, NLIKE, ILIKE, NILIKE );
+
+    private static final Set<QueryOperator> COMPARISON_OPERATORS = EnumSet.of( GT, GE, LT, LE );
 
     private final String value;
 
@@ -110,5 +113,10 @@ public enum QueryOperator
     public boolean isIn()
     {
         return IN == this;
+    }
+
+    public boolean isComparison()
+    {
+        return COMPARISON_OPERATORS.contains( this );
     }
 }

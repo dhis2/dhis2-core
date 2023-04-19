@@ -37,6 +37,7 @@ import lombok.AllArgsConstructor;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -57,6 +58,8 @@ public class GridAdaptor
     private final HeaderParamsHandler headerParamsHandler;
 
     private final MetadataParamsHandler metadataParamsHandler;
+
+    private final SchemeIdResponseMapper schemeIdResponseMapper;
 
     private final CurrentUserService currentUserService;
 
@@ -88,6 +91,10 @@ public class GridAdaptor
         // Adding metadata info.
         metadataParamsHandler.handle( grid, teiQueryParams.getCommonParams(), currentUserService.getCurrentUser(),
             rowsCount );
+
+        schemeIdResponseMapper.applyCustomIdScheme( teiQueryParams.getCommonParams(), grid );
+        schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid,
+            teiQueryParams.getCommonParams().getDataIdScheme() );
 
         return grid;
     }

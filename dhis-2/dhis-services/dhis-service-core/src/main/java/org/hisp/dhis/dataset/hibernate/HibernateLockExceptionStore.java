@@ -32,6 +32,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
@@ -93,6 +94,7 @@ public class HibernateLockExceptionStore
     public void save( LockException lockException )
     {
         lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
+        lockException.setAutoFields();
 
         super.save( lockException );
     }
@@ -101,6 +103,7 @@ public class HibernateLockExceptionStore
     public void update( LockException lockException )
     {
         lockException.setPeriod( periodService.reloadPeriod( lockException.getPeriod() ) );
+        lockException.setAutoFields();
 
         super.update( lockException );
     }
@@ -173,6 +176,14 @@ public class HibernateLockExceptionStore
         getQuery( hql )
             .setParameter( "organisationUnit", organisationUnit )
             .executeUpdate();
+    }
+
+    @Override
+    public int deleteExpiredLockExceptions( Date createdBefore )
+    {
+        String sql = "delete from lockexception where created < :date";
+
+        return getSession().createNativeQuery( sql ).setParameter( "date", createdBefore ).executeUpdate();
     }
 
     @Override

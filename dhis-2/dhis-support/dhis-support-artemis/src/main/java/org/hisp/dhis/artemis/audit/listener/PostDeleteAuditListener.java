@@ -49,7 +49,8 @@ import org.springframework.stereotype.Component;
 @Slf4j
 @Component
 public class PostDeleteAuditListener
-    extends AbstractHibernateListener implements PostCommitDeleteEventListener
+    extends AbstractHibernateListener
+    implements PostCommitDeleteEventListener
 {
     public PostDeleteAuditListener(
         AuditManager auditManager,

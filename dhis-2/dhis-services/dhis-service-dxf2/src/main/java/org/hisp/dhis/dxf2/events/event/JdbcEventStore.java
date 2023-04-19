@@ -97,9 +97,9 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
@@ -298,12 +298,11 @@ public class JdbcEventStore implements EventStore
         COMPLETEDBY.getColumnName(),    // 12
         DELETED.getColumnName(),        // 13
         "code",                         // 14
-        CREATEDCLIENT.getColumnName(),  // 15
-        UPDATEDCLIENT.getColumnName(),  // 16
-        GEOMETRY.getColumnName(),       // 17
-        "assigneduserid",               // 18
-        "eventdatavalues",              // 19
-        UID.getColumnName() );          // 20
+        UPDATEDCLIENT.getColumnName(),  // 15
+        GEOMETRY.getColumnName(),       // 16
+        "assigneduserid",               // 17
+        "eventdatavalues",              // 18
+        UID.getColumnName() );          // 19
 
     private static final String UPDATE_EVENT_SQL;
 
@@ -587,7 +586,7 @@ public class JdbcEventStore implements EventStore
             {
                 try
                 {
-                    parameters[i] = getSqlParameters( programStageInstances.get( i ) );
+                    parameters[i] = getSqlParametersForUpdate( programStageInstances.get( i ) );
                 }
                 catch ( SQLException | JsonProcessingException e )
                 {
@@ -2010,7 +2009,7 @@ public class JdbcEventStore implements EventStore
          * Extract the primary keys from the created objects
          */
         List<Long> eventIds = batch.stream()
-            .map( BaseIdentifiableObject::getId )
+            .map( IdentifiableObject::getId )
             .collect( Collectors.toList() );
 
         /*
@@ -2108,7 +2107,7 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private MapSqlParameterSource getSqlParameters( ProgramStageInstance programStageInstance )
+    private MapSqlParameterSource getSqlParametersForUpdate( ProgramStageInstance programStageInstance )
         throws SQLException,
         JsonProcessingException
     {
@@ -2131,8 +2130,6 @@ public class JdbcEventStore implements EventStore
             .addValue( COMPLETEDBY.getColumnName(), programStageInstance.getCompletedBy() )
             .addValue( DELETED.getColumnName(), programStageInstance.isDeleted() )
             .addValue( "code", programStageInstance.getCode() )
-            .addValue( CREATEDCLIENT.getColumnName(),
-                JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) )
             .addValue( UPDATEDCLIENT.getColumnName(),
                 JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) )
             .addValue( GEOMETRY.getColumnName(), JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) )

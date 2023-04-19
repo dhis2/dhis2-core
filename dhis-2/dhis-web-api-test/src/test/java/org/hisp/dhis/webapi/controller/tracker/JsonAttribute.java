@@ -40,6 +40,11 @@ public interface JsonAttribute extends JsonObject
         return getString( "attribute" ).string();
     }
 
+    default String getValueType()
+    {
+        return getString( "valueType" ).string();
+    }
+
     default String getValue()
     {
         return getString( "value" ).string();

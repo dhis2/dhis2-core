@@ -34,6 +34,7 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
 
 import java.text.MessageFormat;
@@ -51,11 +52,9 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
-import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -68,6 +67,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -101,6 +101,9 @@ public class TrackerTrackedEntityCriteriaMapper
     @Nonnull
     private final TrackedEntityAttributeService attributeService;
 
+    @Nonnull
+    private final TrackerAccessManager trackerAccessManager;
+
     @Transactional( readOnly = true )
     public TrackedEntityInstanceQueryParams map( TrackerTrackedEntityCriteria criteria )
         throws BadRequestException,
@@ -118,13 +121,13 @@ public class TrackerTrackedEntityCriteriaMapper
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( orgUnitIds, user );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
         if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             orgUnits.addAll( user.getOrganisationUnits() );
         }
 
-        QueryFilter queryFilter = getQueryFilter( criteria.getQuery() );
+        QueryFilter queryFilter = parseQueryFilter( criteria.getQuery() );
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
@@ -217,7 +220,7 @@ public class TrackerTrackedEntityCriteriaMapper
             .collect( Collectors.toSet() );
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( Set<String> orgUnitIds, User user )
+    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
         throws BadRequestException,
         ForbiddenException
     {
@@ -232,48 +235,15 @@ public class TrackerTrackedEntityCriteriaMapper
                 throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
             }
 
-            if ( user != null && !user.isSuper()
-                && !organisationUnitService.isInUserHierarchy( orgUnit.getUid(),
-                    user.getTeiSearchOrganisationUnitsWithFallback() ) )
+            if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
             {
-                throw new ForbiddenException( "Organisation unit is not part of the search scope: " + orgUnitId );
+                throw new ForbiddenException( "User does not have access to organisation unit: " + orgUnitId );
             }
+
             orgUnits.add( orgUnit );
         }
 
         return orgUnits;
-    }
-
-    /**
-     * Creates a QueryFilter from the given query string. Query is on format
-     * {operator}:{filter-value}. Only the filter-value is mandatory. The EQ
-     * QueryOperator is used as operator if not specified.
-     */
-    private QueryFilter getQueryFilter( String query )
-        throws BadRequestException
-    {
-        if ( query == null || query.isEmpty() )
-        {
-            return null;
-        }
-
-        if ( !query.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
-        {
-            return new QueryFilter( QueryOperator.EQ, query );
-        }
-        else
-        {
-            String[] split = query.split( DimensionalObject.DIMENSION_NAME_SEP );
-
-            if ( split.length != 2 )
-            {
-                throw new BadRequestException( "Query has invalid format: " + query );
-            }
-
-            QueryOperator op = QueryOperator.fromString( split[0] );
-
-            return new QueryFilter( op, split[1] );
-        }
     }
 
     private static void validateProgram( String id, Program program )

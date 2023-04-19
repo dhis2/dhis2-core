@@ -49,19 +49,12 @@ class ValueTypeTest
     void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
     {
         assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
-        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.LAST_LAST_ORG_UNIT ) );
-        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.FIRST_FIRST_ORG_UNIT ) );
-        assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
-        assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
-    }
-
-    @Test
-    void aggregatableFlagOfTextValueTypeIsFalseWhenCalled()
-    {
-        assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
-        assertFalse( ValueType.TEXT.isAggregatable( AggregationType.SUM ) );
-        assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.CUSTOM ) );
-        assertFalse( ValueType.LETTER.isAggregatable( AggregationType.DEFAULT ) );
+        assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.LETTER.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.USERNAME.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.EMAIL.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.PHONE_NUMBER.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.URL.isAggregatable( AggregationType.NONE ) );
     }
 
     @Test

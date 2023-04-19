@@ -34,7 +34,10 @@
       "name": "Internal data exchange",
       "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -71,9 +74,12 @@
     {
       "id": "PnWccbwCJLQ",
       "name": "External basic auth data exchange",
-      "source":{
+      "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -97,7 +103,7 @@
           }
         ]
       },
-      "target":{
+      "target": {
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.1",
@@ -115,9 +121,12 @@
     {
       "id": "VpQ4qVEseyM",
       "name": "External access token data exchange",
-      "source":{
+      "source": {
         "params": {
-          "periodTypes": ["MONTHLY", "QUARTERLY"]
+          "periodTypes": [
+            "MONTHLY",
+            "QUARTERLY"
+          ]
         },
         "requests": [
           {
@@ -141,7 +150,7 @@
           }
         ]
       },
-      "target":{
+      "target": {
         "type": "EXTERNAL",
         "api": {
           "url": "https://play.dhis2.org/2.38.1",

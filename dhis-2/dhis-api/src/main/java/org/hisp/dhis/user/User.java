@@ -78,7 +78,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "user", namespace = DxfNamespaces.DXF_2_0 )
 public class User
-    extends BaseIdentifiableObject implements MetadataObject, UserDetails
+    extends BaseIdentifiableObject
+    implements MetadataObject, UserDetails
 {
     public static final int USERNAME_MAX_LENGTH = 255;
 
@@ -1497,6 +1498,9 @@ public class User
         {
             userCredentialsDto.setUserRoles( roles );
         }
+
+        userCredentialsDto.setTwoFA( this.isTwoFactorEnabled() );
+
         return userCredentialsDto;
     }
 
@@ -1590,6 +1594,22 @@ public class User
             if ( userRoles != null && !userRoles.equals( oldRoles ) )
             {
                 newUser.setUserRoles( userRoles );
+            }
+
+            Set<Category> oldCatDimCon = oldUser.getCatDimensionConstraints();
+            Set<CategoryOptionGroupSet> oldCogDimCon = oldUser.getCogsDimensionConstraints();
+
+            Set<Category> newCatDimCon = newUserCredentialsRaw.getCatDimensionConstraints();
+            Set<CategoryOptionGroupSet> newCogDimCon = newUserCredentialsRaw.getCogsDimensionConstraints();
+
+            if ( oldCatDimCon != null && newCatDimCon != null && !oldCatDimCon.equals( newCatDimCon ) )
+            {
+                newUser.setCatDimensionConstraints( newCatDimCon );
+            }
+
+            if ( oldCogDimCon != null && newCogDimCon != null && !oldCogDimCon.equals( newCogDimCon ) )
+            {
+                newUser.setCogsDimensionConstraints( newCogDimCon );
             }
 
             newUser.removeLegacyUserCredentials();

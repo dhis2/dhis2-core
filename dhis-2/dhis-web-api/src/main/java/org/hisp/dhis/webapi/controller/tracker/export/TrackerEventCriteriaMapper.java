@@ -44,8 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.annotation.PostConstruct;
-
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
@@ -55,9 +53,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -66,14 +61,13 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.schema.Property;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.tracker.export.event.EventSearchParams;
+import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -91,15 +85,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 class TrackerEventCriteriaMapper
 {
-
-    /**
-     * Properties other than the {@link Property#isSimple()} ones on
-     * {@link org.hisp.dhis.dxf2.events.event.Event} which are valid order query
-     * parameter property names. These need to be supported by the underlying
-     * Event store like {@link org.hisp.dhis.dxf2.events.event.JdbcEventStore}
-     * see QUERY_PARAM_COL_MAP.
-     */
-    private static final Set<String> NON_EVENT_SORTABLE_PROPERTIES = Set.of( "enrolledAt", "occurredAt" );
+    private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
     private final CurrentUserService currentUserService;
 
@@ -119,20 +105,7 @@ class TrackerEventCriteriaMapper
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private final InputUtils inputUtils;
-
-    private final SchemaService schemaService;
-
-    private Schema schema;
-
-    @PostConstruct
-    void setSchema()
-    {
-        if ( schema == null )
-        {
-            schema = schemaService.getDynamicSchema( Event.class );
-        }
-    }
+    private final CategoryOptionComboService categoryOptionComboService;
 
     public EventSearchParams map( TrackerEventCriteria criteria )
         throws BadRequestException,
@@ -156,7 +129,7 @@ class TrackerEventCriteriaMapper
             criteria.getTrackedEntity() );
         validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
 
-        CategoryOptionCombo attributeOptionCombo = inputUtils.getAttributeOptionCombo(
+        CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             criteria.getAttributeCc(),
             criteria.getAttributeCos(),
             true );
@@ -196,15 +169,16 @@ class TrackerEventCriteriaMapper
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntityInstance( trackedEntityInstance )
+            .setTrackedEntity( trackedEntityInstance )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
             .setStartDate( criteria.getOccurredAfter() ).setEndDate( criteria.getOccurredBefore() )
-            .setDueDateStart( criteria.getScheduledAfter() ).setDueDateEnd( criteria.getScheduledBefore() )
-            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
+            .setScheduleAtStartDate( criteria.getScheduledAfter() )
+            .setScheduleAtEndDate( criteria.getScheduledBefore() )
+            .setUpdatedAtStartDate( criteria.getUpdatedAfter() )
+            .setUpdatedAtEndDate( criteria.getUpdatedBefore() )
+            .setUpdatedAtDuration( criteria.getUpdatedWithin() )
             .setEnrollmentEnrolledBefore( criteria.getEnrollmentEnrolledBefore() )
             .setEnrollmentEnrolledAfter( criteria.getEnrollmentEnrolledAfter() )
             .setEnrollmentOccurredBefore( criteria.getEnrollmentOccurredBefore() )
@@ -403,7 +377,7 @@ class TrackerEventCriteriaMapper
 
         if ( de == null )
         {
-            throw new BadRequestException( "Dataelement does not exist: " + item );
+            throw new BadRequestException( "Data element does not exist: " + item );
         }
 
         return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
@@ -429,16 +403,12 @@ class TrackerEventCriteriaMapper
             .filter( field -> !CodeGenerator.isValidUid( field ) )
             .collect( Collectors.toSet() );
 
-        Set<String> allowedProperties = schema.getProperties().stream().filter( Property::isSimple )
-            .map( Property::getName ).collect( Collectors.toSet() );
-        allowedProperties.addAll( NON_EVENT_SORTABLE_PROPERTIES );
-
-        requestProperties.removeAll( allowedProperties );
+        requestProperties.removeAll( SORTABLE_PROPERTIES );
         if ( !requestProperties.isEmpty() )
         {
             throw new BadRequestException(
                 String.format( "Order by property `%s` is not supported. Supported are `%s`",
-                    String.join( ", ", requestProperties ), String.join( ", ", allowedProperties ) ) );
+                    String.join( ", ", requestProperties ), String.join( ", ", SORTABLE_PROPERTIES ) ) );
         }
     }
 

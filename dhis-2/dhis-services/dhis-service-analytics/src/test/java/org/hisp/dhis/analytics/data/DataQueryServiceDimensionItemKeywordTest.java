@@ -47,12 +47,12 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataQueryRequest;
 import org.hisp.dhis.common.DimensionItemKeywords;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.UserOrgUnitType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -644,7 +644,7 @@ class DataQueryServiceDimensionItemKeywordTest
             builder.add( s );
         }
 
-        return builder.build().map( BaseIdentifiableObject::getUid ).collect( Collectors.joining( ";" ) );
+        return builder.build().map( IdentifiableObject::getUid ).collect( Collectors.joining( ";" ) );
     }
 
     class RequestBuilder

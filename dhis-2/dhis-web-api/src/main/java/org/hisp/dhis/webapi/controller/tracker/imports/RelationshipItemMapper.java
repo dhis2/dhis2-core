@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
 import org.mapstruct.Context;
 import org.mapstruct.Mapper;
@@ -35,11 +35,11 @@ import org.mapstruct.Mapping;
 
 @Mapper
 interface RelationshipItemMapper
-    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.domain.RelationshipItem>
+    extends DomainMapper<RelationshipItem, org.hisp.dhis.tracker.imports.domain.RelationshipItem>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntity.trackedEntity" )
     @Mapping( target = "enrollment", source = "enrollment.enrollment" )
     @Mapping( target = "event", source = "event.event" )
-    org.hisp.dhis.tracker.domain.RelationshipItem from( RelationshipItem relationshipItem,
+    org.hisp.dhis.tracker.imports.domain.RelationshipItem from( RelationshipItem relationshipItem,
         @Context TrackerIdSchemeParams idSchemeParams );
 }

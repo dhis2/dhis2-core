@@ -89,7 +89,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Sets;
 
 @ExtendWith( MockitoExtension.class )
-class EnrollmentSMSListenerTest extends
+class EnrollmentSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 

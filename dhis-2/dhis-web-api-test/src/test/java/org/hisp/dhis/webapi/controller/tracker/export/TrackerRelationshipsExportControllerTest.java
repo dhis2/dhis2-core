@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertContainsAll;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEnrollmentWithinRelationship;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertEventWithinRelationshipItem;
@@ -330,10 +331,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByEventNotFound()
     {
-        assertEquals( "No event 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?event=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
+        assertStartsWith( "event with id Hq3Kc6HK4OZ",
+            GET( "/tracker/relationships?event=Hq3Kc6HK4OZ" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
@@ -425,10 +424,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByEnrollmentNotFound()
     {
-        assertEquals( "No enrollment 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
+        assertStartsWith( "enrollment with id Hq3Kc6HK4OZ",
+            GET( "/tracker/relationships?enrollment=Hq3Kc6HK4OZ" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     @Test
@@ -496,9 +493,9 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
             to.getUid() )
                 .content( HttpStatus.OK ).getList( "instances", JsonRelationship.class );
 
-        JsonAttribute enrollmentAttr = relationships.get( 0 ).getFrom().getEnrollment().getAttributes().get( 0 );
-        assertEquals( tea2.getUid(), enrollmentAttr.getAttribute() );
-        assertEquals( "24", enrollmentAttr.getValue() );
+        JsonList<JsonAttribute> enrollmentAttr = relationships.get( 0 ).getFrom().getEnrollment().getAttributes();
+        assertContainsAll( List.of( tea2.getUid() ), enrollmentAttr, JsonAttribute::getAttribute );
+        assertContainsAll( List.of( "24" ), enrollmentAttr, JsonAttribute::getValue );
         JsonList<JsonAttribute> teiAttributes = relationships.get( 0 ).getTo().getTrackedEntity().getAttributes();
         assertContainsAll( List.of( tea.getUid(), tea2.getUid() ), teiAttributes, JsonAttribute::getAttribute );
         assertContainsAll( List.of( "12", "24" ), teiAttributes, JsonAttribute::getValue );
@@ -604,10 +601,8 @@ class TrackerRelationshipsExportControllerTest extends DhisControllerConvenience
     @Test
     void getRelationshipsByTrackedEntityNotFound()
     {
-        assertEquals( "No trackedEntity 'Hq3Kc6HK4OZ' found.",
-            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" )
-                .error( HttpStatus.NOT_FOUND )
-                .getMessage() );
+        assertStartsWith( "trackedEntity with id Hq3Kc6HK4OZ",
+            GET( "/tracker/relationships?trackedEntity=Hq3Kc6HK4OZ" ).error( HttpStatus.NOT_FOUND ).getMessage() );
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

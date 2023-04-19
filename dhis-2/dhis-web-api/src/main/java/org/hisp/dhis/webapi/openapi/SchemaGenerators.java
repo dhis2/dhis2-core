@@ -30,58 +30,23 @@ package org.hisp.dhis.webapi.openapi;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.webapi.openapi.Property.getProperties;
 
-import java.lang.reflect.Type;
-
-import lombok.AccessLevel;
-import lombok.NoArgsConstructor;
-
-import org.hisp.dhis.common.OpenApi;
-
 /**
  * Home for {@link Api.SchemaGenerator} implementations.
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-public class SchemaGenerators
+public interface SchemaGenerators
 {
-    /**
-     * A "virtual" UID type that is "context-sensitive" and points to a UID of
-     * the current {@link Api.Endpoint}'s
-     * {@link org.hisp.dhis.common.OpenApi.EntityType}.
-     *
-     * In other words by using this type in {@link OpenApi.Param#value()} the
-     * annotated parameter becomes a UID string of the controllers' entity type.
-     */
-    @NoArgsConstructor
-    public static final class UID implements Api.SchemaGenerator
-    {
-        @Override
-        public Api.Schema generate( Api.Endpoint endpoint, Type source, Class<?>... args )
-        {
-            Class<?> uidOf = args.length == 0 ? endpoint.getEntityType() : args[0];
-            return Api.Schema.uid( uidOf );
-        }
-    }
 
-    /**
-     * A "virtual" property name enumeration type. It creates an OpenAPI
-     * {@code enum} string schema containing all valid property names for the
-     * target type. The target type is either the actual type substitute for the
-     * {@link org.hisp.dhis.common.OpenApi.EntityType} or the first argument
-     * type.
-     */
-    @NoArgsConstructor
-    public static final class PropertyNames implements Api.SchemaGenerator
-    {
+    Api.SchemaGenerator UID = ( endpoint, source, args ) -> {
+        Class<?> uidOf = args.length == 0 ? endpoint.getEntityType() : args[0];
+        return Api.Schema.uid( uidOf );
+    };
 
-        @Override
-        public Api.Schema generate( Api.Endpoint endpoint, Type source, Class<?>... args )
-        {
-            Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
-            return Api.Schema.enumeration( PropertyNames.class, ofType, getProperties( ofType ).stream()
-                .map( Property::getName )
-                .collect( toList() ) );
-        }
-    }
+    Api.SchemaGenerator PROPERTY_NAMES = ( endpoint, source, args ) -> {
+        Class<?> ofType = args.length == 0 ? endpoint.getEntityType() : args[0];
+        return Api.Schema.enumeration( Api.PropertyNames.class, ofType, getProperties( ofType ).stream()
+            .map( Property::getName )
+            .collect( toList() ) );
+    };
 }

@@ -65,7 +65,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @Builder( toBuilder = true )
 @JacksonXmlRootElement( localName = "predictor", namespace = DxfNamespaces.DXF_2_0 )
 public class Predictor
-    extends BaseNameableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     /**
      * The data element into which the predictor writes

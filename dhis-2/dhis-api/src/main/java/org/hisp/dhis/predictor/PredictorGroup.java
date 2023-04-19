@@ -35,6 +35,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
@@ -49,7 +50,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "predictorGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class PredictorGroup
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String description;
 
@@ -101,7 +103,7 @@ public class PredictorGroup
     {
         List<Predictor> predictors = new ArrayList<>( members );
 
-        predictors.sort( Comparator.comparing( BaseIdentifiableObject::getName ) );
+        predictors.sort( Comparator.comparing( IdentifiableObject::getName ) );
 
         return predictors;
     }

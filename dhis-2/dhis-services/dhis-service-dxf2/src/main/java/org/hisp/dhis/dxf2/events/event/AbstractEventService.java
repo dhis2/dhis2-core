@@ -111,7 +111,6 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EventSyncService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
@@ -202,8 +201,6 @@ public abstract class AbstractEventService implements EventService
     protected RelationshipService relationshipService;
 
     protected UserService userService;
-
-    protected EventSyncService eventSyncService;
 
     protected EventServiceContextBuilder eventServiceContextBuilder;
 
