@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import lombok.SneakyThrows;
@@ -94,12 +93,6 @@ class PagingAndSortingCriteriaAdapterTest
             {
                 return List.of( "field1", "field2" );
             }
-
-            @Override
-            public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-            {
-                return Optional.of( dtoFieldName.equals( "field1" ) ? "translatedField1" : dtoFieldName );
-            }
         };
         tested.setOrder( List.of( OrderCriteria.of( "field1", SortDirection.ASC ),
             OrderCriteria.of( "field2", SortDirection.ASC ),
@@ -107,6 +100,6 @@ class PagingAndSortingCriteriaAdapterTest
         Collection<String> orderField = tested.getOrder().stream().map( OrderCriteria::getField )
             .collect( Collectors.toList() );
         assertThat( orderField, hasSize( 2 ) );
-        assertThat( orderField, containsInAnyOrder( "translatedField1", "field2" ) );
+        assertThat( orderField, containsInAnyOrder( "field1", "field2" ) );
     }
 }

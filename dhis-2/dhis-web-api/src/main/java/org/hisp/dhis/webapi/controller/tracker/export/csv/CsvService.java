@@ -25,27 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.event.webrequest.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export.csv;
 
-import java.util.Arrays;
-import java.util.Optional;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-import com.google.common.base.CaseFormat;
-
-public class FieldTranslatorSupport
+public interface CsvService<T>
 {
+    void write( OutputStream outputStream, List<T> events, boolean withHeader )
+        throws IOException;
 
-    public static Optional<String> translate( String dtoFieldName,
-        Enum<? extends PagingAndSortingCriteriaAdapter.EntityNameSupplier>[] translator )
-    {
-        String upperSnakeCase = CaseFormat.LOWER_CAMEL.to( CaseFormat.UPPER_UNDERSCORE, dtoFieldName );
-        return Arrays.stream( translator )
-            .filter( fieldTranslator -> fieldTranslator.name().equals( upperSnakeCase ) )
-            .findFirst()
-            .map( anEnum -> (PagingAndSortingCriteriaAdapter.EntityNameSupplier) anEnum )
-            .map( PagingAndSortingCriteriaAdapter.EntityNameSupplier::getEntityName );
-    }
-
+    List<T> read( InputStream inputStream, boolean skipFirst )
+        throws IOException,
+        org.locationtech.jts.io.ParseException;
 }

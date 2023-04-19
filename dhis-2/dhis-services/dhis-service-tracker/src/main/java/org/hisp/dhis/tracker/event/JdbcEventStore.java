@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.tracker.event;
 
+import static java.util.Map.entry;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
 import static org.hisp.dhis.system.util.SqlUtils.castToNumber;
 import static org.hisp.dhis.system.util.SqlUtils.lower;
@@ -69,7 +70,6 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -179,38 +179,31 @@ public class JdbcEventStore implements EventStore
 
     private static final String AND = " AND ";
 
-    private static final Map<String, String> QUERY_PARAM_COL_MAP;
-
-    static
-    {
-        ImmutableMap.Builder<String, String> builder = ImmutableMap.builder();
-        builder.put( EVENT_ID, "psi_uid" );
-        builder.put( EVENT_PROGRAM_ID, "p_uid" );
-        builder.put( EVENT_PROGRAM_STAGE_ID, "ps_uid" );
-        builder.put( EVENT_ENROLLMENT_ID, "pi_uid" );
-        builder.put( "enrollmentStatus", "pi_status" );
-        builder.put( "enrolledAt", "pi_enrollmentdate" );
-        builder.put( EVENT_ORG_UNIT_ID, "ou_uid" );
-        builder.put( EVENT_ORG_UNIT_NAME, "ou_name" );
-        builder.put( "trackedEntity", "tei_uid" );
-        builder.put( EVENT_OCCURRED_AT_DATE_ID, "psi_executiondate" );
-        builder.put( "followup", "pi_followup" );
-        builder.put( EVENT_STATUS_ID, PSI_STATUS );
-        builder.put( EVENT_SCHEDULE_AT_DATE_ID, "psi_duedate" );
-        builder.put( EVENT_STORED_BY_ID, "psi_storedby" );
-        builder.put( EVENT_UPDATED_BY, "psi_lastupdatedbyuserinfo" );
-        builder.put( EVENT_CREATED_BY_ID, "psi_createdbyuserinfo" );
-        builder.put( EVENT_CREATED_AT_ID, "psi_created" );
-        builder.put( EVENT_UPDATED_AT_ID, "psi_lastupdated" );
-        builder.put( EVENT_COMPLETED_BY_ID, "psi_completedby" );
-        builder.put( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc" );
-        builder.put( EVENT_COMPLETED_AT_ID, "psi_completeddate" );
-        builder.put( EVENT_DELETED, "psi_deleted" );
-        builder.put( "assignedUser", "user_assigned_username" );
-        builder.put( "assignedUserDisplayName", "user_assigned_name" );
-        QUERY_PARAM_COL_MAP = builder
-            .build();
-    }
+    public static final Map<String, String> QUERY_PARAM_COL_MAP = Map.ofEntries(
+        entry( EVENT_ID, "psi_uid" ),
+        entry( EVENT_PROGRAM_ID, "p_uid" ),
+        entry( EVENT_PROGRAM_STAGE_ID, "ps_uid" ),
+        entry( EVENT_ENROLLMENT_ID, "pi_uid" ),
+        entry( "enrollmentStatus", "pi_status" ),
+        entry( "enrolledAt", "pi_enrollmentdate" ),
+        entry( EVENT_ORG_UNIT_ID, "ou_uid" ),
+        entry( EVENT_ORG_UNIT_NAME, "ou_name" ),
+        entry( "trackedEntity", "tei_uid" ),
+        entry( EVENT_OCCURRED_AT_DATE_ID, "psi_executiondate" ),
+        entry( "followup", "pi_followup" ),
+        entry( EVENT_STATUS_ID, PSI_STATUS ),
+        entry( EVENT_SCHEDULE_AT_DATE_ID, "psi_duedate" ),
+        entry( EVENT_STORED_BY_ID, "psi_storedby" ),
+        entry( EVENT_UPDATED_BY, "psi_lastupdatedbyuserinfo" ),
+        entry( EVENT_CREATED_BY_ID, "psi_createdbyuserinfo" ),
+        entry( EVENT_CREATED_AT_ID, "psi_created" ),
+        entry( EVENT_UPDATED_AT_ID, "psi_lastupdated" ),
+        entry( EVENT_COMPLETED_BY_ID, "psi_completedby" ),
+        entry( EVENT_ATTRIBUTE_OPTION_COMBO_ID, "psi_aoc" ),
+        entry( EVENT_COMPLETED_AT_ID, "psi_completeddate" ),
+        entry( EVENT_DELETED, "psi_deleted" ),
+        entry( "assignedUser", "user_assigned_username" ),
+        entry( "assignedUserDisplayName", "user_assigned_name" ) );
 
     private static final Map<String, String> COLUMNS_ALIAS_MAP = ImmutableMap.<String, String> builder()
         .put( UID.getQueryElement().useInSelect(), EVENT_ID )
@@ -305,7 +298,7 @@ public class JdbcEventStore implements EventStore
 
                 String psiUid = resultSet.getString( "psi_uid" );
 
-                validateIdentifiersPresence( resultSet, params.getIdSchemes(), true );
+                validateIdentifiersPresence( resultSet, params.getIdSchemes() );
 
                 ProgramStageInstance event = new ProgramStageInstance();
 
@@ -340,8 +333,7 @@ public class JdbcEventStore implements EventStore
                 CategoryOptionCombo coc = new CategoryOptionCombo();
                 coc.setUid( resultSet.getString( "coc_identifier" ) );
 
-                Set<CategoryOption> options = Arrays.asList( resultSet.getString( "co_uids" ).split( ";" ) )
-                    .stream()
+                Set<CategoryOption> options = Arrays.stream( resultSet.getString( "co_uids" ).split( ";" ) )
                     .map( optionUid -> {
                         CategoryOption option = new CategoryOption();
                         option.setUid( optionUid );
@@ -466,44 +458,6 @@ public class JdbcEventStore implements EventStore
 
     }
 
-    @Override
-    public List<Map<String, String>> getEventsGrid( EventSearchParams params )
-    {
-        User user = currentUserService.getCurrentUser();
-
-        setAccessiblePrograms( user, params );
-
-        final MapSqlParameterSource mapSqlParameterSource = new MapSqlParameterSource();
-
-        String sql = buildGridSql( user, params, mapSqlParameterSource );
-
-        return jdbcTemplate.query( sql, mapSqlParameterSource, rowSet -> {
-
-            log.debug( "Event query SQL: " + sql );
-
-            List<Map<String, String>> list = new ArrayList<>();
-
-            while ( rowSet.next() )
-            {
-                final Map<String, String> map = new HashMap<>();
-
-                for ( String col : STATIC_EVENT_COLUMNS )
-                {
-                    map.put( col, rowSet.getString( col ) );
-                }
-
-                for ( QueryItem item : params.getDataElements() )
-                {
-                    map.put( item.getItemId(), rowSet.getString( item.getItemId() ) );
-                }
-
-                list.add( map );
-            }
-
-            return list;
-        } );
-    }
-
     private String getIdSqlBasedOnIdScheme( IdScheme idScheme, String uidSql, String attributeSql, String codeSql )
     {
         if ( idScheme == IdScheme.ID || idScheme == IdScheme.UID )
@@ -520,8 +474,7 @@ public class JdbcEventStore implements EventStore
         }
     }
 
-    private void validateIdentifiersPresence( ResultSet rowSet, IdSchemes idSchemes,
-        boolean validateCategoryOptionCombo )
+    private void validateIdentifiersPresence( ResultSet rowSet, IdSchemes idSchemes )
         throws SQLException
     {
 
@@ -544,7 +497,7 @@ public class JdbcEventStore implements EventStore
                 rowSet.getString( "ou_uid" ), idSchemes.getOrgUnitIdScheme().name() ) );
         }
 
-        if ( validateCategoryOptionCombo && StringUtils.isEmpty( rowSet.getString( "coc_identifier" ) ) )
+        if ( StringUtils.isEmpty( rowSet.getString( "coc_identifier" ) ) )
         {
             throw new IllegalStateException(
                 String.format( "CategoryOptionCombo %s does not have a value assigned for idScheme %s",
@@ -1715,31 +1668,14 @@ public class JdbcEventStore implements EventStore
             return getAccessibleOrgUnitsPath( params, user, ouTable );
         }
 
-        String orgUnitSql;
-
-        switch ( orgUnitSelectionMode )
-        {
-        case ALL:
-            orgUnitSql = null;
-            break;
-        case CHILDREN:
-            orgUnitSql = getChildrenOrgUnitsPath( params, ouTable );
-            break;
-        case DESCENDANTS:
-            orgUnitSql = getDescendantOrgUnitsPath( params, ouTable );
-            break;
-        case CAPTURE:
-            orgUnitSql = getCaptureOrgUnitsPath( user, ouTable );
-            break;
-        case SELECTED:
-            orgUnitSql = getSelectedOrgUnitsPath( params, ouTable );
-            break;
-        default:
-            orgUnitSql = getAccessibleOrgUnitsPath( params, user, ouTable );
-            break;
-        }
-
-        return orgUnitSql;
+        return switch (orgUnitSelectionMode) {
+            case ALL -> null;
+            case CHILDREN -> getChildrenOrgUnitsPath(params, ouTable);
+            case DESCENDANTS -> getDescendantOrgUnitsPath(params, ouTable);
+            case CAPTURE -> getCaptureOrgUnitsPath(user, ouTable);
+            case SELECTED -> getSelectedOrgUnitsPath(params, ouTable);
+            default -> getAccessibleOrgUnitsPath(params, user, ouTable);
+        };
     }
 
     private String getChildrenOrgUnitsPath( EventSearchParams params, String ouTable )
@@ -1767,7 +1703,7 @@ public class JdbcEventStore implements EventStore
 
         List<String> orgUnitPaths = new ArrayList<>();
 
-        for ( OrganisationUnit organisationUnit : user.getOrganisationUnits().stream().collect( Collectors.toList() ) )
+        for ( OrganisationUnit organisationUnit : user.getOrganisationUnits().stream().toList() )
         {
             orgUnitPaths.add( ouTable + "." + PATH_LIKE + " '" + organisationUnit.getPath() + "%' " );
         }
@@ -1784,12 +1720,11 @@ public class JdbcEventStore implements EventStore
 
         List<String> orgUnitPaths = new ArrayList<>();
 
-        List<OrganisationUnit> organisationUnits = user.getTeiSearchOrganisationUnitsWithFallback().stream()
-            .collect( Collectors.toList() );
+        List<OrganisationUnit> organisationUnits = new ArrayList<>( user.getTeiSearchOrganisationUnitsWithFallback() );
 
         if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
         {
-            organisationUnits = user.getOrganisationUnits().stream().collect( Collectors.toList() );
+            organisationUnits = new ArrayList<>( user.getOrganisationUnits() );
         }
 
         if ( organisationUnits.isEmpty() )

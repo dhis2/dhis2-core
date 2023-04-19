@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.trackedentity.aggregates;
+package org.hisp.dhis.tracker.trackedentity;
 
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
@@ -62,6 +62,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
@@ -87,9 +89,6 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
-import org.hisp.dhis.tracker.trackedentity.TrackedEntityEnrollmentParams;
-import org.hisp.dhis.tracker.trackedentity.TrackedEntityParams;
-import org.hisp.dhis.tracker.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -100,7 +99,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityAggregateTest extends IntegrationTestBase
+class TrackedEntityServiceTest extends IntegrationTestBase
 {
     @Autowired
     private TrackedEntityService trackedEntityService;
@@ -386,6 +385,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnEmptyCollectionGivenUserHasNoAccessToTrackedEntityType()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -404,6 +405,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntitiesGivenUserHasDataReadAccessToTrackedEntityType()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA, orgUnitB ) );
@@ -418,6 +421,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldIncludeAllAttributesOfGivenTrackedEntity()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -434,6 +439,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityIncludingAllAttributesEnrollmentsEventsRelationshipsOwners()
+        throws ForbiddenException,
+        NotFoundException
     {
         // this was declared as "remove ownership"; unclear to me how this is removing ownership
         trackerOwnershipManager.assignOwnership( trackedEntityA, programB, orgUnitB, true, true );
@@ -464,6 +471,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityIncludeAllAttributesInProtectedProgramNoAccess()
+        throws ForbiddenException,
+        NotFoundException
     {
         // this was declared as "remove ownership"; unclear to me how this is removing ownership
         trackerOwnershipManager.assignOwnership( trackedEntityA, programB, orgUnitB, true, true );
@@ -483,6 +492,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityIncludeSpecificProtectedProgram()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -498,6 +509,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldTrackedEntityIncludeSpecificOpenProgram()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -513,6 +526,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnEmptyCollectionGivenSingleQuoteInAttributeSearchInput()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -528,6 +543,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityWithLastUpdatedParameter()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -549,6 +566,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
     @Test
     @Disabled( "12098 This test is not working" )
     void shouldReturnTrackedEntityWithEventFilters()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setUserWithAssignedUsers( null, user, null );
@@ -591,6 +610,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldIncludeDeletedEnrollmentAndEvents()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -650,6 +671,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityAndEnrollmentsGivenTheyShouldBeIncluded()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -674,6 +697,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityWithoutEnrollmentsGivenTheyShouldNotBeIncluded()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -690,6 +715,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityWithEventsAndNotesGivenTheyShouldBeIncluded()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -715,6 +742,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityWithoutEventsGivenTheyShouldNotBeIncluded()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -736,6 +765,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityMappedCorrectly()
+        throws ForbiddenException,
+        NotFoundException
     {
         final Date currentTime = new Date();
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -763,6 +794,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnEnrollmentMappedCorrectly()
+        throws ForbiddenException,
+        NotFoundException
     {
         final Date currentTime = new Date();
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -801,6 +834,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnEventMappedCorrectly()
+        throws ForbiddenException,
+        NotFoundException
     {
         final Date currentTime = new Date();
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
@@ -846,6 +881,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityWithRelationshipsTei2Tei()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -867,6 +904,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void returnTrackedEntityRelationshipsWithTei2Enrollment()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
@@ -889,6 +928,8 @@ class TrackedEntityAggregateTest extends IntegrationTestBase
 
     @Test
     void shouldReturnTrackedEntityRelationshipsWithTei2Event()
+        throws ForbiddenException,
+        NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );

@@ -71,6 +71,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -124,6 +125,9 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     @Mock
     private TrackedEntityTypeService trackedEntityTypeService;
+
+    @Mock
+    private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
     private TrackerTrackedEntityCriteriaMapper mapper;
@@ -494,7 +498,10 @@ class TrackerTrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
+        criteria.setProgram( PROGRAM_UID );
 
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
@@ -512,7 +519,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void testMappingOrgUnitNotInSearchScope()
+    void shouldThrowExceptionWhenOrgUnitNotInScope()
     {
         when( organisationUnitService.isInUserHierarchy( orgUnit1.getUid(),
             user.getTeiSearchOrganisationUnitsWithFallback() ) ).thenReturn( false );
@@ -521,7 +528,7 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         ForbiddenException e = assertThrows( ForbiddenException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit is not part of the search scope: " + ORG_UNIT_1_UID, e.getMessage() );
+        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, e.getMessage() );
     }
 
     @Test
