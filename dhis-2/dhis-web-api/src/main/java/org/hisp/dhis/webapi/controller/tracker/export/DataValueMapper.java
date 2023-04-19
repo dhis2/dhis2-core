@@ -43,5 +43,5 @@ public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    DataValue from( EventDataValue dataValue );
 }

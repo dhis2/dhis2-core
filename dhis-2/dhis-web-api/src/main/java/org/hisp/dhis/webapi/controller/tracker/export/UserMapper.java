@@ -35,5 +35,6 @@ import org.mapstruct.Mapper;
 @Mapper
 public interface UserMapper extends ViewMapper<UserInfoSnapshot, User>
 {
+    @Override
     User from( UserInfoSnapshot user );
 }

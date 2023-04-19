@@ -32,6 +32,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -115,7 +116,7 @@ public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "dataValues", source = "eventDataValues" )
     @Mapping( target = "notes", source = "comments" )
-    Event from( org.hisp.dhis.program.ProgramStageInstance event );
+    Event from( ProgramStageInstance event );
 
     // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
     // we could not simply export the UIDs.

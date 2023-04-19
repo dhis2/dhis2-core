@@ -61,5 +61,5 @@ interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedE
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
     @Mapping( target = "enrollments", source = "programInstances" )
     @Override
-    TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

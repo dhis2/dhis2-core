@@ -45,5 +45,5 @@ public interface AttributeMapper
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "valueType", source = "attribute.valueType" )
     @Override
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
+    Attribute from( TrackedEntityAttributeValue attribute );
 }

@@ -41,5 +41,5 @@ public interface ProgramOwnerMapper
     @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
     @Mapping( target = "program", source = "program.uid" )
     @Override
-    ProgramOwner from( org.hisp.dhis.trackedentity.TrackedEntityProgramOwner trackedEntityProgramOwner );
+    ProgramOwner from( TrackedEntityProgramOwner trackedEntityProgramOwner );
 }
