@@ -76,24 +76,6 @@ public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment
     @Override
     Enrollment from( ProgramInstance programInstance );
 
-    /**
-     * Maps {@link ProgramInstance#getRelationshipItems()} to
-     * {@link org.hisp.dhis.relationship.Relationship} which is then mapped by
-     * {@link RelationshipMapper}.
-     *
-     */
-    default Set<org.hisp.dhis.relationship.Relationship> map(
-        Set<org.hisp.dhis.relationship.RelationshipItem> relationshipItems )
-    {
-        if ( relationshipItems == null )
-        {
-            return Set.of();
-        }
-
-        return relationshipItems.stream().map( org.hisp.dhis.relationship.RelationshipItem::getRelationship )
-            .collect( Collectors.toSet() );
-    }
-
     @Mapping( target = "event", source = "uid" )
     @Mapping( target = "program", source = "programInstance.program.uid" )
     @Mapping( target = "programStage", source = "programStage.uid" )
