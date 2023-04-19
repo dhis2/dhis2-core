@@ -25,23 +25,26 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+@Mapper( uses = {
+    RelationshipItemMapper.class,
+    InstantMapper.class } )
+public interface RelationshipMapper
+    extends ViewMapper<org.hisp.dhis.relationship.Relationship, Relationship>
 {
-
+    @Mapping( target = "relationship", source = "uid" )
+    @Mapping( target = "relationshipType", source = "relationshipType.uid" )
+    @Mapping( target = "relationshipName", source = "relationshipType.name" )
+    @Mapping( target = "bidirectional", source = "relationshipType.bidirectional" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    Relationship from( org.hisp.dhis.relationship.Relationship relationship );
 }

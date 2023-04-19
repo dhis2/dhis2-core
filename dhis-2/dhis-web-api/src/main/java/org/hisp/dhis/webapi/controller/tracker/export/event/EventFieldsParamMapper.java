@@ -25,23 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.FIELD_RELATIONSHIPS;
+import static org.hisp.dhis.webapi.controller.tracker.export.FieldsParamMapper.rootFields;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+import java.util.List;
+import java.util.Map;
+
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.fieldfiltering.FieldFilterService;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.fieldfiltering.FieldPreset;
+import org.hisp.dhis.tracker.export.event.EventParams;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.springframework.stereotype.Component;
+
+@Component
+@RequiredArgsConstructor
+public class EventFieldsParamMapper
 {
+    private final FieldFilterService fieldFilterService;
 
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    public EventParams map( List<FieldPath> fields )
+    {
+        Map<String, FieldPath> roots = rootFields( fields );
+        EventParams params = initUsingAllOrNoFields( roots );
+        return params
+            .withIncludeRelationships( fieldFilterService.filterIncludes( Event.class, fields, FIELD_RELATIONSHIPS ) );
+    }
+
+    private static EventParams initUsingAllOrNoFields( Map<String, FieldPath> roots )
+    {
+        EventParams params = EventParams.FALSE;
+        if ( roots.containsKey( FieldPreset.ALL ) )
+        {
+            FieldPath p = roots.get( FieldPreset.ALL );
+            if ( p.isRoot() && !p.isExclude() )
+            {
+                params = EventParams.TRUE;
+            }
+        }
+        return params;
+    }
 }

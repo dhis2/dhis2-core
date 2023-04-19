@@ -25,23 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export;
+package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
+import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
+@Mapper( uses = {
+    RelationshipMapper.class,
+    AttributeMapper.class,
+    EnrollmentMapper.class,
+    ProgramOwnerMapper.class,
+    InstantMapper.class,
+    UserMapper.class } )
+interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
 {
-
+    @Mapping( target = "trackedEntity", source = "uid" )
+    @Mapping( target = "trackedEntityType", source = "trackedEntityType.uid" )
     @Mapping( target = "createdAt", source = "created" )
+    @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
+    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
+    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
+    @Mapping( target = "relationships", source = "relationshipItems" )
+    @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
+    @Mapping( target = "enrollments", source = "programInstances" )
     @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
 }
