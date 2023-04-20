@@ -43,12 +43,12 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    InstantMapper.class,
     DataValueMapper.class,
+    InstantMapper.class,
     NoteMapper.class,
     RelationshipMapper.class,
     UserMapper.class } )
-interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
+public interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
 {
     @Mapping( target = "event", source = "uid" )
     @Mapping( target = "program", source = "programInstance.program.uid" )
@@ -80,7 +80,7 @@ interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
     {
         if ( categoryOptions == null || categoryOptions.isEmpty() )
         {
-            return null;
+            return "";
         }
 
         return categoryOptions.stream()

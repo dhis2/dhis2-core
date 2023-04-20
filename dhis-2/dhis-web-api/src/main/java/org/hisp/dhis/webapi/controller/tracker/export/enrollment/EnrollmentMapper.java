@@ -27,19 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
-import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
@@ -47,11 +41,12 @@ import org.mapstruct.Mapping;
 
 @Mapper( uses = {
     AttributeMapper.class,
-    DataValueMapper.class,
+    EventMapper.class,
     InstantMapper.class,
     NoteMapper.class,
     RelationshipMapper.class,
-    UserMapper.class } )
+    UserMapper.class
+} )
 public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment>
 {
     @Mapping( target = "enrollment", source = "uid" )
@@ -75,42 +70,4 @@ public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment
     @Mapping( target = "notes", source = "comments" )
     @Override
     Enrollment from( ProgramInstance programInstance );
-
-    @Mapping( target = "event", source = "uid" )
-    @Mapping( target = "program", source = "programInstance.program.uid" )
-    @Mapping( target = "programStage", source = "programStage.uid" )
-    @Mapping( target = "enrollment", source = "programInstance.uid" )
-    @Mapping( target = "trackedEntity", source = "programInstance.entityInstance.uid" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
-    @Mapping( target = "occurredAt", source = "executionDate" )
-    @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "followup", source = "programInstance.followup" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "attributeOptionCombo", source = "attributeOptionCombo.uid" )
-    @Mapping( target = "attributeCategoryOptions", source = "attributeOptionCombo.categoryOptions" )
-    @Mapping( target = "completedAt", source = "completedDate" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "relationships", source = "relationshipItems" )
-    @Mapping( target = "dataValues", source = "eventDataValues" )
-    @Mapping( target = "notes", source = "comments" )
-    Event from( ProgramStageInstance event );
-
-    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
-    // we could not simply export the UIDs.
-    default String from( Set<CategoryOption> categoryOptions )
-    {
-        if ( categoryOptions == null || categoryOptions.isEmpty() )
-        {
-            return "";
-        }
-
-        return categoryOptions.stream()
-            .map( CategoryOption::getUid )
-            .collect( Collectors.joining( ";" ) );
-    }
 }

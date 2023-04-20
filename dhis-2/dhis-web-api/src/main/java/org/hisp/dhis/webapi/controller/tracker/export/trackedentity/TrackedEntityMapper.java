@@ -40,11 +40,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
     AttributeMapper.class,
     EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
     InstantMapper.class,
+    ProgramOwnerMapper.class,
+    RelationshipMapper.class,
     UserMapper.class } )
 interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
 {
