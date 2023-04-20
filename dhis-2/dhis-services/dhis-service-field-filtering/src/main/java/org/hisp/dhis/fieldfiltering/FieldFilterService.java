@@ -479,19 +479,19 @@ public class FieldFilterService
         applyFieldPathVisitor( root, fieldPaths, isSkipSharing,
             s -> s.contains( "sharing" ),
             o -> {
-                if ( root instanceof IdentifiableObject && ((IdentifiableObject) root).hasSharing() )
+                if ( root instanceof IdentifiableObject rootObject && rootObject.hasSharing() )
                 {
-                    ((IdentifiableObject) root).getSharing().getUserGroups().values()
+                    rootObject.getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((IdentifiableObject) root).getSharing().getUsers().values()
+                    rootObject.getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
 
-                if ( o instanceof IdentifiableObject && ((IdentifiableObject) o).hasSharing() )
+                if ( o instanceof IdentifiableObject obj && obj.hasSharing() )
                 {
-                    ((IdentifiableObject) o).getSharing().getUserGroups().values()
+                    obj.getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((IdentifiableObject) o).getSharing().getUsers().values()
+                    obj.getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
             } );
