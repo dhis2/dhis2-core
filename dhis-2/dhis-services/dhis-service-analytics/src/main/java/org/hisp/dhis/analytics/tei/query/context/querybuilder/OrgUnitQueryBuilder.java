@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
-import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
 import java.util.List;
@@ -63,7 +62,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
 {
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List
-        .of( OrgUnitQueryBuilder::isOuFilter );
+        .of( OrgUnitQueryBuilder::isOu );
 
     @Getter
     private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of( OrgUnitQueryBuilder::isOuOrder );
@@ -108,11 +107,15 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
         return isOu( analyticsSortingParams.getOrderBy() );
     }
 
-    private static boolean isOuFilter( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return hasRestrictions( dimensionIdentifier ) && isOu( dimensionIdentifier );
-    }
-
+    /**
+     * Checks if the given {@link DimensionIdentifier} is of type
+     * {@link DimensionParamObjectType#ORGANISATION_UNIT}.
+     *
+     * @param dimensionIdentifier the {@link DimensionIdentifier} to check.
+     * @return true if the given {@link DimensionIdentifier} is of type
+     *         {@link DimensionParamObjectType#ORGANISATION_UNIT}. False
+     *         otherwise.
+     */
     public static boolean isOu( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
         return isOfType( dimensionIdentifier, ORGANISATION_UNIT );
