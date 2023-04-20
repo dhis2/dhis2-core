@@ -42,6 +42,7 @@ public enum PeriodTypeEnum
     FINANCIAL_OCT( "FinancialOct" ),
     MONTHLY( "Monthly" ),
     QUARTERLY( "Quarterly" ),
+    QUARTERLY_NOV( "QuarterlyNov" ),
     SIX_MONTHLY_APRIL( "SixMonthlyApril" ),
     SIX_MONTHLY_NOV( "SixMonthlyNov" ),
     SIX_MONTHLY( "SixMonthly" ),
