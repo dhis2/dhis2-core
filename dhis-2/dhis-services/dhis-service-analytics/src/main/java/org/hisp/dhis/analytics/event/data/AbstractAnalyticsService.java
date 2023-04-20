@@ -57,6 +57,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import lombok.RequiredArgsConstructor;
 
@@ -79,6 +80,7 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RepeatableStageValueStatus;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
@@ -217,7 +219,37 @@ public abstract class AbstractAnalyticsService
 
         addHeaders( params, grid );
 
+        // ---------------------------------------------------------------------
+        // RowContext
+        // ---------------------------------------------------------------------
+
+        setRowContextColumns( grid );
+
         return grid;
+    }
+
+    /**
+     * Add information about row context. The row context is based on origin of
+     * repeatable stage value. Please see the {@link RepeatableStageValueStatus}
+     *
+     *
+     * @param grid the {@link Grid}.
+     */
+    private void setRowContextColumns( Grid grid )
+    {
+        Map<Integer, Map<String, Object>> oldRowContext = grid.getRowContext();
+
+        Map<Integer, Map<String, Object>> newRowContext = new TreeMap<>();
+
+        oldRowContext.keySet().forEach( rowKey -> {
+            Map<String, Object> newCols = new HashMap<>();
+            Map<String, Object> cols = oldRowContext.get( rowKey );
+            cols.keySet().forEach(
+                colKey -> newCols.put( Integer.toString( grid.getIndexOfHeader( colKey ) ), cols.get( colKey ) ) );
+            newRowContext.put( rowKey, newCols );
+        } );
+
+        grid.setRowContext( newRowContext );
     }
 
     /**

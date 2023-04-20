@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.mapstruct.Context;
@@ -38,9 +38,9 @@ import org.mapstruct.Mapping;
     InstantMapper.class,
     MetadataIdentifierMapper.class
 } )
-public interface AttributeMapper extends DomainMapper<Attribute, org.hisp.dhis.tracker.domain.Attribute>
+public interface AttributeMapper extends DomainMapper<Attribute, org.hisp.dhis.tracker.imports.domain.Attribute>
 {
 
     @Mapping( target = "attribute", source = "attribute", qualifiedByName = "toMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Attribute from( Attribute attribute, @Context TrackerIdSchemeParams params );
+    org.hisp.dhis.tracker.imports.domain.Attribute from( Attribute attribute, @Context TrackerIdSchemeParams params );
 }

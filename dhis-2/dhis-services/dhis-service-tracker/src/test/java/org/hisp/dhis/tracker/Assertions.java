@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.function.Supplier;
 
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.Status;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 
 public class Assertions
 {
