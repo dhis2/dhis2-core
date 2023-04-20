@@ -27,10 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -44,6 +40,7 @@ import org.mapstruct.Mapping;
 
 @Mapper( uses = {
     DataValueMapper.class,
+    CategoryOptionMapper.class,
     InstantMapper.class,
     NoteMapper.class,
     RelationshipMapper.class,
@@ -73,18 +70,4 @@ public interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "notes", source = "comments" )
     Event from( ProgramStageInstance event );
-
-    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
-    // we could not simply export the UIDs.
-    default String from( Set<CategoryOption> categoryOptions )
-    {
-        if ( categoryOptions == null || categoryOptions.isEmpty() )
-        {
-            return "";
-        }
-
-        return categoryOptions.stream()
-            .map( CategoryOption::getUid )
-            .collect( Collectors.joining( ";" ) );
-    }
 }
