@@ -648,7 +648,10 @@ public class DefaultCascadeSharingService
             return false;
         }
 
-        target.initSharing();
+        if ( target.getSharing() == null )
+        {
+            target.setSharing( Sharing.builder().build() );
+        }
 
         if ( mergeAccessObject( UserAccess.class, source.getUsers(), target.getSharing().getUsers() )
             || mergeAccessObject( UserGroupAccess.class, source.getUserGroups(), target.getSharing().getUserGroups() ) )

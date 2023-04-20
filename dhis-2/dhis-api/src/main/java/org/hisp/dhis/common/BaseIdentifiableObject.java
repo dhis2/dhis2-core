@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -505,11 +506,6 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()
     {
-        if ( sharing == null )
-        {
-            sharing = new Sharing();
-        }
-
         return sharing;
     }
 
@@ -648,28 +644,57 @@ public class BaseIdentifiableObject
         return null;
     }
 
+    // -------------------------------------------------------------------------
+    // Sharing helpers
+    // -------------------------------------------------------------------------
+
+    public void setExternalAccess( boolean externalAccess )
+    {
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
+        sharing.setExternal( externalAccess );
+    }
+
     public void setPublicAccess( String access )
     {
-        getSharing().setPublicAccess( access );
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
+        sharing.setPublicAccess( access );
     }
 
     public String getPublicAccess()
     {
-        return getSharing().getPublicAccess();
-    }
+        if ( sharing != null )
+        {
+            return sharing.getPublicAccess();
+        }
 
-    public void setExternalAccess( boolean externalAccess )
-    {
-        getSharing().setExternal( externalAccess );
+        return null;
     }
 
     public Collection<UserAccess> getUserAccesses()
     {
+        if ( sharing == null || getSharing().getUsers() == null )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
         return getSharing().getUsers().values();
     }
 
     public Collection<UserGroupAccess> getUserGroupAccesses()
     {
+        if ( sharing == null || getSharing().getUserGroups() == null )
+        {
+            return Collections.EMPTY_LIST;
+        }
+
         return getSharing().getUserGroups().values();
     }
 
