@@ -45,8 +45,8 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.category.CategoryOptionComboStore;
 import org.hisp.dhis.category.CategoryOptionGroup;
 import org.hisp.dhis.category.CategoryOptionGroupStore;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionalItemId;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.expression.ExpressionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +71,7 @@ public class CategoryOptionGroupTaglessResolver
     {
         return categoryOptionComboStore.getCategoryOptionCombosByGroupUid( categoryOptionGroupUid, dataElementUid )
             .stream()
-            .map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+            .map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
     }
 
     /**

@@ -78,7 +78,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam.SortDirection;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.EventCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;

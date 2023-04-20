@@ -41,17 +41,15 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  */
 public class OptionalFilterBuilder
 {
-    final StringBuilder sb = new StringBuilder();
+    private final StringBuilder sb = new StringBuilder();
 
-    final MapSqlParameterSource paramsMap;
+    private final MapSqlParameterSource paramsMap;
 
-    boolean first = true;
+    private boolean first = true;
 
-    boolean removeUnnecessaryCondition = true;
+    private String rootJunction = " and ";
 
-    String rootJunction = " and ";
-
-    public OptionalFilterBuilder( final MapSqlParameterSource paramsMap )
+    public OptionalFilterBuilder( MapSqlParameterSource paramsMap )
     {
         this.paramsMap = paramsMap;
     }
@@ -65,7 +63,7 @@ public class OptionalFilterBuilder
      * @param filter the filter to be appended
      * @return the current instance of this class
      */
-    public OptionalFilterBuilder append( final String filter )
+    public OptionalFilterBuilder append( String filter )
     {
         rootJunction = rootJunction( paramsMap );
 
@@ -91,7 +89,7 @@ public class OptionalFilterBuilder
      * @param filter the filter to be appended
      * @return the current instance of this class
      */
-    public OptionalFilterBuilder append( final String filter, final String andOr )
+    public OptionalFilterBuilder append( String filter, String andOr )
     {
         if ( isNotBlank( andOr ) )
         {
@@ -109,7 +107,6 @@ public class OptionalFilterBuilder
 
             sb.append( SPACE + filter + SPACE );
             sb.append( andOr );
-            removeUnnecessaryCondition = false;
         }
 
         return this;

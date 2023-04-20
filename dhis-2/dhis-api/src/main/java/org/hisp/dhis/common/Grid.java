@@ -36,6 +36,7 @@ import java.util.Set;
 import net.sf.jasperreports.engine.JRDataSource;
 
 import org.springframework.jdbc.support.rowset.SqlRowSet;
+import org.springframework.jdbc.support.rowset.SqlRowSetMetaData;
 
 /**
  * Represents a two-dimensional grid of Object-typed values organized in rows
@@ -100,6 +101,11 @@ public interface Grid
      * Returns a map of internal meta-data.
      */
     Map<String, Object> getInternalMetaData();
+
+    /**
+     * Returns a map of row contextual data.
+     */
+    Map<Integer, Map<String, Object>> getRowContext();
 
     /**
      * Returns performance metrics.
@@ -498,6 +504,16 @@ public interface Grid
     Grid addHeaders( SqlRowSet rs );
 
     /**
+     * Adds a set of headers based on the column names of the given SQL row set.
+     * If 'withTypes' are set to true, the method will dynamically set the
+     * header type based on the row set metadata.
+     *
+     * @param rowSetMetaData the result set.
+     * @param withTypes if true, it will set the respective header type.
+     */
+    Grid addHeaders( SqlRowSetMetaData rowSetMetaData, boolean withTypes );
+
+    /**
      * Moves the cursor the next row and adds values for each column of the
      * given SQL result set.
      *
@@ -512,6 +528,15 @@ public interface Grid
      * @param rs the row set.
      */
     Grid addRows( SqlRowSet rs );
+
+    /**
+     * Moves the cursor to the next row and adds values for each column name of
+     * the given SQL row set. Adds only columns that are part of the headers
+     * respecting the order of each header.
+     *
+     * @param rs the {@link SqlRowSet}.
+     */
+    Grid addNamedRows( SqlRowSet rs );
 
     /**
      * Moves the cursor the next row and adds values for each column of the
@@ -531,6 +556,15 @@ public interface Grid
     Grid addPerformanceMetrics( List<ExecutionPlan> plans );
 
     /**
+     * Set Row Context, the contextual information describing origin of values
+     * (columns) inside the row
+     *
+     * @param rowContext
+     * @return Grid instance
+     */
+    Grid setRowContext( Map<Integer, Map<String, Object>> rowContext );
+
+    /**
      * Adds a reference.
      *
      * @param reference the reference.
@@ -538,18 +572,20 @@ public interface Grid
     Grid addReference( Reference reference );
 
     /**
-     * This method will take a Grid and retain only the columns and headers with
-     * the corresponding the list of headers.
+     * This method will retain the given columns in the current Grid. If the set
+     * of columns provided is null or empty, no changes will be made to the
+     * Grid. It will also keep the order of the columns based on the given set
+     * of headers.
      *
-     * @param headers the set of headers for which to retain columns.
+     * @param columns set of columns to be retained, on the same order.
      */
-    void retainColumns( Set<String> headers );
+    void retainColumns( Set<String> columns );
 
     /**
      * Reorders the headers of the grid based on the given list of header names.
      *
      * @param headers the list of header names.
-     * @return a set of indexes which holds the holds the new header order.
+     * @return a set of indexes which holds the new header order.
      */
     List<Integer> repositionHeaders( List<String> headers );
 

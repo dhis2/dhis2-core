@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.hisp.dhis.audit.AuditAttribute;
@@ -59,13 +60,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 public class TrackedEntityInstance
     extends SoftDeletableObject
 {
-    public static String PREFIX_TRACKED_ENTITY_ATTRIBUTE = "attr";
-
     private Date createdAtClient;
 
     private Date lastUpdatedAtClient;
 
-    private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
+    private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 

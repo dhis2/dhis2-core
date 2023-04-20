@@ -63,7 +63,8 @@ import io.lettuce.core.api.StatefulRedisConnection;
 @Component
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class PostCollectionCacheEventPublisher implements PostCollectionRecreateEventListener,
+public class PostCollectionCacheEventPublisher
+    implements PostCollectionRecreateEventListener,
     PreCollectionRemoveEventListener, PreCollectionUpdateEventListener
 {
     @Autowired

@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.dataitem.query.shared;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.hisp.dhis.dataitem.query.shared.ParamPresenceChecker.hasIntegerPresence;
 import static org.hisp.dhis.dataitem.query.shared.QueryParam.MAX_LIMIT;
+
+import lombok.NoArgsConstructor;
 
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
@@ -39,19 +42,16 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class LimitStatement
 {
-    private LimitStatement()
-    {
-    }
-
     /**
      * Adds a SQL limit statement if one is set in the given paramsMap.
      *
      * @param paramsMap
      * @return the limit SQL statement
      */
-    public static String maxLimit( final MapSqlParameterSource paramsMap )
+    public static String maxLimit( MapSqlParameterSource paramsMap )
     {
         if ( hasIntegerPresence( paramsMap, MAX_LIMIT ) )
         {

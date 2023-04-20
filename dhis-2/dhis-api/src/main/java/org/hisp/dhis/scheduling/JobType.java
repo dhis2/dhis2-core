@@ -36,6 +36,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MockJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
@@ -102,6 +103,7 @@ public enum JobType
     TRACKER_IMPORT_NOTIFICATION_JOB( false ),
     TRACKER_IMPORT_RULE_ENGINE_JOB( false ),
     MATERIALIZED_SQL_VIEW_UPDATE( true, SchedulingType.CRON, SqlViewUpdateParameters.class, null ),
+    LOCK_EXCEPTION_CLEANUP( true, SchedulingType.CRON, LockExceptionCleanupJobParameters.class, null ),
 
     // Internal jobs
     LEADER_ELECTION( false ),

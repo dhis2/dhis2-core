@@ -27,11 +27,22 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.hamcrest.CoreMatchers;
@@ -41,6 +52,7 @@ import org.hisp.dhis.ApiTest;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.analytics.AnalyticsEnrollmentsActions;
 import org.hisp.dhis.actions.analytics.AnalyticsEventActions;
+import org.hisp.dhis.actions.analytics.AnalyticsTeiActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
 import org.hisp.dhis.dto.ApiResponse;
@@ -69,6 +81,8 @@ public class AnalyticsDimensionsTest
 
     private AnalyticsEventActions analyticsEventActions;
 
+    private AnalyticsTeiActions analyticsTeiActions;
+
     private TrackedEntityAttributeActions trackedEntityAttributeActions;
 
     private ProgramActions programActions;
@@ -80,6 +94,7 @@ public class AnalyticsDimensionsTest
         programActions = new ProgramActions();
         analyticsEnrollmentsActions = new AnalyticsEnrollmentsActions();
         analyticsEventActions = new AnalyticsEventActions();
+        analyticsTeiActions = new AnalyticsTeiActions();
     }
 
     Stream<Arguments> shouldOrder()
@@ -109,6 +124,11 @@ public class AnalyticsDimensionsTest
             .body( "dimensions." + property, Sorted.by( direction ) );
 
         analyticsEventActions.query().getDimensions( trackerProgram.getProgramStages().get( 0 ), queryParamsBuilder )
+            .validate()
+            .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
+            .body( "dimensions." + property, Sorted.by( direction ) );
+
+        analyticsTeiActions.query().getDimensions( trackerProgram.getTrackedEntityType(), queryParamsBuilder )
             .validate()
             .body( "dimensions", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "dimensions." + property, Sorted.by( direction ) );
@@ -193,9 +213,7 @@ public class AnalyticsDimensionsTest
                 not( startsWith( trackerProgram.getProgramStages().get( 0 ) ) ) ),
             Arguments.of( "dimensionType", "eq", "DATA_ELEMENT", equalTo( "DATA_ELEMENT" ) ),
             Arguments.of( "dimensionType", "eq", "PROGRAM_INDICATOR", equalTo( "PROGRAM_INDICATOR" ) ),
-            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) )
-
-        );
+            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) ) );
     }
 
     @ParameterizedTest
@@ -215,5 +233,41 @@ public class AnalyticsDimensionsTest
         validate.accept( analyticsEventActions.query()
             .getDimensions( trackerProgram.getProgramStages().get( 0 ),
                 new QueryParamsBuilder().add( String.format( "filter=%s:%s:%s", property, operator, value ) ) ) );
+    }
+
+    @Test
+    public void shouldReturnAllProgramAttributes()
+    {
+        List<String> programAttributes = programActions
+            .get( new QueryParamsBuilder().add( "fields", "*" )
+                .add( "filter", "trackedEntityType.id:eq:" + Constants.TRACKED_ENTITY_TYPE ) )
+            .extractList( "programs.programTrackedEntityAttributes.flatten().trackedEntityAttribute.id", String.class )
+            .stream()
+            // .distinct() attributes can be duplicated in different programs
+            .collect(
+                Collectors.toList() );
+
+        analyticsTeiActions.query().getDimensions( Constants.TRACKED_ENTITY_TYPE,
+            new QueryParamsBuilder().add( "filter", "dimensionType:endsWith:_ATTRIBUTE" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "dimensions", hasSize( equalTo( programAttributes.size() ) ) )
+            .body( "dimensions.uid", everyItem( in( programAttributes ) ) );
+    }
+
+    @Test
+    public void shouldReturnAllDataElements()
+    {
+        List<String> dataElements = programActions
+            .get( new QueryParamsBuilder().add( "filter", "trackedEntityType.id:eq:" + Constants.TRACKED_ENTITY_TYPE )
+                .add( "fields", "programStages[programStageDataElements" ) )
+            .extractList( "programs.programStages.programStageDataElements.flatten().dataElement.id" );
+
+        analyticsTeiActions.query().getDimensions( Constants.TRACKED_ENTITY_TYPE,
+            new QueryParamsBuilder().add( "filter", "dimensionType:eq:DATA_ELEMENT" ) )
+            .validate()
+            .statusCode( 200 )
+            .body( "dimensions", hasSize( equalTo( dataElements.size() ) ) )
+            .body( "dimensions.uid", everyItem( in( dataElements ) ) );
     }
 }

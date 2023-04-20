@@ -58,6 +58,7 @@ import static org.hisp.dhis.common.RequestTypeAware.EndpointItem.ENROLLMENT;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -83,10 +84,9 @@ import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventQueryParams;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.util.AnalyticsUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionType;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.DimensionalObject;
@@ -94,6 +94,7 @@ import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IdScheme;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.InQueryFilter;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -365,7 +366,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( QueryItem queryItem : params.getItems() )
         {
-            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
+
+            columns.add( columnAndAlias.asSql() );
+
+            // does repeatable stage exist?
+            if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
+                && queryItem.hasRepeatableStageParams() )
+            {
+                String column = " exists (" + columnAndAlias.column + ")";
+                String alias = columnAndAlias.alias + ".exists";
+                columns.add( (new ColumnAndAlias( column, alias )).asSql() );
+            }
         }
 
         return columns;
@@ -991,6 +1003,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 addGridDoubleTypeValue( (Double) value, grid, header, params );
             }
+            else if ( value instanceof BigDecimal )
+            {
+                // toPlainString method prevents scientific notation (3E+2)
+                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+            }
             else
             {
                 grid.addValue( StringUtils.trimToNull( sqlRowSet.getString( index ) ) );
@@ -1190,7 +1207,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         String programStageId = Optional.of( queryItem )
             .map( QueryItem::getProgramStage )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .orElse( "" );
         return programStageId + "." + queryItem.getItem().getUid();
     }

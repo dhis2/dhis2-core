@@ -56,6 +56,7 @@
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-jdbc</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-validation</ignoredNonTestScopedDependency>
             <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-support-system</ignoredNonTestScopedDependency>
+            <ignoredNonTestScopedDependency>org.hisp.dhis:dhis-service-tracker</ignoredNonTestScopedDependency>
           </ignoredNonTestScopedDependencies>
         </configuration>
       </plugin>
@@ -165,6 +166,11 @@
     <dependency>
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-service-analytics</artifactId>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-service-tracker</artifactId>
       <scope>compile</scope>
     </dependency>
     <dependency>

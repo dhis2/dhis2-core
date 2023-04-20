@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.predictor;
 
+import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,7 +39,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.Setter;
 
@@ -64,7 +67,9 @@ public class PredictionDataConsolidator
 
     private final Set<DimensionalItemObject> analyticsItems;
 
-    private Queue<OrganisationUnit> orgUnitsRemaining;
+    private Map<Long, OrganisationUnit> orgUnitsById;
+
+    private Queue<Long> orgUnitsRemaining;
 
     private Queue<PredictionData> readyPredictionData;
 
@@ -73,15 +78,12 @@ public class PredictionDataConsolidator
 
     /**
      * @param items dimensional items to be subsequently retrieved
-     * @param includeDescendants whether to include descendants
      */
     public PredictionDataConsolidator( Set<DimensionalItemObject> items, boolean includeDescendants,
         PredictionDataValueFetcher dataValueFetcher, PredictionAnalyticsDataFetcher analyticsFetcher )
     {
-        this.dataValueFetcher = dataValueFetcher;
+        this.dataValueFetcher = dataValueFetcher.setIncludeDescendants( includeDescendants );
         this.analyticsFetcher = analyticsFetcher;
-
-        dataValueFetcher.setIncludeDeleted( true ).setIncludeDescendants( includeDescendants );
 
         dataElements = new HashSet<>();
         dataElementOperands = new HashSet<>();
@@ -93,22 +95,24 @@ public class PredictionDataConsolidator
     /**
      * Initializes for data retrieval.
      *
-     * @param orgUnits organisation units to fetch
      * @param orgUnitLevel level of organisation units to fetch
+     * @param orgUnits organisation units to fetch
      * @param dataValueQueryPeriods existing periods for data value queries
      * @param analyticsQueryPeriods existing periods for analytics queries
+     * @param existingOutputPeriods existing output periods
      * @param outputDataElementOperand prediction output data element operand
      */
-    public void init( Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
-        Set<Period> dataValueQueryPeriods, Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
+    public void init( int orgUnitLevel, List<OrganisationUnit> orgUnits, Set<Period> dataValueQueryPeriods,
+        Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
         DataElementOperand outputDataElementOperand )
     {
-        orgUnitsRemaining = new ArrayDeque<>( orgUnits );
+        orgUnitsById = orgUnits.stream().collect( toMap( OrganisationUnit::getId, identity() ) );
+        orgUnitsRemaining = new ArrayDeque<>( orgUnitsById.keySet() );
 
         readyPredictionData = new ArrayDeque<>();
 
-        dataValueFetcher.init( currentUserOrgUnits, orgUnitLevel, orgUnits, dataValueQueryPeriods,
-            existingOutputPeriods, dataElements, dataElementOperands, outputDataElementOperand );
+        dataValueFetcher.init( orgUnitLevel, orgUnits, dataValueQueryPeriods, existingOutputPeriods, dataElements,
+            dataElementOperands, outputDataElementOperand );
 
         analyticsFetcher.init( analyticsQueryPeriods, analyticsItems );
     }
@@ -189,7 +193,7 @@ public class PredictionDataConsolidator
         {
             readyPredictionData.add( data );
 
-            orgUnitsRemaining.remove( data.getOrgUnit() );
+            orgUnitsRemaining.remove( data.getOrgUnit().getId() );
         }
     }
 
@@ -205,7 +209,8 @@ public class PredictionDataConsolidator
 
         for ( int i = 0; i < countToAdd; i++ )
         {
-            OrganisationUnit orgUnit = orgUnitsRemaining.poll();
+            Long orgUnitId = orgUnitsRemaining.poll();
+            OrganisationUnit orgUnit = orgUnitsById.get( orgUnitId );
 
             readyPredictionData.add( new PredictionData( orgUnit, new ArrayList<>(), Collections.emptyList() ) );
         }
@@ -218,7 +223,7 @@ public class PredictionDataConsolidator
     {
         return readyPredictionData.stream()
             .map( PredictionData::getOrgUnit )
-            .collect( Collectors.toList() );
+            .collect( toList() );
     }
 
     /**
@@ -227,7 +232,7 @@ public class PredictionDataConsolidator
     private void addValuesToReadyData( List<FoundDimensionItemValue> analyticsValues )
     {
         Map<OrganisationUnit, PredictionData> map = readyPredictionData.stream()
-            .collect( Collectors.toMap( PredictionData::getOrgUnit, p -> p ) );
+            .collect( toMap( PredictionData::getOrgUnit, identity() ) );
 
         for ( FoundDimensionItemValue value : analyticsValues )
         {

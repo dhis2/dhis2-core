@@ -94,7 +94,8 @@ import com.google.common.base.MoreObjects;
  */
 @JacksonXmlRootElement( localName = "attribute", namespace = DxfNamespaces.DXF_2_0 )
 public class Attribute
-    extends BaseNameableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     /**
      * The types of {@link IdentifiableObject}s that can have attributes

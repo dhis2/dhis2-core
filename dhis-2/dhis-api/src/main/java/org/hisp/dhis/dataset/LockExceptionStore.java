@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Date;
 import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
@@ -50,9 +51,20 @@ public interface LockExceptionStore
 
     void deleteLockExceptions( OrganisationUnit organisationUnit );
 
+    /**
+     * Deletes all lock exceptions that are considered expired. This means their
+     * creation date is before the given date.
+     *
+     * @param createdBefore The threshold date, any {@link LockException} with
+     *        an older created date is deleted
+     * @return number of deleted lock exceptions
+     */
+    int deleteExpiredLockExceptions( Date createdBefore );
+
     long getCount( DataElement dataElement, Period period, OrganisationUnit organisationUnit );
 
     long getCount( DataSet dataSet, Period period, OrganisationUnit organisationUnit );
 
     boolean anyExists();
+
 }

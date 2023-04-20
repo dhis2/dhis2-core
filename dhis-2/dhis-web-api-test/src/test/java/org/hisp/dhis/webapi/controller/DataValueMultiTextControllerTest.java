@@ -61,7 +61,8 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
         super.setUp();
         String optionSetId = addOptionSet( "MultiSelectSet", ValueType.MULTI_TEXT );
         addOptions( optionSetId, "A", "B", "C" );
-        multiTextDataElementId = addDataElement( "MultiSelectDE", "MSDE", ValueType.MULTI_TEXT, optionSetId );
+        multiTextDataElementId = addDataElement( "MultiSelectDE", "MSDE", ValueType.MULTI_TEXT, optionSetId,
+            categoryComboId );
     }
 
     @Test
@@ -88,7 +89,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
         String optionSetId = addOptionSet( "MultiSelectSet2", ValueType.TEXT );
         assertWebMessage( "Conflict", 409, "ERROR",
             "Data element value type must match option set value type: `TEXT`",
-            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, optionSetId )
+            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, optionSetId, categoryComboId )
                 .content( HttpStatus.CONFLICT ) );
     }
 
@@ -97,7 +98,7 @@ class DataValueMultiTextControllerTest extends AbstractDataValueControllerTest
     {
         assertWebMessage( "Conflict", 409, "ERROR",
             "Data element of value type multi-text must have an option set: `null`",
-            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null )
+            postNewDataElement( "MultiSelectDE2", "MSDE2", ValueType.MULTI_TEXT, null, categoryComboId )
                 .content( HttpStatus.CONFLICT ) );
     }
 

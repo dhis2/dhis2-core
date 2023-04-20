@@ -39,7 +39,8 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
  *
  * @author maikel arabori
  */
-public interface EventVisualizationStore extends
+public interface EventVisualizationStore
+    extends
     IdentifiableObjectStore<EventVisualization>
 {
     /**

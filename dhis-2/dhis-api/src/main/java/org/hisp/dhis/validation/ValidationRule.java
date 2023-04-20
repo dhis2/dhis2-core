@@ -58,7 +58,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "validationRule", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationRule
-    extends BaseDataDimensionalItemObject implements MetadataObject
+    extends BaseDataDimensionalItemObject
+    implements MetadataObject
 {
     /**
      * A description of the ValidationRule.

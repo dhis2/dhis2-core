@@ -40,7 +40,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
  */
 public class TrackedEntityAttributeRowCallbackHandler
     extends
-    AbstractMapper<Attribute> implements AttributeMapper
+    AbstractMapper<Attribute>
+    implements AttributeMapper
 {
     @Override
     Attribute getItem( ResultSet rs )

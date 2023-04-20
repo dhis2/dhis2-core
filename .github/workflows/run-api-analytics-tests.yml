@@ -19,16 +19,16 @@ jobs:
       DOCKER_CHANNEL: "dhis2/core-pr"
       SIERRA_LEONE_DB_PATH: "/tmp/db/sierra-leone"
       SIERRA_LEONE_DB_VERSION: "2.39.0"
-    
+
     runs-on: ubuntu-latest
     if: "contains(github.event.pull_request.labels.*.name, 'run-api-analytics-tests')"
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: 11
+          java-version: 17
           distribution: temurin
           cache: maven
 
@@ -43,13 +43,13 @@ jobs:
         id: cache-sierra-leone-db
         with:
           path: ${{ env.SIERRA_LEONE_DB_PATH }}
-          key: sierra-leone-db-${{ env.SIERRA_LEONE_DB_VERSION }}
+          key: sierra-leone-db-analytics-${{ env.SIERRA_LEONE_DB_VERSION }}
 
       - name: Download Sierra Leone DB
         if: ${{ steps.cache-sierra-leone-db.outputs.cache-hit != 'true' }}
         run: |
           mkdir -p ${{ env.SIERRA_LEONE_DB_PATH }}
-          wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/dhis2-db-sierra-leone.sql.gz --no-clobber --directory-prefix ${{ env.SIERRA_LEONE_DB_PATH }}
+          wget https://databases.dhis2.org/sierra-leone/${{ env.SIERRA_LEONE_DB_VERSION }}/analytics_be/dhis2-db-sierra-leone.sql.gz --no-clobber --directory-prefix ${{ env.SIERRA_LEONE_DB_PATH }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2

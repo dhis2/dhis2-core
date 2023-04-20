@@ -279,6 +279,45 @@ class JdbcEventAnalyticsTableManagerTest
     }
 
     @Test
+    void verifyClientSideTimestampsColumns()
+    {
+        Program program = createProgram( 'A' );
+        when( idObjectManager.getAllNoAcl( Program.class ) ).thenReturn( List.of( program ) );
+        when( periodDataProvider.getAvailableYears() )
+            .thenReturn( List.of( 2018, 2019, now().getYear() ) );
+
+        List<Integer> availableDataYears = periodDataProvider.getAvailableYears();
+
+        when( jdbcTemplate.queryForList(
+            getYearQueryForCurrentYear( program, true, availableDataYears ),
+            Integer.class ) ).thenReturn( List.of( 2018, 2019 ) );
+
+        AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withLastYears( 2 )
+            .withStartTime( START_TIME ).withToday( today ).build();
+
+        List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
+
+        assertThat( tables, hasSize( 1 ) );
+
+        AnalyticsTableColumn lastUpdated = getColumn( "\"lastupdated\"", tables.get( 0 ) );
+        AnalyticsTableColumn created = getColumn( "\"created\"", tables.get( 0 ) );
+
+        assertThat( lastUpdated.getAlias(),
+            is( "CASE WHEN psi.lastupdatedatclient IS NOT NULL THEN psi.lastupdatedatclient ELSE psi.lastupdated END" ) );
+        assertThat( created.getAlias(),
+            is( "CASE WHEN psi.createdatclient IS NOT NULL THEN psi.createdatclient ELSE psi.created END" ) );
+    }
+
+    private AnalyticsTableColumn getColumn( String column, AnalyticsTable analyticsTable )
+    {
+        return analyticsTable.getDimensionColumns()
+            .stream()
+            .filter( col -> col.getName().equals( column ) )
+            .findFirst()
+            .orElseThrow( () -> new IllegalArgumentException( "Column " + column + " not found" ) );
+    }
+
+    @Test
     void verifyGetTableWithDataElements()
     {
         when( databaseInfo.isSpatialSupport() ).thenReturn( true );

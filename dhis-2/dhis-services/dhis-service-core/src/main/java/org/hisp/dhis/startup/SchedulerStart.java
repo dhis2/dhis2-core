@@ -29,11 +29,12 @@ package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
 import static org.hisp.dhis.scheduling.JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -96,6 +97,8 @@ public class SchedulerStart extends AbstractStartupRoutine
             "Dataset notification" ),
         REMOVE_EXPIRED_OR_USED_RESERVED_VALUES( CRON_DAILY_2AM, "uwWCT2BMmlq", REMOVE_USED_OR_EXPIRED_RESERVED_VALUES,
             "Remove expired or used reserved values" ),
+        REMOVE_EXPIRED_LOCK_EXCEPTIONS( CRON_DAILY_2AM, "OQ9KeLgqy20", JobType.LOCK_EXCEPTION_CLEANUP,
+            "Remove lock exceptions older than 6 months" ),
         LEADER_ELECTION( LEADER_JOB_CRON_FORMAT, "MoUd5BTQ3lY", JobType.LEADER_ELECTION,
             "Leader election in cluster" );
 
@@ -160,18 +163,20 @@ public class SchedulerStart extends AbstractStartupRoutine
         jobConfigurations.forEach( (jobConfig -> {
             if ( jobConfig.isEnabled() )
             {
-                Date oldExecutionTime = jobConfig.getNextExecutionTime();
-
-                jobConfig.setNextExecutionTime( null );
                 jobConfig.setJobStatus( SCHEDULED );
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
-                if ( jobConfig.getLastExecutedStatus() == FAILED
-                    || (oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
+                Date lastExecuted = jobConfig.getLastExecuted();
+                if ( lastExecuted != null )
                 {
-                    unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
-                        + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
-                        + oldExecutionTime );
+                    Date expectedFutureExecutionTime = jobConfig.nextExecutionTimeAfter( Clock.fixed(
+                        lastExecuted.toInstant().plusSeconds( 1 ), ZoneId.systemDefault() ) );
+                    if ( expectedFutureExecutionTime.before( now ) )
+                    {
+                        unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
+                            + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
+                            + expectedFutureExecutionTime );
+                    }
                 }
 
                 schedulingManager.schedule( jobConfig );
@@ -180,15 +185,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
         if ( !unexecutedJobs.isEmpty() )
         {
-            StringBuilder jobs = new StringBuilder();
-
-            for ( String unexecutedJob : unexecutedJobs )
-            {
-                jobs.append( unexecutedJob ).append( "\n" );
-            }
-
-            messageService.sendSystemErrorNotification( "Scheduler startup",
-                new Exception( "Scheduler started with one or more unexecuted jobs:\n" + jobs ) );
+            String msg = "Scheduler started with one or more unexecuted jobs:\n" + String.join( "", unexecutedJobs );
+            messageService.sendSystemErrorNotification( "Scheduler startup", new Exception( msg ) );
+            log.warn( msg );
         }
     }
 
@@ -204,6 +203,7 @@ public class SchedulerStart extends AbstractStartupRoutine
         addDefaultJob( SystemJob.DATA_SET_NOTIFICATION, jobConfigurations );
         addDefaultJob( SystemJob.REMOVE_EXPIRED_OR_USED_RESERVED_VALUES, jobConfigurations );
         addDefaultJob( SystemJob.SYSTEM_VERSION_UPDATE_CHECK, jobConfigurations );
+        addDefaultJob( SystemJob.REMOVE_EXPIRED_LOCK_EXCEPTIONS, jobConfigurations );
 
         if ( redisEnabled && verifyNoJobExist( SystemJob.LEADER_ELECTION.name, jobConfigurations ) )
         {

@@ -53,7 +53,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "organisationUnitGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class OrganisationUnitGroupSet
-    extends BaseDimensionalObject implements MetadataObject
+    extends BaseDimensionalObject
+    implements MetadataObject
 {
     private boolean compulsory;
 

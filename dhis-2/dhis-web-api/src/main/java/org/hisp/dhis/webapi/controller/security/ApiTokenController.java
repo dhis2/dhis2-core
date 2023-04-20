@@ -30,7 +30,6 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -58,7 +57,6 @@ import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -80,15 +78,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     private final ApiTokenService apiTokenService;
-
-    // Overwritten to get full access control on GET single object
-    @Override
-    protected List<ApiToken> getEntity( String uid, WebOptions options )
-    {
-        ArrayList<ApiToken> list = new ArrayList<>();
-        java.util.Optional.ofNullable( manager.get( ApiToken.class, uid ) ).ifPresent( list::add );
-        return list;
-    }
 
     @Override
     public void partialUpdateObject( String pvUid, Map<String, String> rpParameters,

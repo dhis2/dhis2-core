@@ -33,6 +33,8 @@ import java.util.Set;
 import lombok.Getter;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.webapi.dimension.DimensionResponse;
@@ -45,27 +47,27 @@ public class ProgramStageDataElementMapper extends BaseDimensionalItemObjectMapp
     private final Set<Class<? extends BaseIdentifiableObject>> supportedClasses = Set.of(
         ProgramStageDataElement.class );
 
+    /**
+     * maps program stages to DimensionResponse
+     */
     @Override
-    public DimensionResponse map( BaseIdentifiableObject dimension, String prefix )
+    public DimensionResponse map( PrefixedDimension prefixedDimension, String prefix )
     {
-        ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) dimension;
+        ProgramStageDataElement programStageDataElement = (ProgramStageDataElement) prefixedDimension.getItem();
 
-        final DimensionResponse mapped = super.map( programStageDataElement.getDataElement(), prefix )
-            .withValueType( programStageDataElement.getDataElement().getValueType().name() )
-            .withId( getProgramStageDataElementUid( programStageDataElement ) );
+        PrefixedDimension dataElementPrefixedDimension = PrefixedDimension.builder()
+            .item( programStageDataElement.getDataElement() )
+            .build();
+
+        final DimensionResponse mapped = super.map( dataElementPrefixedDimension, prefix )
+            .withValueType( programStageDataElement.getDataElement().getValueType().name() );
 
         return Optional.of( programStageDataElement )
             .map( ProgramStageDataElement::getDataElement )
             .map( DataElement::getOptionSet )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .map( mapped::withOptionSet )
             .orElse( mapped );
     }
 
-    private static String getProgramStageDataElementUid( ProgramStageDataElement programStageDataElement )
-    {
-        return String.format( "%s.%s",
-            programStageDataElement.getProgramStage().getUid(),
-            programStageDataElement.getDataElement().getUid() );
-    }
 }

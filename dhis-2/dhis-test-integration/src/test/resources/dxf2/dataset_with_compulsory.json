@@ -2,8 +2,7 @@
   "userRoles": [
     {
       "name": "Superuser",
-      "dataSets": [ ],
-      "userGroupAccesses": [ ],
+      "dataSets": [],
       "created": "2016-03-09T09:41:06.966+0000",
       "authorities": [
         "F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS",
@@ -41,9 +40,15 @@
         "F_TRACKED_ENTITY_DATAVALUE_DELETE"
       ],
       "id": "WpMYCIt4tHF",
-      "publicAccess": "--------",
-      "programs": [ ],
-      "lastUpdated": "2016-03-09T09:41:06.966+0000"
+      "programs": [],
+      "lastUpdated": "2016-03-09T09:41:06.966+0000",
+      "sharing": {
+        "public": "--------",
+        "external": false,
+        "owner": null,
+        "users": {},
+        "userGroups": {}
+      }
     }
   ],
   "dataElements": [
@@ -56,40 +61,74 @@
       "created": "2016-03-09T09:58:46.012+0000",
       "shortName": "DataElementShortA",
       "zeroIsSignificant": false,
-      "attributeValues": [ ],
+      "attributeValues": [],
       "name": "DataElementA",
-      "publicAccess": "rw------",
-      "aggregationLevels": [ ],
+      "aggregationLevels": [],
       "aggregationType": "SUM",
-      "userGroupAccesses": [ ],
       "user": {
         "id": "HEh4ijSTjeV"
+      },
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "HEh4ijSTjeV",
+        "users": {},
+        "userGroups": {}
       }
     }
   ],
-  "date": "2016-03-09T10:02:22.665+0000",
+  "date": [
+    "2",
+    "0",
+    "1",
+    "6",
+    "-",
+    "0",
+    "3",
+    "-",
+    "0",
+    "9",
+    "T",
+    "1",
+    "0",
+    ":",
+    "0",
+    "2",
+    ":",
+    "2",
+    "2",
+    ".",
+    "6",
+    "6",
+    "5",
+    "+",
+    "0",
+    "0",
+    "0",
+    "0"
+  ],
   "users": [
     {
       "surname": "admin",
       "id": "HEh4ijSTjeV",
-      "teiSearchOrganisationUnits": [ ],
+      "teiSearchOrganisationUnits": [],
       "lastUpdated": "2016-03-09T09:41:06.953+0000",
-        "externalAuth": false,
-        "passwordLastUpdated": "2016-03-09T09:41:07.022+0000",
-        "selfRegistered": false,
-        "disabled": false,
-        "username": "admin",
-        "cogsDimensionConstraints": [ ],
-        "lastLogin": "2016-03-09T09:41:07.011+0000",
-        "userRoles": [
-          {
-            "id": "WpMYCIt4tHF"
-          }
-        ],
-        "catDimensionConstraints": [ ],
-        "invitation": false,
-      "attributeValues": [ ],
-      "dataViewOrganisationUnits": [ ],
+      "externalAuth": false,
+      "passwordLastUpdated": "2016-03-09T09:41:07.022+0000",
+      "selfRegistered": false,
+      "disabled": false,
+      "username": "admin",
+      "cogsDimensionConstraints": [],
+      "lastLogin": "2016-03-09T09:41:07.011+0000",
+      "userRoles": [
+        {
+          "id": "WpMYCIt4tHF"
+        }
+      ],
+      "catDimensionConstraints": [],
+      "invitation": false,
+      "attributeValues": [],
+      "dataViewOrganisationUnits": [],
       "organisationUnits": [
         {
           "id": "bpPIb53g1yR"
@@ -104,7 +143,7 @@
       "id": "GVSfhRyCaiZ",
       "name": "Person",
       "description": "Person",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "created": "2016-03-09T09:56:10.596+0000",
       "lastUpdated": "2016-03-09T09:56:10.597+0000"
     }
@@ -123,7 +162,7 @@
       "shortName": "Country",
       "created": "2016-03-09T09:56:07.050+0000",
       "openingDate": "2016-03-09",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "name": "Country",
       "user": {
         "id": "HEh4ijSTjeV"
@@ -152,19 +191,17 @@
           }
         }
       ],
-      "indicators": [ ],
-      "userGroupAccesses": [ ],
+      "indicators": [],
       "periodType": "Monthly",
       "version": 1,
       "noValueRequiresComment": false,
       "validCompleteOnly": false,
-      "publicAccess": "rw------",
       "mobile": false,
       "dataElementDecoration": false,
       "openFuturePeriods": 0,
       "timelyDays": 15,
       "name": "DataSetA",
-      "attributeValues": [ ],
+      "attributeValues": [],
       "renderAsTabs": false,
       "notifyCompletingUser": false,
       "skipOffline": false,
@@ -187,7 +224,14 @@
       "code": "DataSetCodeA",
       "fieldCombinationRequired": false,
       "renderHorizontally": false,
-      "lastUpdated": "2016-03-09T09:59:25.699+0000"
+      "lastUpdated": "2016-03-09T09:59:25.699+0000",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "HEh4ijSTjeV",
+        "users": {},
+        "userGroups": {}
+      }
     }
   ]
 }

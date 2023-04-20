@@ -58,7 +58,7 @@ public enum QueryableDataItem
 
     private Class<? extends BaseIdentifiableObject> entity;
 
-    QueryableDataItem( final Class<? extends BaseIdentifiableObject> entity )
+    QueryableDataItem( Class<? extends BaseIdentifiableObject> entity )
     {
         this.entity = entity;
     }

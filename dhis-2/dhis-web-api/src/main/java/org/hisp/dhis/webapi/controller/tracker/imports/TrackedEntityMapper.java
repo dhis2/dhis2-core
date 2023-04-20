@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.mapstruct.Context;
@@ -42,11 +42,11 @@ import org.mapstruct.Mapping;
     UserMapper.class,
     MetadataIdentifierMapper.class
 } )
-interface TrackedEntityMapper extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.domain.TrackedEntity>
+interface TrackedEntityMapper extends DomainMapper<TrackedEntity, org.hisp.dhis.tracker.imports.domain.TrackedEntity>
 {
     @Mapping( target = "orgUnit", source = "orgUnit", qualifiedByName = "orgUnitToMetadataIdentifier" )
     @Mapping( target = "trackedEntityType", source = "trackedEntityType", qualifiedByName = "toMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.TrackedEntity from( TrackedEntity trackedEntity,
+    org.hisp.dhis.tracker.imports.domain.TrackedEntity from( TrackedEntity trackedEntity,
         @Context TrackerIdSchemeParams idSchemeParams );
 
 }

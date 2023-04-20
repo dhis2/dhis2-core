@@ -29,6 +29,7 @@ package org.hisp.dhis.common;
 
 import static java.util.stream.Collectors.toSet;
 
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
@@ -55,8 +56,8 @@ public enum ValueType
     LONG_TEXT( String.class, true ),
     MULTI_TEXT( String.class, true ),
     LETTER( String.class, true ),
-    PHONE_NUMBER( String.class, false ),
-    EMAIL( String.class, false ),
+    PHONE_NUMBER( String.class, true ),
+    EMAIL( String.class, true ),
     BOOLEAN( Boolean.class, true ),
     TRUE_ONLY( Boolean.class, true ),
     DATE( LocalDate.class, false ),
@@ -70,12 +71,12 @@ public enum ValueType
     INTEGER_NEGATIVE( Integer.class, true ),
     INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
     TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
-    USERNAME( String.class, false ),
+    USERNAME( String.class, true ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
     REFERENCE( Reference.class, false ),
     AGE( Date.class, false ),
-    URL( String.class, false ),
+    URL( String.class, true ),
     FILE_RESOURCE( String.class, true, FileTypeValueOptions.class ),
     IMAGE( String.class, false, FileTypeValueOptions.class ),
     GEOJSON( String.class, false );
@@ -100,10 +101,10 @@ public enum ValueType
         BOOLEAN, TRUE_ONLY );
 
     public static final Set<ValueType> TEXT_TYPES = Set.of(
-        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
+        TEXT, LONG_TEXT, LETTER, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
     public static final Set<ValueType> DATE_TYPES = Set.of(
-        DATE, DATETIME, AGE );
+        DATE, DATETIME, TIME, AGE );
 
     private static final Set<ValueType> FILE_TYPES = Set.of(
         FILE_RESOURCE, IMAGE );
@@ -223,11 +224,9 @@ public enum ValueType
             return false;
         }
 
-        if ( this == TEXT )
+        if ( TEXT_TYPES.contains( this ) )
         {
-            return aggregationType == AggregationType.NONE ||
-                aggregationType == AggregationType.LAST_LAST_ORG_UNIT ||
-                aggregationType == AggregationType.FIRST_FIRST_ORG_UNIT;
+            return true;
         }
 
         return aggregationType != AggregationType.NONE;
@@ -284,6 +283,40 @@ public enum ValueType
         return ValueType.TEXT;
     }
 
+    /**
+     * Returns a valid ValueType based on the given SQL type.
+     *
+     * @see java.sql.Types for valid integer values.
+     *
+     * @param type of the java.sql.Types
+     * @return the respective ValueType
+     */
+    public static ValueType getValueTypeFromSqlType( int type )
+    {
+        switch ( type )
+        {
+        case Types.INTEGER:
+            return ValueType.INTEGER;
+        case Types.DECIMAL:
+        case Types.DOUBLE:
+        case Types.NUMERIC:
+        case Types.BIGINT:
+        case Types.FLOAT:
+            return ValueType.NUMBER;
+        case Types.BOOLEAN:
+            return ValueType.BOOLEAN;
+        case Types.DATE:
+            return ValueType.DATE;
+        case Types.TIMESTAMP_WITH_TIMEZONE:
+            return ValueType.DATETIME;
+        case Types.TIME:
+        case Types.TIME_WITH_TIMEZONE:
+            return ValueType.TIME;
+        default:
+            return ValueType.TEXT;
+        }
+    }
+
     public static ValueType fromString( String valueType )
         throws IllegalArgumentException
     {
@@ -296,5 +329,4 @@ public enum ValueType
         return Arrays.stream( ValueType.values() )
             .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregatable ) ).collect( toSet() );
     }
-
 }

@@ -41,7 +41,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "analyticsTableHook", namespace = DxfNamespaces.DXF_2_0 )
 public class AnalyticsTableHook
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private AnalyticsTablePhase phase;
 

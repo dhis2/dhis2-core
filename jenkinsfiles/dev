@@ -4,7 +4,7 @@
 
 pipeline {
     agent {
-        label 'ec2-jdk11'
+        label 'ec2-jdk17'
     }
 
     triggers {
@@ -26,7 +26,7 @@ pipeline {
         DHIS2_VERSION = readMavenPom(file: 'dhis-2/pom.xml').getVersion()
         DOCKER_IMAGE_NAME = "${DOCKER_HUB_OWNER}/core-dev"
         DOCKER_IMAGE_TAG = "${env.GIT_BRANCH}"
-        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre11"
+        DOCKER_IMAGE_NAME_PUBLISH_SOURCE = "tomcat:9.0-jre17"
     }
 
     stages {
@@ -77,7 +77,7 @@ pipeline {
                 axes {
                     axis {
                         name 'DOCKER_IMAGE_TAG_BASE'
-                        values '9.0-jre11', '8.5-jre11'
+                        values '9.0-jre17', '8.5-jre17'
                     }
                 }
 
@@ -199,15 +199,18 @@ pipeline {
                 FLYWAY_MIGRATE_OUT_OF_ORDER = "true"
                 FLYWAY_REPAIR_BEFORE_MIGRATION = "true"
                 INSTANCE_TTL = "315360000"
+                STARTUP_PROBE_FAILURE_THRESHOLD = "50"
+                LIVENESS_PROBE_TIMEOUT_SECONDS = "3"
+                READINESS_PROBE_TIMEOUT_SECONDS = "3"
             }
             steps {
                 script {
                     if (env.GIT_BRANCH == 'master') {
                         withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
-                            dir('im-db-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-database-manager', 'master', '/scripts')
+                            dir('im-manager') {
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
 
-                                dir('scripts') {
+                                dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
                                             script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
@@ -216,12 +219,8 @@ pipeline {
                                     sh '[ -n "$DATABASE_ID" ]'
                                     echo "DATABASE_ID is ${env.DATABASE_ID}"
                                 }
-                            }
 
-                            dir('im-manager') {
-                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
-
-                                dir('scripts') {
+                                dir('scripts/instances') {
                                     echo 'Creating DHIS2 instance on IM...'
                                     sh "(./findByName.sh play dev && ./restart.sh play dev) || ./deploy-dhis2.sh play dev"
                                     timeout(5) {
