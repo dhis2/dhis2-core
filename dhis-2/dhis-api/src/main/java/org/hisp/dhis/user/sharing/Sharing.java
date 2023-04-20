@@ -93,26 +93,6 @@ public class Sharing
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 
-    public Sharing( String publicAccess, UserAccess... userAccesses )
-    {
-        this.publicAccess = publicAccess;
-
-        for ( UserAccess userAccess : userAccesses )
-        {
-            users.put( userAccess.getId(), userAccess );
-        }
-    }
-
-    public Sharing( String publicAccess, UserGroupAccess... userGroupAccesses )
-    {
-        this.publicAccess = publicAccess;
-
-        for ( UserGroupAccess userGroupAccess : userGroupAccesses )
-        {
-            userGroups.put( userGroupAccess.getId(), userGroupAccess );
-        }
-    }
-
     public void setOwner( User user )
     {
         this.owner = user != null ? user.getUid() : null;
@@ -143,15 +123,18 @@ public class Sharing
         userGroupAccesses.forEach( this::addUserGroupAccess );
     }
 
-    public void addUserAccess( UserAccess userAccess )
+    public Sharing addUserAccess( UserAccess userAccess )
     {
-        if ( userAccess != null )
+        if ( users == null )
         {
-            getUsers().put( userAccess.getId(), userAccess );
+            users = new HashMap<>();
         }
+
+        users.put( userAccess.getId(), userAccess );
+        return this;
     }
 
-    public void addUserGroupAccess( UserGroupAccess userGroupAccess )
+    public Sharing addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         if ( userGroups == null )
         {
@@ -159,6 +142,7 @@ public class Sharing
         }
 
         this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        return this;
     }
 
     public void resetUserAccesses()
