@@ -393,6 +393,11 @@ public enum ErrorCode
     E7135( "Date time is not parsable: `{0}`" ),
     E7136( "Program is not specified" ),
     E7137( "Expression is not parsable: `{0}`" ),
+    E7138( "Invalid offset: `{0}`" ),
+    E7139( "programStatus and enrollmentStatus cannot be used together." ),
+    E7140( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]" ),
+    E7141( "parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]" ),
+    E7142( "Program(s) `{0}` are not defined on Tracked Entity Type `{1}`" ),
 
     /* Event analytics */
     E7200( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),

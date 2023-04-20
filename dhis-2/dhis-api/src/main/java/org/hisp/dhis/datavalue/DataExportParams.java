@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.datavalue;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 
 import java.util.Date;
@@ -262,8 +263,16 @@ public class DataExportParams
         return limit != null;
     }
 
+    public boolean needsOrgUnitDetails()
+    {
+        return isOrderByOrgUnitPath()
+            || hasOrgUnitLevel()
+            || getOuMode() == DESCENDANTS
+            || isIncludeDescendants();
+    }
+
     /**
-     * Indicates whether this parameters represents a single data value set,
+     * Indicates whether these parameters represent a single data value set,
      * implying that it contains exactly one of data sets, periods and
      * organisation units.
      */

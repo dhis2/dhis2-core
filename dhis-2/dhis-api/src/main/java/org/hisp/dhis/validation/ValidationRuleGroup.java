@@ -46,7 +46,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "validationRuleGroup", namespace = DxfNamespaces.DXF_2_0 )
 public class ValidationRuleGroup
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     private String description;
 

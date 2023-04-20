@@ -60,6 +60,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This component is only encapsulating specific methods responsible for
@@ -85,11 +86,11 @@ public class DataDimensionExtractor
      * @param itemIds a set of dimension item object ids.
      * @return map from atomic object classes to sets of atomic ids.
      */
-    SetMap<Class<? extends IdentifiableObject>, String> getAtomicIds( final Set<DimensionalItemId> itemIds )
+    SetMap<Class<? extends IdentifiableObject>, String> getAtomicIds( Set<DimensionalItemId> itemIds )
     {
         final SetMap<Class<? extends IdentifiableObject>, String> atomicIds = new SetMap<>();
 
-        for ( final DimensionalItemId id : itemIds )
+        for ( DimensionalItemId id : itemIds )
         {
             if ( !id.hasValidIds() )
             {
@@ -156,12 +157,13 @@ public class DataDimensionExtractor
      * @return a map from each class of atomic objects to a map that associates
      *         each id of that class with an atomic object.
      */
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
-        final SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
+    @Transactional( readOnly = true )
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
-        final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( final Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
             atomicObjects.putEntries( entry.getKey(),
                 idObjectManager.getByUid( entry.getKey(), entry.getValue() ).stream()
@@ -171,12 +173,13 @@ public class DataDimensionExtractor
         return atomicObjects;
     }
 
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
-        final SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
+    @Transactional( readOnly = true )
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
-        final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
 
-        for ( final Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
+        for ( Map.Entry<Class<? extends IdentifiableObject>, Set<String>> entry : atomicIds.entrySet() )
         {
             atomicObjects.putEntries( entry.getKey(),
                 idObjectManager.getNoAcl( entry.getKey(), entry.getValue() ).stream()
@@ -194,16 +197,16 @@ public class DataDimensionExtractor
      *        that associates each id of that class with an atomic object.
      * @return a map from the item ids to the dimension item objects.
      */
-    Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap( final Set<DimensionalItemId> itemIds,
-        final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects )
+    Map<DimensionalItemId, DimensionalItemObject> getItemObjectMap( Set<DimensionalItemId> itemIds,
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects )
     {
-        final Map<DimensionalItemId, DimensionalItemObject> itemObjectMap = new HashMap<>();
+        Map<DimensionalItemId, DimensionalItemObject> itemObjectMap = new HashMap<>();
 
-        for ( final DimensionalItemId id : itemIds )
+        for ( DimensionalItemId id : itemIds )
         {
             if ( id.hasValidIds() )
             {
-                final DimensionalItemObject dimensionalItemObject = getDimensionalItemObject( atomicObjects,
+                DimensionalItemObject dimensionalItemObject = getDimensionalItemObject( atomicObjects,
                     id );
 
                 if ( dimensionalItemObject != null )
@@ -223,10 +226,11 @@ public class DataDimensionExtractor
      * @param dataSetId the data set identifier.
      * @param metric the reporting rate metric.
      */
-    ReportingRate getReportingRate( final IdScheme idScheme, final String dataSetId, final String metric )
+    @Transactional( readOnly = true )
+    public ReportingRate getReportingRate( IdScheme idScheme, String dataSetId, String metric )
     {
-        final DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
-        final boolean metricValid = isValidEnum( ReportingRateMetric.class, metric );
+        DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
+        boolean metricValid = isValidEnum( ReportingRateMetric.class, metric );
 
         if ( dataSet == null || !metricValid )
         {
@@ -243,11 +247,12 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param attributeId the attribute identifier.
      */
-    ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( final IdScheme idScheme,
-        final String programId, final String attributeId )
+    @Transactional( readOnly = true )
+    public ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( IdScheme idScheme,
+        String programId, String attributeId )
     {
-        final Program program = idObjectManager.getObject( Program.class, idScheme, programId );
-        final TrackedEntityAttribute attribute = idObjectManager.getObject( TrackedEntityAttribute.class, idScheme,
+        Program program = idObjectManager.getObject( Program.class, idScheme, programId );
+        TrackedEntityAttribute attribute = idObjectManager.getObject( TrackedEntityAttribute.class, idScheme,
             attributeId );
 
         if ( program == null || attribute == null )
@@ -265,11 +270,12 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param dataElementId the data element identifier.
      */
-    ProgramDataElementDimensionItem getProgramDataElementDimensionItem( final IdScheme idScheme, final String programId,
-        final String dataElementId )
+    @Transactional( readOnly = true )
+    public ProgramDataElementDimensionItem getProgramDataElementDimensionItem( IdScheme idScheme, String programId,
+        String dataElementId )
     {
-        final Program program = idObjectManager.getObject( Program.class, idScheme, programId );
-        final DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
+        Program program = idObjectManager.getObject( Program.class, idScheme, programId );
+        DataElement dataElement = idObjectManager.getObject( DataElement.class, idScheme, dataElementId );
 
         if ( program == null || dataElement == null )
         {
@@ -280,8 +286,7 @@ public class DataDimensionExtractor
     }
 
     private DimensionalItemObject getDimensionalItemObject(
-        final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects,
-        final DimensionalItemId id )
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects, DimensionalItemId id )
     {
         BaseDimensionalItemObject dimensionalItemObject = null;
 
@@ -293,15 +298,15 @@ public class DataDimensionExtractor
             break;
 
         case INDICATOR:
-            final Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
+            Indicator indicator = (Indicator) atomicObjects.getValue( Indicator.class, id.getId0() );
             dimensionalItemObject = withQueryMods( indicator, id );
             break;
 
         case DATA_ELEMENT_OPERAND:
             dataElement = (DataElement) atomicObjects.getValue( DataElement.class, id.getId0() );
-            final CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
+            CategoryOptionCombo categoryOptionCombo = id.getId1() == null ? null
                 : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId1() );
-            final CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
+            CategoryOptionCombo attributeOptionCombo = id.getId2() == null ? null
                 : (CategoryOptionCombo) atomicObjects.getValue( CategoryOptionCombo.class, id.getId2() );
             if ( dataElement != null &&
                 (id.getId1() != null) == (categoryOptionCombo != null) &&
@@ -314,7 +319,7 @@ public class DataDimensionExtractor
             break;
 
         case REPORTING_RATE:
-            final DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
+            DataSet dataSet = (DataSet) atomicObjects.getValue( DataSet.class, id.getId0() );
             if ( dataSet != null )
             {
                 dimensionalItemObject = new ReportingRate( dataSet, ReportingRateMetric.valueOf( id.getId1() ) );
@@ -332,7 +337,7 @@ public class DataDimensionExtractor
 
         case PROGRAM_ATTRIBUTE:
             program = (Program) atomicObjects.getValue( Program.class, id.getId0() );
-            final TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
+            TrackedEntityAttribute attribute = (TrackedEntityAttribute) atomicObjects
                 .getValue( TrackedEntityAttribute.class, id.getId1() );
             if ( allNotNull( program, attribute ) )
             {
@@ -360,7 +365,7 @@ public class DataDimensionExtractor
      * @param id the item id that may have non-default query modifiers.
      * @return the item or its clone.
      */
-    private BaseDimensionalItemObject withQueryMods( final BaseDimensionalItemObject item, final DimensionalItemId id )
+    private BaseDimensionalItemObject withQueryMods( BaseDimensionalItemObject item, DimensionalItemId id )
     {
         if ( item == null || id.getQueryMods() == null )
         {

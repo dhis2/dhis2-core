@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 
 @Mapper

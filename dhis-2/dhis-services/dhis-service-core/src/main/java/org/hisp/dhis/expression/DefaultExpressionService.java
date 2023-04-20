@@ -99,7 +99,6 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -362,6 +361,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
         Collection<Indicator> indicators )
     {
@@ -375,6 +375,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators )
     {
         if ( indicators == null )
@@ -456,10 +457,10 @@ public class DefaultExpressionService
         }
 
         Map<String, Constant> constants = new CachingMap<String, Constant>()
-            .load( idObjectManager.getAllNoAcl( Constant.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( Constant.class ), IdentifiableObject::getUid );
 
         Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
-            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), IdentifiableObject::getUid );
 
         for ( Indicator indicator : indicators )
         {
@@ -475,7 +476,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
         try
@@ -700,6 +701,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Constant> getConstantMap()
     {
         return constantMapCache.get( "x", key -> constantService.getConstantMap() );

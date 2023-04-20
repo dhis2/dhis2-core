@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static java.util.Collections.singletonMap;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -53,6 +52,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
@@ -64,6 +64,7 @@ import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
@@ -204,17 +205,29 @@ public class SystemSettingController
     public @ResponseBody ResponseEntity<Map<String, Serializable>> getSystemSettingOrTranslationAsJson(
         @PathVariable( "key" ) String key,
         @RequestParam( value = "locale", required = false ) String locale, @CurrentUser User currentUser )
+        throws NotFoundException
     {
+        if ( !settingExistsAndIsNotConfidential( key ) )
+        {
+            throw new NotFoundException( "Setting does not exist or is marked as confidential" );
+        }
+
         return ResponseEntity.ok()
             .cacheControl( CacheControl.noCache().cachePrivate() )
-            .body( singletonMap( key, getSystemSettingOrTranslation( key, locale, currentUser ) ) );
+            .contentType( MediaType.APPLICATION_JSON )
+            .body( Map.of( key, getSystemSettingOrTranslation( key, locale, currentUser ) ) );
+    }
+
+    private boolean settingExistsAndIsNotConfidential( String key )
+    {
+        return SettingKey.getByName( key ).isPresent() && !systemSettingManager.isConfidential( key );
     }
 
     private Serializable getSystemSettingOrTranslation( String key, String locale, User currentUser )
     {
-        Optional<SettingKey> settingKey = SettingKey.getByName( key );
-        if ( !systemSettingManager.isConfidential( key ) && settingKey.isPresent() )
+        if ( settingExistsAndIsNotConfidential( key ) )
         {
+            Optional<SettingKey> settingKey = SettingKey.getByName( key );
             Optional<String> localeToFetch = getLocaleToFetch( locale, key, currentUser );
 
             if ( localeToFetch.isPresent() )

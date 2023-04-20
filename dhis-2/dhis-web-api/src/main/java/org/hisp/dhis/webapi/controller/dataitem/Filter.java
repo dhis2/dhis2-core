@@ -72,7 +72,7 @@ public class Filter
 
         private String abbreviation;
 
-        Operation( final String abbreviation )
+        Operation( String abbreviation )
         {
             this.abbreviation = abbreviation;
         }

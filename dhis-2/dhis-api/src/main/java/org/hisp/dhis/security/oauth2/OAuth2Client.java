@@ -49,7 +49,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "oAuth2Client", namespace = DxfNamespaces.DXF_2_0 )
 public class OAuth2Client
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * client_id

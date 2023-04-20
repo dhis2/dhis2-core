@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.common;
 
 import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
-import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 
 import java.util.Date;
@@ -104,7 +103,22 @@ public class CommonQueryRequest
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
-    private IdScheme dataIdScheme = UID;
+    private IdScheme dataIdScheme;
+
+    /**
+     * The general id scheme, which drives the values in the response object.
+     */
+    private IdScheme outputIdScheme;
+
+    /**
+     * The id scheme specific for data elements.
+     */
+    private IdScheme outputDataElementIdScheme;
+
+    /**
+     * The id scheme specific for org units.
+     */
+    private IdScheme outputOrgUnitIdScheme;
 
     /**
      * Overrides the start date of the relative period. e.g: "2016-01-01".
@@ -187,6 +201,24 @@ public class CommonQueryRequest
     private Set<String> desc = new LinkedHashSet<>();
 
     /**
+     * The program statuses to filter on.
+     *
+     * @deprecated use {@link #enrollmentStatus} instead
+     */
+    @Deprecated
+    private Set<String> programStatus = new LinkedHashSet<>();
+
+    /**
+     * The enrollment statuses to filter on.
+     */
+    private Set<String> enrollmentStatus = new LinkedHashSet<>();
+
+    /**
+     * The event statuses to filter on.
+     */
+    private Set<String> eventStatus = new LinkedHashSet<>();
+
+    /**
      * The dimensional object for which to produce aggregated data.
      */
     private DimensionalItemObject value;
@@ -210,6 +242,16 @@ public class CommonQueryRequest
     private String lastUpdated;
 
     /**
+     * weather the query should consider only items with lat/long coordinates
+     */
+    private boolean coordinatesOnly;
+
+    /**
+     * weather the query should consider only items with geometry
+     */
+    private boolean geometryOnly;
+
+    /**
      * Checks if there is a program uid in the internal list of programs.
      *
      * @return true if at least one program is found, false otherwise
@@ -217,6 +259,42 @@ public class CommonQueryRequest
     public boolean hasPrograms()
     {
         return emptyIfNull( program )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any program status filters
+     *
+     * @return true if at least one program status is found, false otherwise
+     */
+    public boolean hasProgramStatus()
+    {
+        return emptyIfNull( programStatus )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any enrollment status filters
+     *
+     * @return true if at least one enrollment status is found, false otherwise
+     */
+    public boolean hasEnrollmentStatus()
+    {
+        return emptyIfNull( enrollmentStatus )
+            .stream()
+            .anyMatch( StringUtils::isNotBlank );
+    }
+
+    /**
+     * whether the request has any event status filters
+     *
+     * @return true if at least one event status is found, false otherwise
+     */
+    public boolean hasEventStatus()
+    {
+        return emptyIfNull( eventStatus )
             .stream()
             .anyMatch( StringUtils::isNotBlank );
     }

@@ -89,7 +89,6 @@ import com.google.common.collect.Sets;
  */
 class PredictionServiceTest extends IntegrationTestBase
 {
-
     private final JobProgress progress = NoopJobProgress.INSTANCE;
 
     @Autowired
@@ -1580,8 +1579,8 @@ class PredictionServiceTest extends IntegrationTestBase
         dataValueBatchHandler.addObject( createDataValue( deS, per, sourceA, cocCc, defaultCombo, "32" ) );
         dataValueBatchHandler.flush();
 
-        String expectedA = String.valueOf( 1 + 4 + (16 + 32) );
-        String expectedB = String.valueOf( 2 + 8 + (16 + 32) );
+        String expectedA = String.valueOf( 1 + 4 + 16 );
+        String expectedB = String.valueOf( 2 + 8 );
 
         String expr = "#{" + deQ.getUid() + "} + #{" + deR.getUid() + "} + #{" + deS.getUid() + "}";
         Expression expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
@@ -1593,6 +1592,19 @@ class PredictionServiceTest extends IntegrationTestBase
         assertEquals( "Pred 1 Ins 2 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
         assertEquals( expectedA, getDataValue( deP, cocAa, sourceA, makeMonth( 2022, 1 ) ) );
         assertEquals( expectedB, getDataValue( deP, cocAb, sourceA, makeMonth( 2022, 1 ) ) );
+
+        // Test prediction disaggregation with and without query modifiers
+
+        expr = "#{" + deQ.getUid() + "} + 3 * #{" + deQ.getUid() + "}.minDate(2022-01-01)";
+        expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
+        p = createPredictor( deP, null, "Disags", expression, null, periodTypeMonthly,
+            orgUnitLevel1, 0, 0, 0 );
+
+        summary = new PredictionSummary();
+        predictionService.predict( p, monthStart( 2022, 1 ), monthStart( 2022, 2 ), summary );
+        assertEquals( "Pred 1 Ins 0 Upd 2 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( "4", getDataValue( deP, cocAa, sourceA, makeMonth( 2022, 1 ) ) );
+        assertEquals( "8", getDataValue( deP, cocAb, sourceA, makeMonth( 2022, 1 ) ) );
     }
 
     @Test
@@ -1619,6 +1631,21 @@ class PredictionServiceTest extends IntegrationTestBase
 
         predictionService.predict( p, monthStart( 2022, 10 ), monthStart( 2022, 11 ), summary );
         assertEquals( "Pred 1 Ins 1 Upd 0 Del 0 Unch 0", shortSummary( summary ) );
+        assertEquals( expectedValue, getDataValue( dataElementC, defaultCombo, sourceA, makeMonth( 2022, 10 ) ) );
+
+        // Now try with one data element both without and with modifiers:
+        expectedValue = String.valueOf( 8 + 16 + (2 * 16) + 32 );
+
+        expr = "sum( #{" + dataElementB.getUid() + "} + 2 * #{" +
+            dataElementB.getUid() + "}.minDate(2022-8-1).maxDate(2022-9-1) )";
+
+        expression = new Expression( expr, "description" );
+        p = createPredictor( dataElementC, null, "P", expression, null, periodTypeMonthly,
+            orgUnitLevel1, 3, 0, 0 );
+
+        summary = new PredictionSummary();
+        predictionService.predict( p, monthStart( 2022, 10 ), monthStart( 2022, 11 ), summary );
+        assertEquals( "Pred 1 Ins 0 Upd 1 Del 0 Unch 0", shortSummary( summary ) );
         assertEquals( expectedValue, getDataValue( dataElementC, defaultCombo, sourceA, makeMonth( 2022, 10 ) ) );
     }
 

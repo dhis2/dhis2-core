@@ -56,6 +56,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
@@ -96,8 +97,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -190,14 +190,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         JsonPatchException
     {
         WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
 
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        T patchedObject = entities.get( 0 );
+        T patchedObject = getEntity( pvUid, options );
         T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
 
         if ( !aclService.canUpdate( currentUser, patchedObject ) )
@@ -236,20 +230,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     {
         WebOptions options = new WebOptions( rpParameters );
 
-        List<T> entities = getEntity( pvUid, options );
-
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
         if ( !getSchema().hasProperty( pvProperty ) )
         {
             throw new NotFoundException( "Property " + pvProperty + " does not exist on " + getEntityName() );
         }
 
         Property property = getSchema().getProperty( pvProperty );
-        T patchedObject = entities.get( 0 );
+        T patchedObject = getEntity( pvUid, options );
         T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
 
         if ( !aclService.canUpdate( currentUser, patchedObject ) )
@@ -326,14 +313,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ConflictException
     {
         WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
 
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        final T persistedObject = entities.get( 0 );
+        final T persistedObject = getEntity( pvUid, options );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
@@ -558,14 +539,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new ConflictException( "Objects of this class cannot be set as favorite" );
         }
 
-        List<T> entity = getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        T object = entity.get( 0 );
+        T object = getEntity( pvUid );
 
         object.setAsFavorite( currentUser );
         manager.updateNoAcl( object );
@@ -584,15 +558,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
-        @SuppressWarnings( "unchecked" )
-        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        SubscribableObject object = entity.get( 0 );
+        SubscribableObject object = (SubscribableObject) getEntity( pvUid );
 
         object.subscribe( currentUser );
         manager.updateNoAcl( object );
@@ -618,14 +584,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ConflictException,
         HttpRequestMethodNotSupportedException
     {
-        List<T> objects = getEntity( pvUid );
-
-        if ( objects.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
+        T persisted = getEntity( pvUid );
+        if ( !aclService.canUpdate( currentUser, persisted ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
@@ -633,7 +593,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         T parsed = deserializeJsonEntity( request );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
-        preUpdateEntity( objects.get( 0 ), parsed );
+        preUpdateEntity( persisted, parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() );
 
@@ -676,14 +636,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         ForbiddenException
     {
-        List<T> objects = getEntity( pvUid );
-
-        if ( objects.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        if ( !aclService.canUpdate( currentUser, objects.get( 0 ) ) )
+        T persisted = getEntity( pvUid );
+        if ( !aclService.canUpdate( currentUser, persisted ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to update this object." );
         }
@@ -691,7 +645,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         T parsed = deserializeXmlEntity( request );
         ((BaseIdentifiableObject) parsed).setUid( pvUid );
 
-        preUpdateEntity( objects.get( 0 ), parsed );
+        preUpdateEntity( persisted, parsed );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
@@ -727,14 +681,8 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         IOException
     {
         WebOptions options = new WebOptions( rpParameters );
-        List<T> entities = getEntity( pvUid, options );
 
-        if ( entities.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) entities.get( 0 );
+        BaseIdentifiableObject persistedObject = (BaseIdentifiableObject) getEntity( pvUid, options );
 
         if ( !aclService.canUpdate( currentUser, persistedObject ) )
         {
@@ -774,25 +722,19 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ConflictException,
         HttpRequestMethodNotSupportedException
     {
-        List<T> objects = getEntity( pvUid );
-
-        if ( objects.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        if ( !aclService.canDelete( currentUser, objects.get( 0 ) ) )
+        T persistedObject = getEntity( pvUid );
+        if ( !aclService.canDelete( currentUser, persistedObject ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to delete this object." );
         }
 
-        preDeleteEntity( objects.get( 0 ) );
+        preDeleteEntity( persistedObject );
 
         MetadataImportParams params = new MetadataImportParams()
             .setImportReportMode( ImportReportMode.FULL )
             .setUser( currentUser )
             .setImportStrategy( ImportStrategy.DELETE )
-            .addObject( objects.get( 0 ) );
+            .addObject( persistedObject );
 
         ImportReport importReport = importService.importMetadata( params );
 
@@ -813,14 +755,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new ConflictException( "Objects of this class cannot be set as favorite" );
         }
 
-        List<T> entity = getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        T object = entity.get( 0 );
+        T object = getEntity( pvUid );
 
         object.removeAsFavorite( currentUser );
         manager.updateNoAcl( object );
@@ -830,7 +765,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @DeleteMapping( value = "/{uid}/subscriber" )
     @ResponseBody
-    @SuppressWarnings( "unchecked" )
     public WebMessage unsubscribe( @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @CurrentUser User currentUser )
         throws NotFoundException,
@@ -841,14 +775,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
             throw new ConflictException( "Objects of this class cannot be subscribed to" );
         }
 
-        List<SubscribableObject> entity = (List<SubscribableObject>) getEntity( pvUid );
-
-        if ( entity.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        SubscribableObject object = entity.get( 0 );
+        SubscribableObject object = (SubscribableObject) getEntity( pvUid );
 
         object.unsubscribe( currentUser );
         manager.updateNoAcl( object );
@@ -875,7 +802,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -893,7 +820,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return addCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return addCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -924,7 +851,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -942,7 +869,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return replaceCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return replaceCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -966,20 +893,13 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
     public WebMessage addCollectionItem(
         @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
         @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
-        @PathVariable( "itemId" ) String pvItemId,
-        HttpServletResponse response )
+        @PathVariable( "itemId" ) String pvItemId )
         throws NotFoundException,
         ConflictException,
         ForbiddenException,
         BadRequestException
     {
-        List<T> objects = getEntity( pvUid );
-        if ( objects.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
-        T object = objects.get( 0 );
+        T object = getEntity( pvUid );
         IdentifiableObjects items = new IdentifiableObjects();
         items.setAdditions( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
 
@@ -1004,7 +924,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromJson( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -1022,7 +942,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         NotFoundException,
         BadRequestException
     {
-        return deleteCollectionItems( pvProperty, getEntity( pvUid ).get( 0 ),
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ),
             renderService.fromXml( request.getInputStream(), IdentifiableObjects.class ) );
     }
 
@@ -1052,15 +972,9 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         ConflictException,
         BadRequestException
     {
-        List<T> objects = getEntity( pvUid );
-        if ( objects.isEmpty() )
-        {
-            throw new NotFoundException( getEntityClass(), pvUid );
-        }
-
         IdentifiableObjects items = new IdentifiableObjects();
-        items.setIdentifiableObjects( singletonList( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
-        return deleteCollectionItems( pvProperty, objects.get( 0 ), items );
+        items.setIdentifiableObjects( List.of( new BaseIdentifiableObject( pvItemId, "", "" ) ) );
+        return deleteCollectionItems( pvProperty, getEntity( pvUid ), items );
     }
 
     @OpenApi.Param( Sharing.class )

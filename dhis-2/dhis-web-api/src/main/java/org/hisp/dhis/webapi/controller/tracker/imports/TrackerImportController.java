@@ -47,21 +47,21 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.TrackerBundleReportMode;
-import org.hisp.dhis.tracker.TrackerImportParams;
-import org.hisp.dhis.tracker.TrackerImportService;
-import org.hisp.dhis.tracker.job.TrackerJobWebMessageResponse;
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.Status;
+import org.hisp.dhis.tracker.imports.TrackerBundleReportMode;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.TrackerImportService;
+import org.hisp.dhis.tracker.imports.job.TrackerJobWebMessageResponse;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.Status;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -97,7 +97,7 @@ public class TrackerImportController
 
     private final TrackerImportService trackerImportService;
 
-    private final CsvEventService<Event> csvEventService;
+    private final CsvService<Event> csvEventService;
 
     private final Notifier notifier;
 
@@ -149,7 +149,7 @@ public class TrackerImportController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
-        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        List<Event> events = csvEventService.read( inputStream, skipFirst );
 
         Body body = Body.builder()
             .events( events )
@@ -182,7 +182,7 @@ public class TrackerImportController
     {
         InputStream inputStream = StreamUtils.wrapAndCheckCompressionFormat( request.getInputStream() );
 
-        List<Event> events = csvEventService.readEvents( inputStream, skipFirst );
+        List<Event> events = csvEventService.read( inputStream, skipFirst );
         Body body = Body.builder()
             .events( events )
             .build();

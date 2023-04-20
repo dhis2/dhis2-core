@@ -38,18 +38,15 @@ public class MapMap<T, U, V>
 {
     public Map<U, V> putEntry( T key, U valueKey, V value )
     {
-        Map<U, V> map = this.get( key );
-        map = map == null ? new HashMap<>() : map;
+        Map<U, V> map = this.computeIfAbsent( key, k -> new HashMap<>() );
         map.put( valueKey, value );
-        return this.put( key, map );
+        return map;
     }
 
     public void putEntries( T key, Map<U, V> m )
     {
-        Map<U, V> map = this.get( key );
-        map = map == null ? new HashMap<>() : map;
+        Map<U, V> map = this.computeIfAbsent( key, k -> new HashMap<>() );
         map.putAll( m );
-        this.put( key, map );
     }
 
     public void putMap( MapMap<T, U, V> map )
@@ -62,7 +59,8 @@ public class MapMap<T, U, V>
 
     public V getValue( T key, U valueKey )
     {
-        return this.get( key ) == null ? null : this.get( key ).get( valueKey );
+        Map<U, V> map = this.get( key );
+        return map == null ? null : map.get( valueKey );
     }
 
     @SafeVarargs

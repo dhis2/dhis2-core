@@ -56,7 +56,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programDataElement", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramDataElementDimensionItem
-    extends BaseDimensionalItemObject implements EmbeddedObject, ValueTypedDimensionalItemObject
+    extends BaseDimensionalItemObject
+    implements EmbeddedObject, ValueTypedDimensionalItemObject
 {
     private Program program;
 

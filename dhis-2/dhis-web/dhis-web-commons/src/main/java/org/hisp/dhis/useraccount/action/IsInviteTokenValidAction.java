@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import javax.servlet.http.HttpSession;
+
+import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.RestoreType;
@@ -95,6 +98,18 @@ public class IsInviteTokenValidAction
         return username;
     }
 
+    private String cspNonce = "";
+
+    public void setCspNonce( String cspNonce )
+    {
+        this.cspNonce = cspNonce;
+    }
+
+    public String getCspNonce()
+    {
+        return cspNonce;
+    }
+
     // -------------------------------------------------------------------------
     // Action implementation
     // -------------------------------------------------------------------------
@@ -119,6 +134,10 @@ public class IsInviteTokenValidAction
         {
             return ERROR;
         }
+
+        HttpSession session = ServletActionContext.getRequest().getSession();
+        String nonce = (String) session.getAttribute( "nonce" );
+        setCspNonce( nonce );
 
         email = user.getEmail();
         username = user.getUsername();

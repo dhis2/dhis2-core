@@ -58,7 +58,7 @@ import org.hisp.dhis.util.CheckedFunction;
  * parameters. This class is intended to only house functions without any
  * dependencies on services or components.
  */
-class RequestParamUtils
+public class RequestParamUtils
 {
     private RequestParamUtils()
     {
@@ -116,7 +116,7 @@ class RequestParamUtils
      * @return result of func
      * @param <T> base identifiable object to be returned from func
      */
-    static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
+    public static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
     {
         if ( StringUtils.isEmpty( arg ) )
         {
@@ -132,7 +132,7 @@ class RequestParamUtils
      * @param input string to parse
      * @return set of uids
      */
-    static Set<String> parseAndFilterUids( String input )
+    public static Set<String> parseAndFilterUids( String input )
     {
         return parseUidString( input )
             .filter( CodeGenerator::isValidUid )
@@ -145,7 +145,7 @@ class RequestParamUtils
      * @param input string to parse
      * @return set of uids
      */
-    static Set<String> parseUids( String input )
+    public static Set<String> parseUids( String input )
     {
         return parseUidString( input )
             .collect( Collectors.toSet() );

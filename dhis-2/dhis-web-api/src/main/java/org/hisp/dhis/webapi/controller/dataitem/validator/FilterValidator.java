@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.dataitem.validator;
 
+import static lombok.AccessLevel.PRIVATE;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import static org.apache.commons.lang3.StringUtils.substringBeforeLast;
 import static org.apache.commons.lang3.StringUtils.trimToEmpty;
 import static org.hisp.dhis.feedback.ErrorCode.E2014;
 import static org.hisp.dhis.feedback.ErrorCode.E2034;
@@ -40,7 +42,8 @@ import static org.hisp.dhis.webapi.controller.dataitem.Filter.Operation.getAbbre
 
 import java.util.Set;
 
-import org.apache.commons.lang3.StringUtils;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.webapi.controller.dataitem.Filter;
@@ -50,15 +53,12 @@ import org.hisp.dhis.webapi.controller.dataitem.Filter;
  *
  * @author maikel arabori
  */
+@NoArgsConstructor( access = PRIVATE )
 public class FilterValidator
 {
     public static final byte FILTER_ATTRIBUTE_NAME = 0;
 
     public static final byte FILTER_OPERATOR = 1;
-
-    private FilterValidator()
-    {
-    }
 
     /**
      * Checks if the given set o filters are valid, and contains only filter
@@ -68,22 +68,21 @@ public class FilterValidator
      * @throws IllegalQueryException if the set contains a non-supported name or
      *         operator, or and invalid syntax.
      */
-    public static void checkNamesAndOperators( final Set<String> filters )
+    public static void checkNamesAndOperators( Set<String> filters )
     {
         if ( isNotEmpty( filters ) )
         {
-            for ( final String filter : filters )
+            for ( String filter : filters )
             {
                 {
-                    final String[] filterAttributeValuePair = filter.split( ":" );
-                    final boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
+                    String[] filterAttributeValuePair = filter.split( ":" );
+                    boolean filterHasCorrectForm = filterAttributeValuePair.length == 3;
 
                     if ( filterHasCorrectForm )
                     {
-                        final String attributeName = trimToEmpty(
-                            filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
+                        String attributeName = trimToEmpty( filterAttributeValuePair[FILTER_ATTRIBUTE_NAME] );
 
-                        final String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
+                        String operator = trimToEmpty( filterAttributeValuePair[FILTER_OPERATOR] );
 
                         if ( !getNames().contains( attributeName ) && !getPropertyNames().contains( attributeName ) )
                         {
@@ -98,7 +97,7 @@ public class FilterValidator
                         if ( getCombinations().stream().noneMatch( combination -> filter.startsWith( combination ) ) )
                         {
                             throw new IllegalQueryException(
-                                new ErrorMessage( E2035, StringUtils.substringBeforeLast( filter, ":" ) ) );
+                                new ErrorMessage( E2035, substringBeforeLast( filter, ":" ) ) );
                         }
                     }
                     else
@@ -118,13 +117,13 @@ public class FilterValidator
      * @param withPrefixes
      * @return true if a filter prefix is found, false otherwise.
      */
-    public static boolean containsFilterWithAnyOfPrefixes( final Set<String> filters, final String... withPrefixes )
+    public static boolean containsFilterWithAnyOfPrefixes( Set<String> filters, String... withPrefixes )
     {
         if ( isNotEmpty( filters ) && withPrefixes != null && withPrefixes.length > 0 )
         {
-            for ( final String filter : filters )
+            for ( String filter : filters )
             {
-                for ( final String prefix : withPrefixes )
+                for ( String prefix : withPrefixes )
                 {
                     if ( filterHasPrefix( filter, prefix ) )
                     {
@@ -147,7 +146,7 @@ public class FilterValidator
      * @return true if the current filter starts with the given prefix, false
      *         otherwise
      */
-    public static boolean filterHasPrefix( final String filter, final String prefix )
+    public static boolean filterHasPrefix( String filter, String prefix )
     {
         if ( isNotBlank( prefix ) && isNotBlank( filter ) )
         {

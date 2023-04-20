@@ -63,6 +63,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
@@ -75,7 +76,7 @@ public class MetadataHandler
 {
     private final DataQueryService dataQueryService;
 
-    private final SchemaIdResponseMapper schemaIdResponseMapper;
+    private final SchemeIdResponseMapper schemeIdResponseMapper;
 
     /**
      * Adds meta data values to the given grid based on the given data query
@@ -84,7 +85,8 @@ public class MetadataHandler
      * @param params the {@link DataQueryParams}.
      * @param grid the {@link Grid}.
      */
-    void addMetaData( DataQueryParams params, Grid grid )
+    @Transactional( readOnly = true )
+    public void addMetaData( DataQueryParams params, Grid grid )
     {
         if ( !params.isSkipMeta() )
         {
@@ -184,7 +186,7 @@ public class MetadataHandler
         {
             if ( params.hasCustomIdSchemaSet() )
             {
-                grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
+                grid.substituteMetaData( schemeIdResponseMapper.getSchemeIdResponseMap( params ) );
             }
         }
     }

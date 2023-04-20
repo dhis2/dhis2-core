@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.scheduling.Job;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -158,7 +158,7 @@ public class TrackerTrigramIndexingJob implements Job
         Set<Long> teaIds = new HashSet<>( teaIdList );
 
         // Collect tea ids of all indexable attributets
-        Set<Long> allIndexableAttributeIds = allIndexableAttributes.stream().map( BaseIdentifiableObject::getId )
+        Set<Long> allIndexableAttributeIds = allIndexableAttributes.stream().map( IdentifiableObject::getId )
             .collect(
                 Collectors.toSet() );
 

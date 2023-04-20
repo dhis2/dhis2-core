@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -72,7 +73,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
         addDataValue( "2021-01", "2", null, false );
         assertEquals( ErrorCode.E2032,
             PUT( "/dataValues/followups",
-                Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
+                Body( format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
                     .error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
@@ -81,10 +82,10 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     {
         addDataValue( "2021-01", "2", null, false );
         assertStatus( HttpStatus.OK, PUT( "/dataValues/followups",
-            Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", true ) ) ) ) );
+            Body( format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", true ) ) ) ) );
         assertFollowups( true );
         assertStatus( HttpStatus.OK, PUT( "/dataValues/followups",
-            Body( String.format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", false ) ) ) ) );
+            Body( format( "{'values':[%s]}", dataValueKeyJSON( "2021-01", false ) ) ) ) );
         assertFollowups( false );
     }
 
@@ -96,12 +97,12 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
         addDataValue( "2021-03", "4", null, false );
         assertStatus( HttpStatus.OK,
             PUT( "/dataValues/followups",
-                Body( String.format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", true ),
+                Body( format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", true ),
                     dataValueKeyJSON( "2021-02", true ), dataValueKeyJSON( "2021-03", true ) ) ) ) );
         assertFollowups( true, true, true );
         assertStatus( HttpStatus.OK,
             PUT( "/dataValues/followups",
-                Body( String.format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", false ),
+                Body( format( "{'values':[%s, %s, %s]}", dataValueKeyJSON( "2021-01", false ),
                     dataValueKeyJSON( "2021-02", true ), dataValueKeyJSON( "2021-03", false ) ) ) ) );
         assertFollowups( false, true, false );
     }
@@ -109,7 +110,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
     @Test
     public void testAddDataValueWithBody()
     {
-        String body = String.format( "{" +
+        String body = format( "{" +
             "'dataElement':'%s'," +
             "'categoryOptionCombo':'%s'," +
             "'period':'202201'," +
@@ -133,7 +134,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
                 "{'name':'My data set', 'shortName':'MDS', 'periodType':'Monthly', 'dataSetElements':[{'dataElement':{'id':'"
                     + dataElementId + "'}}]}" ) );
 
-        String body = String.format( "{" +
+        String body = format( "{" +
             "'dataElement':'%s'," +
             "'categoryOptionCombo':'%s'," +
             "'period':'20220102'," +
@@ -170,7 +171,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
 
     private String dataValueKeyJSON( String period, boolean followup )
     {
-        return String.format(
+        return format(
             "{'dataElement':'%s', 'period':'%s', 'orgUnit':'%s', 'categoryOptionCombo':'%s', 'followup':%b}",
             dataElementId, period, orgUnitId, categoryOptionComboId, followup );
     }
