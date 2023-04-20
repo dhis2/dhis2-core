@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifierHelper.getPrefix;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.ORGANISATION_UNIT;
+import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 
 import java.util.List;
@@ -49,6 +50,7 @@ import org.hisp.dhis.analytics.tei.query.OrganisationUnitCondition;
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 import org.hisp.dhis.analytics.tei.query.context.sql.RenderableSqlQuery;
 import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilder;
+import org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders;
 import org.springframework.stereotype.Service;
 
 /**
@@ -86,6 +88,7 @@ public class OrgUnitQueryBuilder implements SqlQueryBuilder
 
         acceptedDimensions
             .stream()
+            .filter( SqlQueryBuilders::hasRestrictions )
             .map( dimId -> GroupableCondition.of(
                 dimId.getGroupId(),
                 OrganisationUnitCondition.of( dimId, queryContext ) ) )
