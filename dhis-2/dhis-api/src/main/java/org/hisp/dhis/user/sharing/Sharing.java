@@ -38,8 +38,9 @@ import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -51,7 +52,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
@@ -79,6 +81,7 @@ public class Sharing
      * Map of user access. Key is user UID.
      */
     @JsonProperty
+    @Builder.Default
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserAccess> users = new HashMap<>();
 
@@ -86,6 +89,7 @@ public class Sharing
      * Map of user group access. Key is user group UID.
      */
     @JsonProperty
+    @Builder.Default
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
 

@@ -49,7 +49,7 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
@@ -62,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author viet@dhis2.org
  */
-class BulkPatchManagerTest extends SingleSetupIntegrationTestBase
+class BulkPatchManagerTest extends TransactionalIntegrationTest
 {
 
     @Autowired
