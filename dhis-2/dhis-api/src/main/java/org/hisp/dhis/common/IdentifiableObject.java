@@ -132,4 +132,9 @@ public interface IdentifiableObject
 
     }
 
+    default boolean hasSharing()
+    {
+        return getSharing() != null;
+    }
+
 }

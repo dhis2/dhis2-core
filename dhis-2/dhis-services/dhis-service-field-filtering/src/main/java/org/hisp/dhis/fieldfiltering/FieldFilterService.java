@@ -475,25 +475,21 @@ public class FieldFilterService
         boolean isSkipSharing )
     {
         applyFieldPathVisitor( root, fieldPaths, isSkipSharing,
-            s -> s.contains( "sharing" )
-                || s.equals( "userGroupAccesses" ) || s.endsWith( ".userGroupAccesses" )
-                || s.equals( "userGroupAccesses.displayName" ) || s.endsWith( ".userGroupAccesses.displayName" )
-                || s.equals( "userAccesses" ) || s.endsWith( ".userAccesses" )
-                || s.equals( "userAccesses.displayName" ) || s.endsWith( ".userAccesses.displayName" ),
+            s -> s.contains( "sharing" ),
             o -> {
-                if ( root instanceof BaseIdentifiableObject )
+                if ( root instanceof IdentifiableObject && ((IdentifiableObject) root).hasSharing() )
                 {
-                    ((BaseIdentifiableObject) root).getSharing().getUserGroups().values()
+                    ((IdentifiableObject) root).getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((BaseIdentifiableObject) root).getSharing().getUsers().values()
+                    ((IdentifiableObject) root).getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
 
-                if ( o instanceof BaseIdentifiableObject )
+                if ( o instanceof IdentifiableObject && ((IdentifiableObject) o).hasSharing() )
                 {
-                    ((BaseIdentifiableObject) o).getSharing().getUserGroups().values()
+                    ((IdentifiableObject) o).getSharing().getUserGroups().values()
                         .forEach( uga -> uga.setDisplayName( userGroupService.getDisplayName( uga.getId() ) ) );
-                    ((BaseIdentifiableObject) o).getSharing().getUsers().values()
+                    ((IdentifiableObject) o).getSharing().getUsers().values()
                         .forEach( ua -> ua.setDisplayName( userService.getDisplayName( ua.getId() ) ) );
                 }
             } );
