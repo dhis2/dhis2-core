@@ -29,9 +29,9 @@ package org.hisp.dhis.tracker.imports.validation.validator;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
-import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
-import static org.hisp.dhis.tracker.validation.validator.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
+import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
+import static org.hisp.dhis.tracker.imports.programrule.IssueType.WARNING;
+import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.GEOMETRY_CANT_BE_NULL;
 
 import java.util.ArrayList;
 import java.util.List;
