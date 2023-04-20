@@ -506,6 +506,11 @@ public class BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Sharing getSharing()
     {
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
         return sharing;
     }
 
