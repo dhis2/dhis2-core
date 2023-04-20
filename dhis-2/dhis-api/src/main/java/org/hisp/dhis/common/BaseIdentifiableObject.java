@@ -682,7 +682,7 @@ public class BaseIdentifiableObject
     {
         if ( sharing == null || getSharing().getUsers() == null )
         {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         return getSharing().getUsers().values();
@@ -692,7 +692,7 @@ public class BaseIdentifiableObject
     {
         if ( sharing == null || getSharing().getUserGroups() == null )
         {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         return getSharing().getUserGroups().values();
