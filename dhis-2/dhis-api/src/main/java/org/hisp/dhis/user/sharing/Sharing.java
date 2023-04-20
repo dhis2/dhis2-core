@@ -130,7 +130,11 @@ public class Sharing
             users = new HashMap<>();
         }
 
-        users.put( userAccess.getId(), userAccess );
+        if ( userAccess != null )
+        {
+            users.put( userAccess.getId(), userAccess );
+        }
+
         return this;
     }
 
@@ -141,7 +145,11 @@ public class Sharing
             userGroups = new HashMap<>();
         }
 
-        this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        if ( userGroupAccess != null )
+        {
+            userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        }
+
         return this;
     }
 
