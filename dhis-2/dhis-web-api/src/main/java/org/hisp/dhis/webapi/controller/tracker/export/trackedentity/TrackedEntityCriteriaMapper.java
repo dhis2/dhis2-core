@@ -188,10 +188,10 @@ public class TrackedEntityCriteriaMapper
             List<String> errorMessages = new ArrayList<>();
             for ( DimensionalItemObject duplicatedAttribute : duplicatedAttributes )
             {
-                List<String> duplicateDFilters = getDuplicateDFilters( attributeItems, duplicatedAttribute );
+                List<String> duplicatedFilters = getDuplicatedFilters( attributeItems, duplicatedAttribute );
                 String message = MessageFormat.format( "Filter for attribute {0} was specified more than once. " +
                     "Try to define a single filter with multiple operators [{0}:{1}]",
-                    duplicatedAttribute.getUid(), StringUtils.join( duplicateDFilters, ':' ) );
+                    duplicatedAttribute.getUid(), StringUtils.join( duplicatedFilters, ':' ) );
                 errorMessages.add( message );
             }
 
@@ -199,14 +199,14 @@ public class TrackedEntityCriteriaMapper
         }
     }
 
-    private List<String> getDuplicateDFilters( List<QueryItem> attributeItems,
+    private List<String> getDuplicatedFilters( List<QueryItem> attributeItems,
         DimensionalItemObject duplicatedAttribute )
     {
         return attributeItems.stream()
             .filter( q -> Objects.equals( q.getItem(), duplicatedAttribute ) )
             .flatMap( q -> q.getFilters().stream() )
             .map( f -> f.getOperator() + ":" + f.getFilter() )
-            .collect( Collectors.toList() );
+            .toList();
     }
 
     private Set<DimensionalItemObject> getDuplicatedAttributes( List<QueryItem> attributeItems )

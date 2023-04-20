@@ -27,11 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -44,12 +39,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    InstantMapper.class,
     DataValueMapper.class,
+    CategoryOptionMapper.class,
+    InstantMapper.class,
     NoteMapper.class,
     RelationshipMapper.class,
     UserMapper.class } )
-interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
+public interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
 {
     @Mapping( target = "event", source = "uid" )
     @Mapping( target = "program", source = "programInstance.program.uid" )
@@ -74,36 +70,4 @@ interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "notes", source = "comments" )
     Event from( ProgramStageInstance event );
-
-    /**
-     * Maps {@link ProgramInstance#getRelationshipItems()} to
-     * {@link org.hisp.dhis.relationship.Relationship} which is then mapped by
-     * {@link RelationshipMapper}.
-     *
-     */
-    default Set<org.hisp.dhis.relationship.Relationship> map(
-        Set<org.hisp.dhis.relationship.RelationshipItem> relationshipItems )
-    {
-        if ( relationshipItems == null )
-        {
-            return Set.of();
-        }
-
-        return relationshipItems.stream().map( org.hisp.dhis.relationship.RelationshipItem::getRelationship )
-            .collect( Collectors.toSet() );
-    }
-
-    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
-    // we could not simply export the UIDs.
-    default String from( Set<CategoryOption> categoryOptions )
-    {
-        if ( categoryOptions == null || categoryOptions.isEmpty() )
-        {
-            return null;
-        }
-
-        return categoryOptions.stream()
-            .map( CategoryOption::getUid )
-            .collect( Collectors.joining( ";" ) );
-    }
 }
