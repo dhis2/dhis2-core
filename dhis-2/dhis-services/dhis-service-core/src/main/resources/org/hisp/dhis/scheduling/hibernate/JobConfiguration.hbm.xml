@@ -52,8 +52,6 @@
 
         <property name="lastRuntimeExecution" type="text" />
 
-        <property name="nextExecutionTime" type="timestamp" />
-
         <property name="enabled" not-null="true" type="boolean" />
 
         <property name="leaderOnlyJob" not-null="true" type="boolean">
