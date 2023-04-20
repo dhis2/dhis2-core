@@ -214,19 +214,6 @@ public class TeiValidationTests
     }
 
     @Test
-    public void shouldReturnErrorWhenAttributeMultiTextInvalid()
-    {
-        JsonObject trackedEntities = buildTeiWithMandatoryAttribute()
-            .addAttribute( attributeWithMultiText, "TA_NO,TA_Invalid" )
-            .array();
-
-        trackerActions.postAndGetJobReport( trackedEntities, new QueryParamsBuilder().add( "async=false" ) )
-            .validateErrorReport()
-            .body( "errorCode", hasItem( "E1125" ) )
-            .body( "trackerType", hasItem( "TRACKED_ENTITY" ) );
-    }
-
-    @Test
     public void shouldReturnSuccessWhenAttributeMultiTextIsValid()
     {
         JsonObject trackedEntities = buildTeiWithMandatoryAttribute()

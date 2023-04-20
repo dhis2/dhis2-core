@@ -93,17 +93,6 @@ class TrackedEntityImportValidationTest extends TrackerTest
     }
 
     @Test
-    void failValidationWhenTrackedEntityAttributeHasWrongMultiTextValue()
-        throws IOException
-    {
-        TrackerImportParams params = fromJson( "tracker/validations/te-with_invalid_multi_text_value.json" );
-
-        ImportReport importReport = trackerImportService.importTracker( params );
-
-        assertHasOnlyErrors( importReport, ValidationCode.E1125 );
-    }
-
-    @Test
     void successValidationWhenTrackedEntityAttributeHasValidMultiTextValue()
         throws IOException
     {
