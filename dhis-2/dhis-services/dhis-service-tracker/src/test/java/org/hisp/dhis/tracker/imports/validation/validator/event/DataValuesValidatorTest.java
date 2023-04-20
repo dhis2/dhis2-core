@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidatio
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
-import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -726,7 +726,7 @@ class DataValuesValidatorTest
         option.setCode( "CODE" );
         Option option1 = new Option();
         option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        optionSet.setOptions( List.of( option, option1 ) );
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
@@ -758,7 +758,7 @@ class DataValuesValidatorTest
         option.setCode( "CODE" );
         Option option1 = new Option();
         option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        optionSet.setOptions( List.of( option, option1 ) );
 
         DataElement dataElement = dataElement();
         dataElement.setOptionSet( optionSet );
@@ -791,7 +791,7 @@ class DataValuesValidatorTest
         option.setCode( "CODE" );
         Option option1 = new Option();
         option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        optionSet.setOptions( List.of( option, option1 ) );
 
         DataElement dataElement = dataElement( ValueType.MULTI_TEXT );
         dataElement.setOptionSet( optionSet );
@@ -823,7 +823,7 @@ class DataValuesValidatorTest
         option.setCode( "CODE" );
         Option option1 = new Option();
         option1.setCode( "CODE1" );
-        optionSet.setOptions( Arrays.asList( option, option1 ) );
+        optionSet.setOptions( List.of( option, option1 ) );
 
         DataElement dataElement = dataElement( ValueType.MULTI_TEXT );
         dataElement.setOptionSet( optionSet );
