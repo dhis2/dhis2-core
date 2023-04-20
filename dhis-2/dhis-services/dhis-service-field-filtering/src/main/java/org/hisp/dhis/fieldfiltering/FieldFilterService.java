@@ -59,6 +59,7 @@ import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.OrderComparator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -270,6 +271,7 @@ public class FieldFilterService
      * @throws IOException if there is either an underlying I/O problem or
      *         encoding issue on writing to the generator
      */
+    @Transactional( readOnly = true )
     public void toObjectNodesStream( FieldFilterParams<?> params, JsonGenerator generator )
         throws IOException
     {

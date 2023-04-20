@@ -157,7 +157,7 @@ public class AuditManager
     {
         if ( auditObject instanceof Map )
         {
-            return ((Map) auditObject).get( attributeName );
+            return ((Map<?, ?>) auditObject).get( attributeName );
         }
 
         Object value = ReflectionUtils.invokeMethod( auditObject, getter );
