@@ -84,7 +84,7 @@ public class JsonDeviceRenderTypeMap extends JsonBinaryType
         }
     }
 
-    private <T extends RenderingObject> DeviceRenderTypeMap<T> convertMapToObject(
+    private <T extends RenderingObject<?>> DeviceRenderTypeMap<T> convertMapToObject(
         LinkedHashMap<RenderDevice, LinkedHashMap<String, String>> map )
         throws IllegalAccessException,
         InstantiationException

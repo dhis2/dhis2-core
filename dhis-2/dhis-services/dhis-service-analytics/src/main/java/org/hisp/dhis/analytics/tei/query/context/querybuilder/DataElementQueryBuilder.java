@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics.tei.query.context.querybuilder;
 
 import static org.hisp.dhis.analytics.common.ValueTypeMapping.fromValueType;
 import static org.hisp.dhis.analytics.common.params.dimension.DimensionParamObjectType.DATA_ELEMENT;
-import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.hasRestrictions;
 import static org.hisp.dhis.analytics.tei.query.context.sql.SqlQueryBuilders.isOfType;
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
@@ -64,7 +63,7 @@ public class DataElementQueryBuilder implements SqlQueryBuilder
 {
     @Getter
     private final List<Predicate<DimensionIdentifier<DimensionParam>>> dimensionFilters = List.of(
-        DataElementQueryBuilder::isDataElementRestriction );
+        DataElementQueryBuilder::isDataElement );
 
     @Getter
     private final List<Predicate<AnalyticsSortingParams>> sortingFilters = List.of(
@@ -108,16 +107,25 @@ public class DataElementQueryBuilder implements SqlQueryBuilder
         return builder.build();
     }
 
+    /**
+     * Checks if the given sorting parameter is of type data element.
+     *
+     * @param analyticsSortingParams the sorting parameter to check.
+     * @return true if the sorting parameter is of type data element, false
+     *         otherwise.
+     */
     private static boolean isDataElementOrder( AnalyticsSortingParams analyticsSortingParams )
     {
         return isDataElement( analyticsSortingParams.getOrderBy() );
     }
 
-    private static boolean isDataElementRestriction( DimensionIdentifier<DimensionParam> dimensionIdentifier )
-    {
-        return isDataElement( dimensionIdentifier ) && hasRestrictions( dimensionIdentifier );
-    }
-
+    /**
+     * Checks if the given dimension identifier is of type data element.
+     *
+     * @param dimensionIdentifier the dimension identifier to check.
+     * @return true if the dimension identifier is of type data element, false
+     *         otherwise.
+     */
     private static boolean isDataElement( DimensionIdentifier<DimensionParam> dimensionIdentifier )
     {
         return isOfType( dimensionIdentifier, DATA_ELEMENT ) && dimensionIdentifier.isEventDimension();

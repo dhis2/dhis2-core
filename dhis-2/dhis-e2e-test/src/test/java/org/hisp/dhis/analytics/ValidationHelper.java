@@ -28,6 +28,7 @@
 package org.hisp.dhis.analytics;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
@@ -128,11 +129,23 @@ public class ValidationHelper
      * response.
      *
      * @param response
+     * @param rowIndex
      * @param expectedValues
      */
     public static void validateRow( ApiResponse response, int rowIndex, List<String> expectedValues )
     {
-        response.validate()
-            .body( "rows[" + rowIndex + "]", equalTo( expectedValues ) );
+        response.validate().body( "rows[" + rowIndex + "]", equalTo( expectedValues ) );
+    }
+
+    /**
+     * Validate/assert that all values of the given row are present in the given
+     * response.
+     *
+     * @param response
+     * @param expectedValues
+     */
+    public static void validateRow( ApiResponse response, List<String> expectedValues )
+    {
+        response.validate().body( "rows", hasItems( expectedValues ) );
     }
 }

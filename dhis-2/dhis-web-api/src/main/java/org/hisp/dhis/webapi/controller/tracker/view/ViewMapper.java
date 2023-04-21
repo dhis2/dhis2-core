@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public interface ViewMapper<FROM, TO>
+public interface ViewMapper<T, R>
 {
-    TO from( FROM from );
+    R from( T from );
 
-    default List<TO> fromCollection( Collection<FROM> froms )
+    default List<R> fromCollection( Collection<T> froms )
     {
         return Optional.ofNullable( froms )
             .orElse( Collections.emptySet() )
