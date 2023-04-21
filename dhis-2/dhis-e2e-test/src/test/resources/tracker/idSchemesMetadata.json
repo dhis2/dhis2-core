@@ -8,11 +8,6 @@
       "lastUpdated": "2022-05-30T12:01:22.719",
       "translations": [],
       "favorites": [],
-      "sharing": {
-        "external": false,
-        "users": {},
-        "userGroups": {}
-      },
       "shortName": "TA id schemes test",
       "dimensionItemType": "ORGANISATION_UNIT",
       "legendSets": [],
@@ -220,11 +215,6 @@
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
           "favorites": [],
-          "sharing": {
-            "external": false,
-            "users": {},
-            "userGroups": {}
-          },
           "programStage": {
             "id": "fFNTQZPt2J4"
           },
@@ -248,11 +238,6 @@
           "lastUpdated": "2022-02-22T09:08:39.532",
           "translations": [],
           "favorites": [],
-          "sharing": {
-            "external": false,
-            "users": {},
-            "userGroups": {}
-          },
           "programStage": {
             "id": "fFNTQZPt2J4"
           },
@@ -276,11 +261,6 @@
           "lastUpdated": "2022-02-22T09:08:39.533",
           "translations": [],
           "favorites": [],
-          "sharing": {
-            "external": false,
-            "users": {},
-            "userGroups": {}
-          },
           "programStage": {
             "id": "fFNTQZPt2J4"
           },

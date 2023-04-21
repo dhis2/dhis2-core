@@ -93,6 +93,7 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
     public void setUpTest()
     {
         userService = _userService;
+        createAndInjectAdminUser();
         userGroupA = createUserGroup( 'A', new HashSet<>() );
         objectManager.save( userGroupA );
         userA = makeUser( "A" );
@@ -100,14 +101,19 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
         userService.addUser( userA );
         userB = makeUser( "B" );
         userService.addUser( userB );
-        sharingReadForUserA = new Sharing( DEFAULT, new UserAccess( userA, READ ) );
-        sharingReadWriteForUserB = new Sharing( DEFAULT, new UserAccess( userB, READ_WRITE ) );
-        sharingReadForUserAB = new Sharing( DEFAULT, new UserAccess( userA, READ ), new UserAccess( userB, READ ) );
-        sharingUserGroupA = new Sharing( DEFAULT, new UserGroupAccess( userGroupA, READ ) );
+        sharingReadForUserA = Sharing.builder().publicAccess( DEFAULT ).owner( ADMIN_USER_UID ).build()
+            .addUserAccess( new UserAccess( userA, READ ) );
+        sharingReadWriteForUserB = Sharing.builder().publicAccess( DEFAULT ).owner( ADMIN_USER_UID ).build()
+            .addUserAccess( new UserAccess( userB, READ_WRITE ) );
+        sharingReadForUserAB = Sharing.builder().publicAccess( DEFAULT ).owner( ADMIN_USER_UID ).build()
+            .addUserAccess( new UserAccess( userA, READ ) )
+            .addUserAccess( new UserAccess( userB, READ ) );
+        sharingUserGroupA = Sharing.builder().publicAccess( DEFAULT ).owner( ADMIN_USER_UID ).build()
+            .addUserGroupAccess( new UserGroupAccess( userGroupA, READ ) );
         programA = createProgram( 'A' );
         programA.setSharing( defaultSharing() );
         objectManager.save( programA, false );
-        createAndInjectAdminUser();
+
     }
 
     /**
@@ -396,15 +402,24 @@ class DashboardCascadeSharingTest extends CascadeSharingTest
         Map mapA = createMap( "A" );
         mapA.setSharing( sharingReadWriteForUserB );
         objectManager.save( mapA, false );
-        Map mapB = createMap( "A" );
+        Map mapB = createMap( "B" );
         mapB.setSharing( defaultSharing() );
         objectManager.save( mapB, false );
         DashboardItem itemB = createDashboardItem( "B" );
         itemB.setMap( mapB );
+
+        // Dashboard with item A and item B
+        // Item A has sharing read for user B
+        // Item B has sharing default
+        // Dashboard has sharing read for user A
+        // After cascade sharing, item A should have sharing read for user A
+        // Error is expected because user B does not have read access to item B
+
         Dashboard dashboard = createDashboardWithItem( "A", sharingReadForUserA );
         dashboard.getItems().get( 0 ).setMap( mapA );
         dashboard.getItems().add( itemB );
         objectManager.save( dashboard, false );
+
         CascadeSharingReport report = cascadeSharingService.cascadeSharing( dashboard,
             CascadeSharingParameters.builder().atomic( false ).user( userB ).build() );
         assertEquals( 1, report.getErrorReports().size() );

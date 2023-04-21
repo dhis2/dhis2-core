@@ -51,9 +51,5 @@ public interface OrganisationUnitMapper
     @Mapping( target = "name" )
     @Mapping( target = "attributeValues" )
     @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
     OrganisationUnit map( OrganisationUnit organisationUnit );
 }

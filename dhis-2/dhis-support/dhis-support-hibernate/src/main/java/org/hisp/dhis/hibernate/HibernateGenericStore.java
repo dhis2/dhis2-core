@@ -434,10 +434,7 @@ public class HibernateGenericStore<T>
     @Override
     public void delete( T object )
     {
-        if ( !ObjectDeletionRequestedEvent.shouldSkip( HibernateProxyUtils.getRealClass( object ) ) )
-        {
-            publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
-        }
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( object ) );
 
         getSession().delete( object );
     }

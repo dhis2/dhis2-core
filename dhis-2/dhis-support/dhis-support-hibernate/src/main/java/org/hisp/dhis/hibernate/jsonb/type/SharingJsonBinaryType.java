@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.user.sharing.Sharing;
 
-/**
- * @author Lars Helge Overland
- */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+public class SharingJsonBinaryType extends JsonBinaryType
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public ObjectDeletionRequestedEvent( Object source )
+    @Override
+    protected Object convertJsonToObject( String content )
     {
-        super( source );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
-
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
+        Sharing sharing = (Sharing) super.convertJsonToObject( content );
+        sharing.setUsers( CollectionUtils.emptyIfNull( sharing.getUsers() ) );
+        sharing.setUserGroups( CollectionUtils.emptyIfNull( sharing.getUserGroups() ) );
+        return sharing;
     }
 }
