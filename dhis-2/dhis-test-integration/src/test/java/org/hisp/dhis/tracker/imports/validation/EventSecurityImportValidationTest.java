@@ -240,7 +240,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         trackerBundleParams.setUser( user );
         ImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertHasOnlyErrors( importReport, ValidationCode.E1095 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1095, ValidationCode.E1096 );
     }
 
     @Test

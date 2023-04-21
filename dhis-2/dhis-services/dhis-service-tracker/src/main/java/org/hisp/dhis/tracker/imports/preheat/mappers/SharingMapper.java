@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,41 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.springframework.context.ApplicationEvent;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Lars Helge Overland
- */
-public class ObjectDeletionRequestedEvent
-    extends ApplicationEvent
+@Mapper( uses = { DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class } )
+public interface SharingMapper extends PreheatMapper<Sharing>
 {
-    /**
-     * Should rollback the transaction if DeleteNotAllowedException is thrown
-     */
-    private boolean shouldRollBack = true;
+    SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public ObjectDeletionRequestedEvent( Object source )
-    {
-        super( source );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    public boolean isShouldRollBack()
-    {
-        return shouldRollBack;
-    }
-
-    public void setShouldRollBack( boolean shouldRollBack )
-    {
-        this.shouldRollBack = shouldRollBack;
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "external" )
+    @Mapping( target = "owner" )
+    @Mapping( target = "users" )
+    @Mapping( target = "userGroups" )
+    Sharing map( Sharing sharing );
 }
