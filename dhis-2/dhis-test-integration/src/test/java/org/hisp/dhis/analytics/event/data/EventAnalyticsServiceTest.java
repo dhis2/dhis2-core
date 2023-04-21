@@ -61,6 +61,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
 import org.hisp.dhis.analytics.AnalyticsTableService;
 import org.hisp.dhis.analytics.AnalyticsTableUpdateParams;
@@ -1079,6 +1080,16 @@ class EventAnalyticsServiceTest
     }
 
     // -------------------------------------------------------------------------
+    // Test program indicators with aggregation types
+    // -------------------------------------------------------------------------
+
+    //    @Test
+    void testEventProgramIndicatorSum()
+    {
+        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", null, SUM );
+    }
+
+    // -------------------------------------------------------------------------
     // Supportive test methods
     // -------------------------------------------------------------------------
 
@@ -1132,7 +1143,7 @@ class EventAnalyticsServiceTest
     }
 
     /**
-     * Creates program indicator A.
+     * Creates program indicator A with orgUnitField.
      */
     private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
         String orgUnitField, PeriodType afterStartPeriodType, int afterStartPeriods )
@@ -1141,6 +1152,18 @@ class EventAnalyticsServiceTest
             afterStartPeriodType, afterStartPeriods );
         pi.setUid( "programIndA" );
         pi.setOrgUnitField( orgUnitField );
+        return pi;
+    }
+
+    /**
+     * Creates program indicator A with aggregationType.
+     */
+    private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
+        String filter, AggregationType aggregationType )
+    {
+        ProgramIndicator pi = createProgramIndicator( 'A', analyticsType, programA, expression, filter );
+        pi.setUid( "programIndA" );
+        pi.setAggregationType( aggregationType );
         return pi;
     }
 

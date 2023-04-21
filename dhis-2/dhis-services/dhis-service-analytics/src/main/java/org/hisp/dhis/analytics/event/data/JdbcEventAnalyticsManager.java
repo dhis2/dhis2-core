@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.lang.String.join;
 import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
@@ -626,22 +625,37 @@ public class JdbcEventAnalyticsManager
         Assert.isTrue( params.hasValueDimension() || params.hasProgramIndicatorDimension(),
             "Last value aggregation type query must have value dimension or a program indicator" );
 
-        Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        String columns = join( ",", getFirstOrLastValueSubqueryQuotedColumns( params ) );
+        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
         String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
-        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
-        String valueItem = (params.hasProgramIndicatorDimension())
-            ? getProgramIndicatorSql( params )
-            : quoteAlias( params.getValue().getDimensionItem() );
+
+        String columns;
+        String timeTest;
+        String nullTest;
+
+        if ( params.hasProgramIndicatorDimension() )
+        {
+            columns = "*," + getProgramIndicatorSql( params ) + " as value";
+            timeTest = timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
+            nullTest = "";
+        }
+        else
+        {
+            String valueItem = quoteAlias( params.getValue().getDimensionItem() );
+            columns = quote( "psi" ) + "," + valueItem + "," + getFirstOrLastValueSubqueryQuotedColumns( params );
+
+            Date latest = params.getLatestEndDate();
+            Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
+            timeTest = timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
+                "and " + timeCol + " <= '" + getMediumDateString( latest ) + "'";
+
+            nullTest = " and " + valueItem + " is not null";
+        }
 
         return "(select " + columns + ",row_number() over (" + partitionByClause + " " +
             "order by " + timeCol + " " + order + ") as pe_rank " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
-            "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
-            "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
-            "and " + valueItem + " is not null)";
+            "where " + timeTest + nullTest + ")";
     }
 
     /**
@@ -699,27 +713,15 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Returns quoted names of columns for the {@link AggregationType#FIRST} or
-     * {@link AggregationType#LAST} sub query.
+     * {@link AggregationType#LAST} sub query (not for program indicators).
      *
      * @param params the {@link EventQueryParams}.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
+    private String getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
-        if ( params.hasProgramIndicatorDimension() )
-        {
-            return List.of( "*", getProgramIndicatorSql( params ) + " as \"value\"" );
-        }
-
-        String valueItem = params.getValue().getDimensionItem();
-
-        List<String> cols = Lists.newArrayList( quote( "psi" ), quote( valueItem ) );
-
-        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-        {
-            cols.add( quote( dim.getDimensionName() ) );
-        }
-
-        return cols;
+        return params.getDimensionsAndFilters().stream()
+            .map( dim -> quote( dim.getDimensionName() ) )
+            .collect( joining( "," ) );
     }
 
     /**

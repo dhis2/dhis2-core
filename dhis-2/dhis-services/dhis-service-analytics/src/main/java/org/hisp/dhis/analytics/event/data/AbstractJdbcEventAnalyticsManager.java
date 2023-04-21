@@ -710,7 +710,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             return quoteAlias( params.getValue().getUid() );
         }
         else if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
-            && params.hasProgramIndicatorDimension() )
+            && params.hasEventProgramIndicatorDimension() )
         {
             return function + "(value)";
         }

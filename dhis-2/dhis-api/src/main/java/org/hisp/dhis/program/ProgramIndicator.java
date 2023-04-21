@@ -144,11 +144,33 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns aggregation type, if not exists returns AVERAGE.
+     * Returns aggregation type supported by postgres or by analytics code, if
+     * not exists returns AVERAGE.
      */
     public AggregationType getAggregationTypeFallback()
     {
-        return aggregationType != null ? aggregationType : AggregationType.AVERAGE;
+        if ( aggregationType == null )
+        {
+            return AggregationType.AVERAGE;
+        }
+
+        switch ( aggregationType )
+        {
+        case AVERAGE_SUM_ORG_UNIT:
+        case LAST_IN_PERIOD:
+        case MAX_SUM_ORG_UNIT:
+        case MIN_SUM_ORG_UNIT:
+            return AggregationType.SUM;
+        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
+        case DEFAULT:
+            return AggregationType.AVERAGE;
+        case FIRST: // (Sum org unit)
+        case LAST: // (Sum org unit)
+        case FIRST_AVERAGE_ORG_UNIT:
+        case LAST_AVERAGE_ORG_UNIT:
+        default:
+            return aggregationType;
+        }
     }
 
     public void addProgramIndicatorGroup( ProgramIndicatorGroup group )

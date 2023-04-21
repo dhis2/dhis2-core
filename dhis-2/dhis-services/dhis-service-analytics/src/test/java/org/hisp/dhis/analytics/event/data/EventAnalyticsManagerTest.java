@@ -486,7 +486,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String subquery = "from (select \"psi\",\"deabcdefghX\",\"ou\"," +
+        String subquery = "from (select \"psi\",ax.\"deabcdefghX\",\"ou\"," +
             "\"monthly\",\"jkYhtGth12t\"," +
             "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" " +
             "order by ax.\"executiondate\" desc) as pe_rank from analytics_event_prabcdefghA as ax " +
@@ -552,7 +552,7 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = "from (select \"psi\",\"" + deU.getUid()
+        String expectedLastSubquery = "from (select \"psi\",ax.\"" + deU.getUid()
             + "\",\"monthly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
             + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
