@@ -29,11 +29,12 @@ package org.hisp.dhis.startup;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.String.format;
-import static org.hisp.dhis.scheduling.JobStatus.FAILED;
 import static org.hisp.dhis.scheduling.JobStatus.SCHEDULED;
 import static org.hisp.dhis.scheduling.JobType.FILE_RESOURCE_CLEANUP;
 import static org.hisp.dhis.scheduling.JobType.REMOVE_USED_OR_EXPIRED_RESERVED_VALUES;
 
+import java.time.Clock;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -162,18 +163,20 @@ public class SchedulerStart extends AbstractStartupRoutine
         jobConfigurations.forEach( (jobConfig -> {
             if ( jobConfig.isEnabled() )
             {
-                Date oldExecutionTime = jobConfig.getNextExecutionTime();
-
-                jobConfig.setNextExecutionTime( null );
                 jobConfig.setJobStatus( SCHEDULED );
                 jobConfigurationService.updateJobConfiguration( jobConfig );
 
-                if ( jobConfig.getLastExecutedStatus() == FAILED
-                    || (oldExecutionTime != null && oldExecutionTime.compareTo( now ) < 0) )
+                Date lastExecuted = jobConfig.getLastExecuted();
+                if ( lastExecuted != null )
                 {
-                    unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
-                        + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
-                        + oldExecutionTime );
+                    Date expectedFutureExecutionTime = jobConfig.nextExecutionTimeAfter( Clock.fixed(
+                        lastExecuted.toInstant().plusSeconds( 1 ), ZoneId.systemDefault() ) );
+                    if ( expectedFutureExecutionTime.before( now ) )
+                    {
+                        unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
+                            + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
+                            + expectedFutureExecutionTime );
+                    }
                 }
 
                 schedulingManager.schedule( jobConfig );
@@ -182,15 +185,9 @@ public class SchedulerStart extends AbstractStartupRoutine
 
         if ( !unexecutedJobs.isEmpty() )
         {
-            StringBuilder jobs = new StringBuilder();
-
-            for ( String unexecutedJob : unexecutedJobs )
-            {
-                jobs.append( unexecutedJob ).append( "\n" );
-            }
-
-            messageService.sendSystemErrorNotification( "Scheduler startup",
-                new Exception( "Scheduler started with one or more unexecuted jobs:\n" + jobs ) );
+            String msg = "Scheduler started with one or more unexecuted jobs:\n" + String.join( "", unexecutedJobs );
+            messageService.sendSystemErrorNotification( "Scheduler startup", new Exception( msg ) );
+            log.warn( msg );
         }
     }
 

@@ -318,14 +318,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions.
-     * In the case of non-default boundaries
-     * {@link EventQueryParams#hasNonDefaultBoundaries}, the period is
-     * hard-coded into the select statement with "(isoPeriod) as (periodType)".
-     * <p>
-     * If the first/last subquery is used then one query will be done for each
-     * period, and the period will not be present in the query, so add it to the
-     * select columns and skip it in the group by columns.
+     * second.
      *
      * @param params the {@link EventQueryParams}.
      * @param isGroupByClause used to avoid grouping by period when using
@@ -336,6 +329,24 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         List<String> columns = new ArrayList<>();
 
+        addDimensionSelectColumns( columns, params, isGroupByClause );
+        addItemSelectColumns( columns, params, isGroupByClause, isAggregated );
+
+        return columns;
+    }
+
+    /**
+     * Adds the dynamic dimension select columns. Program indicator expressions
+     * are converted to SQL expressions. In the case of non-default boundaries
+     * {@link EventQueryParams#hasNonDefaultBoundaries}, the period is
+     * hard-coded into the select statement with "(isoPeriod) as (periodType)".
+     * <p>
+     * If the first/last subquery is used then one query will be done for each
+     * period, and the period will not be present in the query, so add it to the
+     * select columns and skip it in the group by columns.
+     */
+    private void addDimensionSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause )
+    {
         params.getDimensions().forEach( dimension -> {
             if ( isGroupByClause && dimension.getDimensionType() == DimensionType.PERIOD
                 && params.hasNonDefaultBoundaries() )
@@ -377,11 +388,26 @@ public abstract class AbstractJdbcEventAnalyticsManager
                     "exactly one period, or no periods and a period filter" );
             }
         } );
+    }
 
+    private void addItemSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause,
+        boolean isAggregated )
+    {
         params.getItems().forEach(
-            queryItem -> columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() ) );
+            queryItem -> {
+                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
 
-        return columns;
+                columns.add( columnAndAlias.asSql() );
+
+                // does repeatable stage exist?
+                if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
+                    && queryItem.hasRepeatableStageParams() )
+                {
+                    String column = " exists (" + columnAndAlias.column + ")";
+                    String alias = columnAndAlias.alias + ".exists";
+                    columns.add( (new ColumnAndAlias( column, alias )).asSql() );
+                }
+            } );
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, EventQueryParams params, boolean isGroupByClause,

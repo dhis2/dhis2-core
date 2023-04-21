@@ -27,15 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.event.webrequest;
 
-import static org.hisp.dhis.webapi.controller.event.webrequest.tracker.FieldTranslatorSupport.translate;
-
 import java.util.Date;
-import java.util.Optional;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
@@ -76,35 +71,4 @@ public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
     private boolean includeDeleted;
 
     private Boolean paging;
-
-    @Override
-    public Optional<String> translateField( String dtoFieldName, boolean isLegacy )
-    {
-        return translate( dtoFieldName, LegacyDtoToEntityFieldTranslator.values() );
-    }
-
-    /**
-     * Dto to database field translator for old tracker Enrollment export
-     * controller
-     */
-    @RequiredArgsConstructor
-    private enum LegacyDtoToEntityFieldTranslator implements EntityNameSupplier
-    {
-        /**
-         * this enum names must be the same as
-         * org.hisp.dhis.dxf2.events.enrollment.Enrollment fields, just with
-         * different case
-         *
-         * example: org.hisp.dhis.dxf2.events.enrollment.Enrollment.lastUpdated
-         * --> LAST_UPDATED
-         */
-        ENROLLMENT( "uid" ),
-        TRACKED_ENTITY( "pi.entityInstance.uid" ),
-        TRACKED_ENTITY_INSTANCE( "pi.entityInstance.uid" );
-
-        @Getter
-        private final String entityName;
-
-    }
-
 }

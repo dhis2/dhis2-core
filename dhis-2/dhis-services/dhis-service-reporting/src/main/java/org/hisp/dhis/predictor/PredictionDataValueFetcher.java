@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static java.util.Collections.emptyList;
+import static java.util.function.UnaryOperator.identity;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
@@ -51,15 +52,12 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -99,13 +97,10 @@ import org.hisp.dhis.period.Period;
  *
  * @author Jim Grace
  */
-@RequiredArgsConstructor
 public class PredictionDataValueFetcher
     implements Runnable
 {
     private final DataValueService dataValueService;
-
-    private final CategoryService categoryService;
 
     /**
      * Organisation units assigned to the current user.
@@ -167,7 +162,7 @@ public class PredictionDataValueFetcher
     /**
      * Find catOptionCombo & attributeOptionCombo for a data value.
      */
-    private CachingMap<Long, CategoryOptionCombo> cocLookup;
+    private final Map<Long, CategoryOptionCombo> cocLookup;
 
     /**
      * Requested data elements, by data element UID.
@@ -208,6 +203,15 @@ public class PredictionDataValueFetcher
      */
     private static final int DDV_BLOCKING_QUEUE_SIZE = 1;
 
+    public PredictionDataValueFetcher( DataValueService dataValueService, CategoryService categoryService,
+        Set<OrganisationUnit> currentUserOrgUnits )
+    {
+        this.dataValueService = dataValueService;
+        this.currentUserOrgUnits = currentUserOrgUnits;
+        this.cocLookup = categoryService.getAllCategoryOptionCombos().stream()
+            .collect( toMap( CategoryOptionCombo::getId, identity() ) );
+    }
+
     /**
      * Initializes for datavalue retrieval.
      *
@@ -236,7 +240,6 @@ public class PredictionDataValueFetcher
         dataElementLookup.putAll( dataElementOperands.stream().map( DataElementOperand::getDataElement )
             .distinct().collect( toMap( DataElement::getId, Function.identity(), ( deo1, deo2 ) -> deo1 ) ) );
         periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, Function.identity() ) );
-        cocLookup = new CachingMap<>();
 
         dataElementRequests = dataElements.stream()
             .collect( groupingBy( DataElement::getUid ) );
@@ -431,11 +434,9 @@ public class PredictionDataValueFetcher
 
         OrganisationUnit orgUnit = orgUnitLookup.get( truncatePathToLevel( ddv.getSourcePath() ) );
 
-        CategoryOptionCombo categoryOptionCombo = cocLookup.get( ddv.getCategoryOptionComboId(),
-            () -> categoryService.getCategoryOptionCombo( ddv.getCategoryOptionComboId() ) );
+        CategoryOptionCombo categoryOptionCombo = cocLookup.get( ddv.getCategoryOptionComboId() );
 
-        CategoryOptionCombo attributeOptionCombo = cocLookup.get( ddv.getAttributeOptionComboId(),
-            () -> categoryService.getCategoryOptionCombo( ddv.getAttributeOptionComboId() ) );
+        CategoryOptionCombo attributeOptionCombo = cocLookup.get( ddv.getAttributeOptionComboId() );
 
         return new DataValue( dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo, ddv.getValue(),
             ddv.getStoredBy(), ddv.getLastUpdated(), ddv.getComment(), ddv.isFollowup(), ddv.isDeleted() );
@@ -479,7 +480,7 @@ public class PredictionDataValueFetcher
             // Record value for any requested wildcard data element operands
             for ( DataElementOperand deo : getDataElementOperandRequestList( dv.getDataElement().getUid() ) )
             {
-                DataElementOperand newDeo = new DataElementOperand( dv.getDataElement(), dv.getCategoryOptionCombo() );
+                DataElementOperand newDeo = new DataElementOperand( deo.getDataElement(), dv.getCategoryOptionCombo() );
                 newDeo.setQueryMods( deo.getQueryMods() );
                 addToMap( newDeo, dv, value, map );
             }

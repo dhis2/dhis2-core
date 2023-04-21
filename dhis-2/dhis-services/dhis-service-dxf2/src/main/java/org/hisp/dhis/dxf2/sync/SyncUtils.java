@@ -40,13 +40,10 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.synch.AvailabilityStatus;
-import org.hisp.dhis.dxf2.synch.SynchronizationManager;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.dxf2.webmessage.AbstractWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessageParseException;
 import org.hisp.dhis.dxf2.webmessage.utils.WebMessageParseUtils;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
@@ -497,18 +494,5 @@ public class SyncUtils
         systemInstance.setUrl( systemInstance.getUrl() + SyncUtils.IMPORT_STRATEGY_SYNC_SUFFIX );
 
         return systemInstance;
-    }
-
-    public static Optional<ErrorReport> validateRemoteServerAvailability( SynchronizationManager synchronizationManager,
-        Class<?> klass )
-    {
-        AvailabilityStatus isRemoteServerAvailable = synchronizationManager.isRemoteServerAvailable();
-
-        if ( !isRemoteServerAvailable.isAvailable() )
-        {
-            return Optional.of( new ErrorReport( klass, ErrorCode.E7010, isRemoteServerAvailable.getMessage() ) );
-        }
-
-        return Optional.empty();
     }
 }
