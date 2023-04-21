@@ -40,11 +40,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = {
-    RelationshipMapper.class,
     AttributeMapper.class,
     EnrollmentMapper.class,
-    ProgramOwnerMapper.class,
     InstantMapper.class,
+    ProgramOwnerMapper.class,
+    RelationshipMapper.class,
     UserMapper.class } )
 interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
 {
@@ -61,5 +61,5 @@ interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedE
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
     @Mapping( target = "enrollments", source = "programInstances" )
     @Override
-    TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
+    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
+import org.hisp.dhis.webapi.controller.tracker.export.event.CategoryOptionMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.EnrollmentStatus;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.RelationshipItem;
@@ -47,6 +44,7 @@ import org.mapstruct.Mapping;
 
 @Mapper( uses = {
     AttributeMapper.class,
+    CategoryOptionMapper.class,
     DataValueMapper.class,
     InstantMapper.class,
     NoteMapper.class,
@@ -124,18 +122,4 @@ interface RelationshipItemMapper
 
     @Mapping( target = "displayName", source = "name" )
     User from( org.hisp.dhis.user.User user );
-
-    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
-    // we could not simply export the UIDs.
-    default String from( Set<CategoryOption> categoryOptions )
-    {
-        if ( categoryOptions == null || categoryOptions.isEmpty() )
-        {
-            return "";
-        }
-
-        return categoryOptions.stream()
-            .map( CategoryOption::getUid )
-            .collect( Collectors.joining( ";" ) );
-    }
 }
