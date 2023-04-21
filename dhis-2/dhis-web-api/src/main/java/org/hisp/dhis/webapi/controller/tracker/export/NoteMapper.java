@@ -43,5 +43,5 @@ public interface NoteMapper extends ViewMapper<TrackedEntityComment, Note>
     @Mapping( target = "createdBy", source = "lastUpdatedBy" )
     @Mapping( target = "storedBy", source = "creator" )
     @Override
-    Note from( org.hisp.dhis.trackedentitycomment.TrackedEntityComment comment );
+    Note from( TrackedEntityComment comment );
 }

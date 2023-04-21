@@ -53,6 +53,7 @@ public enum DateUnitType
     MONTHLY( PeriodTypeEnum.MONTHLY, "\\b(\\d{4})[-]?(\\d{2})\\b" ),
     BI_MONTHLY( PeriodTypeEnum.BI_MONTHLY, "\\b(\\d{4})(\\d{2})B\\b" ),
     QUARTERLY( PeriodTypeEnum.QUARTERLY, "\\b(\\d{4})Q(\\d)\\b" ),
+    QUARTERLY_NOV( PeriodTypeEnum.QUARTERLY_NOV, "\\b(\\d{4})NovQ(\\d)\\b" ),
     SIX_MONTHLY( PeriodTypeEnum.SIX_MONTHLY, "\\b(\\d{4})S(\\d)\\b" ),
     SIX_MONTHLY_APRIL( PeriodTypeEnum.SIX_MONTHLY_APRIL, "\\b(\\d{4})AprilS(\\d)\\b" ),
     SIX_MONTHLY_NOVEMBER( PeriodTypeEnum.SIX_MONTHLY_NOV, "\\b(\\d{4})NovS(\\d)\\b" ),

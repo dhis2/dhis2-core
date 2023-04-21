@@ -284,7 +284,7 @@ class EventCriteriaMapper
         List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
         List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
 
-        return Stream.concat( filterItems.stream(), orderItems.stream() ).collect( Collectors.toList() );
+        return Stream.concat( filterItems.stream(), orderItems.stream() ).toList();
     }
 
     private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
@@ -295,7 +295,7 @@ class EventCriteriaMapper
             .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
             .map( attributes::get )
             .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
-            .collect( Collectors.toList() );
+            .toList();
     }
 
     private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
@@ -416,6 +416,6 @@ class EventCriteriaMapper
     {
         return orders.entrySet().stream()
             .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
-            .collect( Collectors.toList() );
+            .toList();
     }
 }

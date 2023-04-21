@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,9 +25,29 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker;
+package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-public class TrackerControllerSupport
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hisp.dhis.category.CategoryOption;
+import org.mapstruct.Mapper;
+
+@Mapper
+public interface CategoryOptionMapper
 {
-    public static final String RESOURCE_PATH = "/tracker";
+
+    // NOTE: right now we only support categoryOptionComboIdScheme on export. If we were to add a categoryOptionIdScheme
+    // we could not simply export the UIDs.
+    default String from( Set<CategoryOption> categoryOptions )
+    {
+        if ( categoryOptions == null || categoryOptions.isEmpty() )
+        {
+            return null;
+        }
+
+        return categoryOptions.stream()
+            .map( CategoryOption::getUid )
+            .collect( Collectors.joining( ";" ) );
+    }
 }

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
-import static org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -193,11 +193,6 @@ public class RelationshipsExportController
         throws NotFoundException,
         ForbiddenException
     {
-        if ( identifier == null )
-        {
-            return null;
-        }
-
         Object object = getObjectRetriever( type ).apply( identifier );
         if ( object == null )
         {
