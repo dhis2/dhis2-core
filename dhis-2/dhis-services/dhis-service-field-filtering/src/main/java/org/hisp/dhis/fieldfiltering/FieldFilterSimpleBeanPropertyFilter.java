@@ -29,6 +29,7 @@ package org.hisp.dhis.fieldfiltering;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +49,7 @@ import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 /**
  * PropertyFilter that supports filtering using FieldPaths, also supports
  * skipping of all fields related to sharing.
- *
+ * <p>
  * The filter _must_ be set on the ObjectMapper before serialising an object.
  *
  * @author Morten Olav Hansen
@@ -59,6 +60,12 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
     private final List<FieldPath> fieldPaths;
 
     private final boolean skipSharing;
+
+    /**
+     * Cache that contains true/false for classes that should always be
+     * expanded.
+     */
+    private final Map<Class<?>, Boolean> alwaysExpandCache = new ConcurrentHashMap<>();
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -167,8 +174,14 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         Class<?> klass = object.getClass();
 
-        return Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
-            || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class );
+        if ( !alwaysExpandCache.containsKey( klass ) )
+        {
+            alwaysExpandCache.put( klass,
+                Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
+                    || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class ) );
+        }
+
+        return alwaysExpandCache.get( klass );
     }
 }
 
