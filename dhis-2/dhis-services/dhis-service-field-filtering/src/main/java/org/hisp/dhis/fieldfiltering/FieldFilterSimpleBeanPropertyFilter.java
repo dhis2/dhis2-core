@@ -84,7 +84,7 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
      * Cache that contains true/false for classes that should always be
      * expanded.
      */
-    private final Map<Class<?>, Boolean> ALWAYS_EXPAND = new ConcurrentHashMap<>();
+    private final Map<Class<?>, Boolean> alwaysExpandCache = new ConcurrentHashMap<>();
 
     @Override
     protected boolean include( final BeanPropertyWriter writer )
@@ -205,14 +205,14 @@ public class FieldFilterSimpleBeanPropertyFilter extends SimpleBeanPropertyFilte
 
         Class<?> klass = object.getClass();
 
-        if ( !ALWAYS_EXPAND.containsKey( klass ) )
+        if ( !alwaysExpandCache.containsKey( klass ) )
         {
-            ALWAYS_EXPAND.put( klass,
+            alwaysExpandCache.put( klass,
                 Map.class.isAssignableFrom( klass ) || JobParameters.class.isAssignableFrom( klass )
                     || AnnotationUtils.isAnnotationPresent( klass, JsonTypeInfo.class ) );
         }
 
-        return ALWAYS_EXPAND.get( klass );
+        return alwaysExpandCache.get( klass );
     }
 }
 
