@@ -575,9 +575,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 .map( op -> new Option( op.getName(), op.getCode() ) )
                 .toList();
         }
-        else
-        {
-            return List.of();
-        }
+
+        return List.of();
     }
 }
