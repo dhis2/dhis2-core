@@ -29,10 +29,12 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 
 @Mapper
 public interface UserMapper extends ViewMapper<UserInfoSnapshot, User>
 {
+    @Override
     User from( UserInfoSnapshot user );
 }

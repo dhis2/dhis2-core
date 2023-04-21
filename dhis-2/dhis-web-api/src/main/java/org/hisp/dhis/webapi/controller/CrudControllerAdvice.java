@@ -72,7 +72,7 @@ import org.hisp.dhis.fieldfilter.FieldFilterException;
 import org.hisp.dhis.query.QueryException;
 import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
