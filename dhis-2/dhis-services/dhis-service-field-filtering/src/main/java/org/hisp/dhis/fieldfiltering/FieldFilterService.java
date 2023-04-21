@@ -218,7 +218,7 @@ public class FieldFilterService
     }
 
     @Transactional( readOnly = true )
-    public  <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
+    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
         boolean isSkipSharing )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
