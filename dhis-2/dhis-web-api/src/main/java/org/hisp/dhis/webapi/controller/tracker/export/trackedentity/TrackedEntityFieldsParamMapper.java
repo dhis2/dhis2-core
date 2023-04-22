@@ -59,11 +59,6 @@ public class TrackedEntityFieldsParamMapper
 
     public TrackedEntityParams map( List<FieldPath> fields )
     {
-        return map( fields, false );
-    }
-
-    public TrackedEntityParams map( List<FieldPath> fields, boolean includeDeleted )
-    {
         Map<String, FieldPath> roots = rootFields( fields );
 
         TrackedEntityParams params = initUsingAllOrNoFields( roots );
@@ -82,8 +77,7 @@ public class TrackedEntityFieldsParamMapper
         EnrollmentParams enrollmentParams = new EnrollmentParams(
             enrollmentEventsParams,
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.relationships" ),
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.attributes" ),
-            includeDeleted );
+            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.attributes" ) );
         TrackedEntityEnrollmentParams teiEnrollmentParams = new TrackedEntityEnrollmentParams(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ENROLLMENTS ),
             enrollmentParams );

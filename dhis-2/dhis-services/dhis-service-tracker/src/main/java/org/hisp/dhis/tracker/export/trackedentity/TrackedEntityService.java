@@ -36,15 +36,17 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 public interface TrackedEntityService
 {
-    TrackedEntityInstance getTrackedEntity( String uid, TrackedEntityParams params )
+    TrackedEntityInstance getTrackedEntity( String uid, boolean includeDeleted, TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 
-    TrackedEntityInstance getTrackedEntity( TrackedEntityInstance trackedEntity, TrackedEntityParams params )
+    TrackedEntityInstance getTrackedEntity( TrackedEntityInstance trackedEntity, boolean includeDeleted,
+        TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 
-    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
+    TrackedEntityInstance getTrackedEntity( String uid, boolean includeDeleted, String programIdentifier,
+        TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 

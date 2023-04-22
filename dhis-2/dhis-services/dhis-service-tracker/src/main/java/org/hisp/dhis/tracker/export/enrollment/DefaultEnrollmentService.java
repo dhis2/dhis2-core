@@ -75,19 +75,20 @@ public class DefaultEnrollmentService implements EnrollmentService
     private final TrackerAccessManager trackerAccessManager;
 
     @Override
-    public ProgramInstance getEnrollment( String uid, EnrollmentParams params )
+    public ProgramInstance getEnrollment( String uid, boolean includeDeleted, EnrollmentParams params )
     {
         ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        return programInstance != null ? getEnrollment( programInstance, params ) : null;
+        return programInstance != null ? getEnrollment( programInstance, includeDeleted, params ) : null;
     }
 
     @Override
-    public ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params )
+    public ProgramInstance getEnrollment( ProgramInstance enrollment, boolean includeDeleted, EnrollmentParams params )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), enrollment, params );
+        return getEnrollment( enrollment, includeDeleted, params, currentUserService.getCurrentUser() );
     }
 
-    private ProgramInstance getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params )
+    private ProgramInstance getEnrollment( ProgramInstance programInstance, boolean includeDeleted,
+        EnrollmentParams params, User user )
     {
         List<String> errors = trackerAccessManager.canRead( user, programInstance, false );
         if ( !errors.isEmpty() )
@@ -124,29 +125,29 @@ public class DefaultEnrollmentService implements EnrollmentService
         result.setComments( programInstance.getComments() );
         if ( params.isIncludeEvents() )
         {
-            result.setProgramStageInstances( getProgramStageInstances( user, programInstance, params ) );
+            result.setProgramStageInstances( getProgramStageInstances( programInstance, includeDeleted, user ) );
         }
         if ( params.isIncludeRelationships() )
         {
-            result.setRelationshipItems( getRelationshipItems( user, programInstance, params ) );
+            result.setRelationshipItems( getRelationshipItems( programInstance, includeDeleted, user ) );
         }
         if ( params.isIncludeAttributes() )
         {
             result.getEntityInstance()
-                .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( user, programInstance ) );
+                .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( programInstance, user ) );
         }
 
         return result;
     }
 
-    private Set<ProgramStageInstance> getProgramStageInstances( User user, ProgramInstance programInstance,
-        EnrollmentParams params )
+    private Set<ProgramStageInstance> getProgramStageInstances( ProgramInstance programInstance, boolean includeDeleted,
+        User user )
     {
         Set<ProgramStageInstance> programStageInstances = new HashSet<>();
 
         for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
         {
-            if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
+            if ( (includeDeleted || !programStageInstance.isDeleted())
                 && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
             {
                 programStageInstances.add( programStageInstance );
@@ -155,8 +156,8 @@ public class DefaultEnrollmentService implements EnrollmentService
         return programStageInstances;
     }
 
-    private Set<RelationshipItem> getRelationshipItems( User user, ProgramInstance programInstance,
-        EnrollmentParams params )
+    private Set<RelationshipItem> getRelationshipItems( ProgramInstance programInstance, boolean includeDeleted,
+        User user )
     {
         Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -164,7 +165,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         {
             org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
             if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                && (includeDeleted || !daoRelationship.isDeleted()) )
             {
                 relationshipItems.add( relationshipItem );
             }
@@ -173,8 +174,8 @@ public class DefaultEnrollmentService implements EnrollmentService
         return relationshipItems;
     }
 
-    private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( User user,
-        ProgramInstance programInstance )
+    private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( ProgramInstance programInstance,
+        User user )
     {
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
             .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
@@ -221,7 +222,7 @@ public class DefaultEnrollmentService implements EnrollmentService
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        enrollments.setEnrollments( getEnrollments( params.isIncludeDeleted(), programInstances ) );
 
         return enrollments;
     }
@@ -262,7 +263,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<ProgramInstance> getEnrollments( Iterable<ProgramInstance> programInstances )
+    private List<ProgramInstance> getEnrollments( boolean includeDeleted, Iterable<ProgramInstance> programInstances )
     {
         List<ProgramInstance> enrollments = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
@@ -272,7 +273,7 @@ public class DefaultEnrollmentService implements EnrollmentService
             if ( programInstance != null && trackerOwnershipAccessManager
                 .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE ) );
+                enrollments.add( getEnrollment( programInstance, includeDeleted, EnrollmentParams.FALSE, user ) );
             }
         }
 

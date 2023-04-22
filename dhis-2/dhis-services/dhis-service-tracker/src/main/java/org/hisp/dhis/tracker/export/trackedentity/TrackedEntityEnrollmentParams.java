@@ -59,20 +59,6 @@ public class TrackedEntityEnrollmentParams
                 enrollmentParams.withIncludeEvents( includeEvents ) );
     }
 
-    public TrackedEntityEnrollmentParams withIncludeRelationships( boolean includeRelationships )
-    {
-        return this.enrollmentParams.isIncludeRelationships() == includeRelationships ? this
-            : new TrackedEntityEnrollmentParams( includeEnrollments,
-                enrollmentParams.withIncludeRelationships( includeRelationships ) );
-    }
-
-    public TrackedEntityEnrollmentParams withIncludeAttributes( boolean includeAttributes )
-    {
-        return this.enrollmentParams.isIncludeAttributes() == includeAttributes ? this
-            : new TrackedEntityEnrollmentParams( includeEnrollments,
-                enrollmentParams.withIncludeAttributes( includeAttributes ) );
-    }
-
     public boolean isIncludeEvents()
     {
         return enrollmentParams.isIncludeEvents();
@@ -86,10 +72,5 @@ public class TrackedEntityEnrollmentParams
     public boolean isIncludeAttributes()
     {
         return enrollmentParams.isIncludeAttributes();
-    }
-
-    public boolean isIncludeDeleted()
-    {
-        return enrollmentParams.isIncludeDeleted();
     }
 }

@@ -121,11 +121,11 @@ public class TrackedEntityAggregate
      * primary keys and search parameters
      *
      * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param includeDeleted
      * @param params an instance of {@see TrackedEntityParams}
-     *
      * @return a List of {@see TrackedEntityInstance} objects
      */
-    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityParams params,
+    public List<TrackedEntityInstance> find( List<Long> ids, boolean includeDeleted, TrackedEntityParams params,
         TrackedEntityInstanceQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
@@ -159,6 +159,7 @@ public class TrackedEntityAggregate
                 .programs( Collections.emptyList() )
                 .programStages( Collections.emptyList() )
                 .relationshipTypes( Collections.emptyList() ) )
+            .includeDeleted( includeDeleted )
             .params( params )
             .queryParams( queryParams )
             .build();

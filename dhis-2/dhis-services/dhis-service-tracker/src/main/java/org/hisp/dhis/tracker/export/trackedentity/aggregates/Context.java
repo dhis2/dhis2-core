@@ -82,6 +82,8 @@ class Context
      */
     List<Long> relationshipTypes;
 
+    boolean includeDeleted;
+
     /**
      * The tei params to specify depth of tei graph
      */

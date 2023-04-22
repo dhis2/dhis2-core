@@ -186,15 +186,17 @@ public class DefaultRelationshipService implements RelationshipService
         // should only have the program tracked entity attributes.
         if ( item.getTrackedEntityInstance() != null )
         {
+            // TODO(ivo) should this include deleted?
             result.setTrackedEntityInstance( trackedEntityService
-                .getTrackedEntity( item.getTrackedEntityInstance(),
+                .getTrackedEntity( item.getTrackedEntityInstance(), false,
                     TrackedEntityParams.TRUE.withIncludeRelationships( false ) ) );
         }
         else if ( item.getProgramInstance() != null )
         {
+            // TODO(ivo) what was the behavior before?
             result.setProgramInstance(
                 enrollmentService.getEnrollment( item.getProgramInstance(),
-                    EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
+                    false, EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
         else if ( item.getProgramStageInstance() != null )
         {

@@ -108,7 +108,7 @@ abstract class AbstractStore
             String.format( GET_RELATIONSHIP_ID_BY_ENTITY_ID_SQL, getRelationshipEntityColumn(),
                 getRelationshipEntityColumn() ) );
 
-        if ( !ctx.getParams().isIncludeDeleted() )
+        if ( !ctx.isIncludeDeleted() )
         {
             getRelationshipsHavingIdSQL.append( " AND r.deleted is false" );
         }

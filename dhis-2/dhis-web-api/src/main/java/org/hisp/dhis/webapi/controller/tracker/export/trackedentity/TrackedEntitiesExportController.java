@@ -90,7 +90,7 @@ public class TrackedEntitiesExportController
      * cannot be filtered using the {@link FieldFilterService} so
      * <code>fields</code> query parameter is ignored when CSV is requested.
      * Make sure this is kept in sync with the columns we promise to return in
-     * the CSV. See {@link org.hisp.dhis.webapi.controller.tracker.export.csv}.
+     * the CSV. See {@link CsvTrackedEntity}.
      */
     private static final List<FieldPath> CSV_FIELDS = FieldFilterParser.parse(
         "trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,storedBy,createdBy,updatedBy,attributes" );
@@ -120,8 +120,7 @@ public class TrackedEntitiesExportController
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields,
-            criteria.isIncludeDeleted() );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection(
@@ -159,8 +158,7 @@ public class TrackedEntitiesExportController
         NotFoundException
     {
         TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
-            criteria.isIncludeDeleted() );
+        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
 
         List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
             .fromCollection(
@@ -202,8 +200,9 @@ public class TrackedEntitiesExportController
     {
         TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields );
 
+        // TODO(ivo) do the single endpoints also support includeDeleted query param?
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, false, program, trackedEntityInstanceParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
@@ -218,8 +217,9 @@ public class TrackedEntitiesExportController
     {
         TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
 
+        // TODO(ivo) does the single CSV endpoint also support includeDeleted query param?
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, false, program, trackedEntityInstanceParams ) );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );

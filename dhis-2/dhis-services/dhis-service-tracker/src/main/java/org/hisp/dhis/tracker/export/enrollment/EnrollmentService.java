@@ -32,9 +32,9 @@ import org.hisp.dhis.program.ProgramInstanceQueryParams;
 
 public interface EnrollmentService
 {
-    ProgramInstance getEnrollment( String uid, EnrollmentParams params );
+    ProgramInstance getEnrollment( String uid, boolean includeDeleted, EnrollmentParams params );
 
-    ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params );
+    ProgramInstance getEnrollment( ProgramInstance enrollment, boolean includeDeleted, EnrollmentParams params );
 
     Enrollments getEnrollments( ProgramInstanceQueryParams params );
 }

@@ -94,8 +94,7 @@ public class EnrollmentsExportController
 
         List<ProgramInstance> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
         if ( enrollmentCriteria.getEnrollment() == null )
         {
@@ -116,7 +115,8 @@ public class EnrollmentsExportController
             Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
             enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
+                ? enrollmentIds.stream().map(
+                    e -> enrollmentService.getEnrollment( e, enrollmentCriteria.isIncludeDeleted(), enrollmentParams ) )
                     .toList()
                 : Collections.emptyList();
         }
@@ -134,8 +134,9 @@ public class EnrollmentsExportController
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
+        // TODO(ivo) by default the EnrollmentParams.includeDeleted is false; so this here will not change the behavior we had before
         Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
+            .from( enrollmentService.getEnrollment( id, false, enrollmentParams ) );
         if ( enrollment == null )
         {
             throw new NotFoundException( Enrollment.class, id );
