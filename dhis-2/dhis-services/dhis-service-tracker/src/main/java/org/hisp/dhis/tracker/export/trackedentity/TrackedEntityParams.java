@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.export.trackedentity;
 import lombok.Value;
 import lombok.With;
 
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentEventsParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
 
@@ -67,25 +66,8 @@ public class TrackedEntityParams
         return this.teiEnrollmentParams.getEnrollmentParams();
     }
 
-    public TrackedEntityParams withEnrollmentParams( EnrollmentParams enrollmentParams )
-    {
-        return this.withTeiEnrollmentParams( getTeiEnrollmentParams().withEnrollmentParams( enrollmentParams ) );
-    }
-
     public EventParams getEventParams()
     {
         return getEnrollmentParams().getEnrollmentEventsParams().getEventParams();
-    }
-
-    public TrackedEntityParams withEventParams( EventParams eventParams )
-    {
-        EnrollmentParams enrollmentParams = this.teiEnrollmentParams.getEnrollmentParams();
-
-        EnrollmentEventsParams eventParamsToUpdate = enrollmentParams
-            .getEnrollmentEventsParams()
-            .withEventParams( eventParams );
-
-        return withTeiEnrollmentParams( this.teiEnrollmentParams.withEnrollmentParams( enrollmentParams
-            .withEnrollmentEventsParams( eventParamsToUpdate ) ) );
     }
 }
