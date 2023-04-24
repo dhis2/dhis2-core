@@ -35,6 +35,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.route.Route;
@@ -69,7 +70,19 @@ public class RouteController
         HttpServletRequest request )
         throws IOException,
         ForbiddenException,
-        NotFoundException
+        NotFoundException,
+        BadRequestException
+    {
+        return runWithSubpath( id, user, request );
+    }
+
+    @RequestMapping( value = "/{id}/run/**", method = { RequestMethod.GET, RequestMethod.POST } )
+    public ResponseEntity<String> runWithSubpath( @PathVariable( "id" ) String id, @CurrentUser User user,
+        HttpServletRequest request )
+        throws IOException,
+        ForbiddenException,
+        NotFoundException,
+        BadRequestException
     {
         Route route = routeService.getDecryptedRoute( id );
 
@@ -83,7 +96,17 @@ public class RouteController
             throw new ForbiddenException( "User not authorized" );
         }
 
-        ResponseEntity<String> entity = routeService.exec( route, user, request );
+        String subPath = getSubPath( request.getPathInfo(), id );
+
+        ResponseEntity<String> entity;
+        try
+        {
+            entity = routeService.exec( route, user, subPath, request );
+        }
+        catch ( IllegalArgumentException e )
+        {
+            throw new BadRequestException( e.getMessage() );
+        }
 
         if ( entity.getStatusCode().is4xxClientError() )
         {
@@ -95,5 +118,16 @@ public class RouteController
         }
 
         return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
+    }
+
+    private String getSubPath( String path, String id )
+    {
+        String prefix = String.format( "%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id );
+
+        if ( path.startsWith( prefix ) )
+        {
+            return path.substring( prefix.length() );
+        }
+        return null;
     }
 }

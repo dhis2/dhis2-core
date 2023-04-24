@@ -54,6 +54,8 @@ public class Route
     extends BaseIdentifiableObject
     implements MetadataObject
 {
+    public static final String PATH_WILDCARD_SUFFIX = "/**";
+
     @JsonProperty
     private String description;
 
@@ -71,4 +73,18 @@ public class Route
 
     @JsonProperty
     private List<String> authorities = new ArrayList<>();
+
+    public boolean allowsSubpaths()
+    {
+        return url.endsWith( PATH_WILDCARD_SUFFIX );
+    }
+
+    public String getBaseUrl()
+    {
+        if ( allowsSubpaths() )
+        {
+            return url.substring( 0, -PATH_WILDCARD_SUFFIX.length() ) + "/";
+        }
+        return url;
+    }
 }
