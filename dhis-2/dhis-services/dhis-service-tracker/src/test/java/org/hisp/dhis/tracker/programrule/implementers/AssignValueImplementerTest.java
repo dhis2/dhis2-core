@@ -35,6 +35,7 @@ import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +48,8 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -109,6 +112,12 @@ class AssignValueImplementerTest extends DhisConvenienceTest
 
     private final static String TEI_ATTRIBUTE_NEW_VALUE = "24.0";
 
+    private final static String OPTION_SET_DATA_ELEMENT_ID = "OptionSetDataElementId";
+
+    private final static String VALID_OPTION_VALUE = "10";
+
+    private final static String INVALID_OPTION_VALUE = "0";
+
     private static ProgramStage firstProgramStage;
 
     private static ProgramStage secondProgramStage;
@@ -118,6 +127,8 @@ class AssignValueImplementerTest extends DhisConvenienceTest
     private static DataElement dataElementB;
 
     private static TrackedEntityAttribute attributeA;
+
+    private static DataElement optionSetDataElement;
 
     private TrackerBundle bundle;
 
@@ -150,9 +161,21 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
         secondProgramStage.setProgramStageDataElements( Sets.newHashSet( programStageDataElementB ) );
+        optionSetDataElement = createDataElement( 'P' );
+        optionSetDataElement.setUid( OPTION_SET_DATA_ELEMENT_ID );
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option( "ten", "10" );
+        optionSet.setOptions( List.of( option ) );
+        optionSet.setValueType( ValueType.TEXT );
+        optionSetDataElement.setOptionSet( optionSet );
+        ProgramStageDataElement programStageDataElementOptionSet = createProgramStageDataElement( secondProgramStage,
+            optionSetDataElement, 0 );
+        secondProgramStage
+            .setProgramStageDataElements( Set.of( programStageDataElementB, programStageDataElementOptionSet ) );
         when( preheat.get( ProgramStage.class, firstProgramStage.getUid() ) ).thenReturn( firstProgramStage );
         when( preheat.get( ProgramStage.class, secondProgramStage.getUid() ) ).thenReturn( secondProgramStage );
         when( preheat.get( DataElement.class, dataElementA.getUid() ) ).thenReturn( dataElementA );
+        when( preheat.get( DataElement.class, optionSetDataElement.getUid() ) ).thenReturn( optionSetDataElement );
         when( preheat.get( TrackedEntityAttribute.class, attributeA.getUid() ) ).thenReturn( attributeA );
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
@@ -239,6 +262,83 @@ class AssignValueImplementerTest extends DhisConvenienceTest
             .filter( dv -> dv.getDataElement().equals( dataElementA.getUid() ) ).findAny();
         assertTrue( newDataValue.isPresent() );
         assertEquals( DATA_ELEMENT_NEW_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    void shouldFailWhenAssignedValueIsInvalidOptionAndDataValueIsValidOption()
+    {
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        bundle.setRuleEffects( getInvalidOptionSetRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( OPTION_SET_DATA_ELEMENT_ID ) ).findAny();
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( VALID_OPTION_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
+        assertEquals( ERROR, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty()
+    {
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueNOTSet();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        bundle.setRuleEffects( getValidOptionSetRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( OPTION_SET_DATA_ELEMENT_ID ) ).findAny();
+        assertTrue( newDataValue.isPresent() );
+        assertEquals( VALID_OPTION_VALUE, newDataValue.get().getValue() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( SECOND_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( SECOND_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty()
+    {
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueNOTSet();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        bundle.setRuleEffects( getInvalidOptionSetRuleEventEffects( events ) );
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( SECOND_EVENT_ID ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( OPTION_SET_DATA_ELEMENT_ID ) ).findAny();
+        assertTrue( newDataValue.isEmpty() );
+        assertEquals( 1, eventIssues.size() );
+        assertEquals( 1, eventIssues.get( SECOND_EVENT_ID ).size() );
+        assertEquals( WARNING, eventIssues.get( SECOND_EVENT_ID ).get( 0 ).getIssueType() );
+    }
+
+    @Test
+    void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue()
+    {
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+        bundle.setRuleEffects( getInvalidOptionSetRuleEventEffects( events ) );
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+
+        Map<String, List<ProgramRuleIssue>> eventIssues = implementerToTest.validateEvents( bundle );
+        Event event = bundle.getEvents().stream().filter( e -> e.getEvent().equals( FIRST_EVENT_ID ) ).findAny().get();
+        Optional<DataValue> newDataValue = event.getDataValues().stream()
+            .filter( dv -> dv.getDataElement().equals( OPTION_SET_DATA_ELEMENT_ID ) ).findAny();
+        assertTrue( newDataValue.isPresent() );
+        assertNull( newDataValue.get().getValue() );
         assertEquals( 1, eventIssues.size() );
         assertEquals( 1, eventIssues.get( FIRST_EVENT_ID ).size() );
         assertEquals( WARNING, eventIssues.get( FIRST_EVENT_ID ).get( 0 ).getIssueType() );
@@ -401,6 +501,25 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         assertFalse( implementerToTest.isEqual( null, "second_dose", ValueType.TEXT ) );
     }
 
+    private Event getEventWithOptionSetDataValueWithValidValue()
+    {
+        return Event.builder()
+            .event( FIRST_EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .programStage( secondProgramStage.getUid() )
+            .dataValues( getOptionSetDataValues() )
+            .build();
+    }
+
+    private Set<DataValue> getOptionSetDataValues()
+    {
+        DataValue dataValue = DataValue.builder()
+            .dataElement( OPTION_SET_DATA_ELEMENT_ID )
+            .value( VALID_OPTION_VALUE )
+            .build();
+        return Sets.newHashSet( dataValue );
+    }
+
     private Event getEventWithDataValueSet()
     {
         Event event = new Event();
@@ -427,6 +546,15 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         event.setEvent( SECOND_EVENT_ID );
         event.setStatus( EventStatus.ACTIVE );
         event.setProgramStage( firstProgramStage.getUid() );
+        return event;
+    }
+
+    private Event getEventWithOptionSetDataValueNOTSet()
+    {
+        Event event = new Event();
+        event.setEvent( SECOND_EVENT_ID );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setProgramStage( secondProgramStage.getUid() );
         return event;
     }
 
@@ -511,6 +639,35 @@ class AssignValueImplementerTest extends DhisConvenienceTest
         attribute.setAttribute( ATTRIBUTE_ID );
         attribute.setValue( TEI_ATTRIBUTE_NEW_VALUE );
         return Lists.newArrayList( attribute );
+    }
+
+    private List<RuleEffects> getInvalidOptionSetRuleEventEffects( List<Event> events )
+    {
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
+        for ( Event event : events )
+        {
+            RuleAction actionAssign = RuleActionAssign.create( null, INVALID_OPTION_VALUE,
+                optionSetDataElement.getUid(),
+                DATA_ELEMENT );
+            List<RuleEffect> ruleEffects = Lists
+                .newArrayList( RuleEffect.create( "", actionAssign, INVALID_OPTION_VALUE ) );
+            ruleEffectsByEvent.add( new RuleEffects( EVENT, event.getEvent(), ruleEffects ) );
+        }
+        return ruleEffectsByEvent;
+    }
+
+    private List<RuleEffects> getValidOptionSetRuleEventEffects( List<Event> events )
+    {
+        List<RuleEffects> ruleEffectsByEvent = Lists.newArrayList();
+        for ( Event event : events )
+        {
+            RuleAction actionAssign = RuleActionAssign.create( null, VALID_OPTION_VALUE, optionSetDataElement.getUid(),
+                DATA_ELEMENT );
+            List<RuleEffect> ruleEffects = Lists
+                .newArrayList( RuleEffect.create( "", actionAssign, VALID_OPTION_VALUE ) );
+            ruleEffectsByEvent.add( new RuleEffects( EVENT, event.getEvent(), ruleEffects ) );
+        }
+        return ruleEffectsByEvent;
     }
 
     private List<RuleEffects> getRuleEventEffects( List<Event> events )
