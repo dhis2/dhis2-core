@@ -37,7 +37,6 @@ import static org.hisp.dhis.dxf2.common.ImportOptions.getDefaultImportOptions;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -51,10 +50,10 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserGroup;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -115,7 +114,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
         Set<UserAccess> userAccesses = new HashSet<>();
         userAccesses.add( userAccess );
-        program.setUserAccesses( userAccesses );
+        program.getSharing().setUserAccesses( userAccesses );
         manager.save( program, false );
         manager.flush();
         // When
@@ -135,7 +134,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
-        program.setUserGroupAccesses( singleton( userGroupAccess ) );
+        program.getSharing().addUserGroupAccess( userGroupAccess );
         manager.save( program, false );
         manager.flush();
         // When
@@ -188,7 +187,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         final User user = createUserWithAuth( "user2" );
         final ProgramStage programStage = createProgramStage( 'B', 1 );
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
-        programStage.setUserAccesses( singleton( userAccess ) );
+        programStage.getSharing().addUserAccess( userAccess );
         manager.save( programStage, false );
         final Program program = createProgram( 'A' );
         program.setProgramStages( singleton( programStage ) );
@@ -279,7 +278,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         final TrackedEntityType tet = createTrackedEntityType( 'A' );
         manager.save( tet );
         UserAccess userAccess = new UserAccess( user, AccessStringHelper.DATA_READ_WRITE );
-        tet.setUserAccesses( Collections.singleton( userAccess ) );
+        tet.getSharing().addUserAccess( userAccess );
         manager.save( tet, false );
         final Program program = createProgram( 'A' );
         program.setTrackedEntityType( tet );
@@ -304,7 +303,7 @@ class ProgramSupplierAclIntegrationTest extends TransactionalIntegrationTest
         manager.save( userGroup, true );
         user.getGroups().add( userGroup );
         UserGroupAccess userGroupAccess = new UserGroupAccess( userGroup, AccessStringHelper.DATA_READ_WRITE );
-        tet.setUserGroupAccesses( singleton( userGroupAccess ) );
+        tet.getSharing().addUserGroupAccess( userGroupAccess );
         manager.save( tet, false );
         final Program program = createProgram( 'A' );
         program.setTrackedEntityType( tet );

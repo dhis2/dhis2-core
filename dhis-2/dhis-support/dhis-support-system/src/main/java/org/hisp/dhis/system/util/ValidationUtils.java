@@ -33,7 +33,6 @@ import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.trim;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
-import static org.hisp.dhis.common.ValueType.MULTI_TEXT;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.isBool;
@@ -520,21 +519,19 @@ public class ValidationUtils
 
         OptionSet options = dataElement.getOptionSet();
 
-        boolean isMultiText = valueType == MULTI_TEXT;
-
-        if ( isMultiText && options == null )
+        if ( valueType.isMultiText() && options == null )
         {
             return "data_element_lacks_option_set";
         }
 
         if ( validateOptions && options != null )
         {
-            if ( !isMultiText && options.getOptionByCode( value ) == null )
+            if ( !valueType.isMultiText() && options.getOptionByCode( value ) == null )
             {
                 return "value_not_valid_option";
             }
 
-            if ( isMultiText && !options.hasAllOptions( ValueType.splitMultiText( value ) ) )
+            if ( valueType.isMultiText() && !options.hasAllOptions( ValueType.splitMultiText( value ) ) )
             {
                 return "value_not_valid_option";
             }

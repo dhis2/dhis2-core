@@ -34,9 +34,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
-import org.hisp.dhis.tracker.report.Error;
-import org.hisp.dhis.tracker.report.ValidationReport;
-import org.hisp.dhis.tracker.validation.ValidationCode;
+import org.hisp.dhis.tracker.imports.report.Error;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
+import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.junit.jupiter.api.Test;
 
 /**

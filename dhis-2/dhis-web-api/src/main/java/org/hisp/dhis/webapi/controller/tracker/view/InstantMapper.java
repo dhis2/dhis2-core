@@ -47,9 +47,9 @@ public interface InstantMapper
 
     default Instant fromDate( Date date )
     {
-        if ( date instanceof java.sql.Date )
+        if ( date instanceof java.sql.Date sqlDate )
         {
-            return fromSqlDate( (java.sql.Date) date );
+            return fromSqlDate( sqlDate );
         }
         return DateUtils.instantFromDate( date );
     }

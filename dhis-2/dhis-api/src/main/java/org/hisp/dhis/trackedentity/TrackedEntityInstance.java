@@ -29,6 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.hisp.dhis.audit.AuditAttribute;
@@ -63,7 +64,7 @@ public class TrackedEntityInstance
 
     private Date lastUpdatedAtClient;
 
-    private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new HashSet<>();
+    private Set<TrackedEntityAttributeValue> trackedEntityAttributeValues = new LinkedHashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 

@@ -366,7 +366,18 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         for ( QueryItem queryItem : params.getItems() )
         {
-            columns.add( getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated ).asSql() );
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
+
+            columns.add( columnAndAlias.asSql() );
+
+            // does repeatable stage exist?
+            if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
+                && queryItem.hasRepeatableStageParams() )
+            {
+                String column = " exists (" + columnAndAlias.column + ")";
+                String alias = columnAndAlias.alias + ".exists";
+                columns.add( (new ColumnAndAlias( column, alias )).asSql() );
+            }
         }
 
         return columns;

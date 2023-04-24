@@ -232,6 +232,11 @@ public enum ValueType
         return aggregationType != AggregationType.NONE;
     }
 
+    public boolean isMultiText()
+    {
+        return MULTI_TEXT == this;
+    }
+
     public Class<? extends ValueTypeOptions> getValueTypeOptionsClass()
     {
         return this.valueTypeOptionsClass;

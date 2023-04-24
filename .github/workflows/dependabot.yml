@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Fetch metadata on dependabot PR
         id: metadata
-        uses: dependabot/fetch-metadata@v1.3.6
+        uses: dependabot/fetch-metadata@v1.4.0
       - name: Approve dependabot PR using GitHub actions bot
         if: ${{ steps.metadata.outputs.update-type == 'version-update:semver-minor' || steps.metadata.outputs.update-type == 'version-update:semver-patch' }}
         run: gh pr review --approve "$PR_URL"
