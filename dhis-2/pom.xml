@@ -129,7 +129,7 @@
 
         <!-- Reporting -->
         <jasperreports.version>6.18.1</jasperreports.version>
-        <jasperreports-fonts.version>6.20.0</jasperreports-fonts.version>
+        <jasperreports-fonts.version>6.20.3</jasperreports-fonts.version>
         <jfreechart.version>1.5.3</jfreechart.version>
         <htmlparser.version>2.1</htmlparser.version>
         <htmllexer.version>2.1</htmllexer.version>
