@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,9 +37,9 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     DebugMapper.class,
-    UserGroupAccessMapper.class,
     TrackedEntityTypeMapper.class,
-    AttributeValueMapper.class
+    AttributeValueMapper.class,
+    SharingMapper.class
 } )
 public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
 {
@@ -56,10 +52,6 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "name" )
     @Mapping( target = "attributeValues" )
     @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccesses" )
-    @Mapping( target = "userAccesses", qualifiedByName = "userAccesses" )
     @Mapping( target = "program", qualifiedByName = "program" )
     @Mapping( target = "repeatable" )
     @Mapping( target = "referral" )
@@ -67,13 +59,8 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "enableUserAssignment" )
     @Mapping( target = "validationStrategy" )
     @Mapping( target = "featureType" )
+    @Mapping( target = "sharing" )
     ProgramStage map( ProgramStage programStage );
-
-    @Named( "userGroupAccesses" )
-    Set<UserGroupAccess> mapUserGroupAccessPsi( Set<UserGroupAccess> userGroupAccesses );
-
-    @Named( "userAccesses" )
-    Set<UserAccess> mapUserAccessPsi( Set<UserAccess> userAccesses );
 
     @Named( "program" )
     @BeanMapping( ignoreByDefault = true )
@@ -85,10 +72,7 @@ public interface ProgramStageMapper extends PreheatMapper<ProgramStage>
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "programType" )
     @Mapping( target = "categoryCombo" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
+    @Mapping( target = "sharing" )
     @Mapping( target = "accessLevel" )
     Program mapProgram( Program p );
 }

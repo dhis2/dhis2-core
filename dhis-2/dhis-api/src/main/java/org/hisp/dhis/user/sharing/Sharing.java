@@ -38,7 +38,7 @@ import java.util.function.UnaryOperator;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
@@ -52,7 +52,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 @Builder
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
 @NoArgsConstructor
 @JacksonXmlRootElement( localName = "sharing", namespace = DxfNamespaces.DXF_2_0 )
@@ -79,58 +80,18 @@ public class Sharing
     /**
      * Map of user access. Key is user UID.
      */
-    @Setter
     @JsonProperty
+    @Builder.Default
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserAccess> users = new HashMap<>();
 
     /**
      * Map of user group access. Key is user group UID.
      */
-    @Setter
     @JsonProperty
+    @Builder.Default
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Map<String, UserGroupAccess> userGroups = new HashMap<>();
-
-    public Sharing( String publicAccess, UserAccess... userAccesses )
-    {
-        this.publicAccess = publicAccess;
-
-        for ( UserAccess userAccess : userAccesses )
-        {
-            users.put( userAccess.getId(), userAccess );
-        }
-    }
-
-    public Sharing( String publicAccess, UserGroupAccess... userGroupAccesses )
-    {
-        this.publicAccess = publicAccess;
-
-        for ( UserGroupAccess userGroupAccess : userGroupAccesses )
-        {
-            userGroups.put( userGroupAccess.getId(), userGroupAccess );
-        }
-    }
-
-    public Map<String, UserAccess> getUsers()
-    {
-        if ( users == null )
-        {
-            users = new HashMap<>();
-        }
-
-        return users;
-    }
-
-    public Map<String, UserGroupAccess> getUserGroups()
-    {
-        if ( userGroups == null )
-        {
-            userGroups = new HashMap<>();
-        }
-
-        return userGroups;
-    }
 
     public void setOwner( User user )
     {
@@ -156,61 +117,40 @@ public class Sharing
         userAccesses.forEach( this::addUserAccess );
     }
 
-    public void setDtoUserAccesses( Set<org.hisp.dhis.user.UserAccess> dto )
-    {
-        if ( dto == null )
-        {
-            return;
-        }
-
-        this.users = clearOrInit( this.users );
-        dto.forEach( ua -> this.addUserAccess( new UserAccess( ua ) ) );
-    }
-
-    public void setDtoUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
-    {
-        if ( userGroupAccesses == null )
-        {
-            return;
-        }
-
-        this.userGroups = clearOrInit( this.userGroups );
-        userGroupAccesses.forEach( uga -> this.addUserGroupAccess( new UserGroupAccess( uga ) ) );
-
-    }
-
     public void setUserGroupAccess( Set<UserGroupAccess> userGroupAccesses )
     {
         this.userGroups = clearOrInit( this.userGroups );
         userGroupAccesses.forEach( this::addUserGroupAccess );
     }
 
-    public void addUserAccess( UserAccess userAccess )
+    public Sharing addUserAccess( UserAccess userAccess )
     {
+        if ( users == null )
+        {
+            users = new HashMap<>();
+        }
+
         if ( userAccess != null )
         {
-            getUsers().put( userAccess.getId(), userAccess );
+            users.put( userAccess.getId(), userAccess );
         }
+
+        return this;
     }
 
-    public void addDtoUserAccess( org.hisp.dhis.user.UserAccess userAccess )
-    {
-        this.users.put( userAccess.getUid(), new UserAccess( userAccess ) );
-    }
-
-    public void addDtoUserGroupAccess( org.hisp.dhis.user.UserGroupAccess userGroupAccess )
-    {
-        this.userGroups.put( userGroupAccess.getUid(), new UserGroupAccess( userGroupAccess ) );
-    }
-
-    public void addUserGroupAccess( UserGroupAccess userGroupAccess )
+    public Sharing addUserGroupAccess( UserGroupAccess userGroupAccess )
     {
         if ( userGroups == null )
         {
             userGroups = new HashMap<>();
         }
 
-        this.userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        if ( userGroupAccess != null )
+        {
+            userGroups.put( userGroupAccess.getId(), userGroupAccess );
+        }
+
+        return this;
     }
 
     public void resetUserAccesses()

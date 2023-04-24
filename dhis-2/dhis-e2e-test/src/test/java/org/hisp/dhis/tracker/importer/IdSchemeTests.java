@@ -46,6 +46,7 @@ import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -67,10 +68,14 @@ public class IdSchemeTests
     @BeforeAll
     public void beforeAll()
     {
-        loginActions.loginAsAdmin();
-
         new MetadataActions()
             .importAndValidateMetadata( new File( METADATA_FILE_PATH ) );
+    }
+
+    @BeforeEach
+    public void beforeEach()
+    {
+        loginActions.loginAsAdmin();
     }
 
     private static Stream<Arguments> provideIdSchemeArguments()

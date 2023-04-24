@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.io.Serializable;
-import java.util.List;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.user.sharing.Sharing;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Jan Bernitt
- */
-@Getter
-@AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
+public class SharingJsonBinaryType extends JsonBinaryType
 {
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
-
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+    @Override
+    protected Object convertJsonToObject( String content )
+    {
+        Sharing sharing = (Sharing) super.convertJsonToObject( content );
+        sharing.setUsers( CollectionUtils.emptyIfNull( sharing.getUsers() ) );
+        sharing.setUserGroups( CollectionUtils.emptyIfNull( sharing.getUserGroups() ) );
+        return sharing;
+    }
 }

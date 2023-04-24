@@ -608,6 +608,11 @@ public class DefaultCascadeSharingService
             return false;
         }
 
+        if ( MapUtils.isEmpty( target ) )
+        {
+            return true;
+        }
+
         boolean shouldUpdate = false;
 
         for ( final T sourceAccess : source.values() )
@@ -638,6 +643,16 @@ public class DefaultCascadeSharingService
     private <T extends IdentifiableObject> boolean mergeSharing( final Sharing source, T target,
         CascadeSharingParameters parameters )
     {
+        if ( target == null )
+        {
+            return false;
+        }
+
+        if ( target.getSharing() == null )
+        {
+            target.setSharing( Sharing.builder().build() );
+        }
+
         if ( mergeAccessObject( UserAccess.class, source.getUsers(), target.getSharing().getUsers() )
             || mergeAccessObject( UserGroupAccess.class, source.getUserGroups(), target.getSharing().getUserGroups() ) )
         {

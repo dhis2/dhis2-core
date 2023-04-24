@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.io.Serializable;
-import java.util.List;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Jan Bernitt
- */
-@Getter
-@AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
+@Mapper( uses = { DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class } )
+public interface SharingMapper extends PreheatMapper<Sharing>
 {
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
+    SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
 
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "external" )
+    @Mapping( target = "owner" )
+    @Mapping( target = "users" )
+    @Mapping( target = "userGroups" )
+    Sharing map( Sharing sharing );
 }
