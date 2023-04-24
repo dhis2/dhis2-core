@@ -37,8 +37,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-import javax.ws.rs.ForbiddenException;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -125,8 +123,7 @@ public class EnrollmentCriteriaMapperTest
 
     @Test
     public void shouldMapCorrectlyWhenOrgUnitExistsAndUserInScope()
-        throws IllegalQueryException,
-        ForbiddenException
+        throws IllegalQueryException
     {
         Set<String> orgUnits = new HashSet<>( Collections.singletonList( ORG_UNIT1 ) );
         when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
@@ -164,7 +161,7 @@ public class EnrollmentCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
         when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( false );
 
-        Exception exception = assertThrows( ForbiddenException.class,
+        Exception exception = assertThrows( IllegalQueryException.class,
             () -> mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID, ProgramStatus.ACTIVE,
                 null, null, "trackedEntityType", "trackedEntityInstance", false, 1, 1, false, false, false, null ) );
         assertEquals( "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage() );

@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.ForbiddenException;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -131,7 +129,7 @@ public class EnrollmentCriteriaMapper
 
                 if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
                 {
-                    throw new ForbiddenException(
+                    throw new IllegalQueryException(
                         "User does not have access to organisation unit: " + organisationUnit.getUid() );
                 }
 
