@@ -74,6 +74,39 @@
           "displayInReports": false,
           "compulsory": false,
           "skipSynchronization": false
+        },
+        {
+          "created": "2019-03-29T12:41:32.971",
+          "sortOrder": 1,
+          "lastUpdated": "2019-03-29T12:41:32.971",
+          "renderOptionsAsRadio": false,
+          "access": {
+            "read": true,
+            "externalize": true,
+            "manage": true,
+            "delete": true,
+            "update": true,
+            "write": true
+          },
+          "programStage": {
+            "id": "Pmqxq907VNz"
+          },
+          "translations": [],
+          "allowProvidedElsewhere": false,
+          "favorites": [],
+          "externalAccess": false,
+          "attributeValues": [],
+          "favorite": false,
+          "userAccesses": [],
+          "dataElement": {
+            "id": "XXydqoh6gkE"
+          },
+          "id": "FUIlVWsvt2V",
+          "allowFutureDate": false,
+          "userGroupAccesses": [],
+          "displayInReports": false,
+          "compulsory": false,
+          "skipSynchronization": false
         }
       ],
       "translations": [],
@@ -1804,6 +1837,40 @@
         "users": {},
         "userGroups": {}
       }
+    },
+    {
+      "valueType": "MULTI_TEXT",
+      "lastUpdated": "2019-03-29T09:12:14.409",
+      "generated": false,
+      "name": "Multi Text Attribute",
+      "userAccesses": [],
+      "pattern": "",
+      "attributeValues": [],
+      "publicAccess": "rw------",
+      "unique": false,
+      "aggregationType": "COUNT",
+      "programScope": false,
+      "displayInListNoProgram": false,
+      "displayOnVisitSchedule": false,
+      "confidential": false,
+      "shortName": "Multi Text Attribute",
+      "created": "2019-03-29T09:12:14.409",
+      "legendSets": [],
+      "inherit": false,
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "orgunitScope": false,
+      "userGroupAccesses": [],
+      "skipSynchronization": false,
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "id": "LoAS6MH2xY9",
+      "optionSet": {
+        "id": "pC3N9N77UmT"
+      }
     }
   ],
   "dataElements": [
@@ -1933,6 +2000,36 @@
         "users": {},
         "userGroups": {}
       }
+    },
+    {
+      "user": {
+        "id": "M5zQapPyTZI"
+      },
+      "translations": [],
+      "name": "Multi Text DataElement",
+      "shortName": "Multi Text DataElement",
+      "lastUpdated": "2019-03-29T09:10:53.600",
+      "valueType": "MULTI_TEXT",
+      "zeroIsSignificant": false,
+      "legendSets": [],
+      "created": "2019-03-29T09:10:53.600",
+      "id": "XXydqoh6gkE",
+      "lastUpdatedBy": {
+        "id": "M5zQapPyTZI"
+      },
+      "publicAccess": "rw------",
+      "userGroupAccesses": [],
+      "aggregationType": "COUNT",
+      "aggregationLevels": [],
+      "userAccesses": [],
+      "domainType": "TRACKER",
+      "attributeValues": [],
+      "categoryCombo": {
+        "id": "bjDvmb4bfuf"
+      },
+      "optionSet": {
+        "id": "pC3N9N77UmT"
+      }
     }
   ],
   "trackedEntityTypes": [
@@ -2012,6 +2109,39 @@
           "valueType": "TEXT",
           "created": "2019-03-29T09:20:08.081",
           "displayShortName": "null Address"
+        },
+        {
+          "translations": [],
+          "name": "Multi Text Attribute",
+          "displayInList": false,
+          "trackedEntityType": {
+            "id": "bPJ0FMtcnEh"
+          },
+          "displayName": "Multi Text Attribute",
+          "favorites": [],
+          "created": "2019-03-29T09:20:08.081",
+          "displayShortName": "Multi Text Attribute",
+          "lastUpdated": "2019-03-29T09:20:08.104",
+          "access": {
+            "externalize": true,
+            "read": true,
+            "manage": true,
+            "delete": true,
+            "update": true,
+            "write": true
+          },
+          "valueType": "MULTI_TEXT",
+          "searchable": false,
+          "id": "RlesDlFMQP7",
+          "userGroupAccesses": [],
+          "externalAccess": false,
+          "attributeValues": [],
+          "mandatory": false,
+          "trackedEntityAttribute": {
+            "id": "LoAS6MH2xY9"
+          },
+          "favorite": false,
+          "userAccesses": []
         }
       ],
       "created": "2019-03-29T09:20:08.103",

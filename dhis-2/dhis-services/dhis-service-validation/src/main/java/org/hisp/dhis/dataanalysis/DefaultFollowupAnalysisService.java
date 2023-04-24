@@ -40,15 +40,19 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DeflatedDataValue;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
+import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -113,6 +117,39 @@ public class DefaultFollowupAnalysisService
         return new FollowupAnalysisResponse( new FollowupAnalysisMetadata( request ), followupValues );
     }
 
+    @Override
+    @Transactional( readOnly = true )
+    public Grid generateAnalysisReport( FollowupAnalysisResponse followupAnalysisResponse )
+    {
+        Grid grid = new ListGrid();
+        if ( followupAnalysisResponse.getFollowupValues() != null )
+        {
+            I18n i18n = i18nManager.getI18n();
+
+            grid.setTitle( i18n.getString( "data_analysis_report" ) );
+
+            grid.addHeader( new GridHeader( i18n.getString( "dataelement" ), false, true ) );
+            grid.addHeader( new GridHeader( i18n.getString( "source" ), false, true ) );
+            grid.addHeader( new GridHeader( i18n.getString( "period" ), false, true ) );
+            grid.addHeader( new GridHeader( i18n.getString( "min" ), false, false ) );
+            grid.addHeader( new GridHeader( i18n.getString( "value" ), false, false ) );
+            grid.addHeader( new GridHeader( i18n.getString( "max" ), false, false ) );
+
+            for ( FollowupValue dataValue : followupAnalysisResponse.getFollowupValues() )
+            {
+                grid.addRow();
+                grid.addValue( dataValue.getDeName() );
+                grid.addValue( dataValue.getOuName() );
+                grid.addValue( dataValue.getPe() );
+                grid.addValue( dataValue.getMin() );
+                grid.addValue( dataValue.getValue() );
+                grid.addValue( dataValue.getMax() );
+            }
+        }
+
+        return grid;
+    }
+
     private void validate( FollowupAnalysisRequest request )
     {
         if ( isEmpty( request.getDe() ) && isEmpty( request.getDs() ) )
@@ -149,4 +186,5 @@ public class DefaultFollowupAnalysisService
             error, message.getMessage() ) );
         return new IllegalQueryException( message );
     }
+
 }
