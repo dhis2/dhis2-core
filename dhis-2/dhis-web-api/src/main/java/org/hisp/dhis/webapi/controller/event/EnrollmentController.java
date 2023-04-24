@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ForbiddenException;
 
 import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -128,6 +129,7 @@ public class EnrollmentController
     @GetMapping
     public @ResponseBody RootNode getEnrollments(
         EnrollmentCriteria enrollmentCriteria )
+        throws ForbiddenException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
