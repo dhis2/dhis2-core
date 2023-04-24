@@ -35,8 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-import javax.ws.rs.ForbiddenException;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -85,7 +83,7 @@ public class EnrollmentCriteriaMapper
      * @param ouMode the OrganisationUnitSelectionMode.
      * @param lastUpdated the last updated for PI.
      * @param lastUpdatedDuration the last updated duration filter.
-     * @param program the Program identifier.
+     * @param programUid the Program identifier.
      * @param programStatus the ProgramStatus in the given program.
      * @param programStartDate the start date for enrollment in the given
      *        Program.
@@ -131,7 +129,7 @@ public class EnrollmentCriteriaMapper
 
                 if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
                 {
-                    throw new ForbiddenException(
+                    throw new IllegalQueryException(
                         "User does not have access to organisation unit: " + organisationUnit.getUid() );
                 }
 
