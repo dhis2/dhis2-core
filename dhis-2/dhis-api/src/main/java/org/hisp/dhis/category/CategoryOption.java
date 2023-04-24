@@ -301,7 +301,7 @@ public class CategoryOption
         this.categoryOptionCombos = categoryOptionCombos;
     }
 
-    @JsonProperty
+    @JsonProperty( "categoryOptionGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )
