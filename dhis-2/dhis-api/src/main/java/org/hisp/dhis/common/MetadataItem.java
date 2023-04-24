@@ -199,38 +199,31 @@ public class MetadataItem
 
         // TODO common interface
 
-        if ( dimensionalItemObject instanceof DataElement )
+        if ( dimensionalItemObject instanceof DataElement dataElement )
         {
-            DataElement dataElement = (DataElement) dimensionalItemObject;
             this.valueType = dataElement.getValueType().toSimplifiedValueType();
             addIconPathToStyle( dataElement.getStyle() );
         }
-        else if ( dimensionalItemObject instanceof DataElementOperand )
+        else if ( dimensionalItemObject instanceof DataElementOperand operand )
         {
-            DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
             this.valueType = operand.getValueType().toSimplifiedValueType();
         }
-        else if ( dimensionalItemObject instanceof DataSet )
+        else if ( dimensionalItemObject instanceof DataSet dataSet )
         {
-            DataSet dataSet = (DataSet) dimensionalItemObject;
             addIconPathToStyle( dataSet.getStyle() );
         }
-        else if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        else if ( dimensionalItemObject instanceof TrackedEntityAttribute attribute )
         {
-            TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
             this.valueType = attribute.getValueType().toSimplifiedValueType();
             addIconPathToStyle( attribute.getStyle() );
         }
-        else if ( dimensionalItemObject instanceof Period )
+        else if ( dimensionalItemObject instanceof Period period )
         {
-            Period period = (Period) dimensionalItemObject;
             this.startDate = period.getStartDate();
             this.endDate = period.getEndDate();
         }
-        else if ( dimensionalItemObject instanceof Indicator )
+        else if ( dimensionalItemObject instanceof Indicator indicator )
         {
-            Indicator indicator = (Indicator) dimensionalItemObject;
-
             if ( indicator.getIndicatorType() != null )
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
@@ -238,16 +231,12 @@ public class MetadataItem
 
             addIconPathToStyle( indicator.getStyle() );
         }
-        else if ( dimensionalItemObject instanceof ProgramIndicator )
+        else if ( dimensionalItemObject instanceof ProgramIndicator programIndicator )
         {
-            ProgramIndicator indicator = (ProgramIndicator) dimensionalItemObject;
-
-            addIconPathToStyle( indicator.getStyle() );
+            addIconPathToStyle( programIndicator.getStyle() );
         }
-        else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
+        else if ( dimensionalItemObject instanceof ExpressionDimensionItem expressionDimensionItem )
         {
-            ExpressionDimensionItem expressionDimensionItem = (ExpressionDimensionItem) dimensionalItemObject;
-
             this.expression = expressionDimensionItem.getExpression();
         }
     }
