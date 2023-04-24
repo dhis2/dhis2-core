@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.AUTHORITY;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.NAMESPACE;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,12 +41,12 @@ import org.junit.jupiter.api.Test;
 
 /**
  * This tests verifies the protection of the
- * {@link org.hisp.dhis.appmanager.AndroidSettingApp#NAMESPACE} in the
+ * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#NAMESPACE} in the
  * {@link DatastoreService} that is installed on startup.
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenienceTest
+class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienceTest
 {
 
     @BeforeEach
@@ -87,7 +87,7 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
 
     /**
      * Only user with
-     * {@link org.hisp.dhis.appmanager.AndroidSettingApp#AUTHORITY} can delete
+     * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#AUTHORITY} can delete
      * the NS.
      */
     @Test
@@ -102,7 +102,7 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
 
     /**
      * Only user with
-     * {@link org.hisp.dhis.appmanager.AndroidSettingApp#AUTHORITY} can add to
+     * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#AUTHORITY} can add to
      * the NS.
      */
     @Test
