@@ -299,7 +299,48 @@ class AttributeValidatorTest
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .attributes(
                 Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntity" ) )
-                    .value( "code" ).build() ) )
+                    .value( "CODE" ).build() ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
+            .build();
+
+        validator.validate( reporter, bundle, trackedEntity );
+
+        assertIsEmpty( reporter.getErrors() );
+    }
+
+    @Test
+    void shouldFailValidationValueInMultiText()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithMultiText();
+
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
+
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .trackedEntity( CodeGenerator.generateUid() )
+            .attributes(
+                Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntity" ) )
+                    .value( "CODE1,CODE4" ).build() ) )
+            .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
+            .build();
+
+        validator.validate( reporter, bundle, trackedEntity );
+
+        assertHasError( reporter, trackedEntity, ValidationCode.E1125 );
+    }
+
+    @Test
+    void shouldPassValidationValueInMultiText()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = getTrackedEntityAttributeWithMultiText();
+
+        when( preheat.getTrackedEntityAttribute( (MetadataIdentifier) any() ) ).thenReturn( trackedEntityAttribute );
+        when( preheat.getTrackedEntityType( (MetadataIdentifier) any() ) ).thenReturn( new TrackedEntityType() );
+
+        TrackedEntity trackedEntity = TrackedEntity.builder()
+            .attributes(
+                Collections.singletonList( Attribute.builder().attribute( MetadataIdentifier.ofUid( "trackedEntity" ) )
+                    .value( "CODE1,CODE2" ).build() ) )
             .trackedEntityType( MetadataIdentifier.ofUid( "trackedEntityType" ) )
             .build();
 
@@ -444,6 +485,28 @@ class AttributeValidatorTest
         option1.setCode( "CODE1" );
 
         optionSet.setOptions( Arrays.asList( option, option1 ) );
+
+        trackedEntityAttribute.setOptionSet( optionSet );
+        return trackedEntityAttribute;
+    }
+
+    private TrackedEntityAttribute getTrackedEntityAttributeWithMultiText()
+    {
+        TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
+        trackedEntityAttribute.setUid( "uid" );
+        trackedEntityAttribute.setValueType( ValueType.MULTI_TEXT );
+
+        OptionSet optionSet = new OptionSet();
+        Option option1 = new Option();
+        option1.setCode( "CODE1" );
+
+        Option option2 = new Option();
+        option2.setCode( "CODE2" );
+
+        Option option3 = new Option();
+        option3.setCode( "CODE3" );
+
+        optionSet.setOptions( Arrays.asList( option1, option2, option3 ) );
 
         trackedEntityAttribute.setOptionSet( optionSet );
         return trackedEntityAttribute;

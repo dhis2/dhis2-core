@@ -91,7 +91,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -231,9 +230,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         programB.setTrackedEntityType( trackedEntityTypeA );
         programB.setCategoryCombo( defaultCategoryCombo );
         programB.setAccessLevel( AccessLevel.PROTECTED );
-        Set<UserAccess> programBUserAccess = new HashSet<>();
-        programBUserAccess.add( new UserAccess( currentUser, AccessStringHelper.FULL ) );
-        programB.setUserAccesses( programBUserAccess );
+        programB.getSharing()
+            .addUserAccess( new org.hisp.dhis.user.sharing.UserAccess( currentUser, AccessStringHelper.FULL ) );
         manager.save( programB, false );
         ProgramStage programStageB1 = createProgramStage( programB );
         programStageB1.setPublicAccess( AccessStringHelper.FULL );

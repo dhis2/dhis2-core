@@ -38,7 +38,6 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -57,7 +56,6 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
     }
 
     @Test
-    @Disabled( "Fails on CI, depends on rows order, @Dusan will fix it" )
     public void testAnalyticsGetWithTextDataElementAggregationTypeNone()
     {
         // Given
@@ -65,7 +63,6 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
             .add( "dimension=dx:M3xtLkYBlKI.fyjPqlHE7Dn,pe:202107" )
             .add( "filter=ou:USER_ORGUNIT" )
             .add( "displayProperty=NAME" )
-            .add( "desc=lastupdated" )
             .add( "skipMeta=true" )
             .add( "skipData=false" );
 
@@ -77,11 +74,9 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
             .statusCode( 200 )
             .body( "rows", hasSize( equalTo( 2 ) ) );
 
-        validateRow( response, 0,
-            List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "" ) );
+        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "" ) );
 
-        validateRow( response, 1,
-            List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance" ) );
+        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance" ) );
     }
 
     @Test

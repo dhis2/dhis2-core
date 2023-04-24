@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.webapi.controller.tracker.export.ViewMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 
 @Mapper
