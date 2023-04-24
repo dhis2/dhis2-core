@@ -38,12 +38,14 @@ import lombok.Setter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -201,16 +203,23 @@ public class MetadataItem
         {
             DataElement dataElement = (DataElement) dimensionalItemObject;
             this.valueType = dataElement.getValueType().toSimplifiedValueType();
+            addIconPathToStyle( dataElement.getStyle() );
         }
         else if ( dimensionalItemObject instanceof DataElementOperand )
         {
             DataElementOperand operand = (DataElementOperand) dimensionalItemObject;
             this.valueType = operand.getValueType().toSimplifiedValueType();
         }
+        else if ( dimensionalItemObject instanceof DataSet )
+        {
+            DataSet dataSet = (DataSet) dimensionalItemObject;
+            addIconPathToStyle( dataSet.getStyle() );
+        }
         else if ( dimensionalItemObject instanceof TrackedEntityAttribute )
         {
             TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
             this.valueType = attribute.getValueType().toSimplifiedValueType();
+            addIconPathToStyle( attribute.getStyle() );
         }
         else if ( dimensionalItemObject instanceof Period )
         {
@@ -227,14 +236,13 @@ public class MetadataItem
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
 
-            if ( indicator.getStyle() != null )
-            {
-                // Override icon path.
-                ObjectStyle indicatorStyle = indicator.getStyle();
-                indicator.getStyle().setIcon( getFullIconUrl( indicatorStyle.getIcon() ) );
+            addIconPathToStyle( indicator.getStyle() );
+        }
+        else if ( dimensionalItemObject instanceof ProgramIndicator )
+        {
+            ProgramIndicator indicator = (ProgramIndicator) dimensionalItemObject;
 
-                this.style = indicator.getStyle();
-            }
+            addIconPathToStyle( indicator.getStyle() );
         }
         else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
         {
@@ -242,6 +250,23 @@ public class MetadataItem
 
             this.expression = expressionDimensionItem.getExpression();
         }
+    }
+
+    /**
+     * It adds icon path to style element if style exists
+     *
+     * @param style the {@link ObjectStyle}
+     */
+    private void addIconPathToStyle( ObjectStyle style )
+    {
+        if ( style == null )
+        {
+            return;
+        }
+        // Override icon path.
+        style.setIcon( getFullIconUrl( style.getIcon() ) );
+
+        this.style = style;
     }
 
     /**
