@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -123,15 +124,10 @@ public class RouteService
         return route;
     }
 
-    public ResponseEntity<String> exec( Route route, User user, String subPath, HttpServletRequest request )
+    public ResponseEntity<String> exec( Route route, User user, Optional<String> subPath, HttpServletRequest request )
         throws IOException,
         IllegalArgumentException
     {
-        if ( subPath != null && !route.allowsSubpaths() )
-        {
-            throw new IllegalArgumentException( String.format( "Route %s does not allow subpaths", route.getId() ) );
-        }
-
         HttpHeaders headers = new HttpHeaders();
         route.getHeaders().forEach( headers::add );
 
@@ -149,8 +145,17 @@ public class RouteService
         request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, List.of( value ) ) );
 
         UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( route.getBaseUrl() )
-            .path( subPath )
             .queryParams( queryParameters );
+
+        if ( subPath.isPresent() )
+        {
+            if ( !route.allowsSubpaths() )
+            {
+                throw new IllegalArgumentException(
+                    String.format( "Route %s does not allow subpaths", route.getId() ) );
+            }
+            uriComponentsBuilder.path( subPath.get() );
+        }
 
         String body = StreamUtils.copyToString( request.getInputStream(), StandardCharsets.UTF_8 );
 

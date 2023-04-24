@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
+import java.util.Optional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -96,7 +97,7 @@ public class RouteController
             throw new ForbiddenException( "User not authorized" );
         }
 
-        String subPath = getSubPath( request.getPathInfo(), id );
+        Optional<String> subPath = getSubPath( request.getPathInfo(), id );
 
         ResponseEntity<String> entity;
         try
@@ -120,14 +121,13 @@ public class RouteController
         return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
     }
 
-    private String getSubPath( String path, String id )
+    private Optional<String> getSubPath( String path, String id )
     {
         String prefix = String.format( "%s/%s/run/", RouteSchemaDescriptor.API_ENDPOINT, id );
-
         if ( path.startsWith( prefix ) )
         {
-            return path.substring( prefix.length() );
+            return Optional.of( path.substring( prefix.length() ) );
         }
-        return null;
+        return Optional.empty();
     }
 }
