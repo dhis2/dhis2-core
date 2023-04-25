@@ -29,8 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.utils.Assertions;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -89,5 +93,41 @@ class FileResourceControllerTest extends DhisControllerConvenienceTest
             "FileResource already exists: `0123456789x`",
             POST_MULTIPART( "/fileResources?domain=ORG_UNIT&uid=0123456789x", image2 ).content( HttpStatus.CONFLICT ) );
         assertEquals( ErrorCode.E1119, message.getErrorCode() );
+    }
+
+    @Test
+    void shouldSaveCustomIconImageWhenPngAndSmallEnough()
+        throws IOException
+    {
+        InputStream reader = getClass().getResourceAsStream( "/icon/small.png" );
+
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png", reader );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=CUSTOM_ICON&uid=0123456789x", image );
+        JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
+            .getObject( "fileResource" );
+        assertEquals( "OU_profile_image.png", savedObject.getString( "name" ).string() );
+        assertEquals( "0123456789x", savedObject.getString( "id" ).string() );
+    }
+
+    @Test
+    void shouldFailToSaveCustomIconImageWhenNotPng()
+    {
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.jpg", "image/png",
+            "<<jpg data>>".getBytes() );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=CUSTOM_ICON&uid=0123456789x", image );
+        Assertions.assertContains( "Wrong file extension, valid extensions are",
+            response.content( HttpStatus.CONFLICT ).getString( "message" ).string() );
+    }
+
+    @Test
+    void shouldFailToSaveCustomIconImageWhenTooLarge()
+        throws IOException
+    {
+        InputStream reader = getClass().getResourceAsStream( "/icon/large.png" );
+
+        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png", reader );
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=CUSTOM_ICON&uid=0123456789x", image );
+        Assertions.assertContains( "File size can't be bigger than",
+            response.content( HttpStatus.CONFLICT ).getString( "message" ).string() );
     }
 }

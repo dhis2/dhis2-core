@@ -27,15 +27,22 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
+import static org.imgscalr.Scalr.resize;
 
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Objects;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
@@ -43,6 +50,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -52,6 +60,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
@@ -232,6 +241,52 @@ public class FileResourceUtils
             {
                 return new NullInputStream( 0 );
             }
+        }
+    }
+
+    public static void validateCustomIconFile( MultipartFile file )
+    {
+        validateFileExtension( file.getOriginalFilename() );
+        validateFileSize( file );
+    }
+
+    private static void validateFileExtension( String fileName )
+    {
+        List<String> validExtensions = List.of( "png" );
+
+        if ( FilenameUtils.getExtension( fileName ) == null
+            || !validExtensions.contains( FilenameUtils.getExtension( fileName ) ) )
+        {
+            throw new IllegalQueryException(
+                "Wrong file extension, valid extensions are: " + String.join( ",", validExtensions ) );
+        }
+    }
+
+    private static void validateFileSize( MultipartFile file )
+    {
+        final long fileSizeLimitInBytes = 25_000_000;
+
+        if ( file.getSize() > fileSizeLimitInBytes )
+        {
+            throw new IllegalQueryException( String.format( "File size can't be bigger than %d, current file size %d",
+                fileSizeLimitInBytes, file.getSize() ) );
+        }
+    }
+
+    public static MultipartFile resizeImage( MultipartFile file, int targetHeight, int targetWidth )
+    {
+        try
+        {
+            BufferedImage image = ImageIO.read( file.getInputStream() );
+            BufferedImage resizedImage = resize( image, targetWidth, targetHeight );
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( file.getOriginalFilename() ) ), os );
+            return new MockMultipartFile( file.getName(), file.getOriginalFilename(), file.getContentType(),
+                os.toByteArray() );
+        }
+        catch ( IOException e )
+        {
+            throw new IllegalQueryException( String.format( "Error while resizing file: %s", e.getMessage() ) );
         }
     }
 }
