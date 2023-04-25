@@ -31,7 +31,6 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -52,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -73,6 +73,8 @@ public class EnrollmentCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
+
+    private final TrackerAccessManager trackerAccessManager;
 
     /**
      * Returns a ProgramInstanceQueryParams based on the given input.
@@ -98,20 +100,20 @@ public class EnrollmentCriteriaMapper
      */
     @Transactional( readOnly = true )
     public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,
-        Date lastUpdated, String lastUpdatedDuration, String program, ProgramStatus programStatus,
+        Date lastUpdated, String lastUpdatedDuration, String programUid, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
         Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, List<OrderCriteria> orderCriteria )
     {
         ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
 
-        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-
         User user = currentUserService.getCurrentUser();
 
-        if ( user != null )
+        Program program = programUid != null ? programService.getProgram( programUid ) : null;
+
+        if ( programUid != null && program == null )
         {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
+            throw new IllegalQueryException( "Program does not exist: " + programUid );
         }
 
         if ( ou != null )
@@ -125,16 +127,17 @@ public class EnrollmentCriteriaMapper
                     throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
                 }
 
-                if ( !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+                if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
                 {
-                    throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
+                    throw new IllegalQueryException(
+                        "User does not have access to organisation unit: " + organisationUnit.getUid() );
                 }
 
                 params.getOrganisationUnits().add( organisationUnit );
             }
         }
 
-        Program pr = program != null ? programService.getProgram( program ) : null;
+        Program pr = program != null ? programService.getProgram( programUid ) : null;
 
         if ( program != null && pr == null )
         {
