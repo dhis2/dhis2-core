@@ -370,9 +370,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             columns.add( columnAndAlias.asSql() );
 
-            // asked for row context and does repeatable stage exist?
-            if ( params.isRowContext() && queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
-                && queryItem.hasRepeatableStageParams() )
+            // asked for row context if allowed and needed
+            if ( rowContextAllowedAndNeeded( params, queryItem ) )
             {
                 String column = " exists (" + columnAndAlias.column + ")";
                 String alias = columnAndAlias.alias + ".exists";
@@ -381,6 +380,20 @@ public abstract class AbstractJdbcEventAnalyticsManager
         }
 
         return columns;
+    }
+
+    /**
+     * Eligibility of enrollment request for grid row context
+     *
+     * @param params
+     * @param queryItem
+     * @return true when eligible for row context
+     */
+    private boolean rowContextAllowedAndNeeded( EventQueryParams params, QueryItem queryItem )
+    {
+        return params.getEndpointItem() == ENROLLMENT && params.isRowContext() && queryItem.hasProgramStage()
+            && queryItem.getProgramStage().getRepeatable()
+            && queryItem.hasRepeatableStageParams();
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, EventQueryParams params, boolean isGroupByClause,
