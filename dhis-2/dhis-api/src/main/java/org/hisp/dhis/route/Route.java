@@ -97,7 +97,7 @@ public class Route
     {
         if ( allowsSubpaths() )
         {
-            return url.substring( 0, -PATH_WILDCARD_SUFFIX.length() ) + "/";
+            return url.substring( 0, url.length() - PATH_WILDCARD_SUFFIX.length() ) + "/";
         }
         return url;
     }

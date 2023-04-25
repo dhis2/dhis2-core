@@ -115,7 +115,7 @@ public class RouteService
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check it's data." );
+            log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check its data." );
             return null;
         }
 
