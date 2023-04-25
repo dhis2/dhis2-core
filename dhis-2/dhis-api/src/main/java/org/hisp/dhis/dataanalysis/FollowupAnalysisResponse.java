@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import java.io.Serializable;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
@@ -39,7 +40,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @AllArgsConstructor
-public class FollowupAnalysisResponse
+public class FollowupAnalysisResponse implements Serializable
 {
     @JsonProperty
     private final FollowupAnalysisMetadata metadata;

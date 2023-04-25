@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import java.io.Serializable;
 import java.util.Date;
 
 import lombok.AllArgsConstructor;
@@ -48,7 +49,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @AllArgsConstructor
-public final class FollowupValue
+public final class FollowupValue implements Serializable
 {
     // OBS! The order of fields is important as it becomes the order of the
     // constructor arguments that are mapped to database results.
