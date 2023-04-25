@@ -62,11 +62,11 @@ class RouteTest
     @Test
     void testAllowsSubpaths()
     {
-        Assertions.assertEquals( false, tldRoute.allowsSubpaths() );
-        Assertions.assertEquals( false, routeWithSubPath.allowsSubpaths() );
-        Assertions.assertEquals( false, routeWithDirectorySubPath.allowsSubpaths() );
-        Assertions.assertEquals( true, routeWithPathWildcard.allowsSubpaths() );
-        Assertions.assertEquals( true, routeWithSubPathAndPathWildcard.allowsSubpaths() );
+        Assertions.assertFalse( tldRoute.allowsSubpaths() );
+        Assertions.assertFalse( routeWithSubPath.allowsSubpaths() );
+        Assertions.assertFalse( routeWithDirectorySubPath.allowsSubpaths() );
+        Assertions.assertTrue( routeWithPathWildcard.allowsSubpaths() );
+        Assertions.assertTrue( routeWithSubPathAndPathWildcard.allowsSubpaths() );
     }
 
     @Test
