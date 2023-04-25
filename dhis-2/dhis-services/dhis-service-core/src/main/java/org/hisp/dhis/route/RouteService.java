@@ -40,6 +40,8 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -79,7 +81,10 @@ public class RouteService
 
     static
     {
-        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+        final CloseableHttpClient httpClient = HttpClientBuilder.create().disableCookieManagement().build();
+
+        HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory(
+            httpClient );
         requestFactory.setConnectionRequestTimeout( 1_000 );
         requestFactory.setConnectTimeout( 5_000 );
         requestFactory.setReadTimeout( 10_000 );
