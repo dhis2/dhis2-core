@@ -370,8 +370,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
             columns.add( columnAndAlias.asSql() );
 
-            // does repeatable stage exist?
-            if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
+            // asked for row context and does repeatable stage exist?
+            if ( params.isRowContext() && queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
                 && queryItem.hasRepeatableStageParams() )
             {
                 String column = " exists (" + columnAndAlias.column + ")";
