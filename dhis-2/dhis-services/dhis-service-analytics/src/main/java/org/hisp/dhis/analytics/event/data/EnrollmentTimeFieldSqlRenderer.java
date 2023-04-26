@@ -54,6 +54,7 @@ import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.DimensionalItemObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
@@ -107,9 +108,9 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
     @Override
     protected String getConditionForNonDefaultBoundaries( EventQueryParams params )
     {
+        validateProgramIndicatorBoundaries( params );
+
         String sql = params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
-            .filter(
-                boundary -> boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary() )
             .map( boundary -> statementBuilder.getBoundaryCondition( boundary, params.getProgramIndicator(),
                 params.getTimeFieldAsField(),
                 params.getEarliestStartDate(), params.getLatestEndDate() ) )
@@ -123,6 +124,24 @@ class EnrollmentTimeFieldSqlRenderer extends TimeFieldSqlRenderer
         return Stream.of( sql, sqlEventCohortBoundary )
             .filter( StringUtils::isNotBlank )
             .collect( Collectors.joining( " and " ) );
+    }
+
+    private void validateProgramIndicatorBoundaries( EventQueryParams params )
+    {
+
+        boolean isValid = params.getProgramIndicator().getAnalyticsPeriodBoundaries().stream()
+            .allMatch( EnrollmentTimeFieldSqlRenderer::isValid );
+
+        if ( !isValid )
+        {
+            throw new IllegalQueryException( "Program indicator " + params.getProgramIndicator().getUid() +
+                " has invalid boundaries." );
+        }
+    }
+
+    private static boolean isValid( AnalyticsPeriodBoundary boundary )
+    {
+        return boundary.isCohortDateBoundary() && !boundary.isEnrollmentHavingEventDateCohortBoundary();
     }
 
     private String getProgramIndicatorEventInProgramStageSql( ProgramIndicator programIndicator,

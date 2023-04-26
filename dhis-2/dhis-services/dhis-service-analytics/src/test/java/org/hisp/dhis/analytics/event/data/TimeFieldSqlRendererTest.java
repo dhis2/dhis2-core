@@ -32,17 +32,25 @@ import static org.hisp.dhis.analytics.TimeField.LAST_UPDATED;
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.program.AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.common.BaseDimensionalObject;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.AnalyticsPeriodBoundary;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -185,5 +193,25 @@ class TimeFieldSqlRendererTest extends DhisConvenienceTest
         assertEquals( "((ax.\"duedate\" >= '2022-03-01' and ax.\"duedate\" < '2022-04-01') " +
             "or (ax.\"duedate\" >= '2022-09-01' and ax.\"duedate\" < '2022-10-01'))",
             timeFieldSqlRenderer.renderPeriodTimeFieldSql( params ) );
+    }
+
+    @Test
+    void testEnrollmentTimeFieldThrowsInvalidQuery()
+    {
+        TimeFieldSqlRenderer timeFieldSqlRenderer = new EnrollmentTimeFieldSqlRenderer(
+            new PostgreSQLStatementBuilder() );
+
+        Set<AnalyticsPeriodBoundary> boundaries = Set.of(
+            new AnalyticsPeriodBoundary( "EVENT_DATE", BEFORE_END_OF_REPORTING_PERIOD ) );
+
+        ProgramIndicator programIndicator = mock( ProgramIndicator.class );
+        when( programIndicator.getAnalyticsPeriodBoundaries() ).thenReturn( boundaries );
+
+        EventQueryParams eventQueryParams = mock( EventQueryParams.class );
+        when( eventQueryParams.getProgramIndicator() ).thenReturn( programIndicator );
+        when( eventQueryParams.hasNonDefaultBoundaries() ).thenReturn( true );
+
+        Assertions.assertThrows( IllegalQueryException.class,
+            () -> timeFieldSqlRenderer.renderPeriodTimeFieldSql( eventQueryParams ) );
     }
 }
