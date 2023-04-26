@@ -27,13 +27,14 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import java.io.IOException;
-
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -44,15 +45,25 @@ public class GetAppMenuServlet
 
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException,
+        throws
+        IOException,
         ServletException
     {
-        resp.setContentType( "application/json" );
-        resp.setStatus( HttpServletResponse.SC_OK );
+        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
 
-        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-            "/api/apps/menu" );
+        if ( springSecurityContext != null )
+        {
+            resp.setContentType( "application/json" );
+            resp.setStatus( HttpServletResponse.SC_OK );
 
-        dispatcher.include( req, resp );
+            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
+                "/api/apps/menu" );
+
+            dispatcher.include( req, resp );
+        }
+        else
+        {
+            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+        }
     }
 }

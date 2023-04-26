@@ -53,6 +53,9 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserDetailsImpl;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -62,6 +65,10 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -82,7 +89,7 @@ public class AppController
 {
     public static final String RESOURCE_PATH = "/apps";
 
-    public final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
+    public static final Pattern REGEX_REMOVE_PROTOCOL = Pattern.compile( ".+:/+" );
 
     @Autowired
     private AppManager appManager;
@@ -105,9 +112,34 @@ public class AppController
     @GetMapping( value = "/menu", produces = ContextUtils.CONTENT_TYPE_JSON )
     public @ResponseBody Map<String, List<WebModule>> getWebModules( HttpServletRequest request )
     {
-        String contextPath = ContextUtils.getContextPath( request );
+        checkForEmbeddedJettyRuntime( request );
 
+        String contextPath = ContextUtils.getContextPath( request );
         return Map.of( "modules", getAccessibleAppMenu( contextPath ) );
+    }
+
+    /**
+     * Checks if we are running in embedded Jetty mode. If so, we need to set the SecurityContext manually from the
+     * session object SPRING_SECURITY_CONTEXT. This is done for compatibility with the old Struts action, which is not
+     * 100% ported yet. To be removed when application is ported away from Struts
+     */
+    private static void checkForEmbeddedJettyRuntime( HttpServletRequest request )
+    {
+        Object springSecurityContext = request.getSession().getAttribute( "SPRING_SECURITY_CONTEXT" );
+        if ( springSecurityContext != null )
+        {
+            SecurityContextImpl context = (SecurityContextImpl) springSecurityContext;
+            Authentication authentication = context.getAuthentication();
+
+            CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+
+            if ( authentication != null && currentUserDetails == null )
+            {
+                SecurityContext newContext = SecurityContextHolder.createEmptyContext();
+                newContext.setAuthentication( authentication );
+                SecurityContextHolder.setContext( context );
+            }
+        }
     }
 
     private List<WebModule> getAccessibleAppMenu( String contextPath )
