@@ -35,11 +35,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 import org.junit.jupiter.api.Test;
 
@@ -75,16 +74,16 @@ class TrackerSideEffectDataBundleTest
     @Test
     void testSideEffectDataBundleForEvent()
     {
-        Event event = new Event();
+        org.hisp.dhis.tracker.imports.domain.Event event = new org.hisp.dhis.tracker.imports.domain.Event();
         event.setEvent( "test-event" );
         Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        Event programStageInstance = new Event();
         programStageInstance.setAutoFields();
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance.getUid() ).klass( ProgramStageInstance.class ).build();
+            .object( programStageInstance.getUid() ).klass( Event.class ).build();
         assertEquals( programStageInstance.getUid(), bundle.getObject() );
-        assertEquals( ProgramStageInstance.class, bundle.getKlass() );
+        assertEquals( Event.class, bundle.getKlass() );
         assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
         assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );
     }

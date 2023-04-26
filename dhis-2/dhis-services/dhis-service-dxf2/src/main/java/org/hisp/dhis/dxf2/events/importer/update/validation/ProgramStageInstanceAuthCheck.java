@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
@@ -48,7 +48,7 @@ public class ProgramStageInstanceAuthCheck implements Checker
     @Override
     public ImportSummary check( final ImmutableEvent event, final WorkContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
 
         if ( event.getStatus() != programStageInstance.getStatus() && programStageInstance.getStatus() == COMPLETED )
         {

@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -50,7 +50,7 @@ public interface EventStore
      * @return A Map, where the key is a Program Instance Primary Key, and the
      *         value is a List of {@see Event}
      */
-    Multimap<String, ProgramStageInstance> getEventsByEnrollmentIds( List<Long> enrollmentsId, Context ctx );
+    Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Context ctx );
 
     /**
      *

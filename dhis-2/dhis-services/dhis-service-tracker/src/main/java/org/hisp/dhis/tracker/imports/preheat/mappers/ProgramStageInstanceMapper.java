@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,7 +39,7 @@ import org.mapstruct.factory.Mappers;
     OrganisationUnitMapper.class,
     ProgramInstanceMapper.class
 } )
-public interface ProgramStageInstanceMapper extends PreheatMapper<ProgramStageInstance>
+public interface ProgramStageInstanceMapper extends PreheatMapper<Event>
 {
     ProgramStageInstanceMapper INSTANCE = Mappers.getMapper( ProgramStageInstanceMapper.class );
 
@@ -62,5 +62,5 @@ public interface ProgramStageInstanceMapper extends PreheatMapper<ProgramStageIn
     @Mapping( target = "deleted" )
     @Mapping( target = "createdByUserInfo" )
     @Mapping( target = "lastUpdatedByUserInfo" )
-    ProgramStageInstance map( ProgramStageInstance programStageInstance );
+    Event map( Event event );
 }

@@ -54,9 +54,9 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
     protected void registerHandler()
     {
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+        whenDeleting( Event.class, this::deleteProgramStageInstance );
         whenVetoing( ProgramInstance.class, this::allowDeleteProgramInstance );
-        whenVetoing( ProgramStageInstance.class, this::allowDeleteProgramStageInstance );
+        whenVetoing( Event.class, this::allowDeleteProgramStageInstance );
     }
 
     private void deleteProgramInstance( ProgramInstance programInstance )
@@ -68,11 +68,11 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteProgramStageInstance( Event event )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
+                ProgramNotificationInstanceParam.builder().event( event ).build() );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
@@ -86,11 +86,11 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
 
-    private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private DeletionVeto allowDeleteProgramStageInstance( Event event )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
+                ProgramNotificationInstanceParam.builder().event( event ).build() );
 
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }

@@ -113,9 +113,9 @@ public class HibernateProgramMessageStore
             hql += helper.whereAnd() + "pm.programInstance = :programInstance";
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            hql += helper.whereAnd() + "pm.programStageInstance = :programStageInstance";
+            hql += helper.whereAnd() + "pm.event = :event";
         }
 
         hql += params.getMessageStatus() != null
@@ -135,9 +135,9 @@ public class HibernateProgramMessageStore
             query.setParameter( "programInstance", params.getProgramInstance() );
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            query.setParameter( "programStageInstance", params.getProgramStageInstance() );
+            query.setParameter( "event", params.getEvent() );
         }
 
         if ( params.getMessageStatus() != null )

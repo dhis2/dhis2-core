@@ -48,14 +48,13 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -70,14 +69,14 @@ import com.google.common.base.Objects;
 @RequiredArgsConstructor
 @Service
 public class EventTrackerConverterService
-    implements RuleEngineConverterService<Event, ProgramStageInstance>
+    implements RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event>
 {
     private final NotesConverterService notesConverterService;
 
     @Override
-    public Event to( ProgramStageInstance programStageInstance )
+    public org.hisp.dhis.tracker.imports.domain.Event to( Event event )
     {
-        List<Event> events = to( Collections.singletonList( programStageInstance ) );
+        List<org.hisp.dhis.tracker.imports.domain.Event> events = to( Collections.singletonList( event ) );
 
         if ( events.isEmpty() )
         {
@@ -88,12 +87,12 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public List<Event> to( List<ProgramStageInstance> programStageInstances )
+    public List<org.hisp.dhis.tracker.imports.domain.Event> to( List<Event> programStageInstances )
     {
-        List<Event> events = new ArrayList<>();
+        List<org.hisp.dhis.tracker.imports.domain.Event> events = new ArrayList<>();
 
         programStageInstances.forEach( psi -> {
-            Event event = new Event();
+            org.hisp.dhis.tracker.imports.domain.Event event = new org.hisp.dhis.tracker.imports.domain.Event();
             event.setEvent( psi.getUid() );
 
             event.setFollowup( BooleanUtils.toBoolean( psi.getProgramInstance().getFollowup() ) );
@@ -151,14 +150,14 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance from( TrackerPreheat preheat, Event event )
+    public Event from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event )
     {
-        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
+        Event programStageInstance = preheat.getEvent( event.getEvent() );
         return from( preheat, event, programStageInstance );
     }
 
     @Override
-    public List<ProgramStageInstance> from( TrackerPreheat preheat, List<Event> events )
+    public List<Event> from( TrackerPreheat preheat, List<org.hisp.dhis.tracker.imports.domain.Event> events )
     {
         return events
             .stream()
@@ -167,18 +166,19 @@ public class EventTrackerConverterService
     }
 
     @Override
-    public ProgramStageInstance fromForRuleEngine( TrackerPreheat preheat, Event event )
+    public Event fromForRuleEngine( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event )
     {
-        ProgramStageInstance psi = from( preheat, event, null );
+        Event psi = from( preheat, event, null );
         // merge data values from DB
         psi.getEventDataValues().addAll( getProgramStageInstanceDataValues( preheat, event ) );
         return psi;
     }
 
-    private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat, Event event )
+    private List<EventDataValue> getProgramStageInstanceDataValues( TrackerPreheat preheat,
+        org.hisp.dhis.tracker.imports.domain.Event event )
     {
         List<EventDataValue> eventDataValues = new ArrayList<>();
-        ProgramStageInstance programStageInstance = preheat.getEvent( event.getEvent() );
+        Event programStageInstance = preheat.getEvent( event.getEvent() );
         if ( programStageInstance == null )
         {
             return eventDataValues;
@@ -203,7 +203,8 @@ public class EventTrackerConverterService
         return eventDataValues;
     }
 
-    private ProgramStageInstance from( TrackerPreheat preheat, Event event, ProgramStageInstance programStageInstance )
+    private Event from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Event event,
+        Event programStageInstance )
     {
         ProgramStage programStage = preheat.getProgramStage( event.getProgramStage() );
         Program program = preheat.getProgram( event.getProgram() );
@@ -213,7 +214,7 @@ public class EventTrackerConverterService
 
         if ( isNewEntity( programStageInstance ) )
         {
-            programStageInstance = new ProgramStageInstance();
+            programStageInstance = new Event();
             programStageInstance.setUid( !StringUtils.isEmpty( event.getEvent() ) ? event.getEvent() : event.getUid() );
             programStageInstance.setCreated( now );
             programStageInstance.setStoredBy( event.getStoredBy() );

@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.dxf2.events.report.EventRow;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 
 /**
@@ -41,26 +41,25 @@ import org.hisp.dhis.user.User;
 public interface EventStore
 {
     /**
-     * Inserts a List of {@see ProgramStageInstance}. Notes are not stored at
-     * this stage.
+     * Inserts a List of {@see Event}. Notes are not stored at this stage.
      *
-     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * @param events a List of {@see Event}
      *
      * @return a list of saved program stage instances
      */
-    List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> programStageInstances );
+    List<Event> saveEvents( List<Event> events );
 
     /**
-     * Updates a List of {@see ProgramStageInstance}. Notes are not stored at
-     * this stage.
+     * Updates a List of {@see Event}. Notes are not stored at this stage.
      *
-     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * @param events a List of {@see Event}
      *
      * @return a list of saved program stage instances
      */
-    List<ProgramStageInstance> updateEvents( List<ProgramStageInstance> programStageInstances );
+    List<Event> updateEvents( List<Event> events );
 
-    List<Event> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    List<org.hisp.dhis.dxf2.events.event.Event> getEvents( EventSearchParams params,
+        Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     List<Map<String, String>> getEventsGrid( EventSearchParams params );
 
@@ -74,7 +73,7 @@ public interface EventStore
      *
      * @param events List to be removed
      */
-    void delete( List<Event> events );
+    void delete( List<org.hisp.dhis.dxf2.events.event.Event> events );
 
     /**
      * Updates the "last updated" and "last updated By" of the Tracked Entity

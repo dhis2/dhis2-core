@@ -46,10 +46,10 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -255,15 +255,15 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
                 && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
             {
-                Set<ProgramStageInstance> events = new HashSet<>();
-                for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+                Set<Event> events = new HashSet<>();
+                for ( Event event : programInstance.getEvents() )
                 {
-                    if ( params.isIncludeDeleted() || !programStageInstance.isDeleted() )
+                    if ( params.isIncludeDeleted() || !event.isDeleted() )
                     {
-                        events.add( programStageInstance );
+                        events.add( event );
                     }
                 }
-                programInstance.setProgramStageInstances( events );
+                programInstance.setEvents( events );
                 programInstances.add( programInstance );
             }
         }
@@ -308,10 +308,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                 enrollmentService.getEnrollment( item.getProgramInstance().getUid(),
                     EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
-        else if ( item.getProgramStageInstance() != null )
+        else if ( item.getEvent() != null )
         {
-            result.setProgramStageInstance(
-                eventService.getEvent( item.getProgramStageInstance(),
+            result.setEvent(
+                eventService.getEvent( item.getEvent(),
                     EventParams.TRUE.withIncludeRelationships( false ) ) );
         }
 
@@ -379,7 +379,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             {
                 for ( ProgramInstance enrollment : trackedEntity.getProgramInstances() )
                 {
-                    for ( ProgramStageInstance event : enrollment.getProgramStageInstances() )
+                    for ( Event event : enrollment.getEvents() )
                     {
                         mapRelationshipItems( event, trackedEntity );
                     }
@@ -416,7 +416,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         enrollment.setRelationshipItems( result );
     }
 
-    private void mapRelationshipItems( ProgramStageInstance event, TrackedEntityInstance trackedEntity )
+    private void mapRelationshipItems( Event event, TrackedEntityInstance trackedEntity )
         throws ForbiddenException,
         NotFoundException
     {

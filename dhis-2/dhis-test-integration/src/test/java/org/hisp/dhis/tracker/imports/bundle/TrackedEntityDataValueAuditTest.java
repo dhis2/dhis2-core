@@ -39,7 +39,7 @@ import java.util.List;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
@@ -72,7 +72,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
 
     private DataElement dataElement;
 
-    private ProgramStageInstance psi;
+    private Event psi;
 
     @Override
     protected void initTest()
@@ -94,24 +94,24 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
         dataElement = manager.search( DataElement.class, DE );
-        psi = manager.search( ProgramStageInstance.class, PSI );
+        psi = manager.search( Event.class, PSI );
         assertNotNull( dataElement );
         assertNotNull( psi );
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
+                .setEvents( List.of( psi ) )
                 .setAuditTypes( List.of( AuditType.CREATE ) ) );
         List<TrackedEntityDataValueAudit> updatedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
+                .setEvents( List.of( psi ) )
                 .setAuditTypes( List.of( AuditType.UPDATE ) ) );
         List<TrackedEntityDataValueAudit> deletedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setProgramStageInstances( List.of( psi ) )
+                .setEvents( List.of( psi ) )
                 .setAuditTypes( List.of( AuditType.DELETE ) ) );
 
         assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),

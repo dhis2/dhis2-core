@@ -52,9 +52,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -392,7 +392,7 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.EVENT, "uid" ) );
 
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Event psi = new Event();
         psi.setUid( "uid" );
         preheat.putEvents( List.of( psi ) );
 

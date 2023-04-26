@@ -37,14 +37,14 @@ import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramStageInstanceBasicCheckTest extends BaseValidationTest
+class EventBasicCheckTest extends BaseValidationTest
 {
 
     private ProgramStageInstanceBasicCheck rule;
@@ -66,8 +66,8 @@ class ProgramStageInstanceBasicCheckTest extends BaseValidationTest
     @Test
     void failOnDeletedProgramStageInstance()
     {
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
+        Event psi = new Event();
         psi.setDeleted( true );
         programStageInstanceMap.put( event.getEvent(), psi );
         when( workContext.getProgramStageInstanceMap() ).thenReturn( programStageInstanceMap );
@@ -79,8 +79,8 @@ class ProgramStageInstanceBasicCheckTest extends BaseValidationTest
     @Test
     void failOnProgramStageInstanceAndInvalidImportOption()
     {
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
+        Event psi = new Event();
         programStageInstanceMap.put( event.getEvent(), psi );
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );

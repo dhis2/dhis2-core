@@ -47,9 +47,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -245,17 +245,17 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
         UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( currentUserService.getCurrentUser() );
 
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( ous.iterator().next() );
-        programStageInstance.setProgramStage( smsCommand.getProgramStage() );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setExecutionDate( sms.getSentDate() );
-        programStageInstance.setDueDate( sms.getSentDate() );
-        programStageInstance.setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
-        programStageInstance.setCompletedBy( "DHIS 2" );
-        programStageInstance.setStoredBy( currentUserInfo.getUsername() );
-        programStageInstance.setCreatedByUserInfo( currentUserInfo );
-        programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );
+        Event event = new Event();
+        event.setOrganisationUnit( ous.iterator().next() );
+        event.setProgramStage( smsCommand.getProgramStage() );
+        event.setProgramInstance( programInstance );
+        event.setExecutionDate( sms.getSentDate() );
+        event.setDueDate( sms.getSentDate() );
+        event.setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );
+        event.setCompletedBy( "DHIS 2" );
+        event.setStoredBy( currentUserInfo.getUsername() );
+        event.setCreatedByUserInfo( currentUserInfo );
+        event.setLastUpdatedByUserInfo( currentUserInfo );
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
         for ( SMSCode smsCode : smsCommand.getCodes() )
@@ -272,7 +272,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             }
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance,
+        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( event,
             dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );

@@ -41,11 +41,11 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -82,9 +82,9 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private TrackedEntityInstance inaccessibleTei;
 
-    private ProgramStageInstance psiA;
+    private Event psiA;
 
-    private ProgramStageInstance inaccessiblePsi;
+    private Event inaccessiblePsi;
 
     private final RelationshipType teiToTeiType = createRelationshipType( 'A' );
 
@@ -149,7 +149,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
         piA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             orgUnit );
-        psiA = new ProgramStageInstance();
+        psiA = new Event();
         psiA.setProgramInstance( piA );
         psiA.setProgramStage( programStage );
         psiA.setOrganisationUnit( orgUnit );
@@ -157,7 +157,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
         ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
             orgUnit );
-        inaccessiblePsi = new ProgramStageInstance();
+        inaccessiblePsi = new Event();
         inaccessiblePsi.setProgramInstance( piB );
         inaccessiblePsi.setProgramStage( inaccessibleProgramStage );
         inaccessiblePsi.setOrganisationUnit( orgUnit );
@@ -306,12 +306,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, ProgramStageInstance to )
+    private Relationship relationship( TrackedEntityInstance from, Event to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, ProgramStageInstance to, RelationshipType type )
+    private Relationship relationship( TrackedEntityInstance from, Event to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -326,12 +326,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private void relationship( ProgramStageInstance from, ProgramStageInstance to )
+    private void relationship( Event from, Event to )
     {
         relationship( from, to, psiToPsiType );
     }
 
-    private void relationship( ProgramStageInstance from, ProgramStageInstance to, RelationshipType type )
+    private void relationship( Event from, Event to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -358,10 +358,10 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationshipItem;
     }
 
-    private RelationshipItem item( ProgramStageInstance from )
+    private RelationshipItem item( Event from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setProgramStageInstance( from );
+        relationshipItem.setEvent( from );
         return relationshipItem;
     }
 
