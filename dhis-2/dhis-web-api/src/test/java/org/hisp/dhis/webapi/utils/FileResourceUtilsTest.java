@@ -90,7 +90,7 @@ class FileResourceUtilsTest
     {
         InputStream in = getClass().getResourceAsStream( "/icon/test-image.png" );
         MockMultipartFile mockMultipartFile = new MockMultipartFile( "file", "test-image.png", "image/png", in );
-        MultipartFile file = FileResourceUtils.resizeImage( mockMultipartFile, 48, 48 );
+        MultipartFile file = FileResourceUtils.resizeToDefaultIconSize( mockMultipartFile );
         BufferedImage bufferedImage = ImageIO.read( file.getInputStream() );
 
         Assertions.assertEquals( 48, bufferedImage.getWidth() );

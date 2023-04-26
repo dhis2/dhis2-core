@@ -61,6 +61,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -276,15 +277,15 @@ public class FileResourceUtils
         }
     }
 
-    public static MultipartFile resizeImage( MultipartFile multipartFile, int targetHeight, int targetWidth )
+    public static MultipartFile resizeToDefaultIconSize( MultipartFile multipartFile )
         throws IOException
     {
         File tmpFile = null;
 
         try
         {
-            BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), targetWidth,
-                targetHeight );
+            BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), Scalr.Mode.FIT_EXACT,
+                48, 48 );
             tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
 
             ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
