@@ -241,8 +241,18 @@ public class DataValueCheck implements Checker
             return null;
         }
 
-        return !optionSet.getOptionCodesAsSet().contains( value )
-            ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
+        boolean isValid = true;
+
+        if ( dataElement.getValueType().isMultiText() )
+        {
+            isValid = dataElement.getOptionSet().hasAllOptions( ValueType.splitMultiText( value ) );
+        }
+        else
+        {
+            isValid = dataElement.getOptionSet().getOptionByCode( value ) != null;
+        }
+
+        return !isValid ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
             : null;
     }
 
