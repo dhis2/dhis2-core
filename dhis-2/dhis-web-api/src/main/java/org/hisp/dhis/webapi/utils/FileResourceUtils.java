@@ -34,10 +34,11 @@ import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
 import static org.imgscalr.Scalr.resize;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.Objects;
@@ -47,6 +48,8 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
@@ -60,11 +63,11 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
-import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -254,8 +257,8 @@ public class FileResourceUtils
     {
         List<String> validExtensions = List.of( "png" );
 
-        if ( FilenameUtils.getExtension( fileName ) == null
-            || !validExtensions.contains( FilenameUtils.getExtension( fileName ) ) )
+        if ( getExtension( fileName ) == null
+            || !validExtensions.contains( getExtension( fileName ) ) )
         {
             throw new IllegalQueryException(
                 "Wrong file extension, valid extensions are: " + String.join( ",", validExtensions ) );
@@ -273,20 +276,32 @@ public class FileResourceUtils
         }
     }
 
-    public static MultipartFile resizeImage( MultipartFile file, int targetHeight, int targetWidth )
+    public static MultipartFile resizeImage( MultipartFile multipartFile, int targetHeight, int targetWidth )
+        throws IOException
     {
+        BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), targetWidth,
+            targetHeight );
+        File file = File.createTempFile( "multipart", "file" );
+        ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
+            file );
+
+        FileItem fileItem = new DiskFileItemFactory().createItem( "file",
+            Files.probeContentType( file.toPath() ), false, multipartFile.getOriginalFilename() );
+
+        try ( InputStream in = new FileInputStream( file ); OutputStream out = fileItem.getOutputStream() )
+        {
+            in.transferTo( out );
+        }
+
         try
         {
-            BufferedImage image = ImageIO.read( file.getInputStream() );
-            BufferedImage resizedImage = resize( image, targetWidth, targetHeight );
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( file.getOriginalFilename() ) ), os );
-            return new MockMultipartFile( file.getName(), file.getOriginalFilename(), file.getContentType(),
-                os.toByteArray() );
+            Files.delete( file.toPath() );
         }
         catch ( IOException e )
         {
-            throw new IllegalQueryException( String.format( "Error while resizing file: %s", e.getMessage() ) );
+            log.warn( "Failed to delete file: {}", file.getAbsolutePath() );
         }
+
+        return new CommonsMultipartFile( fileItem );
     }
 }
