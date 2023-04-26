@@ -33,13 +33,20 @@ package org.hisp.dhis.common;
 public enum ValueStatus
 {
     //repeating of the repeatable stage does not exist
-    NOT_DEFINED,
+    NOT_DEFINED( "ND" ),
 
     //value is not set
-    NOT_SET,
+    NOT_SET( "NS" ),
 
     //value is set
-    SET;
+    SET( "S" );
+
+    private final String value;
+
+    ValueStatus( String value )
+    {
+        this.value = value;
+    }
 
     public static ValueStatus of( boolean isDefined, boolean isSet )
     {
@@ -51,13 +58,8 @@ public enum ValueStatus
         return isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
     }
 
-    public static String toString( ValueStatus valueStatus )
+    public String getValue()
     {
-        return switch (valueStatus)
-        {
-            case NOT_SET -> "NS";
-            case SET -> "S";
-            case NOT_DEFINED -> "ND";
-        };
+        return value;
     }
 }

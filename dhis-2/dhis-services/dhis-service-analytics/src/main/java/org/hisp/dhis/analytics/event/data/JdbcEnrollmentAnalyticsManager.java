@@ -222,7 +222,7 @@ public class JdbcEnrollmentAnalyticsManager
 
                 Map<String, String> colValueType = new HashMap<>();
 
-                colValueType.put( "valueStatus", ValueStatus.toString( valueStatus ) );
+                colValueType.put( "valueStatus", valueStatus.getValue() );
 
                 row.put( columnName, colValueType );
 
