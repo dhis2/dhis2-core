@@ -49,6 +49,7 @@ import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.RepeatableStageParams;
+import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -159,6 +160,8 @@ abstract class EventAnalyticsTest
         params.withTableName( getTableName() + "_" + programA.getUid() );
         params.withProgram( programA );
         params.withCoordinateFields( COL_NAME_GEOMETRY_LIST );
+        params.withRowContext( true );
+        params.withEndpointItem( RequestTypeAware.EndpointItem.ENROLLMENT );
         return params.build();
     }
 
