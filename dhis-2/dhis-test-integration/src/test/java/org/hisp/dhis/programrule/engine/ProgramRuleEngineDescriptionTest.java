@@ -27,9 +27,11 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.Constant;
@@ -308,7 +310,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase
         RuleValidationResult result = validateRuleCondition( "1 > 2 +", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
-        assertThat( result.getException(), instanceOf( RuleEngineValidationException.class ) );
+        assertInstanceOf( RuleEngineValidationException.class, result.getException() );
     }
 
     @Test
@@ -317,7 +319,7 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase
         RuleValidationResult result = validateRuleCondition( incorrectConditionTextDE, program );
         assertNotNull( result );
         assertFalse( result.isValid() );
-        assertThat( result.getException(), instanceOf( RuleEngineValidationException.class ) );
+        assertInstanceOf( RuleEngineValidationException.class, result.getException() );
     }
 
     @Test
@@ -334,12 +336,12 @@ class ProgramRuleEngineDescriptionTest extends SingleSetupIntegrationTestBase
         RuleValidationResult result = programRuleEngineNew.getDataExpressionDescription( "1 + 2 +", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
-        assertThat( result.getException(), instanceOf( RuleEngineValidationException.class ) );
+        assertInstanceOf( RuleEngineValidationException.class, result.getException() );
         result = programRuleEngineNew
             .getDataExpressionDescription( "d2:daysBetween(V{completed_date},V{current_date}) > 0 )", program );
         assertNotNull( result );
         assertFalse( result.isValid() );
-        assertThat( result.getException(), instanceOf( RuleEngineValidationException.class ) );
+        assertInstanceOf( RuleEngineValidationException.class, result.getException() );
         result = programRuleEngineNew.getDataExpressionDescription( conditionWithD2DaysBetween, program );
         assertNotNull( result );
         assertTrue( result.isValid() );

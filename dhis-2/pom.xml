@@ -842,6 +842,12 @@
                     <bannedImport>lombok.NonNull</bannedImport>
                   </bannedImports>
                 </RestrictImports>
+                <RestrictImports>
+                  <reason>Use org.junit.jupiter.api.Assertions.assertInstanceOf instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.hamcrest.Matchers.instanceOf</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
               </rules>
             </configuration>
           </execution>

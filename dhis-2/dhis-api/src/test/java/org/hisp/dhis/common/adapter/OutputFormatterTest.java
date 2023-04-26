@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.common.adapter;
 
-import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
 import static org.hisp.dhis.common.adapter.OutputFormatter.maybeFormat;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +50,7 @@ class OutputFormatterTest
         // When
         final Object result = maybeFormat( under10Million );
         // Then
-        assertThat( result, is( instanceOf( String.class ) ) );
+        assertInstanceOf( String.class, result );
         assertThat( result, is( "10000.0" ) );
     }
 
@@ -62,7 +62,7 @@ class OutputFormatterTest
         // When
         final Object result = maybeFormat( over10Million );
         // Then
-        assertThat( result, is( instanceOf( String.class ) ) );
+        assertInstanceOf( String.class, result );
         assertThat( result, is( "10000001.0" ) );
     }
 
@@ -74,7 +74,7 @@ class OutputFormatterTest
         // When
         final Object result = maybeFormat( over10Million );
         // Then
-        assertThat( result, is( instanceOf( String.class ) ) );
+        assertInstanceOf( String.class, result );
         assertThat( result, is( "10000000.2575899" ) );
     }
 
@@ -97,7 +97,7 @@ class OutputFormatterTest
         // When
         final Object result = maybeFormat( notSupportedObject );
         // Then
-        assertThat( result, is( instanceOf( Short.class ) ) );
+        assertInstanceOf( Short.class, result );
         assertThat( result, is( notSupportedObject ) );
     }
 
@@ -109,7 +109,7 @@ class OutputFormatterTest
         // When
         final Object result = maybeFormat( notSupportedObject );
         // Then
-        assertThat( result, is( instanceOf( Long.class ) ) );
+        assertInstanceOf( Long.class, result );
         assertThat( result, is( notSupportedObject ) );
     }
 }
