@@ -54,7 +54,6 @@ import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.user.CurrentUserDetails;
-import org.hisp.dhis.user.CurrentUserDetailsImpl;
 import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -119,9 +118,11 @@ public class AppController
     }
 
     /**
-     * Checks if we are running in embedded Jetty mode. If so, we need to set the SecurityContext manually from the
-     * session object SPRING_SECURITY_CONTEXT. This is done for compatibility with the old Struts action, which is not
-     * 100% ported yet. To be removed when application is ported away from Struts
+     * Checks if we are running in embedded Jetty mode. If so, we need to set
+     * the SecurityContext manually from the session object
+     * SPRING_SECURITY_CONTEXT. This is done for compatibility with the old
+     * Struts action, which is not 100% ported yet. To be removed when
+     * application is ported away from Struts
      */
     private static void checkForEmbeddedJettyRuntime( HttpServletRequest request )
     {

@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
+import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
+
+import java.io.IOException;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-
-import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -45,8 +46,7 @@ public class GetAppMenuServlet
 
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws
-        IOException,
+        throws IOException,
         ServletException
     {
         Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );

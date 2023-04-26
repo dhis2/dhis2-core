@@ -27,14 +27,15 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextImpl;
-import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
+import java.io.IOException;
 
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
+
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextImpl;
+import org.springframework.security.web.authentication.logout.SecurityContextLogoutHandler;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -44,8 +45,7 @@ public class LogoutServlet
 {
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws
-        IOException
+        throws IOException
     {
         Object springSecurityContext = req.getSession().getAttribute( "SPRING_SECURITY_CONTEXT" );
         if ( springSecurityContext != null )
