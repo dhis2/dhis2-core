@@ -82,8 +82,7 @@ public class RouteService
     private static final RestTemplate restTemplate = new RestTemplate();
 
     /*
-     * Sensitive headers to be removed from forwarded requests. TODO: make this
-     * configurable
+     * Sensitive headers to be removed from forwarded requests.
      */
     private static final List<String> sensitiveHeaderNames = List.of( "cookie", "authorization" );
 
@@ -208,8 +207,7 @@ public class RouteService
             if ( sensitiveHeaderNames.contains( lowercaseName ) || removeHopByHopHeaderNames.contains( lowercaseName )
                 || lowercaseName.equals( "host" ) )
             {
-                log.info( String.format( "Blocked header %s", name,
-                    Collections.list( request.getHeaders( name ) ).toString() ) );
+                log.info( String.format( "Blocked header %s", name ) );
                 return;
             }
             headers.addAll( name, Collections.list( request.getHeaders( name ) ) );
