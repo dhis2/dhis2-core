@@ -83,6 +83,14 @@ public class FileResourceUtils
     @Autowired
     private FileResourceService fileResourceService;
 
+    private static final List<String> CUSTOM_ICON_VALID_ICON_EXTENSIONS = List.of( "png" );
+
+    private static final long CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES = 25_000_000;
+
+    private static final int CUSTOM_ICON_TARGET_HEIGHT = 48;
+
+    private static final int CUSTOM_ICON_TARGET_WIDTH = 48;
+
     /**
      * Transfers the given multipart file content to a local temporary file.
      *
@@ -256,24 +264,21 @@ public class FileResourceUtils
 
     private static void validateFileExtension( String fileName )
     {
-        List<String> validExtensions = List.of( "png" );
-
         if ( getExtension( fileName ) == null
-            || !validExtensions.contains( getExtension( fileName ) ) )
+            || !CUSTOM_ICON_VALID_ICON_EXTENSIONS.contains( getExtension( fileName ) ) )
         {
             throw new IllegalQueryException(
-                "Wrong file extension, valid extensions are: " + String.join( ",", validExtensions ) );
+                "Wrong file extension, valid extensions are: "
+                    + String.join( ",", CUSTOM_ICON_VALID_ICON_EXTENSIONS ) );
         }
     }
 
     private static void validateFileSize( MultipartFile file )
     {
-        final long fileSizeLimitInBytes = 25_000_000;
-
-        if ( file.getSize() > fileSizeLimitInBytes )
+        if ( file.getSize() > CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES )
         {
             throw new IllegalQueryException( String.format( "File size can't be bigger than %d, current file size %d",
-                fileSizeLimitInBytes, file.getSize() ) );
+                CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES, file.getSize() ) );
         }
     }
 
@@ -285,7 +290,7 @@ public class FileResourceUtils
         try
         {
             BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), Scalr.Mode.FIT_EXACT,
-                48, 48 );
+                CUSTOM_ICON_TARGET_WIDTH, CUSTOM_ICON_TARGET_HEIGHT );
             tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
 
             ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
