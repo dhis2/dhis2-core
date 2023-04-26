@@ -279,22 +279,37 @@ public class FileResourceUtils
     public static MultipartFile resizeImage( MultipartFile multipartFile, int targetHeight, int targetWidth )
         throws IOException
     {
-        BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), targetWidth,
-            targetHeight );
-        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
-        tmpFile.deleteOnExit();
+        File tmpFile = null;
 
-        ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
-            tmpFile );
-
-        FileItem fileItem = new DiskFileItemFactory().createItem( "file",
-            Files.probeContentType( tmpFile.toPath() ), false, multipartFile.getOriginalFilename() );
-
-        try ( InputStream in = new FileInputStream( tmpFile ); OutputStream out = fileItem.getOutputStream() )
+        try
         {
-            in.transferTo( out );
-        }
+            BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), targetWidth,
+                targetHeight );
+            tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
 
-        return new CommonsMultipartFile( fileItem );
+            ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
+                tmpFile );
+
+            FileItem fileItem = new DiskFileItemFactory().createItem( "file",
+                Files.probeContentType( tmpFile.toPath() ), false, multipartFile.getOriginalFilename() );
+
+            try ( InputStream in = new FileInputStream( tmpFile ); OutputStream out = fileItem.getOutputStream() )
+            {
+                in.transferTo( out );
+            }
+
+            return new CommonsMultipartFile( fileItem );
+        }
+        catch ( IOException e )
+        {
+            throw new IOException( "Failed to resize image", e );
+        }
+        finally
+        {
+            if ( tmpFile != null && tmpFile.exists() )
+            {
+                Files.delete( tmpFile.toPath() );
+            }
+        }
     }
 }
