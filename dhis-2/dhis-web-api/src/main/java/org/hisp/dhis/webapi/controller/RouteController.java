@@ -97,17 +97,7 @@ public class RouteController
 
         Optional<String> subPath = getSubPath( request.getPathInfo(), id );
 
-        ResponseEntity<String> response;
-        try
-        {
-            response = routeService.exec( route, user, subPath, request );
-        }
-        catch ( IllegalArgumentException e )
-        {
-            throw new NotFoundException( e.getMessage() );
-        }
-
-        return response;
+        return routeService.exec( route, user, subPath, request );
     }
 
     private Optional<String> getSubPath( String path, String id )

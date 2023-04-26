@@ -47,6 +47,7 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -150,7 +151,7 @@ public class RouteService
 
     public ResponseEntity<String> exec( Route route, User user, Optional<String> subPath, HttpServletRequest request )
         throws IOException,
-        IllegalArgumentException
+        BadRequestException
     {
         HttpHeaders headers = forwardHeaders( request );
 
@@ -176,7 +177,7 @@ public class RouteService
         {
             if ( !route.allowsSubpaths() )
             {
-                throw new IllegalArgumentException(
+                throw new BadRequestException(
                     String.format( "Route %s does not allow subpaths", route.getId() ) );
             }
             uriComponentsBuilder.path( subPath.get() );
