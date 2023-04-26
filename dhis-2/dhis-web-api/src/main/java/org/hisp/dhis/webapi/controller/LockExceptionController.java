@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.ArrayList;
@@ -117,6 +118,9 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
     @Autowired
     private I18nManager i18nManager;
+
+    @Autowired
+    private CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
     // Resources
@@ -236,7 +240,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
         if ( !aclService.canUpdate( user, dataSet ) )
         {
-            throw new ReadAccessDeniedException( "You don't have the proper permissions to update this object" );
+            return forbidden( "You don't have the proper permissions to update this object" );
         }
 
         List<String> listOrgUnitIds = new ArrayList<>();
@@ -264,6 +268,11 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
             if ( organisationUnit == null )
             {
                 return conflict( "Can't find OrganisationUnit with id =" + id );
+            }
+            if ( !canCapture( organisationUnit ) )
+            {
+                return forbidden(
+                    "You can only add a lock exceptions to your data capture organisation units." );
             }
 
             if ( organisationUnit.getDataSets().contains( dataSet ) )
@@ -319,5 +328,12 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
         {
             dataSetService.deleteLockExceptionCombination( dataSet, period );
         }
+    }
+
+    private boolean canCapture( OrganisationUnit captureTarget )
+    {
+        return currentUserService.currentUserIsSuper()
+            || currentUserService.getCurrentUserOrganisationUnits().stream().anyMatch(
+                ou -> captureTarget.getPath().startsWith( ou.getPath() ) );
     }
 }
