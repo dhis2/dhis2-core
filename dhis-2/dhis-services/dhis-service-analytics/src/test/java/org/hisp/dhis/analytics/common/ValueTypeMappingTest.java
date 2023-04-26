@@ -51,13 +51,11 @@ class ValueTypeMappingTest
         assertInstanceOf( BigInteger.class, o );
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     @Test
     void testConvertMultipleNumeric()
     {
-        Object o = NUMERIC.convertMany( List.of( "1", "2", "3" ) );
-        assertInstanceOf( List.class, o );
-        ((List) o).forEach( e -> assertInstanceOf( BigInteger.class, e ) );
+        List<Object> list = NUMERIC.convertMany( List.of( "1", "2", "3" ) );
+        list.forEach( e -> assertInstanceOf( BigInteger.class, e ) );
     }
 
     @Test
@@ -67,13 +65,11 @@ class ValueTypeMappingTest
         assertInstanceOf( BigDecimal.class, o );
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     @Test
     void testConvertMultipleDecimal()
     {
-        Object o = DECIMAL.convertMany( List.of( "1", "2", "3" ) );
-        assertInstanceOf( List.class, o );
-        ((List) o).forEach( e -> assertInstanceOf( BigDecimal.class, e ) );
+        List<Object> list = DECIMAL.convertMany( List.of( "1", "2", "3" ) );
+        list.forEach( e -> assertInstanceOf( BigDecimal.class, e ) );
     }
 
     @Test
@@ -83,13 +79,11 @@ class ValueTypeMappingTest
         assertInstanceOf( String.class, o );
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     @Test
     void testConvertMultipleString()
     {
-        Object o = STRING.convertMany( List.of( "1", "2", "3" ) );
-        assertInstanceOf( List.class, o );
-        ((List) o).forEach( e -> assertInstanceOf( String.class, e ) );
+        List<Object> list = STRING.convertMany( List.of( "1", "2", "3" ) );
+        list.forEach( e -> assertInstanceOf( String.class, e ) );
     }
 
     @Test
@@ -99,12 +93,10 @@ class ValueTypeMappingTest
         assertInstanceOf( String.class, o );
     }
 
-    @SuppressWarnings( { "unchecked", "rawtypes" } )
     @Test
     void testConvertMultipleText()
     {
-        Object o = TEXT.convertMany( List.of( "1", "2", "3" ) );
-        assertInstanceOf( List.class, o );
-        ((List) o).forEach( e -> assertInstanceOf( String.class, e ) );
+        List<Object> list = TEXT.convertMany( List.of( "1", "2", "3" ) );
+        list.forEach( e -> assertInstanceOf( String.class, e ) );
     }
 }
