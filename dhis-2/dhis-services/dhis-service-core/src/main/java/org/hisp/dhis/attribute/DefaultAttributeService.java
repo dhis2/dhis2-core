@@ -32,7 +32,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.attribute.exception.NonUniqueAttributeValueException;
@@ -108,8 +107,14 @@ public class DefaultAttributeService
     @Transactional( readOnly = true )
     public Attribute getAttribute( String uid )
     {
-        Optional<Attribute> attribute = attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
-        return attribute.orElse( null );
+        return attributeCache.get( uid, attr -> {
+            Attribute attribute = attributeStore.getByUid( uid );
+            if ( attribute != null )
+            {
+                HibernateProxyUtils.unproxy( attribute );
+            }
+            return attribute;
+        } ).orElse( null );
     }
 
     @Override
