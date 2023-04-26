@@ -143,6 +143,11 @@ public class EventDataQueryRequest
     private boolean enhancedConditions;
 
     /**
+     * flag to enable row context in grid response
+     */
+    private boolean rowContext;
+
+    /**
      * Copies all properties of this request onto the given request.
      *
      * @param request the request to copy properties onto.
@@ -192,6 +197,7 @@ public class EventDataQueryRequest
         queryRequest.endpointItem = this.endpointItem;
         queryRequest.enhancedConditions = this.enhancedConditions;
         queryRequest.outputIdScheme = outputIdScheme;
+        queryRequest.rowContext = rowContext;
         return request;
     }
 
@@ -252,7 +258,8 @@ public class EventDataQueryRequest
                 .defaultCoordinateFallback( criteria.isDefaultCoordinateFallback() )
                 .totalPages( criteria.isTotalPages() )
                 .endpointItem( criteria.getEndpointItem() )
-                .enhancedConditions( criteria.isEnhancedConditions() );
+                .enhancedConditions( criteria.isEnhancedConditions() )
+                .rowContext( criteria.isRowContext() );
 
             if ( criteria.getDimension() == null )
             {
@@ -328,7 +335,8 @@ public class EventDataQueryRequest
                 .sortOrder( criteria.getSortOrder() )
                 .totalPages( criteria.isTotalPages() )
                 .endpointItem( criteria.getEndpointItem() )
-                .enhancedConditions( criteria.isEnhancedConditions() );
+                .enhancedConditions( criteria.isEnhancedConditions() )
+                .rowContext( criteria.isRowContext() );
 
             if ( criteria.getDimension() == null )
             {

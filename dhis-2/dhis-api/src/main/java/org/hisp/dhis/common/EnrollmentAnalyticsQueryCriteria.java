@@ -123,4 +123,9 @@ public class EnrollmentAnalyticsQueryCriteria extends AnalyticsPagingCriteria
      * flag to enable enhanced OR conditions on queryItem dimensions/filters
      */
     private boolean enhancedConditions;
+
+    /**
+     * flag to enable row context in grid response
+     */
+    private boolean rowContext;
 }

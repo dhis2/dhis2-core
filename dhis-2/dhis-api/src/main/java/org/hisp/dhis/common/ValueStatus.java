@@ -30,24 +30,36 @@ package org.hisp.dhis.common;
 /**
  * Enum for description of repeatable stage value
  */
-public enum RepeatableStageValueStatus
+public enum ValueStatus
 {
     //repeating of the repeatable stage does not exist
-    UNDEFINED,
+    NOT_DEFINED( "ND" ),
 
     //value is not set
-    UNSET,
+    NOT_SET( "NS" ),
 
     //value is set
-    SET;
+    SET( "S" );
 
-    public static RepeatableStageValueStatus of( boolean isDefined, boolean isSet )
+    private final String value;
+
+    ValueStatus( String value )
+    {
+        this.value = value;
+    }
+
+    public static ValueStatus of( boolean isDefined, boolean isSet )
     {
         if ( !isDefined )
         {
-            return RepeatableStageValueStatus.UNDEFINED;
+            return ValueStatus.NOT_DEFINED;
         }
 
-        return isSet ? RepeatableStageValueStatus.SET : RepeatableStageValueStatus.UNSET;
+        return isSet ? ValueStatus.SET : ValueStatus.NOT_SET;
+    }
+
+    public String getValue()
+    {
+        return value;
     }
 }

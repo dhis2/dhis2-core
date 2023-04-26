@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.web.embeddedjetty;
 
+import static org.hisp.dhis.web.embeddedjetty.RootPageServlet.session;
+
 import java.io.IOException;
 
 import javax.servlet.RequestDispatcher;
@@ -47,12 +49,21 @@ public class GetAppMenuServlet
         throws IOException,
         ServletException
     {
-        resp.setContentType( "application/json" );
-        resp.setStatus( HttpServletResponse.SC_OK );
+        Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
 
-        RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
-            "/api/apps/menu" );
+        if ( springSecurityContext != null )
+        {
+            resp.setContentType( "application/json" );
+            resp.setStatus( HttpServletResponse.SC_OK );
 
-        dispatcher.include( req, resp );
+            RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(
+                "/api/apps/menu" );
+
+            dispatcher.include( req, resp );
+        }
+        else
+        {
+            resp.setStatus( HttpServletResponse.SC_UNAUTHORIZED );
+        }
     }
 }

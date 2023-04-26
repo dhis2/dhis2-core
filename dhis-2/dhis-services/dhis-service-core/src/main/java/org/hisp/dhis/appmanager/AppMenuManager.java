@@ -103,7 +103,6 @@ public class AppMenuManager
 
     private List<WebModule> getAccessibleModules( List<WebModule> modules )
     {
-
         return modules.stream()
             .filter( module -> module != null && hasAccess( module.getName() ) )
             .collect( Collectors.toList() );
