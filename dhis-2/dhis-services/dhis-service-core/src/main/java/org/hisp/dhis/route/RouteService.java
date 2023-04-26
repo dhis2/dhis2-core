@@ -31,6 +31,7 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -41,6 +42,8 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -78,6 +81,22 @@ public class RouteService
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
+    /*
+     * Sensitive headers to be removed from forwarded requests. TODO: make this
+     * configurable
+     */
+    private static final List<String> sensitiveHeaderNames = List.of( "cookie", "authorization" );
+
+    /*
+     * Non-sensitive headers to be removed from forwarded requests. From IETF
+     * (https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-p1-messaging-
+     * 14) See also Spring Cloud Gateway
+     * (https://cloud.spring.io/spring-cloud-gateway/reference/html/#
+     * removehopbyhop-headers-filter)
+     */
+    private static final List<String> removeHopByHopHeaderNames = List.of( "connection", "keep-alive",
+        "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade" );
+
     static
     {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -85,6 +104,12 @@ public class RouteService
         requestFactory.setConnectTimeout( 5_000 );
         requestFactory.setReadTimeout( 10_000 );
         requestFactory.setBufferRequestBody( true );
+
+        HttpClient httpClient = HttpClientBuilder.create()
+            .disableCookieManagement()
+            .useSystemProperties()
+            .build();
+        requestFactory.setHttpClient( httpClient );
 
         restTemplate.setRequestFactory( requestFactory );
     }
@@ -128,7 +153,8 @@ public class RouteService
         throws IOException,
         IllegalArgumentException
     {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = forwardHeaders( request );
+
         route.getHeaders().forEach( headers::add );
 
         if ( user != null && StringUtils.hasText( user.getUsername() ) )
@@ -158,13 +184,41 @@ public class RouteService
         }
 
         String body = StreamUtils.copyToString( request.getInputStream(), StandardCharsets.UTF_8 );
-
         HttpEntity<String> entity = new HttpEntity<>( body, headers );
-
         HttpMethod httpMethod = Objects.requireNonNullElse( HttpMethod.resolve( request.getMethod() ), HttpMethod.GET );
+        String targetUri = uriComponentsBuilder.toUriString();
 
-        return restTemplate.exchange( uriComponentsBuilder.toUriString(), httpMethod,
+        log.info( String.format( "Sending %s %s via route %s (%s)", httpMethod, targetUri, route.getName(),
+            route.getUid() ) );
+
+        ResponseEntity<String> response = restTemplate.exchange( targetUri, httpMethod,
             entity, String.class );
+
+        log.info( String.format( "Request %s %s responded with HTTP status %s via route %s (%s)", httpMethod, targetUri,
+            response.getStatusCode().toString(), route.getName(), route.getUid() ) );
+
+        return response;
+    }
+
+    private HttpHeaders forwardHeaders( HttpServletRequest request )
+    {
+        HttpHeaders headers = new HttpHeaders();
+        Collections.list( request.getHeaderNames() ).forEach( name -> {
+            String lowercaseName = name.toLowerCase();
+            if ( sensitiveHeaderNames.contains( lowercaseName ) || removeHopByHopHeaderNames.contains( lowercaseName )
+                || lowercaseName.equals( "host" ) )
+            {
+                log.info( String.format( "Blocked header %s", name,
+                    Collections.list( request.getHeaders( name ) ).toString() ) );
+                return;
+            }
+            headers.addAll( name, Collections.list( request.getHeaders( name ) ) );
+        } );
+
+        headers.forEach( ( String name, List<String> values ) -> log
+            .info( String.format( "Forwarded header %s=%s", name, values.toString() ) ) );
+
+        return headers;
     }
 
     private void decrypt( Route route )

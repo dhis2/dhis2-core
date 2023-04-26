@@ -50,8 +50,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 
 /**
  * @author Morten Olav Hansen
@@ -99,26 +97,17 @@ public class RouteController
 
         Optional<String> subPath = getSubPath( request.getPathInfo(), id );
 
-        ResponseEntity<String> entity;
+        ResponseEntity<String> response;
         try
         {
-            entity = routeService.exec( route, user, subPath, request );
+            response = routeService.exec( route, user, subPath, request );
         }
         catch ( IllegalArgumentException e )
         {
-            throw new BadRequestException( e.getMessage() );
+            throw new NotFoundException( e.getMessage() );
         }
 
-        if ( entity.getStatusCode().is4xxClientError() )
-        {
-            throw new HttpClientErrorException( entity.getStatusCode() );
-        }
-        else if ( entity.getStatusCode().is5xxServerError() )
-        {
-            throw new HttpServerErrorException( entity.getStatusCode() );
-        }
-
-        return ResponseEntity.ok().headers( entity.getHeaders() ).body( entity.getBody() );
+        return response;
     }
 
     private Optional<String> getSubPath( String path, String id )
