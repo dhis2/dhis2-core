@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.forbidden;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.ArrayList;
@@ -48,7 +49,6 @@ import org.hisp.dhis.dataset.LockException;
 import org.hisp.dhis.dataset.comparator.LockExceptionNameComparator;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.hibernate.exception.ReadAccessDeniedException;
@@ -226,7 +226,6 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
     public WebMessage addLockException( @RequestParam( "ou" ) String organisationUnitId,
         @RequestParam( "pe" ) String pe,
         @RequestParam( "ds" ) String ds )
-        throws ForbiddenException
     {
         User user = userService.getCurrentUser();
 
@@ -241,7 +240,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
 
         if ( !aclService.canUpdate( user, dataSet ) )
         {
-            throw new ForbiddenException( "You don't have the proper permissions to update this object" );
+            return forbidden( "You don't have the proper permissions to update this object" );
         }
 
         List<String> listOrgUnitIds = new ArrayList<>();
@@ -272,7 +271,7 @@ public class LockExceptionController extends AbstractGistReadOnlyController<Lock
             }
             if ( !canCapture( organisationUnit ) )
             {
-                throw new ForbiddenException(
+                return forbidden(
                     "You can only add a lock exceptions to your data capture organisation units." );
             }
 
