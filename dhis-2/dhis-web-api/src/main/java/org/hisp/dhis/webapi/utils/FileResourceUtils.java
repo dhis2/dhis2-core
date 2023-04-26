@@ -281,25 +281,18 @@ public class FileResourceUtils
     {
         BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), targetWidth,
             targetHeight );
-        File file = File.createTempFile( "multipart", "file" );
+        File tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+        tmpFile.deleteOnExit();
+
         ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
-            file );
+            tmpFile );
 
         FileItem fileItem = new DiskFileItemFactory().createItem( "file",
-            Files.probeContentType( file.toPath() ), false, multipartFile.getOriginalFilename() );
+            Files.probeContentType( tmpFile.toPath() ), false, multipartFile.getOriginalFilename() );
 
-        try ( InputStream in = new FileInputStream( file ); OutputStream out = fileItem.getOutputStream() )
+        try ( InputStream in = new FileInputStream( tmpFile ); OutputStream out = fileItem.getOutputStream() )
         {
             in.transferTo( out );
-        }
-
-        try
-        {
-            Files.delete( file.toPath() );
-        }
-        catch ( IOException e )
-        {
-            log.warn( "Failed to delete file: {}", file.getAbsolutePath() );
         }
 
         return new CommonsMultipartFile( fileItem );
