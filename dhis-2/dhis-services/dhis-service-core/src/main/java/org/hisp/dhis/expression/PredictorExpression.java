@@ -90,7 +90,7 @@ public class PredictorExpression
     private static final String PREPROCESSOR_SEPARATOR = "-->";
 
     /**
-     * Accepts and parses a predictor expression with a preprocessor prefix:
+     * Accepts and parses a predictor expression with or without a prefix:
      * forEach ?variable in :DEG:degUid -->
      *
      * @param expression the expression to parse for preprocessing.
@@ -120,7 +120,7 @@ public class PredictorExpression
                 expression ) );
         }
 
-        // forEach
+        // 0. forEach
 
         if ( !parts[0].equals( FOR_EACH ) )
         {
@@ -128,19 +128,19 @@ public class PredictorExpression
                 expression ) );
         }
 
-        // variable
+        // 1. variable
 
         variable = parts[1];
         validateVariable( variable, expression );
 
-        // in
+        // 2. in
 
         if ( !parts[2].equals( IN ) )
         {
             throw new ParserException( format( "Keyword 'in' must be the third token in '%s'", expression ) );
         }
 
-        // :DEG:deGroupUid
+        // 3. :DEG:deGroupUid
 
         taggedDegUid = parts[3];
         if ( !taggedDegUid.startsWith( ":DEG:" ) )
@@ -156,7 +156,7 @@ public class PredictorExpression
                 expression ) );
         }
 
-        // -->
+        // 4. --> (separates main expression from prefix)
 
         if ( !PREPROCESSOR_SEPARATOR.equals( parts[4] ) )
         {
@@ -164,7 +164,7 @@ public class PredictorExpression
                 format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
         }
 
-        // Prefix and Main
+        // 5. Main expression (Put the rest into prefix)
 
         main = parts[5];
         prefix = expression.substring( 0, expression.length() - main.length() );
