@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.resizeToDefaultIconSize;
+import static org.hisp.dhis.webapi.utils.FileResourceUtils.validateCustomIconFile;
 
 import java.io.IOException;
 import java.util.List;
@@ -173,7 +175,16 @@ public class FileResourceController extends AbstractFullReadOnlyController<FileR
         throws WebMessageException,
         IOException
     {
-        FileResource fileResource = fileResourceUtils.saveFileResource( uid, file, domain );
+        FileResource fileResource;
+        if ( domain.equals( FileResourceDomain.CUSTOM_ICON ) )
+        {
+            validateCustomIconFile( file );
+            fileResource = fileResourceUtils.saveFileResource( uid, resizeToDefaultIconSize( file ), domain );
+        }
+        else
+        {
+            fileResource = fileResourceUtils.saveFileResource( uid, file, domain );
+        }
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
         webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
