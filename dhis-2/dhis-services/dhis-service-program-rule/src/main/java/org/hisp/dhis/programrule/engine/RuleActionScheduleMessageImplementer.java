@@ -37,9 +37,9 @@ import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -72,12 +72,12 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
         NotificationLoggingService notificationLoggingService,
         ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService,
+        EventService eventService,
         ProgramNotificationInstanceService programNotificationInstanceService,
         NotificationTemplateService notificationTemplateService )
     {
         super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
-            programStageInstanceService );
+            eventService );
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.notificationTemplateService = notificationTemplateService;
     }

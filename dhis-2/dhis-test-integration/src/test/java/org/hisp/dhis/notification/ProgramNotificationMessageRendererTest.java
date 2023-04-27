@@ -45,6 +45,7 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -52,7 +53,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -156,7 +156,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
@@ -245,7 +245,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         eventDataValueB.setAutoFields();
         eventDataValueB.setValue( "dataElementB-Text" );
         eventA.setEventDataValues( Sets.newHashSet( eventDataValueA, eventDataValueB ) );
-        programStageInstanceService.addProgramStageInstance( eventA );
+        eventService.addEvent( eventA );
         programInstanceA.getEvents().add( eventA );
         programInstanceService.updateProgramInstance( programInstanceA );
         programNotificationTemplate = new ProgramNotificationTemplate();

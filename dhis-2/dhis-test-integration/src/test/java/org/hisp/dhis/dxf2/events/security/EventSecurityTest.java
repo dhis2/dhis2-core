@@ -45,18 +45,17 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -74,13 +73,13 @@ class EventSecurityTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private EventService eventService;
+    private org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService programStageInstanceService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -268,9 +267,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
             EventParams.FALSE );
@@ -300,9 +298,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
             EventParams.FALSE );
@@ -332,9 +329,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
             () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
@@ -362,9 +358,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
             () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
@@ -391,9 +386,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
             () -> eventService.getEvent( programStageInstance, EventParams.FALSE ) );
@@ -420,9 +414,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getUid() );
+        assertTrue( programStageInstanceService.eventExists( event.getEvent() ) );
+        Event programStageInstance = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( programStageInstance );
         org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
             EventParams.FALSE );

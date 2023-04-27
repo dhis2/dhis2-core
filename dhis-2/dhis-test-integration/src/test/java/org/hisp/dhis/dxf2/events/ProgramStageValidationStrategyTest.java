@@ -48,7 +48,6 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -58,11 +57,11 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -80,7 +79,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private EventService eventService;
+    private org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -95,7 +94,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     protected CurrentUserService currentUserService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService programStageInstanceService;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 
@@ -565,7 +564,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     private Event getPsi( String event )
     {
         sessionFactory.getCurrentSession().clear();
-        return programStageInstanceService.getProgramStageInstance( event );
+        return programStageInstanceService.getEvent( event );
     }
 
     private void assertDataValuesOnPsi( String event, DataValueAsserter... dataValues )

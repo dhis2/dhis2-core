@@ -53,7 +53,7 @@ import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -77,7 +77,7 @@ class EventImportValidationTest extends TrackerTest
     protected TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageServiceInstance;
+    private EventService programStageServiceInstance;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -366,10 +366,10 @@ class EventImportValidationTest extends TrackerTest
     {
         // Given -> Creates an event
         createEvent( "tracker/validations/events-with-notes-data.json" );
-        Event event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
+        Event event = programStageServiceInstance.getEvent( "uLxFbxfYDQE" );
         assertNotNull( event );
         // When -> Soft-delete the event
-        programStageServiceInstance.deleteProgramStageInstance( event );
+        programStageServiceInstance.deleteEvent( event );
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events-with-notes-data.json" );
         trackerBundleParams.setImportStrategy( importStrategy );
@@ -434,6 +434,6 @@ class EventImportValidationTest extends TrackerTest
         final Map<TrackerType, TrackerTypeReport> typeReportMap = importReport.getPersistenceReport()
             .getTypeReportMap();
         String newEvent = typeReportMap.get( TrackerType.EVENT ).getEntityReportMap().get( 0 ).getUid();
-        return programStageServiceInstance.getProgramStageInstance( newEvent );
+        return programStageServiceInstance.getEvent( newEvent );
     }
 }

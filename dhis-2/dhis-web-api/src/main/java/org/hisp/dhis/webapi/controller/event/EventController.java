@@ -84,7 +84,6 @@ import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Events;
 import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
@@ -111,8 +110,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.Preset;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.render.RenderService;
@@ -169,7 +168,7 @@ public class EventController
 
     private final AsyncTaskExecutor taskExecutor;
 
-    private final EventService eventService;
+    private final org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     private final CsvEventService<Event> csvEventService;
 
@@ -181,7 +180,7 @@ public class EventController
 
     private final RenderService renderService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService programStageInstanceService;
 
     private final FileResourceService fileResourceService;
 
@@ -728,7 +727,7 @@ public class EventController
         Model model, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+        Event event = eventService.getEvent( programStageInstanceService.getEvent( uid ),
             EventParams.TRUE );
 
         if ( event == null )
@@ -747,7 +746,7 @@ public class EventController
         HttpServletResponse response, HttpServletRequest request )
         throws Exception
     {
-        Event event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( eventUid ),
+        Event event = eventService.getEvent( programStageInstanceService.getEvent( eventUid ),
             EventParams.TRUE );
 
         if ( event == null )
@@ -921,7 +920,7 @@ public class EventController
         HttpServletRequest request, ImportOptions importOptions )
         throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
+        if ( !programStageInstanceService.eventExists( uid ) )
         {
             return notFound( "Event not found for ID " + uid );
         }
@@ -1017,7 +1016,7 @@ public class EventController
         @PathVariable( "uid" ) String uid, ImportOptions importOptions )
         throws IOException
     {
-        if ( !programStageInstanceService.programStageInstanceExists( uid ) )
+        if ( !programStageInstanceService.eventExists( uid ) )
         {
             return notFound( "Event not found for ID " + uid );
         }

@@ -43,12 +43,12 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
@@ -77,7 +77,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramService programService;
@@ -276,7 +276,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         event.setProgramInstance( programInstance );
         event.setAutoFields();
 
-        programStageInstanceService.addProgramStageInstance( event );
+        eventService.addEvent( event );
         return event;
     }
 

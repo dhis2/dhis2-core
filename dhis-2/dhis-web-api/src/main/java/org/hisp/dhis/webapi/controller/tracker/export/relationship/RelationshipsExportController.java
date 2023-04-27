@@ -48,9 +48,9 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -90,7 +90,7 @@ public class RelationshipsExportController
     private final ProgramInstanceService programInstanceService;
 
     @Nonnull
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     @Nonnull
     private final RelationshipService relationshipService;
@@ -115,7 +115,7 @@ public class RelationshipsExportController
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
             .put( TrackedEntityInstance.class, trackedEntityInstanceService::getTrackedEntityInstance )
             .put( ProgramInstance.class, programInstanceService::getProgramInstance )
-            .put( Event.class, programStageInstanceService::getProgramStageInstance )
+            .put( Event.class, eventService::getEvent )
             .build();
 
         relationshipRetrievers = ImmutableMap

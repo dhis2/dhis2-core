@@ -65,7 +65,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -79,12 +78,12 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -138,7 +137,7 @@ public abstract class AbstractEnrollmentService
 
     protected ProgramInstanceService programInstanceService;
 
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected EventService programStageInstanceService;
 
     protected ProgramService programService;
 
@@ -166,7 +165,7 @@ public abstract class AbstractEnrollmentService
 
     protected DbmsManager dbmsManager;
 
-    protected EventService eventService;
+    protected org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     protected TrackerAccessManager trackerAccessManager;
 
@@ -1230,7 +1229,7 @@ public abstract class AbstractEnrollmentService
             {
                 delete.add( event.getEvent() );
             }
-            else if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+            else if ( !programStageInstanceService.eventExists( event.getEvent() ) )
             {
                 create.add( event );
             }

@@ -48,9 +48,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -86,14 +86,14 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
     protected final CategoryService dataElementCategoryService;
 
-    protected final ProgramStageInstanceService programStageInstanceService;
+    protected final EventService eventService;
 
     protected final UserService userService;
 
     protected final CurrentUserService currentUserService;
 
     public CommandSMSListener( ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         MessageSender smsSender )
     {
@@ -101,13 +101,13 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
         checkNotNull( programInstanceService );
         checkNotNull( dataElementCategoryService );
-        checkNotNull( programStageInstanceService );
+        checkNotNull( eventService );
         checkNotNull( userService );
         checkNotNull( currentUserService );
 
         this.programInstanceService = programInstanceService;
         this.dataElementCategoryService = dataElementCategoryService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.eventService = eventService;
         this.userService = userService;
         this.currentUserService = currentUserService;
     }
@@ -272,7 +272,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             }
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( event,
+        eventService.saveEventDataValuesAndSaveEvent( event,
             dataElementsAndEventDataValues );
 
         update( sms, SmsMessageStatus.PROCESSED, true );

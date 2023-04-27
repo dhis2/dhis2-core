@@ -48,11 +48,11 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -114,7 +114,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     private ProgramInstanceService programInstanceService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private ProgramNotificationTemplateService templateService;
@@ -218,7 +218,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEventNotificationWebHook()
     {
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( event );
+        when( eventService.getEvent( anyString() ) ).thenReturn( event );
         when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )
             .thenReturn( true );
         when( templateService.getProgramStageLinkedToWebHookNotifications( any( ProgramStage.class ) ) )

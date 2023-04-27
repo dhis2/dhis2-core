@@ -66,11 +66,11 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
@@ -111,7 +111,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -634,7 +634,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         assertIsEmpty( deletedEvents );
 
         programInstanceService.deleteProgramInstance( programInstanceA );
-        programStageInstanceService.deleteProgramStageInstance( eventA );
+        eventService.deleteEvent( eventA );
 
         trackedEntities = trackedEntityService.getTrackedEntities( queryParams, TrackedEntityParams.TRUE );
 

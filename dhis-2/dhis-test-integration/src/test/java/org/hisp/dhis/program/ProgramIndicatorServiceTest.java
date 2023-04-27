@@ -104,7 +104,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ConstantService constantService;
@@ -271,9 +271,9 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         // ---------------------------------------------------------------------
         // TrackedEntityDataValue
         // ---------------------------------------------------------------------
-        Event stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceA = eventService.createEvent( programInstance,
             psA, enrollmentDate, incidentDate, organisationUnit );
-        Event stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceB = eventService.createEvent( programInstance,
             psB, enrollmentDate, incidentDate, organisationUnit );
         Set<Event> events = new HashSet<>();
         events.add( stageInstanceA );

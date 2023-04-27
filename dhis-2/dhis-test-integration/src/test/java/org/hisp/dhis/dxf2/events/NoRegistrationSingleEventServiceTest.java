@@ -38,18 +38,17 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.user.UserService;
@@ -63,7 +62,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private EventService eventService;
+    private org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -72,7 +71,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService programStageInstanceService;
 
     @Autowired
     private IdentifiableObjectManager identifiableObjectManager;
@@ -130,8 +129,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( importSummary.getReference() );
+        Event programStageInstance = programStageInstanceService.getEvent( importSummary.getReference() );
         assertNotNull( programStageInstance );
         assertNotNull( eventService.getEvent( programStageInstance, EventParams.FALSE ) );
     }
@@ -144,7 +142,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        assertNotNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
     }
 
     @Test
@@ -157,7 +155,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         assertEquals( 0, importSummary.getConflictCount() );
         assertNotNull( importSummary.getReference() );
         event = eventService
-            .getEvent( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ),
+            .getEvent( programStageInstanceService.getEvent( importSummary.getReference() ),
                 EventParams.FALSE );
         assertNotNull( event );
         assertEquals( 1, event.getDataValues().size() );
@@ -171,9 +169,9 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertNotNull( importSummary.getReference() );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        assertNotNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
         eventService.deleteEvent( event.getEvent() );
-        assertNull( programStageInstanceService.getProgramStageInstance( importSummary.getReference() ) );
+        assertNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
     }
 
     private org.hisp.dhis.dxf2.events.event.Event createEvent( String program, String programStage, String orgUnit )

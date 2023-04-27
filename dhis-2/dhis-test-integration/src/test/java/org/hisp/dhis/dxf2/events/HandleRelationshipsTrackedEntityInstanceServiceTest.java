@@ -71,7 +71,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -126,7 +126,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         manager.save( categoryComboA );
         manager.save( categoryOptionComboA );
         eventA.setAttributeOptionCombo( categoryOptionComboA );
-        programStageInstanceService.addProgramStageInstance( eventA );
+        eventService.addEvent( eventA );
     }
 
     @Test

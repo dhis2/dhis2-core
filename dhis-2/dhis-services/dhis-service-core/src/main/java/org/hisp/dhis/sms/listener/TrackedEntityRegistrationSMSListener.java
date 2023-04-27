@@ -39,10 +39,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -85,12 +85,12 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
     public TrackedEntityRegistrationSMSListener( ProgramService programService,
         ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService )
     {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+        super( programInstanceService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
