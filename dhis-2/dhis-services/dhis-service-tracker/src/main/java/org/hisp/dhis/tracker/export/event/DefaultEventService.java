@@ -49,7 +49,7 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -97,7 +97,7 @@ public class DefaultEventService implements EventService
         }
 
         Pager pager;
-        List<ProgramStageInstance> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
+        List<Event> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
 
         if ( params.isTotalPages() )
         {
@@ -129,7 +129,7 @@ public class DefaultEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( EventSearchParams params, List<ProgramStageInstance> eventList )
+    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
@@ -152,14 +152,14 @@ public class DefaultEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
+    public Event getEvent( Event programStageInstance, EventParams eventParams )
     {
         if ( programStageInstance == null )
         {
             return null;
         }
 
-        ProgramStageInstance event = new ProgramStageInstance();
+        Event event = new Event();
         event.setUid( programStageInstance.getUid() );
 
         event.setStatus( programStageInstance.getStatus() );

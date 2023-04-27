@@ -59,17 +59,16 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.hibernate.HibernateService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -258,12 +257,12 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistRelationship( from, to );
     }
 
-    public Relationship persistRelationship( TrackedEntityInstance tei, ProgramStageInstance psi )
+    public Relationship persistRelationship( TrackedEntityInstance tei, Event psi )
     {
         RelationshipItem from = new RelationshipItem();
         from.setTrackedEntityInstance( tei );
         RelationshipItem to = new RelationshipItem();
-        to.setProgramStageInstance( psi );
+        to.setEvent( psi );
         return _persistRelationship( from, to );
     }
 
@@ -296,12 +295,12 @@ public abstract class TrackerTest extends IntegrationTestBase
 
     }
 
-    public Event deleteOneEvent( Enrollment enrollment )
+    public org.hisp.dhis.dxf2.events.event.Event deleteOneEvent( Enrollment enrollment )
     {
-        List<Event> events = enrollment.getEvents();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = enrollment.getEvents();
         assertThat( events, is( not( empty() ) ) );
 
-        Event event = events.get( 0 );
+        org.hisp.dhis.dxf2.events.event.Event event = events.get( 0 );
         ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
         assertEquals( 0, importSummary.getConflictCount() );
         return event;
@@ -334,11 +333,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         enrollment.setCompletedBy( "hello-world" );
         if ( events > 0 )
         {
-            List<Event> eventList = new ArrayList<>();
+            List<org.hisp.dhis.dxf2.events.event.Event> eventList = new ArrayList<>();
             String now = DateUtils.getIso8601NoTz( new Date() );
             for ( int i = 0; i < events; i++ )
             {
-                Event event1 = new Event();
+                org.hisp.dhis.dxf2.events.event.Event event1 = new org.hisp.dhis.dxf2.events.event.Event();
                 event1.setEnrollment( enrollment.getEnrollment() );
                 event1.setEventDate(
                     DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );

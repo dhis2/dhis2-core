@@ -79,57 +79,57 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public long addProgramStageInstance( ProgramStageInstance programStageInstance )
+    public long addProgramStageInstance( Event event )
     {
-        programStageInstance.setAutoFields();
-        programStageInstanceStore.save( programStageInstance );
-        return programStageInstance.getId();
+        event.setAutoFields();
+        programStageInstanceStore.save( event );
+        return event.getId();
     }
 
     @Override
     @Transactional
-    public long addProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    public long addProgramStageInstance( Event event, User user )
     {
-        programStageInstance.setAutoFields();
-        programStageInstanceStore.save( programStageInstance, user );
-        return programStageInstance.getId();
+        event.setAutoFields();
+        programStageInstanceStore.save( event, user );
+        return event.getId();
     }
 
     @Override
     @Transactional
-    public void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void deleteProgramStageInstance( Event event )
     {
-        programStageInstanceStore.delete( programStageInstance );
+        programStageInstanceStore.delete( event );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ProgramStageInstance getProgramStageInstance( long id )
+    public Event getProgramStageInstance( long id )
     {
         return programStageInstanceStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ProgramStageInstance getProgramStageInstance( String uid )
+    public Event getProgramStageInstance( String uid )
     {
         return programStageInstanceStore.getByUid( uid );
     }
 
     @Override
     @Transactional
-    public void updateProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void updateProgramStageInstance( Event event )
     {
-        programStageInstance.setAutoFields();
-        programStageInstanceStore.update( programStageInstance );
+        event.setAutoFields();
+        programStageInstanceStore.update( event );
     }
 
     @Override
     @Transactional
-    public void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user )
+    public void updateProgramStageInstance( Event event, User user )
     {
-        programStageInstance.setAutoFields();
-        programStageInstanceStore.update( programStageInstance, user );
+        event.setAutoFields();
+        programStageInstanceStore.update( event, user );
     }
 
     @Override
@@ -173,10 +173,10 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    public Event createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        ProgramStageInstance programStageInstance = null;
+        Event event = null;
         Date currentDate = new Date();
         Date dateCreatedEvent;
 
@@ -193,40 +193,40 @@ public class DefaultProgramStageInstanceService
 
         if ( !programInstance.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
         {
-            programStageInstance = new ProgramStageInstance();
-            programStageInstance.setProgramInstance( programInstance );
-            programStageInstance.setProgramStage( programStage );
-            programStageInstance.setOrganisationUnit( organisationUnit );
-            programStageInstance.setDueDate( dueDate );
-            programStageInstance.setStatus( EventStatus.SCHEDULE );
+            event = new Event();
+            event.setProgramInstance( programInstance );
+            event.setProgramStage( programStage );
+            event.setOrganisationUnit( organisationUnit );
+            event.setDueDate( dueDate );
+            event.setStatus( EventStatus.SCHEDULE );
 
             if ( programStage.getOpenAfterEnrollment() || programInstance.getProgram().isWithoutRegistration()
                 || programStage.getPeriodType() != null )
             {
-                programStageInstance.setExecutionDate( dueDate );
-                programStageInstance.setStatus( EventStatus.ACTIVE );
+                event.setExecutionDate( dueDate );
+                event.setStatus( EventStatus.ACTIVE );
             }
 
-            addProgramStageInstance( programStageInstance );
+            addProgramStageInstance( event );
         }
 
-        return programStageInstance;
+        return event;
     }
 
     @Override
     @Transactional
-    public void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
+    public void saveEventDataValuesAndSaveProgramStageInstance( Event event,
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
         Set<EventDataValue> eventDataValues = new HashSet<>( dataElementEventDataValueMap.values() );
-        programStageInstance.setEventDataValues( eventDataValues );
-        addProgramStageInstance( programStageInstance );
+        event.setEventDataValues( eventDataValues );
+        addProgramStageInstance( event );
 
         for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
         {
             entry.getValue().setAutoFields();
-            createAndAddAudit( entry.getValue(), entry.getKey(), programStageInstance, AuditType.CREATE );
+            createAndAddAudit( entry.getValue(), entry.getKey(), event, AuditType.CREATE );
             handleFileDataValueSave( entry.getValue(), entry.getKey() );
         }
     }
@@ -282,14 +282,14 @@ public class DefaultProgramStageInstanceService
     // -------------------------------------------------------------------------
 
     private void createAndAddAudit( EventDataValue dataValue, DataElement dataElement,
-        ProgramStageInstance programStageInstance, AuditType auditType )
+        Event event, AuditType auditType )
     {
         if ( !config.isEnabled( CHANGELOG_TRACKER ) || dataElement == null )
         {
             return;
         }
 
-        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, programStageInstance,
+        TrackedEntityDataValueAudit dataValueAudit = new TrackedEntityDataValueAudit( dataElement, event,
             dataValue.getValue(), dataValue.getStoredBy(), dataValue.getProvidedElsewhere(), auditType );
 
         dataValueAuditService.addTrackedEntityDataValueAudit( dataValueAudit );

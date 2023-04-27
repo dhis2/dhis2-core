@@ -62,7 +62,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -73,13 +72,13 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
@@ -165,7 +164,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private ProgramInstance pi;
 
-    private Event event;
+    private org.hisp.dhis.dxf2.events.event.Event event;
 
     private User superUser;
 
@@ -289,7 +288,8 @@ class EventImportTest extends TransactionalIntegrationTest
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null, null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
 
-        Event event = createScheduledTrackerEvent( eventUid, programA, programStageA, EventStatus.SCHEDULE,
+        org.hisp.dhis.dxf2.events.event.Event event = createScheduledTrackerEvent( eventUid, programA, programStageA,
+            EventStatus.SCHEDULE,
             organisationUnitA );
 
         ImportSummary summary = eventService.addEvent( event, null, false );
@@ -304,7 +304,7 @@ class EventImportTest extends TransactionalIntegrationTest
         summary = eventService.updateEvent( event, true, null, false );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventUid );
+        Event psi = programStageInstanceService.getProgramStageInstance( eventUid );
 
         assertEquals( DUE_DATE, DateUtils.getLongDateString( psi.getDueDate() ) );
     }
@@ -440,8 +440,8 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddOneValidAndOneInvalidEvent()
         throws IOException
     {
-        Event validEvent = createEvent( "eventUid004" );
-        Event invalidEvent = createEvent( "eventUid005" );
+        org.hisp.dhis.dxf2.events.event.Event validEvent = createEvent( "eventUid004" );
+        org.hisp.dhis.dxf2.events.event.Event invalidEvent = createEvent( "eventUid005" );
         invalidEvent.setOrgUnit( "INVALID" );
         InputStream is = createEventsJsonInputStream( Lists.newArrayList( validEvent, invalidEvent ), dataElementA,
             "10" );
@@ -458,9 +458,9 @@ class EventImportTest extends TransactionalIntegrationTest
     {
         Enrollment enrollment = createEnrollment( programA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
-        Event validEvent = createEvent( "eventUid004" );
+        org.hisp.dhis.dxf2.events.event.Event validEvent = createEvent( "eventUid004" );
         validEvent.setOrgUnit( organisationUnitA.getUid() );
-        Event invalidEvent = createEvent( "eventUid005" );
+        org.hisp.dhis.dxf2.events.event.Event invalidEvent = createEvent( "eventUid005" );
         invalidEvent.setOrgUnit( "INVALID" );
         enrollment.setEvents( Lists.newArrayList( validEvent, invalidEvent ) );
         ImportSummary importSummary = enrollmentService.addEnrollment( enrollment, null );
@@ -484,7 +484,7 @@ class EventImportTest extends TransactionalIntegrationTest
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        Event psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
         assertNotNull( psi );
         importSummary = eventService.deleteEvent( event.getUid() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -519,11 +519,11 @@ class EventImportTest extends TransactionalIntegrationTest
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
         manager.flush();
-        Event event2 = createEvent( "eventUid002" );
-        Event event3 = createEvent( "eventUid003" );
+        org.hisp.dhis.dxf2.events.event.Event event2 = createEvent( "eventUid002" );
+        org.hisp.dhis.dxf2.events.event.Event event3 = createEvent( "eventUid003" );
         importOptions.setImportStrategy( ImportStrategy.CREATE );
         event.setDeleted( true );
-        List<Event> events = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = new ArrayList<>();
         events.add( event );
         events.add( event2 );
         events.add( event3 );
@@ -568,7 +568,7 @@ class EventImportTest extends TransactionalIntegrationTest
         // FETCH NEWLY CREATED EVENT
         programStageInstanceService.getProgramStageInstance( uid );
         // UPDATE EVENT - Program is not specified
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( uid );
         event.setStatus( EventStatus.COMPLETED );
         final ImportSummary summary = eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(),
@@ -589,10 +589,10 @@ class EventImportTest extends TransactionalIntegrationTest
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi = programStageInstanceService.getProgramStageInstance( uid );
         // UPDATE EVENT (no actual changes, except for empty data value)
         // USE ONLY PROGRAM
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( uid );
         event.setProgram( programB.getUid() );
         event.setStatus( EventStatus.COMPLETED );
@@ -601,7 +601,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
         // cleanSession();
         dbmsManager.clearSession();
-        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi2 = programStageInstanceService.getProgramStageInstance( uid );
 
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
@@ -629,11 +629,11 @@ class EventImportTest extends TransactionalIntegrationTest
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         // FETCH NEWLY CREATED EVENT
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi = programStageInstanceService.getProgramStageInstance( uid );
         // UPDATE EVENT (no actual changes, except for empty data value and
         // status
         // change)
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( uid );
         event.setProgram( programB.getUid() );
         event.setStatus( EventStatus.ACTIVE );
@@ -641,7 +641,7 @@ class EventImportTest extends TransactionalIntegrationTest
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
         dbmsManager.clearSession();
 
-        ProgramStageInstance psi2 = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi2 = programStageInstanceService.getProgramStageInstance( uid );
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
         assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
@@ -663,7 +663,8 @@ class EventImportTest extends TransactionalIntegrationTest
         sessionFactory.getCurrentSession().clear();
     }
 
-    private InputStream createEventsJsonInputStream( List<Event> events, DataElement dataElement, String value )
+    private InputStream createEventsJsonInputStream( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        DataElement dataElement, String value )
     {
         JsonArray jsonArrayEvents = new JsonArray();
         events.stream().forEach( e -> jsonArrayEvents.add( createEventJsonObject( e, dataElement, value ) ) );
@@ -676,7 +677,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private InputStream createEventJsonInputStream( String program, String programStage, String orgUnit, String person,
         DataElement dataElement, String value )
     {
-        Event event = createEvent( null );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( null );
         event.setProgram( program );
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
@@ -684,7 +685,8 @@ class EventImportTest extends TransactionalIntegrationTest
         return new ByteArrayInputStream( createEventJsonObject( event, dataElement, value ).toString().getBytes() );
     }
 
-    private JsonObject createEventJsonObject( Event event, DataElement dataElement, String value )
+    private JsonObject createEventJsonObject( org.hisp.dhis.dxf2.events.event.Event event, DataElement dataElement,
+        String value )
     {
         JsonObject eventJsonPayload = new JsonObject();
         eventJsonPayload.addProperty( "program", event.getProgram() );
@@ -721,9 +723,9 @@ class EventImportTest extends TransactionalIntegrationTest
         return enrollment;
     }
 
-    private Event createEvent( String uid )
+    private org.hisp.dhis.dxf2.events.event.Event createEvent( String uid )
     {
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( uid );
         event.setEvent( uid );
         event.setStatus( EventStatus.ACTIVE );
@@ -737,10 +739,11 @@ class EventImportTest extends TransactionalIntegrationTest
         return event;
     }
 
-    private Event createScheduledTrackerEvent( String uid, Program program, ProgramStage ps, EventStatus eventStatus,
+    private org.hisp.dhis.dxf2.events.event.Event createScheduledTrackerEvent( String uid, Program program,
+        ProgramStage ps, EventStatus eventStatus,
         OrganisationUnit organisationUnit )
     {
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( uid );
         event.setEvent( uid );
         event.setStatus( eventStatus );

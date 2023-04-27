@@ -57,11 +57,11 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -126,7 +126,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     private NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
 
     @Mock
-    private NotificationMessageRenderer<ProgramStageInstance> programStageNotificationRenderer;
+    private NotificationMessageRenderer<Event> programStageNotificationRenderer;
 
     @Mock
     private ProgramNotificationTemplateService notificationTemplateService;
@@ -137,7 +137,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private Set<ProgramInstance> programInstances = new HashSet<>();
 
-    private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+    private Set<Event> events = new HashSet<>();
 
     private List<ProgramMessage> sentProgramMessages = new ArrayList<>();
 
@@ -399,14 +399,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithSMS()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
             return new BatchResponseStatus( Collections.emptyList() );
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
@@ -414,16 +414,16 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplate.setRecipientDataElement( dataElement );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        Event event = events.iterator().next();
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         // no message when no template is attached
         assertEquals( 0, sentProgramMessages.size() );
 
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentProgramMessages.size() );
 
@@ -432,14 +432,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithEmail()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
             return new BatchResponseStatus( Collections.emptyList() );
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.DATA_ELEMENT );
@@ -447,16 +447,16 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplate.setRecipientDataElement( dataElementEmail );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        Event event = events.iterator().next();
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         // no message when no template is attached
         assertEquals( 0, sentProgramMessages.size() );
 
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentProgramMessages.size() );
     }
@@ -464,30 +464,30 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithInternalRecipients()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
         programNotificationTemplate.setRecipientUserGroup( userGroup );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
+        Event event = events.iterator().next();
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         // no message when no template is attached
         assertEquals( 0, sentInternalMessages.size() );
 
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentInternalMessages.size() );
 
@@ -498,14 +498,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToParent()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
@@ -513,10 +513,10 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplate.setRecipientUserGroup( userGroupBasedOnParent );
         programNotificationTemplate.setNotifyParentOrganisationUnitOnly( true );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        Event event = events.iterator().next();
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentInternalMessages.size() );
 
@@ -529,14 +529,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToHierarchy()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USER_GROUP );
@@ -545,10 +545,10 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         programNotificationTemplate.setNotifyUsersInHierarchyOnly( true );
         programNotificationTemplate.setNotificationTrigger( NotificationTrigger.COMPLETION );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        Event event = events.iterator().next();
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentInternalMessages.size() );
 
@@ -566,14 +566,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToUsersAtOu()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( programStageInstances.iterator().next() );
+        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
             return 40L;
         } );
 
-        when( programStageNotificationRenderer.render( any( ProgramStageInstance.class ),
+        when( programStageNotificationRenderer.render( any( Event.class ),
             any( NotificationTemplate.class ) ) ).thenReturn( notificationMessage );
 
         programNotificationTemplate.setNotificationRecipient( ProgramNotificationRecipient.USERS_AT_ORGANISATION_UNIT );
@@ -581,10 +581,10 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         lvlTwoLeftLeft.getUsers().add( userLvlTwoLeftRight );
 
-        ProgramStageInstance programStageInstance = programStageInstances.iterator().next();
-        programStageInstance.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
+        Event event = events.iterator().next();
+        event.getProgramStage().getNotificationTemplates().add( programNotificationTemplate );
 
-        programNotificationService.sendEventCompletionNotifications( programStageInstance.getId() );
+        programNotificationService.sendEventCompletionNotifications( event.getId() );
 
         assertEquals( 1, sentInternalMessages.size() );
 
@@ -742,15 +742,14 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         programInstance.setOrganisationUnit( lvlTwoLeftLeft );
         programInstance.setEntityInstance( tei );
 
-        // ProgramStageInstance
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setOrganisationUnit( lvlTwoLeftLeft );
-        programStageInstance.setProgramStage( programStage );
+        Event event = new Event();
+        event.setAutoFields();
+        event.setProgramInstance( programInstance );
+        event.setOrganisationUnit( lvlTwoLeftLeft );
+        event.setProgramStage( programStage );
 
         // lists returned by stubs
-        programStageInstances.add( programStageInstance );
+        events.add( event );
         programInstances.add( programInstance );
 
         programNotificationInstaceForToday.setProgramInstance( programInstance );

@@ -35,8 +35,8 @@ import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -80,9 +80,9 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    public void implement( RuleEffect ruleEffect, Event event )
     {
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+        ProgramInstance programInstance = event.getProgramInstance();
 
         assignValue( ruleEffect, programInstance );
     }

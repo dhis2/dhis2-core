@@ -219,9 +219,9 @@ public class DeduplicationHelper
     private boolean isSameRelationshipItem( RelationshipItem a, RelationshipItem b )
     {
         IdentifiableObject idoA = ObjectUtils.firstNonNull( a.getTrackedEntityInstance(), a.getProgramInstance(),
-            a.getProgramStageInstance() );
+            a.getEvent() );
         IdentifiableObject idoB = ObjectUtils.firstNonNull( b.getTrackedEntityInstance(), b.getProgramInstance(),
-            b.getProgramStageInstance() );
+            b.getEvent() );
 
         return idoA.getUid().equals( idoB.getUid() );
     }

@@ -45,18 +45,17 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -144,7 +143,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DEFAULT );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertFalse( importSummary.hasConflicts() );
@@ -159,7 +159,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -178,7 +179,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         userService.addUser( user );
         injectSecurityContext( user );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         // make sure data is flushed, so event service can access it
         manager.flush();
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
@@ -198,7 +200,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -218,7 +221,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         injectSecurityContext( user );
         // make sure data is flushed, so event service can access it
         manager.flush();
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
     }
@@ -236,7 +240,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.ERROR, importSummary.getStatus() );
     }
@@ -252,7 +257,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -263,10 +269,11 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -282,7 +289,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -293,10 +301,11 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
@@ -312,7 +321,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -323,7 +333,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
@@ -341,7 +351,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -352,7 +363,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
@@ -369,7 +380,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -380,7 +392,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
         assertThrows( IllegalQueryException.class,
@@ -397,7 +409,8 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programStageA.setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.update( programA );
         manager.update( programStageA );
-        Event event = createEvent( programA.getUid(), programStageA.getUid(), organisationUnitA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+            organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, ImportOptions.getDefaultImportOptions(), false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( event.getEvent(), importSummary.getReference() );
@@ -408,17 +421,18 @@ class EventSecurityTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         injectSecurityContext( user );
         assertTrue( programStageInstanceService.programStageInstanceExists( event.getEvent() ) );
-        ProgramStageInstance programStageInstance = programStageInstanceService
+        Event programStageInstance = programStageInstanceService
             .getProgramStageInstance( event.getUid() );
         assertNotNull( programStageInstance );
-        Event eventFromPsi = eventService.getEvent( programStageInstance, EventParams.FALSE );
+        org.hisp.dhis.dxf2.events.event.Event eventFromPsi = eventService.getEvent( programStageInstance,
+            EventParams.FALSE );
         assertNotNull( eventFromPsi );
         assertEquals( event.getUid(), eventFromPsi.getEvent() );
     }
 
-    private Event createEvent( String program, String programStage, String orgUnit )
+    private org.hisp.dhis.dxf2.events.event.Event createEvent( String program, String programStage, String orgUnit )
     {
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setEvent( event.getUid() );
         event.setProgram( program );

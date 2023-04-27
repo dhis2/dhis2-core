@@ -33,11 +33,11 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -93,11 +93,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 
     private ProgramInstance piC;
 
-    private ProgramStageInstance psiA;
+    private Event psiA;
 
-    private ProgramStageInstance psiB;
+    private Event psiB;
 
-    private ProgramStageInstance psiC;
+    private Event psiC;
 
     @Override
     public void setUpTest()
@@ -124,9 +124,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         piService.addProgramInstance( piA );
         piService.addProgramInstance( piB );
         piService.addProgramInstance( piC );
-        psiA = new ProgramStageInstance( piA, psA, ouA );
-        psiB = new ProgramStageInstance( piB, psA, ouB );
-        psiC = new ProgramStageInstance( piC, psA, ouA );
+        psiA = new Event( piA, psA, ouA );
+        psiB = new Event( piB, psA, ouB );
+        psiC = new Event( piC, psA, ouA );
         psiService.addProgramStageInstance( psiA );
         psiService.addProgramStageInstance( psiB );
         psiService.addProgramStageInstance( psiC );

@@ -38,10 +38,10 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EventQuery;
@@ -53,11 +53,11 @@ import org.hisp.dhis.user.User;
  */
 public class EventRowCallbackHandler
     extends
-    AbstractMapper<ProgramStageInstance>
+    AbstractMapper<Event>
 {
 
     @Override
-    ProgramStageInstance getItem( ResultSet rs )
+    Event getItem( ResultSet rs )
         throws SQLException
     {
         return getEvent( rs );
@@ -69,10 +69,10 @@ public class EventRowCallbackHandler
         return "enruid";
     }
 
-    private ProgramStageInstance getEvent( ResultSet rs )
+    private Event getEvent( ResultSet rs )
         throws SQLException
     {
-        ProgramStageInstance event = new ProgramStageInstance();
+        Event event = new Event();
         event.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.UID ) ) );
         event.setId( rs.getLong( EventQuery.getColumnName( COLUMNS.ID ) ) );
 

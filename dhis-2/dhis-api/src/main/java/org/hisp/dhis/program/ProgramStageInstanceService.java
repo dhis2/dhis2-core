@@ -44,42 +44,42 @@ public interface ProgramStageInstanceService
     String ID = ProgramStageInstanceService.class.getName();
 
     /**
-     * Adds a {@link ProgramStageInstance}
+     * Adds a {@link Event}
      *
-     * @param programStageInstance The ProgramStageInstance to add.
-     * @return A generated unique id of the added {@link ProgramStageInstance}.
+     * @param event The Event to add.
+     * @return A generated unique id of the added {@link Event}.
      */
-    long addProgramStageInstance( ProgramStageInstance programStageInstance );
+    long addProgramStageInstance( Event event );
 
     /**
-     * Adds a {@link ProgramStageInstance}
+     * Adds a {@link Event}
      *
-     * @param programStageInstance The ProgramStageInstance to add.
+     * @param event The Event to add.
      * @param user the current user.
-     * @return A generated unique id of the added {@link ProgramStageInstance}.
+     * @return A generated unique id of the added {@link Event}.
      */
-    long addProgramStageInstance( ProgramStageInstance programStageInstance, User user );
+    long addProgramStageInstance( Event event, User user );
 
     /**
-     * Soft deletes a {@link ProgramStageInstance}.
+     * Soft deletes a {@link Event}.
      *
      */
-    void deleteProgramStageInstance( ProgramStageInstance programStageInstance );
+    void deleteProgramStageInstance( Event event );
 
     /**
-     * Updates a {@link ProgramStageInstance}.
+     * Updates a {@link Event}.
      *
-     * @param programStageInstance the ProgramStageInstance to update.
+     * @param event the Event to update.
      */
-    void updateProgramStageInstance( ProgramStageInstance programStageInstance );
+    void updateProgramStageInstance( Event event );
 
     /**
-     * Updates a {@link ProgramStageInstance}.
+     * Updates a {@link Event}.
      *
-     * @param programStageInstance the ProgramStageInstance to update.
+     * @param event the Event to update.
      * @param user the current user.
      */
-    void updateProgramStageInstance( ProgramStageInstance programStageInstance, User user );
+    void updateProgramStageInstance( Event event, User user );
 
     /**
      * Updates a last sync timestamp on specified ProgramStageInstances
@@ -91,16 +91,16 @@ public interface ProgramStageInstanceService
     void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
 
     /**
-     * Checks whether a {@link ProgramStageInstance} with the given identifier
-     * exists. Doesn't take into account the deleted values.
+     * Checks whether a {@link Event} with the given identifier exists. Doesn't
+     * take into account the deleted values.
      *
      * @param uid the identifier.
      */
     boolean programStageInstanceExists( String uid );
 
     /**
-     * Checks whether a {@link ProgramStageInstance} with the given identifier
-     * exists. Takes into accound also the deleted values.
+     * Checks whether a {@link Event} with the given identifier exists. Takes
+     * into accound also the deleted values.
      *
      * @param uid the identifier.
      */
@@ -116,20 +116,20 @@ public interface ProgramStageInstanceService
     List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Returns a {@link ProgramStageInstance}.
+     * Returns a {@link Event}.
      *
-     * @param id the id of the ProgramStageInstance to return.
-     * @return the ProgramStageInstance with the given id.
+     * @param id the id of the Event to return.
+     * @return the Event with the given id.
      */
-    ProgramStageInstance getProgramStageInstance( long id );
+    Event getProgramStageInstance( long id );
 
     /**
-     * Returns the {@link ProgramStageInstance} with the given UID.
+     * Returns the {@link Event} with the given UID.
      *
      * @param uid the UID.
-     * @return the ProgramStageInstance with the given UID, or null if no match.
+     * @return the Event with the given UID, or null if no match.
      */
-    ProgramStageInstance getProgramStageInstance( String uid );
+    Event getProgramStageInstance( String uid );
 
     /**
      * Gets the number of ProgramStageInstances added since the given number of
@@ -148,9 +148,9 @@ public interface ProgramStageInstanceService
      * @param enrollmentDate the enrollment date.
      * @param incidentDate date of the incident.
      * @param organisationUnit the OrganisationUnit where the event took place.
-     * @return ProgramStageInstance the ProgramStageInstance which was created.
+     * @return Event the Event which was created.
      */
-    ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    Event createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
 
     /**
@@ -158,11 +158,10 @@ public interface ProgramStageInstanceService
      * creates audit logs for the upcoming create/save changes. DOES PERSIST the
      * changes to the PSI object.
      *
-     * @param programStageInstance the ProgramStageInstance that EventDataValues
-     *        belong to
+     * @param event the Event that EventDataValues belong to
      * @param dataElementEventDataValueMap the map of DataElements and related
      *        EventDataValues to update
      */
-    void saveEventDataValuesAndSaveProgramStageInstance( ProgramStageInstance programStageInstance,
+    void saveEventDataValuesAndSaveProgramStageInstance( Event event,
         Map<DataElement, EventDataValue> dataElementEventDataValueMap );
 }

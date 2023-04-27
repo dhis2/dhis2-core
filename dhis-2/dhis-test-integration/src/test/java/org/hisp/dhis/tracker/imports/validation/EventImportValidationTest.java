@@ -52,7 +52,7 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -312,11 +312,11 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = createEvent( "tracker/validations/events-with-notes-data.json" );
         // Then
         // Fetch the UID of the newly created event
-        final ProgramStageInstance programStageInstance = getEventFromReport( importReport );
-        assertThat( programStageInstance.getComments(), hasSize( 3 ) );
+        final Event event = getEventFromReport( importReport );
+        assertThat( event.getComments(), hasSize( 3 ) );
         // Validate note content
         Stream.of( "first note", "second note", "third note" ).forEach( t -> {
-            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            TrackedEntityComment comment = getByComment( event.getComments(), t );
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
@@ -336,11 +336,11 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = createEvent(
             "tracker/validations/events-with-notes-update-data.json" );
         // Then
-        final ProgramStageInstance programStageInstance = getEventFromReport( importReport );
-        assertThat( programStageInstance.getComments(), hasSize( 6 ) );
+        final Event event = getEventFromReport( importReport );
+        assertThat( event.getComments(), hasSize( 6 ) );
         // validate note content
         Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
-            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            TrackedEntityComment comment = getByComment( event.getComments(), t );
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
@@ -366,7 +366,7 @@ class EventImportValidationTest extends TrackerTest
     {
         // Given -> Creates an event
         createEvent( "tracker/validations/events-with-notes-data.json" );
-        ProgramStageInstance event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
+        Event event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
         assertNotNull( event );
         // When -> Soft-delete the event
         programStageServiceInstance.deleteProgramStageInstance( event );
@@ -429,7 +429,7 @@ class EventImportValidationTest extends TrackerTest
         return null;
     }
 
-    private ProgramStageInstance getEventFromReport( ImportReport importReport )
+    private Event getEventFromReport( ImportReport importReport )
     {
         final Map<TrackerType, TrackerTypeReport> typeReportMap = importReport.getPersistenceReport()
             .getTypeReportMap();

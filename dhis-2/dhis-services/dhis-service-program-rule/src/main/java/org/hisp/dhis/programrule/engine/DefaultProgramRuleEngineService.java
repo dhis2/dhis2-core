@@ -35,11 +35,11 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -100,7 +100,7 @@ public class DefaultProgramRuleEngineService
         }
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
-            programInstance.getProgramStageInstances(), programRules );
+            programInstance.getEvents(), programRules );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -123,7 +123,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
+        Event psi = programStageInstanceService.getProgramStageInstance( event );
 
         return evaluateEventAndRunEffects( psi );
     }
@@ -144,7 +144,7 @@ public class DefaultProgramRuleEngineService
         return programRuleEngine.getDataExpressionDescription( dataExpression, program );
     }
 
-    private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
+    private List<RuleEffect> evaluateEventAndRunEffects( Event psi )
     {
         if ( psi == null )
         {
@@ -170,7 +170,7 @@ public class DefaultProgramRuleEngineService
             ProgramInstance programInstance = programInstanceService
                 .getProgramInstance( psi.getProgramInstance().getId() );
 
-            ruleEffects = programRuleEngine.evaluate( programInstance, psi, programInstance.getProgramStageInstances(),
+            ruleEffects = programRuleEngine.evaluate( programInstance, psi, programInstance.getEvents(),
                 programRules );
         }
 

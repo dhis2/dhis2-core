@@ -40,8 +40,8 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -78,7 +78,7 @@ public class JsonAssertions
         assertTrue( rels.isEmpty(), "instances should not contain any relationships" );
     }
 
-    public static void assertEventWithinRelationshipItem( ProgramStageInstance expected, JsonRelationshipItem actual )
+    public static void assertEventWithinRelationshipItem( Event expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
         assertFalse( jsonEvent.isEmpty(), "event should not be empty" );

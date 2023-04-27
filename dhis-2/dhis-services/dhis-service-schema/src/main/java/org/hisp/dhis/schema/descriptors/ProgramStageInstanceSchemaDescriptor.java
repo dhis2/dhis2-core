@@ -27,13 +27,13 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
 public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
 {
-    public static final String SINGULAR = "programStageInstance";
+    public static final String SINGULAR = "event";
 
     public static final String PLURAL = "programStageInstances";
 
@@ -42,6 +42,6 @@ public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        return new Schema( ProgramStageInstance.class, SINGULAR, PLURAL );
+        return new Schema( Event.class, SINGULAR, PLURAL );
     }
 }

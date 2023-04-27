@@ -43,13 +43,12 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -63,7 +62,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 @Component( "workContextProgramStageInstancesSupplier" )
 @Slf4j
-public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, ProgramStageInstance>>
+public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, Event>>
 {
     private final ObjectMapper jsonMapper;
 
@@ -78,14 +77,15 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
     }
 
     @Override
-    public Map<String, ProgramStageInstance> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, Event> get( ImportOptions importOptions, List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( events == null )
         {
             return new HashMap<>();
         }
 
-        Set<String> psiUid = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
+        Set<String> psiUid = events.stream().map( org.hisp.dhis.dxf2.events.event.Event::getUid )
+            .collect( Collectors.toSet() );
 
         if ( isEmpty( psiUid ) )
         {
@@ -105,11 +105,11 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, P
         parameters.addValue( "ids", psiUid );
 
         return jdbcTemplate.query( sql, parameters, rs -> {
-            Map<String, ProgramStageInstance> results = new HashMap<>();
+            Map<String, Event> results = new HashMap<>();
 
             while ( rs.next() )
             {
-                ProgramStageInstance psi = new ProgramStageInstance();
+                Event psi = new Event();
 
                 psi.setId( rs.getLong( "programstageinstanceid" ) );
                 psi.setUid( rs.getString( "uid" ) );

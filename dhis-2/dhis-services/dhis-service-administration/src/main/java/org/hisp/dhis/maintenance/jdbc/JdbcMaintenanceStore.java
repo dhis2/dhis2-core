@@ -41,8 +41,8 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -58,7 +58,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
 {
     private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = Map.of(
         ProgramInstance.class, new ProgramInstance(),
-        ProgramStageInstance.class, new ProgramStageInstance(),
+        Event.class, new Event(),
         TrackedEntityInstance.class, new TrackedEntityInstance(),
         Relationship.class, new Relationship() );
 
@@ -101,8 +101,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
 
         String psiSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
 
-        String pmSelect = "(select id from programmessage where programstageinstanceid in "
-            + psiSelect + " )";
+        String pmSelect = "(select id from programmessage where programstageinstanceid in " + psiSelect + " )";
 
         /*
          * Delete event values, event value audits, event comments, events
@@ -127,7 +126,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
 
         if ( result > 0 && !deletedEvents.isEmpty() )
         {
-            auditHardDeletedEntity( deletedEvents, ProgramStageInstance.class );
+            auditHardDeletedEntity( deletedEvents, Event.class );
 
         }
 
@@ -212,7 +211,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
 
         if ( result > 0 )
         {
-            auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
+            auditHardDeletedEntity( associatedEvents, Event.class );
             auditHardDeletedEntity( deletedEnrollments, ProgramInstance.class );
         }
 
@@ -296,7 +295,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
 
         if ( result > 0 )
         {
-            auditHardDeletedEntity( associatedEvents, ProgramStageInstance.class );
+            auditHardDeletedEntity( associatedEvents, Event.class );
             auditHardDeletedEntity( associatedEnrollments, ProgramInstance.class );
             auditHardDeletedEntity( deletedTeiUids, TrackedEntityInstance.class );
         }
