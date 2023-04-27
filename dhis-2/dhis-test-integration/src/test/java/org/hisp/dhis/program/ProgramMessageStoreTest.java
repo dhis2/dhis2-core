@@ -132,7 +132,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private EventStore eventStore;
 
     // -------------------------------------------------------------------------
     // Prerequisite
@@ -277,7 +277,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     void testGetProgramMessageByProgramStageInstance()
     {
         programInstanceStore.save( programInstanceA );
-        programStageInstanceStore.save( eventA );
+        eventStore.save( eventA );
         pmsgA.setEvent( eventA );
         pmsgB.setEvent( eventA );
         programMessageStore.save( pmsgA );

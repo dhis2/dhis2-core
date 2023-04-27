@@ -81,7 +81,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private ProgramInstance pi;
 
-    private Event psi;
+    private Event event;
 
     private TrackerConverterService<Relationship, org.hisp.dhis.relationship.Relationship> relationshipConverterService;
 
@@ -106,8 +106,8 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         tei.setUid( TEI );
         pi = createProgramInstance( program, tei, organisationUnit );
         pi.setUid( ENROLLMENT );
-        psi = createProgramStageInstance( createProgramStage( 'A', program ), pi, organisationUnit );
-        psi.setUid( EVENT );
+        event = createProgramStageInstance( createProgramStage( 'A', program ), pi, organisationUnit );
+        event.setUid( EVENT );
 
         relationshipConverterService = new RelationshipTrackerConverterService();
     }
@@ -123,7 +123,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
             .thenReturn( teiToEvent );
         when( preheat.getTrackedEntity( TEI ) ).thenReturn( tei );
         when( preheat.getEnrollment( ENROLLMENT ) ).thenReturn( pi );
-        when( preheat.getEvent( EVENT ) ).thenReturn( psi );
+        when( preheat.getEvent( EVENT ) ).thenReturn( event );
 
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
             .from( preheat, List.of( relationshipA(), relationshipB() ) );
@@ -203,6 +203,6 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private org.hisp.dhis.relationship.Relationship relationshipBFromDB()
     {
-        return createTeiToProgramStageInstanceRelationship( tei, psi, teiToEvent );
+        return createTeiToProgramStageInstanceRelationship( tei, event, teiToEvent );
     }
 }

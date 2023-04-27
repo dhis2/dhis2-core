@@ -501,12 +501,12 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
-        Event programStageInstance = programStageInstanceWithDataValue( programInstance );
+        Event event = programStageInstanceWithDataValue( programInstance );
 
-        programInstance.getEvents().add( programStageInstance );
+        programInstance.getEvents().add( event );
         manager.update( programInstance );
 
-        relationship( trackedEntityInstance, programStageInstance );
+        relationship( trackedEntityInstance, event );
 
         JsonList<JsonEnrollment> json = GET(
             "/tracker/trackedEntities/{id}?fields=enrollments[*,events[!relationships]]",
@@ -517,9 +517,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertTrue( enrollment.getAttributes().isEmpty() );
         assertTrue( enrollment.getArray( "relationships" ).isEmpty() );
 
-        JsonEvent event = assertDefaultEventResponse( enrollment, programStageInstance );
+        JsonEvent jsonEvent = assertDefaultEventResponse( enrollment, event );
 
-        assertHasNoMember( event, "relationships" );
+        assertHasNoMember( jsonEvent, "relationships" );
     }
 
     private Event programStageInstanceWithDataValue( ProgramInstance programInstance )
@@ -571,40 +571,39 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         return enrollment;
     }
 
-    private JsonEvent assertDefaultEventResponse( JsonEnrollment enrollment,
-        Event programStageInstance )
+    private JsonEvent assertDefaultEventResponse( JsonEnrollment enrollment, Event event )
     {
         assertTrue( enrollment.isObject() );
         assertFalse( enrollment.isEmpty() );
 
-        JsonEvent event = enrollment.getEvents().get( 0 );
+        JsonEvent jsonEvent = enrollment.getEvents().get( 0 );
 
-        assertEquals( programStageInstance.getUid(), event.getEvent() );
-        assertEquals( programStageInstance.getProgramStage().getUid(), event.getProgramStage() );
-        assertEquals( programStageInstance.getProgramInstance().getUid(), event.getEnrollment() );
-        assertEquals( program.getUid(), event.getProgram() );
-        assertEquals( "ACTIVE", event.getStatus() );
-        assertEquals( orgUnit.getUid(), event.getOrgUnit() );
-        assertEquals( orgUnit.getName(), event.getOrgUnitName() );
-        assertFalse( event.getDeleted() );
-        assertHasMember( event, "createdAt" );
-        assertHasMember( event, "occurredAt" );
-        assertEquals( EVENT_OCCURRED_AT, event.getString( "occurredAt" ).string() );
-        assertHasMember( event, "createdAtClient" );
-        assertHasMember( event, "updatedAt" );
-        assertHasMember( event, "notes" );
-        assertHasMember( event, "followup" );
+        assertEquals( event.getUid(), jsonEvent.getEvent() );
+        assertEquals( event.getProgramStage().getUid(), jsonEvent.getProgramStage() );
+        assertEquals( event.getProgramInstance().getUid(), jsonEvent.getEnrollment() );
+        assertEquals( program.getUid(), jsonEvent.getProgram() );
+        assertEquals( "ACTIVE", jsonEvent.getStatus() );
+        assertEquals( orgUnit.getUid(), jsonEvent.getOrgUnit() );
+        assertEquals( orgUnit.getName(), jsonEvent.getOrgUnitName() );
+        assertFalse( jsonEvent.getDeleted() );
+        assertHasMember( jsonEvent, "createdAt" );
+        assertHasMember( jsonEvent, "occurredAt" );
+        assertEquals( EVENT_OCCURRED_AT, jsonEvent.getString( "occurredAt" ).string() );
+        assertHasMember( jsonEvent, "createdAtClient" );
+        assertHasMember( jsonEvent, "updatedAt" );
+        assertHasMember( jsonEvent, "notes" );
+        assertHasMember( jsonEvent, "followup" );
 
-        JsonDataValue dataValue = event.getDataValues().get( 0 );
+        JsonDataValue dataValue = jsonEvent.getDataValues().get( 0 );
 
         assertEquals( dataElement.getUid(), dataValue.getDataElement() );
-        assertEquals( programStageInstance.getEventDataValues().iterator().next().getValue(), dataValue.getValue() );
+        assertEquals( event.getEventDataValues().iterator().next().getValue(), dataValue.getValue() );
         assertHasMember( dataValue, "createdAt" );
         assertHasMember( dataValue, "updatedAt" );
         assertHasMember( dataValue, "createdBy" );
         assertHasMember( dataValue, "updatedBy" );
 
-        return event;
+        return jsonEvent;
     }
 
     private TrackedEntityType trackedEntityTypeAccessible()

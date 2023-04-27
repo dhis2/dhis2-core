@@ -58,11 +58,11 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -117,7 +117,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     private ProgramInstanceStore programInstanceStore;
 
     @Mock
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private EventStore eventStore;
 
     @Mock
     private IdentifiableObjectManager manager;
@@ -203,7 +203,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
-            this.messageService, this.programInstanceStore, this.programStageInstanceStore, this.manager,
+            this.messageService, this.programInstanceStore, this.eventStore, this.manager,
             this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService,
             notificationTemplateMapper );
 
@@ -230,7 +230,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testIfProgramStageInstanceIsNull()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( null );
+        when( eventStore.get( anyLong() ) ).thenReturn( null );
 
         programNotificationService.sendEventCompletionNotifications( 0 );
 
@@ -399,7 +399,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithSMS()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -432,7 +432,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithEmail()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -464,7 +464,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testDataElementRecipientWithInternalRecipients()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
@@ -498,7 +498,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToParent()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
@@ -529,7 +529,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToHierarchy()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
@@ -566,7 +566,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendToUsersAtOu()
     {
-        when( programStageInstanceStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
+        when( eventStore.get( anyLong() ) ).thenReturn( events.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );

@@ -35,8 +35,8 @@ import lombok.RequiredArgsConstructor;
 public class ReferenceTrackerEntity
 {
     /**
-     * Reference uid: this correspond to the UID of a TEI, PS or PSI from the
-     * Tracker Import payload
+     * Reference uid: this correspond to the UID of a TEI, PS or event from the
+     * tracker import payload
      */
     private final String uid;
 

@@ -90,7 +90,7 @@ public class DefaultTrackerObjectsDeletionService
 
             List<org.hisp.dhis.tracker.imports.domain.Event> events = eventTrackerConverterService
                 .to( Lists.newArrayList( programInstance.getEvents()
-                    .stream().filter( psi -> !psi.isDeleted() )
+                    .stream().filter( event -> !event.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() )

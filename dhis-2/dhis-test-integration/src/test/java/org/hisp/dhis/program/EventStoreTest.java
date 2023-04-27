@@ -66,7 +66,7 @@ class EventStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private EventStore eventStore;
 
     @Autowired
     private ProgramStageDataElementStore programStageDataElementStore;
@@ -230,13 +230,13 @@ class EventStoreTest extends TransactionalIntegrationTest
     @Test
     void testProgramStageInstanceExists()
     {
-        programStageInstanceStore.save( eventA );
-        programStageInstanceStore.save( eventB );
+        eventStore.save( eventA );
+        eventStore.save( eventB );
         dbmsManager.flushSession();
-        assertTrue( programStageInstanceStore.exists( eventA.getUid() ) );
-        assertTrue( programStageInstanceStore.exists( eventB.getUid() ) );
-        assertFalse( programStageInstanceStore.exists( "aaaabbbbccc" ) );
-        assertFalse( programStageInstanceStore.exists( null ) );
+        assertTrue( eventStore.exists( eventA.getUid() ) );
+        assertTrue( eventStore.exists( eventB.getUid() ) );
+        assertFalse( eventStore.exists( "aaaabbbbccc" ) );
+        assertFalse( eventStore.exists( null ) );
     }
 
     @Test
@@ -246,19 +246,19 @@ class EventStoreTest extends TransactionalIntegrationTest
         eventB.setStatus( EventStatus.ACTIVE );
         eventC.setStatus( EventStatus.COMPLETED );
         eventD1.setStatus( EventStatus.ACTIVE );
-        programStageInstanceStore.save( eventA );
-        programStageInstanceStore.save( eventB );
-        programStageInstanceStore.save( eventC );
-        programStageInstanceStore.save( eventD1 );
+        eventStore.save( eventA );
+        eventStore.save( eventB );
+        eventStore.save( eventC );
+        eventStore.save( eventD1 );
         List<ProgramInstance> programInstances = new ArrayList<>();
         programInstances.add( programInstanceA );
         programInstances.add( programInstanceB );
-        List<Event> stageInstances = programStageInstanceStore.get( programInstances,
+        List<Event> stageInstances = eventStore.get( programInstances,
             EventStatus.COMPLETED );
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( eventA ) );
         assertTrue( stageInstances.contains( eventC ) );
-        stageInstances = programStageInstanceStore.get( programInstances, EventStatus.ACTIVE );
+        stageInstances = eventStore.get( programInstances, EventStatus.ACTIVE );
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( eventB ) );
         assertTrue( stageInstances.contains( eventD1 ) );
@@ -315,36 +315,36 @@ class EventStoreTest extends TransactionalIntegrationTest
         // Events
         Event eventA = new Event( programInstanceA, stageA );
         eventA.setDueDate( tomorrow );
-        programStageInstanceStore.save( eventA );
+        eventStore.save( eventA );
         Event eventB = new Event( programInstanceB, stageB );
         eventB.setDueDate( today );
-        programStageInstanceStore.save( eventB );
+        eventStore.save( eventB );
         Event eventC = new Event( programInstanceB, stageC );
         eventC.setDueDate( yesterday );
-        programStageInstanceStore.save( eventC );
+        eventStore.save( eventC );
         // Queries
         List<Event> results;
         // A
-        results = programStageInstanceStore.getWithScheduledNotifications( a1, today );
+        results = eventStore.getWithScheduledNotifications( a1, today );
         assertEquals( 1, results.size() );
         assertEquals( eventA, results.get( 0 ) );
-        results = programStageInstanceStore.getWithScheduledNotifications( a2, today );
+        results = eventStore.getWithScheduledNotifications( a2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( a3, today );
+        results = eventStore.getWithScheduledNotifications( a3, today );
         assertEquals( 0, results.size() );
         // B
-        results = programStageInstanceStore.getWithScheduledNotifications( b1, today );
+        results = eventStore.getWithScheduledNotifications( b1, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( b2, today );
+        results = eventStore.getWithScheduledNotifications( b2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( b3, today );
+        results = eventStore.getWithScheduledNotifications( b3, today );
         assertEquals( 0, results.size() );
         // C
-        results = programStageInstanceStore.getWithScheduledNotifications( c1, today );
+        results = eventStore.getWithScheduledNotifications( c1, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( c2, today );
+        results = eventStore.getWithScheduledNotifications( c2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( c3, today );
+        results = eventStore.getWithScheduledNotifications( c3, today );
         assertEquals( 1, results.size() );
         assertEquals( eventC, results.get( 0 ) );
     }

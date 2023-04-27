@@ -151,9 +151,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
             ri.setProgramInstance( pi );
             break;
         case "psi":
-            Event psi = new Event();
-            psi.setUid( uid );
-            ri.setEvent( psi );
+            Event event = new Event();
+            event.setUid( uid );
+            ri.setEvent( event );
             break;
         default:
             log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );

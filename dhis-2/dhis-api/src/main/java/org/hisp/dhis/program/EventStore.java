@@ -39,7 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 /**
  * @author Abyot Asalefew
  */
-public interface ProgramStageInstanceStore
+public interface EventStore
     extends IdentifiableObjectStore<Event>
 {
     /**
@@ -62,37 +62,37 @@ public interface ProgramStageInstanceStore
     List<Event> get( TrackedEntityInstance entityInstance, EventStatus status );
 
     /**
-     * Get the number of ProgramStageInstances updates since the given Date.
+     * Get the number of events updates since the given Date.
      *
      * @param time the time.
-     * @return the number of ProgramStageInstances.
+     * @return the number of events.
      */
-    long getProgramStageInstanceCountLastUpdatedAfter( Date time );
+    long getEventCountLastUpdatedAfter( Date time );
 
     /**
-     * Checks for the existence of a PSI by UID. The deleted PSIs are not taken
-     * into account.
+     * Checks for the existence of an event by UID. The deleted events are not
+     * taken into account.
      *
-     * @param uid PSI UID to check for
+     * @param uid event UID to check for
      * @return true/false depending on result
      */
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PSI by UID. It takes into account also the
-     * deleted PSIs.
+     * Checks for the existence of an event by UID. It takes into account also
+     * the deleted events.
      *
-     * @param uid PSI UID to check for
+     * @param uid event UID to check for
      * @return true/false depending on result
      */
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramStageInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing events (including deleted) from the provided
+     * UIDs.
      *
-     * @param uids PSI UIDs to check
-     * @return List containing UIDs of existing PSIs (including deleted)
+     * @param uids event UIDs to check
+     * @return List containing UIDs of existing events (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
 
@@ -105,7 +105,7 @@ public interface ProgramStageInstanceStore
     List<Event> getIncludingDeleted( List<String> uids );
 
     /**
-     * Get all ProgramStageInstances which have notifications with the given
+     * Get all events which have notifications with the given.
      * ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
@@ -116,11 +116,11 @@ public interface ProgramStageInstanceStore
         Date notificationDate );
 
     /**
-     * Set lastSynchronized timestamp to provided timestamp for provided PSIs
+     * Set lastSynchronized timestamp to provided timestamp for provided events.
      *
-     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the
-     *        lastSynchronized flag should be updated
+     * @param eventUids UIDs of events where the lastSynchronized flag should be
+     *        updated
      * @param lastSynchronized The date of last successful sync
      */
-    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+    void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized );
 }

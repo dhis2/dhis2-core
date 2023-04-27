@@ -40,7 +40,7 @@ import org.hisp.dhis.dataelement.DataElement;
 public interface ProgramStageDataElementStore
     extends IdentifiableObjectStore<ProgramStageDataElement>
 {
-    String ID = ProgramStageInstanceStore.class.getName();
+    String ID = EventStore.class.getName();
 
     /**
      * Retrieve ProgramStageDataElement list on a program stage and a data

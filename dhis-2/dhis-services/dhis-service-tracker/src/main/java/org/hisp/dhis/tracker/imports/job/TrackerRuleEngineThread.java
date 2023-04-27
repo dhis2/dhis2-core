@@ -102,13 +102,13 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
-                Event psi = sideEffectDataBundle.getEvent();
-                psi.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
+                Event event = sideEffectDataBundle.getEvent();
+                event.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
 
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, event ) );
             }
         }
 

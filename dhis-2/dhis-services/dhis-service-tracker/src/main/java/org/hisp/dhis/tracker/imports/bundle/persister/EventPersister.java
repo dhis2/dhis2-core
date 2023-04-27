@@ -150,22 +150,22 @@ public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.track
 
     @Override
     protected void updateAttributes( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Event event, Event programStageInstance )
+        org.hisp.dhis.tracker.imports.domain.Event event, Event hibernateEntity )
     {
         // DO NOTHING - EVENT HAVE NO ATTRIBUTES
     }
 
     @Override
     protected void updateDataValues( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Event event, Event programStageInstance )
+        org.hisp.dhis.tracker.imports.domain.Event event, Event hibernateEntity )
     {
-        handleDataValues( session, preheat, event.getDataValues(), programStageInstance );
+        handleDataValues( session, preheat, event.getDataValues(), hibernateEntity );
     }
 
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
-        Event psi )
+        Event event )
     {
-        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( event.getUid() ) )
             .map( a -> a.getEventDataValues()
                 .stream()
                 .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
@@ -191,10 +191,10 @@ public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.track
             {
                 if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
+                    unassignFileResource( session, preheat, event.getUid(), eventDataValue.getValue() );
                 }
 
-                psi.getEventDataValues().remove( eventDataValue );
+                event.getEventDataValues().remove( eventDataValue );
             }
             else
             {
@@ -202,15 +202,14 @@ public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.track
 
                 if ( dataElement.isFileType() )
                 {
-                    assignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
+                    assignFileResource( session, preheat, event.getUid(), eventDataValue.getValue() );
                 }
 
-                psi.getEventDataValues().remove( eventDataValue );
-                psi.getEventDataValues().add( eventDataValue );
+                event.getEventDataValues().remove( eventDataValue );
+                event.getEventDataValues().add( eventDataValue );
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi,
-                new Date(), valuesHolder );
+            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, event, new Date(), valuesHolder );
         } );
     }
 
@@ -222,15 +221,15 @@ public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.track
             .orElseGet( Date::new );
     }
 
-    private void logTrackedEntityDataValueHistory( String userName,
-        DataElement de, Event psi, Date created, ValuesHolder valuesHolder )
+    private void logTrackedEntityDataValueHistory( String userName, DataElement de, Event event, Date created,
+        ValuesHolder valuesHolder )
     {
         AuditType auditType = valuesHolder.getAuditType();
 
         if ( auditType != null )
         {
             TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
-            valueAudit.setEvent( psi );
+            valueAudit.setEvent( event );
             valueAudit.setValue( valuesHolder.getValue() );
             valueAudit.setAuditType( auditType );
             valueAudit.setDataElement( de );
