@@ -85,9 +85,7 @@ public class PredictorExpression
 
     private static final String IN = "in";
 
-    private static final String PREPROCESSOR_SEPARATOR = " --> ";
-
-    private static final int PREPROCESSOR_SEPARATOR_LENGTH = PREPROCESSOR_SEPARATOR.length();
+    private static final String PREPROCESSOR_SEPARATOR = "-->";
 
     /**
      * Accepts and parses a predictor expression with a preprocessor prefix:
@@ -112,22 +110,11 @@ public class PredictorExpression
 
         simple = false;
 
-        int mainSplit = expression.indexOf( PREPROCESSOR_SEPARATOR );
+        String[] parts = expression.split( "\\s+", 6 );
 
-        if ( mainSplit < 0 )
+        if ( parts.length != 6 )
         {
-            throw new ParserException(
-                format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
-        }
-
-        prefix = this.expression.substring( 0, mainSplit );
-        main = this.expression.substring( mainSplit + PREPROCESSOR_SEPARATOR_LENGTH );
-
-        String[] parts = prefix.split( " " );
-
-        if ( parts.length != 4 )
-        {
-            throw new ParserException( format( "Predictor preprocessor expression should have four parts: '%s'",
+            throw new ParserException( format( "Predictor expression with preprocessing should have six parts: '%s'",
                 expression ) );
         }
 
@@ -166,6 +153,19 @@ public class PredictorExpression
                 "UID '%s' must start with a letter and contain 10 more letters and numbers in '%s'", degUid,
                 expression ) );
         }
+
+        // -->
+
+        if ( !PREPROCESSOR_SEPARATOR.equals( parts[4] ) )
+        {
+            throw new ParserException(
+                format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
+        }
+
+        // Prefix and Main
+
+        main = parts[5];
+        prefix = expression.substring( 0, expression.length() - main.length() );
     }
 
     // -------------------------------------------------------------------------
