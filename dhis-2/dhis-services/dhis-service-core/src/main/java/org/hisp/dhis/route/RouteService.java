@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -82,20 +83,13 @@ public class RouteService
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
-    /*
-     * Sensitive headers to be removed from forwarded requests.
-     */
-    private static final List<String> sensitiveHeaderNames = List.of( "cookie", "authorization" );
+    private static List<String> allowedRequestHeaders = List.of( "accept", "accept-encoding", "accept-language",
+        "x-requested-with", "user-agent", "cache-control", "if-match", "if-modified-since", "if-none-match", "if-range",
+        "if-unmodified-since", "x-forwarded-for", "x-forwarded-host", "x-forwarded-port", "x-forwarded-proto",
+        "x-forwarded-prefix", "forwarded" );
 
-    /*
-     * Non-sensitive headers to be removed from forwarded requests. From IETF
-     * (https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-p1-messaging-
-     * 14) See also Spring Cloud Gateway
-     * (https://cloud.spring.io/spring-cloud-gateway/reference/html/#
-     * removehopbyhop-headers-filter)
-     */
-    private static final List<String> removeHopByHopHeaderNames = List.of( "connection", "keep-alive",
-        "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade" );
+    private static List<String> allowedResponseHeaders = List.of( "content-encoding", "content-language",
+        "content-length", "content-type", "expires", "cache-control", "last-modified", "etag" );
 
     static
     {
@@ -153,12 +147,15 @@ public class RouteService
         throws IOException,
         BadRequestException
     {
-        HttpHeaders headers = forwardHeaders( request );
+        HttpHeaders headers = filterRequestHeaders( request );
+        headers.forEach( ( String name, List<String> values ) -> log
+            .debug( String.format( "Forwarded header %s=%s", name, values.toString() ) ) );
 
         route.getHeaders().forEach( headers::add );
 
         if ( user != null && StringUtils.hasText( user.getUsername() ) )
         {
+            log.debug( String.format( "Route accessed by user %s", user.getUsername() ) );
             headers.add( "X-Forwarded-User", user.getUsername() );
         }
 
@@ -194,30 +191,47 @@ public class RouteService
         ResponseEntity<String> response = restTemplate.exchange( targetUri, httpMethod,
             entity, String.class );
 
+        HttpHeaders responseHeaders = filterResponseHeaders( response.getHeaders() );
+
+        String responseBody = response.getBody();
+
+        responseHeaders.forEach( ( String name, List<String> values ) -> log
+            .debug( String.format( "Response header %s=%s", name, values.toString() ) ) );
         log.info( String.format( "Request %s %s responded with HTTP status %s via route %s (%s)", httpMethod, targetUri,
             response.getStatusCode().toString(), route.getName(), route.getUid() ) );
 
-        return response;
+        return new ResponseEntity<String>( responseBody, responseHeaders, response.getStatusCode() );
     }
 
-    private HttpHeaders forwardHeaders( HttpServletRequest request )
+    private HttpHeaders filterHeaders( Iterable<String> names, List<String> allowedHeaders,
+        Function<String, List<String>> valuesGetter )
     {
         HttpHeaders headers = new HttpHeaders();
-        Collections.list( request.getHeaderNames() ).forEach( name -> {
+        names.forEach( ( String name ) -> {
             String lowercaseName = name.toLowerCase();
-            if ( sensitiveHeaderNames.contains( lowercaseName ) || removeHopByHopHeaderNames.contains( lowercaseName )
-                || lowercaseName.equals( "host" ) )
+            if ( !allowedHeaders.contains( lowercaseName ) )
             {
-                log.info( String.format( "Blocked header %s", name ) );
+                log.debug( String.format( "Blocked header %s", name ) );
                 return;
             }
-            headers.addAll( name, Collections.list( request.getHeaders( name ) ) );
+            List<String> values = valuesGetter.apply( name );
+            headers.addAll( name, values );
         } );
-
-        headers.forEach( ( String name, List<String> values ) -> log
-            .info( String.format( "Forwarded header %s=%s", name, values.toString() ) ) );
-
         return headers;
+    }
+
+    private HttpHeaders filterRequestHeaders( HttpServletRequest request )
+    {
+        return filterHeaders( Collections.list( request.getHeaderNames() ), allowedRequestHeaders, ( String name ) -> {
+            return Collections.list( request.getHeaders( name ) );
+        } );
+    }
+
+    private HttpHeaders filterResponseHeaders( HttpHeaders responseHeaders )
+    {
+        return filterHeaders( responseHeaders.keySet(), allowedResponseHeaders, ( String name ) -> {
+            return responseHeaders.get( name );
+        } );
     }
 
     private void decrypt( Route route )
