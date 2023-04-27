@@ -79,6 +79,8 @@ public class PredictorExpression
      */
     final String degUid;
 
+    private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile( "\\s+" );
+
     private static final Pattern VARIABLE_PATTERN = Pattern.compile( "^\\?[A-Za-z][A-Za-z0-9]*$" );
 
     private static final String FOR_EACH = "forEach";
@@ -110,7 +112,7 @@ public class PredictorExpression
 
         simple = false;
 
-        String[] parts = expression.split( "\\s+", 6 );
+        String[] parts = WHITE_SPACE_PATTERN.split( expression, 6 );
 
         if ( parts.length != 6 )
         {
