@@ -94,7 +94,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
     void testDeleteNamespace()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE ) );
@@ -109,7 +109,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
     void testAddKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ) );
@@ -119,7 +119,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
     void testUpdateKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ) );
@@ -129,7 +129,7 @@ class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienc
     void testDeleteKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE + "/key" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE + "/key" ) );
