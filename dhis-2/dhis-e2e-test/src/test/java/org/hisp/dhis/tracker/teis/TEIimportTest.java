@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.teis;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.iterableWithSize;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.stringContainsInOrder;
@@ -130,6 +131,29 @@ public class TEIimportTest
 
         response.validate().statusCode( 404 );
 
+    }
+
+    @Test
+    void shouldGetTeisWhenFilterByAttributeValueWithDelimiter()
+    {
+        teiActions.get( new QueryParamsBuilder().addAll(
+            "filter=kZeSYCgaHTk:eq:Test,Test",
+            "trackedEntityType=" + "Q9GufDoplCL",
+            "ou=" + "O6uvpzGd5pu" ) )
+            .validate().statusCode( 200 )
+            .body( "trackedEntityInstances", hasSize( 1 ) );
+    }
+
+    @Test
+    void shouldGetTeisWhenFilterByMultipleAttributeValueWithDelimiter()
+    {
+        teiActions.get( new QueryParamsBuilder().addAll(
+            "attribute=kZeSYCgaHTk:eq:Test,Test",
+            "attribute=dIVt4l5vIOa:eq:Test",
+            "trackedEntityType=" + "Q9GufDoplCL",
+            "ou=" + "O6uvpzGd5pu" ) )
+            .validate().statusCode( 200 )
+            .body( "trackedEntityInstances", hasSize( 1 ) );
     }
 
     @Test
