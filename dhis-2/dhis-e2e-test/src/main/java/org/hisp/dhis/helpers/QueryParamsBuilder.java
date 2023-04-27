@@ -29,6 +29,7 @@ package org.hisp.dhis.helpers;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.apache.commons.lang3.tuple.MutablePair;
 
@@ -51,6 +52,8 @@ public class QueryParamsBuilder
 
     /**
      * Adds or updates the query param. Format: key=value
+     * <p>
+     * We allow multiple values for filter and attribute
      *
      * @param param
      * @return
@@ -58,11 +61,17 @@ public class QueryParamsBuilder
     public QueryParamsBuilder add( String param )
     {
         String[] split = param.split( "=" );
-        MutablePair pair = getByKey( split[0] );
+        Optional<MutablePair<String, String>> pairOptional = getByKey( split[0] );
 
-        if ( pair != null && !pair.getKey().equals( "filter" ) )
+        if ( pairOptional.isPresent() )
         {
-            pair.setRight( split[1] );
+            MutablePair<String, String> existingPair = pairOptional.get();
+
+            if ( !existingPair.getKey().equals( "filter" ) && !existingPair.getKey().equals( "attribute" ) )
+            {
+                existingPair.setRight( split[1] );
+            }
+
             return this;
         }
 
@@ -81,17 +90,16 @@ public class QueryParamsBuilder
         return this;
     }
 
-    private MutablePair getByKey( String key )
+    private Optional<MutablePair<String, String>> getByKey( String key )
     {
         return queryParams.stream()
             .filter( p -> p.getLeft().equals( key ) )
-            .findFirst()
-            .orElse( null );
+            .findFirst();
     }
 
     public String build()
     {
-        if ( queryParams.size() == 0 )
+        if ( queryParams.isEmpty() )
         {
             return "";
         }
