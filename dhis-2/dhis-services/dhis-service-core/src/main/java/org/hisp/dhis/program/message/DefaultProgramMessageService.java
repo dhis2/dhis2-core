@@ -46,10 +46,10 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -118,13 +118,13 @@ public class DefaultProgramMessageService
 
         if ( psiUid != null )
         {
-            if ( manager.exists( ProgramStageInstance.class, psiUid ) )
+            if ( manager.exists( Event.class, psiUid ) )
             {
-                params.setProgramStageInstance( manager.get( ProgramStageInstance.class, psiUid ) );
+                params.setEvent( manager.get( Event.class, psiUid ) );
             }
             else
             {
-                throw new IllegalQueryException( "ProgramStageInstance does not exist." );
+                throw new IllegalQueryException( "Event does not exist." );
             }
         }
 
@@ -246,14 +246,14 @@ public class DefaultProgramMessageService
             programInstance = params.getProgramInstance();
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            programInstance = params.getProgramStageInstance().getProgramInstance();
+            programInstance = params.getEvent().getProgramInstance();
         }
 
         if ( programInstance == null )
         {
-            throw new IllegalQueryException( "ProgramInstance or ProgramStageInstance has to be provided" );
+            throw new IllegalQueryException( "ProgramInstance or Event has to be provided" );
         }
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );
@@ -270,7 +270,7 @@ public class DefaultProgramMessageService
     {
         String violation = null;
 
-        if ( !params.hasProgramInstance() && !params.hasProgramStageInstance() )
+        if ( !params.hasProgramInstance() && !params.hasEvent() )
         {
             violation = "Program instance or program stage instance must be provided";
         }
@@ -301,7 +301,7 @@ public class DefaultProgramMessageService
             violation = "Delivery channel must be specified";
         }
 
-        if ( message.getProgramInstance() == null && message.getProgramStageInstance() == null )
+        if ( message.getProgramInstance() == null && message.getEvent() == null )
         {
             violation = "Program instance or program stage instance must be specified";
         }
@@ -341,9 +341,9 @@ public class DefaultProgramMessageService
         {
             object = message.getProgramInstance().getProgram();
         }
-        else if ( message.hasProgramStageInstance() )
+        else if ( message.hasEvent() )
         {
-            object = message.getProgramStageInstance().getProgramStage();
+            object = message.getEvent().getProgramStage();
         }
 
         if ( object != null )
@@ -372,7 +372,7 @@ public class DefaultProgramMessageService
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
     {
         message.setProgramInstance( getProgramInstance( message ) );
-        message.setProgramStageInstance( getProgramStageInstance( message ) );
+        message.setEvent( getEvent( message ) );
         message.setProcessedDate( new Date() );
         message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
 
@@ -397,11 +397,11 @@ public class DefaultProgramMessageService
         return null;
     }
 
-    private ProgramStageInstance getProgramStageInstance( ProgramMessage programMessage )
+    private Event getEvent( ProgramMessage programMessage )
     {
-        if ( programMessage.getProgramStageInstance() != null )
+        if ( programMessage.getEvent() != null )
         {
-            return manager.get( ProgramStageInstance.class, programMessage.getProgramStageInstance().getUid() );
+            return manager.get( Event.class, programMessage.getEvent().getUid() );
         }
 
         return null;

@@ -12,7 +12,7 @@
       </generator>
     </id>
 
-    <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
+    <many-to-one name="event" class="org.hisp.dhis.program.Event"
         column="programstageinstanceid" foreign-key="fk_entityinstancedatavalueaudit_programstageinstanceid" />
     
     <many-to-one name="dataElement" class="org.hisp.dhis.dataelement.DataElement" column="dataelementid"

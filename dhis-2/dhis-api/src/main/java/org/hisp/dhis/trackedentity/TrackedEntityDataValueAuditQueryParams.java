@@ -39,8 +39,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * Encapsulation of a web API request for tracked entity data value audit
@@ -56,7 +56,7 @@ public class TrackedEntityDataValueAuditQueryParams
 
     private List<OrganisationUnit> orgUnits = new ArrayList<>();
 
-    private List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+    private List<Event> events = new ArrayList<>();
 
     private List<ProgramStage> programStages = new ArrayList<>();
 

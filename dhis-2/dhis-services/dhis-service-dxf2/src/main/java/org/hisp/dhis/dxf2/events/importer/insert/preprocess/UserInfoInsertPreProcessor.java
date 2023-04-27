@@ -27,10 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.importer.insert.preprocess;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Component;
 
@@ -39,7 +38,7 @@ public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo( ProgramStageInstance unused, EventDataValue dataValue,
+    protected void updateDataValueUserInfo( Event unused, EventDataValue dataValue,
         UserInfoSnapshot userInfo )
     {
         super.updateDataValueUserInfo( null, dataValue, userInfo );
@@ -47,7 +46,7 @@ public class UserInfoInsertPreProcessor extends UserInfoUpdatePreProcessor
     }
 
     @Override
-    protected void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo )
+    protected void updateEventUserInfo( org.hisp.dhis.dxf2.events.event.Event event, UserInfoSnapshot eventUserInfo )
     {
         super.updateEventUserInfo( event, eventUserInfo );
         event.setCreatedByUserInfo( eventUserInfo );

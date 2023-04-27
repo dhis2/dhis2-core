@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
+class EventServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
@@ -125,15 +125,15 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
 
     private ProgramInstance programInstanceB;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
-    private ProgramStageInstance programStageInstanceC;
+    private Event eventC;
 
-    private ProgramStageInstance programStageInstanceD1;
+    private Event eventD1;
 
-    private ProgramStageInstance programStageInstanceD2;
+    private Event eventD2;
 
     private TrackedEntityInstance entityInstanceA;
 
@@ -228,28 +228,28 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
         programInstanceService.addProgramInstance( programInstanceA );
         programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programB );
         programInstanceService.addProgramInstance( programInstanceB );
-        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
-        programStageInstanceA.setDueDate( enrollmentDate );
-        programStageInstanceA.setUid( "UID-A" );
-        programStageInstanceB = new ProgramStageInstance( programInstanceA, stageB );
-        programStageInstanceB.setDueDate( enrollmentDate );
-        programStageInstanceB.setUid( "UID-B" );
-        programStageInstanceC = new ProgramStageInstance( programInstanceB, stageC );
-        programStageInstanceC.setDueDate( enrollmentDate );
-        programStageInstanceC.setUid( "UID-C" );
-        programStageInstanceD1 = new ProgramStageInstance( programInstanceB, stageD );
-        programStageInstanceD1.setDueDate( enrollmentDate );
-        programStageInstanceD1.setUid( "UID-D1" );
-        programStageInstanceD2 = new ProgramStageInstance( programInstanceB, stageD );
-        programStageInstanceD2.setDueDate( enrollmentDate );
-        programStageInstanceD2.setUid( "UID-D2" );
+        eventA = new Event( programInstanceA, stageA );
+        eventA.setDueDate( enrollmentDate );
+        eventA.setUid( "UID-A" );
+        eventB = new Event( programInstanceA, stageB );
+        eventB.setDueDate( enrollmentDate );
+        eventB.setUid( "UID-B" );
+        eventC = new Event( programInstanceB, stageC );
+        eventC.setDueDate( enrollmentDate );
+        eventC.setUid( "UID-C" );
+        eventD1 = new Event( programInstanceB, stageD );
+        eventD1.setDueDate( enrollmentDate );
+        eventD1.setUid( "UID-D1" );
+        eventD2 = new Event( programInstanceB, stageD );
+        eventD2.setDueDate( enrollmentDate );
+        eventD2.setUid( "UID-D2" );
         /*
          * Prepare data for EventDataValues manipulation tests
          */
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        programStageInstanceService.addProgramStageInstance( eventA );
         // Check that there are no EventDataValues assigned to PSI
-        ProgramStageInstance tempPsiA = programStageInstanceService
-            .getProgramStageInstance( programStageInstanceA.getUid() );
+        Event tempPsiA = programStageInstanceService
+            .getProgramStageInstance( eventA.getUid() );
         assertEquals( 0, tempPsiA.getEventDataValues().size() );
         // Prepare EventDataValues to manipulate with
         dataElementMap.put( dataElementA.getUid(), dataElementA );
@@ -261,8 +261,8 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testAddProgramStageInstance()
     {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( eventA );
+        long idB = programStageInstanceService.addProgramStageInstance( eventB );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idB ) );
     }
@@ -270,14 +270,14 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testDeleteProgramStageInstance()
     {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
+        long idA = programStageInstanceService.addProgramStageInstance( eventA );
+        long idB = programStageInstanceService.addProgramStageInstance( eventB );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idB ) );
-        programStageInstanceService.deleteProgramStageInstance( programStageInstanceA );
+        programStageInstanceService.deleteProgramStageInstance( eventA );
         assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idB ) );
-        programStageInstanceService.deleteProgramStageInstance( programStageInstanceB );
+        programStageInstanceService.deleteProgramStageInstance( eventB );
         assertNull( programStageInstanceService.getProgramStageInstance( idA ) );
         assertNull( programStageInstanceService.getProgramStageInstance( idB ) );
     }
@@ -285,30 +285,30 @@ class ProgramStageInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testUpdateProgramStageInstance()
     {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        long idA = programStageInstanceService.addProgramStageInstance( eventA );
         assertNotNull( programStageInstanceService.getProgramStageInstance( idA ) );
-        programStageInstanceA.setName( "B" );
-        programStageInstanceService.updateProgramStageInstance( programStageInstanceA );
+        eventA.setName( "B" );
+        programStageInstanceService.updateProgramStageInstance( eventA );
         assertEquals( "B", programStageInstanceService.getProgramStageInstance( idA ).getName() );
     }
 
     @Test
     void testGetProgramStageInstanceById()
     {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( idA ) );
-        assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( idB ) );
+        long idA = programStageInstanceService.addProgramStageInstance( eventA );
+        long idB = programStageInstanceService.addProgramStageInstance( eventB );
+        assertEquals( eventA, programStageInstanceService.getProgramStageInstance( idA ) );
+        assertEquals( eventB, programStageInstanceService.getProgramStageInstance( idB ) );
     }
 
     @Test
     void testGetProgramStageInstanceByUid()
     {
-        long idA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        long idB = programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( idA ) );
-        assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( idB ) );
-        assertEquals( programStageInstanceA, programStageInstanceService.getProgramStageInstance( "UID-A" ) );
-        assertEquals( programStageInstanceB, programStageInstanceService.getProgramStageInstance( "UID-B" ) );
+        long idA = programStageInstanceService.addProgramStageInstance( eventA );
+        long idB = programStageInstanceService.addProgramStageInstance( eventB );
+        assertEquals( eventA, programStageInstanceService.getProgramStageInstance( idA ) );
+        assertEquals( eventB, programStageInstanceService.getProgramStageInstance( idB ) );
+        assertEquals( eventA, programStageInstanceService.getProgramStageInstance( "UID-A" ) );
+        assertEquals( eventB, programStageInstanceService.getProgramStageInstance( "UID-B" ) );
     }
 }

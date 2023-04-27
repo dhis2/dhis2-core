@@ -60,6 +60,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
@@ -67,7 +68,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.system.grid.ListGrid;
@@ -276,9 +276,9 @@ class EventPredictionServiceTest extends IntegrationTestBase
         ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
         programInstanceService.addProgramInstance( programInstance );
-        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, dateMar20, dateMar20, orgUnitA );
-        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
             stageA, dateApr10, dateApr10, orgUnitA );
         stageInstanceA.setExecutionDate( dateMar20 );
         stageInstanceB.setExecutionDate( dateApr10 );

@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.ProgramStageTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
@@ -50,9 +50,9 @@ import com.google.common.collect.Maps;
  */
 @Component
 public class ProgramStageNotificationMessageRenderer
-    extends BaseNotificationMessageRenderer<ProgramStageInstance>
+    extends BaseNotificationMessageRenderer<Event>
 {
-    public static final ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramStageInstance, String>>()
+    public static final ImmutableMap<TemplateVariable, Function<Event, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<Event, String>>()
         .put( ProgramStageTemplateVariable.PROGRAM_NAME, psi -> psi.getProgramStage().getProgram().getDisplayName() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_NAME, psi -> psi.getProgramStage().getDisplayName() )
         .put( ProgramStageTemplateVariable.ORG_UNIT_NAME, psi -> psi.getOrganisationUnit().getDisplayName() )
@@ -91,14 +91,13 @@ public class ProgramStageNotificationMessageRenderer
     // -------------------------------------------------------------------------
 
     @Override
-    protected ImmutableMap<TemplateVariable, Function<ProgramStageInstance, String>> getVariableResolvers()
+    protected ImmutableMap<TemplateVariable, Function<Event, String>> getVariableResolvers()
     {
         return VARIABLE_RESOLVERS;
     }
 
     @Override
-    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
-        ProgramStageInstance entity )
+    protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys, Event entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -112,7 +111,7 @@ public class ProgramStageNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramStageInstance entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, Event entity )
     {
         if ( elementKeys.isEmpty() )
         {

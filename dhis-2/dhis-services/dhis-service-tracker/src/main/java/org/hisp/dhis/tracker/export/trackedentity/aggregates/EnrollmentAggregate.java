@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -89,7 +89,7 @@ public class EnrollmentAggregate
         List<Long> enrollmentIds = enrollments.values().stream().map( ProgramInstance::getId )
             .collect( Collectors.toList() );
 
-        final CompletableFuture<Multimap<String, ProgramStageInstance>> eventAsync = conditionalAsyncFetch(
+        final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
             ctx.getParams().getEnrollmentParams().isIncludeEvents(),
             () -> eventAggregate.findByEnrollmentIds( enrollmentIds, ctx ), getPool() );
 
@@ -106,7 +106,7 @@ public class EnrollmentAggregate
 
         return allOf( eventAsync, notesAsync, relationshipAsync, attributesAsync ).thenApplyAsync( fn -> {
 
-            Multimap<String, ProgramStageInstance> events = eventAsync.join();
+            Multimap<String, Event> events = eventAsync.join();
             Multimap<String, TrackedEntityComment> notes = notesAsync.join();
             Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
             Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
@@ -115,7 +115,7 @@ public class EnrollmentAggregate
             {
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeEvents() )
                 {
-                    enrollment.setProgramStageInstances( new HashSet<>( events.get( enrollment.getUid() ) ) );
+                    enrollment.setEvents( new HashSet<>( events.get( enrollment.getUid() ) ) );
                 }
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeRelationships() )
                 {

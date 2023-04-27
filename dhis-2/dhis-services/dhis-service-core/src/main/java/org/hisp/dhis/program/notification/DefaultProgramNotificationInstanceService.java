@@ -81,11 +81,11 @@ public class DefaultProgramNotificationInstanceService
 
         if ( params.hasProgramStageInstance() )
         {
-            if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance().getUid() ) )
+            if ( !programStageInstanceService.programStageInstanceExists( params.getEvent().getUid() ) )
             {
                 throw new IllegalQueryException(
                     String.format( "Program stage instance %s does not exist",
-                        params.getProgramStageInstance().getUid() ) );
+                        params.getEvent().getUid() ) );
             }
         }
     }

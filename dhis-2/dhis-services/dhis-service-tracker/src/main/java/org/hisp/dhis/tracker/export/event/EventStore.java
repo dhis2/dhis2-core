@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 public interface EventStore
 {
-    List<ProgramStageInstance> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
+    List<Event> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue );
 
     int getEventCount( EventSearchParams params );
 }

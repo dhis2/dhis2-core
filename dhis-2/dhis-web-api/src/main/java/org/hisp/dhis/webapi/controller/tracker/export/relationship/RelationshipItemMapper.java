@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
@@ -56,7 +57,6 @@ interface RelationshipItemMapper
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Mapping( target = "enrollment", source = "programInstance" )
-    @Mapping( target = "event", source = "programStageInstance" )
     @Override
     RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
 
@@ -88,7 +88,6 @@ interface RelationshipItemMapper
     @Mapping( target = "completedAt", source = "endDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "events", source = "programStageInstances" )
     @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )
     RelationshipItem.Enrollment from( org.hisp.dhis.program.ProgramInstance enrollment );
@@ -118,7 +117,7 @@ interface RelationshipItemMapper
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "dataValues", source = "eventDataValues" )
     @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Event from( org.hisp.dhis.program.ProgramStageInstance event );
+    RelationshipItem.Event from( Event event );
 
     @Mapping( target = "displayName", source = "name" )
     User from( org.hisp.dhis.user.User user );

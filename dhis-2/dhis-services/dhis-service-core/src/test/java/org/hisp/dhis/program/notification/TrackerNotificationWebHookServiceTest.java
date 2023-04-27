@@ -47,11 +47,11 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
@@ -102,7 +102,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private ProgramNotificationTemplate programNotification;
 
@@ -151,20 +151,20 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setEntityInstance( tei );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setOrganisationUnit( organisationUnitA );
+        event = new Event();
+        event.setAutoFields();
+        event.setProgramStage( programStageA );
+        event.setOrganisationUnit( organisationUnitA );
         programInstance.setEnrollmentDate( new Date() );
-        programStageInstance.setExecutionDate( new Date() );
-        programStageInstance.setDueDate( new Date() );
-        programStageInstance.setProgramInstance( programInstance );
+        event.setExecutionDate( new Date() );
+        event.setDueDate( new Date() );
+        event.setProgramInstance( programInstance );
 
         dataValue = new EventDataValue();
         dataValue.setValue( "dataValue123" );
         dataValue.setDataElement( dataElement.getUid() );
         dataValue.setAutoFields();
-        programStageInstance.getEventDataValues().add( dataValue );
+        event.getEventDataValues().add( dataValue );
 
         programNotification = new ProgramNotificationTemplate();
         programNotification.setNotificationRecipient( ProgramNotificationRecipient.WEB_HOOK );
@@ -218,7 +218,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEventNotificationWebHook()
     {
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( event );
         when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )
             .thenReturn( true );
         when( templateService.getProgramStageLinkedToWebHookNotifications( any( ProgramStage.class ) ) )
@@ -232,7 +232,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
         ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
-        subject.handleEvent( programStageInstance.getUid() );
+        subject.handleEvent( event.getUid() );
 
         verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
         verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),

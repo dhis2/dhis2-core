@@ -90,7 +90,7 @@ public class RelationshipTrackerConverterService
         RelationshipItem relationshipItem = new RelationshipItem();
         relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
         relationshipItem
-            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
+            .setEvent( from.getEvent() != null ? from.getEvent().getUid() : null );
         relationshipItem.setTrackedEntity(
             from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
         return relationshipItem;
@@ -155,7 +155,7 @@ public class RelationshipTrackerConverterService
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-            fromItem.setProgramStageInstance(
+            fromItem.setEvent(
                 preheat.getEvent( fromRelationship.getFrom().getEvent() ) );
         }
 
@@ -175,7 +175,7 @@ public class RelationshipTrackerConverterService
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-            toItem.setProgramStageInstance(
+            toItem.setEvent(
                 preheat.getEvent( fromRelationship.getTo().getEvent() ) );
         }
 

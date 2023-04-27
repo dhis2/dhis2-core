@@ -50,12 +50,12 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -155,7 +155,7 @@ class TrackerEventSMSListenerTest
 
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     @BeforeEach
     public void initTest()
@@ -258,8 +258,8 @@ class TrackerEventSMSListenerTest
         programInstance.setAutoFields();
         programInstance.setProgram( program );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
         incomingSmsTrackerEvent = createSMSFromSubmission( createTrackerEventSubmission() );
         incomingSmsTrackerEventWithNulls = createSMSFromSubmission( createTrackerEventSubmissionWithNulls() );
@@ -275,7 +275,7 @@ class TrackerEventSMSListenerTest
         subm.setProgramStage( programStage.getUid() );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
         subm.setEnrollment( programInstance.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
+        subm.setEvent( event.getUid() );
         subm.setEventStatus( SmsEventStatus.COMPLETED );
         subm.setEventDate( new Date() );
         subm.setDueDate( new Date() );

@@ -44,10 +44,10 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
@@ -58,7 +58,6 @@ import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -151,7 +150,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingDeleteStrategy()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -161,7 +160,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
 
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
@@ -183,7 +182,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -194,7 +193,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
@@ -210,7 +209,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackerEventCreation()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -237,7 +236,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackerEventUpdate()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -265,7 +264,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingUpdateStrategy()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -277,7 +276,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
@@ -296,7 +295,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         String enrollmentUid = CodeGenerator.generateUid();
         String eventUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( eventUid )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -309,7 +308,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
@@ -337,7 +336,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -349,7 +348,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getUser() ).thenReturn( changeCompletedEventAuthorisedUser() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
 
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
@@ -367,7 +366,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -395,7 +394,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -425,7 +424,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -436,7 +435,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
@@ -454,7 +453,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -467,7 +466,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
 
-        ProgramStageInstance programStageInstance = getEvent();
+        Event programStageInstance = getEvent();
         programStageInstance.setProgramInstance( programInstance );
         programStageInstance.setOrganisationUnit( null );
 
@@ -510,14 +509,14 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         return programInstance;
     }
 
-    private ProgramStageInstance getEvent()
+    private Event getEvent()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramInstance( new ProgramInstance() );
-        programStageInstance.setStatus( EventStatus.COMPLETED );
-        return programStageInstance;
+        Event event = new Event();
+        event.setProgramStage( programStage );
+        event.setOrganisationUnit( organisationUnit );
+        event.setProgramInstance( new ProgramInstance() );
+        event.setStatus( EventStatus.COMPLETED );
+        return event;
     }
 
     private User changeCompletedEventAuthorisedUser()

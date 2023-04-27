@@ -79,8 +79,8 @@ public interface ProgramService
 
     /**
      * Deletes a {@link Program}. All {@link ProgramStage},
-     * {@link ProgramInstance} and {@link ProgramStageInstance} belong to this
-     * program are removed
+     * {@link ProgramInstance} and {@link Event} belong to this program are
+     * removed
      *
      * @param program the Program to delete.
      */

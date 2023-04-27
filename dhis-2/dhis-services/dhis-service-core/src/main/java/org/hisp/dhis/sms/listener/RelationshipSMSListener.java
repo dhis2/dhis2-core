@@ -34,10 +34,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -168,12 +168,12 @@ public class RelationshipSMSListener extends CompressionSMSListener
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUid() );
-            if ( stageInst == null )
+            Event event = programStageInstanceService.getProgramStageInstance( objId.getUid() );
+            if ( event == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
             }
-            relItem.setProgramStageInstance( stageInst );
+            relItem.setEvent( event );
             break;
 
         }

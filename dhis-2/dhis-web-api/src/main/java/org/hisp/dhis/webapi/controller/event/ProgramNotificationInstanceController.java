@@ -88,7 +88,7 @@ public class ProgramNotificationInstanceController
     {
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstanceService.getProgramInstance( programInstance ) )
-            .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
+            .event( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
             .skipPaging( skipPaging )
             .page( page )
             .pageSize( pageSize )

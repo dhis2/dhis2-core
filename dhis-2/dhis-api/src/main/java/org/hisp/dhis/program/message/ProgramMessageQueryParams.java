@@ -30,8 +30,8 @@ package org.hisp.dhis.program.message;
 import java.util.Date;
 import java.util.Set;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -44,7 +44,7 @@ public class ProgramMessageQueryParams
 
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private Date afterDate;
 
@@ -64,14 +64,14 @@ public class ProgramMessageQueryParams
     }
 
     public ProgramMessageQueryParams( Set<String> organisationUnit, ProgramMessageStatus messageStatus,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date afterDate, Date beforeDate,
+        ProgramInstance programInstance, Event event, Date afterDate, Date beforeDate,
         Integer page, Integer pageSize )
     {
         super();
         this.organisationUnit = organisationUnit;
         this.messageStatus = messageStatus;
         this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
+        this.event = event;
         this.afterDate = afterDate;
         this.beforeDate = beforeDate;
         this.page = page;
@@ -92,9 +92,9 @@ public class ProgramMessageQueryParams
         return programInstance != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasEvent()
     {
-        return programStageInstance != null;
+        return event != null;
     }
 
     public boolean hasPaging()
@@ -116,14 +116,14 @@ public class ProgramMessageQueryParams
         this.programInstance = programInstance;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    public Event getEvent()
     {
-        return programStageInstance;
+        return event;
     }
 
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void setEvent( Event event )
     {
-        this.programStageInstance = programStageInstance;
+        this.event = event;
     }
 
     public Set<String> getOrganisationUnit()

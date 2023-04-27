@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler<ProgramStageInstance>
+public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler<Event>
 {
     private final ProgramStageInstanceService programStageInstanceService;
 
@@ -63,9 +63,9 @@ public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler
 
     private void deleteProgramInstance( ProgramInstance programInstance )
     {
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        for ( Event event : programInstance.getEvents() )
         {
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+            programStageInstanceService.deleteProgramStageInstance( event );
         }
     }
 

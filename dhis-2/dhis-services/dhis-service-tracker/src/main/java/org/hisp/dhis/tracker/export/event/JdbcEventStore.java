@@ -89,10 +89,10 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -263,14 +263,14 @@ public class JdbcEventStore implements EventStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<ProgramStageInstance> getEvents( EventSearchParams params,
+    public List<Event> getEvents( EventSearchParams params,
         Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
         User user = currentUserService.getCurrentUser();
 
         setAccessiblePrograms( user, params );
 
-        List<ProgramStageInstance> events = new ArrayList<>();
+        List<Event> events = new ArrayList<>();
         List<Long> relationshipIds = new ArrayList<>();
 
         final Gson gson = new Gson();
@@ -296,7 +296,7 @@ public class JdbcEventStore implements EventStore
 
                 validateIdentifiersPresence( resultSet, params.getIdSchemes() );
 
-                ProgramStageInstance event = new ProgramStageInstance();
+                Event event = new Event();
 
                 if ( !params.isSkipEventId() )
                 {
@@ -434,13 +434,13 @@ public class JdbcEventStore implements EventStore
 
             for ( Relationship relationship : relationships )
             {
-                if ( relationship.getFrom().getProgramStageInstance() != null )
+                if ( relationship.getFrom().getEvent() != null )
                 {
-                    map.put( relationship.getFrom().getProgramStageInstance().getUid(), relationship.getFrom() );
+                    map.put( relationship.getFrom().getEvent().getUid(), relationship.getFrom() );
                 }
-                if ( relationship.getTo().getProgramStageInstance() != null )
+                if ( relationship.getTo().getEvent() != null )
                 {
-                    map.put( relationship.getTo().getProgramStageInstance().getUid(), relationship.getTo() );
+                    map.put( relationship.getTo().getEvent().getUid(), relationship.getTo() );
                 }
             }
 

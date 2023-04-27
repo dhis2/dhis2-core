@@ -35,10 +35,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -109,7 +108,7 @@ public class WorkContextLoader
     }
 
     @Transactional( readOnly = true )
-    public WorkContext load( ImportOptions importOptions, List<Event> events )
+    public WorkContext load( ImportOptions importOptions, List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         sessionFactory.getCurrentSession().flush();
 
@@ -125,10 +124,10 @@ public class WorkContextLoader
         // Make sure all events have the 'uid' field populated
         events = uidGen.assignUidToEvents( events );
 
-        final Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier
+        final Map<String, Event> programStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
-        final Map<String, ProgramStageInstance> persistedProgramStageInstanceMap = programStageInstanceSupplier
+        final Map<String, Event> persistedProgramStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
         final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
