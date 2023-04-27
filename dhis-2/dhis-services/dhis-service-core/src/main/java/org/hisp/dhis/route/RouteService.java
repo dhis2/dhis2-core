@@ -200,7 +200,7 @@ public class RouteService
         log.info( String.format( "Request %s %s responded with HTTP status %s via route %s (%s)", httpMethod, targetUri,
             response.getStatusCode().toString(), route.getName(), route.getUid() ) );
 
-        return new ResponseEntity<String>( responseBody, responseHeaders, response.getStatusCode() );
+        return new ResponseEntity<>( responseBody, responseHeaders, response.getStatusCode() );
     }
 
     private HttpHeaders filterHeaders( Iterable<String> names, List<String> allowedHeaders,
@@ -222,16 +222,13 @@ public class RouteService
 
     private HttpHeaders filterRequestHeaders( HttpServletRequest request )
     {
-        return filterHeaders( Collections.list( request.getHeaderNames() ), allowedRequestHeaders, ( String name ) -> {
-            return Collections.list( request.getHeaders( name ) );
-        } );
+        return filterHeaders( Collections.list( request.getHeaderNames() ), allowedRequestHeaders,
+            ( String name ) -> Collections.list( request.getHeaders( name ) ) );
     }
 
     private HttpHeaders filterResponseHeaders( HttpHeaders responseHeaders )
     {
-        return filterHeaders( responseHeaders.keySet(), allowedResponseHeaders, ( String name ) -> {
-            return responseHeaders.get( name );
-        } );
+        return filterHeaders( responseHeaders.keySet(), allowedResponseHeaders, responseHeaders::get );
     }
 
     private void decrypt( Route route )
