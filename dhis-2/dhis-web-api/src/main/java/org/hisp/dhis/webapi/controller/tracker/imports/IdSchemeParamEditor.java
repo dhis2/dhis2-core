@@ -30,8 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.imports;
 import java.beans.PropertyEditorSupport;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.tracker.TrackerIdScheme;
-import org.hisp.dhis.tracker.TrackerIdSchemeParam;
+import org.hisp.dhis.tracker.imports.TrackerIdScheme;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.springframework.util.StringUtils;
 
 public class IdSchemeParamEditor extends PropertyEditorSupport

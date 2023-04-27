@@ -55,15 +55,15 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.DefaultTrackerImportService;
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.PersistenceReport;
-import org.hisp.dhis.tracker.report.Status;
-import org.hisp.dhis.tracker.report.TimingsStats;
-import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.PersistenceReport;
+import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.report.TimingsStats;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
-import org.hisp.dhis.webapi.controller.tracker.export.csv.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
+import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class TrackerImportControllerTest
 {
 
-    private final static String ENDPOINT = TrackerControllerSupport.RESOURCE_PATH;
+    private final static String ENDPOINT = ControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
 

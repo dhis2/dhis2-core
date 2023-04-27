@@ -342,6 +342,12 @@
       <artifactId>classgraph</artifactId>
     </dependency>
 
+    <!-- Image Processing -->
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>org.hamcrest</groupId>

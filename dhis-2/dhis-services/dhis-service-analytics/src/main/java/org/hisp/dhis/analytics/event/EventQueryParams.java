@@ -259,6 +259,11 @@ public class EventQueryParams
     private Set<ProgramStatus> programStatus = new LinkedHashSet<>();
 
     /**
+     * flag to enable row context in grid response
+     */
+    private boolean rowContext = false;
+
+    /**
      * Indicates whether to include metadata details to response.
      */
     protected boolean includeMetadataDetails;
@@ -355,6 +360,7 @@ public class EventQueryParams
         params.skipPartitioning = this.skipPartitioning;
         params.enhancedCondition = this.enhancedCondition;
         params.endpointItem = this.endpointItem;
+        params.rowContext = this.rowContext;
         return params;
     }
 
@@ -1139,6 +1145,11 @@ public class EventQueryParams
         return dataIdScheme;
     }
 
+    public boolean isRowContext()
+    {
+        return rowContext;
+    }
+
     // -------------------------------------------------------------------------
     // Builder of immutable instances
     // -------------------------------------------------------------------------
@@ -1548,6 +1559,12 @@ public class EventQueryParams
         public Builder withEndpointItem( RequestTypeAware.EndpointItem endpointItem )
         {
             this.params.endpointItem = endpointItem;
+            return this;
+        }
+
+        public Builder withRowContext( boolean rowContext )
+        {
+            this.params.rowContext = rowContext;
             return this;
         }
     }

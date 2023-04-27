@@ -27,14 +27,16 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = InstantMapper.class )
-interface AttributeMapper
-    extends ViewMapper<org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue, Attribute>
+public interface AttributeMapper
+    extends ViewMapper<TrackedEntityAttributeValue, Attribute>
 {
     @Mapping( target = "attribute", source = "attribute.uid" )
     @Mapping( target = "code", source = "attribute.code" )
@@ -43,5 +45,5 @@ interface AttributeMapper
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "valueType", source = "attribute.valueType" )
     @Override
-    Attribute from( org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue attribute );
+    Attribute from( TrackedEntityAttributeValue attribute );
 }
