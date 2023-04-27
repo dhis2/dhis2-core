@@ -157,6 +157,31 @@ public class TrackerExportTests
     }
 
     @Test
+    public void shouldGetTeisWhenFilterByAttributeValueWithDelimiter()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder()
+                .add( "filter", "kZeSYCgaHTk:eq:Test,Test" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" ) )
+            .validate().statusCode( 200 )
+            .body( "instances", hasSize( 1 ) );
+    }
+
+    @Test
+    public void shouldGetTeisWhenFilterByMultipleAttributeValueWithDelimiter()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder()
+                .add( "attribute", "kZeSYCgaHTk:eq:Test,Test" )
+                .add( "attribute", "dIVt4l5vIOa:eq:Test" )
+                .add( "program", "f1AyMswryyQ" )
+                .add( "orgUnit", "O6uvpzGd5pu" ) )
+            .validate().statusCode( 200 )
+            .body( "instances", hasSize( 1 ) );
+    }
+
+    @Test
     public void shouldGetSingleTeiWithNoEventsWhenEventsAreSoftDeleted()
     {
         TrackerApiResponse response = trackerActions.postAndGetJobReport(
@@ -384,7 +409,8 @@ public class TrackerExportTests
             .body( "event", equalTo( "ZwwuwNp6gVd" ) );
     }
 
-    @Test // TODO(tracker): remove with old tracker
+    @Test
+    // TODO(tracker): remove with old tracker
     void shouldReturnInvalidPropertyWhenOrderOnLegacyCreatedField()
     {
         ApiResponse response = trackerActions.get( "events?order=created:desc" );

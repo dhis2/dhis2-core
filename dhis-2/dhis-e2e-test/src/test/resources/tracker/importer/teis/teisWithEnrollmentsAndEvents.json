@@ -126,7 +126,7 @@
           "displayName": "TA Last name",
           "valueType": "TEXT",
           "attribute": "kZeSYCgaHTk",
-          "value": "Test"
+          "value": "Test,Test"
         },
         {
           "displayName": "TA First name",

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,23 +25,23 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.security.config;
+package org.hisp.dhis.webapi.mvc.requestconverter;
 
-import java.util.List;
+import java.util.Set;
 
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.core.convert.converter.Converter;
 
 /**
- * String to Order Criterias converter for MVC requests
+ * This converter avoid a request parameter to be split by the Spring's default
+ * delimiter
  *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * @author Luca Cambi
  */
-class StringToOrderCriteriaListConverter implements Converter<String, List<OrderCriteria>>
+public class StringToSetConverter implements Converter<String, Set<String>>
 {
     @Override
-    public List<OrderCriteria> convert( String source )
+    public Set<String> convert( String source )
     {
-        return OrderCriteria.fromOrderString( source );
+        return Set.of( source );
     }
 }
