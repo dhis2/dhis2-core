@@ -27,8 +27,11 @@
  */
 package org.hisp.dhis.route;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -62,20 +65,20 @@ class RouteTest
     @Test
     void testAllowsSubpaths()
     {
-        Assertions.assertFalse( tldRoute.allowsSubpaths() );
-        Assertions.assertFalse( routeWithSubPath.allowsSubpaths() );
-        Assertions.assertFalse( routeWithDirectorySubPath.allowsSubpaths() );
-        Assertions.assertTrue( routeWithPathWildcard.allowsSubpaths() );
-        Assertions.assertTrue( routeWithSubPathAndPathWildcard.allowsSubpaths() );
+        assertFalse( tldRoute.allowsSubpaths() );
+        assertFalse( routeWithSubPath.allowsSubpaths() );
+        assertFalse( routeWithDirectorySubPath.allowsSubpaths() );
+        assertTrue( routeWithPathWildcard.allowsSubpaths() );
+        assertTrue( routeWithSubPathAndPathWildcard.allowsSubpaths() );
     }
 
     @Test
     void testGetBaseUrl()
     {
-        Assertions.assertEquals( "https://thisisatest.com", tldRoute.getBaseUrl() );
-        Assertions.assertEquals( "https://thisisatest.com/some/path/123", routeWithSubPath.getBaseUrl() );
-        Assertions.assertEquals( "https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl() );
-        Assertions.assertEquals( "https://thisisatest.com/", routeWithPathWildcard.getBaseUrl() );
-        Assertions.assertEquals( "https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl() );
+        assertEquals( "https://thisisatest.com", tldRoute.getBaseUrl() );
+        assertEquals( "https://thisisatest.com/some/path/123", routeWithSubPath.getBaseUrl() );
+        assertEquals( "https://thisisatest.com/some/path/123/", routeWithDirectorySubPath.getBaseUrl() );
+        assertEquals( "https://thisisatest.com/", routeWithPathWildcard.getBaseUrl() );
+        assertEquals( "https://thisisatest.com/sub/path/", routeWithSubPathAndPathWildcard.getBaseUrl() );
     }
 }
