@@ -244,8 +244,9 @@ class TrackerSynchronizationTest extends IntegrationTestBase
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
+        assertContainsOnly(
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ),
+            TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID );
         assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
@@ -258,8 +259,9 @@ class TrackerSynchronizationTest extends IntegrationTestBase
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
+        assertContainsOnly(
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ),
+            TEI_NOT_IN_SYNC_UID );
         assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
