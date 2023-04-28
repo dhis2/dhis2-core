@@ -41,9 +41,9 @@ public interface ProgramNotificationService
     /**
      * Send all scheduled notifications for the given day.
      *
-     * Queries for any upcoming ProgramStageInstances or ProgramInstances which
-     * have a {@link ProgramNotificationTemplate} scheduled for the given day,
-     * creates the messages and immediately dispatches them.
+     * Queries for any upcoming events or ProgramInstances which have a
+     * {@link ProgramNotificationTemplate} scheduled for the given day, creates
+     * the messages and immediately dispatches them.
      *
      * Potentially a time consuming job, depending on the amount of configured
      * notifications, the amount of recipients, the message types (SMS, email,

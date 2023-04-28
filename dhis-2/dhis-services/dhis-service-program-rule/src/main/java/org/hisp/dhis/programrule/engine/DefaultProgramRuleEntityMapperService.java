@@ -295,7 +295,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
         return events
             .stream()
             .filter( Objects::nonNull )
-            .filter( psi -> !(eventToEvaluate != null && psi.getUid().equals( eventToEvaluate.getUid() )) )
+            .filter( event -> !(eventToEvaluate != null && event.getUid().equals( eventToEvaluate.getUid() )) )
             .map( this::toMappedRuleEvent )
             .collect( Collectors.toList() );
     }
@@ -332,21 +332,21 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     // Supportive Methods
     // ---------------------------------------------------------------------
 
-    private String getOrgUnit( Event psi )
+    private String getOrgUnit( Event event )
     {
-        if ( psi.getOrganisationUnit() != null )
+        if ( event.getOrganisationUnit() != null )
         {
-            return psi.getOrganisationUnit().getUid();
+            return event.getOrganisationUnit().getUid();
         }
 
         return "";
     }
 
-    private String getOrgUnitCode( Event psi )
+    private String getOrgUnitCode( Event event )
     {
-        if ( psi.getOrganisationUnit() != null )
+        if ( event.getOrganisationUnit() != null )
         {
-            return psi.getOrganisationUnit().getCode();
+            return event.getOrganisationUnit().getCode();
         }
 
         return "";

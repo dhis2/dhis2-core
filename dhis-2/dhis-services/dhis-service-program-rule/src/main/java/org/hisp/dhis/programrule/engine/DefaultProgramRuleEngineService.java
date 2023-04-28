@@ -123,9 +123,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        Event psi = eventService.getEvent( event );
-
-        return evaluateEventAndRunEffects( psi );
+        return evaluateEventAndRunEffects( eventService.getEvent( event ) );
     }
 
     @Override
@@ -144,15 +142,16 @@ public class DefaultProgramRuleEngineService
         return programRuleEngine.getDataExpressionDescription( dataExpression, program );
     }
 
-    private List<RuleEffect> evaluateEventAndRunEffects( Event psi )
+    private List<RuleEffect> evaluateEventAndRunEffects( Event event )
     {
-        if ( psi == null )
+        if ( event == null )
         {
             return Lists.newArrayList();
         }
 
-        Program program = psi.getProgramStage().getProgram();
-        List<ProgramRule> programRules = programRuleEngine.getProgramRules( program, List.of( psi.getProgramStage() ) );
+        Program program = event.getProgramStage().getProgram();
+        List<ProgramRule> programRules = programRuleEngine.getProgramRules( program,
+            List.of( event.getProgramStage() ) );
 
         if ( programRules.isEmpty() )
         {
@@ -163,14 +162,14 @@ public class DefaultProgramRuleEngineService
 
         if ( program.isWithoutRegistration() )
         {
-            ruleEffects = programRuleEngine.evaluateProgramEvent( psi, program, programRules );
+            ruleEffects = programRuleEngine.evaluateProgramEvent( event, program, programRules );
         }
         else
         {
             ProgramInstance programInstance = programInstanceService
-                .getProgramInstance( psi.getProgramInstance().getId() );
+                .getProgramInstance( event.getProgramInstance().getId() );
 
-            ruleEffects = programRuleEngine.evaluate( programInstance, psi, programInstance.getEvents(),
+            ruleEffects = programRuleEngine.evaluate( programInstance, event, programInstance.getEvents(),
                 programRules );
         }
 
@@ -179,7 +178,7 @@ public class DefaultProgramRuleEngineService
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( effect, psi );
+                i.implement( effect, event );
             } );
         }
 

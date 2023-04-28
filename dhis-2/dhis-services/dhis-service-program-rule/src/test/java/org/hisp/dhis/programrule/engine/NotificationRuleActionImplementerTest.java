@@ -165,7 +165,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    void test_implementWithProgramStageInstanceWithTemplate()
+    void test_implementWithEventWithTemplate()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -191,7 +191,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
         assertEquals( event.getId(),
-            ((ProgramRuleStageEvent) eventType).getProgramStageInstance().getId() );
+            ((ProgramRuleStageEvent) eventType).getEvent().getId() );
     }
 
     @Test

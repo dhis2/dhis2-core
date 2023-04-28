@@ -54,9 +54,9 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
     protected void registerHandler()
     {
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( Event.class, this::deleteProgramStageInstance );
+        whenDeleting( Event.class, this::deleteEvent );
         whenVetoing( ProgramInstance.class, this::allowDeleteProgramInstance );
-        whenVetoing( Event.class, this::allowDeleteProgramStageInstance );
+        whenVetoing( Event.class, this::allowDeleteEvent );
     }
 
     private void deleteProgramInstance( ProgramInstance programInstance )
@@ -68,7 +68,7 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    private void deleteProgramStageInstance( Event event )
+    private void deleteEvent( Event event )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
@@ -86,7 +86,7 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
 
-    private DeletionVeto allowDeleteProgramStageInstance( Event event )
+    private DeletionVeto allowDeleteEvent( Event event )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
