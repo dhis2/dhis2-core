@@ -38,9 +38,9 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.rules.models.RuleAction;
@@ -68,7 +68,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
 
     protected final ProgramInstanceService programInstanceService;
 
-    protected final ProgramStageInstanceService programStageInstanceService;
+    protected final EventService eventService;
 
     protected ExternalNotificationLogEntry createLogEntry( String key, String templateUid )
     {

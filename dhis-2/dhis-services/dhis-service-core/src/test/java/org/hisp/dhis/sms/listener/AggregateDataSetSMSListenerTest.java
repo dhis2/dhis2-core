@@ -53,8 +53,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
@@ -109,7 +109,7 @@ class AggregateDataSetSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     // Needed for this test
 
@@ -157,7 +157,7 @@ class AggregateDataSetSMSListenerTest
     {
         subject = new AggregateDataSetSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, dataSetService, dataValueService, registrationService,
+            eventService, dataSetService, dataValueService, registrationService,
             identifiableObjectManager );
 
         setUpInstances();

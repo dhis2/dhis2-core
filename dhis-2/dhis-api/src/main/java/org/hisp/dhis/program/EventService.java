@@ -39,89 +39,89 @@ import org.hisp.dhis.user.User;
 /**
  * @author Abyot Asalefew
  */
-public interface ProgramStageInstanceService
+public interface EventService
 {
-    String ID = ProgramStageInstanceService.class.getName();
+    String ID = EventService.class.getName();
 
     /**
-     * Adds a {@link Event}
+     * Adds an {@link Event}
      *
      * @param event The Event to add.
      * @return A generated unique id of the added {@link Event}.
      */
-    long addProgramStageInstance( Event event );
+    long addEvent( Event event );
 
     /**
-     * Adds a {@link Event}
+     * Adds an {@link Event}
      *
      * @param event The Event to add.
      * @param user the current user.
      * @return A generated unique id of the added {@link Event}.
      */
-    long addProgramStageInstance( Event event, User user );
+    long addEvent( Event event, User user );
 
     /**
-     * Soft deletes a {@link Event}.
+     * Soft deletes an {@link Event}.
      *
      */
-    void deleteProgramStageInstance( Event event );
+    void deleteEvent( Event event );
 
     /**
-     * Updates a {@link Event}.
+     * Updates an {@link Event}.
      *
      * @param event the Event to update.
      */
-    void updateProgramStageInstance( Event event );
+    void updateEvent( Event event );
 
     /**
-     * Updates a {@link Event}.
+     * Updates an {@link Event}.
      *
      * @param event the Event to update.
      * @param user the current user.
      */
-    void updateProgramStageInstance( Event event, User user );
+    void updateEvent( Event event, User user );
 
     /**
-     * Updates a last sync timestamp on specified ProgramStageInstances
+     * Updates a last sync timestamp on specified events
      *
-     * @param programStageInstanceUIDs UIDs of ProgramStageInstances where the
-     *        lastSynchronized flag should be updated
+     * @param eventUids UIDs of events where the lastSynchronized flag should be
+     *        updated
      * @param lastSynchronized The date of last successful sync
      */
-    void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized );
+    void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized );
 
     /**
-     * Checks whether a {@link Event} with the given identifier exists. Doesn't
+     * Checks whether an {@link Event} with the given identifier exists. Doesn't
      * take into account the deleted values.
      *
      * @param uid the identifier.
      */
-    boolean programStageInstanceExists( String uid );
+    boolean eventExists( String uid );
 
     /**
-     * Checks whether a {@link Event} with the given identifier exists. Takes
+     * Checks whether an {@link Event} with the given identifier exists. Takes
      * into accound also the deleted values.
      *
      * @param uid the identifier.
      */
-    boolean programStageInstanceExistsIncludingDeleted( String uid );
+    boolean eventExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramStageInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing events (including deleted) from the provided
+     * UIDs
      *
-     * @param uids PSI UIDs to check
-     * @return Set containing UIDs of existing PSIs (including deleted)
+     * @param uids event UIDs to check
+     * @return Set containing UIDs of existing events (including deleted)
      */
-    List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids );
+    List<String> getEventUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Returns a {@link Event}.
+     * Returns an {@link Event}.
      *
      * @param id the id of the Event to return.
      * @return the Event with the given id.
      */
-    Event getProgramStageInstance( long id );
+    Event getEvent( long id );
 
     /**
      * Returns the {@link Event} with the given UID.
@@ -129,19 +129,18 @@ public interface ProgramStageInstanceService
      * @param uid the UID.
      * @return the Event with the given UID, or null if no match.
      */
-    Event getProgramStageInstance( String uid );
+    Event getEvent( String uid );
 
     /**
-     * Gets the number of ProgramStageInstances added since the given number of
-     * days.
+     * Gets the number of events added since the given number of days.
      *
      * @param days number of days.
      * @return the number of ProgramStageInstances.
      */
-    long getProgramStageInstanceCount( int days );
+    long getEventCount( int days );
 
     /**
-     * Creates a program stage instance.
+     * Creates an event.
      *
      * @param programInstance the ProgramInstance.
      * @param programStage the ProgramStage.
@@ -150,7 +149,7 @@ public interface ProgramStageInstanceService
      * @param organisationUnit the OrganisationUnit where the event took place.
      * @return Event the Event which was created.
      */
-    Event createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    Event createEvent( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
 
     /**
@@ -162,6 +161,6 @@ public interface ProgramStageInstanceService
      * @param dataElementEventDataValueMap the map of DataElements and related
      *        EventDataValues to update
      */
-    void saveEventDataValuesAndSaveProgramStageInstance( Event event,
+    void saveEventDataValuesAndSaveEvent( Event event,
         Map<DataElement, EventDataValue> dataElementEventDataValueMap );
 }

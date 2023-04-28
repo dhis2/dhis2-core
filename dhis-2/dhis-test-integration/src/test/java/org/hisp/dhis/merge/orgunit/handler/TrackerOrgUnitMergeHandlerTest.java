@@ -34,11 +34,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -60,7 +60,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     private ProgramInstanceService piService;
 
     @Autowired
-    private ProgramStageInstanceService psiService;
+    private EventService psiService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -127,9 +127,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         psiA = new Event( piA, psA, ouA );
         psiB = new Event( piB, psA, ouB );
         psiC = new Event( piC, psA, ouA );
-        psiService.addProgramStageInstance( psiA );
-        psiService.addProgramStageInstance( psiB );
-        psiService.addProgramStageInstance( psiC );
+        psiService.addEvent( psiA );
+        psiService.addEvent( psiB );
+        psiService.addEvent( psiC );
     }
 
     @Test

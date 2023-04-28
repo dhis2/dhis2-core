@@ -71,7 +71,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     private Date incidentDate;
 
@@ -181,14 +181,14 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long psiIdA = programStageInstanceService.addProgramStageInstance( eventA );
+        long psiIdA = eventService.addEvent( eventA );
         programInstanceA.setEvents( Sets.newHashSet( eventA ) );
         programInstanceService.updateProgramInstance( programInstanceA );
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+        assertNotNull( eventService.getEvent( psiIdA ) );
         programInstanceService.deleteProgramInstance( programInstanceA );
         assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+        assertNull( eventService.getEvent( psiIdA ) );
     }
 
     @Test

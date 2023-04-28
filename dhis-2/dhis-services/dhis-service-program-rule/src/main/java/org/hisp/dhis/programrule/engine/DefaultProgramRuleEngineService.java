@@ -36,11 +36,11 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -70,7 +70,7 @@ public class DefaultProgramRuleEngineService
 
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final ProgramService programService;
 
@@ -123,7 +123,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        Event psi = programStageInstanceService.getProgramStageInstance( event );
+        Event psi = eventService.getEvent( event );
 
         return evaluateEventAndRunEffects( psi );
     }

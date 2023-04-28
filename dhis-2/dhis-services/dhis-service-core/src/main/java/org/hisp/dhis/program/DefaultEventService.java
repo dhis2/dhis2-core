@@ -61,9 +61,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramStageInstanceService" )
-public class DefaultProgramStageInstanceService
-    implements ProgramStageInstanceService
+@Service( "org.hisp.dhis.program.EventService" )
+public class DefaultEventService
+    implements EventService
 {
     private final ProgramStageInstanceStore programStageInstanceStore;
 
@@ -79,7 +79,7 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public long addProgramStageInstance( Event event )
+    public long addEvent( Event event )
     {
         event.setAutoFields();
         programStageInstanceStore.save( event );
@@ -88,7 +88,7 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public long addProgramStageInstance( Event event, User user )
+    public long addEvent( Event event, User user )
     {
         event.setAutoFields();
         programStageInstanceStore.save( event, user );
@@ -97,28 +97,28 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public void deleteProgramStageInstance( Event event )
+    public void deleteEvent( Event event )
     {
         programStageInstanceStore.delete( event );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Event getProgramStageInstance( long id )
+    public Event getEvent( long id )
     {
         return programStageInstanceStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Event getProgramStageInstance( String uid )
+    public Event getEvent( String uid )
     {
         return programStageInstanceStore.getByUid( uid );
     }
 
     @Override
     @Transactional
-    public void updateProgramStageInstance( Event event )
+    public void updateEvent( Event event )
     {
         event.setAutoFields();
         programStageInstanceStore.update( event );
@@ -126,7 +126,7 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public void updateProgramStageInstance( Event event, User user )
+    public void updateEvent( Event event, User user )
     {
         event.setAutoFields();
         programStageInstanceStore.update( event, user );
@@ -134,36 +134,36 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
     {
-        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( programStageInstanceUIDs,
+        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( eventUids,
             lastSynchronized );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean programStageInstanceExists( String uid )
+    public boolean eventExists( String uid )
     {
         return programStageInstanceStore.exists( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean programStageInstanceExistsIncludingDeleted( String uid )
+    public boolean eventExistsIncludingDeleted( String uid )
     {
         return programStageInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getProgramStageInstanceUidsIncludingDeleted( List<String> uids )
+    public List<String> getEventUidsIncludingDeleted( List<String> uids )
     {
         return programStageInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public long getProgramStageInstanceCount( int days )
+    public long getEventCount( int days )
     {
         Calendar cal = PeriodType.createCalendarInstance();
         cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
@@ -173,7 +173,7 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public Event createProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    public Event createEvent( ProgramInstance programInstance, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
         Event event = null;
@@ -207,7 +207,7 @@ public class DefaultProgramStageInstanceService
                 event.setStatus( EventStatus.ACTIVE );
             }
 
-            addProgramStageInstance( event );
+            addEvent( event );
         }
 
         return event;
@@ -215,13 +215,13 @@ public class DefaultProgramStageInstanceService
 
     @Override
     @Transactional
-    public void saveEventDataValuesAndSaveProgramStageInstance( Event event,
+    public void saveEventDataValuesAndSaveEvent( Event event,
         Map<DataElement, EventDataValue> dataElementEventDataValueMap )
     {
         validateEventDataValues( dataElementEventDataValueMap );
         Set<EventDataValue> eventDataValues = new HashSet<>( dataElementEventDataValueMap.values() );
         event.setEventDataValues( eventDataValues );
-        addProgramStageInstance( event );
+        addEvent( event );
 
         for ( Map.Entry<DataElement, EventDataValue> entry : dataElementEventDataValueMap.entrySet() )
         {

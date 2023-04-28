@@ -52,11 +52,11 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -113,7 +113,7 @@ public abstract class CompressionSMSListener
 
     protected final DataElementService dataElementService;
 
-    protected final ProgramStageInstanceService programStageInstanceService;
+    protected final EventService eventService;
 
     protected final IdentifiableObjectManager identifiableObjectManager;
 
@@ -121,7 +121,7 @@ public abstract class CompressionSMSListener
         UserService userService, TrackedEntityTypeService trackedEntityTypeService,
         TrackedEntityAttributeService trackedEntityAttributeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataElementService dataElementService, EventService eventService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender );
@@ -133,7 +133,7 @@ public abstract class CompressionSMSListener
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
         checkNotNull( dataElementService );
-        checkNotNull( programStageInstanceService );
+        checkNotNull( eventService );
 
         this.userService = userService;
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -142,7 +142,7 @@ public abstract class CompressionSMSListener
         this.organisationUnitService = organisationUnitService;
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.eventService = eventService;
         this.identifiableObjectManager = identifiableObjectManager;
     }
 
@@ -268,9 +268,9 @@ public abstract class CompressionSMSListener
         Event event;
         // If we aren't given a Uid for the event, it will be auto-generated
 
-        if ( programStageInstanceService.programStageInstanceExists( eventUid ) )
+        if ( eventService.eventExists( eventUid ) )
         {
-            event = programStageInstanceService.getProgramStageInstance( eventUid );
+            event = eventService.getEvent( eventUid );
         }
         else
         {
@@ -332,7 +332,7 @@ public abstract class CompressionSMSListener
             }
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( event,
+        eventService.saveEventDataValuesAndSaveEvent( event,
             dataElementsAndEventDataValues );
 
         return errorUids;

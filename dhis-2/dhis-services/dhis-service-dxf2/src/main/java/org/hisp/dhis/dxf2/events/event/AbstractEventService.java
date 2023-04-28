@@ -112,11 +112,11 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -144,7 +144,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractEventService implements EventService
+public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.event.EventService
 {
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID,
         EVENT_CREATED_ID,
@@ -168,7 +168,7 @@ public abstract class AbstractEventService implements EventService
 
     protected ProgramInstanceService programInstanceService;
 
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected EventService eventService;
 
     protected OrganisationUnitService organisationUnitService;
 
@@ -759,8 +759,8 @@ public abstract class AbstractEventService implements EventService
     @Override
     public void updateEventForNote( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        org.hisp.dhis.program.Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+        org.hisp.dhis.program.Event programStageInstance = eventService
+            .getEvent( event.getEvent() );
 
         if ( programStageInstance == null )
         {
@@ -779,8 +779,8 @@ public abstract class AbstractEventService implements EventService
     @Override
     public void updateEventForEventDate( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        Event programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+        Event programStageInstance = eventService
+            .getEvent( event.getEvent() );
 
         if ( programStageInstance == null )
         {
@@ -826,14 +826,14 @@ public abstract class AbstractEventService implements EventService
 
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setExecutionDate( executionDate );
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        eventService.updateEvent( programStageInstance );
     }
 
     @Transactional
     @Override
     public void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized )
     {
-        programStageInstanceService.updateProgramStageInstancesSyncTimestamp( eventsUIDs, lastSynchronized );
+        eventService.updateEventsSyncTimestamp( eventsUIDs, lastSynchronized );
     }
 
     // -------------------------------------------------------------------------
@@ -844,11 +844,11 @@ public abstract class AbstractEventService implements EventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
+        boolean existsEvent = eventService.eventExists( uid );
 
         if ( existsEvent )
         {
-            Event event = programStageInstanceService.getProgramStageInstance( uid );
+            Event event = eventService.getEvent( uid );
 
             List<String> errors = trackerAccessManager.canDelete( currentUserService.getCurrentUser(),
                 event, false );
@@ -859,7 +859,7 @@ public abstract class AbstractEventService implements EventService
             }
 
             event.setAutoFields();
-            programStageInstanceService.deleteProgramStageInstance( event );
+            eventService.deleteEvent( event );
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {

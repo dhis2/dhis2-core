@@ -62,7 +62,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -73,13 +72,13 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -108,7 +107,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private static final String EVENT_DATE = "2021-02-25T12:15:00";
 
     @Autowired
-    private EventService eventService;
+    private org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -129,7 +128,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService programStageInstanceService;
 
     @Autowired
     private UserService _userService;
@@ -304,7 +303,7 @@ class EventImportTest extends TransactionalIntegrationTest
         summary = eventService.updateEvent( event, true, null, false );
         assertEquals( ImportStatus.SUCCESS, summary.getStatus() );
 
-        Event psi = programStageInstanceService.getProgramStageInstance( eventUid );
+        Event psi = programStageInstanceService.getEvent( eventUid );
 
         assertEquals( DUE_DATE, DateUtils.getLongDateString( psi.getDueDate() ) );
     }
@@ -484,14 +483,13 @@ class EventImportTest extends TransactionalIntegrationTest
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        Event psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        Event psi = programStageInstanceService.getEvent( event.getUid() );
         assertNotNull( psi );
         importSummary = eventService.deleteEvent( event.getUid() );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        psi = programStageInstanceService.getProgramStageInstance( event.getUid() );
+        psi = programStageInstanceService.getEvent( event.getUid() );
         assertNull( psi );
-        boolean existsDeleted = programStageInstanceService
-            .programStageInstanceExistsIncludingDeleted( event.getUid() );
+        boolean existsDeleted = programStageInstanceService.eventExistsIncludingDeleted( event.getUid() );
         assertTrue( existsDeleted );
     }
 
@@ -538,7 +536,7 @@ class EventImportTest extends TransactionalIntegrationTest
         uids.add( "eventUid001" );
         uids.add( "eventUid002" );
         uids.add( "eventUid003" );
-        List<String> fetchedUids = programStageInstanceService.getProgramStageInstanceUidsIncludingDeleted( uids );
+        List<String> fetchedUids = programStageInstanceService.getEventUidsIncludingDeleted( uids );
         assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
     }
 
@@ -566,7 +564,7 @@ class EventImportTest extends TransactionalIntegrationTest
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         // FETCH NEWLY CREATED EVENT
-        programStageInstanceService.getProgramStageInstance( uid );
+        programStageInstanceService.getEvent( uid );
         // UPDATE EVENT - Program is not specified
         org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( uid );
@@ -589,7 +587,7 @@ class EventImportTest extends TransactionalIntegrationTest
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         // FETCH NEWLY CREATED EVENT
-        Event psi = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi = programStageInstanceService.getEvent( uid );
         // UPDATE EVENT (no actual changes, except for empty data value)
         // USE ONLY PROGRAM
         org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
@@ -601,7 +599,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
         // cleanSession();
         dbmsManager.clearSession();
-        Event psi2 = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi2 = programStageInstanceService.getEvent( uid );
 
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
@@ -629,7 +627,7 @@ class EventImportTest extends TransactionalIntegrationTest
         String uid = importSummaries.getImportSummaries().get( 0 ).getReference();
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         // FETCH NEWLY CREATED EVENT
-        Event psi = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi = programStageInstanceService.getEvent( uid );
         // UPDATE EVENT (no actual changes, except for empty data value and
         // status
         // change)
@@ -641,7 +639,7 @@ class EventImportTest extends TransactionalIntegrationTest
             eventService.updateEvent( event, false, ImportOptions.getDefaultImportOptions(), false ).getStatus() );
         dbmsManager.clearSession();
 
-        Event psi2 = programStageInstanceService.getProgramStageInstance( uid );
+        Event psi2 = programStageInstanceService.getEvent( uid );
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
         assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );

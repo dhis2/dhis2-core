@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -64,7 +64,7 @@ class EventDataValueTest extends TrackerTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Override
     protected void initTest()
@@ -130,8 +130,8 @@ class EventDataValueTest extends TrackerTest
         assertNoErrors( importReport );
         List<Event> updatedEvents = manager.getAll( Event.class );
         assertEquals( 1, updatedEvents.size() );
-        Event updatedPsi = programStageInstanceService
-            .getProgramStageInstance( updatedEvents.get( 0 ).getUid() );
+        Event updatedPsi = eventService
+            .getEvent( updatedEvents.get( 0 ).getUid() );
         assertEquals( 3, updatedPsi.getEventDataValues().size() );
         List<String> values = updatedPsi.getEventDataValues().stream().map( EventDataValue::getValue )
             .collect( Collectors.toList() );

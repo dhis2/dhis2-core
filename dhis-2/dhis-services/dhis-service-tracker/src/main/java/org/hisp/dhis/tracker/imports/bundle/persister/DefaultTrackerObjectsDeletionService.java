@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -65,7 +65,7 @@ public class DefaultTrackerObjectsDeletionService
 
     private final TrackedEntityInstanceService teiService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final RelationshipService relationshipService;
 
@@ -124,11 +124,11 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.EVENT, uid, idx );
 
-            Event event = programStageInstanceService.getProgramStageInstance( uid );
+            Event event = eventService.getEvent( uid );
 
             ProgramInstance programInstance = event.getProgramInstance();
 
-            programStageInstanceService.deleteProgramStageInstance( event );
+            eventService.deleteEvent( event );
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
