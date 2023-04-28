@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -244,7 +245,7 @@ class TrackerSynchronizationTest extends DhisTest
             .getTrackedEntityInstances( queryParams, params, true, true );
 
         assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList() );
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
         assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
@@ -258,7 +259,7 @@ class TrackerSynchronizationTest extends DhisTest
             .getTrackedEntityInstances( queryParams, params, true, true );
 
         assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID ),
-            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList() );
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).collect( Collectors.toList() ) );
         assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
