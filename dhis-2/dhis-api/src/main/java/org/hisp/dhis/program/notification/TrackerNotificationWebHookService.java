@@ -48,7 +48,7 @@ public interface TrackerNotificationWebHookService
      * Sends web hook notifications linked to
      * {@link org.hisp.dhis.program.Event}
      *
-     * @param programStageInstance to handle
+     * @param event to handle
      */
-    void handleEvent( String programStageInstance );
+    void handleEvent( String event );
 }

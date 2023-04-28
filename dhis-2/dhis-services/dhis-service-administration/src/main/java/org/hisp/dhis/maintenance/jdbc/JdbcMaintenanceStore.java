@@ -89,7 +89,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     }
 
     @Override
-    public int deleteSoftDeletedProgramStageInstances()
+    public int deleteSoftDeletedEvents()
     {
         List<String> deletedEvents = getDeletionEntities(
             "(select uid from programstageinstance where deleted is true)" );

@@ -147,7 +147,7 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramStageInstance( Event event,
+    public List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {

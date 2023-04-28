@@ -263,9 +263,9 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
-    public void sendEventCompletionNotifications( long programStageInstance )
+    public void sendEventCompletionNotifications( long eventId )
     {
-        sendProgramStageInstanceNotifications( eventStore.get( programStageInstance ),
+        sendProgramStageInstanceNotifications( eventStore.get( eventId ),
             NotificationTrigger.COMPLETION );
     }
 
@@ -303,10 +303,10 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
-    public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
+    public void sendProgramRuleTriggeredEventNotifications( long pnt, long eventId )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( eventStore.get( programStageInstance ) ) );
+            Collections.singletonList( eventStore.get( eventId ) ) );
         sendAll( messageBatch );
     }
 

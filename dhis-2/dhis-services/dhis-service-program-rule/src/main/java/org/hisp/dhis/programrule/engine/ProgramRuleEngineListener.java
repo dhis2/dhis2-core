@@ -52,18 +52,18 @@ public class ProgramRuleEngineListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onDataValueChange( DataValueUpdatedEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getEvent() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onEventCompletion( StageCompletionEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getEvent() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onScheduledEvent( StageScheduledEvaluationEvent event )
     {
-        programRuleEngineService.evaluateEventAndRunEffects( event.getProgramStageInstance() );
+        programRuleEngineService.evaluateEventAndRunEffects( event.getEvent() );
     }
 }

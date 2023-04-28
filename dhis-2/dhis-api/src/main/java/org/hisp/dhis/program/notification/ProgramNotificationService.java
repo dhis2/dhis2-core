@@ -71,9 +71,9 @@ public interface ProgramNotificationService
      * configured with suitable {@link ProgramNotificationTemplate templates},
      * nothing will happen.
      *
-     * @param programStageInstance the Event id.
+     * @param eventId the event id.
      */
-    void sendEventCompletionNotifications( long programStageInstance );
+    void sendEventCompletionNotifications( long eventId );
 
     /**
      * Send completion notifications for the ProgramInstance triggered by
@@ -93,9 +93,9 @@ public interface ProgramNotificationService
      * happen.
      *
      * @param pnt ProgramNotificationTemplate id to send
-     * @param programStageInstance the Event id.
+     * @param eventId the event id.
      */
-    void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance );
+    void sendProgramRuleTriggeredEventNotifications( long pnt, long eventId );
 
     void sendProgramRuleTriggeredEventNotifications( long pnt, Event event );
 

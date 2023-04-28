@@ -35,7 +35,7 @@ import org.hisp.dhis.program.Event;
 /**
  * @author Chau Thu Tran
  */
-public class ProgramStageInstanceVisitDateComparator
+public class EventVisitDateComparator
     implements Comparator<Event>
 {
     @Override

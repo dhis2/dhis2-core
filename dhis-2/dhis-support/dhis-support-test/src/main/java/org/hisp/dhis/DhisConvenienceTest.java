@@ -1701,14 +1701,14 @@ public abstract class DhisConvenienceTest
     public static Event createEvent( ProgramStage programStage,
         ProgramInstance pi, OrganisationUnit organisationUnit )
     {
-        Event psi = new Event();
-        psi.setAutoFields();
+        Event event = new Event();
+        event.setAutoFields();
 
-        psi.setProgramStage( programStage );
-        psi.setProgramInstance( pi );
-        psi.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStage );
+        event.setProgramInstance( pi );
+        event.setOrganisationUnit( organisationUnit );
 
-        return psi;
+        return event;
     }
 
     public static Event createEvent( ProgramInstance programInstance,

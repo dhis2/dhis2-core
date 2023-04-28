@@ -79,7 +79,7 @@ public class DefaultProgramNotificationInstanceService
 
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
             if ( !eventService.eventExists( params.getEvent().getUid() ) )
             {

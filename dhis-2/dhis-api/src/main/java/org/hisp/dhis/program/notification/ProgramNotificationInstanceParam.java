@@ -68,7 +68,7 @@ public class ProgramNotificationInstanceParam extends BaseNotificationParam
         return programInstance != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasEvent()
     {
         return event != null;
     }

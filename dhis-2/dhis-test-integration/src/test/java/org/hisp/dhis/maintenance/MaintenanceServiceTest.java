@@ -292,7 +292,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNull( eventService.getEvent( idA ) );
         assertTrue(
             eventService.eventExistsIncludingDeleted( event.getUid() ) );
-        maintenanceService.deleteSoftDeletedProgramStageInstances();
+        maintenanceService.deleteSoftDeletedEvents();
         assertFalse(
             eventService.eventExistsIncludingDeleted( event.getUid() ) );
     }
@@ -374,7 +374,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertTrue(
             eventService.eventExistsIncludingDeleted( eventA.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
-        maintenanceService.deleteSoftDeletedProgramStageInstances();
+        maintenanceService.deleteSoftDeletedEvents();
         assertFalse(
             eventService.eventExistsIncludingDeleted( eventA.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );

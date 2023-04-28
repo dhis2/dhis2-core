@@ -82,7 +82,7 @@ public enum NotificationTrigger
     private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_INSTANCE = new ImmutableSet.Builder<NotificationTrigger>()
         .add( ENROLLMENT, COMPLETION, SCHEDULED_DAYS_INCIDENT_DATE, SCHEDULED_DAYS_ENROLLMENT_DATE ).build();
 
-    private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_STAGE_INSTANCE = new ImmutableSet.Builder<NotificationTrigger>()
+    private static final Set<NotificationTrigger> APPLICABLE_TO_EVENT = new ImmutableSet.Builder<NotificationTrigger>()
         .add( COMPLETION, SCHEDULED_DAYS_DUE_DATE ).build();
 
     public boolean isImmediate()
@@ -110,14 +110,14 @@ public enum NotificationTrigger
         return APPLICABLE_TO_PROGRAM_INSTANCE;
     }
 
-    public static Set<NotificationTrigger> getAllApplicableToProgramStageInstance()
+    public static Set<NotificationTrigger> getAllApplicableToEvent()
     {
-        return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE;
+        return APPLICABLE_TO_EVENT;
     }
 
-    public boolean isApplicableToProgramStageInstance()
+    public boolean isApplicableToEvent()
     {
-        return APPLICABLE_TO_PROGRAM_STAGE_INSTANCE.contains( this );
+        return APPLICABLE_TO_EVENT.contains( this );
     }
 
     public boolean isApplicableToProgramInstance()
