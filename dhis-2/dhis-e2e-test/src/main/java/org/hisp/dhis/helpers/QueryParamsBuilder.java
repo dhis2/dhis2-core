@@ -63,19 +63,17 @@ public class QueryParamsBuilder
         String[] split = param.split( "=" );
         Optional<MutablePair<String, String>> pairOptional = getByKey( split[0] );
 
-        if ( pairOptional.isPresent() )
+        if ( pairOptional.isEmpty()
+            || pairOptional.get().getKey().equals( "filter" )
+            || pairOptional.get().getKey().equals( "attribute" ) )
+        {
+            queryParams.add( MutablePair.of( split[0], split[1] ) );
+        }
+        else
         {
             MutablePair<String, String> existingPair = pairOptional.get();
-
-            if ( !existingPair.getKey().equals( "filter" ) && !existingPair.getKey().equals( "attribute" ) )
-            {
-                existingPair.setRight( split[1] );
-            }
-
-            return this;
+            existingPair.setRight( split[1] );
         }
-
-        queryParams.add( MutablePair.of( split[0], split[1] ) );
 
         return this;
     }
