@@ -1587,11 +1587,6 @@ public abstract class DhisConvenienceTest
         return userGroup;
     }
 
-    public static UserRole createUserRole( char uniqueCharacter )
-    {
-        return createUserRole( uniqueCharacter, new String[] {} );
-    }
-
     public static UserRole createUserRole( char uniqueCharacter, String... auths )
     {
         UserRole role = new UserRole();
@@ -1894,11 +1889,9 @@ public abstract class DhisConvenienceTest
     public static ProgramMessage createProgramMessage( String text, String subject,
         ProgramMessageRecipients recipients, ProgramMessageStatus status, Set<DeliveryChannel> channels )
     {
-        ProgramMessage message = ProgramMessage.builder().text( text )
+        return ProgramMessage.builder().text( text )
             .subject( subject ).recipients( recipients )
             .messageStatus( status ).deliveryChannels( channels ).build();
-
-        return message;
     }
 
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, Program program, String expression,
@@ -1909,6 +1902,12 @@ public abstract class DhisConvenienceTest
 
     public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType,
         Program program, String expression, String filter )
+    {
+        return createProgramIndicator( uniqueCharacter, analyticsType, program, expression, filter, null, 0 );
+    }
+
+    public static ProgramIndicator createProgramIndicator( char uniqueCharacter, AnalyticsType analyticsType,
+        Program program, String expression, String filter, PeriodType afterStartPeriodType, int afterStartPeriods )
     {
         ProgramIndicator indicator = new ProgramIndicator();
         indicator.setAutoFields();
@@ -1927,14 +1926,16 @@ public abstract class DhisConvenienceTest
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
                 AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.EVENT_DATE,
-                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, afterStartPeriodType,
+                afterStartPeriods ) );
         }
         else if ( analyticsType == AnalyticsType.ENROLLMENT )
         {
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
                 AnalyticsPeriodBoundaryType.BEFORE_END_OF_REPORTING_PERIOD, null, 0 ) );
             boundaries.add( new AnalyticsPeriodBoundary( AnalyticsPeriodBoundary.ENROLLMENT_DATE,
-                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, null, 0 ) );
+                AnalyticsPeriodBoundaryType.AFTER_START_OF_REPORTING_PERIOD, afterStartPeriodType,
+                afterStartPeriods ) );
         }
 
         for ( AnalyticsPeriodBoundary boundary : boundaries )
@@ -1981,15 +1982,15 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
-        RelationshipItem _from = new RelationshipItem();
-        RelationshipItem _to = new RelationshipItem();
+        RelationshipItem riFrom = new RelationshipItem();
+        RelationshipItem riTo = new RelationshipItem();
 
-        _from.setTrackedEntityInstance( from );
-        _to.setTrackedEntityInstance( to );
+        riFrom.setTrackedEntityInstance( from );
+        riTo.setTrackedEntityInstance( to );
 
         relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( _from );
-        relationship.setTo( _to );
+        relationship.setFrom( riFrom );
+        relationship.setTo( riTo );
         relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
         relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
@@ -2002,15 +2003,15 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
-        RelationshipItem _from = new RelationshipItem();
-        RelationshipItem _to = new RelationshipItem();
+        RelationshipItem riFrom = new RelationshipItem();
+        RelationshipItem riTo = new RelationshipItem();
 
-        _from.setTrackedEntityInstance( from );
-        _to.setProgramInstance( to );
+        riFrom.setTrackedEntityInstance( from );
+        riTo.setProgramInstance( to );
 
         relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( _from );
-        relationship.setTo( _to );
+        relationship.setFrom( riFrom );
+        relationship.setTo( riTo );
         relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
         relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
@@ -2024,15 +2025,15 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
-        RelationshipItem _from = new RelationshipItem();
-        RelationshipItem _to = new RelationshipItem();
+        RelationshipItem riFrom = new RelationshipItem();
+        RelationshipItem riTo = new RelationshipItem();
 
-        _from.setTrackedEntityInstance( from );
-        _to.setProgramStageInstance( to );
+        riFrom.setTrackedEntityInstance( from );
+        riTo.setProgramStageInstance( to );
 
         relationship.setRelationshipType( relationshipType );
-        relationship.setFrom( _from );
-        relationship.setTo( _to );
+        relationship.setFrom( riFrom );
+        relationship.setTo( riTo );
         relationship.setKey( RelationshipUtils.generateRelationshipKey( relationship ) );
         relationship.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationship ) );
 
@@ -2612,20 +2613,21 @@ public abstract class DhisConvenienceTest
 
     protected User createUserWithId( String username, String uid, String... authorities )
     {
-        return _createUser( username, Optional.of( uid ), null, authorities );
+        return createUserInternal( username, Optional.of( uid ), null, authorities );
     }
 
     protected User createUserWithAuth( String username, String... authorities )
     {
-        return _createUser( username, Optional.empty(), null, authorities );
+        return createUserInternal( username, Optional.empty(), null, authorities );
     }
 
     protected User createOpenIDUser( String username, String openIDIdentifier )
     {
-        return _createUser( username, Optional.empty(), openIDIdentifier );
+        return createUserInternal( username, Optional.empty(), openIDIdentifier );
     }
 
-    private User _createUser( String username, Optional<String> uid, String openIDIdentifier, String... authorities )
+    private User createUserInternal( String username, Optional<String> uid, String openIDIdentifier,
+        String... authorities )
     {
         checkUserServiceWasInjected();
 
@@ -2888,7 +2890,7 @@ public abstract class DhisConvenienceTest
         Set<OrganisationUnit> dataViewOrganisationUnits = dataViewOrganisationUnit != null
             ? newHashSet( dataViewOrganisationUnit )
             : new HashSet<>( organisationUnits );
-        User user = _createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
+        User user = createUserAndRole( superUserFlag, userName, organisationUnits, dataViewOrganisationUnits, auths );
 
         persistUserAndRoles( user );
 
@@ -2898,7 +2900,7 @@ public abstract class DhisConvenienceTest
     protected User createAndAddUser( boolean superUserFlag, String userName, Set<OrganisationUnit> orgUnits,
         Set<OrganisationUnit> dataViewOrgUnits, String... auths )
     {
-        User user = _createUserAndRole( superUserFlag, userName, (orgUnits),
+        User user = createUserAndRole( superUserFlag, userName, (orgUnits),
             dataViewOrgUnits != null ? (dataViewOrgUnits) : (orgUnits),
             auths );
 
@@ -2907,7 +2909,7 @@ public abstract class DhisConvenienceTest
         return user;
     }
 
-    private User _createUserAndRole( boolean superUserFlag, String username,
+    private User createUserAndRole( boolean superUserFlag, String username,
         Set<OrganisationUnit> organisationUnits,
         Set<OrganisationUnit> dataViewOrganisationUnits, String... auths )
     {
