@@ -60,6 +60,7 @@ import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * This component is only encapsulating specific methods responsible for
@@ -156,7 +157,8 @@ public class DataDimensionExtractor
      * @return a map from each class of atomic objects to a map that associates
      *         each id of that class with an atomic object.
      */
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
+    @Transactional( readOnly = true )
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getAtomicObjects(
         final SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
         final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
@@ -171,7 +173,8 @@ public class DataDimensionExtractor
         return atomicObjects;
     }
 
-    MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
+    @Transactional( readOnly = true )
+    public MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> getNoAclAtomicObjects(
         final SetMap<Class<? extends IdentifiableObject>, String> atomicIds )
     {
         final MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = new MapMap<>();
@@ -223,7 +226,8 @@ public class DataDimensionExtractor
      * @param dataSetId the data set identifier.
      * @param metric the reporting rate metric.
      */
-    ReportingRate getReportingRate( final IdScheme idScheme, final String dataSetId, final String metric )
+    @Transactional( readOnly = true )
+    public ReportingRate getReportingRate( final IdScheme idScheme, final String dataSetId, final String metric )
     {
         final DataSet dataSet = idObjectManager.getObject( DataSet.class, idScheme, dataSetId );
         final boolean metricValid = isValidEnum( ReportingRateMetric.class, metric );
@@ -243,7 +247,8 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param attributeId the attribute identifier.
      */
-    ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( final IdScheme idScheme,
+    @Transactional( readOnly = true )
+    public ProgramTrackedEntityAttributeDimensionItem getProgramAttributeDimensionItem( final IdScheme idScheme,
         final String programId, final String attributeId )
     {
         final Program program = idObjectManager.getObject( Program.class, idScheme, programId );
@@ -265,7 +270,9 @@ public class DataDimensionExtractor
      * @param programId the program identifier.
      * @param dataElementId the data element identifier.
      */
-    ProgramDataElementDimensionItem getProgramDataElementDimensionItem( final IdScheme idScheme, final String programId,
+    @Transactional( readOnly = true )
+    public ProgramDataElementDimensionItem getProgramDataElementDimensionItem( final IdScheme idScheme,
+        final String programId,
         final String dataElementId )
     {
         final Program program = idObjectManager.getObject( Program.class, idScheme, programId );

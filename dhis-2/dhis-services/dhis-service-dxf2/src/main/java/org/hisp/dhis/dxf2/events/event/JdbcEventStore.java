@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.events.event;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.hisp.dhis.common.ValueType.NUMERIC_TYPES;
-import static org.hisp.dhis.commons.util.TextUtils.splitToSet;
 import static org.hisp.dhis.dxf2.events.event.AbstractEventService.STATIC_EVENT_COLUMNS;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_ATTRIBUTE_OPTION_COMBO_ID;
 import static org.hisp.dhis.dxf2.events.event.EventSearchParams.EVENT_COMPLETED_BY_ID;
@@ -109,7 +108,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.report.EventRow;
@@ -300,12 +298,11 @@ public class JdbcEventStore implements EventStore
         COMPLETEDBY.getColumnName(),    // 12
         DELETED.getColumnName(),        // 13
         "code",                         // 14
-        CREATEDCLIENT.getColumnName(),  // 15
-        UPDATEDCLIENT.getColumnName(),  // 16
-        GEOMETRY.getColumnName(),       // 17
-        "assigneduserid",               // 18
-        "eventdatavalues",              // 19
-        UID.getColumnName() );          // 20
+        UPDATEDCLIENT.getColumnName(),  // 15
+        GEOMETRY.getColumnName(),       // 16
+        "assigneduserid",               // 17
+        "eventdatavalues",              // 18
+        UID.getColumnName() );          // 19
 
     private static final String UPDATE_EVENT_SQL;
 
@@ -332,7 +329,7 @@ public class JdbcEventStore implements EventStore
         UPDATE_EVENT_SQL = "update programstageinstance set " +
             UPDATE_COLUMNS.stream()
                 .map( column -> column + " = :" + column )
-                .limit( UPDATE_COLUMNS.size() - 1 )
+                .limit( UPDATE_COLUMNS.size() - 1L )
                 .collect( Collectors.joining( "," ) )
             + " where uid = :uid;";
     }
@@ -556,14 +553,6 @@ public class JdbcEventStore implements EventStore
                 convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
             }
 
-            if ( params.getCategoryOptionCombo() == null && !isSuper( user ) )
-            {
-                return events.stream().filter( ev -> ev.getAttributeCategoryOptions() != null
-                    && splitToSet( ev.getAttributeCategoryOptions(), TextUtils.SEMICOLON ).size() == ev
-                        .getOptionSize() )
-                    .collect( Collectors.toList() );
-            }
-
             return events;
         } );
 
@@ -594,7 +583,7 @@ public class JdbcEventStore implements EventStore
             {
                 try
                 {
-                    parameters[i] = getSqlParameters( programStageInstances.get( i ) );
+                    parameters[i] = getSqlParametersForUpdate( programStageInstances.get( i ) );
                 }
                 catch ( SQLException | JsonProcessingException e )
                 {
@@ -2104,7 +2093,7 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private MapSqlParameterSource getSqlParameters( ProgramStageInstance programStageInstance )
+    private MapSqlParameterSource getSqlParametersForUpdate( ProgramStageInstance programStageInstance )
         throws SQLException,
         JsonProcessingException
     {
@@ -2127,8 +2116,6 @@ public class JdbcEventStore implements EventStore
             .addValue( COMPLETEDBY.getColumnName(), programStageInstance.getCompletedBy() )
             .addValue( DELETED.getColumnName(), programStageInstance.isDeleted() )
             .addValue( "code", programStageInstance.getCode() )
-            .addValue( CREATEDCLIENT.getColumnName(),
-                JdbcEventSupport.toTimestamp( programStageInstance.getCreatedAtClient() ) )
             .addValue( UPDATEDCLIENT.getColumnName(),
                 JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) )
             .addValue( GEOMETRY.getColumnName(), JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) )

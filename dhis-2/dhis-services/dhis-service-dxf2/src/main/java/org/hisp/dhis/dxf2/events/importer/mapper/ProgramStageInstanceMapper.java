@@ -144,8 +144,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
             psi.setAssignedUser( this.workContext.getAssignedUserMap().get( event.getUid() ) );
         }
 
-        // CREATED AT CLIENT + UPDATED AT CLIENT
-        psi.setCreatedAtClient( parseDate( event.getCreatedAtClient() ) );
+        // UPDATED AT CLIENT
         psi.setLastUpdatedAtClient( parseDate( event.getLastUpdatedAtClient() ) );
 
         psi.setStoredBy( event.getStoredBy() );
