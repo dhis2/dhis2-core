@@ -124,7 +124,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         result.setComments( programInstance.getComments() );
         if ( params.isIncludeEvents() )
         {
-            result.setEvents( getProgramStageInstances( user, programInstance, params ) );
+            result.setEvents( getEvents( user, programInstance, params ) );
         }
         if ( params.isIncludeRelationships() )
         {
@@ -139,8 +139,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         return result;
     }
 
-    private Set<Event> getProgramStageInstances( User user, ProgramInstance programInstance,
-        EnrollmentParams params )
+    private Set<Event> getEvents( User user, ProgramInstance programInstance, EnrollmentParams params )
     {
         Set<Event> events = new HashSet<>();
 

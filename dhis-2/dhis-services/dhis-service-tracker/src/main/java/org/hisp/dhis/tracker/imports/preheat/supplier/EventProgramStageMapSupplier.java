@@ -42,14 +42,14 @@ import org.springframework.stereotype.Component;
 
 /**
  * This supplier adds to the pre-heat object a List of all Program Stages UIDs
- * that have at least ONE Program Stage Instance that is not logically deleted
- * ('deleted = true') and the status is not 'SKIPPED' among the Program Stages
- * and the Enrollments present in the payload
+ * that have at least ONE event that is not logically deleted ('deleted = true')
+ * and the status is not 'SKIPPED' among the Program Stages and the enrollments
+ * present in the payload.
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramStageInstanceProgramStageMapSupplier
+public class EventProgramStageMapSupplier
     extends JdbcAbstractPreheatSupplier
 {
     private static final String PS_UID = "programStageUid";
@@ -66,7 +66,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
         " and ps.uid in (:programStageUids) " +
         " and pi.uid in (:programInstanceUids) ";
 
-    protected ProgramStageInstanceProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
+    protected EventProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }

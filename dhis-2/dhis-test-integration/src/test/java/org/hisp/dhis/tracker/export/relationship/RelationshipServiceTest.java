@@ -259,7 +259,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         Relationship accessible = relationship( teiA, psiA );
         relationship( psiA, inaccessiblePsi );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByProgramStageInstance( psiA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByEvent( psiA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),

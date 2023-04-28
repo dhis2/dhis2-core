@@ -59,12 +59,12 @@ public interface RelationshipStore
     List<Relationship> getByProgramInstance( ProgramInstance pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    default List<Relationship> getByProgramStageInstance( Event event )
+    default List<Relationship> getByEvent( Event event )
     {
-        return getByProgramStageInstance( event, null );
+        return getByEvent( event, null );
     }
 
-    List<Relationship> getByProgramStageInstance( Event event,
+    List<Relationship> getByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     List<Relationship> getByRelationshipType( RelationshipType relationshipType );

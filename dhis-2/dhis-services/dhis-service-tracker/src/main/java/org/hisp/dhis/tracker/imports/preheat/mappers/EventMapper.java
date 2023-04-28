@@ -39,9 +39,9 @@ import org.mapstruct.factory.Mappers;
     OrganisationUnitMapper.class,
     ProgramInstanceMapper.class
 } )
-public interface ProgramStageInstanceMapper extends PreheatMapper<Event>
+public interface EventMapper extends PreheatMapper<Event>
 {
-    ProgramStageInstanceMapper INSTANCE = Mappers.getMapper( ProgramStageInstanceMapper.class );
+    EventMapper INSTANCE = Mappers.getMapper( EventMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )

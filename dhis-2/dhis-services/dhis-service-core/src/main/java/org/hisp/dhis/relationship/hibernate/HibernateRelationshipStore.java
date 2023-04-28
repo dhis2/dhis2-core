@@ -102,7 +102,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByProgramStageInstance( Event event,
+    public List<Relationship> getByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( event,

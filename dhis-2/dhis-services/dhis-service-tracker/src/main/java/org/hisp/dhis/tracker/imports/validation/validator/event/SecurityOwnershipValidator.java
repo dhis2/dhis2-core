@@ -101,18 +101,17 @@ class SecurityOwnershipValidator
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        Event programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
+        Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
+        Program program = strategy.isUpdateOrDelete() ? preheatEvent.getProgramStage()
             .getProgram() : bundle.getPreheat().getProgram( event.getProgram() );
 
         OrganisationUnit organisationUnit;
 
         if ( strategy.isUpdateOrDelete() )
         {
-            organisationUnit = programStageInstance
-                .getOrganisationUnit();
+            organisationUnit = preheatEvent.getOrganisationUnit();
         }
         else
         {
@@ -143,8 +142,8 @@ class SecurityOwnershipValidator
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
-            validateUpdateAndDeleteEvent( reporter, bundle, event, programStageInstance,
+            TrackedEntityInstance entityInstance = preheatEvent.getProgramInstance().getEntityInstance();
+            validateUpdateAndDeleteEvent( reporter, bundle, event, preheatEvent,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
         else
@@ -182,24 +181,24 @@ class SecurityOwnershipValidator
 
     private void validateUpdateAndDeleteEvent( Reporter reporter, TrackerBundle bundle,
         org.hisp.dhis.tracker.imports.domain.Event event,
-        Event programStageInstance,
+        Event preheatEvent,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( event );
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( preheatEvent, PROGRAM_INSTANCE_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        checkEventWriteAccess( reporter, bundle, event, programStageInstance.getProgramStage(),
-            programStageInstance.getOrganisationUnit(), ownerOrgUnit,
-            programStageInstance.getAttributeOptionCombo(),
-            teiUid, programStageInstance.isCreatableInSearchScope() );
+        checkEventWriteAccess( reporter, bundle, event, preheatEvent.getProgramStage(),
+            preheatEvent.getOrganisationUnit(), ownerOrgUnit,
+            preheatEvent.getAttributeOptionCombo(),
+            teiUid, preheatEvent.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
-            && EventStatus.COMPLETED == programStageInstance.getStatus()
-            && event.getStatus() != programStageInstance.getStatus()
+            && EventStatus.COMPLETED == preheatEvent.getStatus()
+            && event.getStatus() != preheatEvent.getStatus()
             && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
             reporter.addError( event, E1083, user );

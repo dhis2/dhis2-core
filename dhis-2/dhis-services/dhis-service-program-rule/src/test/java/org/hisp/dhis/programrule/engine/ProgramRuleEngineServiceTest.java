@@ -249,7 +249,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         Program program = createProgram( 'A' );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         ProgramStage programStage = createProgramStage( 'A', program );
-        Event programEvent = createProgramStageInstance( programStage, programInstance,
+        Event programEvent = createEvent( programStage, programInstance,
             createOrganisationUnit( 'A' ) );
 
         when( eventService.getEvent( programEvent.getUid() ) ).thenReturn( programEvent );

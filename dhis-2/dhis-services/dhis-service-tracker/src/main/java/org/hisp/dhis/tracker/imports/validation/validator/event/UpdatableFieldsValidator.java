@@ -46,9 +46,9 @@ class UpdatableFieldsValidator
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
     {
-        Event programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
-        ProgramStage programStage = programStageInstance.getProgramStage();
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+        Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
+        ProgramStage programStage = preheatEvent.getProgramStage();
+        ProgramInstance programInstance = preheatEvent.getProgramInstance();
 
         reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );

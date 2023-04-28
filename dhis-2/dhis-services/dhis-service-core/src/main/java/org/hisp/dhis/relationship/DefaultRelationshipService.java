@@ -151,7 +151,7 @@ public class DefaultRelationshipService
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByProgramStageInstance( event, pagingAndSortingCriteriaAdapter );
+        return relationshipStore.getByEvent( event, pagingAndSortingCriteriaAdapter );
     }
 
     @Override

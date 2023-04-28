@@ -154,7 +154,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndToConstraintIsSetToEnrollment()
+    void shouldFailWhenRelationshipEntityIsEventAndToConstraintIsSetToEnrollment()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE );
 
@@ -247,7 +247,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsProgramStageInstanceAndEventDoesNotExist()
+    void shouldFailWhenRelationshipEntityIsEventAndEventDoesNotExist()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_STAGE_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
