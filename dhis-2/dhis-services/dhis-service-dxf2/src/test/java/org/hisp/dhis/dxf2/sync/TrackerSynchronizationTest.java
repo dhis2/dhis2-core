@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.DhisTest;
+import org.hisp.dhis.IntegrationTestBase;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
@@ -83,7 +83,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author David Katuscak (katuscak.d@gmail.com)
  */
-class TrackerSynchronizationTest extends DhisTest
+class TrackerSynchronizationTest extends IntegrationTestBase
 {
     // We need to pick a future date as lastUpdated is automatically set to now
     // and cannot be changed
