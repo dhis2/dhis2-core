@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.programrule.executor.event;
 
 import static org.hisp.dhis.tracker.programrule.IssueType.ERROR;
 import static org.hisp.dhis.tracker.programrule.IssueType.WARNING;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -38,8 +39,11 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ValidationStrategy;
@@ -76,9 +80,15 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
 
     private final static String ANOTHER_DATA_ELEMENT_ID = "AnotherDataElementId";
 
+    private final static String OPTION_SET_DATA_ELEMENT_ID = "OptionSetDataElementId";
+
     private final static String DATAELEMENT_OLD_VALUE = "10.0";
 
     private final static String DATAELEMENT_NEW_VALUE = "24.0";
+
+    private final static String VALID_OPTION_VALUE = "10";
+
+    private final static String INVALID_OPTION_VALUE = "0";
 
     private static ProgramStage firstProgramStage;
 
@@ -87,6 +97,8 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
     private static DataElement dataElementA;
 
     private static DataElement dataElementB;
+
+    private static DataElement optionSetDataElement;
 
     private TrackerBundle bundle;
 
@@ -113,16 +125,108 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
         dataElementB.setUid( ANOTHER_DATA_ELEMENT_ID );
         ProgramStageDataElement programStageDataElementB = createProgramStageDataElement( secondProgramStage,
             dataElementB, 0 );
-        secondProgramStage.setProgramStageDataElements( Set.of( programStageDataElementB ) );
+        optionSetDataElement = createDataElement( 'P' );
+        optionSetDataElement.setUid( OPTION_SET_DATA_ELEMENT_ID );
+        OptionSet optionSet = new OptionSet();
+        Option option = new Option( "ten", "10" );
+        optionSet.setOptions( List.of( option ) );
+        optionSet.setValueType( ValueType.TEXT );
+        optionSetDataElement.setOptionSet( optionSet );
+        ProgramStageDataElement programStageDataElementOptionSet = createProgramStageDataElement( secondProgramStage,
+            optionSetDataElement, 0 );
+        secondProgramStage
+            .setProgramStageDataElements( Set.of( programStageDataElementB, programStageDataElementOptionSet ) );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( firstProgramStage ) ) )
             .thenReturn( firstProgramStage );
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( secondProgramStage ) ) )
             .thenReturn( secondProgramStage );
         when( preheat.getDataElement( DATA_ELEMENT_ID ) ).thenReturn( dataElementA );
+        when( preheat.getDataElement( OPTION_SET_DATA_ELEMENT_ID ) ).thenReturn( optionSetDataElement );
+
         bundle = TrackerBundle.builder().build();
         bundle.setPreheat( preheat );
         when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
             .thenReturn( Boolean.FALSE );
+    }
+
+    @Test
+    void shouldFailWhenAssignedValueIsInvalidOptionAndDataValueIsValidOption()
+    {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
+            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+
+        assertDataValueWasNotAssignedAndErrorIsPresent( VALID_OPTION_VALUE, dataValue, warning );
+    }
+
+    @Test
+    void shouldAssignDataValueWhenAssignedValueIsValidOptionAndDataValueIsEmpty()
+    {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
+            "", VALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+
+        assertTrue( dataValue.isPresent() );
+        assertEquals( VALID_OPTION_VALUE, dataValue.get().getValue() );
+        assertTrue( warning.isPresent() );
+        assertEquals( WARNING, warning.get().getIssueType() );
+    }
+
+    @Test
+    void shouldAssignDataValueWhenAssignedValueIsInvalidOptionAndDataValueIsEmpty()
+    {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        Event eventWithOptionDataValue = getEventWithDataValueNOTSet();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
+            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, SECOND_EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+
+        assertAll(
+            () -> assertTrue( dataValue.isEmpty() ),
+            () -> assertTrue( warning.isPresent() ),
+            () -> assertEquals( WARNING, warning.get().getIssueType() ) );
+    }
+
+    @Test
+    void shouldAssignNullDataValueWhenAssignedValueIsInvalidOptionAndOverwriteIsTrue()
+    {
+        when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
+        when( systemSettingManager.getBooleanSetting( SettingKey.RULE_ENGINE_ASSIGN_OVERWRITE ) )
+            .thenReturn( Boolean.TRUE );
+        Event eventWithOptionDataValue = getEventWithOptionSetDataValueWithValidValue();
+        List<Event> events = List.of( eventWithOptionDataValue );
+        bundle.setEvents( events );
+
+        AssignDataValueExecutor executor = new AssignDataValueExecutor( systemSettingManager,
+            "", INVALID_OPTION_VALUE, OPTION_SET_DATA_ELEMENT_ID, eventWithOptionDataValue.getDataValues() );
+
+        Optional<ProgramRuleIssue> warning = executor.executeRuleAction( bundle, eventWithOptionDataValue );
+
+        Optional<DataValue> dataValue = findDataValueByUid( bundle, EVENT_ID, OPTION_SET_DATA_ELEMENT_ID );
+
+        assertDataValueWasAssignedAndWarningIsPresent( null, dataValue, warning );
     }
 
     @Test
@@ -282,6 +386,15 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
             .build();
     }
 
+    private Event getEventWithOptionSetDataValueWithValidValue()
+    {
+        return Event.builder()
+            .event( EVENT_ID )
+            .status( EventStatus.ACTIVE )
+            .dataValues( getOptionSetDataValues() )
+            .build();
+    }
+
     private Event getEventWithDataValueNOTSet()
     {
         return Event.builder()
@@ -313,6 +426,15 @@ class AssignDataValueExecutorTest extends DhisConvenienceTest
         DataValue dataValue = DataValue.builder()
             .dataElement( MetadataIdentifier.ofUid( DATA_ELEMENT_ID ) )
             .value( DATAELEMENT_NEW_VALUE )
+            .build();
+        return Set.of( dataValue );
+    }
+
+    private Set<DataValue> getOptionSetDataValues()
+    {
+        DataValue dataValue = DataValue.builder()
+            .dataElement( MetadataIdentifier.ofUid( OPTION_SET_DATA_ELEMENT_ID ) )
+            .value( VALID_OPTION_VALUE )
             .build();
         return Set.of( dataValue );
     }

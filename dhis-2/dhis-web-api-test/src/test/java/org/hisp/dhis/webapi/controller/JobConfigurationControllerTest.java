@@ -43,12 +43,10 @@ import org.junit.jupiter.api.Test;
 /**
  * Tests the
  * {@link org.hisp.dhis.webapi.controller.scheduling.JobConfigurationController}.
- *
  * Since test setup uses a mock for the
  * {@link org.hisp.dhis.scheduling.SchedulingManager} the actual scheduling
- * cannot be tested.
- *
- * This tests focuses on creation including the serialiastion of job parameters.
+ * cannot be tested. This tests focuses on creation including the serialization
+ * of job parameters.
  *
  * @author Jan Bernitt
  */
@@ -177,7 +175,8 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
             "EVENT",
             "ENROLLMENT",
             "OWNERSHIP",
-            "VALIDATION_RESULT" ), param.getArray( "constants" ).stringValues() );
+            "VALIDATION_RESULT" ),
+            param.getArray( "constants" ).stringValues() );
     }
 
     private JsonObject assertJobConfigurationExists( String jobId, String expectedJobType )

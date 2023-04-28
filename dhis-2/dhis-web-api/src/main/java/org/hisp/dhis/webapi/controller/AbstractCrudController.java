@@ -56,6 +56,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjects;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.SubscribableObject;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatch;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchException;
 import org.hisp.dhis.commons.jackson.jsonpatch.JsonPatchOperation;
@@ -96,8 +97,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.PropertyNames;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
+import org.hisp.dhis.webapi.openapi.Api.PropertyNames;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -114,6 +114,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -1259,6 +1260,15 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         {
             throw new BadRequestException( "Unknown payload format." );
         }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+        JsonNode jsonNode = mapper.readTree( request.getInputStream() );
+        for ( JsonNode node : jsonNode )
+        {
+            if ( node.isContainerNode() )
+            {
+                throw new BadRequestException( "Payload can not contain objects or arrays." );
+            }
+        }
+
+        return patchService.diff( new PatchParams( jsonNode ) );
     }
 }

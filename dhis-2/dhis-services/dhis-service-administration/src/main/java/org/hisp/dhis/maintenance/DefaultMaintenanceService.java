@@ -43,7 +43,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -155,23 +154,10 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    @Transactional
     public void prunePeriods()
     {
-        for ( Period period : periodService.getAllPeriods() )
-        {
-            long periodId = period.getId();
-
-            try
-            {
-                periodService.deletePeriod( period );
-
-                log.info( "Deleted period with id: " + periodId );
-            }
-            catch ( DeleteNotAllowedException ex )
-            {
-                log.debug( "Period has associated objects and could not be deleted: " + periodId );
-            }
-        }
+        maintenanceStore.prunePeriods();
     }
 
     @Override

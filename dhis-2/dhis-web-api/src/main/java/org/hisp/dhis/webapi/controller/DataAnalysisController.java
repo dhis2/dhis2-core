@@ -51,6 +51,7 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.dataanalysis.DataAnalysisParams;
 import org.hisp.dhis.dataanalysis.DataAnalysisService;
@@ -90,7 +91,6 @@ import org.hisp.dhis.validation.ValidationRuleService;
 import org.hisp.dhis.validation.ValidationService;
 import org.hisp.dhis.validation.comparator.ValidationResultComparator;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.ValidationResultView;
 import org.joda.time.DateTime;
@@ -400,9 +400,12 @@ public class DataAnalysisController
 
     @GetMapping( value = "/followup", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( FollowupAnalysisRequest request )
+    public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( HttpSession session,
+        FollowupAnalysisRequest request )
     {
-        return followupAnalysisService.getFollowupDataValues( request );
+        FollowupAnalysisResponse results = followupAnalysisService.getFollowupDataValues( request );
+        session.setAttribute( KEY_ANALYSIS_DATA_VALUES, results );
+        return results;
     }
 
     @PostMapping( value = "/followup/mark", consumes = APPLICATION_JSON_VALUE )
@@ -442,10 +445,9 @@ public class DataAnalysisController
     public void getPdfReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -459,10 +461,9 @@ public class DataAnalysisController
     public void getXlsReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -475,17 +476,19 @@ public class DataAnalysisController
     public void getCSVReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
             .configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
                 false );
 
-        GridUtils.toCsv( grid, response.getWriter() );
+        GridUtils.toCsv( getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) ),
+            response.getWriter() );
     }
 
     @GetMapping( "validationRules/report.pdf" )
@@ -698,5 +701,27 @@ public class DataAnalysisController
         }
 
         return validationResultViews;
+    }
+
+    /**
+     * Generate Grid response from analysis result.
+     *
+     * @param result
+     * @param organisationUnit
+     * @return {@link Grid} to be returned to the client
+     */
+    private Grid getGridFromAnalysisResult( Object result, OrganisationUnit organisationUnit )
+    {
+        Grid grid;
+        if ( result instanceof FollowupAnalysisResponse )
+        {
+            grid = followupAnalysisService.generateAnalysisReport( (FollowupAnalysisResponse) result );
+        }
+        else
+        {
+            grid = generateAnalysisReportGridFromResults( (List<DeflatedDataValue>) result, organisationUnit );
+        }
+
+        return grid;
     }
 }

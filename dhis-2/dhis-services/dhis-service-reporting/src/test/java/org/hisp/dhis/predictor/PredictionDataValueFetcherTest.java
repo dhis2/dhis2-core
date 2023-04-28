@@ -318,7 +318,9 @@ class PredictionDataValueFetcherTest
         foundValueE = new FoundDimensionItemValue( orgUnitB, periodC, aocC, dataElementOperandX, 50.0 );
         foundValueAB = new FoundDimensionItemValue( orgUnitB, periodA, aocC, dataElementOperandAB, 75.0 );
 
-        fetcher = new PredictionDataValueFetcher( dataValueService, categoryService );
+        when( categoryService.getAllCategoryOptionCombos() ).thenReturn( List.of( cocA, cocB, aocC, aocD ) );
+
+        fetcher = new PredictionDataValueFetcher( dataValueService, categoryService, currentUserOrgUnits );
     }
 
     // -------------------------------------------------------------------------
@@ -328,11 +330,6 @@ class PredictionDataValueFetcherTest
     @Test
     void testGetDataValues()
     {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
@@ -347,7 +344,7 @@ class PredictionDataValueFetcherTest
             return new ArrayList<>();
         } );
 
-        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
+        fetcher.init( ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandX );
 
         PredictionData data1 = fetcher.getData();
@@ -373,11 +370,6 @@ class PredictionDataValueFetcherTest
     @Test
     void testGetDataValuesWithAllDisaggregations()
     {
-        when( categoryService.getCategoryOptionCombo( cocA.getId() ) ).thenReturn( cocA );
-        when( categoryService.getCategoryOptionCombo( cocB.getId() ) ).thenReturn( cocB );
-        when( categoryService.getCategoryOptionCombo( aocC.getId() ) ).thenReturn( aocC );
-        when( categoryService.getCategoryOptionCombo( aocD.getId() ) ).thenReturn( aocD );
-
         when( dataValueService.getDeflatedDataValues( any( DataExportParams.class ) ) ).thenAnswer( p -> {
             BlockingQueue<DeflatedDataValue> blockingQueue = ((DataExportParams) p.getArgument( 0 )).getBlockingQueue();
             blockingQueue.put( deflatedDataValueA );
@@ -393,7 +385,7 @@ class PredictionDataValueFetcherTest
             return new ArrayList<>();
         } );
 
-        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
+        fetcher.init( ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandZ );
 
         PredictionData data1 = fetcher.getData();
@@ -422,7 +414,7 @@ class PredictionDataValueFetcherTest
             return new ArrayList<>();
         } );
 
-        fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
+        fetcher.init( ORG_UNIT_LEVEl, levelOneOrgUnits, queryPeriods, outputPeriods,
             dataElements, dataElementOperands, dataElementOperandX );
 
         assertNull( fetcher.getData() );
@@ -434,8 +426,7 @@ class PredictionDataValueFetcherTest
         when( dataValueService.getDeflatedDataValues( any() ) ).thenAnswer( p -> {
             throw new ArithmeticException();
         } );
-        assertThrows( ArithmeticException.class, () -> fetcher.init( currentUserOrgUnits, ORG_UNIT_LEVEl,
-            levelOneOrgUnits, queryPeriods, outputPeriods, dataElements, dataElementOperands, dataElementOperandX ) );
-
+        assertThrows( ArithmeticException.class, () -> fetcher.init( ORG_UNIT_LEVEl, levelOneOrgUnits,
+            queryPeriods, outputPeriods, dataElements, dataElementOperands, dataElementOperandX ) );
     }
 }

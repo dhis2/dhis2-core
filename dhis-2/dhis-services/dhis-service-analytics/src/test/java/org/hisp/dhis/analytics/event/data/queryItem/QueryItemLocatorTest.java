@@ -40,8 +40,8 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStageDataElement;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramTrackedEntityAttribute;
 import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
+import static org.hisp.dhis.common.DimensionalObject.DIMENSION_IDENTIFIER_SEP;
 import static org.hisp.dhis.common.DimensionalObject.ITEM_SEP;
-import static org.hisp.dhis.common.DimensionalObject.PROGRAMSTAGE_SEP;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -225,7 +225,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -244,7 +244,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1~1]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -263,7 +263,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[-1~1~ 2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1~ 2022-01-01~ 2022-01-31]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -282,7 +282,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[1~1~LAST_3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[1~1~LAST_3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -291,7 +291,7 @@ class QueryItemLocatorTest
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
 
         assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
-            programStageUid + "[-1~1~ LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[-1~1~ LAST_A3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT ) );
     }
 
@@ -305,7 +305,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[2022-01-01~ 2022-01-31]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[2022-01-01~ 2022-01-31]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -324,7 +324,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[LAST_10_YEARS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[LAST_10_YEARS]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -333,7 +333,7 @@ class QueryItemLocatorTest
         assertThat( queryItem.getProgramStage(), is( programStageA ) );
 
         assertThrows( IllegalQueryException.class, () -> subject.getQueryItemFromDimension(
-            programStageUid + "[LAST_A3_MONTHS]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[LAST_A3_MONTHS]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT ) );
     }
 
@@ -347,7 +347,7 @@ class QueryItemLocatorTest
         configureDimensionForQueryItem( dataElementA, programStageA );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + "[*]" + PROGRAMSTAGE_SEP + dimension,
+            programStageUid + "[*]" + DIMENSION_IDENTIFIER_SEP + dimension,
             programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -409,7 +409,8 @@ class QueryItemLocatorTest
         int stageOffset = -1256;
         String withStageOffset = "[" + stageOffset + "]";
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            programStageUid + withStageOffset + PROGRAMSTAGE_SEP + dimension + ITEM_SEP + legendSetUid, programA,
+            programStageUid + withStageOffset + DIMENSION_IDENTIFIER_SEP + dimension + ITEM_SEP + legendSetUid,
+            programA,
             EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
@@ -483,7 +484,7 @@ class QueryItemLocatorTest
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
 
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + DIMENSION_IDENTIFIER_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );
@@ -520,7 +521,7 @@ class QueryItemLocatorTest
             .thenReturn( programIndicatorA );
         when( relationshipTypeService.getRelationshipType( relationshipType.getUid() ) ).thenReturn( relationshipType );
         QueryItem queryItem = subject.getQueryItemFromDimension(
-            relationshipType.getUid() + PROGRAMSTAGE_SEP + dimension, programA, EventOutputType.ENROLLMENT );
+            relationshipType.getUid() + DIMENSION_IDENTIFIER_SEP + dimension, programA, EventOutputType.ENROLLMENT );
 
         assertThat( queryItem, is( notNullValue() ) );
         assertThat( queryItem.getItem(), is( programIndicatorA ) );

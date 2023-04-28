@@ -61,6 +61,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
@@ -130,6 +131,7 @@ public class EnrollmentController
     @GetMapping
     public @ResponseBody RootNode getEnrollments(
         EnrollmentCriteria enrollmentCriteria )
+        throws ForbiddenException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 

@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.DataType;
-import org.hisp.dhis.analytics.event.ProgramIndicatorSubqueryBuilder;
+import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.table.PartitionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.program.AnalyticsType;

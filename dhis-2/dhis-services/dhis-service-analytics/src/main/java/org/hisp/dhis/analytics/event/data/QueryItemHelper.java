@@ -161,10 +161,10 @@ public class QueryItemHelper
      * part of the row object.
      *
      * @param grid the {@link Grid}.
-     * @param params the {@link EventQueryParams}.
+     * @param queryItems the list of {@link QueryItem}.
      * @return a map of list of options.
      */
-    public static Map<String, List<Option>> getItemOptions( Grid grid, EventQueryParams params )
+    public static Map<String, List<Option>> getItemOptions( Grid grid, List<QueryItem> queryItems )
     {
         Map<String, List<Option>> options = new HashMap<>();
 
@@ -178,7 +178,7 @@ public class QueryItemHelper
             }
             else if ( gridHeader.hasOptionSet() && isEmpty( grid.getRows() ) )
             {
-                options.put( gridHeader.getName(), getItemOptionsForEmptyRows( params ) );
+                options.put( gridHeader.getName(), getItemOptionsForEmptyRows( queryItems ) );
             }
         }
 
@@ -193,7 +193,7 @@ public class QueryItemHelper
      * @param queryItems the list of {@link QueryItem}.
      * @return the set of {@link Option} found.
      */
-    public static Set<Option> getItemOptions( Set<Option> options, List<QueryItem> queryItems )
+    public static Set<Option> getItemOptionsAsFilter( Set<Option> options, List<QueryItem> queryItems )
     {
         Set<Option> matchedOptions = new LinkedHashSet<>();
 
@@ -246,16 +246,16 @@ public class QueryItemHelper
      * This method will extract the options (based on their codes) from the
      * element filter.
      *
-     * @param params the {@link EventQueryParams}.
+     * @param queryItems the {@link EventQueryParams}.
      * @return the options for empty rows.
      */
-    private static List<Option> getItemOptionsForEmptyRows( EventQueryParams params )
+    private static List<Option> getItemOptionsForEmptyRows( List<QueryItem> queryItems )
     {
         List<Option> options = new ArrayList<>();
 
-        if ( isNotEmpty( params.getItems() ) )
+        if ( isNotEmpty( queryItems ) )
         {
-            List<QueryItem> items = params.getItems();
+            List<QueryItem> items = queryItems;
 
             for ( QueryItem item : items )
             {
