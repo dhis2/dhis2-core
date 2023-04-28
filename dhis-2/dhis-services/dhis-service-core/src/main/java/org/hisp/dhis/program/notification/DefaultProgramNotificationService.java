@@ -182,8 +182,8 @@ public class DefaultProgramNotificationService
                     List.of( iwt.getProgramNotificationInstance().getProgramInstance() ) ) );
 
             Stream<MessageBatch> programStageInstanceBatches = instancesWithTemplates.stream()
-                .filter( this::hasProgramStageInstance )
-                .map( iwt -> createProgramStageInstanceMessageBatch(
+                .filter( this::hasEvent )
+                .map( iwt -> createEventMessageBatch(
                     iwt.getProgramNotificationTemplate(),
                     List.of( iwt.getProgramNotificationInstance().getEvent() ) ) );
 
@@ -199,7 +199,7 @@ public class DefaultProgramNotificationService
                 batches.stream().mapToInt( MessageBatch::messageCount ).sum() ) );
     }
 
-    private boolean hasProgramStageInstance( NotificationInstanceWithTemplate notificationInstanceWithTemplate )
+    private boolean hasEvent( NotificationInstanceWithTemplate notificationInstanceWithTemplate )
     {
         return Optional.of( notificationInstanceWithTemplate )
             .map( NotificationInstanceWithTemplate::getProgramNotificationInstance )
@@ -265,7 +265,7 @@ public class DefaultProgramNotificationService
     @Transactional
     public void sendEventCompletionNotifications( long eventId )
     {
-        sendProgramStageInstanceNotifications( eventStore.get( eventId ),
+        sendEventNotifications( eventStore.get( eventId ),
             NotificationTrigger.COMPLETION );
     }
 
@@ -305,7 +305,7 @@ public class DefaultProgramNotificationService
     @Transactional
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long eventId )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
+        MessageBatch messageBatch = createEventMessageBatch( notificationTemplateService.get( pnt ),
             Collections.singletonList( eventStore.get( eventId ) ) );
         sendAll( messageBatch );
     }
@@ -314,7 +314,7 @@ public class DefaultProgramNotificationService
     @Transactional
     public void sendProgramRuleTriggeredEventNotifications( long pnt, Event event )
     {
-        MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
+        MessageBatch messageBatch = createEventMessageBatch( notificationTemplateService.get( pnt ),
             Collections.singletonList( eventStore.getByUid( event.getUid() ) ) );
         sendAll( messageBatch );
     }
@@ -330,7 +330,7 @@ public class DefaultProgramNotificationService
 
         List<ProgramInstance> programInstances = programInstanceStore.getWithScheduledNotifications( template, day );
 
-        MessageBatch psiBatch = createProgramStageInstanceMessageBatch( template, events );
+        MessageBatch psiBatch = createEventMessageBatch( template, events );
         MessageBatch psBatch = createProgramInstanceMessageBatch( template, programInstances );
 
         return new MessageBatch( psiBatch, psBatch );
@@ -343,8 +343,7 @@ public class DefaultProgramNotificationService
             .collect( toList() );
     }
 
-    private void sendProgramStageInstanceNotifications( Event event,
-        NotificationTrigger trigger )
+    private void sendEventNotifications( Event event, NotificationTrigger trigger )
     {
         if ( event == null )
         {
@@ -360,7 +359,7 @@ public class DefaultProgramNotificationService
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createProgramStageInstanceMessageBatch( template,
+            MessageBatch batch = createEventMessageBatch( template,
                 Lists.newArrayList( event ) );
             sendAll( batch );
         }
@@ -382,8 +381,7 @@ public class DefaultProgramNotificationService
         }
     }
 
-    private MessageBatch createProgramStageInstanceMessageBatch( ProgramNotificationTemplate template,
-        List<Event> events )
+    private MessageBatch createEventMessageBatch( ProgramNotificationTemplate template, List<Event> events )
     {
         MessageBatch batch = new MessageBatch();
 
@@ -428,15 +426,15 @@ public class DefaultProgramNotificationService
         return batch;
     }
 
-    private ProgramMessage createProgramMessage( Event psi, ProgramNotificationTemplate template )
+    private ProgramMessage createProgramMessage( Event event, ProgramNotificationTemplate template )
     {
-        NotificationMessage message = programStageNotificationRenderer.render( psi, template );
+        NotificationMessage message = programStageNotificationRenderer.render( event, template );
 
         return ProgramMessage.builder().subject( message.getSubject() )
             .text( message.getMessage() )
-            .recipients( resolveProgramStageNotificationRecipients( template, psi.getOrganisationUnit(), psi ) )
+            .recipients( resolveProgramStageNotificationRecipients( template, event.getOrganisationUnit(), event ) )
             .deliveryChannels( Sets.newHashSet( template.getDeliveryChannels() ) )
-            .event( psi )
+            .event( event )
             .notificationTemplate( Optional.ofNullable( template.getUid() ).orElse( StringUtils.EMPTY ) )
             .build();
     }
@@ -521,14 +519,14 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
-        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Event psi )
+        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Event event )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
         if ( template.getNotificationRecipient() == ProgramNotificationRecipient.DATA_ELEMENT
             && template.getRecipientDataElement() != null )
         {
-            List<String> recipientList = psi.getEventDataValues().stream()
+            List<String> recipientList = event.getEventDataValues().stream()
                 .filter( dv -> template.getRecipientDataElement().getUid().equals( dv.getDataElement() ) )
                 .map( EventDataValue::getValue )
                 .collect( toList() );
@@ -546,9 +544,9 @@ public class DefaultProgramNotificationService
         }
         else
         {
-            TrackedEntityInstance trackedEntityInstance = psi.getProgramInstance().getEntityInstance();
+            TrackedEntityInstance trackedEntityInstance = event.getProgramInstance().getEntityInstance();
 
-            return resolveRecipients( template, organisationUnit, trackedEntityInstance, psi.getProgramInstance() );
+            return resolveRecipients( template, organisationUnit, trackedEntityInstance, event.getProgramInstance() );
         }
     }
 
@@ -604,12 +602,12 @@ public class DefaultProgramNotificationService
             .collect( Collectors.toSet() );
     }
 
-    private DhisMessage createDhisMessage( Event psi, ProgramNotificationTemplate template )
+    private DhisMessage createDhisMessage( Event event, ProgramNotificationTemplate template )
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-        dhisMessage.message = programStageNotificationRenderer.render( psi, template );
-        dhisMessage.recipients = resolveDhisMessageRecipients( template, null, psi );
+        dhisMessage.message = programStageNotificationRenderer.render( event, template );
+        dhisMessage.recipients = resolveDhisMessageRecipients( template, null, event );
 
         return dhisMessage;
     }

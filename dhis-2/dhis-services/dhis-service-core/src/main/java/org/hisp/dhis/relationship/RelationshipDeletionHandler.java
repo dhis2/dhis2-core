@@ -55,7 +55,7 @@ public class RelationshipDeletionHandler extends DeletionHandler
     protected void register()
     {
         whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
-        whenDeleting( Event.class, this::deleteProgramStageInstance );
+        whenDeleting( Event.class, this::deleteEvent );
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
@@ -74,7 +74,7 @@ public class RelationshipDeletionHandler extends DeletionHandler
         }
     }
 
-    private void deleteProgramStageInstance( Event event )
+    private void deleteEvent( Event event )
     {
         Collection<Relationship> relationships = relationshipService
             .getRelationshipsByEvent( event, false );
