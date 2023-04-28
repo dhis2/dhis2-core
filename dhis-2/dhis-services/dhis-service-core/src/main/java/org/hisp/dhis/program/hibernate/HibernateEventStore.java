@@ -44,8 +44,8 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -61,10 +61,10 @@ import com.google.common.collect.Sets;
 /**
  * @author Abyot Asalefew
  */
-@Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
-public class HibernateProgramStageInstanceStore
+@Repository( "org.hisp.dhis.program.EventStore" )
+public class HibernateEventStore
     extends SoftDeleteHibernateObjectStore<Event>
-    implements ProgramStageInstanceStore
+    implements EventStore
 {
     private final static String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
 
@@ -72,7 +72,7 @@ public class HibernateProgramStageInstanceStore
         NotificationTrigger.getAllApplicableToProgramStageInstance(),
         NotificationTrigger.getAllScheduledTriggers() );
 
-    public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, Event.class, currentUserService,
@@ -101,7 +101,7 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
+    public long getEventCountLastUpdatedAfter( Date time )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -178,7 +178,7 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public void updateProgramStageInstancesSyncTimestamp( List<String> eventUids, Date lastSynchronized )
+    public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
     {
         String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
 

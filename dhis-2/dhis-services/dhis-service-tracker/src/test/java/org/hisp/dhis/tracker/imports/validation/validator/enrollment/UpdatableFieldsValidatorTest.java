@@ -99,7 +99,7 @@ class UpdatableFieldsValidatorTest
 
         when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
         when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( programInstance() );
-        when( preheat.getEvent( EVENT_ID ) ).thenReturn( programStageInstance() );
+        when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
@@ -174,7 +174,7 @@ class UpdatableFieldsValidatorTest
         return programInstance;
     }
 
-    private Event programStageInstance()
+    private Event event()
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( PROGRAM_STAGE_ID );

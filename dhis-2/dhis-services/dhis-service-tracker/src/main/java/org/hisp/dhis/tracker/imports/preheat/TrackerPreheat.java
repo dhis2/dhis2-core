@@ -556,7 +556,7 @@ public class TrackerPreheat
 
     public void putEvents( List<Event> events )
     {
-        events.forEach( psi -> putEvent( psi.getUid(), psi ) );
+        events.forEach( event -> putEvent( event.getUid(), event ) );
     }
 
     public void putEvent( String uid, Event event )

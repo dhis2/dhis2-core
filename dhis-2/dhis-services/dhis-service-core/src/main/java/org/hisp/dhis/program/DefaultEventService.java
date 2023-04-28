@@ -65,7 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultEventService
     implements EventService
 {
-    private final ProgramStageInstanceStore programStageInstanceStore;
+    private final EventStore eventStore;
 
     private final TrackedEntityDataValueAuditService dataValueAuditService;
 
@@ -82,7 +82,7 @@ public class DefaultEventService
     public long addEvent( Event event )
     {
         event.setAutoFields();
-        programStageInstanceStore.save( event );
+        eventStore.save( event );
         return event.getId();
     }
 
@@ -91,7 +91,7 @@ public class DefaultEventService
     public long addEvent( Event event, User user )
     {
         event.setAutoFields();
-        programStageInstanceStore.save( event, user );
+        eventStore.save( event, user );
         return event.getId();
     }
 
@@ -99,21 +99,21 @@ public class DefaultEventService
     @Transactional
     public void deleteEvent( Event event )
     {
-        programStageInstanceStore.delete( event );
+        eventStore.delete( event );
     }
 
     @Override
     @Transactional( readOnly = true )
     public Event getEvent( long id )
     {
-        return programStageInstanceStore.get( id );
+        return eventStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
     public Event getEvent( String uid )
     {
-        return programStageInstanceStore.getByUid( uid );
+        return eventStore.getByUid( uid );
     }
 
     @Override
@@ -121,7 +121,7 @@ public class DefaultEventService
     public void updateEvent( Event event )
     {
         event.setAutoFields();
-        programStageInstanceStore.update( event );
+        eventStore.update( event );
     }
 
     @Override
@@ -129,14 +129,14 @@ public class DefaultEventService
     public void updateEvent( Event event, User user )
     {
         event.setAutoFields();
-        programStageInstanceStore.update( event, user );
+        eventStore.update( event, user );
     }
 
     @Override
     @Transactional
     public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
     {
-        programStageInstanceStore.updateProgramStageInstancesSyncTimestamp( eventUids,
+        eventStore.updateEventsSyncTimestamp( eventUids,
             lastSynchronized );
     }
 
@@ -144,21 +144,21 @@ public class DefaultEventService
     @Transactional( readOnly = true )
     public boolean eventExists( String uid )
     {
-        return programStageInstanceStore.exists( uid );
+        return eventStore.exists( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean eventExistsIncludingDeleted( String uid )
     {
-        return programStageInstanceStore.existsIncludingDeleted( uid );
+        return eventStore.existsIncludingDeleted( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<String> getEventUidsIncludingDeleted( List<String> uids )
     {
-        return programStageInstanceStore.getUidsIncludingDeleted( uids );
+        return eventStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
@@ -168,7 +168,7 @@ public class DefaultEventService
         Calendar cal = PeriodType.createCalendarInstance();
         cal.add( Calendar.DAY_OF_YEAR, (days * -1) );
 
-        return programStageInstanceStore.getProgramStageInstanceCountLastUpdatedAfter( cal.getTime() );
+        return eventStore.getEventCountLastUpdatedAfter( cal.getTime() );
     }
 
     @Override

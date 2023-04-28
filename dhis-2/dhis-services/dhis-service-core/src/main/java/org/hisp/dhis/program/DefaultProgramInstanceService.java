@@ -71,7 +71,7 @@ public class DefaultProgramInstanceService
 {
     private final ProgramInstanceStore programInstanceStore;
 
-    private final ProgramStageInstanceStore programStageInstanceStore;
+    private final EventStore eventStore;
 
     private final CurrentUserService currentUserService;
 
@@ -502,11 +502,11 @@ public class DefaultProgramInstanceService
                 if ( event.getDueDate().before( programInstance.getEndDate() ) )
                 {
                     event.setStatus( EventStatus.SKIPPED );
-                    programStageInstanceStore.update( event );
+                    eventStore.update( event );
                 }
                 else
                 {
-                    programStageInstanceStore.delete( event );
+                    eventStore.delete( event );
                 }
             }
         }

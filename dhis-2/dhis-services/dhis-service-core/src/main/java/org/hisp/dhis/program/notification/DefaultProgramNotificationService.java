@@ -64,9 +64,9 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -112,7 +112,7 @@ public class DefaultProgramNotificationService
     private final ProgramInstanceStore programInstanceStore;
 
     @Nonnull
-    private final ProgramStageInstanceStore programStageInstanceStore;
+    private final EventStore eventStore;
 
     @Nonnull
     private final IdentifiableObjectManager identifiableObjectManager;
@@ -265,7 +265,7 @@ public class DefaultProgramNotificationService
     @Transactional
     public void sendEventCompletionNotifications( long programStageInstance )
     {
-        sendProgramStageInstanceNotifications( programStageInstanceStore.get( programStageInstance ),
+        sendProgramStageInstanceNotifications( eventStore.get( programStageInstance ),
             NotificationTrigger.COMPLETION );
     }
 
@@ -306,7 +306,7 @@ public class DefaultProgramNotificationService
     public void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programStageInstanceStore.get( programStageInstance ) ) );
+            Collections.singletonList( eventStore.get( programStageInstance ) ) );
         sendAll( messageBatch );
     }
 
@@ -315,7 +315,7 @@ public class DefaultProgramNotificationService
     public void sendProgramRuleTriggeredEventNotifications( long pnt, Event event )
     {
         MessageBatch messageBatch = createProgramStageInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programStageInstanceStore.getByUid( event.getUid() ) ) );
+            Collections.singletonList( eventStore.getByUid( event.getUid() ) ) );
         sendAll( messageBatch );
     }
 
@@ -325,7 +325,7 @@ public class DefaultProgramNotificationService
 
     private MessageBatch createScheduledMessageBatchForDay( ProgramNotificationTemplate template, Date day )
     {
-        List<Event> events = programStageInstanceStore
+        List<Event> events = eventStore
             .getWithScheduledNotifications( template, day );
 
         List<ProgramInstance> programInstances = programInstanceStore.getWithScheduledNotifications( template, day );

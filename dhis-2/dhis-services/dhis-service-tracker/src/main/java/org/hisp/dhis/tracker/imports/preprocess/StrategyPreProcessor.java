@@ -116,11 +116,11 @@ public class StrategyPreProcessor
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            Event existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+            Event existingEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
             if ( importStrategy.isCreateAndUpdate() )
             {
-                if ( existingPsi == null )
+                if ( existingEvent == null )
                 {
                     bundle.setStrategy( event, TrackerImportStrategy.CREATE );
                 }

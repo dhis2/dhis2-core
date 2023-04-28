@@ -392,9 +392,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.EVENT, "uid" ) );
 
-        Event psi = new Event();
-        psi.setUid( "uid" );
-        preheat.putEvents( List.of( psi ) );
+        Event event = new Event();
+        event.setUid( "uid" );
+        preheat.putEvents( List.of( event ) );
 
         assertTrue( preheat.exists( TrackerType.EVENT, "uid" ) );
     }
