@@ -61,6 +61,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.analytics.AggregationType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.FileTypeValueOptions;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.common.ValueTypeOptions;
@@ -896,5 +897,10 @@ public class ValidationUtils
     public static boolean isPhoneNumber( String string )
     {
         return GENERIC_PHONE_NUMBER.matcher( string ).matches();
+    }
+
+    public static boolean isValidUid( String value )
+    {
+        return CodeGenerator.isValidUid( value );
     }
 }

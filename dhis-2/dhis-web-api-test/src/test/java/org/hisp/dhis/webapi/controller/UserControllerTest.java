@@ -368,6 +368,16 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPostJsonObjectInvalidUid()
+    {
+        assertWebMessage( "Conflict", HttpStatus.CONFLICT.code(), "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            POST( "/users/",
+                "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
     void testPostJsonObjectInvalidUsernameLegacyFormat()
     {
         JsonWebMessage msg = assertWebMessage( "Conflict", 409, "ERROR",
