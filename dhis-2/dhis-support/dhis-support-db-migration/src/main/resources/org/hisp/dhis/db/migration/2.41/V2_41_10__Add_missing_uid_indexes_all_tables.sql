@@ -1,32 +1,10 @@
--- Generates UID codes, same as CodeGenerator.generateUid()
-CREATE OR REPLACE FUNCTION generate_code(code_size INTEGER) RETURNS TEXT AS
-$$
-DECLARE
-    letters TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
-    allowed_chars TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    number_of_codepoints INTEGER := LENGTH(allowed_chars);
-    random_chars TEXT := '';
-    i INTEGER;
-BEGIN
-
-    -- First char should be a letter
-    random_chars := SUBSTRING(letters FROM (RANDOM() * (LENGTH(letters) - 1) + 1)::INTEGER FOR 1);
-
-    FOR i IN 2..code_size LOOP
-            random_chars := random_chars || SUBSTRING(allowed_chars FROM (RANDOM() * (number_of_codepoints - 1) + 1)::INTEGER FOR 1);
-        END LOOP;
-
-    RETURN random_chars;
-END;
-$$ LANGUAGE plpgsql;
-
 -- Updates uid rows if they are null, then alters the column to be not null
 CREATE OR REPLACE FUNCTION alter_uid_not_null(p_table_name TEXT) RETURNS VOID AS $$
 DECLARE
     v_sql TEXT;
 BEGIN
     -- Update the table
-    v_sql := format('UPDATE %I SET uid = generate_code(11) WHERE uid IS NULL;', p_table_name);
+    v_sql := format('UPDATE %I SET uid = generate_uid() WHERE uid IS NULL;', p_table_name);
     EXECUTE v_sql;
 
     -- Alter the table
