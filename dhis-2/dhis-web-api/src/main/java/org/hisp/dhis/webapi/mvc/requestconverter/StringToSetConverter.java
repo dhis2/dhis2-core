@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.webapi.mvc.requestconverter;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.springframework.core.convert.converter.Converter;
@@ -42,6 +45,6 @@ public class StringToSetConverter implements Converter<String, Set<String>>
     @Override
     public Set<String> convert( String source )
     {
-        return Set.of( source );
+        return new HashSet<>( List.of( source ) );
     }
 }

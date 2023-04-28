@@ -203,7 +203,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     void getTrackedEntitiesCannotHaveRepeatedAttributes()
     {
         assertContains( "Filter for attribute " + TEA_UID + " was specified more than once.",
-            GET( "/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test," + TEA_UID + ":gt:test2" )
+            GET( "/tracker/trackedEntities?filter=" + TEA_UID + ":eq:test&filter=" + TEA_UID + ":gt:test2" )
                 .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
