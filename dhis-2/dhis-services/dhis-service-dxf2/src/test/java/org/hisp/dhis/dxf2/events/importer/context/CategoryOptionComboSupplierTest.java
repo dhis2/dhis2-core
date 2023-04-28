@@ -43,9 +43,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -72,13 +71,13 @@ class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptio
 
     private Map<String, Program> programMap;
 
-    private Map<String, ProgramStageInstance> programStageInstanceMap;
+    private Map<String, Event> programStageInstanceMap;
 
-    private Event event;
+    private org.hisp.dhis.dxf2.events.event.Event event;
 
     private Program program;
 
-    private ProgramStageInstance programStageInstance;
+    private Event programStageInstance;
 
     private CategoryOptionCombo coc;
 
@@ -94,16 +93,16 @@ class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptio
         program.setId( 999L );
         program.setUid( "prabcde" );
         programMap.put( "prabcde", program );
-        // create a ProgramStageInstance for the ProgramStageInstanceSupplier
+        // create a Event for the ProgramStageInstanceSupplier
         coc = new CategoryOptionCombo();
         coc.setUid( "coc1" );
-        programStageInstance = new ProgramStageInstance();
+        programStageInstance = new Event();
         programStageInstance.setId( 888L );
         programStageInstance.setUid( "psuid1" );
         programStageInstance.setAttributeOptionCombo( coc );
         programStageInstanceMap.put( "psuid1", programStageInstance );
         // create event to import
-        event = new Event();
+        event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setAttributeOptionCombo( "aoc1234" );
         event.setProgram( program.getUid() );
@@ -184,7 +183,7 @@ class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptio
         catCombo.setUid( CodeGenerator.generateUid() );
         program.setCategoryCombo( catCombo );
         // create event to import
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setAttributeCategoryOptions( "abcded;fghilm" );
         event.setProgram( program.getUid() );
@@ -203,7 +202,7 @@ class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptio
     {
         when( programSupplier.get( eq( importOptions ), anyList() ) ).thenReturn( programMap );
         // create event to import
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         CategoryOptionCombo coc = new CategoryOptionCombo();
@@ -239,7 +238,7 @@ class CategoryOptionComboSupplierTest extends AbstractSupplierTest<CategoryOptio
         when( attributeOptionComboLoader.getCategoryOptionCombo(
             importOptions.getIdSchemes().getCategoryOptionComboIdScheme(),
             programStageInstance.getAttributeOptionCombo().getUid() ) ).thenReturn( coc );
-        Event eventWithoutAoc = new Event();
+        org.hisp.dhis.dxf2.events.event.Event eventWithoutAoc = new org.hisp.dhis.dxf2.events.event.Event();
         eventWithoutAoc.setUid( "psuid1" );
         eventWithoutAoc.setProgram( program.getUid() );
         Map<String, CategoryOptionCombo> map = subject.get( importOptions, singletonList( eventWithoutAoc ) );

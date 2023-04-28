@@ -59,7 +59,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Abyot Asalefew
  */
 @Auditable( scope = AuditScope.TRACKER )
-public class ProgramStageInstance
+public class Event
     extends SoftDeletableObject
 {
     private Date createdAtClient;
@@ -114,17 +114,17 @@ public class ProgramStageInstance
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramStageInstance()
+    public Event()
     {
     }
 
-    public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
+    public Event( ProgramInstance programInstance, ProgramStage programStage )
     {
         this.programInstance = programInstance;
         this.programStage = programStage;
     }
 
-    public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    public Event( ProgramInstance programInstance, ProgramStage programStage,
         OrganisationUnit organisationUnit )
     {
         this( programInstance, programStage );
@@ -285,7 +285,7 @@ public class ProgramStageInstance
         return organisationUnit;
     }
 
-    public ProgramStageInstance setOrganisationUnit( OrganisationUnit organisationUnit )
+    public Event setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
         return this;
@@ -361,7 +361,7 @@ public class ProgramStageInstance
         return status;
     }
 
-    public ProgramStageInstance setStatus( EventStatus status )
+    public Event setStatus( EventStatus status )
     {
         this.status = status;
         return this;
@@ -427,7 +427,7 @@ public class ProgramStageInstance
     @Override
     public String toString()
     {
-        return "ProgramStageInstance{" +
+        return "Event{" +
             "id=" + id +
             ", uid='" + uid + '\'' +
             ", name='" + name + '\'' +

@@ -48,9 +48,9 @@ import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -94,7 +94,7 @@ public class JacksonEventService extends AbstractEventService
     public JacksonEventService( EventImporter eventImporter, EventManager eventManager,
         WorkContextLoader workContextLoader, EventServiceFacade jacksonEventServiceFacade,
         ProgramService programService, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, OrganisationUnitService organisationUnitService,
+        EventService eventService, OrganisationUnitService organisationUnitService,
         CurrentUserService currentUserService, TrackedEntityInstanceService entityInstanceService,
         TrackedEntityCommentService commentService, EventStore eventStore, Notifier notifier, DbmsManager dbmsManager,
         IdentifiableObjectManager manager, CategoryService categoryService, FileResourceService fileResourceService,
@@ -110,7 +110,7 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( jacksonEventServiceFacade );
         checkNotNull( programService );
         checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
+        checkNotNull( eventService );
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
         checkNotNull( entityInstanceService );
@@ -136,7 +136,7 @@ public class JacksonEventService extends AbstractEventService
         this.jacksonEventServiceFacade = jacksonEventServiceFacade;
         this.programService = programService;
         this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.eventService = eventService;
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
         this.entityInstanceService = entityInstanceService;

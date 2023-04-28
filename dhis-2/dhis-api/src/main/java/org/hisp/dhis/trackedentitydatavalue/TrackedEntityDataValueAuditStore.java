@@ -30,7 +30,7 @@ package org.hisp.dhis.trackedentitydatavalue;
 import java.util.List;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 
 /**
@@ -46,5 +46,5 @@ public interface TrackedEntityDataValueAuditStore
 
     void deleteTrackedEntityDataValueAudit( DataElement dataElement );
 
-    void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance );
+    void deleteTrackedEntityDataValueAudit( Event event );
 }

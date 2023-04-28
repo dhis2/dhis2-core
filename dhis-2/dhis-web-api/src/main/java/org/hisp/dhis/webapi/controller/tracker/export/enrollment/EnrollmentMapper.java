@@ -64,7 +64,6 @@ public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment
     @Mapping( target = "completedAt", source = "endDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "events", source = "programStageInstances" )
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )

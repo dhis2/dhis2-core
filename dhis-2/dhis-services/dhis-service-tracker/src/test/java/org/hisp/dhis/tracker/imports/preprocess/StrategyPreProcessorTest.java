@@ -31,15 +31,14 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +70,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private final static String NEW_RELATIONSHIP_UID = "NewRelationshipUid";
 
-    private ProgramStageInstance psi;
+    private Event psi;
 
     private ProgramInstance pi;
 
@@ -79,9 +78,9 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private Relationship relationship;
 
-    private Event event;
+    private org.hisp.dhis.tracker.imports.domain.Event event;
 
-    private Event newEvent;
+    private org.hisp.dhis.tracker.imports.domain.Event newEvent;
 
     private Enrollment enrollment;
 
@@ -115,11 +114,11 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         enrollment.setEnrollment( ENROLLMENT_UID );
         newEnrollment = new Enrollment();
         newEnrollment.setEnrollment( NEW_ENROLLMENT_UID );
-        psi = new ProgramStageInstance();
+        psi = new Event();
         psi.setUid( EVENT_UID );
-        event = new Event();
+        event = new org.hisp.dhis.tracker.imports.domain.Event();
         event.setEvent( EVENT_UID );
-        newEvent = new Event();
+        newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
         newEvent.setEvent( NEW_EVENT_UID );
         relationship = new Relationship();
         relationship.setUid( RELATIONSHIP_UID );

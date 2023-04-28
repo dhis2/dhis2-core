@@ -56,8 +56,8 @@ public enum NotificationTrigger
     PROGRAM_RULE,
 
     /**
-     * Scheduled days relative to the dueDate of the ProgramStageInstance
-     * (event) and DataSet completion.
+     * Scheduled days relative to the dueDate of the Event and DataSet
+     * completion.
      */
     SCHEDULED_DAYS_DUE_DATE,
 

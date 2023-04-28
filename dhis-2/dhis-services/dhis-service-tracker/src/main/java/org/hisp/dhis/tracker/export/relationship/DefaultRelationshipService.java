@@ -36,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -103,7 +103,7 @@ public class DefaultRelationshipService implements RelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+    public List<Relationship> getRelationshipsByProgramStageInstance( Event psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
@@ -196,10 +196,10 @@ public class DefaultRelationshipService implements RelationshipService
                 enrollmentService.getEnrollment( item.getProgramInstance(),
                     EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
-        else if ( item.getProgramStageInstance() != null )
+        else if ( item.getEvent() != null )
         {
-            result.setProgramStageInstance(
-                eventService.getEvent( item.getProgramStageInstance(),
+            result.setEvent(
+                eventService.getEvent( item.getEvent(),
                     EventParams.TRUE.withIncludeRelationships( false ) ) );
         }
 

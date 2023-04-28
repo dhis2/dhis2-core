@@ -40,16 +40,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
@@ -82,7 +81,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
 {
     public JacksonEnrollmentService(
         ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService,
+        EventService programStageInstanceService,
         ProgramService programService,
         TrackedEntityInstanceService trackedEntityInstanceService,
         TrackerOwnershipManager trackerOwnershipAccessManager,
@@ -96,7 +95,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         I18nManager i18nManager,
         UserService userService,
         DbmsManager dbmsManager,
-        EventService eventService,
+        org.hisp.dhis.dxf2.events.event.EventService eventService,
         TrackerAccessManager trackerAccessManager,
         SchemaService schemaService,
         QueryService queryService,

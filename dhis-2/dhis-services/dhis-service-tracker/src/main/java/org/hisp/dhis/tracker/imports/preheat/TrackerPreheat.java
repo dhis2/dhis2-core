@@ -58,10 +58,10 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -238,7 +238,7 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<String, ProgramStageInstance> events = new HashMap<>();
+    private final Map<String, Event> events = new HashMap<>();
 
     /**
      * Internal map of all preheated relationships, mainly used for confirming
@@ -549,19 +549,19 @@ public class TrackerPreheat
         enrollments.put( uid, programInstance );
     }
 
-    public ProgramStageInstance getEvent( String uid )
+    public Event getEvent( String uid )
     {
         return events.get( uid );
     }
 
-    public void putEvents( List<ProgramStageInstance> programStageInstances )
+    public void putEvents( List<Event> events )
     {
-        programStageInstances.forEach( psi -> putEvent( psi.getUid(), psi ) );
+        events.forEach( psi -> putEvent( psi.getUid(), psi ) );
     }
 
-    public void putEvent( String uid, ProgramStageInstance programStageInstance )
+    public void putEvent( String uid, Event event )
     {
-        events.put( uid, programStageInstance );
+        events.put( uid, event );
     }
 
     public void putNotes( List<TrackedEntityComment> trackedEntityComments )

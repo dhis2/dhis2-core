@@ -51,13 +51,13 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -125,7 +125,7 @@ class EnrollmentSMSListenerTest
     private ProgramStageService programStageService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     // Needed for this test
 
@@ -175,7 +175,7 @@ class EnrollmentSMSListenerTest
 
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -195,7 +195,7 @@ class EnrollmentSMSListenerTest
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, attributeValueService, teiService, programInstanceService,
+            programStageService, eventService, attributeValueService, teiService, programInstanceService,
             identifiableObjectManager );
 
         setUpInstances();
@@ -362,8 +362,8 @@ class EnrollmentSMSListenerTest
         programInstance.setAutoFields();
         programInstance.setProgram( program );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
         trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
@@ -422,7 +422,7 @@ class EnrollmentSMSListenerTest
         event.setOrgUnit( organisationUnit.getUid() );
         event.setProgramStage( programStage.getUid() );
         event.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        event.setEvent( programStageInstance.getUid() );
+        event.setEvent( this.event.getUid() );
         event.setEventStatus( SmsEventStatus.COMPLETED );
         event.setEventDate( new Date() );
         event.setDueDate( new Date() );

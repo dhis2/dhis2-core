@@ -45,10 +45,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -95,7 +95,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
     private ProgramStage programStage;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private DataElement dataElement;
 
@@ -147,8 +147,8 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         manager.save( programStage );
 
         programInstance = programInstance( tei );
-        programStageInstance = event();
-        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
+        event = event();
+        programInstance.setEvents( Set.of( event ) );
         manager.update( programInstance );
 
         manager.save( relationship( programInstance, tei ) );
@@ -239,7 +239,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
             .content( HttpStatus.OK ).getList( "events", JsonEvent.class );
 
         JsonEvent event = events.get( 0 );
-        assertEquals( programStageInstance.getUid(), event.getEvent() );
+        assertEquals( this.event.getUid(), event.getEvent() );
         assertEquals( programInstance.getUid(), event.getEnrollment() );
         assertEquals( tei.getUid(), event.getTrackedEntity() );
         assertEquals( dataElement.getUid(), event.getDataValues().get( 0 ).getDataElement() );
@@ -271,11 +271,11 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
                 .getMessage() );
     }
 
-    private ProgramStageInstance event()
+    private Event event()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance( programInstance, programStage,
+        Event event = new Event( programInstance, programStage,
             programInstance.getOrganisationUnit() );
-        programStageInstance.setAutoFields();
+        event.setAutoFields();
 
         eventDataValue = new EventDataValue();
         eventDataValue.setValue( "value" );
@@ -284,9 +284,9 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         manager.save( dataElement );
         eventDataValue.setDataElement( dataElement.getUid() );
         Set<EventDataValue> eventDataValues = Set.of( eventDataValue );
-        programStageInstance.setEventDataValues( eventDataValues );
-        manager.save( programStageInstance );
-        return programStageInstance;
+        event.setEventDataValues( eventDataValues );
+        manager.save( event );
+        return event;
     }
 
     private Relationship relationship( ProgramInstance from, TrackedEntityInstance to )
