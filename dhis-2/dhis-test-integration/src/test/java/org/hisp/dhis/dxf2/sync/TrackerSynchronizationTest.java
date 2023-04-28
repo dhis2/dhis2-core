@@ -27,8 +27,9 @@
  */
 package org.hisp.dhis.dxf2.sync;
 
-import static org.hisp.dhis.utils.Assertions.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
 import java.util.List;
@@ -58,11 +59,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
 {
+    // We need to pick a future date as lastUpdated is automatically set to now and cannot be changed
     private static final Date TOMORROW = DateUtils.getDateForTomorrow( 0 );
 
-    private static final String TEI_UID = "ABCDEFGHI01";
+    private static final String TEI_NOT_IN_SYNC_UID = "ABCDEFGHI01";
 
-    private static final String TEI_A_UID = "ABCDEFGHI02";
+    private static final String SYNCHRONIZED_TEI_UID = "ABCDEFGHI02";
 
     @Autowired
     private UserService _userService;
@@ -95,21 +97,21 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         manager.save( tet );
         OrganisationUnit ou = createOrganisationUnit( 'a' );
         manager.save( ou );
-        TrackedEntityInstance teiWithAttributes = createTrackedEntityInstance( 'a', ou, teaA );
-        teiWithAttributes.setTrackedEntityType( tet );
-        teiWithAttributes.setUid( TEI_UID );
-        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiWithAttributes, teaB );
-        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', teiWithAttributes, teaA );
-        manager.save( teiWithAttributes );
+        TrackedEntityInstance teiToSync = createTrackedEntityInstance( 'a', ou, teaA );
+        teiToSync.setTrackedEntityType( tet );
+        teiToSync.setUid( TEI_NOT_IN_SYNC_UID );
+        TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiToSync, teaB );
+        TrackedEntityAttributeValue teavA = createTrackedEntityAttributeValue( 'a', teiToSync, teaA );
+        manager.save( teiToSync );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavA );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
-        teiWithAttributes.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
-        manager.update( teiWithAttributes );
-        TrackedEntityInstance teiA = createTrackedEntityInstance( 'b', ou );
-        teiA.setTrackedEntityType( tet );
-        teiA.setLastSynchronized( TOMORROW );
-        teiA.setUid( TEI_A_UID );
-        manager.save( teiA );
+        teiToSync.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
+        manager.update( teiToSync );
+        TrackedEntityInstance alreadySynchronizedTei = createTrackedEntityInstance( 'b', ou );
+        alreadySynchronizedTei.setTrackedEntityType( tet );
+        alreadySynchronizedTei.setLastSynchronized( TOMORROW );
+        alreadySynchronizedTei.setUid( SYNCHRONIZED_TEI_UID );
+        manager.save( alreadySynchronizedTei );
     }
 
     @Override
@@ -139,9 +141,9 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertContainsOnly( fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList(),
-            List.of( TEI_UID, TEI_A_UID ) );
-        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_UID ).getAttributes().size() );
+        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID, SYNCHRONIZED_TEI_UID ),
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList() );
+        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
     @Test
@@ -153,9 +155,9 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertContainsOnly( fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList(),
-            List.of( TEI_UID ) );
-        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_UID ).getAttributes().size() );
+        assertContainsOnly( List.of( TEI_NOT_IN_SYNC_UID ),
+            fetchedTeis.stream().map( t -> t.getTrackedEntityInstance() ).toList() );
+        assertEquals( 1, getTeiByUid( fetchedTeis, TEI_NOT_IN_SYNC_UID ).getAttributes().size() );
     }
 
     @Test
@@ -167,7 +169,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         List<org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance> fetchedTeis = subject
             .getTrackedEntityInstances( queryParams, params, true, true );
 
-        assertTrue( fetchedTeis.isEmpty() );
+        assertIsEmpty( fetchedTeis );
     }
 
     private org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance getTeiByUid(
