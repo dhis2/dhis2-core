@@ -565,7 +565,6 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
             return List.of();
         }
 
-        // Option list should only be populated if rule variable has dataElement/attribute with associated option set
         if ( prv.hasDataElement() && prv.getDataElement().hasOptionSet() )
         {
             return prv.getDataElement().getOptionSet().getOptions().stream()
