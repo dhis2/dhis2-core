@@ -59,7 +59,8 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
 {
-    // We need to pick a future date as lastUpdated is automatically set to now and cannot be changed
+    // We need to pick a future date as lastUpdated is automatically set to now
+    // and cannot be changed
     private static final Date TOMORROW = DateUtils.getDateForTomorrow( 0 );
 
     private static final String TEI_NOT_IN_SYNC_UID = "ABCDEFGHI01";
