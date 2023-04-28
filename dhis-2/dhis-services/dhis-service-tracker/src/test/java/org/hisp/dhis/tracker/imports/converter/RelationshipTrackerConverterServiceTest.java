@@ -106,7 +106,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         tei.setUid( TEI );
         pi = createProgramInstance( program, tei, organisationUnit );
         pi.setUid( ENROLLMENT );
-        event = createProgramStageInstance( createProgramStage( 'A', program ), pi, organisationUnit );
+        event = createEvent( createProgramStage( 'A', program ), pi, organisationUnit );
         event.setUid( EVENT );
 
         relationshipConverterService = new RelationshipTrackerConverterService();
@@ -203,6 +203,6 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private org.hisp.dhis.relationship.Relationship relationshipBFromDB()
     {
-        return createTeiToProgramStageInstanceRelationship( tei, event, teiToEvent );
+        return createTeiToEventRelationship( tei, event, teiToEvent );
     }
 }

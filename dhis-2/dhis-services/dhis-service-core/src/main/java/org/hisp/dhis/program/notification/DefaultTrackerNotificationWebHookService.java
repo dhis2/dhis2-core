@@ -102,9 +102,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     @Override
     @Transactional
-    public void handleEvent( String psi )
+    public void handleEvent( String event )
     {
-        Event instance = eventService.getEvent( psi );
+        Event instance = eventService.getEvent( event );
 
         if ( instance == null
             || !templateService.isProgramStageLinkedToWebHookNotification( instance.getProgramStage() ) )

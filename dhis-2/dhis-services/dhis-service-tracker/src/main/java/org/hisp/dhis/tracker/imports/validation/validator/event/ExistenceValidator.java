@@ -48,20 +48,20 @@ class ExistenceValidator
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( event );
 
-        Event existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+        Event existingEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
         // If the event is soft-deleted no operation is allowed
-        if ( existingPsi != null && existingPsi.isDeleted() )
+        if ( existingEvent != null && existingEvent.isDeleted() )
         {
             reporter.addError( event, E1082, event.getEvent() );
             return;
         }
 
-        if ( existingPsi != null && importStrategy.isCreate() )
+        if ( existingEvent != null && importStrategy.isCreate() )
         {
             reporter.addError( event, E1030, event.getEvent() );
         }
-        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        else if ( existingEvent == null && importStrategy.isUpdateOrDelete() )
         {
             reporter.addError( event, E1032, event.getEvent() );
         }

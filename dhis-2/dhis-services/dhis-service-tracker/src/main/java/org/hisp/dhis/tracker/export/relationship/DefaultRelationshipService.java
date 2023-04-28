@@ -103,13 +103,13 @@ public class DefaultRelationshipService implements RelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsByProgramStageInstance( Event event,
+    public List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
     {
         List<Relationship> relationships = relationshipStore
-            .getByProgramStageInstance( event, pagingAndSortingCriteriaAdapter )
+            .getByEvent( event, pagingAndSortingCriteriaAdapter )
             .stream()
             .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
             .collect( Collectors.toList() );

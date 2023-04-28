@@ -88,7 +88,7 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onTrackerEventWebHook( TrackerEventWebHookEvent event )
     {
-        trackerNotificationWebHookService.handleEvent( event.getProgramStageInstance() );
+        trackerNotificationWebHookService.handleEvent( event.getEvent() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

@@ -99,7 +99,7 @@ public class DefaultProgramMessageService
 
     @Override
     @Transactional( readOnly = true )
-    public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String psiUid,
+    public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String eventUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
         ProgramMessageQueryParams params = new ProgramMessageQueryParams();
@@ -116,11 +116,11 @@ public class DefaultProgramMessageService
             }
         }
 
-        if ( psiUid != null )
+        if ( eventUid != null )
         {
-            if ( manager.exists( Event.class, psiUid ) )
+            if ( manager.exists( Event.class, eventUid ) )
             {
-                params.setEvent( manager.get( Event.class, psiUid ) );
+                params.setEvent( manager.get( Event.class, eventUid ) );
             }
             else
             {

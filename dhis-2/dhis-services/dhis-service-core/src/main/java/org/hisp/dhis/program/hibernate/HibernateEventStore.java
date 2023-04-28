@@ -69,7 +69,7 @@ public class HibernateEventStore
     private final static String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
 
     private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS = Sets.intersection(
-        NotificationTrigger.getAllApplicableToProgramStageInstance(),
+        NotificationTrigger.getAllApplicableToEvent(),
         NotificationTrigger.getAllScheduledTriggers() );
 
     public HibernateEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,

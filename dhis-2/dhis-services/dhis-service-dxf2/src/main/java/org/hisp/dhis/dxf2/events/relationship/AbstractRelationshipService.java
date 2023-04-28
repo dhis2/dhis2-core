@@ -161,7 +161,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .getRelationshipsByEvent( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )

@@ -77,7 +77,7 @@ public class RelationshipDeletionHandler extends DeletionHandler
     private void deleteProgramStageInstance( Event event )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramStageInstance( event, false );
+            .getRelationshipsByEvent( event, false );
 
         if ( relationships != null )
         {

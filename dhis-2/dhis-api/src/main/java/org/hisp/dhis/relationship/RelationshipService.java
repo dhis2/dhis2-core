@@ -120,12 +120,12 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
-    default List<Relationship> getRelationshipsByProgramStageInstance( Event event, boolean skipAccessValidation )
+    default List<Relationship> getRelationshipsByEvent( Event event, boolean skipAccessValidation )
     {
-        return getRelationshipsByProgramStageInstance( event, null, skipAccessValidation );
+        return getRelationshipsByEvent( event, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByProgramStageInstance( Event event,
+    List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );

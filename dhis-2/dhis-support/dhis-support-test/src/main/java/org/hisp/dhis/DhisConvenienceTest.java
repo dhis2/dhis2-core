@@ -1698,23 +1698,23 @@ public abstract class DhisConvenienceTest
         return programInstance;
     }
 
-    public static Event createProgramStageInstance( ProgramStage programStage,
+    public static Event createEvent( ProgramStage programStage,
         ProgramInstance pi, OrganisationUnit organisationUnit )
     {
-        Event psi = new Event();
-        psi.setAutoFields();
+        Event event = new Event();
+        event.setAutoFields();
 
-        psi.setProgramStage( programStage );
-        psi.setProgramInstance( pi );
-        psi.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStage );
+        event.setProgramInstance( pi );
+        event.setOrganisationUnit( organisationUnit );
 
-        return psi;
+        return event;
     }
 
-    public static Event createProgramStageInstance( ProgramInstance programInstance,
+    public static Event createEvent( ProgramInstance programInstance,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        Event psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
+        Event psi = createEvent( programStage, programInstance, organisationUnit );
         psi.setExecutionDate( new Date() );
         psi.setStatus( EventStatus.ACTIVE );
         psi.setEventDataValues( dataValues );
@@ -2021,7 +2021,7 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
+    public static Relationship createTeiToEventRelationship( TrackedEntityInstance from,
         Event to,
         RelationshipType relationshipType )
     {

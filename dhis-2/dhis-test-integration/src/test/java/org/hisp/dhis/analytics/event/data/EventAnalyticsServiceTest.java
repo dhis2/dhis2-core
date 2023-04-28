@@ -419,7 +419,7 @@ class EventAnalyticsServiceTest
         trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
-        Event psiA = createProgramStageInstance( psA, piA, ouI );
+        Event psiA = createEvent( psA, piA, ouI );
         psiA.setDueDate( jan15 );
         psiA.setExecutionDate( jan15 );
         psiA.setUid( "progStagInA" );
@@ -428,7 +428,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiA.setAttributeOptionCombo( cocDefault );
 
-        Event psiB = createProgramStageInstance( psB, piB, ouI );
+        Event psiB = createEvent( psB, piB, ouI );
         psiB.setDueDate( jan15 );
         psiB.setExecutionDate( jan15 );
         psiB.setUid( "progStagInB" );
@@ -436,7 +436,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiB.setAttributeOptionCombo( cocDefault );
 
-        Event psiC = createProgramStageInstance( psA, piA, ouJ );
+        Event psiC = createEvent( psA, piA, ouJ );
         psiC.setDueDate( feb15 );
         psiC.setExecutionDate( feb15 );
         psiC.setUid( "progStagInC" );
@@ -445,7 +445,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
         psiC.setAttributeOptionCombo( cocDefault );
 
-        Event psiD = createProgramStageInstance( psA, piA, ouK );
+        Event psiD = createEvent( psA, piA, ouK );
         psiD.setDueDate( mar15 );
         psiD.setExecutionDate( mar15 );
         psiD.setUid( "progStagInD" );

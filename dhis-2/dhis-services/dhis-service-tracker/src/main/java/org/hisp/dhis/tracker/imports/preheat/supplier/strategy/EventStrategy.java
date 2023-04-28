@@ -37,7 +37,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramStageInstanceMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EventMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = ProgramStageInstanceMapper.class )
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Event.class, mapper = EventMapper.class )
 public class EventStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull

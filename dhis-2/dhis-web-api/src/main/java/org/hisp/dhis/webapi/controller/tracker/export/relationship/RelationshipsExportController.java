@@ -140,7 +140,7 @@ public class RelationshipsExportController
 
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByEvent()
     {
-        return ( o, criteria ) -> relationshipService.getRelationshipsByProgramStageInstance( (Event) o,
+        return ( o, criteria ) -> relationshipService.getRelationshipsByEvent( (Event) o,
             criteria );
     }
 

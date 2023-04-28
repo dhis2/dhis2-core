@@ -174,11 +174,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dvD = new EventDataValue( deB.getUid(), "D", USER_SNAP_A );
         dvE = new EventDataValue( deB.getUid(), "E", USER_SNAP_A );
 
-        psiA = createProgramStageInstance( piA, psA, ouA, Set.of( dvA, dvB ) );
-        psiB = createProgramStageInstance( piA, psB, ouB, Set.of( dvC, dvD ) );
-        psiC = createProgramStageInstance( piA, psA, ouC, Set.of( dvA, dvB ) );
-        psiD = createProgramStageInstance( piA, psB, ouD, Set.of( dvC, dvD ) );
-        psiE = createProgramStageInstance( piA, psA, ouE, Set.of( dvA, dvE ) );
+        psiA = createEvent( piA, psA, ouA, Set.of( dvA, dvB ) );
+        psiB = createEvent( piA, psB, ouB, Set.of( dvC, dvD ) );
+        psiC = createEvent( piA, psA, ouC, Set.of( dvA, dvB ) );
+        psiD = createEvent( piA, psB, ouD, Set.of( dvC, dvD ) );
+        psiE = createEvent( piA, psA, ouE, Set.of( dvA, dvE ) );
         eventService.addEvent( psiA );
         eventService.addEvent( psiB );
         eventService.addEvent( psiC );

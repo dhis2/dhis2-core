@@ -70,7 +70,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private final static String NEW_RELATIONSHIP_UID = "NewRelationshipUid";
 
-    private Event psi;
+    private Event dbEvent;
 
     private ProgramInstance pi;
 
@@ -114,8 +114,8 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         enrollment.setEnrollment( ENROLLMENT_UID );
         newEnrollment = new Enrollment();
         newEnrollment.setEnrollment( NEW_ENROLLMENT_UID );
-        psi = new Event();
-        psi.setUid( EVENT_UID );
+        dbEvent = new Event();
+        dbEvent.setUid( EVENT_UID );
         event = new org.hisp.dhis.tracker.imports.domain.Event();
         event.setEvent( EVENT_UID );
         newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
@@ -128,7 +128,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
         Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
         Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( pi );
-        Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( psi );
+        Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( dbEvent );
         Mockito.when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( relationship );
     }
 

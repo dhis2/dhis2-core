@@ -160,10 +160,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -193,8 +193,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -276,9 +276,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -308,9 +308,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
         when( preheat.getProgramOwner() )
             .thenReturn( Collections.singletonMap( TEI_ID, Collections.singletonMap( PROGRAM_ID,
@@ -348,10 +348,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getUser() ).thenReturn( changeCompletedEventAuthorisedUser() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -435,9 +435,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
@@ -450,7 +450,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned()
+    void verifySuccessEventValidationWhenEventHasNoOrgUnitAssigned()
     {
         String enrollmentUid = CodeGenerator.generateUid();
         org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
@@ -466,11 +466,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         ProgramInstance programInstance = getEnrollment( enrollmentUid );
 
-        Event programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setOrganisationUnit( null );
+        Event preheatEvent = getEvent();
+        preheatEvent.setProgramInstance( programInstance );
+        preheatEvent.setOrganisationUnit( null );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
         when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );

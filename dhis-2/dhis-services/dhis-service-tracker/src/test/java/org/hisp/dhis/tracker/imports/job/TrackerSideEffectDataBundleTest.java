@@ -78,11 +78,11 @@ class TrackerSideEffectDataBundleTest
         event.setEvent( "test-event" );
         Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
-        Event programStageInstance = new Event();
-        programStageInstance.setAutoFields();
+        Event expected = new Event();
+        expected.setAutoFields();
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance.getUid() ).klass( Event.class ).build();
-        assertEquals( programStageInstance.getUid(), bundle.getObject() );
+            .object( expected.getUid() ).klass( Event.class ).build();
+        assertEquals( expected.getUid(), bundle.getObject() );
         assertEquals( Event.class, bundle.getKlass() );
         assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
         assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );

@@ -50,7 +50,7 @@ public interface RelationshipService
         throws ForbiddenException,
         NotFoundException;
 
-    List<Relationship> getRelationshipsByProgramStageInstance( Event event,
+    List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException;

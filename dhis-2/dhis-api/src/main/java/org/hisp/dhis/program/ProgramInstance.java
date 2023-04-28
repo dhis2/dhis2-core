@@ -164,7 +164,7 @@ public class ProgramInstance
         return this.status == ProgramStatus.COMPLETED;
     }
 
-    public Event getProgramStageInstanceByStage( int stage )
+    public Event getEventByStage( int stage )
     {
         int count = 1;
 
@@ -181,7 +181,7 @@ public class ProgramInstance
         return null;
     }
 
-    public Event getActiveProgramStageInstance()
+    public Event getActiveEvent()
     {
         for ( Event event : events )
         {
@@ -207,7 +207,7 @@ public class ProgramInstance
         return null;
     }
 
-    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    public boolean hasActiveEvent( ProgramStage programStage )
     {
         for ( Event event : events )
         {

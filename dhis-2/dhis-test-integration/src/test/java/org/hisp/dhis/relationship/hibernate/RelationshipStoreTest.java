@@ -138,7 +138,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
             event );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramStageInstance( event, true );
+            .getRelationshipsByEvent( event, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );

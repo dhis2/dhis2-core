@@ -155,22 +155,21 @@ public class DefaultEventStore
     }
 
     @Override
-    public Map<String, List<EventDataValue>> getDataValues( List<Long> programStageInstanceId )
+    public Map<String, List<EventDataValue>> getDataValues( List<Long> eventIds )
     {
-        List<List<Long>> psiIdsPartitions = Lists.partition( programStageInstanceId, PARITITION_SIZE );
-
         Map<String, List<EventDataValue>> dataValueListMultimap = new HashMap<>();
 
-        psiIdsPartitions.forEach( partition -> dataValueListMultimap.putAll( getDataValuesPartitioned( partition ) ) );
+        Lists.partition( eventIds, PARITITION_SIZE )
+            .forEach( partition -> dataValueListMultimap.putAll( getDataValuesPartitioned( partition ) ) );
 
         return dataValueListMultimap;
     }
 
-    private Map<String, List<EventDataValue>> getDataValuesPartitioned( List<Long> programStageInstanceId )
+    private Map<String, List<EventDataValue>> getDataValuesPartitioned( List<Long> eventIds )
     {
         EventDataValueRowCallbackHandler handler = new EventDataValueRowCallbackHandler();
 
-        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( programStageInstanceId ), handler );
+        jdbcTemplate.query( GET_DATAVALUES_SQL, createIdsParam( eventIds ), handler );
 
         return handler.getItems();
     }

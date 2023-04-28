@@ -166,7 +166,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedProgramStageInstances()
     {
-        maintenanceService.deleteSoftDeletedProgramStageInstances();
+        maintenanceService.deleteSoftDeletedEvents();
     }
 
     @RequestMapping( value = "/softDeletedRelationshipRemoval", method = { RequestMethod.PUT,
