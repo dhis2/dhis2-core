@@ -33,7 +33,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.Serializable;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -288,24 +287,21 @@ public class SystemSettingController
 
     private Set<SettingKey> getSettingKeysToFetch( Set<String> keys )
     {
-        Set<SettingKey> settingKeys;
-
         if ( keys != null )
         {
-            keys.removeIf( systemSettingManager::isConfidential );
-            settingKeys = keys.stream()
+            return keys.stream()
+                .filter( k -> !systemSettingManager.isConfidential( k ) )
                 .map( SettingKey::getByName )
                 .filter( Optional::isPresent )
                 .map( Optional::get )
-                .collect( Collectors.toSet() );
+                .collect( Collectors.toUnmodifiableSet() );
         }
         else
         {
-            settingKeys = new HashSet<>( Arrays.asList( SettingKey.values() ) );
-            settingKeys.removeIf( key -> systemSettingManager.isConfidential( key.getName() ) );
+            return Arrays.stream( SettingKey.values() )
+                .filter( k -> !systemSettingManager.isConfidential( k.getName() ) )
+                .collect( Collectors.toUnmodifiableSet() );
         }
-
-        return settingKeys;
     }
 
     // -------------------------------------------------------------------------
