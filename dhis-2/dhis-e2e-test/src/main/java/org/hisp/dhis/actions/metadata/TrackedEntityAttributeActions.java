@@ -81,6 +81,17 @@ public class TrackedEntityAttributeActions
         return this.post( ob ).validateStatus( 201 ).extractUid();
     }
 
+    public String createMultiTextAttribute( String optionSet )
+    {
+        JsonObject ob = new JsonObjectBuilder( build( "MULTI_TEXT" ) )
+            .addObject( "optionSet", new JsonObjectBuilder()
+                .addProperty( "id", optionSet )
+                .build() )
+            .build();
+
+        return this.post( ob ).validateStatus( 201 ).extractUid();
+    }
+
     private JsonObject build( String valueType )
     {
         return new JsonObjectBuilder()

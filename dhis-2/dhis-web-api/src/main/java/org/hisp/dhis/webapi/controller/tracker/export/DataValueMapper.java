@@ -27,13 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.DataValue;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
+import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
 @Mapper( uses = { InstantMapper.class, UserMapper.class } )
-public interface DataValueMapper extends ViewMapper<org.hisp.dhis.eventdatavalue.EventDataValue, DataValue>
+public interface DataValueMapper extends ViewMapper<EventDataValue, DataValue>
 {
 
     @Mapping( target = "createdAt", source = "created" )
@@ -41,5 +43,5 @@ public interface DataValueMapper extends ViewMapper<org.hisp.dhis.eventdatavalue
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Override
-    DataValue from( org.hisp.dhis.eventdatavalue.EventDataValue dataValue );
+    DataValue from( EventDataValue dataValue );
 }

@@ -53,7 +53,7 @@ class PeriodTypeControllerTest extends DhisControllerConvenienceTest
         JsonObject object = GET( "/periodTypes" ).content( HttpStatus.OK ).as( JsonObject.class );
         JsonList<JsonPeriodType> periodTypes = object.getList( "periodTypes", JsonPeriodType.class );
         assertTrue( periodTypes.exists() );
-        assertEquals( 18, periodTypes.size() );
+        assertEquals( 19, periodTypes.size() );
         JsonPeriodType periodType = periodTypes.get( 0 );
         assertNotNull( periodType.getName() );
         assertNotNull( periodType.getIsoDuration() );
@@ -67,7 +67,7 @@ class PeriodTypeControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonPeriodType> periodTypes = GET( "/periodTypes?fields=name,isoFormat" ).content( HttpStatus.OK )
             .as( JsonObject.class ).getList( "periodTypes", JsonPeriodType.class );
         assertTrue( periodTypes.exists() );
-        assertEquals( 18, periodTypes.size() );
+        assertEquals( 19, periodTypes.size() );
         JsonPeriodType periodType = periodTypes.get( 0 );
         assertNotNull( periodType.getName() );
         assertNotNull( periodType.getIsoFormat() );

@@ -54,8 +54,8 @@ import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.visualization.Visualization;
 import org.jsoup.Jsoup;
 import org.springframework.stereotype.Service;
@@ -354,7 +354,7 @@ public class DefaultInterpretationService
         {
             if ( !aclService.canRead( user, interpretationObject ) )
             {
-                interpretationObject.getSharing().addDtoUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
+                interpretationObject.getSharing().addUserAccess( new UserAccess( user, AccessStringHelper.READ ) );
                 modified = true;
             }
         }
