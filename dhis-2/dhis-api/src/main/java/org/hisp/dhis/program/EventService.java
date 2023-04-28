@@ -135,7 +135,7 @@ public interface EventService
      * Gets the number of events added since the given number of days.
      *
      * @param days number of days.
-     * @return the number of ProgramStageInstances.
+     * @return the number of events.
      */
     long getEventCount( int days );
 

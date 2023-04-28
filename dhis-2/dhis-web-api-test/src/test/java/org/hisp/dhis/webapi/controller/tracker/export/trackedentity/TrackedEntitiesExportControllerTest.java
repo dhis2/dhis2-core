@@ -710,7 +710,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         RelationshipType type = relationshipTypeAccessible( RelationshipEntity.TRACKED_ENTITY_INSTANCE,
             RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         RelationshipItem fromItem = fromTrackedEntity( from );
-        RelationshipItem toItem = toProgramStageInstance( to );
+        RelationshipItem toItem = toEvent( to );
         Relationship relationship = relationship( type, fromItem, toItem );
         fromItem.setRelationship( relationship );
         toItem.setRelationship( relationship );
@@ -755,7 +755,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         return toItem;
     }
 
-    private RelationshipItem toProgramStageInstance( Event to )
+    private RelationshipItem toEvent( Event to )
     {
         RelationshipItem toItem = new RelationshipItem();
         toItem.setEvent( to );

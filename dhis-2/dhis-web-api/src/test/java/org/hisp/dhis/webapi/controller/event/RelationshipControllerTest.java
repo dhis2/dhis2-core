@@ -140,7 +140,7 @@ class RelationshipControllerTest
         mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ).andExpect( status().isOk() );
 
         verify( eventService ).getEvent( EVENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramStageInstance( eq( event ), any(), eq( false ) );
+        verify( relationshipService ).getRelationshipsByEvent( eq( event ), any(), eq( false ) );
     }
 
     @Test

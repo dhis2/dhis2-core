@@ -45,7 +45,7 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
     protected void registerHandler()
     {
         whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( Event.class, this::deleteProgramStageInstance );
+        whenDeleting( Event.class, this::deleteEvent );
     }
 
     private void deleteProgramInstance( ProgramInstance programInstance )
@@ -56,7 +56,7 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
         }
     }
 
-    private void deleteProgramStageInstance( Event event )
+    private void deleteEvent( Event event )
     {
         for ( TrackedEntityComment comment : event.getComments() )
         {

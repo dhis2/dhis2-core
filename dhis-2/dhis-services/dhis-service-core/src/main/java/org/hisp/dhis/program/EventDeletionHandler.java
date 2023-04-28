@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramStageInstanceDeletionHandler extends IdObjectDeletionHandler<Event>
+public class EventDeletionHandler extends IdObjectDeletionHandler<Event>
 {
     private final EventService eventService;
 
