@@ -71,7 +71,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     private Date incidentDate;
 
@@ -87,7 +87,7 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
 
     private OrganisationUnit organisationUnitB;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
     private ProgramInstance programInstanceA;
 
@@ -137,9 +137,9 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
         programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
         programInstanceA.setUid( "UID-A" );
         programInstanceA.setOrganisationUnit( organisationUnitA );
-        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
-        programStageInstanceA.setUid( "UID-PSI-A" );
-        programStageInstanceA.setOrganisationUnit( organisationUnitA );
+        eventA = new Event( programInstanceA, stageA );
+        eventA.setUid( "UID-PSI-A" );
+        eventA.setOrganisationUnit( organisationUnitA );
         programInstanceB = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programB );
         programInstanceB.setUid( "UID-B" );
         programInstanceB.setStatus( ProgramStatus.CANCELLED );
@@ -181,14 +181,14 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programInstanceA.setProgramStageInstances( Sets.newHashSet( programStageInstanceA ) );
+        long psiIdA = eventService.addEvent( eventA );
+        programInstanceA.setEvents( Sets.newHashSet( eventA ) );
         programInstanceService.updateProgramInstance( programInstanceA );
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+        assertNotNull( eventService.getEvent( psiIdA ) );
         programInstanceService.deleteProgramInstance( programInstanceA );
         assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+        assertNull( eventService.getEvent( psiIdA ) );
     }
 
     @Test

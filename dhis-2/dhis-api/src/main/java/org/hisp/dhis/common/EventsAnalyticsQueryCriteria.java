@@ -310,4 +310,8 @@ public class EventsAnalyticsQueryCriteria extends AnalyticsPagingCriteria
      */
     private boolean enhancedConditions;
 
+    /**
+     * flag to enable row context in grid response
+     */
+    private boolean rowContext;
 }

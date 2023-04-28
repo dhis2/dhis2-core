@@ -65,12 +65,12 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
@@ -91,7 +91,6 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueServ
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.user.UserAccess;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -112,7 +111,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -146,9 +145,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
     private ProgramInstance programInstanceB;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
     private TrackedEntityInstance trackedEntityA;
 
@@ -231,9 +230,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         programB.setTrackedEntityType( trackedEntityTypeA );
         programB.setCategoryCombo( defaultCategoryCombo );
         programB.setAccessLevel( AccessLevel.PROTECTED );
-        Set<UserAccess> programBUserAccess = new HashSet<>();
-        programBUserAccess.add( new UserAccess( currentUser, AccessStringHelper.FULL ) );
-        programB.setUserAccesses( programBUserAccess );
+        programB.getSharing()
+            .addUserAccess( new org.hisp.dhis.user.sharing.UserAccess( currentUser, AccessStringHelper.FULL ) );
         manager.save( programB, false );
         ProgramStage programStageB1 = createProgramStage( programB );
         programStageB1.setPublicAccess( AccessStringHelper.FULL );
@@ -257,34 +255,34 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
             new Date(), orgUnitA );
-        programStageInstanceA = new ProgramStageInstance();
-        programStageInstanceA.setProgramInstance( programInstanceA );
-        programStageInstanceA.setProgramStage( programStageA1 );
-        programStageInstanceA.setOrganisationUnit( orgUnitA );
-        programStageInstanceA.setAttributeOptionCombo( defaultCategoryOptionCombo );
-        programStageInstanceA.setDueDate( parseDate( "2021-02-27T12:05:00.000" ) );
-        programStageInstanceA.setCompletedDate( parseDate( "2021-02-27T11:05:00.000" ) );
-        programStageInstanceA.setCompletedBy( "herb" );
-        programStageInstanceA.setAssignedUser( user );
+        eventA = new Event();
+        eventA.setProgramInstance( programInstanceA );
+        eventA.setProgramStage( programStageA1 );
+        eventA.setOrganisationUnit( orgUnitA );
+        eventA.setAttributeOptionCombo( defaultCategoryOptionCombo );
+        eventA.setDueDate( parseDate( "2021-02-27T12:05:00.000" ) );
+        eventA.setCompletedDate( parseDate( "2021-02-27T11:05:00.000" ) );
+        eventA.setCompletedBy( "herb" );
+        eventA.setAssignedUser( user );
         note1 = new TrackedEntityComment( "note1", "ant" );
         note1.setUid( CodeGenerator.generateUid() );
         note1.setCreated( new Date() );
         note1.setLastUpdated( new Date() );
-        programStageInstanceA.setComments( List.of( note1 ) );
-        manager.save( programStageInstanceA, false );
-        programInstanceA.setProgramStageInstances( Set.of( programStageInstanceA ) );
+        eventA.setComments( List.of( note1 ) );
+        manager.save( eventA, false );
+        programInstanceA.setEvents( Set.of( eventA ) );
         programInstanceA.setFollowup( true );
         manager.save( programInstanceA, false );
 
         programInstanceB = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
             new Date(), orgUnitA );
-        programStageInstanceB = new ProgramStageInstance();
-        programStageInstanceB.setProgramInstance( programInstanceB );
-        programStageInstanceB.setProgramStage( programStageB1 );
-        programStageInstanceB.setOrganisationUnit( orgUnitA );
-        programStageInstanceB.setAttributeOptionCombo( defaultCategoryOptionCombo );
-        manager.save( programStageInstanceB, false );
-        programInstanceB.setProgramStageInstances( Set.of( programStageInstanceB ) );
+        eventB = new Event();
+        eventB.setProgramInstance( programInstanceB );
+        eventB.setProgramStage( programStageB1 );
+        eventB.setOrganisationUnit( orgUnitA );
+        eventB.setAttributeOptionCombo( defaultCategoryOptionCombo );
+        manager.save( eventB, false );
+        programInstanceB.setEvents( Set.of( eventB ) );
         manager.save( programInstanceB, false );
 
         trackedEntityB = createTrackedEntityInstance( orgUnitB );
@@ -375,7 +373,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         fromC.setRelationship( relationshipC );
         relationshipC.setFrom( fromC );
         RelationshipItem toC = new RelationshipItem();
-        toC.setProgramStageInstance( programStageInstanceA );
+        toC.setEvent( eventA );
         toC.setRelationship( relationshipC );
         relationshipC.setTo( toC );
         relationshipC.setKey( RelationshipUtils.generateRelationshipKey( relationshipC ) );
@@ -629,14 +627,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .filter( ProgramInstance::isDeleted ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
         assertIsEmpty( deletedEnrollments );
         Set<String> deletedEvents = trackedEntity.getProgramInstances().stream()
-            .flatMap( programInstance -> programInstance.getProgramStageInstances().stream() )
-            .filter( ProgramStageInstance::isDeleted )
+            .flatMap( programInstance -> programInstance.getEvents().stream() )
+            .filter( Event::isDeleted )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
         assertIsEmpty( deletedEvents );
 
         programInstanceService.deleteProgramInstance( programInstanceA );
-        programStageInstanceService.deleteProgramStageInstance( programStageInstanceA );
+        eventService.deleteEvent( eventA );
 
         trackedEntities = trackedEntityService.getTrackedEntities( queryParams, TrackedEntityParams.TRUE );
 
@@ -649,15 +647,15 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .filter( ProgramInstance::isDeleted ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
         assertContainsOnly( Set.of( programInstanceA.getUid() ), deletedEnrollments );
 
-        Set<ProgramStageInstance> events = trackedEntity.getProgramInstances().stream()
-            .flatMap( programInstance -> programInstance.getProgramStageInstances().stream() )
+        Set<Event> events = trackedEntity.getProgramInstances().stream()
+            .flatMap( programInstance -> programInstance.getEvents().stream() )
             .collect( Collectors.toSet() );
-        assertContainsOnly( Set.of( programStageInstanceA.getUid(), programStageInstanceB.getUid() ), uids( events ) );
+        assertContainsOnly( Set.of( eventA.getUid(), eventB.getUid() ), uids( events ) );
         deletedEvents = events.stream()
-            .filter( ProgramStageInstance::isDeleted )
+            .filter( Event::isDeleted )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
-        assertContainsOnly( Set.of( programStageInstanceA.getUid() ), deletedEvents );
+        assertContainsOnly( Set.of( eventA.getUid() ), deletedEvents );
 
         queryParams.setIncludeDeleted( false );
         trackedEntities = trackedEntityService.getTrackedEntities( queryParams, TrackedEntityParams.TRUE );
@@ -666,9 +664,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         trackedEntity = trackedEntities.get( 0 );
         assertContainsOnly( Set.of( programInstanceB.getUid() ), uids( trackedEntity.getProgramInstances() ) );
         events = trackedEntity.getProgramInstances().stream()
-            .flatMap( programInstance -> programInstance.getProgramStageInstances().stream() )
+            .flatMap( programInstance -> programInstance.getEvents().stream() )
             .collect( Collectors.toSet() );
-        assertContainsOnly( Set.of( programStageInstanceB.getUid() ), uids( events ) );
+        assertContainsOnly( Set.of( eventB.getUid() ), uids( events ) );
     }
 
     @Test
@@ -737,8 +735,8 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentA = enrollments.stream()
             .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
-        Set<ProgramStageInstance> events = enrollmentA.get().getProgramStageInstances();
-        assertContainsOnly( Set.of( programStageInstanceA ), events );
+        Set<Event> events = enrollmentA.get().getEvents();
+        assertContainsOnly( Set.of( eventA ), events );
         assertContainsOnly( Set.of( note1 ), events.stream().findFirst().get().getComments() );
     }
 
@@ -762,7 +760,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentA = enrollments.stream()
             .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
-        assertIsEmpty( enrollmentA.get().getProgramStageInstances() );
+        assertIsEmpty( enrollmentA.get().getEvents() );
     }
 
     @Test
@@ -854,12 +852,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
         assertTrue( enrollmentOpt.isPresent() );
         ProgramInstance enrollment = enrollmentOpt.get();
-        Optional<ProgramStageInstance> eventOpt = enrollment.getProgramStageInstances().stream().findFirst();
+        Optional<Event> eventOpt = enrollment.getEvents().stream().findFirst();
         assertTrue( eventOpt.isPresent() );
-        ProgramStageInstance event = eventOpt.get();
+        Event event = eventOpt.get();
         assertAll(
-            () -> assertEquals( programStageInstanceA.getId(), event.getId() ),
-            () -> assertEquals( programStageInstanceA.getUid(), event.getUid() ),
+            () -> assertEquals( eventA.getId(), event.getId() ),
+            () -> assertEquals( eventA.getUid(), event.getUid() ),
             () -> assertEquals( EventStatus.ACTIVE, event.getStatus() ),
             () -> assertEquals( orgUnitA.getUid(), event.getOrganisationUnit().getUid() ),
             () -> assertEquals( orgUnitA.getName(), event.getOrganisationUnit().getName() ),
@@ -867,18 +865,18 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             () -> assertEquals( programA.getUid(), event.getProgramInstance().getProgram().getUid() ),
             () -> assertEquals( ProgramStatus.ACTIVE, event.getProgramInstance().getStatus() ),
             () -> assertEquals( trackedEntityA.getUid(), event.getProgramInstance().getEntityInstance().getUid() ),
-            () -> assertEquals( programStageInstanceA.getProgramStage().getUid(), event.getProgramStage().getUid() ),
+            () -> assertEquals( eventA.getProgramStage().getUid(), event.getProgramStage().getUid() ),
             () -> assertEquals( defaultCategoryOptionCombo.getUid(), event.getAttributeOptionCombo().getUid() ),
             () -> assertFalse( event.isDeleted() ),
             () -> assertTrue( event.getProgramInstance().getFollowup() ),
             () -> assertEquals( user, event.getAssignedUser() ),
             () -> checkDate( currentTime, event.getCreated() ),
             () -> checkDate( currentTime, event.getLastUpdated() ),
-            () -> checkDate( programStageInstanceA.getDueDate(), event.getDueDate() ),
+            () -> checkDate( eventA.getDueDate(), event.getDueDate() ),
             () -> checkDate( currentTime, event.getCreatedAtClient() ),
             () -> checkDate( currentTime, event.getLastUpdatedAtClient() ),
-            () -> checkDate( programStageInstanceA.getCompletedDate(), event.getCompletedDate() ),
-            () -> assertEquals( programStageInstanceA.getCompletedBy(), event.getCompletedBy() ) );
+            () -> checkDate( eventA.getCompletedDate(), event.getCompletedDate() ),
+            () -> assertEquals( eventA.getCompletedBy(), event.getCompletedBy() ) );
     }
 
     @Test
@@ -948,7 +946,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         Relationship actual = relOpt.get().getRelationship();
         assertAll(
             () -> assertEquals( trackedEntityA.getUid(), actual.getFrom().getTrackedEntityInstance().getUid() ),
-            () -> assertEquals( programStageInstanceA.getUid(), actual.getTo().getProgramStageInstance().getUid() ) );
+            () -> assertEquals( eventA.getUid(), actual.getTo().getEvent().getUid() ) );
     }
 
     private static List<String> uids( Collection<? extends BaseIdentifiableObject> trackedEntities )

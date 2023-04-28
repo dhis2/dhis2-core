@@ -32,8 +32,8 @@ import java.util.Optional;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -50,7 +50,7 @@ public interface RelationshipService
         throws ForbiddenException,
         NotFoundException;
 
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+    List<Relationship> getRelationshipsByProgramStageInstance( Event psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException;

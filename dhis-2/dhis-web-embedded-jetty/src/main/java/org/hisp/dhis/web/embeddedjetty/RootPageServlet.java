@@ -31,7 +31,6 @@ import static org.hisp.dhis.util.FileUtils.getResourceFileAsString;
 
 import java.io.IOException;
 
-import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,8 +47,7 @@ public class RootPageServlet
 {
     @Override
     protected void doGet( HttpServletRequest req, HttpServletResponse resp )
-        throws IOException,
-        ServletException
+        throws IOException
     {
         Object springSecurityContext = session().getAttribute( "SPRING_SECURITY_CONTEXT" );
 

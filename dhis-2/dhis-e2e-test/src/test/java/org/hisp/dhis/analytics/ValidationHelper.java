@@ -120,7 +120,7 @@ public class ValidationHelper
         String repeatableStageValueStatus )
     {
         response.validate()
-            .body( "rowContext." + rowIndex + "." + colIndex + ".repeatableStageValueStatus",
+            .body( "rowContext." + rowIndex + "." + colIndex + ".valueStatus",
                 equalTo( repeatableStageValueStatus ) );
     }
 

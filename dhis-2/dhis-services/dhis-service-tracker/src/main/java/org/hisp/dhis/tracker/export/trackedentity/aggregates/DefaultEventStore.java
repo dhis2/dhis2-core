@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.query.JpaQueryUtils;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -94,12 +94,12 @@ public class DefaultEventStore
     }
 
     @Override
-    public Multimap<String, ProgramStageInstance> getEventsByEnrollmentIds( List<Long> enrollmentsId,
+    public Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId,
         Context ctx )
     {
         List<List<Long>> enrollmentIdsPartitions = Lists.partition( enrollmentsId, PARITITION_SIZE );
 
-        Multimap<String, ProgramStageInstance> eventMultimap = ArrayListMultimap.create();
+        Multimap<String, Event> eventMultimap = ArrayListMultimap.create();
 
         enrollmentIdsPartitions
             .forEach( partition -> eventMultimap.putAll( getEventsByEnrollmentIdsPartitioned( partition, ctx ) ) );
@@ -122,7 +122,7 @@ public class DefaultEventStore
             + ") )";
     }
 
-    private Multimap<String, ProgramStageInstance> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
+    private Multimap<String, Event> getEventsByEnrollmentIdsPartitioned( List<Long> enrollmentsId,
         Context ctx )
     {
         EventRowCallbackHandler handler = new EventRowCallbackHandler();

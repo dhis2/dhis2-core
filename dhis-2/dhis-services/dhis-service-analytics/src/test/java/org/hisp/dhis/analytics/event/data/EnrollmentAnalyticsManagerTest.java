@@ -253,7 +253,7 @@ class EnrollmentAnalyticsManagerTest
             + " as ax where (ax.\"monthly\" in ('2000Q1') )and (ax.\"uidlevel1\" = 'ouabcdefghA' ) " +
             "and ps = '" + programStageUid + "' limit 101";
 
-        assertEquals( sql.getValue(), expected );
+        assertEquals( expected, sql.getValue() );
     }
 
     @Test

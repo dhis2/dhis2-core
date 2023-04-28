@@ -31,8 +31,6 @@ import java.util.Set;
 
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,13 +39,12 @@ import org.mapstruct.factory.Mappers;
 @Mapper( uses = {
     DebugMapper.class,
     OrganisationUnitMapper.class,
-    UserGroupAccessMapper.class,
-    UserAccessMapper.class,
     CategoryComboMapper.class,
     TrackedEntityTypeMapper.class,
     ProgramStageMapper.class,
     ProgramTrackedEntityAttributeMapper.class,
-    AttributeValueMapper.class
+    AttributeValueMapper.class,
+    SharingMapper.class
 } )
 public interface ProgramMapper extends PreheatMapper<Program>
 {
@@ -60,10 +57,6 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "name" )
     @Mapping( target = "attributeValues" )
     @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses" )
-    @Mapping( target = "userAccesses" )
     @Mapping( target = "programType" )
     @Mapping( target = "programAttributes" )
     @Mapping( target = "programStages" )
@@ -80,10 +73,6 @@ public interface ProgramMapper extends PreheatMapper<Program>
     @Mapping( target = "sharing" )
     @Mapping( target = "accessLevel" )
     Program map( Program program );
-
-    Set<UserGroupAccess> userGroupAccessesProgram( Set<UserGroupAccess> userGroupAccesses );
-
-    Set<UserAccess> mapUserAccessProgramInstanceProgram( Set<UserAccess> userAccesses );
 
     Set<ProgramStage> mapProgramStages( Set<ProgramStage> programStages );
 }

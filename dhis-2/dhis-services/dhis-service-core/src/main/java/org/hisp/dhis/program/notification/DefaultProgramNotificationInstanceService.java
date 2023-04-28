@@ -32,8 +32,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,7 +49,7 @@ public class DefaultProgramNotificationInstanceService
 
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     @Override
     @Transactional( readOnly = true )
@@ -81,11 +81,11 @@ public class DefaultProgramNotificationInstanceService
 
         if ( params.hasProgramStageInstance() )
         {
-            if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance().getUid() ) )
+            if ( !eventService.eventExists( params.getEvent().getUid() ) )
             {
                 throw new IllegalQueryException(
                     String.format( "Program stage instance %s does not exist",
-                        params.getProgramStageInstance().getUid() ) );
+                        params.getEvent().getUid() ) );
             }
         }
     }

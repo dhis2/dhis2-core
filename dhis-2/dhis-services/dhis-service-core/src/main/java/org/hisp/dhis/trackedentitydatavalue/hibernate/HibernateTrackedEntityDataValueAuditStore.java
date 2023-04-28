@@ -44,7 +44,7 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditStore;
@@ -57,7 +57,7 @@ import org.springframework.stereotype.Repository;
 public class HibernateTrackedEntityDataValueAuditStore
     implements TrackedEntityDataValueAuditStore
 {
-    private static final String PROP_PSI = "programStageInstance";
+    private static final String PROP_PSI = "event";
 
     private static final String PROP_ORGANISATION_UNIT = "organisationUnit";
 
@@ -93,8 +93,8 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<TrackedEntityDataValueAudit> criteria = builder.createQuery( TrackedEntityDataValueAudit.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
-        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
+        Join<TrackedEntityDataValueAudit, Event> psi = tedva.join( PROP_PSI );
+        Join<Event, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( tedva );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
@@ -119,8 +119,8 @@ public class HibernateTrackedEntityDataValueAuditStore
         CriteriaBuilder builder = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Long> criteria = builder.createQuery( Long.class );
         Root<TrackedEntityDataValueAudit> tedva = criteria.from( TrackedEntityDataValueAudit.class );
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi = tedva.join( PROP_PSI );
-        Join<ProgramStageInstance, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
+        Join<TrackedEntityDataValueAudit, Event> psi = tedva.join( PROP_PSI );
+        Join<Event, OrganisationUnit> ou = psi.join( PROP_ORGANISATION_UNIT );
         criteria.select( builder.countDistinct( tedva.get( "id" ) ) );
 
         List<Predicate> predicates = getTrackedEntityDataValueAuditCriteria( params, builder, tedva, psi, ou );
@@ -138,18 +138,18 @@ public class HibernateTrackedEntityDataValueAuditStore
     }
 
     @Override
-    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance psi )
+    public void deleteTrackedEntityDataValueAudit( Event event )
     {
-        String hql = "delete from TrackedEntityDataValueAudit d where d.programStageInstance = :psi";
+        String hql = "delete from TrackedEntityDataValueAudit d where d.event = :event";
 
-        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "psi", psi ).executeUpdate();
+        sessionFactory.getCurrentSession().createQuery( hql ).setParameter( "event", event ).executeUpdate();
     }
 
     private List<Predicate> getTrackedEntityDataValueAuditCriteria( TrackedEntityDataValueAuditQueryParams params,
         CriteriaBuilder builder,
         Root<TrackedEntityDataValueAudit> tedva,
-        Join<TrackedEntityDataValueAudit, ProgramStageInstance> psi,
-        Join<ProgramStageInstance, OrganisationUnit> ou )
+        Join<TrackedEntityDataValueAudit, Event> psi,
+        Join<Event, OrganisationUnit> ou )
     {
         List<Predicate> predicates = new ArrayList<>();
 
@@ -177,9 +177,9 @@ public class HibernateTrackedEntityDataValueAuditStore
             }
         }
 
-        if ( !params.getProgramStageInstances().isEmpty() )
+        if ( !params.getEvents().isEmpty() )
         {
-            predicates.add( tedva.get( PROP_PSI ).in( params.getProgramStageInstances() ) );
+            predicates.add( tedva.get( PROP_PSI ).in( params.getEvents() ) );
         }
 
         if ( !params.getProgramStages().isEmpty() )

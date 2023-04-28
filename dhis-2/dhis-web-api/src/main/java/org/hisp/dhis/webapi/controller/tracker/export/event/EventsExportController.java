@@ -53,15 +53,13 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
-import org.hisp.dhis.tracker.export.event.EventService;
 import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -89,16 +87,16 @@ public class EventsExportController
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
     @Nonnull
-    private final EventService eventService;
+    private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
     private final EventCriteriaMapper requestToSearchParams;
 
     @Nonnull
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService programStageInstanceService;
 
     @Nonnull
-    private final CsvService<Event> csvEventService;
+    private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
 
     @Nonnull
     private final FieldFilterService fieldFilterService;
@@ -181,11 +179,11 @@ public class EventsExportController
         throws NotFoundException
     {
         EventParams eventParams = eventsMapper.map( fields );
-        ProgramStageInstance event = eventService.getEvent( programStageInstanceService.getProgramStageInstance( uid ),
+        Event event = eventService.getEvent( programStageInstanceService.getEvent( uid ),
             eventParams );
         if ( event == null )
         {
-            throw new NotFoundException( Event.class, uid );
+            throw new NotFoundException( org.hisp.dhis.webapi.controller.tracker.view.Event.class, uid );
         }
 
         return ResponseEntity

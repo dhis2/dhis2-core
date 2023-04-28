@@ -81,8 +81,8 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -258,7 +258,7 @@ public class AuditController
         @OpenApi.Param( { UID[].class, DataElement.class } ) @RequestParam( required = false ) List<String> de,
         @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam( required = false ) List<String> ou,
         @OpenApi.Param( { UID[].class,
-            ProgramStageInstance.class } ) @RequestParam( required = false ) List<String> psi,
+            Event.class } ) @RequestParam( required = false ) List<String> psi,
         @OpenApi.Param( { UID[].class, ProgramStage.class } ) @RequestParam( required = false ) List<String> ps,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
@@ -279,7 +279,7 @@ public class AuditController
         List<DataElement> dataElements = manager.loadByUid( DataElement.class, de );
         List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
         List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
-        List<ProgramStageInstance> programStageInstances = manager.loadByUid( ProgramStageInstance.class, psi );
+        List<Event> events = manager.loadByUid( Event.class, psi );
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
@@ -288,7 +288,7 @@ public class AuditController
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( dataElements )
             .setOrgUnits( orgUnits )
-            .setProgramStageInstances( programStageInstances )
+            .setEvents( events )
             .setProgramStages( programStages )
             .setStartDate( startDate )
             .setEndDate( endDate )
@@ -309,7 +309,7 @@ public class AuditController
                 new TrackedEntityDataValueAuditQueryParams()
                     .setDataElements( dataElements )
                     .setOrgUnits( orgUnits )
-                    .setProgramStageInstances( programStageInstances )
+                    .setEvents( events )
                     .setProgramStages( programStages )
                     .setStartDate( startDate )
                     .setEndDate( endDate )

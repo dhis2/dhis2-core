@@ -29,8 +29,8 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Date;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -67,11 +67,11 @@ public interface ProgramNotificationService
     void sendScheduledNotifications( JobProgress progress );
 
     /**
-     * Send completion notifications for the ProgramStageInstance. If the
-     * ProgramStage is not configured with suitable
-     * {@link ProgramNotificationTemplate templates}, nothing will happen.
+     * Send completion notifications for the Event. If the ProgramStage is not
+     * configured with suitable {@link ProgramNotificationTemplate templates},
+     * nothing will happen.
      *
-     * @param programStageInstance the ProgramStageInstance id.
+     * @param programStageInstance the Event id.
      */
     void sendEventCompletionNotifications( long programStageInstance );
 
@@ -88,16 +88,16 @@ public interface ProgramNotificationService
     void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance );
 
     /**
-     * Send completion notifications for the ProgramStageInstance triggered by
-     * ProgramRule evaluation. {@link ProgramNotificationTemplate templates},
-     * nothing will happen.
+     * Send completion notifications for the Event triggered by ProgramRule
+     * evaluation. {@link ProgramNotificationTemplate templates}, nothing will
+     * happen.
      *
      * @param pnt ProgramNotificationTemplate id to send
-     * @param programStageInstance the ProgramStageInstance id.
+     * @param programStageInstance the Event id.
      */
     void sendProgramRuleTriggeredEventNotifications( long pnt, long programStageInstance );
 
-    void sendProgramRuleTriggeredEventNotifications( long pnt, ProgramStageInstance programStageInstance );
+    void sendProgramRuleTriggeredEventNotifications( long pnt, Event event );
 
     /**
      * Send completion notifications for the ProgramInstance. If the Program is

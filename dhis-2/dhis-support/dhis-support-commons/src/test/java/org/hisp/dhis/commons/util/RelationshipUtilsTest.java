@@ -29,8 +29,8 @@ package org.hisp.dhis.commons.util;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -54,7 +54,7 @@ class RelationshipUtilsTest
 
     private ProgramInstance piA;
 
-    private ProgramStageInstance psiA;
+    private Event psiA;
 
     private RelationshipType relationshipType;
 
@@ -67,7 +67,7 @@ class RelationshipUtilsTest
         teiB.setUid( TEIB_UID );
         piA = new ProgramInstance();
         piA.setUid( PI_UID );
-        psiA = new ProgramStageInstance();
+        psiA = new Event();
         psiA.setUid( PSI_UID );
         relationshipType = new RelationshipType();
         relationshipType.setUid( RELATIONSHIP_TYPE_UID );
@@ -81,7 +81,7 @@ class RelationshipUtilsTest
         RelationshipItem itemC = new RelationshipItem();
         itemA.setTrackedEntityInstance( teiA );
         itemB.setProgramInstance( piA );
-        itemC.setProgramStageInstance( psiA );
+        itemC.setEvent( psiA );
         assertEquals( teiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemA ) );
         assertEquals( piA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemB ) );
         assertEquals( psiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemC ) );
@@ -176,7 +176,7 @@ class RelationshipUtilsTest
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
         from.setTrackedEntityInstance( teiA );
-        to.setProgramStageInstance( psiA );
+        to.setEvent( psiA );
 
         return relationship( from, to );
     }
@@ -186,7 +186,7 @@ class RelationshipUtilsTest
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
         from.setProgramInstance( piA );
-        to.setProgramStageInstance( psiA );
+        to.setEvent( psiA );
 
         return relationship( from, to );
     }

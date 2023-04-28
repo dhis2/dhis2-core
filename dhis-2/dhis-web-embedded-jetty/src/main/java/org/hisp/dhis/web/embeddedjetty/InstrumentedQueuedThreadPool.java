@@ -47,11 +47,4 @@ public class InstrumentedQueuedThreadPool extends QueuedThreadPool
     {
         super( maxThreads, minThreads, idleTimeout, queue );
     }
-
-    @Override
-    protected void doStart()
-        throws Exception
-    {
-        super.doStart();
-    }
 }

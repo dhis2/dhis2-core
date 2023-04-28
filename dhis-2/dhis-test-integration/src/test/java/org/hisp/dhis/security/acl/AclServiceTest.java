@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.collections4.MapUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -339,9 +340,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
         aclService.resetSharing( visualization, user );
         assertTrue( AccessStringHelper.DEFAULT.equals( visualization.getPublicAccess() ) );
-        assertFalse( visualization.getExternalAccess() );
-        assertTrue( visualization.getUserAccesses().isEmpty() );
-        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( visualization.getSharing().isExternal() );
+        assertTrue( visualization.getSharing().getUsers().isEmpty() );
+        assertTrue( visualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -359,9 +360,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         aclService.resetSharing( eventVisualization, user );
         // Then
         assertEquals( AccessStringHelper.DEFAULT, eventVisualization.getPublicAccess() );
-        assertFalse( eventVisualization.getExternalAccess() );
-        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
-        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( eventVisualization.getSharing().isExternal() );
+        assertTrue( eventVisualization.getSharing().getUsers().isEmpty() );
+        assertTrue( eventVisualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -376,9 +377,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         assertFalse( aclService.verifySharing( visualization, user ).isEmpty() );
         aclService.resetSharing( visualization, user );
         assertTrue( AccessStringHelper.READ_WRITE.equals( visualization.getPublicAccess() ) );
-        assertFalse( visualization.getExternalAccess() );
-        assertTrue( visualization.getUserAccesses().isEmpty() );
-        assertTrue( visualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( visualization.getSharing().isExternal() );
+        assertTrue( visualization.getSharing().getUsers().isEmpty() );
+        assertTrue( visualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -396,9 +397,9 @@ class AclServiceTest extends TransactionalIntegrationTest
         aclService.resetSharing( eventVisualization, user );
         // Then
         assertEquals( AccessStringHelper.READ_WRITE, eventVisualization.getPublicAccess() );
-        assertFalse( eventVisualization.getExternalAccess() );
-        assertTrue( eventVisualization.getUserAccesses().isEmpty() );
-        assertTrue( eventVisualization.getUserGroupAccesses().isEmpty() );
+        assertFalse( eventVisualization.getSharing().isExternal() );
+        assertTrue( eventVisualization.getSharing().getUsers().isEmpty() );
+        assertTrue( eventVisualization.getSharing().getUserGroups().isEmpty() );
     }
 
     @Test
@@ -1172,7 +1173,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         de = manager.get( DataElement.class, de.getUid() );
         assertEquals( AccessStringHelper.DEFAULT, de.getPublicAccess() );
         assertEquals( null, de.getSharing().getOwner() );
-        assertTrue( de.getSharing().getUsers().isEmpty() );
+        assertTrue( MapUtils.isEmpty( de.getSharing().getUsers() ) );
         assertTrue( aclService.canRead( userA, de ) );
         String sql = "select uid as uid from dataelement where "
             + JpaQueryUtils.generateSQlQueryForSharingCheck( "sharing", userA, AccessStringHelper.READ );

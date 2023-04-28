@@ -38,10 +38,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -76,43 +76,43 @@ public class ProgramRuleEngine
     @Nonnull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<Event> events,
         List<ProgramRule> rules )
     {
         return evaluateProgramRules( enrollment, null, enrollment.getProgram(), Collections.emptyList(),
             getRuleEvents( events, null ), rules );
     }
 
-    public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<ProgramStageInstance> events,
+    public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<Event> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         List<ProgramRule> rules = getProgramRules( enrollment.getProgram(),
-            events.stream().map( ProgramStageInstance::getProgramStage ).distinct().collect( Collectors.toList() ) );
+            events.stream().map( Event::getProgramStage ).distinct().collect( Collectors.toList() ) );
         return evaluateProgramRulesForMultipleTrackerObjects( enrollment, enrollment.getProgram(),
             trackedEntityAttributeValues, getRuleEvents( events, null ), rules );
     }
 
-    public List<RuleEffects> evaluateProgramEvents( Set<ProgramStageInstance> events, Program program )
+    public List<RuleEffects> evaluateProgramEvents( Set<Event> events, Program program )
     {
         List<ProgramRule> rules = getProgramRules( program );
         return evaluateProgramRulesForMultipleTrackerObjects( null, program, null,
             getRuleEvents( events, null ), rules );
     }
 
-    public List<RuleEffect> evaluateProgramEvent( ProgramStageInstance event, Program program, List<ProgramRule> rules )
+    public List<RuleEffect> evaluateProgramEvent( Event event, Program program, List<ProgramRule> rules )
     {
         return evaluateProgramRules( null, null, program, List.of(), getRuleEvents( Set.of( event ), null ), rules );
     }
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, ProgramStageInstance programStageInstance,
-        Set<ProgramStageInstance> events, List<ProgramRule> rules )
+    public List<RuleEffect> evaluate( ProgramInstance enrollment, Event event,
+        Set<Event> events, List<ProgramRule> rules )
     {
-        return evaluateProgramRules( enrollment, programStageInstance, enrollment.getProgram(),
-            Collections.emptyList(), getRuleEvents( events, programStageInstance ), rules );
+        return evaluateProgramRules( enrollment, event, enrollment.getProgram(),
+            Collections.emptyList(), getRuleEvents( events, event ), rules );
     }
 
     private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
-        ProgramStageInstance programStageInstance, Program program,
+        Event event, Program program,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents,
         List<ProgramRule> rules )
     {
@@ -123,7 +123,7 @@ public class ProgramRuleEngine
                 trackedEntityAttributeValues, ruleEvents, rules );
 
             return getRuleEngineEvaluation( ruleEngine, enrollment,
-                programStageInstance, trackedEntityAttributeValues );
+                event, trackedEntityAttributeValues );
         }
         catch ( Exception e )
         {
@@ -290,15 +290,15 @@ public class ProgramRuleEngine
         }
     }
 
-    private RuleEvent getRuleEvent( ProgramStageInstance programStageInstance )
+    private RuleEvent getRuleEvent( Event event )
     {
-        return programRuleEntityMapperService.toMappedRuleEvent( programStageInstance );
+        return programRuleEntityMapperService.toMappedRuleEvent( event );
     }
 
-    private List<RuleEvent> getRuleEvents( Set<ProgramStageInstance> events,
-        ProgramStageInstance programStageInstance )
+    private List<RuleEvent> getRuleEvents( Set<Event> events,
+        Event event )
     {
-        return programRuleEntityMapperService.toMappedRuleEvents( events, programStageInstance );
+        return programRuleEntityMapperService.toMappedRuleEvents( events, event );
     }
 
     private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment,
@@ -308,7 +308,7 @@ public class ProgramRuleEngine
     }
 
     private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, ProgramInstance enrollment,
-        ProgramStageInstance event, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
+        Event event, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
         throws Exception
     {
         if ( event == null )

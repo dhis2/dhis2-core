@@ -39,9 +39,8 @@ import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -54,7 +53,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<ProgramStageInstance>
+class EventSupplierTest extends AbstractSupplierTest<Event>
 {
 
     private ProgramStageInstanceSupplier subject;
@@ -85,14 +84,14 @@ class ProgramStageInstanceSupplierTest extends AbstractSupplierTest<ProgramStage
         when( mockResultSet.getString( "status" ) ).thenReturn( "ACTIVE" );
         when( mockResultSet.getBoolean( "deleted" ) ).thenReturn( false );
         // create event to import
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setEnrollment( "abcded" );
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-        Map<String, ProgramStageInstance> map = subject.get( ImportOptions.getDefaultImportOptions(),
+        Map<String, Event> map = subject.get( ImportOptions.getDefaultImportOptions(),
             Collections.singletonList( event ) );
-        ProgramStageInstance programStageInstance = map.get( "abcded" );
+        Event programStageInstance = map.get( "abcded" );
         assertThat( programStageInstance, is( notNullValue() ) );
         assertThat( programStageInstance.getId(), is( 100L ) );
         assertThat( programStageInstance.getUid(), is( "abcded" ) );

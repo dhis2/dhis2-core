@@ -52,6 +52,8 @@ import org.hisp.dhis.option.OptionService;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -59,8 +61,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -211,7 +211,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -364,9 +364,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEvent()
     {
         ProgramRule programRule = setUpSendMessageForEnrollment();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS1" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
         assertTrue( ruleAction instanceof RuleActionSendMessage );
@@ -383,9 +383,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEnrollmentAndEvent()
     {
         setUpSendMessageForEnrollment();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
+        Event event = eventService.getEvent( "UID-PS1" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
+            event.getProgramInstance(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertEquals( 2, ruleEffects.size() );
         RuleEffects enrollmentRuleEffects = ruleEffects.stream().filter( RuleEffects::isEnrollment ).findFirst().get();
         RuleEffects eventRuleEffects = ruleEffects.stream().filter( RuleEffects::isEvent ).findFirst().get();
@@ -463,9 +463,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeDate()
     {
         ProgramRule programRule = setUpAssignValueDate();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS12" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -474,9 +474,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeDateEnrollmentAndEvent()
     {
         setUpAssignValueDate();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
+        Event event = eventService.getEvent( "UID-PS12" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
+            event.getProgramInstance(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertNotNull( ruleEffects );
         assertEquals( 2, ruleEffects.size() );
         assertTrue( ruleEffects.stream().filter( e -> e.isEnrollment() ).findFirst().get().getRuleEffects().isEmpty() );
@@ -488,9 +488,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeAge()
     {
         ProgramRule programRule = setUpAssignValueAge();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -500,7 +500,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         setUpRuleActionForOptionSetName();
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
+        Event programStageInstance = eventService.getEvent( "UID-PS13" );
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
@@ -514,7 +514,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         setUpRuleActionForOptionSetCode();
 
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
+        Event programStageInstance = eventService.getEvent( "UID-PS13" );
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
             programStageInstance, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
@@ -643,11 +643,11 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
             programS, enrollmentDate, incidentDate, organisationUnitB );
         programInstanceS.setUid( "UID-PS" );
         programInstanceService.updateProgramInstance( programInstanceS );
-        ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
-        programStageInstanceA.setDueDate( enrollmentDate );
-        programStageInstanceA.setExecutionDate( new Date() );
-        programStageInstanceA.setUid( "UID-PS1" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        Event eventA = new Event( programInstanceA, programStageA );
+        eventA.setDueDate( enrollmentDate );
+        eventA.setExecutionDate( new Date() );
+        eventA.setUid( "UID-PS1" );
+        eventService.addEvent( eventA );
         eventDataValueDate = new EventDataValue();
         eventDataValueDate.setDataElement( dataElementDate.getUid() );
         eventDataValueDate.setAutoFields();
@@ -663,30 +663,30 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         eventDataValueWithOptionSet.setAutoFields();
         eventDataValueWithOptionSet.setValue( option1.getCode() );
 
-        ProgramStageInstance programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
-        programStageInstanceDate.setDueDate( enrollmentDate );
-        programStageInstanceDate.setExecutionDate( psEventDate );
-        programStageInstanceDate.setUid( "UID-PS12" );
-        programStageInstanceDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
-        ProgramStageInstance programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
-        programStageInstanceAge.setDueDate( enrollmentDate );
-        programStageInstanceAge.setExecutionDate( psEventDate );
-        programStageInstanceAge.setUid( "UID-PS13" );
-        programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValueAge, eventDataValueWithOptionSet ) );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceAge );
-        ProgramStageInstance programStageInstanceB = new ProgramStageInstance( programInstanceA, programStageB );
-        programStageInstanceB.setDueDate( enrollmentDate );
-        programStageInstanceB.setExecutionDate( new Date() );
-        programStageInstanceB.setUid( "UID-PS2" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        ProgramStageInstance programStageInstanceC = new ProgramStageInstance( programInstanceA, programStageC );
-        programStageInstanceC.setDueDate( enrollmentDate );
-        programStageInstanceC.setExecutionDate( new Date() );
-        programStageInstanceC.setUid( "UID-PS3" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-        programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA,
-            programStageInstanceB, programStageInstanceC, programStageInstanceAge ) );
+        Event eventDate = new Event( programInstanceA, programStageAge );
+        eventDate.setDueDate( enrollmentDate );
+        eventDate.setExecutionDate( psEventDate );
+        eventDate.setUid( "UID-PS12" );
+        eventDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
+        eventService.addEvent( eventDate );
+        Event eventAge = new Event( programInstanceA, programStageAge );
+        eventAge.setDueDate( enrollmentDate );
+        eventAge.setExecutionDate( psEventDate );
+        eventAge.setUid( "UID-PS13" );
+        eventAge.setEventDataValues( Sets.newHashSet( eventDataValueAge, eventDataValueWithOptionSet ) );
+        eventService.addEvent( eventAge );
+        Event eventB = new Event( programInstanceA, programStageB );
+        eventB.setDueDate( enrollmentDate );
+        eventB.setExecutionDate( new Date() );
+        eventB.setUid( "UID-PS2" );
+        eventService.addEvent( eventB );
+        Event eventC = new Event( programInstanceA, programStageC );
+        eventC.setDueDate( enrollmentDate );
+        eventC.setExecutionDate( new Date() );
+        eventC.setUid( "UID-PS3" );
+        eventService.addEvent( eventC );
+        programInstanceA.getEvents().addAll( Sets.newHashSet( eventA,
+            eventB, eventC, eventAge ) );
         programInstanceService.updateProgramInstance( programInstanceA );
     }
 

@@ -53,10 +53,10 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.programrule.ProgramRule;
@@ -144,11 +144,11 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private TrackedEntityInstance trackedEntityInstance;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
-    private ProgramStageInstance programStageInstanceC;
+    private Event eventC;
 
     @Mock
     private ProgramRuleService programRuleService;
@@ -246,26 +246,26 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     @Test
     void testExceptionWhenMandatoryFieldIsMissingInRuleEvent()
     {
-        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEvent( programStageInstanceC ) );
+        assertThrows( IllegalStateException.class, () -> subject.toMappedRuleEvent( eventC ) );
     }
 
     @Test
     void testMappedRuleEvent()
     {
-        RuleEvent ruleEvent = subject.toMappedRuleEvent( programStageInstanceA );
+        RuleEvent ruleEvent = subject.toMappedRuleEvent( eventA );
 
-        assertEquals( ruleEvent.event(), programStageInstanceA.getUid() );
-        assertEquals( ruleEvent.programStage(), programStageInstanceA.getProgramStage().getUid() );
-        assertEquals( ruleEvent.organisationUnit(), programStageInstanceA.getOrganisationUnit().getUid() );
-        assertEquals( ruleEvent.organisationUnitCode(), programStageInstanceA.getOrganisationUnit().getCode() );
-        assertEquals( ruleEvent.programStageName(), programStageInstanceA.getProgramStage().getName() );
+        assertEquals( ruleEvent.event(), eventA.getUid() );
+        assertEquals( ruleEvent.programStage(), eventA.getProgramStage().getUid() );
+        assertEquals( ruleEvent.organisationUnit(), eventA.getOrganisationUnit().getUid() );
+        assertEquals( ruleEvent.organisationUnitCode(), eventA.getOrganisationUnit().getCode() );
+        assertEquals( ruleEvent.programStageName(), eventA.getProgramStage().getName() );
         assertEquals( ruleEvent.dataValues().size(), 1 );
 
         RuleDataValue ruleDataValue = ruleEvent.dataValues().get( 0 );
 
         assertEquals( ruleDataValue.dataElement(), dataElement.getUid() );
         assertEquals( ruleDataValue.eventDate(), ruleEvent.eventDate() );
-        assertEquals( ruleDataValue.programStage(), programStageInstanceA.getProgramStage().getUid() );
+        assertEquals( ruleDataValue.programStage(), eventA.getProgramStage().getUid() );
         assertEquals( ruleDataValue.value(), SAMPLE_VALUE_A );
     }
 
@@ -273,23 +273,23 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     void testMappedRuleEventsWithFilter()
     {
         List<RuleEvent> ruleEvents = subject.toMappedRuleEvents(
-            Sets.newHashSet( programStageInstanceA, programStageInstanceB ), programStageInstanceA );
+            Sets.newHashSet( eventA, eventB ), eventA );
 
         assertEquals( ruleEvents.size(), 1 );
         RuleEvent ruleEvent = ruleEvents.get( 0 );
 
-        assertEquals( ruleEvent.event(), programStageInstanceB.getUid() );
-        assertEquals( ruleEvent.programStage(), programStageInstanceB.getProgramStage().getUid() );
-        assertEquals( ruleEvent.organisationUnit(), programStageInstanceB.getOrganisationUnit().getUid() );
-        assertEquals( ruleEvent.organisationUnitCode(), programStageInstanceB.getOrganisationUnit().getCode() );
-        assertEquals( ruleEvent.programStageName(), programStageInstanceB.getProgramStage().getName() );
+        assertEquals( ruleEvent.event(), eventB.getUid() );
+        assertEquals( ruleEvent.programStage(), eventB.getProgramStage().getUid() );
+        assertEquals( ruleEvent.organisationUnit(), eventB.getOrganisationUnit().getUid() );
+        assertEquals( ruleEvent.organisationUnitCode(), eventB.getOrganisationUnit().getCode() );
+        assertEquals( ruleEvent.programStageName(), eventB.getProgramStage().getName() );
         assertEquals( ruleEvent.dataValues().size(), 1 );
 
         RuleDataValue ruleDataValue = ruleEvent.dataValues().get( 0 );
 
         assertEquals( ruleDataValue.dataElement(), dataElement.getUid() );
         assertEquals( ruleDataValue.eventDate(), ruleEvent.eventDate() );
-        assertEquals( ruleDataValue.programStage(), programStageInstanceB.getProgramStage().getUid() );
+        assertEquals( ruleDataValue.programStage(), eventB.getProgramStage().getUid() );
         assertEquals( ruleDataValue.value(), SAMPLE_VALUE_B );
     }
 
@@ -297,7 +297,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     void testMappedRuleEvents()
     {
         List<RuleEvent> ruleEvents = subject
-            .toMappedRuleEvents( Sets.newHashSet( programStageInstanceA, programStageInstanceB ), null );
+            .toMappedRuleEvents( Sets.newHashSet( eventA, eventB ), null );
 
         assertEquals( ruleEvents.size(), 2 );
     }
@@ -454,21 +454,21 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         programInstance.setIncidentDate( new Date() );
         programInstance.setEntityInstance( trackedEntityInstance );
 
-        programStageInstanceA = new ProgramStageInstance( programInstance, programStage );
-        programStageInstanceB = new ProgramStageInstance( programInstance, programStage );
-        programStageInstanceC = new ProgramStageInstance( programInstance, programStage );
+        eventA = new Event( programInstance, programStage );
+        eventB = new Event( programInstance, programStage );
+        eventC = new Event( programInstance, programStage );
 
-        programStageInstanceA.setOrganisationUnit( organisationUnit );
-        programStageInstanceA.setAutoFields();
-        programStageInstanceA.setDueDate( new Date() );
-        programStageInstanceA.setExecutionDate( new Date() );
-        programStageInstanceA.setEventDataValues( Sets.newHashSet( eventDataValueA ) );
+        eventA.setOrganisationUnit( organisationUnit );
+        eventA.setAutoFields();
+        eventA.setDueDate( new Date() );
+        eventA.setExecutionDate( new Date() );
+        eventA.setEventDataValues( Sets.newHashSet( eventDataValueA ) );
 
-        programStageInstanceB.setOrganisationUnit( organisationUnit );
-        programStageInstanceB.setAutoFields();
-        programStageInstanceB.setDueDate( new Date() );
-        programStageInstanceB.setExecutionDate( new Date() );
-        programStageInstanceB.setEventDataValues( Sets.newHashSet( eventDataValueB ) );
+        eventB.setOrganisationUnit( organisationUnit );
+        eventB.setAutoFields();
+        eventB.setDueDate( new Date() );
+        eventB.setExecutionDate( new Date() );
+        eventB.setEventDataValues( Sets.newHashSet( eventDataValueB ) );
     }
 
     private ProgramRule setProgramRule( ProgramRule programRule, String condition, Set<ProgramRuleAction> ruleActions,

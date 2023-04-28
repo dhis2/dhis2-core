@@ -52,11 +52,13 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Luciano Fiandesio
  */
 @Slf4j
+@Transactional
 public abstract class TrackerTest extends SingleSetupIntegrationTestBase
 {
     @Autowired

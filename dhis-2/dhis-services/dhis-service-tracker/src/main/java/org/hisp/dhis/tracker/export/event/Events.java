@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -51,7 +51,7 @@ public class Events
 
     private String programInstance;
 
-    private List<ProgramStageInstance> events = new ArrayList<>();
+    private List<Event> events = new ArrayList<>();
 
     private Map<Object, Object> metaData;
 
@@ -88,12 +88,12 @@ public class Events
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "events", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramStageInstance> getEvents()
+    public List<Event> getEvents()
     {
         return events;
     }
 
-    public void setEvents( List<ProgramStageInstance> events )
+    public void setEvents( List<Event> events )
     {
         this.events = events;
     }

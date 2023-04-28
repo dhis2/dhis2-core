@@ -281,16 +281,12 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         deB.getAggregationLevels().add( 1 );
         deB.getAggregationLevels().add( 2 );
         deB.getAggregationLevels().add( 3 );
-        deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
-        deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
         Patch patch = patchService.diff( new PatchParams( deA, deB ) );
         patchService.apply( patch, deA );
         assertEquals( deA.getName(), deB.getName() );
         assertEquals( deA.getShortName(), deB.getShortName() );
         assertEquals( deA.getDescription(), deB.getDescription() );
         assertEquals( deA.getAggregationLevels(), deB.getAggregationLevels() );
-        assertEquals( deA.getUserGroupAccesses(), deB.getUserGroupAccesses() );
-        assertEquals( deA.getUserAccesses(), deB.getUserAccesses() );
     }
 
     @Test

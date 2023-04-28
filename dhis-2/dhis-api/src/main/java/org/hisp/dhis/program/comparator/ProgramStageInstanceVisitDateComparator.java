@@ -30,21 +30,21 @@ package org.hisp.dhis.program.comparator;
 import java.util.Comparator;
 import java.util.Date;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Chau Thu Tran
  */
 public class ProgramStageInstanceVisitDateComparator
-    implements Comparator<ProgramStageInstance>
+    implements Comparator<Event>
 {
     @Override
-    public int compare( ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2 )
+    public int compare( Event event1, Event event2 )
     {
-        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate()
-            : programStageInstance1.getDueDate();
-        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate()
-            : programStageInstance2.getDueDate();
+        Date d1 = (event1.getExecutionDate() != null) ? event1.getExecutionDate()
+            : event1.getDueDate();
+        Date d2 = (event2.getExecutionDate() != null) ? event2.getExecutionDate()
+            : event2.getDueDate();
         if ( d1.before( d2 ) )
         {
             return -1;
