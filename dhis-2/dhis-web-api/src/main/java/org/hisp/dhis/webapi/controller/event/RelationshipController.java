@@ -128,8 +128,7 @@ public class RelationshipController
         {
             return Optional.ofNullable( eventService
                 .getEvent( relationshipCriteria.getEvent() ) )
-                .map( psi -> relationshipService.getRelationshipsByProgramStageInstance( psi,
-                    relationshipCriteria, false ) )
+                .map( event -> relationshipService.getRelationshipsByEvent( event, relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No event '" + relationshipCriteria.getEvent() + "' found." ) ) );
         }

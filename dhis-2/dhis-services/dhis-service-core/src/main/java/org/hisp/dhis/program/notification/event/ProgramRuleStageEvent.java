@@ -51,7 +51,7 @@ public class ProgramRuleStageEvent extends ApplicationEvent
         return template;
     }
 
-    public Event getProgramStageInstance()
+    public Event getEvent()
     {
         return event;
     }

@@ -63,7 +63,7 @@ public interface RelationshipService
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramStageInstance( Event psi,
+    List<Relationship> getRelationshipsByEvent( Event psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 

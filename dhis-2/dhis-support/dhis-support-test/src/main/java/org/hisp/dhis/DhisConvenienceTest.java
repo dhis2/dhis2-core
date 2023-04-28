@@ -1714,11 +1714,11 @@ public abstract class DhisConvenienceTest
     public static Event createEvent( ProgramInstance programInstance,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        Event psi = createEvent( programStage, programInstance, organisationUnit );
-        psi.setExecutionDate( new Date() );
-        psi.setStatus( EventStatus.ACTIVE );
-        psi.setEventDataValues( dataValues );
-        return psi;
+        Event event = createEvent( programStage, programInstance, organisationUnit );
+        event.setExecutionDate( new Date() );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setEventDataValues( dataValues );
+        return event;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
@@ -1963,10 +1963,10 @@ public abstract class DhisConvenienceTest
         Program program,
         TrackedEntityType trackedEntityType )
     {
-        RelationshipConstraint psiConstraint = new RelationshipConstraint();
-        psiConstraint.setProgram( program );
-        psiConstraint.setTrackedEntityType( trackedEntityType );
-        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint eventConstraint = new RelationshipConstraint();
+        eventConstraint.setProgram( program );
+        eventConstraint.setTrackedEntityType( trackedEntityType );
+        eventConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         RelationshipConstraint teiConstraint = new RelationshipConstraint();
         teiConstraint.setProgram( program );
         teiConstraint.setTrackedEntityType( trackedEntityType );
@@ -1974,7 +1974,7 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
         relationshipType.setName( "Malaria case linked to person" );
         relationshipType.setBidirectional( true );
-        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setFromConstraint( eventConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
     }

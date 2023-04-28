@@ -228,7 +228,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testIfProgramStageInstanceIsNull()
+    void testIfEventIsNull()
     {
         when( eventStore.get( anyLong() ) ).thenReturn( null );
 
