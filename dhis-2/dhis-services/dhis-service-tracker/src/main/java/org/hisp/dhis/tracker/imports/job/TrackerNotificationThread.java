@@ -32,8 +32,8 @@ import java.util.function.Consumer;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationService;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.NotificationLevel;
@@ -67,7 +67,7 @@ public class TrackerNotificationThread extends SecurityContextRunnable
         this.manager = manager;
         this.serviceMapper = Map.of(
             ProgramInstance.class, programNotificationService::sendEnrollmentNotifications,
-            ProgramStageInstance.class, programNotificationService::sendEventCompletionNotifications );
+            Event.class, programNotificationService::sendEventCompletionNotifications );
     }
 
     @Override

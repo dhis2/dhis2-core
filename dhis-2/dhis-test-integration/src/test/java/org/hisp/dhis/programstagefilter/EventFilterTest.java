@@ -41,7 +41,7 @@ import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class ProgramStageInstanceFilterTest extends SingleSetupIntegrationTestBase
+class EventFilterTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

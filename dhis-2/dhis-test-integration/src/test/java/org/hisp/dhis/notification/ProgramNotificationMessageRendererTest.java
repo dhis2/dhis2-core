@@ -44,6 +44,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
@@ -51,8 +53,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -118,7 +118,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
     private ProgramInstance programInstanceA;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
     private EventDataValue eventDataValueA;
 
@@ -156,7 +156,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramNotificationTemplateStore programNotificationTemplateStore;
@@ -230,12 +230,12 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
             enrollmentDate, incidentDate, organisationUnitA );
         programInstanceA.setUid( enrollmentUid );
         programInstanceService.updateProgramInstance( programInstanceA );
-        // ProgramStageInstance to be provided in message renderer
-        programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
-        programStageInstanceA.setOrganisationUnit( organisationUnitA );
-        programStageInstanceA.setDueDate( enrollmentDate );
-        programStageInstanceA.setExecutionDate( new Date() );
-        programStageInstanceA.setUid( "PSI-UID" );
+        // Event to be provided in message renderer
+        eventA = new Event( programInstanceA, programStageA );
+        eventA.setOrganisationUnit( organisationUnitA );
+        eventA.setDueDate( enrollmentDate );
+        eventA.setExecutionDate( new Date() );
+        eventA.setUid( "PSI-UID" );
         eventDataValueA = new EventDataValue();
         eventDataValueA.setDataElement( dataElementA.getUid() );
         eventDataValueA.setAutoFields();
@@ -244,9 +244,9 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         eventDataValueB.setDataElement( dataElementB.getUid() );
         eventDataValueB.setAutoFields();
         eventDataValueB.setValue( "dataElementB-Text" );
-        programStageInstanceA.setEventDataValues( Sets.newHashSet( eventDataValueA, eventDataValueB ) );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
-        programInstanceA.getProgramStageInstances().add( programStageInstanceA );
+        eventA.setEventDataValues( Sets.newHashSet( eventDataValueA, eventDataValueB ) );
+        eventService.addEvent( eventA );
+        programInstanceA.getEvents().add( eventA );
         programInstanceService.updateProgramInstance( programInstanceA );
         programNotificationTemplate = new ProgramNotificationTemplate();
         programNotificationTemplate.setName( "Test-PNT" );
@@ -286,7 +286,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programNotificationTemplate.setMessageTemplate( "message is #{" + dataElementUid + "}" );
         programNotificationTemplate.setSubjectTemplate( "subject is #{" + dataElementUid + "}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
-        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( eventA,
             programNotificationTemplate );
         assertEquals( "message is dataElementA-Text", notificationMessage.getMessage() );
         assertEquals( "subject is dataElementA-Text", notificationMessage.getSubject() );
@@ -310,7 +310,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programNotificationTemplate.setMessageTemplate( "message is V{program_id} and V{event_org_unit_id}" );
         programNotificationTemplate.setSubjectTemplate( "subject is V{program_stage_id} and V{enrollment_id}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
-        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( eventA,
             programNotificationTemplate );
         assertEquals( "message is " + programA.getUid() + " and " + orgUnitUid, notificationMessage.getMessage() );
         assertEquals( "subject is " + programStageA.getUid() + " and " + enrollmentUid,
@@ -323,7 +323,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programNotificationTemplate.setMessageTemplate( "message is V{tracked_entity_id}" );
         programNotificationTemplate.setSubjectTemplate( "subject is V{tracked_entity_id}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
-        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( eventA,
             programNotificationTemplate );
         assertEquals( "message is " + trackedEntityInstanceA.getUid(), notificationMessage.getMessage() );
         assertEquals( "subject is " + trackedEntityInstanceA.getUid(), notificationMessage.getSubject() );
@@ -335,11 +335,11 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programNotificationTemplate.setMessageTemplate( "message is V{event_date}" );
         programNotificationTemplate.setSubjectTemplate( "subject is V{event_date}" );
         programNotificationTemplateStore.update( programNotificationTemplate );
-        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( programStageInstanceA,
+        NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( eventA,
             programNotificationTemplate );
-        assertEquals( "message is " + formatDate( programStageInstanceA.getExecutionDate() ),
+        assertEquals( "message is " + formatDate( eventA.getExecutionDate() ),
             notificationMessage.getMessage() );
-        assertEquals( "subject is " + formatDate( programStageInstanceA.getExecutionDate() ),
+        assertEquals( "subject is " + formatDate( eventA.getExecutionDate() ),
             notificationMessage.getSubject() );
     }
 }

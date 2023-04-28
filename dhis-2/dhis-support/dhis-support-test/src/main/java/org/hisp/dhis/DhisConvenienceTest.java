@@ -144,6 +144,7 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -151,7 +152,6 @@ import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -1698,10 +1698,10 @@ public abstract class DhisConvenienceTest
         return programInstance;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
+    public static Event createProgramStageInstance( ProgramStage programStage,
         ProgramInstance pi, OrganisationUnit organisationUnit )
     {
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Event psi = new Event();
         psi.setAutoFields();
 
         psi.setProgramStage( programStage );
@@ -1711,10 +1711,10 @@ public abstract class DhisConvenienceTest
         return psi;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+    public static Event createProgramStageInstance( ProgramInstance programInstance,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
+        Event psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
         psi.setExecutionDate( new Date() );
         psi.setStatus( EventStatus.ACTIVE );
         psi.setEventDataValues( dataValues );
@@ -2022,7 +2022,7 @@ public abstract class DhisConvenienceTest
     }
 
     public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
-        ProgramStageInstance to,
+        Event to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
@@ -2030,7 +2030,7 @@ public abstract class DhisConvenienceTest
         RelationshipItem riTo = new RelationshipItem();
 
         riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramStageInstance( to );
+        riTo.setEvent( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );

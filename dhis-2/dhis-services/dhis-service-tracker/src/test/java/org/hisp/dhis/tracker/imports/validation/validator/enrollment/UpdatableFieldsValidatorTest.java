@@ -33,17 +33,16 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -95,7 +94,8 @@ class UpdatableFieldsValidatorTest
 
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
+            .thenReturn( TrackerImportStrategy.UPDATE );
 
         when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
         when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( programInstance() );
@@ -174,15 +174,15 @@ class UpdatableFieldsValidatorTest
         return programInstance;
     }
 
-    private ProgramStageInstance programStageInstance()
+    private Event programStageInstance()
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( PROGRAM_STAGE_ID );
 
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_ID );
-        programStageInstance.setProgramInstance( programInstance() );
-        programStageInstance.setProgramStage( programStage );
-        return programStageInstance;
+        Event event = new Event();
+        event.setUid( EVENT_ID );
+        event.setProgramInstance( programInstance() );
+        event.setProgramStage( programStage );
+        return event;
     }
 }

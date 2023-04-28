@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.user.User;
 
 /**
@@ -37,7 +37,7 @@ public interface EventService
 {
     Events getEvents( EventSearchParams params );
 
-    ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
+    Event getEvent( Event event, EventParams eventParams );
 
     void validate( EventSearchParams params, User user );
 }

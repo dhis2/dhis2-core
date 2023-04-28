@@ -30,7 +30,7 @@ package org.hisp.dhis.program.notification;
 /**
  * Defines methods for handling of tracker web hook notifications associated
  * with {@link org.hisp.dhis.program.ProgramInstance} and
- * {@link org.hisp.dhis.program.ProgramStageInstance}
+ * {@link org.hisp.dhis.program.Event}
  *
  * @author Zubair Asghar
  */
@@ -46,7 +46,7 @@ public interface TrackerNotificationWebHookService
 
     /**
      * Sends web hook notifications linked to
-     * {@link org.hisp.dhis.program.ProgramStageInstance}
+     * {@link org.hisp.dhis.program.Event}
      *
      * @param programStageInstance to handle
      */

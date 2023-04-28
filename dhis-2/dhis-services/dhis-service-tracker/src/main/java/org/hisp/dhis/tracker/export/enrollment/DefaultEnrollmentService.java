@@ -44,10 +44,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -124,7 +124,7 @@ public class DefaultEnrollmentService implements EnrollmentService
         result.setComments( programInstance.getComments() );
         if ( params.isIncludeEvents() )
         {
-            result.setProgramStageInstances( getProgramStageInstances( user, programInstance, params ) );
+            result.setEvents( getProgramStageInstances( user, programInstance, params ) );
         }
         if ( params.isIncludeRelationships() )
         {
@@ -139,20 +139,20 @@ public class DefaultEnrollmentService implements EnrollmentService
         return result;
     }
 
-    private Set<ProgramStageInstance> getProgramStageInstances( User user, ProgramInstance programInstance,
+    private Set<Event> getProgramStageInstances( User user, ProgramInstance programInstance,
         EnrollmentParams params )
     {
-        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+        Set<Event> events = new HashSet<>();
 
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        for ( Event event : programInstance.getEvents() )
         {
-            if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
-                && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
+            if ( (params.isIncludeDeleted() || !event.isDeleted())
+                && trackerAccessManager.canRead( user, event, true ).isEmpty() )
             {
-                programStageInstances.add( programStageInstance );
+                events.add( event );
             }
         }
-        return programStageInstances;
+        return events;
     }
 
     private Set<RelationshipItem> getRelationshipItems( User user, ProgramInstance programInstance,

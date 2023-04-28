@@ -35,9 +35,8 @@ import java.util.stream.Collectors;
 
 import lombok.Getter;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 /**
  * This class aggregates Events by operation type (Insert, Update, Delete)
@@ -48,14 +47,15 @@ import org.hisp.dhis.program.ProgramStageInstance;
 @Getter
 public class ImportStrategyAccumulator
 {
-    private final List<Event> create = new ArrayList<>();
+    private final List<org.hisp.dhis.dxf2.events.event.Event> create = new ArrayList<>();
 
-    private final List<Event> update = new ArrayList<>();
+    private final List<org.hisp.dhis.dxf2.events.event.Event> update = new ArrayList<>();
 
-    private final List<Event> delete = new ArrayList<>();
+    private final List<org.hisp.dhis.dxf2.events.event.Event> delete = new ArrayList<>();
 
-    public ImportStrategyAccumulator partitionEvents( List<Event> events, ImportStrategy importStrategy,
-        Map<String, ProgramStageInstance> existingEvents )
+    public ImportStrategyAccumulator partitionEvents( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        ImportStrategy importStrategy,
+        Map<String, Event> existingEvents )
     {
         if ( importStrategy.isCreate() )
         {
@@ -63,7 +63,7 @@ public class ImportStrategyAccumulator
         }
         else if ( importStrategy.isCreateAndUpdate() )
         {
-            for ( Event event : events )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : events )
             {
                 sortCreatesAndUpdates( event, create, update, existingEvents );
             }
@@ -81,7 +81,7 @@ public class ImportStrategyAccumulator
         }
         else if ( importStrategy.isSync() )
         {
-            for ( Event event : events )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : events )
             {
                 if ( event.isDeleted() )
                 {
@@ -96,10 +96,11 @@ public class ImportStrategyAccumulator
         return this;
     }
 
-    private void sortCreatesAndUpdates( Event event, List<Event> create, List<Event> update,
-        Map<String, ProgramStageInstance> existingEvents )
+    private void sortCreatesAndUpdates( org.hisp.dhis.dxf2.events.event.Event event,
+        List<org.hisp.dhis.dxf2.events.event.Event> create, List<org.hisp.dhis.dxf2.events.event.Event> update,
+        Map<String, Event> existingEvents )
     {
-        ProgramStageInstance programStageInstance = existingEvents.get( event.getEvent() );
+        Event programStageInstance = existingEvents.get( event.getEvent() );
 
         if ( programStageInstance == null )
         {

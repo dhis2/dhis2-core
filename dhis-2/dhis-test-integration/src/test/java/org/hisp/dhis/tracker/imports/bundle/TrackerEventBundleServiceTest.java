@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStageInstanceStore;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -71,8 +71,8 @@ class TrackerEventBundleServiceTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        List<ProgramStageInstance> programStageInstances = programStageInstanceStore.getAll();
-        assertEquals( 8, programStageInstances.size() );
+        List<Event> events = programStageInstanceStore.getAll();
+        assertEquals( 8, events.size() );
     }
 
     @Test

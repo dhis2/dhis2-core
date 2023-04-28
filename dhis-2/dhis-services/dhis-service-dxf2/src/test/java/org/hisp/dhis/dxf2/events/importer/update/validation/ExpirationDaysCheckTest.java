@@ -43,8 +43,8 @@ import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,8 +81,8 @@ class ExpirationDaysCheckTest extends BaseValidationTest
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         // Prepare program stage instance
-        Map<String, ProgramStageInstance> psiMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> psiMap = new HashMap<>();
+        Event psi = new Event();
         psi.setStatus( EventStatus.COMPLETED );
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
@@ -126,8 +126,8 @@ class ExpirationDaysCheckTest extends BaseValidationTest
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         // Prepare program stage instance
-        Map<String, ProgramStageInstance> psiMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> psiMap = new HashMap<>();
+        Event psi = new Event();
         psi.setStatus( EventStatus.COMPLETED );
         psi.setCompletedDate( getTodayMinusDays( 5 ) );
         psi.setUid( event.getUid() );
@@ -156,8 +156,8 @@ class ExpirationDaysCheckTest extends BaseValidationTest
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         // Prepare program stage instance
-        Map<String, ProgramStageInstance> psiMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> psiMap = new HashMap<>();
+        Event psi = new Event();
         psi.setCompletedDate( getTodayPlusDays( 5 ) );
         psi.setUid( event.getUid() );
         psiMap.put( event.getUid(), psi );
@@ -183,8 +183,8 @@ class ExpirationDaysCheckTest extends BaseValidationTest
         programMap.put( program.getUid(), program );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         // Prepare program stage instance
-        Map<String, ProgramStageInstance> psiMap = new HashMap<>();
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Map<String, Event> psiMap = new HashMap<>();
+        Event psi = new Event();
         // month length + 5
         psi.setExecutionDate( getTodayMinusDays( 35 ) );
         // days

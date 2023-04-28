@@ -171,7 +171,7 @@ public class AuditManager
         {
             RelationshipItem ri = (RelationshipItem) value;
             return ObjectUtils.firstNonNull( ri.getTrackedEntityInstance(), ri.getProgramInstance(),
-                ri.getProgramStageInstance() ).getUid();
+                ri.getEvent() ).getUid();
         }
 
         return value;

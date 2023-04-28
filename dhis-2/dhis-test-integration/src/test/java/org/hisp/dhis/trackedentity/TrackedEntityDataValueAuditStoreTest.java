@@ -43,13 +43,13 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -89,7 +89,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     private OrganisationUnit ouA;
 
@@ -111,15 +111,15 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
     private DataElement deB;
 
-    private ProgramStageInstance psiA;
+    private Event psiA;
 
-    private ProgramStageInstance psiB;
+    private Event psiB;
 
-    private ProgramStageInstance psiC;
+    private Event psiC;
 
-    private ProgramStageInstance psiD;
+    private Event psiD;
 
-    private ProgramStageInstance psiE;
+    private Event psiE;
 
     private EventDataValue dvA;
 
@@ -179,11 +179,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         psiC = createProgramStageInstance( piA, psA, ouC, Set.of( dvA, dvB ) );
         psiD = createProgramStageInstance( piA, psB, ouD, Set.of( dvC, dvD ) );
         psiE = createProgramStageInstance( piA, psA, ouE, Set.of( dvA, dvE ) );
-        programStageInstanceService.addProgramStageInstance( psiA );
-        programStageInstanceService.addProgramStageInstance( psiB );
-        programStageInstanceService.addProgramStageInstance( psiC );
-        programStageInstanceService.addProgramStageInstance( psiD );
-        programStageInstanceService.addProgramStageInstance( psiE );
+        eventService.addEvent( psiA );
+        eventService.addEvent( psiB );
+        eventService.addEvent( psiC );
+        eventService.addEvent( psiD );
+        eventService.addEvent( psiE );
     }
 
     @Test
@@ -201,14 +201,14 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA, deB ) )
-            .setProgramStageInstances( List.of( psiA ) )
+            .setEvents( List.of( psiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( List.of( dvaA, dvaB ), auditStore.getTrackedEntityDataValueAudits( params ) );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA ) )
-            .setProgramStageInstances( List.of( psiA ) )
+            .setEvents( List.of( psiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( List.of( dvaA ), auditStore.getTrackedEntityDataValueAudits( params ) );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
