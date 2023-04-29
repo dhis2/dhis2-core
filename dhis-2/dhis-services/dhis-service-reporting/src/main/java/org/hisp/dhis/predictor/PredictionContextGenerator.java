@@ -65,7 +65,7 @@ public class PredictionContextGenerator
      */
     public static List<PredictionContext> getContexts( List<Period> outputPeriods,
         List<FoundDimensionItemValue> values, CategoryOptionCombo defaultCategoryOptionCombo,
-        CategoryOptionCombo outputOptionCombo, PredictionDisaggregator preDis )
+        PredictionDisaggregator preDis )
     {
         List<PredictionContext> contexts = new ArrayList<>();
 
@@ -79,7 +79,7 @@ public class PredictionContextGenerator
 
             for ( Period outputPeriod : outputPeriods )
             {
-                contexts.add( new PredictionContext( outputOptionCombo, aoc, outputPeriod, periodValueMap ) );
+                contexts.add( new PredictionContext( preDis.getOutputCombo(), aoc, outputPeriod, periodValueMap ) );
             }
         }
 
