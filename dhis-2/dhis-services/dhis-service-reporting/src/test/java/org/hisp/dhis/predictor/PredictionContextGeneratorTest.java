@@ -29,6 +29,9 @@ package org.hisp.dhis.predictor;
 
 import static com.google.common.collect.Maps.immutableEntry;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.category.CategoryCombo.DEFAULT_CATEGORY_COMBO_NAME;
+import static org.hisp.dhis.category.CategoryOption.DEFAULT_NAME;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.predictor.PredictionContextGenerator.getContexts;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -41,7 +44,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
@@ -75,6 +80,16 @@ class PredictionContextGeneratorTest
     private final Period periodB = createPeriod( "202202" );
 
     private final Period periodC = createPeriod( "202203" );
+
+    private final CategoryOption coDefault = createCategoryOption( DEFAULT_NAME, "coIsDefault" );
+
+    private final Category catDefault = createCategory( DEFAULT_NAME, "caIsDefault", coDefault );
+
+    private final CategoryCombo ccDefault = new CategoryCombo( DEFAULT_CATEGORY_COMBO_NAME, DISAGGREGATION,
+        List.of( catDefault ) );
+
+    private final CategoryOptionCombo cocDefault = createCategoryOptionCombo( DEFAULT_NAME, "cocDefault", ccDefault,
+        coDefault );
 
     private final CategoryCombo ccA = createCategoryCombo( 'D' );
 
@@ -135,7 +150,7 @@ class PredictionContextGeneratorTest
     private final Predictor predictorA = createPredictor( deA, cocD, "A", expressionA, null, periodA.getPeriodType(),
         Set.of( ouLevel1 ), 0, 0, 0 );
 
-    private final PredictionDisaggregator preDisA = new PredictionDisaggregator( predictorA, emptyList() );
+    private final PredictionDisaggregator preDisA = new PredictionDisaggregator( predictorA, emptyList(), cocDefault );
 
     // -------------------------------------------------------------------------
     // Format prediction contexts for ease of reading.
@@ -298,7 +313,7 @@ class PredictionContextGeneratorTest
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX, cocD, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, aocValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -325,7 +340,7 @@ class PredictionContextGeneratorTest
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX, cocD, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, nonAocValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -374,7 +389,7 @@ class PredictionContextGeneratorTest
         String formatted3 = formatPredictionContext( expected3 );
         String formatted4 = formatPredictionContext( expected4 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX, cocD, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, allValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
@@ -392,7 +407,7 @@ class PredictionContextGeneratorTest
         String formatted1 = formatPredictionContext( expected1 );
         String formatted2 = formatPredictionContext( expected2 );
 
-        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX, cocD, preDisA );
+        List<PredictionContext> actual = getContexts( outputPeriods, noValues, aocX, preDisA );
 
         List<String> actualFormatted = formatPredictionContextList( actual );
 
