@@ -64,8 +64,6 @@ public class TrackerImporterAssertErrors
 
     public static final String PROGRAM_STAGE_CANT_BE_NULL = "ProgramStage can't be null";
 
-    public static final String PROGRAM_STAGE_INSTANCE_CANT_BE_NULL = "Event can't be null";
-
     public static final String CATEGORY_OPTION_COMBO_CANT_BE_NULL = "CategoryOptionCombo can't be null";
 
     public static final String DATE_STRING_CANT_BE_NULL = "Date string can not be null";

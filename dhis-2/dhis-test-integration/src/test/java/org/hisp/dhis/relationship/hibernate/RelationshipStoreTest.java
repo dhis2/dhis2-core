@@ -121,7 +121,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramStageInstance()
+    void testGetByEvent()
     {
         Program programA = addProgram();
 
@@ -129,12 +129,12 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         ProgramStage programStageA = addProgramStage( programA );
 
-        Event event = addProgramStageInstance( programInstance, programStageA );
+        Event event = addEvent( programInstance, programStageA );
 
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
-        Relationship relationshipA = addTeiToProgramStageInstanceRelationship( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToEventRelationship( trackedEntityInstanceA,
             event );
 
         List<Relationship> relationshipList = relationshipService
@@ -230,7 +230,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return teiRelationship;
     }
 
-    private Relationship addTeiToProgramStageInstanceRelationship( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToEventRelationship( TrackedEntityInstance entityInstance,
         Event event )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
@@ -268,7 +268,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Event addProgramStageInstance( ProgramInstance programInstance, ProgramStage programStageA )
+    private Event addEvent( ProgramInstance programInstance, ProgramStage programStageA )
     {
         Event event = new Event();
         event.setOrganisationUnit( organisationUnit );

@@ -330,10 +330,10 @@ public class DefaultProgramNotificationService
 
         List<ProgramInstance> programInstances = programInstanceStore.getWithScheduledNotifications( template, day );
 
-        MessageBatch psiBatch = createEventMessageBatch( template, events );
+        MessageBatch eventBatch = createEventMessageBatch( template, events );
         MessageBatch psBatch = createProgramInstanceMessageBatch( template, programInstances );
 
-        return new MessageBatch( psiBatch, psBatch );
+        return new MessageBatch( eventBatch, psBatch );
     }
 
     private List<ProgramNotificationTemplate> getScheduledTemplates()
@@ -389,14 +389,14 @@ public class DefaultProgramNotificationService
         {
             batch.programMessages.addAll(
                 events.stream()
-                    .map( psi -> createProgramMessage( psi, template ) )
+                    .map( event -> createProgramMessage( event, template ) )
                     .collect( Collectors.toSet() ) );
         }
         else
         {
             batch.dhisMessages.addAll(
                 events.stream()
-                    .map( psi -> createDhisMessage( psi, template ) )
+                    .map( event -> createDhisMessage( event, template ) )
                     .collect( Collectors.toSet() ) );
         }
 

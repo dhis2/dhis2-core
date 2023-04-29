@@ -159,7 +159,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 
         assertNoErrors( importReport );
         manager.flush();
-        importProgramStageInstances();
+        importEvents();
         manager.flush();
         params = fromJson( "tracker/validations/enrollments_te_attr-data.json" );
         User user2 = userService.getUser( USER_4 );
@@ -171,7 +171,7 @@ class EnrollmentImportValidationTest extends TrackerTest
         assertHasOnlyErrors( trackerImportDeleteReport, ValidationCode.E1103, ValidationCode.E1091 );
     }
 
-    protected void importProgramStageInstances()
+    protected void importEvents()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/events-with-registration.json" );

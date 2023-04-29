@@ -72,7 +72,7 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
 
     private DataElement dataElement;
 
-    private Event psi;
+    private Event event;
 
     @Override
     protected void initTest()
@@ -94,24 +94,24 @@ public class TrackedEntityDataValueAuditTest extends TrackerTest
             trackerImportService.importTracker( fromJson( "tracker/event_with_data_values_for_delete_audit.json" ) ) );
 
         dataElement = manager.search( DataElement.class, DE );
-        psi = manager.search( Event.class, PSI );
+        event = manager.search( Event.class, PSI );
         assertNotNull( dataElement );
-        assertNotNull( psi );
+        assertNotNull( event );
 
         List<TrackedEntityDataValueAudit> createdAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setEvents( List.of( psi ) )
+                .setEvents( List.of( event ) )
                 .setAuditTypes( List.of( AuditType.CREATE ) ) );
         List<TrackedEntityDataValueAudit> updatedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setEvents( List.of( psi ) )
+                .setEvents( List.of( event ) )
                 .setAuditTypes( List.of( AuditType.UPDATE ) ) );
         List<TrackedEntityDataValueAudit> deletedAudit = dataValueAuditService.getTrackedEntityDataValueAudits(
             new TrackedEntityDataValueAuditQueryParams()
                 .setDataElements( List.of( dataElement ) )
-                .setEvents( List.of( psi ) )
+                .setEvents( List.of( event ) )
                 .setAuditTypes( List.of( AuditType.DELETE ) ) );
 
         assertAll( () -> assertNotNull( createdAudit ), () -> assertNotNull( updatedAudit ),
