@@ -107,7 +107,11 @@ public class DefaultAttributeService
     @Transactional( readOnly = true )
     public Attribute getAttribute( String uid )
     {
-        return attributeCache.get( uid, attr -> attributeStore.getByUid( uid ) );
+        return attributeCache.get( uid, attr -> {
+            Attribute attribute = attributeStore.getByUid( uid );
+            HibernateProxyUtils.unproxy( attribute );
+            return attribute;
+        } );
     }
 
     @Override
