@@ -28,6 +28,7 @@
 package org.hisp.dhis.predictor;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 
@@ -177,7 +178,7 @@ public class PredictionDisaggregator
         return contexts.stream()
             .map( this::disagregateContext )
             .flatMap( Collection::stream )
-            .toList();
+            .collect( toList() );
     }
 
     // -------------------------------------------------------------------------
@@ -210,7 +211,7 @@ public class PredictionDisaggregator
     {
         return outputCocs.stream()
             .map( coc -> getDisaggregatedContext( context, coc ) )
-            .toList();
+            .collect( toList() );
     }
 
     /**
