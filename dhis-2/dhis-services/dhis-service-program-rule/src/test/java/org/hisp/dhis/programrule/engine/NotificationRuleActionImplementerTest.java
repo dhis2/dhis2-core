@@ -110,7 +110,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private RuleAction setMandatoryFieldFalse;
 
-    private ProgramInstance programInstance;
+    private ProgramInstance enrollment;
 
     private Event event;
 
@@ -155,13 +155,13 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance().getId() );
+        assertEquals( enrollment.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance().getId() );
     }
 
     @Test
@@ -213,9 +213,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( loggingService.getByKey( anyString() ) ).thenReturn( result.getLogEntry() );
 
-        String key = template.getUid() + programInstance.getUid();
+        String key = template.getUid() + enrollment.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         assertEquals( key, logEntry.getKey() );
     }
@@ -240,9 +240,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.getByKey( anyString() ) )
             .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
-        String key = template.getUid() + programInstance.getUid();
+        String key = template.getUid() + enrollment.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         assertEquals( key, logEntry.getKey() );
         assertTrue( logEntry.isAllowMultiple() );
@@ -254,7 +254,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).save( any() );
@@ -274,7 +274,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     void test_NothingHappensIfActionIsNull()
     {
         assertThrows( NullPointerException.class,
-            () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );
+            () -> implementer.implement( null, enrollment ), "Rule Effect cannot be null" );
     }
 
     // -------------------------------------------------------------------------
@@ -315,16 +315,16 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         programRuleA.setProgram( programA );
 
-        programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
+        enrollment = new ProgramInstance();
+        enrollment.setProgram( programA );
+        enrollment.setAutoFields();
 
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
         event = new Event();
         event.setProgramStage( programStageA );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setAutoFields();
     }
 }

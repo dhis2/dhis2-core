@@ -310,10 +310,10 @@ public class JdbcEventStore implements EventStore
                 Program program = new Program();
                 program.setUid( resultSet.getString( "p_identifier" ) );
                 program.setProgramType( programType );
-                ProgramInstance pi = new ProgramInstance();
-                pi.setUid( resultSet.getString( "pi_uid" ) );
-                pi.setProgram( program );
-                pi.setEntityInstance( tei );
+                ProgramInstance enrollment = new ProgramInstance();
+                enrollment.setUid( resultSet.getString( "pi_uid" ) );
+                enrollment.setProgram( program );
+                enrollment.setEntityInstance( tei );
                 OrganisationUnit ou = new OrganisationUnit();
                 ou.setUid( resultSet.getString( "ou_uid" ) );
                 ou.setName( resultSet.getString( "ou_name" ) );
@@ -321,9 +321,9 @@ public class JdbcEventStore implements EventStore
                 ps.setUid( resultSet.getString( "ps_identifier" ) );
                 event.setDeleted( resultSet.getBoolean( "psi_deleted" ) );
 
-                pi.setStatus( ProgramStatus.valueOf( resultSet.getString( "pi_status" ) ) );
-                pi.setFollowup( resultSet.getBoolean( "pi_followup" ) );
-                event.setProgramInstance( pi );
+                enrollment.setStatus( ProgramStatus.valueOf( resultSet.getString( "pi_status" ) ) );
+                enrollment.setFollowup( resultSet.getBoolean( "pi_followup" ) );
+                event.setEnrollment( enrollment );
                 event.setProgramStage( ps );
                 event.setOrganisationUnit( ou );
                 CategoryOptionCombo coc = new CategoryOptionCombo();

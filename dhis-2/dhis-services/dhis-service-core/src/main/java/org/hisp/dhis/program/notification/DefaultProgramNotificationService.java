@@ -544,9 +544,9 @@ public class DefaultProgramNotificationService
         }
         else
         {
-            TrackedEntityInstance trackedEntityInstance = event.getProgramInstance().getEntityInstance();
+            TrackedEntityInstance trackedEntityInstance = event.getEnrollment().getEntityInstance();
 
-            return resolveRecipients( template, organisationUnit, trackedEntityInstance, event.getProgramInstance() );
+            return resolveRecipients( template, organisationUnit, trackedEntityInstance, event.getEnrollment() );
         }
     }
 

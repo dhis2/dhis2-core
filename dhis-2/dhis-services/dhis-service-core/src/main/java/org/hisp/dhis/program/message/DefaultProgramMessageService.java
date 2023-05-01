@@ -237,28 +237,28 @@ public class DefaultProgramMessageService
     @Transactional( readOnly = true )
     public void currentUserHasAccess( ProgramMessageQueryParams params )
     {
-        ProgramInstance programInstance = null;
+        ProgramInstance enrollment = null;
 
         Set<Program> programs;
 
         if ( params.hasProgramInstance() )
         {
-            programInstance = params.getProgramInstance();
+            enrollment = params.getProgramInstance();
         }
 
         if ( params.hasEvent() )
         {
-            programInstance = params.getEvent().getProgramInstance();
+            enrollment = params.getEvent().getEnrollment();
         }
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             throw new IllegalQueryException( "ProgramInstance or Event has to be provided" );
         }
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );
 
-        if ( currentUserService.getCurrentUser() != null && !programs.contains( programInstance.getProgram() ) )
+        if ( currentUserService.getCurrentUser() != null && !programs.contains( enrollment.getProgram() ) )
         {
             throw new IllegalQueryException( "User does not have access to the required program" );
         }

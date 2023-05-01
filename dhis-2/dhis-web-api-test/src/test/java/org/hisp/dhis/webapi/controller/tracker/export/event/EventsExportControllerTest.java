@@ -212,7 +212,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
 
         JsonRelationshipItem.JsonEvent event = jsonRelationship.getFrom().getEvent();
         assertEquals( relationship.getFrom().getEvent().getUid(), event.getEvent() );
-        assertEquals( relationship.getFrom().getEvent().getProgramInstance().getUid(),
+        assertEquals( relationship.getFrom().getEvent().getEnrollment().getUid(),
             event.getEnrollment() );
 
         JsonRelationshipItem.JsonTrackedEntity trackedEntity = jsonRelationship.getTo().getTrackedEntity();
@@ -521,7 +521,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         assertEquals( "ACTIVE", json.getString( "status" ).string() );
         assertEquals( program.getUid(), json.getString( "program" ).string() );
         assertEquals( programStage.getUid(), json.getString( "programStage" ).string() );
-        assertEquals( event.getProgramInstance().getUid(), json.getString( "enrollment" ).string() );
+        assertEquals( event.getEnrollment().getUid(), json.getString( "enrollment" ).string() );
         assertEquals( orgUnit.getUid(), json.getString( "orgUnit" ).string() );
         assertEquals( orgUnit.getName(), json.getString( "orgUnitName" ).string() );
         assertFalse( json.getBoolean( "followup" ).booleanValue() );

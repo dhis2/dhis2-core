@@ -130,13 +130,13 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
             organisationUnit );
 
         eventA = new Event();
-        eventA.setProgramInstance( programInstanceA );
+        eventA.setEnrollment( programInstanceA );
         eventA.setProgramStage( programStage );
         eventA.setOrganisationUnit( organisationUnit );
         manager.save( eventA );
 
         eventB = new Event();
-        eventB.setProgramInstance( programInstanceB );
+        eventB.setEnrollment( programInstanceB );
         eventB.setProgramStage( programStage );
         eventB.setOrganisationUnit( organisationUnit );
         manager.save( eventB );

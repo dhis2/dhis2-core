@@ -168,12 +168,12 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        ProgramInstance enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );
         eventA = new Event();
-        eventA.setProgramInstance( programInstanceA );
+        eventA.setEnrollment( enrollmentA );
         eventA.setProgramStage( programStageA );
         eventA.setOrganisationUnit( orgUnitA );
         eventA.setStatus( EventStatus.COMPLETED );
@@ -181,7 +181,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( eventA, false );
 
         eventB = new Event();
-        eventB.setProgramInstance( programInstanceA );
+        eventB.setEnrollment( enrollmentA );
         eventB.setProgramStage( programStageB );
         eventB.setOrganisationUnit( orgUnitB );
         eventB.setStatus( EventStatus.SCHEDULE );

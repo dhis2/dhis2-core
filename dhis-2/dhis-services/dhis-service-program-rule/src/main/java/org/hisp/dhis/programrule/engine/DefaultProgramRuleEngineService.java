@@ -167,7 +167,7 @@ public class DefaultProgramRuleEngineService
         else
         {
             ProgramInstance programInstance = programInstanceService
-                .getProgramInstance( event.getProgramInstance().getId() );
+                .getProgramInstance( event.getEnrollment().getId() );
 
             ruleEffects = programRuleEngine.evaluate( programInstance, event, programInstance.getEvents(),
                 programRules );

@@ -126,16 +126,16 @@ public class DefaultTrackerObjectsDeletionService
 
             Event event = eventService.getEvent( uid );
 
-            ProgramInstance programInstance = event.getProgramInstance();
+            ProgramInstance enrollment = event.getEnrollment();
 
             eventService.deleteEvent( event );
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( event.getProgramInstance().getEntityInstance() );
+                teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
 
-                programInstance.getEvents().remove( event );
-                programInstanceService.updateProgramInstance( programInstance );
+                enrollment.getEvents().remove( event );
+                programInstanceService.updateProgramInstance( enrollment );
             }
 
             typeReport.getStats().incDeleted();

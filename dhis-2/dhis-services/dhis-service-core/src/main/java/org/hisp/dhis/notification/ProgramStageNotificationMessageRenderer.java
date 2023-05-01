@@ -66,16 +66,16 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.CURRENT_DATE, event -> formatDate( new Date() ) )
         .put( ProgramStageTemplateVariable.EVENT_ORG_UNIT_ID, event -> event.getOrganisationUnit().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_ID,
-            event -> event.getProgramInstance().getOrganisationUnit().getUid() )
+            event -> event.getEnrollment().getOrganisationUnit().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_NAME,
-            event -> event.getProgramInstance().getOrganisationUnit().getName() )
+            event -> event.getEnrollment().getOrganisationUnit().getName() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ORG_UNIT_CODE,
-            event -> event.getProgramInstance().getOrganisationUnit().getCode() )
+            event -> event.getEnrollment().getOrganisationUnit().getCode() )
         .put( ProgramStageTemplateVariable.PROGRAM_ID, event -> event.getProgramStage().getProgram().getUid() )
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_ID, event -> event.getProgramStage().getUid() )
-        .put( ProgramStageTemplateVariable.ENROLLMENT_ID, event -> event.getProgramInstance().getUid() )
+        .put( ProgramStageTemplateVariable.ENROLLMENT_ID, event -> event.getEnrollment().getUid() )
         .put( ProgramStageTemplateVariable.TRACKED_ENTITY_ID,
-            event -> event.getProgramInstance().getEntityInstance().getUid() )
+            event -> event.getEnrollment().getEntityInstance().getUid() )
         .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
@@ -105,7 +105,7 @@ public class ProgramStageNotificationMessageRenderer
             return Maps.newHashMap();
         }
 
-        return entity.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return entity.getEnrollment().getEntityInstance().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(),
                 ProgramStageNotificationMessageRenderer::filterValue ) );

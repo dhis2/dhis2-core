@@ -580,14 +580,14 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
         org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( programStageInstance.getUid() );
 
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
         {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
         }
 
-        event.setFollowup( programStageInstance.getProgramInstance().getFollowup() );
+        event.setFollowup( programStageInstance.getEnrollment().getFollowup() );
         event.setEnrollmentStatus(
-            EnrollmentStatus.fromProgramStatus( programStageInstance.getProgramInstance().getStatus() ) );
+            EnrollmentStatus.fromProgramStatus( programStageInstance.getEnrollment().getStatus() ) );
         event.setStatus( programStageInstance.getStatus() );
         event.setEventDate( DateUtils.getIso8601NoTz( programStageInstance.getExecutionDate() ) );
         event.setDueDate( DateUtils.getIso8601NoTz( programStageInstance.getDueDate() ) );
@@ -628,10 +628,10 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             event.setOrgUnitName( ou.getName() );
         }
 
-        Program program = programStageInstance.getProgramInstance().getProgram();
+        Program program = programStageInstance.getEnrollment().getProgram();
 
         event.setProgram( program.getUid() );
-        event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
+        event.setEnrollment( programStageInstance.getEnrollment().getUid() );
         event.setProgramStage( programStageInstance.getProgramStage().getUid() );
         CategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
         if ( attributeOptionCombo != null )
@@ -640,10 +640,10 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
         }
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
         {
             event
-                .setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+                .setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
         }
 
         Collection<EventDataValue> dataValues;
@@ -864,7 +864,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService
-                    .updateTrackedEntityInstance( event.getProgramInstance().getEntityInstance() );
+                    .updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
             }
 
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,
@@ -1118,21 +1118,21 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
     {
         for ( org.hisp.dhis.program.Event event : events )
         {
-            if ( event.getProgramInstance() != null )
+            if ( event.getEnrollment() != null )
             {
                 if ( !bulkUpdate )
                 {
-                    if ( event.getProgramInstance().getEntityInstance() != null )
+                    if ( event.getEnrollment().getEntityInstance() != null )
                     {
-                        manager.update( event.getProgramInstance().getEntityInstance(), user );
+                        manager.update( event.getEnrollment().getEntityInstance(), user );
                     }
                 }
                 else
                 {
-                    if ( event.getProgramInstance().getEntityInstance() != null )
+                    if ( event.getEnrollment().getEntityInstance() != null )
                     {
                         trackedEntityInstancesToUpdate
-                            .add( event.getProgramInstance().getEntityInstance() );
+                            .add( event.getEnrollment().getEntityInstance() );
                     }
                 }
             }
