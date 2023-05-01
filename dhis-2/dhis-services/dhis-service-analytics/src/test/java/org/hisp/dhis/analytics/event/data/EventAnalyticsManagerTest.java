@@ -489,7 +489,8 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
         String subquery = "from (select \"psi\",ax.\"deabcdefghX\",\"ou\"," +
             "\"monthly\",\"jkYhtGth12t\"," +
             "row_number() over (partition by ax.\"ou\",ax.\"jkYhtGth12t\" " +
-            "order by ax.\"executiondate\" desc) as pe_rank from analytics_event_prabcdefghA as ax " +
+            "order by ax.\"executiondate\" desc, ax.\"created\" desc) as pe_rank " +
+            "from analytics_event_prabcdefghA as ax " +
             "where ax.\"executiondate\" >= '2012-01-31' and ax.\"executiondate\" <= '2022-01-31' " +
             "and ax.\"deabcdefghX\" is not null)";
 
@@ -552,14 +553,16 @@ class EventAnalyticsManagerTest extends EventAnalyticsTest
 
         verify( jdbcTemplate ).queryForRowSet( sql.capture() );
 
-        String expectedLastSubquery = "from (select \"psi\",ax.\"" + deU.getUid()
+        String order = (analyticsAggregationType == AnalyticsAggregationType.LAST) ? "desc" : "asc";
+
+        String expectedFirstOrLastSubquery = "from (select \"psi\",ax.\"" + deU.getUid()
             + "\",\"monthly\",\"ou\","
             + "row_number() over (partition by ax.\"ou\",ax.\"ao\" order by ax.\"executiondate\" "
-            + (analyticsAggregationType == AnalyticsAggregationType.LAST ? "desc" : "asc") + ") as pe_rank "
+            + order + ", ax.\"created\" " + order + ") as pe_rank "
             + "from " + getTable( programA.getUid() ) + " as ax where ax.\"executiondate\" >= '1990-03-31' "
             + "and ax.\"executiondate\" <= '2000-03-31' and ax.\"" + deU.getUid() + "\" is not null)";
 
-        assertThat( sql.getValue(), containsString( expectedLastSubquery ) );
+        assertThat( sql.getValue(), containsString( expectedFirstOrLastSubquery ) );
     }
 
     private EventQueryParams createRequestParamsWithFilter( ValueType queryItemValueType )
