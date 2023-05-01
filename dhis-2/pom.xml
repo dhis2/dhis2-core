@@ -152,7 +152,7 @@
     <javacsv.version>2.0</javacsv.version>
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
-    <json-path.version>2.7.0</json-path.version>
+    <json-path.version>2.8.0</json-path.version>
     <jsoup.version>1.15.4</jsoup.version>
     <jetty.version>10.0.14</jetty.version>
 
