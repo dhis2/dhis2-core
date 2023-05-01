@@ -347,12 +347,11 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private void addDimensionSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause )
     {
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
+        params.getDimensions().forEach( dimension -> {
             if ( isGroupByClause && dimension.getDimensionType() == DimensionType.PERIOD
                 && params.hasNonDefaultBoundaries() )
             {
-                continue;
+                return;
             }
 
             if ( dimension.getDimensionType() == DimensionType.PERIOD &&
@@ -388,7 +387,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 throw new IllegalStateException( "Program indicator non-default boundary query must have " +
                     "exactly one period, or no periods and a period filter" );
             }
-        }
+        } );
     }
 
     private void addItemSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause,
