@@ -221,13 +221,13 @@ public class ReferencesCheck implements ValidationCheck
         {
             sharing.getUserGroups().values().stream()
                 .filter( userGroupAccess -> preheat.get( PreheatIdentifier.UID,
-                    userGroupAccess.toDtoObject().getUserGroup() ) == null )
+                    userGroupAccess.getUserGroup() ) == null )
                 .forEach(
                     userGroupAccess -> preheatErrorReports
                         .add( new PreheatErrorReport( PreheatIdentifier.UID, object.getClass(),
                             ErrorCode.E5002,
                             PreheatIdentifier.UID
-                                .getIdentifiersWithName( userGroupAccess.toDtoObject().getUserGroup() ),
+                                .getIdentifiersWithName( userGroupAccess.getUserGroup() ),
                             PreheatIdentifier.UID.getIdentifiersWithName( object ), "userGroupAccesses" ) ) );
         }
 
@@ -235,11 +235,11 @@ public class ReferencesCheck implements ValidationCheck
         {
             sharing.getUsers().values().stream()
                 .filter( userAccess -> preheat.get( PreheatIdentifier.UID,
-                    userAccess.toDtoObject().getUser() ) == null )
+                    userAccess.getUser() ) == null )
                 .forEach(
                     userAccesses -> preheatErrorReports.add( new PreheatErrorReport( PreheatIdentifier.UID,
                         object.getClass(), ErrorCode.E5002,
-                        PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.toDtoObject().getUser() ),
+                        PreheatIdentifier.UID.getIdentifiersWithName( userAccesses.getUser() ),
                         PreheatIdentifier.UID.getIdentifiersWithName( object ), "userAccesses" ) ) );
         }
     }

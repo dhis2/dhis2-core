@@ -79,18 +79,18 @@ public class PredictorExpression
      */
     final String degUid;
 
+    private static final Pattern WHITE_SPACE_PATTERN = Pattern.compile( "\\s+" );
+
     private static final Pattern VARIABLE_PATTERN = Pattern.compile( "^\\?[A-Za-z][A-Za-z0-9]*$" );
 
     private static final String FOR_EACH = "forEach";
 
     private static final String IN = "in";
 
-    private static final String PREPROCESSOR_SEPARATOR = " --> ";
-
-    private static final int PREPROCESSOR_SEPARATOR_LENGTH = PREPROCESSOR_SEPARATOR.length();
+    private static final String PREPROCESSOR_SEPARATOR = "-->";
 
     /**
-     * Accepts and parses a predictor expression with a preprocessor prefix:
+     * Accepts and parses a predictor expression with or without a prefix:
      * forEach ?variable in :DEG:degUid -->
      *
      * @param expression the expression to parse for preprocessing.
@@ -112,26 +112,15 @@ public class PredictorExpression
 
         simple = false;
 
-        int mainSplit = expression.indexOf( PREPROCESSOR_SEPARATOR );
+        String[] parts = WHITE_SPACE_PATTERN.split( expression, 6 );
 
-        if ( mainSplit < 0 )
+        if ( parts.length != 6 )
         {
-            throw new ParserException(
-                format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
-        }
-
-        prefix = this.expression.substring( 0, mainSplit );
-        main = this.expression.substring( mainSplit + PREPROCESSOR_SEPARATOR_LENGTH );
-
-        String[] parts = prefix.split( " " );
-
-        if ( parts.length != 4 )
-        {
-            throw new ParserException( format( "Predictor preprocessor expression should have four parts: '%s'",
+            throw new ParserException( format( "Predictor expression with preprocessing should have six parts: '%s'",
                 expression ) );
         }
 
-        // forEach
+        // 0. forEach
 
         if ( !parts[0].equals( FOR_EACH ) )
         {
@@ -139,19 +128,19 @@ public class PredictorExpression
                 expression ) );
         }
 
-        // variable
+        // 1. variable
 
         variable = parts[1];
         validateVariable( variable, expression );
 
-        // in
+        // 2. in
 
         if ( !parts[2].equals( IN ) )
         {
             throw new ParserException( format( "Keyword 'in' must be the third token in '%s'", expression ) );
         }
 
-        // :DEG:deGroupUid
+        // 3. :DEG:deGroupUid
 
         taggedDegUid = parts[3];
         if ( !taggedDegUid.startsWith( ":DEG:" ) )
@@ -166,6 +155,19 @@ public class PredictorExpression
                 "UID '%s' must start with a letter and contain 10 more letters and numbers in '%s'", degUid,
                 expression ) );
         }
+
+        // 4. --> (separates main expression from prefix)
+
+        if ( !PREPROCESSOR_SEPARATOR.equals( parts[4] ) )
+        {
+            throw new ParserException(
+                format( "Couldn't find preprocessor termination '%s' in '%s'", PREPROCESSOR_SEPARATOR, expression ) );
+        }
+
+        // 5. Main expression (Put the rest into prefix)
+
+        main = parts[5];
+        prefix = expression.substring( 0, expression.length() - main.length() );
     }
 
     // -------------------------------------------------------------------------

@@ -80,8 +80,8 @@ import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
-import org.hisp.dhis.common.RepeatableStageValueStatus;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -230,7 +230,7 @@ public abstract class AbstractAnalyticsService
 
     /**
      * Add information about row context. The row context is based on origin of
-     * repeatable stage value. Please see the {@link RepeatableStageValueStatus}
+     * repeatable stage value. Please see the {@link ValueStatus}
      *
      *
      * @param grid the {@link Grid}.

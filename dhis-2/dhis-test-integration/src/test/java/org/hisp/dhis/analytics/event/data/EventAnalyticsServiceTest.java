@@ -98,6 +98,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramInstance;
@@ -105,7 +106,6 @@ import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -426,99 +426,100 @@ class EventAnalyticsServiceTest
         trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
-        ProgramStageInstance psiA1 = createProgramStageInstance( psA, piA, ouI );
-        psiA1.setDueDate( jan15 );
-        psiA1.setExecutionDate( jan15 );
-        psiA1.setUid( "prgStgInsA1" );
-        psiA1.setEventDataValues( Set.of(
+        Event eventA1 = createEvent( psA, piA, ouI );
+        eventA1.setDueDate( jan15 );
+        eventA1.setExecutionDate( jan15 );
+        eventA1.setUid( "event0000A1" );
+        eventA1.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "1" ),
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
-        psiA1.setAttributeOptionCombo( cocDefault );
+        eventA1.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiA2 = createProgramStageInstance( psA, piA, ouJ );
-        psiA2.setDueDate( feb15 );
-        psiA2.setExecutionDate( feb15 );
-        psiA2.setUid( "prgStgInsA2" );
-        psiA2.setEventDataValues( Set.of(
+        Event eventA2 = createEvent( psA, piA, ouJ );
+        eventA2.setDueDate( feb15 );
+        eventA2.setExecutionDate( feb15 );
+        eventA2.setUid( "event0000A2" );
+        eventA2.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "2" ),
             new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
-        psiA2.setAttributeOptionCombo( cocDefault );
+        eventA2.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiA3 = createProgramStageInstance( psA, piA, ouK );
-        psiA3.setDueDate( mar15 );
-        psiA3.setExecutionDate( mar15 );
-        psiA3.setUid( "prgStgInsA3" );
-        psiA3.setEventDataValues( Set.of(
+        Event eventA3 = createEvent( psA, piA, ouK );
+        eventA3.setDueDate( mar15 );
+        eventA3.setExecutionDate( mar15 );
+        eventA3.setUid( "event0000A3" );
+        eventA3.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "4" ),
             new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
-        psiA3.setAttributeOptionCombo( cocDefault );
+        eventA3.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB1 = createProgramStageInstance( psB, piB, ouI );
-        psiB1.setDueDate( jan15 );
-        psiB1.setExecutionDate( jan15 );
-        psiB1.setUid( "prgStgInsB1" );
-        psiB1.setEventDataValues( Set.of(
+        Event eventB1 = createEvent( psB, piB, ouI );
+        eventB1.setDueDate( jan15 );
+        eventB1.setExecutionDate( jan15 );
+        eventB1.setUid( "event0000B1" );
+        eventB1.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "10" ) ) );
-        psiB1.setAttributeOptionCombo( cocDefault );
+        eventB1.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB2 = createProgramStageInstance( psB, piB, ouI );
-        psiB2.setDueDate( jan20 );
-        psiB2.setExecutionDate( jan20 );
-        psiB2.setUid( "prgStgInsB2" );
-        psiB2.setEventDataValues( Set.of(
+        Event eventB2 = createEvent( psB, piB, ouI );
+        eventB2.setDueDate( jan20 );
+        eventB2.setExecutionDate( jan20 );
+        eventB2.setUid( "event0000B2" );
+        eventB2.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "20" ) ) );
-        psiB2.setAttributeOptionCombo( cocDefault );
+        eventB2.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB3 = createProgramStageInstance( psB, piB, ouJ );
-        psiB3.setDueDate( jan15 );
-        psiB3.setExecutionDate( jan15 );
-        psiB3.setUid( "prgStgInsB3" );
-        psiB3.setEventDataValues( Set.of(
+        Event eventB3 = createEvent( psB, piB, ouJ );
+        eventB3.setDueDate( jan15 );
+        eventB3.setExecutionDate( jan15 );
+        eventB3.setUid( "event0000B3" );
+        eventB3.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "30" ) ) );
-        psiB3.setAttributeOptionCombo( cocDefault );
+        eventB3.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB4 = createProgramStageInstance( psB, piB, ouJ );
-        psiB4.setDueDate( jan20 );
-        psiB4.setExecutionDate( jan20 );
-        psiB4.setUid( "prgStgInsB4" );
-        psiB4.setEventDataValues( Set.of(
+        Event eventB4 = createEvent( psB, piB, ouJ );
+        eventB4.setDueDate( jan20 );
+        eventB4.setExecutionDate( jan20 );
+        eventB4.setUid( "event0000B4" );
+        eventB4.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "40" ) ) );
-        psiB4.setAttributeOptionCombo( cocDefault );
+        eventB4.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB5 = createProgramStageInstance( psB, piB, ouI );
-        psiB5.setDueDate( feb15 );
-        psiB5.setExecutionDate( feb15 );
-        psiB5.setUid( "prgStgInsB5" );
-        psiB5.setEventDataValues( Set.of(
+        Event eventB5 = createEvent( psB, piB, ouI );
+        eventB5.setDueDate( feb15 );
+        eventB5.setExecutionDate( feb15 );
+        eventB5.setUid( "event0000B5" );
+        eventB5.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "50" ) ) );
-        psiB5.setAttributeOptionCombo( cocDefault );
+        eventB5.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB6 = createProgramStageInstance( psB, piB, ouI );
-        psiB6.setDueDate( feb15Noon );
-        psiB6.setExecutionDate( feb15Noon );
-        psiB6.setUid( "prgStgInsB6" );
-        psiB6.setEventDataValues( Set.of(
+        Event eventB6 = createEvent( psB, piB, ouI );
+        eventB6.setDueDate( feb15Noon );
+        eventB6.setExecutionDate( feb15Noon );
+        eventB6.setUid( "event0000B6" );
+        eventB6.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "60" ) ) );
-        psiB6.setAttributeOptionCombo( cocDefault );
+        eventB6.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB7 = createProgramStageInstance( psB, piB, ouJ );
-        psiB7.setDueDate( feb15 );
-        psiB7.setExecutionDate( feb15 );
-        psiB7.setUid( "prgStgInsB7" );
-        psiB7.setEventDataValues( Set.of(
+        Event eventB7 = createEvent( psB, piB, ouJ );
+        eventB7.setDueDate( feb15 );
+        eventB7.setExecutionDate( feb15 );
+        eventB7.setUid( "event0000B7" );
+        eventB7.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "70" ) ) );
-        psiB7.setAttributeOptionCombo( cocDefault );
+        eventB7.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB8 = createProgramStageInstance( psB, piB, ouJ );
-        psiB8.setDueDate( feb15Noon );
-        psiB8.setExecutionDate( feb15Noon );
-        psiB8.setUid( "prgStgInsB8" );
-        psiB8.setEventDataValues( Set.of(
+        Event eventB8 = createEvent( psB, piB, ouJ );
+        eventB8.setDueDate( feb15Noon );
+        eventB8.setExecutionDate( feb15Noon );
+        eventB8.setUid( "event0000B8" );
+        eventB8.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "80" ) ) );
-        psiB8.setAttributeOptionCombo( cocDefault );
+        eventB8.setAttributeOptionCombo( cocDefault );
 
-        saveEvents( List.of( psiA1, psiA2, psiA3,
-            psiB1, psiB2, psiB3, psiB4, psiB5, psiB6, psiB7, psiB8 ) );
+        saveEvents( List.of( eventA1, eventA2, eventA3,
+            eventB1, eventB2, eventB3, eventB4,
+            eventB5, eventB6, eventB7, eventB8 ) );
 
         // Users
         userA = createUserWithAuth( "A", "F_VIEW_EVENT_ANALYTICS" );
@@ -552,7 +553,7 @@ class EventAnalyticsServiceTest
      * is protected.
      */
     @Transactional
-    protected void saveEvents( List<ProgramStageInstance> events )
+    protected void saveEvents( List<Event> events )
     {
         eventStore.saveEvents( events );
     }

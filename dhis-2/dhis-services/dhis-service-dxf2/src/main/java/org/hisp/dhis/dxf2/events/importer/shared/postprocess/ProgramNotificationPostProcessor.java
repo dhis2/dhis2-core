@@ -31,11 +31,10 @@ import static org.hisp.dhis.event.EventStatus.SCHEDULE;
 
 import java.util.Optional;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.notification.event.ProgramStageCompletionNotificationEvent;
 import org.hisp.dhis.programrule.engine.StageCompletionEvaluationEvent;
 import org.hisp.dhis.programrule.engine.StageScheduledEvaluationEvent;
@@ -50,14 +49,14 @@ import org.springframework.stereotype.Component;
 public class ProgramNotificationPostProcessor implements Processor
 {
     @Override
-    public void process( final Event event, final WorkContext ctx )
+    public void process( final org.hisp.dhis.dxf2.events.event.Event event, final WorkContext ctx )
     {
         if ( !ctx.getImportOptions().isSkipNotifications() )
         {
             // When this processor is invoked from insert event, then
-            // programStageInstance
+            // event
             // might be null and need to be built from Event.
-            final ProgramStageInstance programStageInstance = getProgramStageInstance( ctx, event );
+            final Event programStageInstance = getProgramStageInstance( ctx, event );
 
             final ApplicationEventPublisher applicationEventPublisher = ctx.getServiceDelegator()
                 .getApplicationEventPublisher();
@@ -81,7 +80,7 @@ public class ProgramNotificationPostProcessor implements Processor
         }
     }
 
-    private ProgramStageInstance getProgramStageInstance( WorkContext ctx, Event event )
+    private Event getProgramStageInstance( WorkContext ctx, org.hisp.dhis.dxf2.events.event.Event event )
     {
         return Optional.ofNullable( ctx.getProgramStageInstanceMap().get( event.getUid() ) )
             .orElseGet( () -> new ProgramStageInstanceMapper( ctx ).map( event ) );

@@ -48,7 +48,7 @@ import org.hibernate.Session;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -60,7 +60,6 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.job.TrackerSideEffectDataBundle;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.util.DateUtils;
@@ -70,9 +69,9 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventPersister extends AbstractTrackerPersister<Event, ProgramStageInstance>
+public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.tracker.imports.domain.Event, Event>
 {
-    private final TrackerConverterService<Event, ProgramStageInstance> eventConverter;
+    private final TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter;
 
     private final TrackedEntityCommentService trackedEntityCommentService;
 
@@ -81,7 +80,7 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     private final TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
 
     public EventPersister( ReservedValueService reservedValueService,
-        TrackerConverterService<Event, ProgramStageInstance> eventConverter,
+        TrackerConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventConverter,
         TrackedEntityCommentService trackedEntityCommentService,
         TrackerSideEffectConverterService sideEffectConverterService,
         TrackedEntityAttributeValueAuditService trackedEntityAttributeValueAuditService,
@@ -95,11 +94,11 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     @Override
-    protected void persistComments( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
+    protected void persistComments( TrackerPreheat preheat, Event event )
     {
-        if ( !programStageInstance.getComments().isEmpty() )
+        if ( !event.getComments().isEmpty() )
         {
-            for ( TrackedEntityComment comment : programStageInstance.getComments() )
+            for ( TrackedEntityComment comment : event.getComments() )
             {
                 if ( Objects.isNull( preheat.getNote( comment.getUid() ) ) )
                 {
@@ -110,9 +109,9 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     @Override
-    protected void updatePreheat( TrackerPreheat preheat, ProgramStageInstance programStageInstance )
+    protected void updatePreheat( TrackerPreheat preheat, Event event )
     {
-        preheat.putEvents( Collections.singletonList( programStageInstance ) );
+        preheat.putEvents( Collections.singletonList( event ) );
     }
 
     @Override
@@ -123,22 +122,22 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     @Override
     protected TrackerSideEffectDataBundle handleSideEffects( TrackerBundle bundle,
-        ProgramStageInstance programStageInstance )
+        Event event )
     {
         return TrackerSideEffectDataBundle.builder()
-            .klass( ProgramStageInstance.class )
+            .klass( Event.class )
             .enrollmentRuleEffects( new HashMap<>() )
             .eventRuleEffects( sideEffectConverterService.toTrackerSideEffects( bundle.getEventRuleEffects() ) )
-            .object( programStageInstance.getUid() )
+            .object( event.getUid() )
             .importStrategy( bundle.getImportStrategy() )
             .accessedBy( bundle.getUsername() )
-            .programStageInstance( programStageInstance )
-            .program( programStageInstance.getProgramStage().getProgram() )
+            .event( event )
+            .program( event.getProgramStage().getProgram() )
             .build();
     }
 
     @Override
-    protected ProgramStageInstance convert( TrackerBundle bundle, Event event )
+    protected Event convert( TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
     {
         return eventConverter.from( bundle.getPreheat(), event );
     }
@@ -151,22 +150,22 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
     @Override
     protected void updateAttributes( Session session, TrackerPreheat preheat,
-        Event event, ProgramStageInstance programStageInstance )
+        org.hisp.dhis.tracker.imports.domain.Event event, Event hibernateEntity )
     {
         // DO NOTHING - EVENT HAVE NO ATTRIBUTES
     }
 
     @Override
     protected void updateDataValues( Session session, TrackerPreheat preheat,
-        Event event, ProgramStageInstance programStageInstance )
+        org.hisp.dhis.tracker.imports.domain.Event event, Event hibernateEntity )
     {
-        handleDataValues( session, preheat, event.getDataValues(), programStageInstance );
+        handleDataValues( session, preheat, event.getDataValues(), hibernateEntity );
     }
 
     private void handleDataValues( Session session, TrackerPreheat preheat, Set<DataValue> payloadDataValues,
-        ProgramStageInstance psi )
+        Event event )
     {
-        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( psi.getUid() ) )
+        Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( preheat.getEvent( event.getUid() ) )
             .map( a -> a.getEventDataValues()
                 .stream()
                 .collect( Collectors.toMap( EventDataValue::getDataElement, Function.identity() ) ) )
@@ -192,10 +191,10 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             {
                 if ( dataElement.isFileType() )
                 {
-                    unassignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
+                    unassignFileResource( session, preheat, event.getUid(), eventDataValue.getValue() );
                 }
 
-                psi.getEventDataValues().remove( eventDataValue );
+                event.getEventDataValues().remove( eventDataValue );
             }
             else
             {
@@ -203,15 +202,14 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
 
                 if ( dataElement.isFileType() )
                 {
-                    assignFileResource( session, preheat, psi.getUid(), eventDataValue.getValue() );
+                    assignFileResource( session, preheat, event.getUid(), eventDataValue.getValue() );
                 }
 
-                psi.getEventDataValues().remove( eventDataValue );
-                psi.getEventDataValues().add( eventDataValue );
+                event.getEventDataValues().remove( eventDataValue );
+                event.getEventDataValues().add( eventDataValue );
             }
 
-            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, psi,
-                new Date(), valuesHolder );
+            logTrackedEntityDataValueHistory( preheat.getUsername(), dataElement, event, new Date(), valuesHolder );
         } );
     }
 
@@ -223,15 +221,15 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
             .orElseGet( Date::new );
     }
 
-    private void logTrackedEntityDataValueHistory( String userName,
-        DataElement de, ProgramStageInstance psi, Date created, ValuesHolder valuesHolder )
+    private void logTrackedEntityDataValueHistory( String userName, DataElement de, Event event, Date created,
+        ValuesHolder valuesHolder )
     {
         AuditType auditType = valuesHolder.getAuditType();
 
         if ( auditType != null )
         {
             TrackedEntityDataValueAudit valueAudit = new TrackedEntityDataValueAudit();
-            valueAudit.setProgramStageInstance( psi );
+            valueAudit.setEvent( event );
             valueAudit.setValue( valuesHolder.getValue() );
             valueAudit.setAuditType( auditType );
             valueAudit.setDataElement( de );
@@ -244,13 +242,13 @@ public class EventPersister extends AbstractTrackerPersister<Event, ProgramStage
     }
 
     @Override
-    protected void persistOwnership( TrackerPreheat preheat, ProgramStageInstance entity )
+    protected void persistOwnership( TrackerPreheat preheat, Event entity )
     {
         // DO NOTHING. Event creation does not create ownership records.
     }
 
     @Override
-    protected String getUpdatedTrackedEntity( ProgramStageInstance entity )
+    protected String getUpdatedTrackedEntity( Event entity )
     {
         return Optional.ofNullable( entity.getProgramInstance() ).filter( pi -> pi.getEntityInstance() != null )
             .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );

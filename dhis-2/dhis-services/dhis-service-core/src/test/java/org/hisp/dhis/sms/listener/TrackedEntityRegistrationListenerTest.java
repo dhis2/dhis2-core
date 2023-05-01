@@ -46,10 +46,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -98,7 +98,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private CategoryService dataElementCategoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private UserService userService;
@@ -159,7 +159,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     {
         subject = new TrackedEntityRegistrationSMSListener( programService, programInstanceService,
             dataElementCategoryService,
-            programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender,
+            eventService, userService, currentUserService, incomingSmsService, smsSender,
             smsCommandService,
             trackedEntityTypeService, trackedEntityInstanceService );
 

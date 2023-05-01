@@ -42,9 +42,9 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -150,9 +150,9 @@ class OwnershipTest extends TrackerTest
             pi.getCreatedAtClient() );
         assertEquals( DateUtils.fromInstant( enrollmentParams.getEnrollments().get( 0 ).getUpdatedAtClient() ),
             pi.getLastUpdatedAtClient() );
-        Set<ProgramStageInstance> psis = pi.getProgramStageInstances();
+        Set<Event> psis = pi.getEvents();
         assertEquals( 1, psis.size() );
-        ProgramStageInstance psi = psis.iterator().next();
+        Event psi = psis.iterator().next();
         assertNotNull( psi.getCreatedAtClient() );
         assertNotNull( psi.getLastUpdatedAtClient() );
         assertEquals( DateUtils.fromInstant( trackerImportParams.getEvents().get( 0 ).getCreatedAtClient() ),

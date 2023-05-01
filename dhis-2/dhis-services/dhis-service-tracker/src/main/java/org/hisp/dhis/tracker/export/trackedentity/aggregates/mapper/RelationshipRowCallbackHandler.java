@@ -33,8 +33,8 @@ import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -77,9 +77,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         {
             return relationshipItem.getProgramInstance().getUid();
         }
-        else if ( relationshipItem.getProgramStageInstance() != null )
+        else if ( relationshipItem.getEvent() != null )
         {
-            return relationshipItem.getProgramStageInstance().getUid();
+            return relationshipItem.getEvent().getUid();
         }
         throw new IllegalStateException( "RelationshipItem must have one of trackedEntity, enrollment or event set" );
     }
@@ -151,9 +151,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
             ri.setProgramInstance( pi );
             break;
         case "psi":
-            ProgramStageInstance psi = new ProgramStageInstance();
-            psi.setUid( uid );
-            ri.setProgramStageInstance( psi );
+            Event event = new Event();
+            event.setUid( uid );
+            ri.setEvent( event );
             break;
         default:
             log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );

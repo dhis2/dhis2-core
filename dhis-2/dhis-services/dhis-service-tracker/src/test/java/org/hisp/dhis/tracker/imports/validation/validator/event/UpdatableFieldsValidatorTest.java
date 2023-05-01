@@ -33,17 +33,16 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -95,11 +94,12 @@ class UpdatableFieldsValidatorTest
 
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
+            .thenReturn( TrackerImportStrategy.UPDATE );
 
         when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
         when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( programInstance() );
-        when( preheat.getEvent( EVENT_ID ) ).thenReturn( programStageInstance() );
+        when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
 
         when( bundle.getPreheat() ).thenReturn( preheat );
 
@@ -109,7 +109,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEventValidationSuccess()
     {
-        Event event = validEvent();
+        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
 
         validator.validate( reporter, bundle, event );
 
@@ -119,7 +119,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEventValidationFailsWhenUpdateProgramStage()
     {
-        Event event = validEvent();
+        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
         event.setProgramStage( MetadataIdentifier.ofUid( "NewProgramStageId" ) );
 
         validator.validate( reporter, bundle, event );
@@ -130,7 +130,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEventValidationFailsWhenUpdateEnrollment()
     {
-        Event event = validEvent();
+        org.hisp.dhis.tracker.imports.domain.Event event = validEvent();
         event.setEnrollment( "NewEnrollmentId" );
 
         validator.validate( reporter, bundle, event );
@@ -138,9 +138,9 @@ class UpdatableFieldsValidatorTest
         assertHasError( reporter, event, E1128, "enrollment" );
     }
 
-    private Event validEvent()
+    private org.hisp.dhis.tracker.imports.domain.Event validEvent()
     {
-        return Event.builder()
+        return org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( EVENT_ID )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) )
             .enrollment( ENROLLMENT_ID )
@@ -170,15 +170,15 @@ class UpdatableFieldsValidatorTest
         return programInstance;
     }
 
-    private ProgramStageInstance programStageInstance()
+    private Event event()
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( PROGRAM_STAGE_ID );
 
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_ID );
-        programStageInstance.setProgramInstance( programInstance() );
-        programStageInstance.setProgramStage( programStage );
-        return programStageInstance;
+        Event event = new Event();
+        event.setUid( EVENT_ID );
+        event.setProgramInstance( programInstance() );
+        event.setProgramStage( programStage );
+        return event;
     }
 }

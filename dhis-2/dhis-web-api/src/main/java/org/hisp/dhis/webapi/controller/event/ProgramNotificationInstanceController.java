@@ -32,8 +32,8 @@ import java.util.List;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceParam;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
@@ -60,16 +60,16 @@ public class ProgramNotificationInstanceController
 
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     public ProgramNotificationInstanceController(
         ProgramNotificationInstanceService programNotificationInstanceService,
         ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService )
+        EventService eventService )
     {
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.eventService = eventService;
     }
 
     // -------------------------------------------------------------------------
@@ -88,7 +88,7 @@ public class ProgramNotificationInstanceController
     {
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
             .programInstance( programInstanceService.getProgramInstance( programInstance ) )
-            .programStageInstance( programStageInstanceService.getProgramStageInstance( programStageInstance ) )
+            .event( eventService.getEvent( programStageInstance ) )
             .skipPaging( skipPaging )
             .page( page )
             .pageSize( pageSize )

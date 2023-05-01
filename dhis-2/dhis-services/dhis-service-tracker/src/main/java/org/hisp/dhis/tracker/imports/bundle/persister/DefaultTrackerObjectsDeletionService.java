@@ -33,10 +33,10 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -66,7 +65,7 @@ public class DefaultTrackerObjectsDeletionService
 
     private final TrackedEntityInstanceService teiService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final RelationshipService relationshipService;
 
@@ -89,9 +88,9 @@ public class DefaultTrackerObjectsDeletionService
 
             ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
 
-            List<Event> events = eventTrackerConverterService
-                .to( Lists.newArrayList( programInstance.getProgramStageInstances()
-                    .stream().filter( psi -> !psi.isDeleted() )
+            List<org.hisp.dhis.tracker.imports.domain.Event> events = eventTrackerConverterService
+                .to( Lists.newArrayList( programInstance.getEvents()
+                    .stream().filter( event -> !event.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() )
@@ -117,7 +116,7 @@ public class DefaultTrackerObjectsDeletionService
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
 
-        List<Event> events = bundle.getEvents();
+        List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
 
         for ( int idx = 0; idx < events.size(); idx++ )
         {
@@ -125,17 +124,17 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.EVENT, uid, idx );
 
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+            Event event = eventService.getEvent( uid );
 
-            ProgramInstance programInstance = programStageInstance.getProgramInstance();
+            ProgramInstance programInstance = event.getProgramInstance();
 
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+            eventService.deleteEvent( event );
 
-            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
+            if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+                teiService.updateTrackedEntityInstance( event.getProgramInstance().getEntityInstance() );
 
-                programInstance.getProgramStageInstances().remove( programStageInstance );
+                programInstance.getEvents().remove( event );
                 programInstanceService.updateProgramInstance( programInstance );
             }
 

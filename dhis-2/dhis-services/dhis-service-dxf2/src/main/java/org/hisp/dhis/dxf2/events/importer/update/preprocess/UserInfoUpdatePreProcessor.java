@@ -31,10 +31,9 @@ import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.shared.preprocess.AbstractUserInfoPreProcessor;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +42,7 @@ public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
 {
 
     @Override
-    protected void updateDataValueUserInfo( ProgramStageInstance existingPsi, EventDataValue dataValue,
+    protected void updateDataValueUserInfo( Event existingPsi, EventDataValue dataValue,
         UserInfoSnapshot userInfo )
     {
         if ( existingPsi != null )
@@ -62,10 +61,10 @@ public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
         dataValue.setLastUpdatedByUserInfo( userInfo );
     }
 
-    private Optional<EventDataValue> findEventDataValues( ProgramStageInstance existingPsi, EventDataValue dataValue )
+    private Optional<EventDataValue> findEventDataValues( Event existingPsi, EventDataValue dataValue )
     {
         return Optional.ofNullable( existingPsi )
-            .map( ProgramStageInstance::getEventDataValues )
+            .map( Event::getEventDataValues )
             .orElse( Collections.emptySet() )
             .stream()
             .filter( Objects::nonNull )
@@ -74,7 +73,7 @@ public class UserInfoUpdatePreProcessor extends AbstractUserInfoPreProcessor
     }
 
     @Override
-    protected void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo )
+    protected void updateEventUserInfo( org.hisp.dhis.dxf2.events.event.Event event, UserInfoSnapshot eventUserInfo )
     {
         event.setLastUpdatedByUserInfo( eventUserInfo );
     }

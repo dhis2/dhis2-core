@@ -59,9 +59,9 @@
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true" foreign-key="fk_programinstance_programid" lazy="false" />
 
-    <set name="programStageInstances" order-by="executionDate,duedate" inverse="true">
+    <set name="events" order-by="executionDate,duedate" inverse="true">
       <key column="programinstanceid"/>
-      <one-to-many class="org.hisp.dhis.program.ProgramStageInstance"/>
+      <one-to-many class="org.hisp.dhis.program.Event"/>
     </set>
 
     <set name="relationshipItems" inverse="true">

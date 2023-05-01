@@ -87,7 +87,7 @@ public class ProgramInstance
     @AuditAttribute
     private Program program;
 
-    private Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+    private Set<Event> events = new HashSet<>();
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -164,11 +164,11 @@ public class ProgramInstance
         return this.status == ProgramStatus.COMPLETED;
     }
 
-    public ProgramStageInstance getProgramStageInstanceByStage( int stage )
+    public Event getEventByStage( int stage )
     {
         int count = 1;
 
-        for ( ProgramStageInstance programInstanceStage : programStageInstances )
+        for ( Event programInstanceStage : events )
         {
             if ( count == stage )
             {
@@ -181,39 +181,39 @@ public class ProgramInstance
         return null;
     }
 
-    public ProgramStageInstance getActiveProgramStageInstance()
+    public Event getActiveEvent()
     {
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        for ( Event event : events )
         {
-            if ( programStageInstance.getProgramStage().getOpenAfterEnrollment()
-                && !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null
-                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+            if ( event.getProgramStage().getOpenAfterEnrollment()
+                && !event.isCompleted()
+                && (event.getStatus() != null
+                    && event.getStatus() != EventStatus.SKIPPED) )
             {
-                return programStageInstance;
+                return event;
             }
         }
 
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        for ( Event event : events )
         {
-            if ( !programStageInstance.isCompleted()
-                && (programStageInstance.getStatus() != null
-                    && programStageInstance.getStatus() != EventStatus.SKIPPED) )
+            if ( !event.isCompleted()
+                && (event.getStatus() != null
+                    && event.getStatus() != EventStatus.SKIPPED) )
             {
-                return programStageInstance;
+                return event;
             }
         }
 
         return null;
     }
 
-    public boolean hasActiveProgramStageInstance( ProgramStage programStage )
+    public boolean hasActiveEvent( ProgramStage programStage )
     {
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        for ( Event event : events )
         {
-            if ( !programStageInstance.isDeleted()
-                && programStageInstance.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
-                && programStageInstance.getStatus() == EventStatus.ACTIVE )
+            if ( !event.isDeleted()
+                && event.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
+                && event.getStatus() == EventStatus.ACTIVE )
             {
                 return true;
             }
@@ -395,16 +395,16 @@ public class ProgramInstance
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programStageInstances", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programStageInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramStageInstance> getProgramStageInstances()
+    @JacksonXmlElementWrapper( localName = "events", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Event> getEvents()
     {
-        return programStageInstances;
+        return events;
     }
 
-    public void setProgramStageInstances( Set<ProgramStageInstance> programStageInstances )
+    public void setEvents( Set<Event> events )
     {
-        this.programStageInstances = programStageInstances;
+        this.events = events;
     }
 
     @JsonProperty

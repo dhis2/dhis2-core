@@ -42,15 +42,14 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -84,7 +83,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private final NotesConverterService notesConverterService = new NotesConverterService();
 
-    private RuleEngineConverterService<Event, ProgramStageInstance> converter;
+    private RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> converter;
 
     @Mock
     public TrackerPreheat preheat;
@@ -95,7 +94,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
     private OrganisationUnit organisationUnit;
 
-    private ProgramStageInstance psi;
+    private Event event;
 
     private DataElement dataElement;
 
@@ -117,24 +116,24 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnit );
         ProgramInstance programInstance = createProgramInstance( program, tei, organisationUnit );
         programInstance.setUid( PROGRAM_INSTANCE_UID );
-        psi = new ProgramStageInstance();
-        psi.setAutoFields();
-        psi.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
-        psi.setCreated( today );
-        psi.setExecutionDate( today );
-        psi.setProgramInstance( programInstance );
-        psi.setOrganisationUnit( organisationUnit );
-        psi.setProgramStage( programStage );
-        psi.setEventDataValues( Sets.newHashSet() );
-        psi.setDueDate( null );
-        psi.setCompletedDate( null );
-        psi.setStoredBy( user.getUsername() );
-        psi.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
-        psi.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
+        event = new Event();
+        event.setAutoFields();
+        event.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
+        event.setCreated( today );
+        event.setExecutionDate( today );
+        event.setProgramInstance( programInstance );
+        event.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStage );
+        event.setEventDataValues( Sets.newHashSet() );
+        event.setDueDate( null );
+        event.setCompletedDate( null );
+        event.setStoredBy( user.getUsername() );
+        event.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
+        event.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
     }
 
     @Test
-    void testToProgramStageInstance()
+    void testFromEvent()
     {
         setUpMocks();
 
@@ -152,19 +151,19 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         dataValue.setStoredBy( USERNAME );
         dataValue.setUpdatedAt( Instant.now() );
         dataValue.setDataElement( MetadataIdentifier.ofUid( dataElement.getUid() ) );
-        Event event = event( dataValue );
+        org.hisp.dhis.tracker.imports.domain.Event event = event( dataValue );
 
-        ProgramStageInstance programStageInstance = converter.from( preheat, event );
+        Event result = converter.from( preheat, event );
 
-        assertNotNull( programStageInstance );
-        assertNotNull( programStageInstance.getProgramStage() );
-        assertNotNull( programStageInstance.getProgramStage().getProgram() );
-        assertNotNull( programStageInstance.getOrganisationUnit() );
-        assertEquals( PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid() );
-        assertEquals( PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid() );
-        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
-        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
-        Set<EventDataValue> eventDataValues = programStageInstance.getEventDataValues();
+        assertNotNull( result );
+        assertNotNull( result.getProgramStage() );
+        assertNotNull( result.getProgramStage().getProgram() );
+        assertNotNull( result.getOrganisationUnit() );
+        assertEquals( PROGRAM_UID, result.getProgramStage().getProgram().getUid() );
+        assertEquals( PROGRAM_STAGE_UID, result.getProgramStage().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid() );
+        Set<EventDataValue> eventDataValues = result.getEventDataValues();
         eventDataValues.forEach( e -> {
             assertEquals( USERNAME, e.getCreatedByUserInfo().getUsername() );
             assertEquals( USERNAME, e.getLastUpdatedByUserInfo().getUsername() );
@@ -182,20 +181,20 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         when( preheat.getDataElement( metadataIdentifier ) ).thenReturn( dataElement );
 
         DataValue dataValue = dataValue( metadataIdentifier, "900" );
-        Event event = event( dataValue );
+        org.hisp.dhis.tracker.imports.domain.Event event = event( dataValue );
 
-        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+        Event result = converter.fromForRuleEngine( preheat, event );
 
-        assertNotNull( programStageInstance );
-        assertNotNull( programStageInstance.getProgramStage() );
-        assertNotNull( programStageInstance.getProgramStage().getProgram() );
-        assertNotNull( programStageInstance.getOrganisationUnit() );
-        assertEquals( PROGRAM_UID, programStageInstance.getProgramStage().getProgram().getUid() );
-        assertEquals( PROGRAM_STAGE_UID, programStageInstance.getProgramStage().getUid() );
-        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
-        assertEquals( ORGANISATION_UNIT_UID, programStageInstance.getOrganisationUnit().getUid() );
-        assertEquals( 1, programStageInstance.getEventDataValues().size() );
-        EventDataValue actual = programStageInstance.getEventDataValues().stream().findFirst().get();
+        assertNotNull( result );
+        assertNotNull( result.getProgramStage() );
+        assertNotNull( result.getProgramStage().getProgram() );
+        assertNotNull( result.getOrganisationUnit() );
+        assertEquals( PROGRAM_UID, result.getProgramStage().getProgram().getUid() );
+        assertEquals( PROGRAM_STAGE_UID, result.getProgramStage().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid() );
+        assertEquals( ORGANISATION_UNIT_UID, result.getOrganisationUnit().getUid() );
+        assertEquals( 1, result.getEventDataValues().size() );
+        EventDataValue actual = result.getEventDataValues().stream().findFirst().get();
         assertEquals( dataValue.getDataElement(), MetadataIdentifier.ofUid( actual.getDataElement() ) );
         assertEquals( dataValue.getValue(), actual.getValue() );
         assertTrue( actual.getProvidedElsewhere() );
@@ -208,9 +207,9 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
     {
         setUpMocks();
 
-        ProgramStageInstance existingPsi = programStageInstance();
+        Event existingEvent = event();
         EventDataValue existingDataValue = eventDataValue( CodeGenerator.generateUid(), "658" );
-        existingPsi.setEventDataValues( Set.of( existingDataValue ) );
+        existingEvent.setEventDataValues( Set.of( existingDataValue ) );
 
         DataElement dataElement = new DataElement();
         dataElement.setUid( CodeGenerator.generateUid() );
@@ -221,19 +220,19 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         // with the event in the DB; thus both
         // dataValues will be merged
         DataValue newDataValue = dataValue( metadataIdentifier, "900" );
-        Event event = event( existingPsi.getUid(), newDataValue );
-        when( preheat.getEvent( existingPsi.getUid() ) ).thenReturn( existingPsi );
+        org.hisp.dhis.tracker.imports.domain.Event event = event( existingEvent.getUid(), newDataValue );
+        when( preheat.getEvent( existingEvent.getUid() ) ).thenReturn( existingEvent );
 
-        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+        Event result = converter.fromForRuleEngine( preheat, event );
 
-        assertEquals( 2, programStageInstance.getEventDataValues().size() );
+        assertEquals( 2, result.getEventDataValues().size() );
         EventDataValue expect1 = new EventDataValue();
         expect1.setDataElement( existingDataValue.getDataElement() );
         expect1.setValue( existingDataValue.getValue() );
         EventDataValue expect2 = new EventDataValue();
         expect2.setDataElement( dataElement.getUid() );
         expect2.setValue( newDataValue.getValue() );
-        assertContainsOnly( Set.of( expect1, expect2 ), programStageInstance.getEventDataValues() );
+        assertContainsOnly( Set.of( expect1, expect2 ), result.getEventDataValues() );
     }
 
     @Test
@@ -246,22 +245,22 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         MetadataIdentifier metadataIdentifier = MetadataIdentifier.ofUid( dataElement.getUid() );
         when( preheat.getDataElement( metadataIdentifier ) ).thenReturn( dataElement );
 
-        ProgramStageInstance existingPsi = programStageInstance();
-        existingPsi.setEventDataValues( Set.of( eventDataValue( dataElement.getUid(), "658" ) ) );
+        Event existingEvent = event();
+        existingEvent.setEventDataValues( Set.of( eventDataValue( dataElement.getUid(), "658" ) ) );
 
         // dataElement is of idScheme UID if the NTI dataElementIdScheme is set
         // to UID
         DataValue updatedValue = dataValue( metadataIdentifier, "900" );
-        Event event = event( existingPsi.getUid(), updatedValue );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
+        org.hisp.dhis.tracker.imports.domain.Event event = event( existingEvent.getUid(), updatedValue );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingEvent );
 
-        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+        Event result = converter.fromForRuleEngine( preheat, event );
 
-        assertEquals( 1, programStageInstance.getEventDataValues().size() );
+        assertEquals( 1, result.getEventDataValues().size() );
         EventDataValue expect1 = new EventDataValue();
         expect1.setDataElement( dataElement.getUid() );
         expect1.setValue( updatedValue.getValue() );
-        assertContainsOnly( Set.of( expect1 ), programStageInstance.getEventDataValues() );
+        assertContainsOnly( Set.of( expect1 ), result.getEventDataValues() );
     }
 
     @Test
@@ -279,22 +278,22 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         dataElement.setCode( "DE_424050" );
         when( preheat.getDataElement( MetadataIdentifier.ofCode( dataElement.getCode() ) ) ).thenReturn( dataElement );
 
-        ProgramStageInstance existingPsi = programStageInstance();
-        existingPsi.setEventDataValues( Set.of( eventDataValue( dataElement.getUid(), "658" ) ) );
+        Event existingEvent = event();
+        existingEvent.setEventDataValues( Set.of( eventDataValue( dataElement.getUid(), "658" ) ) );
 
         // dataElement is of idScheme CODE if the NTI dataElementIdScheme is set
         // to CODE
         DataValue updatedValue = dataValue( MetadataIdentifier.ofCode( dataElement.getCode() ), "900" );
-        Event event = event( existingPsi.getUid(), updatedValue );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingPsi );
+        org.hisp.dhis.tracker.imports.domain.Event event = event( existingEvent.getUid(), updatedValue );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( existingEvent );
 
-        ProgramStageInstance programStageInstance = converter.fromForRuleEngine( preheat, event );
+        Event actual = converter.fromForRuleEngine( preheat, event );
 
-        assertEquals( 1, programStageInstance.getEventDataValues().size() );
+        assertEquals( 1, actual.getEventDataValues().size() );
         EventDataValue expect1 = new EventDataValue();
         expect1.setDataElement( dataElement.getUid() );
         expect1.setValue( updatedValue.getValue() );
-        assertContainsOnly( Set.of( expect1 ), programStageInstance.getEventDataValues() );
+        assertContainsOnly( Set.of( expect1 ), actual.getEventDataValues() );
     }
 
     @Test
@@ -308,16 +307,16 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         eventDataValue.setStoredBy( user.getUsername() );
         eventDataValue.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
         eventDataValue.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
-        psi.getEventDataValues().add( eventDataValue );
+        event.getEventDataValues().add( eventDataValue );
 
-        Event event = converter.to( psi );
+        org.hisp.dhis.tracker.imports.domain.Event event = converter.to( this.event );
 
         assertEquals( PROGRAM_INSTANCE_UID, event.getEnrollment() );
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
-            assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), psi.getCreated() );
-            assertEquals( e.getUpdatedBy().getUsername(), psi.getLastUpdatedByUserInfo().getUsername() );
-            assertEquals( e.getUpdatedBy().getUsername(), psi.getCreatedByUserInfo().getUsername() );
+            assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), this.event.getCreated() );
+            assertEquals( e.getUpdatedBy().getUsername(), this.event.getLastUpdatedByUserInfo().getUsername() );
+            assertEquals( e.getUpdatedBy().getUsername(), this.event.getCreatedByUserInfo().getUsername() );
         } );
     }
 
@@ -331,14 +330,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
             .thenReturn( organisationUnit );
     }
 
-    private Event event( DataValue dataValue )
+    private org.hisp.dhis.tracker.imports.domain.Event event( DataValue dataValue )
     {
         return event( null, dataValue );
     }
 
-    private Event event( String uid, DataValue dataValue )
+    private org.hisp.dhis.tracker.imports.domain.Event event( String uid, DataValue dataValue )
     {
-        return Event.builder()
+        return org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( uid )
             .programStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_UID ) )
             .program( MetadataIdentifier.ofUid( PROGRAM_UID ) )
@@ -348,11 +347,11 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
             .build();
     }
 
-    private ProgramStageInstance programStageInstance()
+    private Event event()
     {
-        ProgramStageInstance existingPsi = new ProgramStageInstance();
-        existingPsi.setUid( CodeGenerator.generateUid() );
-        return existingPsi;
+        Event event = new Event();
+        event.setUid( CodeGenerator.generateUid() );
+        return event;
     }
 
     private EventDataValue eventDataValue( String dataElement, String value )

@@ -49,7 +49,7 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -97,7 +97,7 @@ public class DefaultEventService implements EventService
         }
 
         Pager pager;
-        List<ProgramStageInstance> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
+        List<Event> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
 
         if ( params.isTotalPages() )
         {
@@ -129,7 +129,7 @@ public class DefaultEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( EventSearchParams params, List<ProgramStageInstance> eventList )
+    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
@@ -152,51 +152,51 @@ public class DefaultEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public ProgramStageInstance getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
+    public Event getEvent( Event event, EventParams eventParams )
     {
-        if ( programStageInstance == null )
+        if ( event == null )
         {
             return null;
         }
 
-        ProgramStageInstance event = new ProgramStageInstance();
-        event.setUid( programStageInstance.getUid() );
+        Event result = new Event();
+        result.setUid( event.getUid() );
 
-        event.setStatus( programStageInstance.getStatus() );
-        event.setExecutionDate( programStageInstance.getExecutionDate() );
-        event.setDueDate( programStageInstance.getDueDate() );
-        event.setStoredBy( programStageInstance.getStoredBy() );
-        event.setCompletedBy( programStageInstance.getCompletedBy() );
-        event.setCompletedDate( programStageInstance.getCompletedDate() );
-        event.setCreated( programStageInstance.getCreated() );
-        event.setCreatedByUserInfo( programStageInstance.getCreatedByUserInfo() );
-        event.setLastUpdatedByUserInfo( programStageInstance.getLastUpdatedByUserInfo() );
-        event.setCreatedAtClient( programStageInstance.getCreatedAtClient() );
-        event.setLastUpdated( programStageInstance.getLastUpdated() );
-        event.setLastUpdatedAtClient( programStageInstance.getLastUpdatedAtClient() );
-        event.setGeometry( programStageInstance.getGeometry() );
-        event.setDeleted( programStageInstance.isDeleted() );
-        event.setAssignedUser( programStageInstance.getAssignedUser() );
+        result.setStatus( event.getStatus() );
+        result.setExecutionDate( event.getExecutionDate() );
+        result.setDueDate( event.getDueDate() );
+        result.setStoredBy( event.getStoredBy() );
+        result.setCompletedBy( event.getCompletedBy() );
+        result.setCompletedDate( event.getCompletedDate() );
+        result.setCreated( event.getCreated() );
+        result.setCreatedByUserInfo( event.getCreatedByUserInfo() );
+        result.setLastUpdatedByUserInfo( event.getLastUpdatedByUserInfo() );
+        result.setCreatedAtClient( event.getCreatedAtClient() );
+        result.setLastUpdated( event.getLastUpdated() );
+        result.setLastUpdatedAtClient( event.getLastUpdatedAtClient() );
+        result.setGeometry( event.getGeometry() );
+        result.setDeleted( event.isDeleted() );
+        result.setAssignedUser( event.getAssignedUser() );
 
         User user = currentUserService.getCurrentUser();
-        OrganisationUnit ou = programStageInstance.getOrganisationUnit();
+        OrganisationUnit ou = event.getOrganisationUnit();
 
-        event.setProgramInstance( programStageInstance.getProgramInstance() );
-        event.setProgramStage( programStageInstance.getProgramStage() );
+        result.setProgramInstance( event.getProgramInstance() );
+        result.setProgramStage( event.getProgramStage() );
 
-        List<String> errors = trackerAccessManager.canRead( user, programStageInstance, false );
+        List<String> errors = trackerAccessManager.canRead( user, event, false );
 
         if ( !errors.isEmpty() )
         {
             throw new IllegalQueryException( errors.toString() );
         }
 
-        event.setOrganisationUnit( ou );
-        event.setProgramStage( programStageInstance.getProgramStage() );
+        result.setOrganisationUnit( ou );
+        result.setProgramStage( event.getProgramStage() );
 
-        event.setAttributeOptionCombo( programStageInstance.getAttributeOptionCombo() );
+        result.setAttributeOptionCombo( event.getAttributeOptionCombo() );
 
-        for ( EventDataValue dataValue : programStageInstance.getEventDataValues() )
+        for ( EventDataValue dataValue : event.getEventDataValues() )
         {
             if ( dataElementService.getDataElement( dataValue.getDataElement() ) != null ) // check permissions
             {
@@ -210,7 +210,7 @@ public class DefaultEventService implements EventService
                 value.setProvidedElsewhere( dataValue.getProvidedElsewhere() );
                 value.setStoredBy( dataValue.getStoredBy() );
 
-                event.getEventDataValues().add( value );
+                result.getEventDataValues().add( value );
             }
             else
             {
@@ -218,13 +218,13 @@ public class DefaultEventService implements EventService
             }
         }
 
-        event.getComments().addAll( programStageInstance.getComments() );
+        result.getComments().addAll( event.getComments() );
 
         if ( eventParams.isIncludeRelationships() )
         {
             Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-            for ( RelationshipItem relationshipItem : programStageInstance.getRelationshipItems() )
+            for ( RelationshipItem relationshipItem : event.getRelationshipItems() )
             {
                 org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
                 if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
@@ -234,10 +234,10 @@ public class DefaultEventService implements EventService
                 }
             }
 
-            event.setRelationshipItems( relationshipItems );
+            result.setRelationshipItems( relationshipItems );
         }
 
-        return event;
+        return result;
     }
 
     @Override

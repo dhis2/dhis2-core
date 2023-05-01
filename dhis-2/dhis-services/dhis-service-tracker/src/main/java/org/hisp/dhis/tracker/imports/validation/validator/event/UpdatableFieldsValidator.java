@@ -29,12 +29,11 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -42,14 +41,14 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Enrico Colasante
  */
 class UpdatableFieldsValidator
-    implements Validator<Event>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Event>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
     {
-        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
-        ProgramStage programStage = programStageInstance.getProgramStage();
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
+        Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
+        ProgramStage programStage = preheatEvent.getProgramStage();
+        ProgramInstance programInstance = preheatEvent.getProgramInstance();
 
         reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,19 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+package org.hisp.dhis.hibernate.jsonb.type;
 
-import java.util.Comparator;
-import java.util.Date;
+import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.user.sharing.Sharing;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-
-/**
- * @author Chau Thu Tran
- */
-public class ProgramStageInstanceVisitDateComparator
-    implements Comparator<ProgramStageInstance>
+public class SharingJsonBinaryType extends JsonBinaryType
 {
     @Override
-    public int compare( ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2 )
+    protected Object convertJsonToObject( String content )
     {
-        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate()
-            : programStageInstance1.getDueDate();
-        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate()
-            : programStageInstance2.getDueDate();
-        if ( d1.before( d2 ) )
-        {
-            return -1;
-        }
-        else if ( d1.after( d2 ) )
-        {
-            return 1;
-        }
-        return 0;
+        Sharing sharing = (Sharing) super.convertJsonToObject( content );
+        sharing.setUsers( CollectionUtils.emptyIfNull( sharing.getUsers() ) );
+        sharing.setUserGroups( CollectionUtils.emptyIfNull( sharing.getUserGroups() ) );
+        return sharing;
     }
 }

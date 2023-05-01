@@ -37,10 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -67,7 +67,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 {
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final ProgramNotificationTemplateService templateService;
 
@@ -102,9 +102,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     @Override
     @Transactional
-    public void handleEvent( String psi )
+    public void handleEvent( String event )
     {
-        ProgramStageInstance instance = programStageInstanceService.getProgramStageInstance( psi );
+        Event instance = eventService.getEvent( event );
 
         if ( instance == null
             || !templateService.isProgramStageLinkedToWebHookNotification( instance.getProgramStage() ) )

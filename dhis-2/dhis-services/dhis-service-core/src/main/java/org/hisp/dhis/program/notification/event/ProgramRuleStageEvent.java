@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.program.notification.event;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.springframework.context.ApplicationEvent;
 
 /**
@@ -37,13 +37,13 @@ public class ProgramRuleStageEvent extends ApplicationEvent
 {
     private long template;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
-    public ProgramRuleStageEvent( Object source, long template, ProgramStageInstance programStageInstance )
+    public ProgramRuleStageEvent( Object source, long template, Event event )
     {
         super( source );
         this.template = template;
-        this.programStageInstance = programStageInstance;
+        this.event = event;
     }
 
     public long getTemplate()
@@ -51,8 +51,8 @@ public class ProgramRuleStageEvent extends ApplicationEvent
         return template;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    public Event getEvent()
     {
-        return programStageInstance;
+        return event;
     }
 }

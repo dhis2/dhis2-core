@@ -98,10 +98,10 @@ public class HibernateProgramNotificationInstanceStore
     {
         List<Function<Root<ProgramNotificationInstance>, Predicate>> predicates = new ArrayList<>();
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            predicates.add( root -> builder.equal( root.get( "programStageInstance" ),
-                params.getProgramStageInstance() ) );
+            predicates.add( root -> builder.equal( root.get( "event" ),
+                params.getEvent() ) );
         }
 
         if ( params.hasProgramInstance() )

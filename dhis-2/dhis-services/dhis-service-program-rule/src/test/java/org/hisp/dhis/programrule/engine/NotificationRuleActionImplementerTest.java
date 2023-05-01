@@ -48,10 +48,10 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
@@ -112,7 +112,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private ProgramInstance programInstance;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private ProgramRule programRuleA;
 
@@ -165,7 +165,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    void test_implementWithProgramStageInstanceWithTemplate()
+    void test_implementWithEventWithTemplate()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -184,14 +184,14 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, event );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance.getId(),
-            ((ProgramRuleStageEvent) eventType).getProgramStageInstance().getId() );
+        assertEquals( event.getId(),
+            ((ProgramRuleStageEvent) eventType).getEvent().getId() );
     }
 
     @Test
@@ -265,7 +265,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, event );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
     }
@@ -322,9 +322,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setProgramStage( programStageA );
+        event.setProgramInstance( programInstance );
+        event.setAutoFields();
     }
 }

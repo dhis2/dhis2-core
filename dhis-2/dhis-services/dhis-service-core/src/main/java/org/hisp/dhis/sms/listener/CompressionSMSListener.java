@@ -51,12 +51,12 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -113,7 +113,7 @@ public abstract class CompressionSMSListener
 
     protected final DataElementService dataElementService;
 
-    protected final ProgramStageInstanceService programStageInstanceService;
+    protected final EventService eventService;
 
     protected final IdentifiableObjectManager identifiableObjectManager;
 
@@ -121,7 +121,7 @@ public abstract class CompressionSMSListener
         UserService userService, TrackedEntityTypeService trackedEntityTypeService,
         TrackedEntityAttributeService trackedEntityAttributeService, ProgramService programService,
         OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataElementService dataElementService, EventService eventService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender );
@@ -133,7 +133,7 @@ public abstract class CompressionSMSListener
         checkNotNull( organisationUnitService );
         checkNotNull( categoryService );
         checkNotNull( dataElementService );
-        checkNotNull( programStageInstanceService );
+        checkNotNull( eventService );
 
         this.userService = userService;
         this.trackedEntityTypeService = trackedEntityTypeService;
@@ -142,7 +142,7 @@ public abstract class CompressionSMSListener
         this.organisationUnitService = organisationUnitService;
         this.categoryService = categoryService;
         this.dataElementService = dataElementService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.eventService = eventService;
         this.identifiableObjectManager = identifiableObjectManager;
     }
 
@@ -265,39 +265,39 @@ public abstract class CompressionSMSListener
         SmsEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
         ArrayList<Object> errorUids = new ArrayList<>();
-        ProgramStageInstance programStageInstance;
+        Event event;
         // If we aren't given a Uid for the event, it will be auto-generated
 
-        if ( programStageInstanceService.programStageInstanceExists( eventUid ) )
+        if ( eventService.eventExists( eventUid ) )
         {
-            programStageInstance = programStageInstanceService.getProgramStageInstance( eventUid );
+            event = eventService.getEvent( eventUid );
         }
         else
         {
-            programStageInstance = new ProgramStageInstance();
-            programStageInstance.setUid( eventUid );
+            event = new Event();
+            event.setUid( eventUid );
         }
 
-        programStageInstance.setOrganisationUnit( orgUnit );
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setExecutionDate( eventDate );
-        programStageInstance.setDueDate( dueDate );
-        programStageInstance.setAttributeOptionCombo( aoc );
-        programStageInstance.setStoredBy( user.getUsername() );
+        event.setOrganisationUnit( orgUnit );
+        event.setProgramStage( programStage );
+        event.setProgramInstance( programInstance );
+        event.setExecutionDate( eventDate );
+        event.setDueDate( dueDate );
+        event.setAttributeOptionCombo( aoc );
+        event.setStoredBy( user.getUsername() );
 
         UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( user );
 
-        programStageInstance.setCreatedByUserInfo( currentUserInfo );
-        programStageInstance.setLastUpdatedByUserInfo( currentUserInfo );
+        event.setCreatedByUserInfo( currentUserInfo );
+        event.setLastUpdatedByUserInfo( currentUserInfo );
 
-        programStageInstance.setStatus( getCoreEventStatus( eventStatus ) );
-        programStageInstance.setGeometry( convertGeoPointToGeometry( coordinates ) );
+        event.setStatus( getCoreEventStatus( eventStatus ) );
+        event.setGeometry( convertGeoPointToGeometry( coordinates ) );
 
         if ( eventStatus.equals( SmsEventStatus.COMPLETED ) )
         {
-            programStageInstance.setCompletedBy( user.getUsername() );
-            programStageInstance.setCompletedDate( new Date() );
+            event.setCompletedBy( user.getUsername() );
+            event.setCompletedDate( new Date() );
         }
 
         Map<DataElement, EventDataValue> dataElementsAndEventDataValues = new HashMap<>();
@@ -332,7 +332,7 @@ public abstract class CompressionSMSListener
             }
         }
 
-        programStageInstanceService.saveEventDataValuesAndSaveProgramStageInstance( programStageInstance,
+        eventService.saveEventDataValuesAndSaveEvent( event,
             dataElementsAndEventDataValues );
 
         return errorUids;

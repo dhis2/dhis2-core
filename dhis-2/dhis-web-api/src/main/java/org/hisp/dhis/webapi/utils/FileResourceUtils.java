@@ -27,22 +27,33 @@
  */
 package org.hisp.dhis.webapi.utils;
 
+import static org.apache.commons.io.FilenameUtils.getExtension;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_HEADER_VALUE;
+import static org.imgscalr.Scalr.resize;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.Files;
+import java.util.List;
+import java.util.Objects;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletResponse;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.input.NullInputStream;
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -50,12 +61,14 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.fileresource.ImageFileDimension;
+import org.imgscalr.Scalr;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
 import org.springframework.util.InvalidMimeTypeException;
 import org.springframework.util.MimeTypeUtils;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import com.google.common.hash.Hashing;
 import com.google.common.io.ByteSource;
@@ -69,6 +82,14 @@ public class FileResourceUtils
 {
     @Autowired
     private FileResourceService fileResourceService;
+
+    private static final List<String> CUSTOM_ICON_VALID_ICON_EXTENSIONS = List.of( "png" );
+
+    private static final long CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES = 25_000_000;
+
+    private static final int CUSTOM_ICON_TARGET_HEIGHT = 48;
+
+    private static final int CUSTOM_ICON_TARGET_WIDTH = 48;
 
     /**
      * Transfers the given multipart file content to a local temporary file.
@@ -231,6 +252,69 @@ public class FileResourceUtils
             catch ( IOException ioe )
             {
                 return new NullInputStream( 0 );
+            }
+        }
+    }
+
+    public static void validateCustomIconFile( MultipartFile file )
+    {
+        validateFileExtension( file.getOriginalFilename() );
+        validateFileSize( file );
+    }
+
+    private static void validateFileExtension( String fileName )
+    {
+        if ( getExtension( fileName ) == null
+            || !CUSTOM_ICON_VALID_ICON_EXTENSIONS.contains( getExtension( fileName ) ) )
+        {
+            throw new IllegalQueryException(
+                "Wrong file extension, valid extensions are: "
+                    + String.join( ",", CUSTOM_ICON_VALID_ICON_EXTENSIONS ) );
+        }
+    }
+
+    private static void validateFileSize( MultipartFile file )
+    {
+        if ( file.getSize() > CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES )
+        {
+            throw new IllegalQueryException( String.format( "File size can't be bigger than %d, current file size %d",
+                CUSTOM_ICON_FILE_SIZE_LIMIT_IN_BYTES, file.getSize() ) );
+        }
+    }
+
+    public static MultipartFile resizeToDefaultIconSize( MultipartFile multipartFile )
+        throws IOException
+    {
+        File tmpFile = null;
+
+        try
+        {
+            BufferedImage resizedImage = resize( ImageIO.read( multipartFile.getInputStream() ), Scalr.Mode.FIT_EXACT,
+                CUSTOM_ICON_TARGET_WIDTH, CUSTOM_ICON_TARGET_HEIGHT );
+            tmpFile = Files.createTempFile( "org.hisp.dhis", ".tmp" ).toFile();
+
+            ImageIO.write( resizedImage, Objects.requireNonNull( getExtension( multipartFile.getOriginalFilename() ) ),
+                tmpFile );
+
+            FileItem fileItem = new DiskFileItemFactory().createItem( "file",
+                Files.probeContentType( tmpFile.toPath() ), false, multipartFile.getOriginalFilename() );
+
+            try ( InputStream in = new FileInputStream( tmpFile ); OutputStream out = fileItem.getOutputStream() )
+            {
+                in.transferTo( out );
+            }
+
+            return new CommonsMultipartFile( fileItem );
+        }
+        catch ( IOException e )
+        {
+            throw new IOException( "Failed to resize image", e );
+        }
+        finally
+        {
+            if ( tmpFile != null && tmpFile.exists() )
+            {
+                Files.delete( tmpFile.toPath() );
             }
         }
     }

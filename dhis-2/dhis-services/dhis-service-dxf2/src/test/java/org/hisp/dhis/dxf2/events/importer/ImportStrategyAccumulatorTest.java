@@ -37,9 +37,8 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -74,7 +73,7 @@ class ImportStrategyAccumulatorTest
         accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.CREATE_AND_UPDATE, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
         reset();
-        final List<Event> events = createEvents( 5 );
+        final List<org.hisp.dhis.dxf2.events.event.Event> events = createEvents( 5 );
         accumulator.partitionEvents( events, ImportStrategy.CREATE_AND_UPDATE, createProgramStageInstances(
             events.get( 0 ).getEvent(), events.get( 1 ).getEvent(), events.get( 2 ).getEvent() ) );
         assertAccumulator( 2, 3, 0 );
@@ -93,7 +92,7 @@ class ImportStrategyAccumulatorTest
     @Test
     void verifyDeleteOnly()
     {
-        List<Event> events = createEvents( 5 );
+        List<org.hisp.dhis.dxf2.events.event.Event> events = createEvents( 5 );
         accumulator.partitionEvents( events, ImportStrategy.DELETE, existingEventsFromEvents( events ) );
         assertAccumulator( 0, 0, 5 );
         reset();
@@ -105,22 +104,24 @@ class ImportStrategyAccumulatorTest
     @Test
     void verifyDeleteSome()
     {
-        List<Event> events = createEvents( 5 );
+        List<org.hisp.dhis.dxf2.events.event.Event> events = createEvents( 5 );
         reset();
         events = createEvents( 5 );
         accumulator.partitionEvents( events, ImportStrategy.DELETES, existingEventsFromEvents( events, 3 ) );
         assertAccumulator( 0, 0, 3 );
     }
 
-    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events )
+    private Map<String, Event> existingEventsFromEvents( List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         return existingEventsFromEvents( events, events.size() );
     }
 
-    private Map<String, ProgramStageInstance> existingEventsFromEvents( List<Event> events, Integer limit )
+    private Map<String, Event> existingEventsFromEvents( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        Integer limit )
     {
         return events.stream().limit( limit )
-            .collect( Collectors.toMap( Event::getEvent, event -> createProgramStageInstance( event.getEvent() ) ) );
+            .collect( Collectors.toMap( org.hisp.dhis.dxf2.events.event.Event::getEvent,
+                event -> createProgramStageInstance( event.getEvent() ) ) );
     }
 
     @Test
@@ -129,13 +130,13 @@ class ImportStrategyAccumulatorTest
         accumulator.partitionEvents( createEvents( 5 ), ImportStrategy.SYNC, new HashMap<>() );
         assertAccumulator( 5, 0, 0 );
         reset();
-        final List<Event> events1 = createEvents( 3 );
+        final List<org.hisp.dhis.dxf2.events.event.Event> events1 = createEvents( 3 );
         events1.get( 0 ).setDeleted( true );
         events1.get( 1 ).setDeleted( true );
         accumulator.partitionEvents( events1, ImportStrategy.SYNC, new HashMap<>() );
         assertAccumulator( 1, 0, 2 );
         reset();
-        final List<Event> events2 = createEvents( 10 );
+        final List<org.hisp.dhis.dxf2.events.event.Event> events2 = createEvents( 10 );
         events2.get( 0 ).setDeleted( true );
         events2.get( 1 ).setDeleted( true );
         accumulator.partitionEvents( events2, ImportStrategy.SYNC, createProgramStageInstances(
@@ -155,25 +156,25 @@ class ImportStrategyAccumulatorTest
         assertThat( "Wrong number of events for deletion", accumulator.getDelete(), hasSize( deleteSize ) );
     }
 
-    private Event createEvent()
+    private org.hisp.dhis.dxf2.events.event.Event createEvent()
     {
-        Event e = new Event();
+        org.hisp.dhis.dxf2.events.event.Event e = new org.hisp.dhis.dxf2.events.event.Event();
         String eventUid = CodeGenerator.generateUid();
         e.setEvent( eventUid );
         e.setUid( eventUid );
         return e;
     }
 
-    private ProgramStageInstance createProgramStageInstance( String uid )
+    private Event createProgramStageInstance( String uid )
     {
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Event psi = new Event();
         psi.setUid( uid );
         return psi;
     }
 
-    private List<Event> createEvents( int amount )
+    private List<org.hisp.dhis.dxf2.events.event.Event> createEvents( int amount )
     {
-        List<Event> events = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = new ArrayList<>();
         for ( int i = 0; i < amount; i++ )
         {
             events.add( createEvent() );
@@ -181,12 +182,12 @@ class ImportStrategyAccumulatorTest
         return events;
     }
 
-    private Map<String, ProgramStageInstance> createProgramStageInstances( String... uids )
+    private Map<String, Event> createProgramStageInstances( String... uids )
     {
-        Map<String, ProgramStageInstance> psi = new HashMap<>();
+        Map<String, Event> psi = new HashMap<>();
         for ( final String uid : uids )
         {
-            ProgramStageInstance p = createProgramStageInstance( uid );
+            Event p = createProgramStageInstance( uid );
             psi.put( p.getUid(), p );
         }
         return psi;

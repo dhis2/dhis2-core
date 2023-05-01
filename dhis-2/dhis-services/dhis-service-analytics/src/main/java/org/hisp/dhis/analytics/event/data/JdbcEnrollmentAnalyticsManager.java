@@ -65,7 +65,7 @@ import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryRuntimeException;
-import org.hisp.dhis.common.RepeatableStageValueStatus;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.ExpressionUtils;
@@ -171,7 +171,7 @@ public class JdbcEnrollmentAnalyticsManager
             {
                 addGridValue( grid, grid.getHeaders().get( i ), i + 1 + columnOffset, rowSet, params );
 
-                if ( addValueMetaInfo( grid, rowSet, grid.getHeaders().get( i ).getName() ) )
+                if ( params.isRowContext() && addValueMetaInfo( grid, rowSet, grid.getHeaders().get( i ).getName() ) )
                 {
                     ++columnOffset;
                 }
@@ -204,6 +204,13 @@ public class JdbcEnrollmentAnalyticsManager
 
                 boolean isSet = rowSet.getObject( columnName ) != null;
 
+                ValueStatus valueStatus = ValueStatus.of( isDefined, isSet );
+
+                if ( valueStatus != ValueStatus.NOT_DEFINED )
+                {
+                    return true;
+                }
+
                 Map<Integer, Map<String, Object>> rowContext = grid.getRowContext();
 
                 Map<String, Object> row = rowContext.get( gridRowIndex );
@@ -213,9 +220,9 @@ public class JdbcEnrollmentAnalyticsManager
                     row = new HashMap<>();
                 }
 
-                Map<String, RepeatableStageValueStatus> colValueType = new HashMap<>();
+                Map<String, String> colValueType = new HashMap<>();
 
-                colValueType.put( "repeatableStageValueStatus", RepeatableStageValueStatus.of( isDefined, isSet ) );
+                colValueType.put( "valueStatus", valueStatus.getValue() );
 
                 row.put( columnName, colValueType );
 

@@ -347,11 +347,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
      */
     private void addDimensionSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause )
     {
-        params.getDimensions().forEach( dimension -> {
+        for ( DimensionalObject dimension : params.getDimensions() )
+        {
             if ( isGroupByClause && dimension.getDimensionType() == DimensionType.PERIOD
                 && params.hasNonDefaultBoundaries() )
             {
-                return;
+                continue;
             }
 
             if ( dimension.getDimensionType() == DimensionType.PERIOD &&
@@ -387,27 +388,40 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 throw new IllegalStateException( "Program indicator non-default boundary query must have " +
                     "exactly one period, or no periods and a period filter" );
             }
-        } );
+        }
     }
 
     private void addItemSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause,
         boolean isAggregated )
     {
-        params.getItems().forEach(
-            queryItem -> {
-                ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
+        for ( QueryItem queryItem : params.getItems() )
+        {
+            ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
 
-                columns.add( columnAndAlias.asSql() );
+            columns.add( columnAndAlias.asSql() );
 
-                // does repeatable stage exist?
-                if ( queryItem.hasProgramStage() && queryItem.getProgramStage().getRepeatable()
-                    && queryItem.hasRepeatableStageParams() )
-                {
-                    String column = " exists (" + columnAndAlias.column + ")";
-                    String alias = columnAndAlias.alias + ".exists";
-                    columns.add( (new ColumnAndAlias( column, alias )).asSql() );
-                }
-            } );
+            // asked for row context if allowed and needed
+            if ( rowContextAllowedAndNeeded( params, queryItem ) )
+            {
+                String column = " exists (" + columnAndAlias.column + ")";
+                String alias = columnAndAlias.alias + ".exists";
+                columns.add( (new ColumnAndAlias( column, alias )).asSql() );
+            }
+        }
+    }
+
+    /**
+     * Eligibility of enrollment request for grid row context
+     *
+     * @param params
+     * @param queryItem
+     * @return true when eligible for row context
+     */
+    private boolean rowContextAllowedAndNeeded( EventQueryParams params, QueryItem queryItem )
+    {
+        return params.getEndpointItem() == ENROLLMENT && params.isRowContext() && queryItem.hasProgramStage()
+            && queryItem.getProgramStage().getRepeatable()
+            && queryItem.hasRepeatableStageParams();
     }
 
     private ColumnAndAlias getColumnAndAlias( QueryItem queryItem, EventQueryParams params, boolean isGroupByClause,

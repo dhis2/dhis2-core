@@ -34,7 +34,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -62,7 +62,7 @@ public class DefaultTrackedEntityDataValueAuditService
         this.trackedEntityDataValueAuditStore = trackedEntityDataValueAuditStore;
 
         aclFilter = ( audit ) -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
-            audit.getProgramStageInstance(), audit.getDataElement(), false ).isEmpty();
+            audit.getEvent(), audit.getDataElement(), false ).isEmpty();
     }
 
     // -------------------------------------------------------------------------
@@ -101,8 +101,8 @@ public class DefaultTrackedEntityDataValueAuditService
 
     @Override
     @Transactional
-    public void deleteTrackedEntityDataValueAudit( ProgramStageInstance programStageInstance )
+    public void deleteTrackedEntityDataValueAudit( Event event )
     {
-        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( programStageInstance );
+        trackedEntityDataValueAuditStore.deleteTrackedEntityDataValueAudit( event );
     }
 }

@@ -44,6 +44,7 @@ import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import com.google.gson.JsonArray;
@@ -96,20 +97,23 @@ public class MetadataPatchTests
     {
         sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
             Constants.ADMIN_ID );
-        dataElementActions.get( dataElementId ).validate().body( "userAccesses", hasSize( 2 ) );
 
-        JsonArray userAccesses = JsonObjectBuilder.jsonObject()
-            .addProperty( "access", "rw------" )
-            .addProperty( "id", Constants.SUPER_USER_ID )
-            .wrapIntoArray();
+        dataElementActions.get( dataElementId ).validate().body( "sharing.users", aMapWithSize( 2 ) );
+
+        JsonObject userAccesses = JsonObjectBuilder.jsonObject()
+            .addObject( Constants.SUPER_USER_ID, JsonObjectBuilder.jsonObject()
+                .addProperty( "access", "rw------" )
+                .addProperty( "id", Constants.SUPER_USER_ID )
+                .build() )
+            .build();
 
         dataElementActions
-            .patch( dataElementId, Arrays.asList( buildOperation( "replace", "/userAccesses", userAccesses ) ) )
+            .patch( dataElementId, Arrays.asList( buildOperation( "replace", "/sharing/users", userAccesses ) ) )
             .validate().statusCode( 200 );
 
         dataElementActions.get( dataElementId )
-            .validate().body( "userAccesses", hasSize( 1 ) )
-            .rootPath( "userAccesses[0]" )
+            .validate().body( "sharing.users", aMapWithSize( 1 ) )
+            .rootPath( "sharing.users." + Constants.SUPER_USER_ID )
             .body( "access", equalTo( "rw------" ) )
             .body( "id", equalTo( Constants.SUPER_USER_ID ) );
     }
@@ -136,10 +140,15 @@ public class MetadataPatchTests
     }
 
     @Test
+    @DisplayName( "Send PATCH request to remove user from Sharing" )
     public void shouldRemoveArray()
     {
         sharingActions.setupSharingForUsers( "dataElement", dataElementId, Constants.SUPER_USER_ID,
             Constants.ADMIN_ID );
+
+        dataElementActions.get( dataElementId )
+            .validate()
+            .body( "sharing.users", aMapWithSize( 2 ) );
 
         JsonObject object = JsonObjectBuilder.jsonObject()
             .addProperty( "op", "remove" )
@@ -151,7 +160,7 @@ public class MetadataPatchTests
 
         dataElementActions.get( dataElementId )
             .validate()
-            .body( "userAccesses", emptyIterable() );
+            .body( "sharing.users", anEmptyMap() );
     }
 
     @Test

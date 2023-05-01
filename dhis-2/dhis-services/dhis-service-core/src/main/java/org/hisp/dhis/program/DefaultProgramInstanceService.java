@@ -71,7 +71,7 @@ public class DefaultProgramInstanceService
 {
     private final ProgramInstanceStore programInstanceStore;
 
-    private final ProgramStageInstanceStore programStageInstanceStore;
+    private final EventStore eventStore;
 
     private final CurrentUserService currentUserService;
 
@@ -491,22 +491,22 @@ public class DefaultProgramInstanceService
         // Set statuses of the program-stage-instances
         // ---------------------------------------------------------------------
 
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        for ( Event event : programInstance.getEvents() )
         {
-            if ( programStageInstance.getExecutionDate() == null )
+            if ( event.getExecutionDate() == null )
             {
                 // -------------------------------------------------------------
                 // Set status as skipped for overdue events, or delete
                 // -------------------------------------------------------------
 
-                if ( programStageInstance.getDueDate().before( programInstance.getEndDate() ) )
+                if ( event.getDueDate().before( programInstance.getEndDate() ) )
                 {
-                    programStageInstance.setStatus( EventStatus.SKIPPED );
-                    programStageInstanceStore.update( programStageInstance );
+                    event.setStatus( EventStatus.SKIPPED );
+                    eventStore.update( event );
                 }
                 else
                 {
-                    programStageInstanceStore.delete( programStageInstance );
+                    eventStore.delete( event );
                 }
             }
         }

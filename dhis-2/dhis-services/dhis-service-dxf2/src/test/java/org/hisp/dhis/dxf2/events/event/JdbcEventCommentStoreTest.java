@@ -38,7 +38,7 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,40 +72,40 @@ class JdbcEventCommentStoreTest
     @Test
     void verifyPSITableIsNotQueriedWhenNoComments()
     {
-        List<ProgramStageInstance> programStageInstanceList = getProgramStageList( false );
-        jdbcEventCommentStore.saveAllComments( programStageInstanceList );
+        List<Event> eventList = getProgramStageList( false );
+        jdbcEventCommentStore.saveAllComments( eventList );
         verify( jdbcEventCommentStore, never() ).getInitialSortOrder( any() );
     }
 
     @Test
     void verifyPSITableIsNotQueriedWhenCommentsTextEmpty()
     {
-        List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true, true );
-        jdbcEventCommentStore.saveAllComments( programStageInstanceList );
+        List<Event> eventList = getProgramStageList( true, true );
+        jdbcEventCommentStore.saveAllComments( eventList );
         verify( jdbcEventCommentStore, never() ).getInitialSortOrder( any() );
     }
 
     @Test
     void verifyPSITableIsQueriedWhenComments()
     {
-        List<ProgramStageInstance> programStageInstanceList = getProgramStageList( true );
-        jdbcEventCommentStore.saveAllComments( programStageInstanceList );
+        List<Event> eventList = getProgramStageList( true );
+        jdbcEventCommentStore.saveAllComments( eventList );
         verify( jdbcEventCommentStore ).getInitialSortOrder( any() );
     }
 
-    private List<ProgramStageInstance> getProgramStageList( boolean withComments )
+    private List<Event> getProgramStageList( boolean withComments )
     {
         return getProgramStageList( withComments, false );
     }
 
-    private List<ProgramStageInstance> getProgramStageList( boolean withComments, boolean emptyComment )
+    private List<Event> getProgramStageList( boolean withComments, boolean emptyComment )
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        Event event = new Event();
         if ( withComments )
         {
-            programStageInstance.setComments( List.of( getComment( emptyComment ? "" : "Some comment" ) ) );
+            event.setComments( List.of( getComment( emptyComment ? "" : "Some comment" ) ) );
         }
-        return List.of( programStageInstance );
+        return List.of( event );
     }
 
     private TrackedEntityComment getComment( String commentText )

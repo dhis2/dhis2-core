@@ -25,29 +25,24 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-/**
- * Enum for description of repeatable stage value
- */
-public enum RepeatableStageValueStatus
+import org.hisp.dhis.user.sharing.Sharing;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
+
+@Mapper( uses = { DebugMapper.class, UserAccessMapper.class, UserGroupAccessMapper.class } )
+public interface SharingMapper extends PreheatMapper<Sharing>
 {
-    //repeating of the repeatable stage does not exist
-    UNDEFINED,
+    SharingMapper INSTANCE = Mappers.getMapper( SharingMapper.class );
 
-    //value is not set
-    UNSET,
-
-    //value is set
-    SET;
-
-    public static RepeatableStageValueStatus of( boolean isDefined, boolean isSet )
-    {
-        if ( !isDefined )
-        {
-            return RepeatableStageValueStatus.UNDEFINED;
-        }
-
-        return isSet ? RepeatableStageValueStatus.SET : RepeatableStageValueStatus.UNSET;
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "publicAccess" )
+    @Mapping( target = "external" )
+    @Mapping( target = "owner" )
+    @Mapping( target = "users" )
+    @Mapping( target = "userGroups" )
+    Sharing map( Sharing sharing );
 }

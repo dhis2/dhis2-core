@@ -67,7 +67,7 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onEvent( ProgramStageCompletionNotificationEvent event )
     {
-        programNotificationService.sendEventCompletionNotifications( event.getProgramStageInstance() );
+        programNotificationService.sendEventCompletionNotifications( event.getEvent() );
     }
 
     // Published by rule engine
@@ -82,13 +82,13 @@ public class ProgramNotificationListener
     public void onProgramRuleEvent( ProgramRuleStageEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredEventNotifications( event.getTemplate(),
-            event.getProgramStageInstance() );
+            event.getEvent() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onTrackerEventWebHook( TrackerEventWebHookEvent event )
     {
-        trackerNotificationWebHookService.handleEvent( event.getProgramStageInstance() );
+        trackerNotificationWebHookService.handleEvent( event.getEvent() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

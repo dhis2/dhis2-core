@@ -40,7 +40,7 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 
 public interface ProgramMessageService
 {
-    ProgramMessageQueryParams getFromUrl( Set<String> ou, String programInstance, String programStageInstance,
+    ProgramMessageQueryParams getFromUrl( Set<String> ou, String programInstance, String eventUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate );
 
     /**

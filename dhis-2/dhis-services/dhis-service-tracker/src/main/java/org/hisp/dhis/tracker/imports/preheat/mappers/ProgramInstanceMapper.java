@@ -27,12 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import java.util.Set;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.user.UserAccess;
-import org.hisp.dhis.user.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,8 +37,6 @@ import org.mapstruct.factory.Mappers;
 
 @Mapper( uses = {
     DebugMapper.class,
-    UserGroupAccessMapper.class,
-    UserAccessMapper.class,
     TrackedEntityInstanceMapper.class,
     OrganisationUnitMapper.class,
     AttributeValueMapper.class
@@ -56,10 +50,6 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "uid" )
     @Mapping( target = "code" )
     @Mapping( target = "user" )
-    @Mapping( target = "publicAccess" )
-    @Mapping( target = "externalAccess" )
-    @Mapping( target = "userGroupAccesses", qualifiedByName = "userGroupAccessesPi" )
-    @Mapping( target = "userAccesses", qualifiedByName = "userAccessesPi" )
     @Mapping( target = "program", qualifiedByName = "program" )
     @Mapping( target = "entityInstance" )
     @Mapping( target = "organisationUnit" )
@@ -71,12 +61,6 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "createdByUserInfo" )
     @Mapping( target = "lastUpdatedByUserInfo" )
     ProgramInstance map( ProgramInstance programInstance );
-
-    @Named( "userGroupAccessesPi" )
-    Set<UserGroupAccess> userGroupAccesses( Set<UserGroupAccess> userGroupAccesses );
-
-    @Named( "userAccessesPi" )
-    Set<UserAccess> mapUserAccessProgramInstance( Set<UserAccess> userAccesses );
 
     @Named( "program" )
     @BeanMapping( ignoreByDefault = true )

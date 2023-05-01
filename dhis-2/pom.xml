@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.1.3</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.7</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.16.3</flyway-core.version>
+    <flyway-core.version>9.17.0</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -112,7 +112,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.14.2</jackson.version>
+    <jackson.version>2.15.0</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -127,7 +127,7 @@
     <jclouds.version>2.5.0</jclouds.version>
 
     <!-- Reporting -->
-    <jasperreports.version>6.20.2</jasperreports.version>
+    <jasperreports.version>6.20.3</jasperreports.version>
     <jfreechart.version>1.5.4</jfreechart.version>
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
@@ -137,13 +137,13 @@
     <!-- GIS -->
     <batik-transcoder.version>1.16</batik-transcoder.version>
     <fop.version>2.8</fop.version>
-    <mapstruct.version>1.5.4.Final</mapstruct.version>
+    <mapstruct.version>1.5.5.Final</mapstruct.version>
     <geotools.version>29.0</geotools.version>
     <jts.version>1.19.0</jts.version>
 
     <!-- Apache Artemis -->
     <artemis.version>2.28.0</artemis.version>
-    <netty-all.version>4.1.91.Final</netty-all.version>
+    <netty-all.version>4.1.92.Final</netty-all.version>
     <classgraph.version>4.8.157</classgraph.version>
 
     <!-- SMS/SMPP -->
@@ -156,7 +156,7 @@
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.1.4.Final</version.debezium>
+    <version.debezium>2.2.0.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -189,7 +189,7 @@
     <slf4j.version>1.7.36</slf4j.version>
 
     <!-- Test -->
-    <junit.version>5.9.2</junit.version>
+    <junit.version>5.9.3</junit.version>
     <mockito.version>5.2.0</mockito.version>
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
@@ -211,12 +211,12 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.1.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.2.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.4</spotbugs-maven-plugin.version>
     <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
-    <jacoco-maven-plugin.version>0.8.9</jacoco-maven-plugin.version>
+    <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.11</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
@@ -234,8 +234,19 @@
 
   <repositories>
     <repository>
-      <id>central</id>
+      <id>central-mirror</id>
       <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+      <releases>
+        <enabled>true</enabled>
+      </releases>
+      <snapshots>
+        <enabled>false</enabled>
+        <updatePolicy>daily</updatePolicy>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>central</id>
+      <url>https://repo1.maven.org/maven2</url>
       <releases>
         <enabled>true</enabled>
       </releases>
@@ -465,6 +476,13 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok-maven-plugin</artifactId>
             <version>${lombok-maven-plugin.version}</version>
+            <dependencies>
+              <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </dependency>
+            </dependencies>
             <configuration>
               <addOutputDirectory>false</addOutputDirectory>
               <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
@@ -833,6 +851,12 @@
                   <reason>Use javax.annotation.Nonnull and javax.annotation.CheckForNull instead</reason>
                   <bannedImports>
                     <bannedImport>lombok.NonNull</bannedImport>
+                  </bannedImports>
+                </RestrictImports>
+                <RestrictImports>
+                  <reason>Use org.junit.jupiter.api.Assertions.assertInstanceOf instead</reason>
+                  <bannedImports>
+                    <bannedImport>org.hamcrest.Matchers.instanceOf</bannedImport>
                   </bannedImports>
                 </RestrictImports>
               </rules>

@@ -43,13 +43,13 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -82,7 +82,7 @@ class TrackedEntityInstanceServiceTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -102,7 +102,7 @@ class TrackedEntityInstanceServiceTest
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private ProgramInstance programInstance;
 
@@ -178,7 +178,7 @@ class TrackedEntityInstanceServiceTest
             program );
         programInstance.setUid( "UID-A" );
         programInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance = new ProgramStageInstance( programInstance, stageA );
+        event = new Event( programInstance, stageA );
         programInstance.setUid( "UID-PSI-A" );
         programInstance.setOrganisationUnit( organisationUnit );
 
@@ -225,21 +225,21 @@ class TrackedEntityInstanceServiceTest
     {
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         long psIdA = programInstanceService.addProgramInstance( programInstance );
-        long psiIdA = programStageInstanceService.addProgramStageInstance( programStageInstance );
-        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
+        long psiIdA = eventService.addEvent( event );
+        programInstance.setEvents( Set.of( event ) );
         entityInstanceA1.setProgramInstances( Set.of( programInstance ) );
         programInstanceService.updateProgramInstance( programInstance );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
         TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
         ProgramInstance psA = programInstanceService.getProgramInstance( psIdA );
-        ProgramStageInstance psiA = programStageInstanceService.getProgramStageInstance( psiIdA );
+        Event psiA = eventService.getEvent( psiIdA );
         assertNotNull( teiA );
         assertNotNull( psA );
         assertNotNull( psiA );
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
         assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
         assertNull( programInstanceService.getProgramInstance( psIdA ) );
-        assertNull( programStageInstanceService.getProgramStageInstance( psiIdA ) );
+        assertNull( eventService.getEvent( psiIdA ) );
     }
 
     @Test
@@ -706,7 +706,7 @@ class TrackedEntityInstanceServiceTest
         programInstance = new ProgramInstance( enrollmentDate, DateTime.now().toDate(), entityInstance, program );
         programInstance.setUid( "UID-" + programStage );
         programInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance = new ProgramStageInstance( programInstance, stage );
+        event = new Event( programInstance, stage );
         programInstance.setUid( "UID-PSI-" + programStage );
         programInstance.setOrganisationUnit( organisationUnit );
 

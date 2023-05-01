@@ -32,8 +32,8 @@ import java.util.Optional;
 
 import javax.annotation.Nonnull;
 
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -120,13 +120,12 @@ public interface RelationshipService
     List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
-    default List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        boolean skipAccessValidation )
+    default List<Relationship> getRelationshipsByEvent( Event event, boolean skipAccessValidation )
     {
-        return getRelationshipsByProgramStageInstance( psi, null, skipAccessValidation );
+        return getRelationshipsByEvent( event, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+    List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
     List<Relationship> getRelationshipsByRelationshipType( RelationshipType relationshipType );

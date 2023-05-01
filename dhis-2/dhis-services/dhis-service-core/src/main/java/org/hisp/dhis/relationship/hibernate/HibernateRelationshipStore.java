@@ -47,8 +47,8 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
@@ -73,7 +73,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
     private static final String PROGRAM_INSTANCE = "programInstance";
 
-    private static final String PROGRAM_STAGE_INSTANCE = "programStageInstance";
+    private static final String PROGRAM_STAGE_INSTANCE = "event";
 
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -102,10 +102,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
+    public List<Relationship> getByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( event,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
@@ -160,7 +160,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
             return TRACKED_ENTITY_INSTANCE;
         else if ( entity instanceof ProgramInstance )
             return PROGRAM_INSTANCE;
-        else if ( entity instanceof ProgramStageInstance )
+        else if ( entity instanceof Event )
             return PROGRAM_STAGE_INSTANCE;
         else
             throw new IllegalArgumentException( entity.getClass()
@@ -346,10 +346,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
             return builder.equal( root.join( direction )
                 .get( PROGRAM_INSTANCE ), getItem( direction, relationship ).getProgramInstance() );
         }
-        else if ( relationshipItemDirection.getProgramStageInstance() != null )
+        else if ( relationshipItemDirection.getEvent() != null )
         {
             return builder.equal( root.join( direction )
-                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getProgramStageInstance() );
+                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getEvent() );
         }
         else
         {
