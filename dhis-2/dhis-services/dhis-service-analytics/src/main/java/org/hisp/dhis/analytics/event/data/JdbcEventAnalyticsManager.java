@@ -66,6 +66,7 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -626,6 +627,7 @@ public class JdbcEventAnalyticsManager
             "Last value aggregation type query must have value dimension or a program indicator" );
 
         String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+        String createdCol = quoteAlias( TimeField.CREATED.getField() );
         String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
 
@@ -653,7 +655,7 @@ public class JdbcEventAnalyticsManager
         }
 
         return "(select " + columns + ",row_number() over (" + partitionByClause + " " +
-            "order by " + timeCol + " " + order + ") as pe_rank " +
+            "order by " + timeCol + " " + order + ", " + createdCol + " " + order + ") as pe_rank " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
             "where " + timeTest + nullTest + ")";
     }

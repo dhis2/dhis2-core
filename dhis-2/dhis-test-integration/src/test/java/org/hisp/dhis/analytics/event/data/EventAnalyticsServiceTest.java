@@ -36,6 +36,11 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.IntStream.range;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hisp.dhis.analytics.AggregationType.AVERAGE;
+import static org.hisp.dhis.analytics.AggregationType.FIRST;
+import static org.hisp.dhis.analytics.AggregationType.FIRST_AVERAGE_ORG_UNIT;
+import static org.hisp.dhis.analytics.AggregationType.LAST;
+import static org.hisp.dhis.analytics.AggregationType.LAST_AVERAGE_ORG_UNIT;
 import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
@@ -333,6 +338,7 @@ class EventAnalyticsServiceTest
 
         Date jan1 = new GregorianCalendar( 2017, JANUARY, 1 ).getTime();
         Date jan15 = new GregorianCalendar( 2017, JANUARY, 15 ).getTime();
+        Date jan20 = new GregorianCalendar( 2017, JANUARY, 20 ).getTime();
         Date feb15 = new GregorianCalendar( 2017, FEBRUARY, 15 ).getTime();
         Date feb15Noon = new GregorianCalendar( 2017, FEBRUARY, 15, 12, 0 ).getTime();
         Date mar15 = new GregorianCalendar( 2017, MARCH, 15 ).getTime();
@@ -355,7 +361,7 @@ class EventAnalyticsServiceTest
 
         ProgramStage psB = createProgramStage( 'B', 0 );
         psB.setUid( "progrStageB" );
-        psB.addDataElement( deU, 2 );
+        psB.addDataElement( deA, 1 );
         idObjectManager.save( psB );
 
         // Programs
@@ -420,43 +426,101 @@ class EventAnalyticsServiceTest
         trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
-        ProgramStageInstance psiA = createProgramStageInstance( psA, piA, ouI );
-        psiA.setDueDate( jan15 );
-        psiA.setExecutionDate( jan15 );
-        psiA.setUid( "progStagInA" );
-        psiA.setEventDataValues( Set.of(
+        ProgramStageInstance psiA1 = createProgramStageInstance( psA, piA, ouI );
+        psiA1.setDueDate( jan15 );
+        psiA1.setExecutionDate( jan15 );
+        psiA1.setUid( "prgStgInsA1" );
+        psiA1.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "1" ),
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
-        psiA.setAttributeOptionCombo( cocDefault );
+        psiA1.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB = createProgramStageInstance( psB, piB, ouI );
-        psiB.setDueDate( jan15 );
-        psiB.setExecutionDate( jan15 );
-        psiB.setUid( "progStagInB" );
-        psiB.setEventDataValues( Set.of(
-            new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
-        psiB.setAttributeOptionCombo( cocDefault );
-
-        ProgramStageInstance psiC = createProgramStageInstance( psA, piA, ouJ );
-        psiC.setDueDate( feb15 );
-        psiC.setExecutionDate( feb15 );
-        psiC.setUid( "progStagInC" );
-        psiC.setEventDataValues( Set.of(
+        ProgramStageInstance psiA2 = createProgramStageInstance( psA, piA, ouJ );
+        psiA2.setDueDate( feb15 );
+        psiA2.setExecutionDate( feb15 );
+        psiA2.setUid( "prgStgInsA2" );
+        psiA2.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "2" ),
             new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
-        psiC.setAttributeOptionCombo( cocDefault );
+        psiA2.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiD = createProgramStageInstance( psA, piA, ouK );
-        psiD.setDueDate( mar15 );
-        psiD.setExecutionDate( mar15 );
-        psiD.setUid( "progStagInD" );
-        psiD.setEventDataValues( Set.of(
+        ProgramStageInstance psiA3 = createProgramStageInstance( psA, piA, ouK );
+        psiA3.setDueDate( mar15 );
+        psiA3.setExecutionDate( mar15 );
+        psiA3.setUid( "prgStgInsA3" );
+        psiA3.setEventDataValues( Set.of(
             new EventDataValue( deA.getUid(), "4" ),
             new EventDataValue( deU.getUid(), ouN.getUid() ) ) );
-        psiD.setAttributeOptionCombo( cocDefault );
+        psiA3.setAttributeOptionCombo( cocDefault );
 
-        saveEvents( List.of( psiA, psiB, psiC, psiD ) );
+        ProgramStageInstance psiB1 = createProgramStageInstance( psB, piB, ouI );
+        psiB1.setDueDate( jan15 );
+        psiB1.setExecutionDate( jan15 );
+        psiB1.setUid( "prgStgInsB1" );
+        psiB1.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "10" ) ) );
+        psiB1.setAttributeOptionCombo( cocDefault );
 
+        ProgramStageInstance psiB2 = createProgramStageInstance( psB, piB, ouI );
+        psiB2.setDueDate( jan20 );
+        psiB2.setExecutionDate( jan20 );
+        psiB2.setUid( "prgStgInsB2" );
+        psiB2.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "20" ) ) );
+        psiB2.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB3 = createProgramStageInstance( psB, piB, ouJ );
+        psiB3.setDueDate( jan15 );
+        psiB3.setExecutionDate( jan15 );
+        psiB3.setUid( "prgStgInsB3" );
+        psiB3.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "30" ) ) );
+        psiB3.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB4 = createProgramStageInstance( psB, piB, ouJ );
+        psiB4.setDueDate( jan20 );
+        psiB4.setExecutionDate( jan20 );
+        psiB4.setUid( "prgStgInsB4" );
+        psiB4.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "40" ) ) );
+        psiB4.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB5 = createProgramStageInstance( psB, piB, ouI );
+        psiB5.setDueDate( feb15 );
+        psiB5.setExecutionDate( feb15 );
+        psiB5.setUid( "prgStgInsB5" );
+        psiB5.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "50" ) ) );
+        psiB5.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB6 = createProgramStageInstance( psB, piB, ouI );
+        psiB6.setDueDate( feb15Noon );
+        psiB6.setExecutionDate( feb15Noon );
+        psiB6.setUid( "prgStgInsB6" );
+        psiB6.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "60" ) ) );
+        psiB6.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB7 = createProgramStageInstance( psB, piB, ouJ );
+        psiB7.setDueDate( feb15 );
+        psiB7.setExecutionDate( feb15 );
+        psiB7.setUid( "prgStgInsB7" );
+        psiB7.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "70" ) ) );
+        psiB7.setAttributeOptionCombo( cocDefault );
+
+        ProgramStageInstance psiB8 = createProgramStageInstance( psB, piB, ouJ );
+        psiB8.setDueDate( feb15Noon );
+        psiB8.setExecutionDate( feb15Noon );
+        psiB8.setUid( "prgStgInsB8" );
+        psiB8.setEventDataValues( Set.of(
+            new EventDataValue( deA.getUid(), "80" ) ) );
+        psiB8.setAttributeOptionCombo( cocDefault );
+
+        saveEvents( List.of( psiA1, psiA2, psiA3,
+            psiB1, psiB2, psiB3, psiB4, psiB5, psiB6, psiB7, psiB8 ) );
+
+        // Users
         userA = createUserWithAuth( "A", "F_VIEW_EVENT_ANALYTICS" );
         userA.setCatDimensionConstraints( Sets.newHashSet( caA, caB ) );
         userService.addUser( userA );
@@ -1083,10 +1147,107 @@ class EventAnalyticsServiceTest
     // Test program indicators with aggregation types
     // -------------------------------------------------------------------------
 
-    //    @Test
+    @Test
+    void testEventProgramIndicatorFirstSumOrgUnit()
+    {
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "10.0" ), // First of 10, 20
+                List.of( "201701", "ouabcdefghJ", "30.0" ), // First of 30, 40
+                List.of( "201701", "ouabcdefghA", "40.0" ), // Sum
+                List.of( "201702", "ouabcdefghI", "50.0" ), // First of 50, 60
+                List.of( "201702", "ouabcdefghJ", "70.0" ), // First of 70, 80
+                List.of( "201702", "ouabcdefghA", "120.0" ) ), // Sum
+            getTestAggregatedGrid( FIRST ) );
+    }
+
+    @Test
+    void testEventProgramIndicatorLastSumOrgUnit()
+    {
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "20.0" ), // Last of 10, 20
+                List.of( "201701", "ouabcdefghJ", "40.0" ), // Last of 30, 40
+                List.of( "201701", "ouabcdefghA", "60.0" ), // Sum
+                List.of( "201702", "ouabcdefghI", "60.0" ), // Last of 50, 60
+                List.of( "201702", "ouabcdefghJ", "80.0" ), // Last of 70, 80
+                List.of( "201702", "ouabcdefghA", "140.0" ) ), // Sum
+            getTestAggregatedGrid( LAST ) );
+    }
+
+    @Test
+    void testEventProgramIndicatorFirstAverageOrgUnit()
+    {
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "10.0" ), // First of 10, 20
+                List.of( "201701", "ouabcdefghJ", "30.0" ), // First of 30, 40
+                List.of( "201701", "ouabcdefghA", "20.0" ), // Average
+                List.of( "201702", "ouabcdefghI", "50.0" ), // First of 50, 60
+                List.of( "201702", "ouabcdefghJ", "70.0" ), // First of 70, 80
+                List.of( "201702", "ouabcdefghA", "60.0" ) ), // Average
+            getTestAggregatedGrid( FIRST_AVERAGE_ORG_UNIT ) );
+    }
+
+    @Test
+    void testEventProgramIndicatorLastAverageOrgUnit()
+    {
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "20.0" ), // Last of 10, 20
+                List.of( "201701", "ouabcdefghJ", "40.0" ), // Last of 30, 40
+                List.of( "201701", "ouabcdefghA", "30.0" ), // Average
+                List.of( "201702", "ouabcdefghI", "60.0" ), // Last of 50, 60
+                List.of( "201702", "ouabcdefghJ", "80.0" ), // Last of 70, 80
+                List.of( "201702", "ouabcdefghA", "70.0" ) ), // Average
+            getTestAggregatedGrid( LAST_AVERAGE_ORG_UNIT ) );
+    }
+
+    @Test
     void testEventProgramIndicatorSum()
     {
-        ProgramIndicator pi = createProgramIndicatorA( EVENT, "#{progrStageA.deInteger0A}", null, SUM );
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "30.0" ), // 10 + 20
+                List.of( "201701", "ouabcdefghJ", "70.0" ), // 30 + 40
+                List.of( "201701", "ouabcdefghA", "100.0" ), // Sum
+                List.of( "201702", "ouabcdefghI", "110.0" ), // 50 + 60
+                List.of( "201702", "ouabcdefghJ", "150.0" ), // 70 + 80
+                List.of( "201702", "ouabcdefghA", "260.0" ) ), // Sum
+            getTestAggregatedGrid( SUM ) );
+    }
+
+    @Test
+    void testEventProgramIndicatorAverage()
+    {
+        assertGridContains(
+            // Headers
+            List.of( "pe", "ou", "value" ),
+            // Grid
+            List.of(
+                List.of( "201701", "ouabcdefghI", "15.0" ), // avg(10,20)
+                List.of( "201701", "ouabcdefghJ", "35.0" ), // avg(30,40)
+                List.of( "201701", "ouabcdefghA", "25.0" ), // avg(10,20,30,40)
+                List.of( "201702", "ouabcdefghI", "55.0" ), // avg(50,60)
+                List.of( "201702", "ouabcdefghJ", "75.0" ), // avg(70,80)
+                List.of( "201702", "ouabcdefghA", "65.0" ) // avg(50,60,70,80)
+            ),
+            getTestAggregatedGrid( AVERAGE ) );
     }
 
     // -------------------------------------------------------------------------
@@ -1143,7 +1304,24 @@ class EventAnalyticsServiceTest
     }
 
     /**
-     * Creates program indicator A with orgUnitField.
+     * Gets a grid to test aggregation types
+     */
+    private Grid getTestAggregatedGrid( AggregationType aggregationType )
+    {
+        ProgramIndicator pi = createProgramIndicatorB( EVENT, "#{progrStageB.deInteger0A}", null, aggregationType );
+
+        EventQueryParams params = getBaseEventQueryParamsBuilder()
+            .withAggregateData( true )
+            .addItemProgramIndicator( pi )
+            .withPeriods( List.of( peJan, peFeb ), "Monthly" )
+            .withOrganisationUnits( List.of( ouA, ouI, ouJ ) )
+            .build();
+
+        return eventTarget.getAggregatedEventData( params );
+    }
+
+    /**
+     * Creates program indicator for program A with orgUnitField.
      */
     private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
         String orgUnitField, PeriodType afterStartPeriodType, int afterStartPeriods )
@@ -1156,13 +1334,13 @@ class EventAnalyticsServiceTest
     }
 
     /**
-     * Creates program indicator A with aggregationType.
+     * Creates program indicator for program B with aggregationType.
      */
-    private ProgramIndicator createProgramIndicatorA( AnalyticsType analyticsType, String expression,
+    private ProgramIndicator createProgramIndicatorB( AnalyticsType analyticsType, String expression,
         String filter, AggregationType aggregationType )
     {
-        ProgramIndicator pi = createProgramIndicator( 'A', analyticsType, programA, expression, filter );
-        pi.setUid( "programIndA" );
+        ProgramIndicator pi = createProgramIndicator( 'B', analyticsType, programB, expression, filter );
+        pi.setUid( "programIndB" );
         pi.setAggregationType( aggregationType );
         return pi;
     }
