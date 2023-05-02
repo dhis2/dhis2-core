@@ -101,8 +101,8 @@ public class RouteService
 
         HttpClient httpClient = HttpClientBuilder.create()
             .disableCookieManagement()
-            .useSystemProperties()
             .build();
+
         requestFactory.setHttpClient( httpClient );
 
         restTemplate.setRequestFactory( requestFactory );
