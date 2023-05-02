@@ -454,7 +454,7 @@ public class OrganisationUnitController
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
 
-        List<OrganisationUnit> parents = manager.getByUid( OrganisationUnit.class, rpParents );
+        List<OrganisationUnit> parents = new ArrayList<>( manager.getByUid( OrganisationUnit.class, rpParents ) );
 
         if ( rpLevels.isEmpty() )
         {
