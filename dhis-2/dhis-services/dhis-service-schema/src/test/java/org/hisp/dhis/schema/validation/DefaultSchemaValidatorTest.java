@@ -29,7 +29,9 @@ package org.hisp.dhis.schema.validation;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptyList;
+import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_TOO_LONG_TOO_SHORT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +52,8 @@ import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.PasswordValidationResult;
 import org.hisp.dhis.user.PasswordValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -175,8 +179,13 @@ class DefaultSchemaValidatorTest
     @BeforeEach
     void setUpSchema()
     {
+        CredentialsInfo credentialsInfo = new CredentialsInfo( "USERNAME", "tooShort",
+            "", true );
+
         schema.setPropertyMap( introspectorService.getPropertiesMap( SimpleFields.class ) );
         when( schemaService.getDynamicSchema( SimpleFields.class ) ).thenReturn( schema );
+
+        //        when( passwordValidationService.isV( credentialsInfo ) ).thenReturn( new PasswordValidationResult( null ) );
     }
 
     @Test
@@ -224,6 +233,8 @@ class DefaultSchemaValidatorTest
     @Test
     void testUrlPropertyValid()
     {
+        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
+            .thenReturn( new PasswordValidationResult( null ) );
         assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
     }
 
@@ -237,12 +248,16 @@ class DefaultSchemaValidatorTest
     @Test
     void testPasswordPropertyValid()
     {
+        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
+            .thenReturn( new PasswordValidationResult( null ) );
         assertNoError( SimpleFields.builder().string( "valid" ).password( "veryGoodS3cret" ).build() );
     }
 
     @Test
     void testPasswordPropertyInvalid()
     {
+        when( passwordValidationService.validate( any( CredentialsInfo.class ) ) )
+            .thenReturn( new PasswordValidationResult( PASSWORD_TOO_LONG_TOO_SHORT ) );
         assertError( ErrorCode.E4005, SimpleFields.builder().string( "valid" ).password( "tooShort" ).build(),
             "Property `password` requires a valid password, was given `tooShort`" );
     }

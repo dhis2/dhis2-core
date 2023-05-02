@@ -79,10 +79,10 @@ public class UserTest extends ApiTest
         return Stream.of( new Arguments[] {
             Arguments.of( password, password, "Password must not be one of the previous 24 passwords",
                 "newPassword is the same as old" ),
-            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 40 characters",
+            Arguments.of( password, "Test1?", "Password must have at least 8, and at most 256 characters",
                 "newPassword is too short" ),
             Arguments.of( password, DataGenerator.randomString( 41 ) + "1?",
-                "Password must have at least 8, and at most 40 characters", "newPassword is too-long" ),
+                "Password must have at least 8, and at most 256 characters", "newPassword is too-long" ),
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
             Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect",
                 "oldPassword is incorrect" ),
