@@ -76,6 +76,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         {
             addReports.accept( new ErrorReport( User.class, ErrorCode.E4027, user.getWhatsApp(), "Whatsapp" ) );
         }
+
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid( user.getUid() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4014, user.getUid(), "uid" )
+                    .setErrorProperty( "uid" ) );
+        }
     }
 
     @Override
