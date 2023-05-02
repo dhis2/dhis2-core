@@ -97,9 +97,9 @@ public class ValidationUtils
 
     public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS = "not_valid_value_type_option_class";
 
-    private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
+    private static final Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
 
-    private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "TRUE", "t", "T", "1" );
+    private static final Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "TRUE", "t", "T", "1" );
 
     private static final int VALUE_MAX_LENGTH = 50000;
 

@@ -53,6 +53,7 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -115,7 +116,6 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -139,6 +139,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Slf4j
 @Controller
 @RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )
+@RequiredArgsConstructor
 public class UserController
     extends AbstractCrudController<User>
 {
@@ -146,33 +147,21 @@ public class UserController
 
     public static final String BULK_INVITE_PATH = "/invites";
 
-    private static final String KEY_USERNAME = "username";
+    protected final DbmsManager dbmsManager;
 
-    private static final String KEY_PASSWORD = "password";
+    private final UserService userService;
 
-    @Autowired
-    protected DbmsManager dbmsManager;
+    private final UserGroupService userGroupService;
 
-    @Autowired
-    private UserService userService;
+    private final UserControllerUtils userControllerUtils;
 
-    @Autowired
-    private UserGroupService userGroupService;
+    private final SecurityService securityService;
 
-    @Autowired
-    private UserControllerUtils userControllerUtils;
+    private final OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private SecurityService securityService;
+    private final UserSettingService userSettingService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
-
-    @Autowired
-    private UserSettingService userSettingService;
-
-    @Autowired
-    private PasswordValidationService passwordValidationService;
+    private final PasswordValidationService passwordValidationService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -518,8 +507,8 @@ public class UserController
 
         Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
 
-        String username = StringUtils.trimToNull( auth != null ? auth.get( KEY_USERNAME ) : null );
-        String password = StringUtils.trimToNull( auth != null ? auth.get( KEY_PASSWORD ) : null );
+        String username = StringUtils.trimToNull( auth != null ? auth.get( "username" ) : null );
+        String password = StringUtils.trimToNull( auth != null ? auth.get( "password" ) : null );
 
         if ( auth == null || username == null )
         {

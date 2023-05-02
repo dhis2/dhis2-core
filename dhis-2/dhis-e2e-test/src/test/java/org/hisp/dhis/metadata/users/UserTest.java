@@ -81,7 +81,7 @@ public class UserTest extends ApiTest
                 "newPassword is the same as old" ),
             Arguments.of( password, "Test1?", "Password must have at least 8, and at most 256 characters",
                 "newPassword is too short" ),
-            Arguments.of( password, DataGenerator.randomString( 41 ) + "1?",
+            Arguments.of( password, DataGenerator.randomString( 257 ) + "1?",
                 "Password must have at least 8, and at most 256 characters", "newPassword is too-long" ),
             Arguments.of( password, "", "OldPassword and newPassword must be provided", "newPassword is empty" ),
             Arguments.of( "not-an-old-password", "Test1212???", "OldPassword is incorrect",
