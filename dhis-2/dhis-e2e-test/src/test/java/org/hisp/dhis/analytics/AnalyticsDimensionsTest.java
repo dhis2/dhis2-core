@@ -27,7 +27,17 @@
  */
 package org.hisp.dhis.analytics;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.endsWith;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.in;
+import static org.hamcrest.Matchers.not;
+import static org.hamcrest.Matchers.oneOf;
+import static org.hamcrest.Matchers.startsWith;
 
 import java.util.Arrays;
 import java.util.List;
@@ -193,9 +203,7 @@ public class AnalyticsDimensionsTest
                 not( startsWith( trackerProgram.getProgramStages().get( 0 ) ) ) ),
             Arguments.of( "dimensionType", "eq", "DATA_ELEMENT", equalTo( "DATA_ELEMENT" ) ),
             Arguments.of( "dimensionType", "eq", "PROGRAM_INDICATOR", equalTo( "PROGRAM_INDICATOR" ) ),
-            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) )
-
-        );
+            Arguments.of( "dimensionType", "eq", "PROGRAM_ATTRIBUTE", equalTo( "PROGRAM_ATTRIBUTE" ) ) );
     }
 
     @ParameterizedTest

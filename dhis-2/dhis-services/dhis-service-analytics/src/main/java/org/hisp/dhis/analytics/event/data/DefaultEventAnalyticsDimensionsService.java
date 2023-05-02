@@ -27,9 +27,14 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.AGGREGATE;
-import static org.hisp.dhis.analytics.event.data.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.AGGREGATE;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.OperationType.QUERY;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.collectDimensions;
+import static org.hisp.dhis.analytics.common.DimensionsServiceCommon.filterByValueType;
 import static org.hisp.dhis.common.DataDimensionType.ATTRIBUTE;
+import static org.hisp.dhis.common.PrefixedDimensions.ofDataElements;
+import static org.hisp.dhis.common.PrefixedDimensions.ofItemsWithProgram;
+import static org.hisp.dhis.common.PrefixedDimensions.ofProgramIndicators;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -46,8 +51,7 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -65,7 +69,7 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     private final CategoryService categoryService;
 
     @Override
-    public List<BaseIdentifiableObject> getQueryDimensionsByProgramStageId( String programStageId )
+    public List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programStageId )
     {
         Optional<ProgramStage> programStage = Optional.of( programStageId )
             .map( programStageService::getProgramStage );
@@ -76,37 +80,34 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                 .map( ProgramStage::getProgram )
                 .map( p -> collectDimensions(
                     List.of(
-                        p.getProgramIndicators(),
+                        ofProgramIndicators( p.getProgramIndicators() ),
                         filterByValueType(
                             QUERY,
-                            programStage.get().getDataElements(),
-                            DataElement::getValueType ),
+                            ofDataElements( programStage.get() ) ),
                         filterByValueType(
                             QUERY,
-                            getTeasIfRegistrationAndNotConfidential( p ),
-                            TrackedEntityAttribute::getValueType ),
-                        getCategoriesIfNeeded( p ),
-                        getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) )
+                            ofItemsWithProgram( p, getTeasIfRegistrationAndNotConfidential( p ) ) ),
+                        ofItemsWithProgram( p, getCategoriesIfNeeded( p ) ),
+                        ofItemsWithProgram( p, getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) ) )
                 .orElse( Collections.emptyList() );
         }
         return Collections.emptyList();
     }
 
     @Override
-    public List<BaseIdentifiableObject> getAggregateDimensionsByProgramStageId( String programStageId )
+    public List<PrefixedDimension> getAggregateDimensionsByProgramStageId( String programStageId )
     {
         return Optional.of( programStageId )
             .map( programStageService::getProgramStage )
             .map( ps -> collectDimensions(
                 List.of(
                     filterByValueType( AGGREGATE,
-                        ps.getDataElements(),
-                        DataElement::getValueType ),
+                        ofDataElements( ps ) ),
                     filterByValueType( AGGREGATE,
-                        ps.getProgram().getTrackedEntityAttributes(),
-                        TrackedEntityAttribute::getValueType ),
-                    getCategoriesIfNeeded( ps.getProgram() ),
-                    getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) ) ) )
+                        ofItemsWithProgram( ps.getProgram(), ps.getProgram().getTrackedEntityAttributes() ) ),
+                    ofItemsWithProgram( ps.getProgram(), getCategoriesIfNeeded( ps.getProgram() ) ),
+                    ofItemsWithProgram( ps.getProgram(),
+                        getAttributeCategoryOptionGroupSetsIfNeeded( ps.getProgram() ) ) ) ) )
             .orElse( Collections.emptyList() );
     }
 

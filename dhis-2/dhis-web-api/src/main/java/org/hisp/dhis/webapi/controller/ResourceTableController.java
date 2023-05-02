@@ -27,8 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS;
+import static org.hisp.dhis.analytics.AnalyticsTableType.COMPLETENESS_TARGET;
+import static org.hisp.dhis.analytics.AnalyticsTableType.DATA_VALUE;
+import static org.hisp.dhis.analytics.AnalyticsTableType.ENROLLMENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.EVENT;
+import static org.hisp.dhis.analytics.AnalyticsTableType.OWNERSHIP;
+import static org.hisp.dhis.common.DhisApiVersion.ALL;
+import static org.hisp.dhis.common.DhisApiVersion.DEFAULT;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.createWebMessage;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.jobConfigurationReport;
+import static org.hisp.dhis.feedback.Status.ERROR;
+import static org.hisp.dhis.scheduling.JobStatus.FAILED;
+import static org.hisp.dhis.scheduling.JobType.ANALYTICS_TABLE;
+import static org.hisp.dhis.scheduling.JobType.MONITORING;
+import static org.hisp.dhis.scheduling.JobType.RESOURCE_TABLE;
+import static org.springframework.http.HttpStatus.CONFLICT;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -36,24 +52,18 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsTableType;
-import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.scheduling.JobConfigurationWebMessageResponse;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobStatus;
-import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 
@@ -63,7 +73,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = ResourceTableController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
+@ApiVersion( { DEFAULT, ALL } )
 @AllArgsConstructor
 public class ResourceTableController
 {
@@ -73,7 +83,7 @@ public class ResourceTableController
 
     private final CurrentUserService currentUserService;
 
-    @RequestMapping( value = "/analytics", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @RequestMapping( value = "/analytics", method = { PUT, POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseBody
     public WebMessage analytics(
@@ -89,53 +99,53 @@ public class ResourceTableController
 
         if ( skipAggregate )
         {
-            skipTableTypes.add( AnalyticsTableType.DATA_VALUE );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS );
-            skipTableTypes.add( AnalyticsTableType.COMPLETENESS_TARGET );
+            skipTableTypes.add( DATA_VALUE );
+            skipTableTypes.add( COMPLETENESS );
+            skipTableTypes.add( COMPLETENESS_TARGET );
         }
 
         if ( skipEvents )
         {
-            skipTableTypes.add( AnalyticsTableType.EVENT );
+            skipTableTypes.add( EVENT );
         }
 
         if ( skipEnrollment )
         {
-            skipTableTypes.add( AnalyticsTableType.ENROLLMENT );
+            skipTableTypes.add( ENROLLMENT );
         }
 
         if ( skipOrgUnitOwnership )
         {
-            skipTableTypes.add( AnalyticsTableType.OWNERSHIP );
+            skipTableTypes.add( OWNERSHIP );
         }
 
         AnalyticsJobParameters analyticsJobParameters = new AnalyticsJobParameters( lastYears, skipTableTypes,
             skipPrograms, skipResourceTables );
 
-        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", JobType.ANALYTICS_TABLE, "",
+        JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );
         analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
 
         return execute( analyticsTableJob );
     }
 
-    @RequestMapping( method = { RequestMethod.PUT, RequestMethod.POST } )
+    @RequestMapping( method = { PUT, POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseBody
     public WebMessage resourceTables()
     {
         JobConfiguration resourceTableJob = new JobConfiguration( "inMemoryResourceTableJob",
-            JobType.RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
+            RESOURCE_TABLE, currentUserService.getCurrentUser().getUid(), true );
 
         return execute( resourceTableJob );
     }
 
-    @RequestMapping( value = "/monitoring", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @RequestMapping( value = "/monitoring", method = { PUT, POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseBody
     public WebMessage monitoring()
     {
-        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", JobType.MONITORING, "",
+        JobConfiguration monitoringJob = new JobConfiguration( "inMemoryMonitoringJob", MONITORING, "",
             new MonitoringJobParameters(), true, true );
 
         return execute( monitoringJob );
@@ -146,9 +156,9 @@ public class ResourceTableController
         boolean success = schedulingManager.executeNow( configuration );
         if ( !success )
         {
-            configuration.setJobStatus( JobStatus.FAILED );
-            return createWebMessage( "Job of type " + configuration.getJobType() + " is already running", Status.ERROR,
-                HttpStatus.CONFLICT ).setResponse( new JobConfigurationWebMessageResponse( configuration ) );
+            configuration.setJobStatus( FAILED );
+            return createWebMessage( "Job of type " + configuration.getJobType() + " is already running", ERROR,
+                CONFLICT ).setResponse( new JobConfigurationWebMessageResponse( configuration ) );
         }
         return jobConfigurationReport( configuration );
     }

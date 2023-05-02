@@ -27,12 +27,16 @@
  */
 package org.hisp.dhis.webapi;
 
+import static java.lang.String.format;
 import static org.hisp.dhis.utils.JavaToJson.singleToDoubleQuotes;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.web.WebClientUtils.failOnException;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 
+import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.utils.DhisMockMvcControllerTest;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.mock.web.MockMultipartFile;
@@ -127,5 +131,24 @@ public class DhisControllerTestBase extends DhisMockMvcControllerTest
     protected final void assertJson( String expected, HttpResponse actual )
     {
         assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
+    }
+
+    protected final String addDataElement( String name, String code, ValueType valueType, String optionSet,
+        String categoryCombo )
+    {
+        return assertStatus( HttpStatus.CREATED,
+            postNewDataElement( name, code, valueType, optionSet, categoryCombo ) );
+    }
+
+    protected final HttpResponse postNewDataElement( String name, String code, ValueType valueType, String optionSet,
+        String categoryCombo )
+    {
+        return POST( "/dataElements/",
+            format( "{'name':'%s', 'shortName':'%s', 'code':'%s', 'valueType':'%s', "
+                + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
+                + "'categoryCombo': {'id': '%s'},"
+                + "'optionSet': %s"
+                + "}", name, code, code, valueType, categoryCombo,
+                optionSet == null ? "null" : "{'id':'" + optionSet + "'}" ) );
     }
 }

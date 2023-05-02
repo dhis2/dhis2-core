@@ -362,6 +362,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
         Collection<Indicator> indicators )
     {
@@ -375,6 +376,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators )
     {
         if ( indicators == null )
@@ -394,6 +396,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public IndicatorValue getIndicatorValueObject( Indicator indicator, List<Period> periods,
         Map<DimensionalItemId, DimensionalItemObject> itemMap, Map<DimensionalItemObject, Object> valueMap,
         Map<String, Integer> orgUnitCountMap )
@@ -475,7 +478,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
         try
@@ -700,6 +703,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Constant> getConstantMap()
     {
         return constantMapCache.get( "x", key -> constantService.getConstantMap() );

@@ -42,5 +42,8 @@ import org.hisp.dhis.feedback.ErrorReport;
 public interface JobParameters
     extends Serializable, EmbeddedObject
 {
-    Optional<ErrorReport> validate();
+    default Optional<ErrorReport> validate()
+    {
+        return Optional.empty();
+    }
 }

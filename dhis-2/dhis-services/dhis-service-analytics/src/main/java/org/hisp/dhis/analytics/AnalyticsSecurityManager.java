@@ -61,6 +61,12 @@ public interface AnalyticsSecurityManager
         throws IllegalQueryException;
 
     /**
+     * Decides whether the current user has privileges to execute the given
+     * event analytics query.
+     */
+    void decideAccessEventAnalyticsAuthority();
+
+    /**
      * Returns the current user. Looks for a current user to be specified for
      * the given query, if not uses the current user from the security context.
      *

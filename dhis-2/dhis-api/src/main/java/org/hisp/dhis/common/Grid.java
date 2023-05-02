@@ -538,18 +538,20 @@ public interface Grid
     Grid addReference( Reference reference );
 
     /**
-     * This method will take a Grid and retain only the columns and headers with
-     * the corresponding the list of headers.
+     * This method will retain the given columns in the current Grid. If the set
+     * of columns provided is null or empty, no changes will be made to the
+     * Grid. It will also keep the order of the columns based on the given set
+     * of headers.
      *
-     * @param headers the set of headers for which to retain columns.
+     * @param columns set of columns to be retained, on the same order.
      */
-    void retainColumns( Set<String> headers );
+    void retainColumns( Set<String> columns );
 
     /**
      * Reorders the headers of the grid based on the given list of header names.
      *
      * @param headers the list of header names.
-     * @return a set of indexes which holds the holds the new header order.
+     * @return a set of indexes which holds the new header order.
      */
     List<Integer> repositionHeaders( List<String> headers );
 

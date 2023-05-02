@@ -35,7 +35,7 @@ import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.PrefixedDimension;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -44,20 +44,17 @@ public class DimensionMapperService
 {
     private final Collection<DimensionMapper> mappers;
 
-    public List<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions )
+    public List<DimensionResponse> toDimensionResponse( Collection<PrefixedDimension> dimensions,
+        PrefixStrategy prefixStrategy )
     {
-        return toDimensionResponse( dimensions, null );
+        return mapToList( dimensions,
+            pDimension -> toDimensionResponse( pDimension, prefixStrategy.apply( pDimension ) ) );
     }
 
-    public List<DimensionResponse> toDimensionResponse( Collection<BaseIdentifiableObject> dimensions, String prefix )
-    {
-        return mapToList( dimensions, bio -> toDimensionResponse( bio, prefix ) );
-    }
-
-    private DimensionResponse toDimensionResponse( BaseIdentifiableObject dimension, String prefix )
+    private DimensionResponse toDimensionResponse( PrefixedDimension dimension, String prefix )
     {
         return mappers.stream()
-            .filter( dimensionMapper -> dimensionMapper.supports( dimension ) )
+            .filter( dimensionMapper -> dimensionMapper.supports( dimension.getItem() ) )
             .findFirst()
             .map( dimensionMapper -> dimensionMapper.map( dimension, prefix ) )
             .orElseThrow( () -> new IllegalArgumentException(

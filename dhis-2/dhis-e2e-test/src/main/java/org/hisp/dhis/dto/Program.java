@@ -38,6 +38,8 @@ public class Program
 
     private List<String> programStages;
 
+    private String trackedEntityType;
+
     public String getUid()
     {
         return uid;
@@ -58,6 +60,18 @@ public class Program
     public Program setProgramStages( List<String> programStages )
     {
         this.programStages = programStages;
+
+        return this;
+    }
+
+    public String getTrackedEntityType()
+    {
+        return trackedEntityType;
+    }
+
+    public Program setTrackedEntityType( String trackedEntityType )
+    {
+        this.trackedEntityType = trackedEntityType;
 
         return this;
     }
