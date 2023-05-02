@@ -257,12 +257,12 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistRelationship( from, to );
     }
 
-    public Relationship persistRelationship( TrackedEntityInstance tei, Event psi )
+    public Relationship persistRelationship( TrackedEntityInstance tei, Event event )
     {
         RelationshipItem from = new RelationshipItem();
         from.setTrackedEntityInstance( tei );
         RelationshipItem to = new RelationshipItem();
-        to.setEvent( psi );
+        to.setEvent( event );
         return _persistRelationship( from, to );
     }
 

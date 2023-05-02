@@ -82,7 +82,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private TrackedEntityInstance inaccessibleTei;
 
-    private Event psiA;
+    private Event eventA;
 
     private Event inaccessiblePsi;
 
@@ -96,7 +96,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private final RelationshipType teiToPiInaccessibleType = createRelationshipType( 'E' );
 
-    private final RelationshipType psiToPsiType = createRelationshipType( 'F' );
+    private final RelationshipType eventToEventType = createRelationshipType( 'F' );
 
     private ProgramInstance piA;
 
@@ -149,11 +149,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
         piA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             orgUnit );
-        psiA = new Event();
-        psiA.setProgramInstance( piA );
-        psiA.setProgramStage( programStage );
-        psiA.setOrganisationUnit( orgUnit );
-        manager.save( psiA, false );
+        eventA = new Event();
+        eventA.setProgramInstance( piA );
+        eventA.setProgramStage( programStage );
+        eventA.setOrganisationUnit( orgUnit );
+        manager.save( eventA, false );
 
         ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
             orgUnit );
@@ -209,14 +209,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         teiToPsiType.getSharing().setOwner( user );
         manager.save( teiToPsiType, false );
 
-        psiToPsiType.getFromConstraint()
+        eventToEventType.getFromConstraint()
             .setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
-        psiToPsiType.getFromConstraint().setTrackedEntityType( trackedEntityType );
-        psiToPsiType.getToConstraint()
+        eventToEventType.getFromConstraint().setTrackedEntityType( trackedEntityType );
+        eventToEventType.getToConstraint()
             .setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
-        psiToPsiType.getToConstraint().setProgramStage( programStage );
-        psiToPsiType.getSharing().setOwner( user );
-        manager.save( psiToPsiType, false );
+        eventToEventType.getToConstraint().setProgramStage( programStage );
+        eventToEventType.getSharing().setOwner( user );
+        manager.save( eventToEventType, false );
 
         injectSecurityContext( user );
     }
@@ -252,14 +252,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByProgramStageInstanceIfUserHasNoAccessToProgramStage()
+    void shouldNotReturnRelationshipByEventIfUserHasNoAccessToProgramStage()
         throws ForbiddenException,
         NotFoundException
     {
-        Relationship accessible = relationship( teiA, psiA );
-        relationship( psiA, inaccessiblePsi );
+        Relationship accessible = relationship( teiA, eventA );
+        relationship( eventA, inaccessiblePsi );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByEvent( psiA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByEvent( eventA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
@@ -328,7 +328,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private void relationship( Event from, Event to )
     {
-        relationship( from, to, psiToPsiType );
+        relationship( from, to, eventToEventType );
     }
 
     private void relationship( Event from, Event to, RelationshipType type )

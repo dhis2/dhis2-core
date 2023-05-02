@@ -101,8 +101,8 @@ class EventDataValueTest extends TrackerTest
         assertNoErrors( importReport );
         List<Event> events = manager.getAll( Event.class );
         assertEquals( 1, events.size() );
-        Event psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+        Event event = events.get( 0 );
+        Set<EventDataValue> eventDataValues = event.getEventDataValues();
         assertEquals( 4, eventDataValues.size() );
     }
 
@@ -116,8 +116,8 @@ class EventDataValueTest extends TrackerTest
         assertNoErrors( importReport );
         List<Event> events = manager.getAll( Event.class );
         assertEquals( 1, events.size() );
-        Event psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+        Event event = events.get( 0 );
+        Set<EventDataValue> eventDataValues = event.getEventDataValues();
         assertEquals( 4, eventDataValues.size() );
         // update
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );

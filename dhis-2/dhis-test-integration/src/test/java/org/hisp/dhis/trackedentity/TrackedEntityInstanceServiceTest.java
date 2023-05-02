@@ -225,21 +225,21 @@ class TrackedEntityInstanceServiceTest
     {
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         long psIdA = programInstanceService.addProgramInstance( programInstance );
-        long psiIdA = eventService.addEvent( event );
+        long eventIdA = eventService.addEvent( event );
         programInstance.setEvents( Set.of( event ) );
         entityInstanceA1.setProgramInstances( Set.of( programInstance ) );
         programInstanceService.updateProgramInstance( programInstance );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
         TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
         ProgramInstance psA = programInstanceService.getProgramInstance( psIdA );
-        Event psiA = eventService.getEvent( psiIdA );
+        Event eventA = eventService.getEvent( eventIdA );
         assertNotNull( teiA );
         assertNotNull( psA );
-        assertNotNull( psiA );
+        assertNotNull( eventA );
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
         assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
         assertNull( programInstanceService.getProgramInstance( psIdA ) );
-        assertNull( eventService.getEvent( psiIdA ) );
+        assertNull( eventService.getEvent( eventIdA ) );
     }
 
     @Test

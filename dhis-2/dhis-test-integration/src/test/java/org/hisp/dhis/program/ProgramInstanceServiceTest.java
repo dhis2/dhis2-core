@@ -178,17 +178,17 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testSoftDeleteProgramInstanceAndLinkedProgramStageInstance()
+    void testSoftDeleteProgramInstanceAndLinkedEvent()
     {
         long idA = programInstanceService.addProgramInstance( programInstanceA );
-        long psiIdA = eventService.addEvent( eventA );
+        long eventIdA = eventService.addEvent( eventA );
         programInstanceA.setEvents( Sets.newHashSet( eventA ) );
         programInstanceService.updateProgramInstance( programInstanceA );
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( eventService.getEvent( psiIdA ) );
+        assertNotNull( eventService.getEvent( eventIdA ) );
         programInstanceService.deleteProgramInstance( programInstanceA );
         assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( eventService.getEvent( psiIdA ) );
+        assertNull( eventService.getEvent( eventIdA ) );
     }
 
     @Test

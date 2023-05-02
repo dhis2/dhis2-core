@@ -150,15 +150,15 @@ class OwnershipTest extends TrackerTest
             pi.getCreatedAtClient() );
         assertEquals( DateUtils.fromInstant( enrollmentParams.getEnrollments().get( 0 ).getUpdatedAtClient() ),
             pi.getLastUpdatedAtClient() );
-        Set<Event> psis = pi.getEvents();
-        assertEquals( 1, psis.size() );
-        Event psi = psis.iterator().next();
-        assertNotNull( psi.getCreatedAtClient() );
-        assertNotNull( psi.getLastUpdatedAtClient() );
+        Set<Event> events = pi.getEvents();
+        assertEquals( 1, events.size() );
+        Event event = events.iterator().next();
+        assertNotNull( event.getCreatedAtClient() );
+        assertNotNull( event.getLastUpdatedAtClient() );
         assertEquals( DateUtils.fromInstant( trackerImportParams.getEvents().get( 0 ).getCreatedAtClient() ),
-            psi.getCreatedAtClient() );
+            event.getCreatedAtClient() );
         assertEquals( DateUtils.fromInstant( trackerImportParams.getEvents().get( 0 ).getUpdatedAtClient() ),
-            psi.getLastUpdatedAtClient() );
+            event.getLastUpdatedAtClient() );
     }
 
     @Test
