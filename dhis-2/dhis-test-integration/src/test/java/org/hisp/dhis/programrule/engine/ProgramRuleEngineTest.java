@@ -498,9 +498,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         setUpRuleActionForOptionSetName();
 
-        Event programStageInstance = eventService.getEvent( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+            event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
         assertNotNull( ruleEffects );
         assertInstanceOf( RuleActionShowWarning.class, ruleEffects.get( 0 ).ruleAction() );
@@ -512,9 +512,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         setUpRuleActionForOptionSetCode();
 
-        Event programStageInstance = eventService.getEvent( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+            event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
         assertNotNull( ruleEffects );
         assertInstanceOf( RuleActionShowError.class, ruleEffects.get( 0 ).ruleAction() );

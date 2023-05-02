@@ -259,7 +259,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testAddProgramStageInstance()
+    void testAddEvent()
     {
         long idA = eventService.addEvent( eventA );
         long idB = eventService.addEvent( eventB );
@@ -268,7 +268,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testDeleteProgramStageInstance()
+    void testDeleteEvent()
     {
         long idA = eventService.addEvent( eventA );
         long idB = eventService.addEvent( eventB );
@@ -283,7 +283,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testUpdateProgramStageInstance()
+    void testUpdateEvent()
     {
         long idA = eventService.addEvent( eventA );
         assertNotNull( eventService.getEvent( idA ) );
@@ -293,7 +293,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramStageInstanceById()
+    void testGetEventById()
     {
         long idA = eventService.addEvent( eventA );
         long idB = eventService.addEvent( eventB );
@@ -302,7 +302,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramStageInstanceByUid()
+    void testGetEventByUid()
     {
         long idA = eventService.addEvent( eventA );
         long idB = eventService.addEvent( eventB );

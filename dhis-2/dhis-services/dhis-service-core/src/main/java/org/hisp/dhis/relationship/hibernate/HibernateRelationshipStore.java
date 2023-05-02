@@ -73,7 +73,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
     private static final String PROGRAM_INSTANCE = "programInstance";
 
-    private static final String PROGRAM_STAGE_INSTANCE = "event";
+    private static final String EVENT = "event";
 
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -161,7 +161,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
         else if ( entity instanceof ProgramInstance )
             return PROGRAM_INSTANCE;
         else if ( entity instanceof Event )
-            return PROGRAM_STAGE_INSTANCE;
+            return EVENT;
         else
             throw new IllegalArgumentException( entity.getClass()
                 .getSimpleName() + " not supported in relationship" );
@@ -349,7 +349,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
         else if ( relationshipItemDirection.getEvent() != null )
         {
             return builder.equal( root.join( direction )
-                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getEvent() );
+                .get( EVENT ), getItem( direction, relationship ).getEvent() );
         }
         else
         {

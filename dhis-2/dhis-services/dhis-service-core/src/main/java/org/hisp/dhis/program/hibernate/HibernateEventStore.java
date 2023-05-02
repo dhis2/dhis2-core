@@ -68,7 +68,7 @@ public class HibernateEventStore
 {
     private final static String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
 
-    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS = Sets.intersection(
+    private final static Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS = Sets.intersection(
         NotificationTrigger.getAllApplicableToEvent(),
         NotificationTrigger.getAllScheduledTriggers() );
 
@@ -193,7 +193,7 @@ public class HibernateEventStore
         Date notificationDate )
     {
         if ( notificationDate == null
-            || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+            || !SCHEDULED_EVENT_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }

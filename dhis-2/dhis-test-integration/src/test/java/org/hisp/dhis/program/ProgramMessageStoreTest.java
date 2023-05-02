@@ -274,7 +274,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramMessageByProgramStageInstance()
+    void testGetProgramMessageByEvent()
     {
         programInstanceStore.save( programInstanceA );
         eventStore.save( eventA );

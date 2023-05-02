@@ -168,7 +168,7 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testProgramStageInstanceExists()
+    void testEventExists()
     {
         programInstanceStore.save( programInstanceA );
         programInstanceStore.save( programInstanceB );

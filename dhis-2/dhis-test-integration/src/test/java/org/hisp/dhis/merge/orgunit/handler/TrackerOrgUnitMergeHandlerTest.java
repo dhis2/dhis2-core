@@ -60,7 +60,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     private ProgramInstanceService piService;
 
     @Autowired
-    private EventService psiService;
+    private EventService eventService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -93,11 +93,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 
     private ProgramInstance piC;
 
-    private Event psiA;
+    private Event eventA;
 
-    private Event psiB;
+    private Event eventB;
 
-    private Event psiC;
+    private Event eventC;
 
     @Override
     public void setUpTest()
@@ -124,12 +124,12 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         piService.addProgramInstance( piA );
         piService.addProgramInstance( piB );
         piService.addProgramInstance( piC );
-        psiA = new Event( piA, psA, ouA );
-        psiB = new Event( piB, psA, ouB );
-        psiC = new Event( piC, psA, ouA );
-        psiService.addEvent( psiA );
-        psiService.addEvent( psiB );
-        psiService.addEvent( psiC );
+        eventA = new Event( piA, psA, ouA );
+        eventB = new Event( piB, psA, ouB );
+        eventC = new Event( piC, psA, ouA );
+        eventService.addEvent( eventA );
+        eventService.addEvent( eventB );
+        eventService.addEvent( eventC );
     }
 
     @Test

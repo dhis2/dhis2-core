@@ -276,7 +276,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedProgramStageInstanceWithAProgramMessage()
+    void testDeleteSoftDeletedEventsWithAProgramMessage()
     {
         ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
@@ -341,7 +341,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedProgramStageInstanceLinkedToARelationshipItem()
+    void testDeleteSoftDeletedEventLinkedToARelationshipItem()
     {
         RelationshipType rType = createRelationshipType( 'A' );
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );

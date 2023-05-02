@@ -228,7 +228,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testProgramStageInstanceExists()
+    void testEventExists()
     {
         eventStore.save( eventA );
         eventStore.save( eventB );
@@ -240,7 +240,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramStageInstancesByInstanceListComplete()
+    void testGetEventsByInstanceListComplete()
     {
         eventA.setStatus( EventStatus.COMPLETED );
         eventB.setStatus( EventStatus.ACTIVE );
