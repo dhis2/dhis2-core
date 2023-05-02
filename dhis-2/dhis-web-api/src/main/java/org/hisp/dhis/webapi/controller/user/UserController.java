@@ -53,7 +53,6 @@ import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -107,15 +106,14 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -139,7 +137,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @Slf4j
 @Controller
 @RequestMapping( value = UserSchemaDescriptor.API_ENDPOINT )
-@RequiredArgsConstructor
 public class UserController
     extends AbstractCrudController<User>
 {
@@ -147,21 +144,23 @@ public class UserController
 
     public static final String BULK_INVITE_PATH = "/invites";
 
-    protected final DbmsManager dbmsManager;
+    @Autowired
+    protected DbmsManager dbmsManager;
 
-    private final UserService userService;
+    @Autowired
+    private UserGroupService userGroupService;
 
-    private final UserGroupService userGroupService;
+    @Autowired
+    private UserControllerUtils userControllerUtils;
 
-    private final UserControllerUtils userControllerUtils;
+    @Autowired
+    private SecurityService securityService;
 
-    private final SecurityService securityService;
+    @Autowired
+    private OrganisationUnitService organisationUnitService;
 
-    private final OrganisationUnitService organisationUnitService;
-
-    private final UserSettingService userSettingService;
-
-    private final PasswordValidationService passwordValidationService;
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     // -------------------------------------------------------------------------
     // GET
