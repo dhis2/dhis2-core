@@ -484,7 +484,7 @@ public interface UserService
      *        whether the user's credentials are expired or not.
      * @return A CurrentUserDetailsImpl object.
      */
-    CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
+    CurrentUserDetails createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
     /**

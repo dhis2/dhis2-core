@@ -90,25 +90,11 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     private final TaskScheduler jobScheduler;
 
     private final AsyncTaskExecutor taskExecutor;
-
-    public DefaultSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
-        LeaderManager leaderManager, @Qualifier( "taskScheduler" ) TaskScheduler jobScheduler,
-        AsyncTaskExecutor taskExecutor, CacheProvider cacheProvider )
+    public DefaultSchedulingManager( SchedulingManagerSupport support )
     {
-        super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
-            cacheProvider );
-
-        checkNotNull( jobConfigurationService );
-        checkNotNull( messageService );
-        checkNotNull( leaderManager );
-        checkNotNull( jobScheduler );
-        checkNotNull( taskExecutor );
-        checkNotNull( jobService );
-
-        this.jobScheduler = jobScheduler;
-        this.taskExecutor = taskExecutor;
-
+        super( support );
+        this.jobScheduler = support.getJobScheduler();
+        this.taskExecutor = support.getTaskExecutor();
         jobScheduler.scheduleWithFixedDelay( this::clusterHeartbeat, Duration.ofSeconds( 30 ) );
     }
 

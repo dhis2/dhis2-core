@@ -64,6 +64,7 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.SchedulingManagerSupport;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
 import org.hisp.dhis.system.notification.Notifier;
@@ -226,12 +227,9 @@ public class WebTestConfiguration
      */
     @Bean
     @Primary
-    public SchedulingManager synchronousSchedulingManager( JobService jobService,
-        JobConfigurationService jobConfigurationService, MessageService messageService, Notifier notifier,
-        EventHookPublisher eventHookPublisher, LeaderManager leaderManager, CacheProvider cacheProvider )
+    public SchedulingManager synchronousSchedulingManager( SchedulingManagerSupport support )
     {
-        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
-            eventHookPublisher, leaderManager, cacheProvider );
+        return new TestSchedulingManager( support );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -240,12 +238,9 @@ public class WebTestConfiguration
 
         private boolean isRunning = false;
 
-        public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
-            LeaderManager leaderManager, CacheProvider cacheProvider )
+        public TestSchedulingManager( SchedulingManagerSupport support )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
-                cacheProvider );
+            super( support );
         }
 
         @Override
