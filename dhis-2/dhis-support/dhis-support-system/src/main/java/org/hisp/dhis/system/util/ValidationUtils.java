@@ -32,7 +32,6 @@ import static org.apache.commons.lang3.StringUtils.defaultIfBlank;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.lowerCase;
 import static org.apache.commons.lang3.StringUtils.trim;
-import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.datavalue.DataValue.FALSE;
 import static org.hisp.dhis.datavalue.DataValue.TRUE;
 import static org.hisp.dhis.system.util.MathUtils.isBool;
