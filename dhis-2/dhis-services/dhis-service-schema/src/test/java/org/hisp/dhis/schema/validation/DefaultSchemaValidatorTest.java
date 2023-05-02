@@ -50,6 +50,7 @@ import org.hisp.dhis.schema.annotation.Property.Value;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.schema.introspection.JacksonPropertyIntrospector;
 import org.hisp.dhis.schema.introspection.PropertyPropertyIntrospector;
+import org.hisp.dhis.user.PasswordValidationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -161,7 +162,10 @@ class DefaultSchemaValidatorTest
 
     private final SchemaService schemaService = mock( SchemaService.class );
 
-    private final DefaultSchemaValidator validator = new DefaultSchemaValidator( schemaService );
+    private final PasswordValidationService passwordValidationService = mock( PasswordValidationService.class );
+
+    private final DefaultSchemaValidator validator = new DefaultSchemaValidator( schemaService,
+        passwordValidationService );
 
     private final PropertyIntrospectorService introspectorService = new DefaultPropertyIntrospectorService(
         new JacksonPropertyIntrospector().then( new PropertyPropertyIntrospector() ) );

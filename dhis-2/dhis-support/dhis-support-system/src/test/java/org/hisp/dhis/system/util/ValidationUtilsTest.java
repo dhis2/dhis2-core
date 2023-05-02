@@ -62,7 +62,6 @@ import static org.hisp.dhis.system.util.ValidationUtils.isPhoneNumber;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidHexColor;
 import static org.hisp.dhis.system.util.ValidationUtils.isValidLetter;
 import static org.hisp.dhis.system.util.ValidationUtils.normalizeBoolean;
-import static org.hisp.dhis.system.util.ValidationUtils.passwordIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.usernameIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.uuidIsValid;
 import static org.hisp.dhis.system.util.ValidationUtils.validateRenderingType;
@@ -155,15 +154,6 @@ class ValidationUtilsTest
         assertEquals( "28.94221", getLatitude( "[37.99034,28.94221]" ) );
         assertNull( getLatitude( "23.34343,56.3232" ) );
         assertNull( getLatitude( null ) );
-    }
-
-    @Test
-    void testPasswordIsValid()
-    {
-        assertFalse( passwordIsValid( "Johnd1" ) );
-        assertFalse( passwordIsValid( "johndoe1" ) );
-        assertFalse( passwordIsValid( "Johndoedoe" ) );
-        assertTrue( passwordIsValid( "Johndoe1" ) );
     }
 
     @Test

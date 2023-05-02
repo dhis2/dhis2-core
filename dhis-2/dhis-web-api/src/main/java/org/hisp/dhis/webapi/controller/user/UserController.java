@@ -98,7 +98,10 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
@@ -167,6 +170,9 @@ public class UserController
 
     @Autowired
     private UserSettingService userSettingService;
+
+    @Autowired
+    private PasswordValidationService passwordValidationService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -535,9 +541,14 @@ public class UserController
             return conflict( "Password must be specified" );
         }
 
-        if ( !ValidationUtils.passwordIsValid( password ) )
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password,
+            existingUser.getEmail() != null ? existingUser.getEmail() : "", false );
+
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        if ( !result.isValid() )
         {
-            return conflict( "Password must have at least 8 characters, one digit, one uppercase" );
+            return conflict( result.getErrorMessage() );
         }
 
         User userReplica = new User();
