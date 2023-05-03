@@ -203,7 +203,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testWithImplementableActionExist_programStageInstance()
+    void testWithImplementableActionExist_event()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
