@@ -80,7 +80,7 @@ public enum SettingKey
     EMAIL_PORT( "keyEmailPort", 587, Integer.class ),
     EMAIL_USERNAME( "keyEmailUsername" ),
     EMAIL_TLS( "keyEmailTls", Boolean.TRUE, Boolean.class ),
-    EMAIL_SENDER( "keyEmailSender", "no-reply@dhis2.org", String.class ),
+    EMAIL_SENDER( "keyEmailSender", "", String.class ),
     EMAIL_PASSWORD( "keyEmailPassword", "", String.class, true, false ),
     MIN_PASSWORD_LENGTH( "minPasswordLength", 8, Integer.class ),
     MAX_PASSWORD_LENGTH( "maxPasswordLength", 256, Integer.class ),
