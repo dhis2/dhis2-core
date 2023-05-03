@@ -75,6 +75,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -399,7 +400,8 @@ public abstract class AbstractTrackedEntityInstanceService
 
         daoEntityInstance.setStoredBy( storedBy );
         daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
-
+        daoEntityInstance.setCreatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
+        daoEntityInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         return daoEntityInstance;
@@ -806,6 +808,7 @@ public abstract class AbstractTrackedEntityInstanceService
         daoEntityInstance.setOrganisationUnit( organisationUnit );
         daoEntityInstance.setInactive( dtoEntityInstance.isInactive() );
         daoEntityInstance.setPotentialDuplicate( dtoEntityInstance.isPotentialDuplicate() );
+        daoEntityInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
         if ( dtoEntityInstance.getGeometry() != null )
         {
