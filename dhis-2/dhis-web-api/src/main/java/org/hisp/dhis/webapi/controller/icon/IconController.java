@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
@@ -34,26 +34,36 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
+
+import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
-import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconData;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.feedback.Status;
+import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.icon.BaseIcon;
+import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -66,70 +76,45 @@ import com.google.common.net.MediaType;
 @OpenApi.Tags( "ui" )
 @Controller
 @RequestMapping( value = IconSchemaDescriptor.API_ENDPOINT )
+@RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class IconController
 {
     private static final int TTL = 365;
 
-    @Autowired
-    private IconService iconService;
+    private final IconService iconService;
 
-    @Autowired
-    private ContextService contextService;
+    private final FileResourceService fileResourceService;
 
-    @GetMapping
-    public @ResponseBody List<IconData> getIcons( HttpServletResponse response,
-        @RequestParam( required = false ) Collection<String> keywords )
-    {
-        Collection<IconData> icons;
+    private final ContextService contextService;
 
-        if ( keywords == null )
-        {
-            icons = iconService.getIcons();
-        }
-        else
-        {
-            icons = iconService.getIcons( keywords );
-        }
-
-        return icons.stream()
-            .map( data -> data.setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
-                IconSchemaDescriptor.API_ENDPOINT, data.getKey(), Icon.SUFFIX ) ) )
-            .collect( Collectors.toList() );
-    }
-
-    @GetMapping( "/keywords" )
-    public @ResponseBody Collection<String> getKeywords( HttpServletResponse response )
-    {
-        return iconService.getKeywords();
-    }
+    private final IconMapper iconMapper;
 
     @GetMapping( "/{iconKey}" )
-    public @ResponseBody IconData getIcon( HttpServletResponse response, @PathVariable String iconKey )
-        throws WebMessageException
+    public @ResponseBody IconDto getIcon( @PathVariable String iconKey )
+        throws WebMessageException,
+        NotFoundException
     {
-        Optional<IconData> icon = iconService.getIcon( iconKey );
+        BaseIcon icon = iconService.getIcon( iconKey, contextService.getApiPath() );
 
-        if ( !icon.isPresent() )
+        if ( icon == null )
         {
             throw new WebMessageException(
                 notFound( String.format( "Icon not found: '%s", iconKey ) ) );
         }
 
-        icon.get().setReference( String.format( "%s%s/%s/icon.%s", contextService.getApiPath(),
-            IconSchemaDescriptor.API_ENDPOINT, icon.get().getKey(), Icon.SUFFIX ) );
-
-        return icon.get();
+        return iconMapper.from( icon );
     }
 
     @GetMapping( "/{iconKey}/icon.svg" )
     public void getIconData( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException,
-        IOException
+        IOException,
+        BadRequestException
     {
         Optional<Resource> icon = iconService.getIconResource( iconKey );
 
-        if ( !icon.isPresent() )
+        if ( icon.isEmpty() )
         {
             throw new WebMessageException(
                 notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
@@ -139,5 +124,65 @@ public class IconController
         response.setContentType( MediaType.SVG_UTF_8.toString() );
 
         StreamUtils.copyThenCloseInputStream( icon.get().getInputStream(), response.getOutputStream() );
+    }
+
+    @GetMapping
+    public @ResponseBody List<IconDto> getAllIcons( @RequestParam( required = false ) Collection<String> keywords )
+    {
+        Collection<BaseIcon> icons;
+
+        if ( keywords == null )
+        {
+            icons = iconService.getIcons( contextService.getApiPath() );
+        }
+        else
+        {
+            icons = iconService.getIcons( keywords, contextService.getApiPath() );
+        }
+
+        return icons.stream().map( iconMapper::from ).toList();
+    }
+
+    @GetMapping( "/keywords" )
+    public @ResponseBody List<String> getKeywords()
+    {
+        return iconService.getKeywords();
+    }
+
+    @PostMapping
+    public @ResponseBody WebMessage addCustomIcon( @RequestBody IconDto iconDto )
+        throws BadRequestException,
+        NotFoundException
+    {
+        iconService.addCustomIcon( iconMapper.to( iconDto ) );
+        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.CREATED );
+        webMessage.setMessage( String.format( "Icon %s created", iconDto.getKey() ) );
+        return webMessage;
+    }
+
+    @PutMapping
+    public @ResponseBody WebMessage updateCustomIcon( @RequestBody IconDto iconDto )
+        throws BadRequestException,
+        NotFoundException
+    {
+        iconService.updateCustomIcon( iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords() );
+
+        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
+        webMessage.setMessage( String.format( "Icon %s updated", iconDto.getKey() ) );
+        return webMessage;
+    }
+
+    @DeleteMapping( "/{iconKey}" )
+    public @ResponseBody WebMessage deleteCustomIcon( @PathVariable String iconKey )
+        throws BadRequestException,
+        NotFoundException
+    {
+        CustomIcon icon = iconService.getCustomIcon( iconKey );
+        fileResourceService.getFileResource( icon.getFileResource().getUid() ).setAssigned( false );
+        iconService.deleteCustomIcon( iconKey );
+
+        WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
+        webMessage.setMessage( String.format( "Icon %s deleted", iconKey ) );
+        return webMessage;
     }
 }

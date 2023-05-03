@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,45 @@
  */
 package org.hisp.dhis.icon;
 
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- * @author Kristian Wærstad
- */
-public class IconData
+@Getter
+@Setter
+@NoArgsConstructor
+public class CustomIcon extends BaseIcon
 {
-    private String key;
-
-    private String description;
-
-    private String[] keywords;
-
-    private String reference;
-
-    IconData( String key, String description, String[] keywords )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-    }
+    private long id;
 
     @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
+    private FileResource fileResource;
 
     @JsonProperty
-    public String getDescription()
+    private User createdBy;
+
+    public CustomIcon( @Nonnull String key, String description, List<String> keywords,
+        @Nonnull FileResource fileResource,
+        User user )
     {
-        return description;
+        super( key, description, keywords, fileResource, user.getUid() );
+        this.fileResource = fileResource;
+        this.createdBy = user;
     }
 
-    @JsonProperty
-    public String[] getKeywords()
+    @Override
+    public BaseIcon setReference( String reference )
     {
-        return keywords;
-    }
-
-    @JsonProperty( "href" )
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
+        this.reference = reference;
         return this;
     }
 }
