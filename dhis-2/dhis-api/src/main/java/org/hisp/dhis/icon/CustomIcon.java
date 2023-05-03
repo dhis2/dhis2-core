@@ -58,10 +58,17 @@ public class CustomIcon extends BaseIcon
         this.createdBy = user;
     }
 
+    public static CustomIcon of( CustomIcon customIcon, User user, String contextApiPath, String endpoint )
+    {
+        CustomIcon icon = new CustomIcon( customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords(),
+            customIcon.getFileResource(), user );
+        icon.setReference( contextApiPath, endpoint, customIcon.getFileResource().getUid() );
+        return icon;
+    }
+
     @Override
-    public BaseIcon setReference( String contextApiPath, String endpoint, String fileResourceUid )
+    public void setReference( String contextApiPath, String endpoint, String fileResourceUid )
     {
         this.reference = String.format( "%s%s/%s/data", contextApiPath, endpoint, fileResourceUid );
-        return this;
     }
 }

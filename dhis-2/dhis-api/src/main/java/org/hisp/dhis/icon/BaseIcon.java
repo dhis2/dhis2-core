@@ -79,5 +79,5 @@ public abstract class BaseIcon
         this.userUid = userUid;
     }
 
-    public abstract BaseIcon setReference( String contextApiPath, String endpoint, String uid );
+    public abstract void setReference( String contextApiPath, String endpoint, String uid );
 }
