@@ -45,9 +45,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -62,9 +62,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.tracker.export.enrollment.EnrollmentService" )
-public class DefaultEnrollmentService implements EnrollmentService
+public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -77,7 +77,7 @@ public class DefaultEnrollmentService implements EnrollmentService
     @Override
     public Enrollment getEnrollment( String uid, EnrollmentParams params )
     {
-        Enrollment enrollment = programInstanceService.getProgramInstance( uid );
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
         return enrollment != null ? getEnrollment( enrollment, params ) : null;
     }
 
@@ -202,14 +202,14 @@ public class DefaultEnrollmentService implements EnrollmentService
         }
 
         List<Enrollment> programInstances = new ArrayList<>(
-            programInstanceService.getProgramInstances( params ) );
+            enrollmentService.getEnrollments( params ) );
         if ( !params.isSkipPaging() )
         {
             Pager pager;
 
             if ( params.isTotalPages() )
             {
-                int count = programInstanceService.countProgramInstances( params );
+                int count = enrollmentService.countEnrollments( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else

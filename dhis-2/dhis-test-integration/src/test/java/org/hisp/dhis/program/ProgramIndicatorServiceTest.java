@@ -92,7 +92,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -248,11 +248,11 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         entityInstanceService.addTrackedEntityInstance( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         // TODO enroll twice?
         // ---------------------------------------------------------------------

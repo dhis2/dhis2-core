@@ -66,10 +66,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -108,7 +108,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     protected UserService _userService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private EventService eventService;
@@ -253,7 +253,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
             new Date(), orgUnitA );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -274,7 +274,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         enrollmentA.setFollowup( true );
         manager.save( enrollmentA, false );
 
-        enrollmentB = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
+        enrollmentB = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
             new Date(), orgUnitA );
         eventB = new Event();
         eventB.setEnrollment( enrollmentB );
@@ -633,7 +633,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .collect( Collectors.toSet() );
         assertIsEmpty( deletedEvents );
 
-        programInstanceService.deleteProgramInstance( enrollmentA );
+        enrollmentService.deleteEnrollment( enrollmentA );
         eventService.deleteEvent( eventA );
 
         trackedEntities = trackedEntityService.getTrackedEntities( queryParams, TrackedEntityParams.TRUE );

@@ -39,8 +39,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -74,7 +74,7 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
     private ProgramService programService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private SystemSettingManager systemSettingManager;
@@ -143,15 +143,15 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         pi3 = createProgramInstance( program, tei3, orgUnitA );
         pi4 = createProgramInstance( program, tei4, orgUnitA );
 
-        programInstanceService.addProgramInstance( pi1 );
-        programInstanceService.addProgramInstance( pi2 );
-        programInstanceService.addProgramInstance( pi3 );
-        programInstanceService.addProgramInstance( pi4 );
+        enrollmentService.addEnrollment( pi1 );
+        enrollmentService.addEnrollment( pi2 );
+        enrollmentService.addEnrollment( pi3 );
+        enrollmentService.addEnrollment( pi4 );
 
-        programInstanceService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
-        programInstanceService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );
-        programInstanceService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA );
-        programInstanceService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA );
 
         userService.addUser( user );
     }

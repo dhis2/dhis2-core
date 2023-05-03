@@ -40,9 +40,9 @@ import java.util.Optional;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,7 +86,7 @@ class RelationshipControllerTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private EventService eventService;
@@ -154,10 +154,10 @@ class RelationshipControllerTest
     void verifyEndpointWithEnrollment()
         throws Exception
     {
-        when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
+        when( enrollmentService.getEnrollment( ENROLLMENT_ID ) ).thenReturn( enrollment );
         mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isOk() );
 
-        verify( programInstanceService ).getProgramInstance( ENROLLMENT_ID );
+        verify( enrollmentService ).getEnrollment( ENROLLMENT_ID );
         verify( relationshipService ).getRelationshipsByProgramInstance( eq( enrollment ), any(), eq( false ) );
     }
 

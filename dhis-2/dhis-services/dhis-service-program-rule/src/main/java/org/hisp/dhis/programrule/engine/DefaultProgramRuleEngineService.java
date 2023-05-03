@@ -36,10 +36,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -68,7 +68,7 @@ public class DefaultProgramRuleEngineService
 
     private final List<RuleActionImplementer> ruleActionImplementers;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final EventService eventService;
 
@@ -85,7 +85,7 @@ public class DefaultProgramRuleEngineService
             return List.of();
         }
 
-        Enrollment programInstance = programInstanceService.getProgramInstance( enrollment );
+        Enrollment programInstance = enrollmentService.getEnrollment( enrollment );
 
         if ( programInstance == null )
         {
@@ -166,8 +166,8 @@ public class DefaultProgramRuleEngineService
         }
         else
         {
-            Enrollment enrollment = programInstanceService
-                .getProgramInstance( event.getEnrollment().getId() );
+            Enrollment enrollment = enrollmentService
+                .getEnrollment( event.getEnrollment().getId() );
 
             ruleEffects = programRuleEngine.evaluate( enrollment, event, enrollment.getEvents(),
                 programRules );

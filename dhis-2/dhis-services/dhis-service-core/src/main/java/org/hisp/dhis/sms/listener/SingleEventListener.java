@@ -38,8 +38,8 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -62,22 +62,22 @@ public class SingleEventListener extends CommandSMSListener
 {
     private final SMSCommandService smsCommandService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
-    public SingleEventListener( ProgramInstanceService programInstanceService,
+    public SingleEventListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        ProgramInstanceService programInstanceService1 )
+        EnrollmentService enrollmentService1 )
     {
-        super( programInstanceService, dataElementCategoryService, eventService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
-        checkNotNull( programInstanceService1 );
+        checkNotNull( enrollmentService1 );
 
         this.smsCommandService = smsCommandService;
-        this.programInstanceService = programInstanceService1;
+        this.enrollmentService = enrollmentService1;
     }
 
     // -------------------------------------------------------------------------
@@ -107,7 +107,7 @@ public class SingleEventListener extends CommandSMSListener
         Set<OrganisationUnit> ous )
     {
         List<Enrollment> enrollments = new ArrayList<>(
-            programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
+            enrollmentService.getEnrollments( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
         register( enrollments, commandValuePairs, smsCommand, sms, ous );
     }

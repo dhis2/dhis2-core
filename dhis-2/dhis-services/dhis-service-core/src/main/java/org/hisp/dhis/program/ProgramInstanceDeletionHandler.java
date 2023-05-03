@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<Enrollment>
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     @Override
     protected void registerHandler()
@@ -61,7 +61,7 @@ public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<Enro
     {
         for ( Enrollment enrollment : trackedEntityInstance.getEnrollments() )
         {
-            programInstanceService.deleteProgramInstance( enrollment );
+            enrollmentService.deleteEnrollment( enrollment );
         }
     }
 
@@ -77,7 +77,7 @@ public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<Enro
 
     private void deleteProgram( Program program )
     {
-        Collection<Enrollment> enrollments = programInstanceService.getProgramInstances( program );
+        Collection<Enrollment> enrollments = enrollmentService.getEnrollments( program );
 
         if ( enrollments != null )
         {
@@ -86,7 +86,7 @@ public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<Enro
             {
                 Enrollment enrollment = iterator.next();
                 iterator.remove();
-                programInstanceService.hardDeleteProgramInstance( enrollment );
+                enrollmentService.hardDeleteEnrollment( enrollment );
             }
         }
     }

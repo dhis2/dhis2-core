@@ -40,7 +40,7 @@ import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -65,7 +65,7 @@ public class DeduplicationHelper
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     public String getInvalidReferenceErrors( DeduplicationMergeParams params )
     {
@@ -277,7 +277,7 @@ public class DeduplicationHelper
             return "Missing data write access to one or more Relationship Types.";
         }
 
-        List<Enrollment> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
+        List<Enrollment> enrollments = enrollmentService.getEnrollments( mergeObject.getEnrollments() );
 
         if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e.getProgram() ) ) )
         {

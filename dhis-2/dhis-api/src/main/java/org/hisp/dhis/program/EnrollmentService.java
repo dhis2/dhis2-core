@@ -40,77 +40,77 @@ import org.hisp.dhis.user.User;
 /**
  * @author Abyot Asalefew
  */
-public interface ProgramInstanceService
+public interface EnrollmentService
 {
     /**
      * Adds an {@link Enrollment}
      *
-     * @param enrollment The to ProgramInstance add.
+     * @param enrollment The to Enrollment add.
      * @return A generated unique id of the added {@link Enrollment}.
      */
-    long addProgramInstance( Enrollment enrollment );
+    long addEnrollment( Enrollment enrollment );
 
     /**
      * Adds an {@link Enrollment}
      *
-     * @param enrollment The to ProgramInstance add.
+     * @param enrollment The to Enrollment add.
      * @param user the current user.
      * @return A generated unique id of the added {@link Enrollment}.
      */
-    long addProgramInstance( Enrollment enrollment, User user );
+    long addEnrollment( Enrollment enrollment, User user );
 
     /**
      * Soft deletes a {@link Enrollment}.
      *
-     * @param enrollment the ProgramInstance to delete.
+     * @param enrollment the Enrollment to delete.
      */
-    void deleteProgramInstance( Enrollment enrollment );
+    void deleteEnrollment( Enrollment enrollment );
 
     /**
      * Hard deletes a {@link Enrollment}.
      *
-     * @param enrollment the ProgramInstance to delete.
+     * @param enrollment the Enrollment to delete.
      */
-    void hardDeleteProgramInstance( Enrollment enrollment );
+    void hardDeleteEnrollment( Enrollment enrollment );
 
     /**
      * Updates an {@link Enrollment}.
      *
-     * @param enrollment the ProgramInstance to update.
+     * @param enrollment the Enrollment to update.
      */
-    void updateProgramInstance( Enrollment enrollment );
+    void updateEnrollment( Enrollment enrollment );
 
     /**
      * Updates an {@link Enrollment}.
      *
-     * @param enrollment the ProgramInstance to update.
+     * @param enrollment the Enrollment to update.
      * @param user the current user.
      */
-    void updateProgramInstance( Enrollment enrollment, User user );
+    void updateEnrollment( Enrollment enrollment, User user );
 
     /**
      * Returns a {@link Enrollment}.
      *
-     * @param id the id of the ProgramInstance to return.
-     * @return the ProgramInstance with the given id
+     * @param id the id of the Enrollment to return.
+     * @return the Enrollment with the given id
      */
-    Enrollment getProgramInstance( long id );
+    Enrollment getEnrollment( long id );
 
     /**
      * Returns the {@link Enrollment} with the given UID.
      *
      * @param uid the UID.
-     * @return the ProgramInstance with the given UID, or null if no match.
+     * @return the Enrollment with the given UID, or null if no match.
      */
-    Enrollment getProgramInstance( String uid );
+    Enrollment getEnrollment( String uid );
 
     /**
-     * Returns a list of existing ProgramInstances from the provided UIDs
+     * Returns a list of existing Enrollments from the provided UIDs
      *
      * @param uids PSI UIDs to check
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
-    List<Enrollment> getProgramInstances( @Nonnull List<String> uids );
+    List<Enrollment> getEnrollments( @Nonnull List<String> uids );
 
     /**
      * Checks for the existence of a PI by UID. Deleted values are not taken
@@ -119,7 +119,7 @@ public interface ProgramInstanceService
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
-    boolean programInstanceExists( String uid );
+    boolean enrollmentExists( String uid );
 
     /**
      * Checks for the existence of a PI by UID. Takes into account also the
@@ -128,16 +128,16 @@ public interface ProgramInstanceService
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
-    boolean programInstanceExistsIncludingDeleted( String uid );
+    boolean enrollmentExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramInstances (including deleted) from the
+     * Returns UIDs of existing Enrollments (including deleted) from the
      * provided UIDs
      *
      * @param uids PSI UIDs to check
      * @return Set containing UIDs of existing PSIs (including deleted)
      */
-    List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids );
+    List<String> getEnrollmentsUidsIncludingDeleted( List<String> uids );
 
     /**
      * Returns a list with program instance values based on the given
@@ -146,7 +146,7 @@ public interface ProgramInstanceService
      * @param params the ProgramInstanceQueryParams.
      * @return List of PIs matching the params
      */
-    List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
 
     /**
      * Returns the number of program instance matches based on the given
@@ -155,7 +155,7 @@ public interface ProgramInstanceService
      * @param params the ProgramInstanceQueryParams.
      * @return Number of PIs matching the params
      */
-    int countProgramInstances( ProgramInstanceQueryParams params );
+    int countEnrollments( ProgramInstanceQueryParams params );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -179,9 +179,9 @@ public interface ProgramInstanceService
      * Retrieve program instances on a program
      *
      * @param program Program
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
-    List<Enrollment> getProgramInstances( Program program );
+    List<Enrollment> getEnrollments( Program program );
 
     /**
      * Retrieve program instances on a program by status
@@ -189,9 +189,9 @@ public interface ProgramInstanceService
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
-    List<Enrollment> getProgramInstances( Program program, ProgramStatus status );
+    List<Enrollment> getEnrollments( Program program, ProgramStatus status );
 
     /**
      * Retrieve program instances on a TrackedEntityInstance with a status by a
@@ -201,9 +201,9 @@ public interface ProgramInstanceService
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
-    List<Enrollment> getProgramInstances( TrackedEntityInstance entityInstance, Program program,
+    List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
         ProgramStatus status );
 
     /**
@@ -216,7 +216,7 @@ public interface ProgramInstanceService
      * @param incidentDate The date of incident
      * @param orgunit Organisation Unit
      * @param uid UID to use for new instance
-     * @return ProgramInstance
+     * @return Enrollment
      */
     Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
@@ -230,7 +230,7 @@ public interface ProgramInstanceService
      * @param enrollmentDate The date of enrollment
      * @param incidentDate The date of incident
      * @param orgunit Organisation Unit
-     * @return ProgramInstance
+     * @return Enrollment
      */
     Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
         Date enrollmentDate, Date incidentDate,
@@ -240,27 +240,27 @@ public interface ProgramInstanceService
      * Complete a program instance. Besides, program template messages will be
      * send if it was defined to send when to complete this program
      *
-     * @param enrollment ProgramInstance
+     * @param enrollment Enrollment
      */
-    void completeProgramInstanceStatus( Enrollment enrollment );
+    void completeEnrollmentStatus( Enrollment enrollment );
 
     /**
      * Set status as skipped for overdue events; Remove scheduled events
      *
-     * @param enrollment ProgramInstance
+     * @param enrollment Enrollment
      */
-    void cancelProgramInstanceStatus( Enrollment enrollment );
+    void cancelEnrollmentStatus( Enrollment enrollment );
 
     /**
      * Incomplete a program instance. This is is possible only if there is no
      * other program instance with active status.
      *
-     * @param enrollment ProgramInstance
+     * @param enrollment Enrollment
      */
-    void incompleteProgramInstanceStatus( Enrollment enrollment );
+    void incompleteEnrollmentStatus( Enrollment enrollment );
 
     /**
-     * Prepare a ProgramInstance for storing
+     * Prepare a Enrollment for storing
      *
      * @param trackedEntityInstance TrackedEntityInstance
      * @param program Program
@@ -269,9 +269,9 @@ public interface ProgramInstanceService
      * @param incidentDate The date of incident
      * @param orgUnit Organisation Unit
      * @param uid UID to use for new instance
-     * @return ProgramInstance
+     * @return Enrollment
      */
     @Nonnull
-    Enrollment prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment prepareEnrollment( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }

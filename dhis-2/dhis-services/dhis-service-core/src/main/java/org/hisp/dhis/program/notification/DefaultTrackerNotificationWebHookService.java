@@ -38,9 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -65,7 +65,7 @@ import com.google.common.collect.Lists;
 @Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
 public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final EventService eventService;
 
@@ -79,7 +79,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
     @Transactional
     public void handleEnrollment( String pi )
     {
-        Enrollment instance = programInstanceService.getProgramInstance( pi );
+        Enrollment instance = enrollmentService.getEnrollment( pi );
 
         if ( instance == null
             || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram() ) )

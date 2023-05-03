@@ -111,10 +111,10 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramType;
@@ -166,7 +166,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
 
     protected ProgramService programService;
 
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService enrollmentService;
 
     protected EventService eventService;
 

@@ -35,8 +35,8 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.web.HttpStatus;
@@ -61,7 +61,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
     private TrackedEntityInstanceService teiService;
 
     @Autowired
-    private ProgramInstanceService piService;
+    private EnrollmentService piService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -78,7 +78,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
         TrackedEntityInstance teiA = createTrackedEntityInstance( 'A', ouA );
         teiService.addTrackedEntityInstance( teiA );
         piA = createProgramInstance( prA, teiA, ouA );
-        piService.addProgramInstance( piA );
+        piService.addEnrollment( piA );
     }
 
     @Test

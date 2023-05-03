@@ -44,10 +44,10 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -85,7 +85,7 @@ class TrackedEntityInstanceServiceTest
     private EventService eventService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
@@ -224,21 +224,21 @@ class TrackedEntityInstanceServiceTest
     void testDeleteTrackedEntityInstanceAndLinkedEnrollmentsAndEvents()
     {
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        long psIdA = programInstanceService.addProgramInstance( enrollment );
+        long psIdA = enrollmentService.addEnrollment( enrollment );
         long eventIdA = eventService.addEvent( event );
         enrollment.setEvents( Set.of( event ) );
         entityInstanceA1.setEnrollments( Set.of( enrollment ) );
-        programInstanceService.updateProgramInstance( enrollment );
+        enrollmentService.updateEnrollment( enrollment );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
         TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
-        Enrollment psA = programInstanceService.getProgramInstance( psIdA );
+        Enrollment psA = enrollmentService.getEnrollment( psIdA );
         Event eventA = eventService.getEvent( eventIdA );
         assertNotNull( teiA );
         assertNotNull( psA );
         assertNotNull( eventA );
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
         assertNull( entityInstanceService.getTrackedEntityInstance( teiA.getUid() ) );
-        assertNull( programInstanceService.getProgramInstance( psIdA ) );
+        assertNull( enrollmentService.getEnrollment( psIdA ) );
         assertNull( eventService.getEvent( eventIdA ) );
     }
 
@@ -437,7 +437,7 @@ class TrackedEntityInstanceServiceTest
         injectSecurityContext( superUser );
 
         addEntityInstances();
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
         addEnrollment( entityInstanceB1, DateTime.now().plusDays( 2 ).toDate(), 'B' );
         addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
         addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
@@ -463,7 +463,7 @@ class TrackedEntityInstanceServiceTest
         entityInstanceD1.setInactive( false );
         addEntityInstances();
 
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
         addEnrollment( entityInstanceB1, DateTime.now().plusDays( 2 ).toDate(), 'B' );
         addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
         addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
@@ -710,7 +710,7 @@ class TrackedEntityInstanceServiceTest
         enrollment.setUid( "UID-PSI-" + programStage );
         enrollment.setOrganisationUnit( organisationUnit );
 
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
     }
 
     private void addEntityInstances()

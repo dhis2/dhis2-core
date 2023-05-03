@@ -44,8 +44,8 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -127,7 +127,7 @@ class RelationshipSMSListenerTest
     private RelationshipTypeService relationshipTypeService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -143,7 +143,7 @@ class RelationshipSMSListenerTest
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
             eventService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
-            programInstanceService, identifiableObjectManager );
+            enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -155,7 +155,7 @@ class RelationshipSMSListenerTest
         } );
 
         when( relationshipTypeService.getRelationshipType( anyString() ) ).thenReturn( relationshipType );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( enrollment );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];

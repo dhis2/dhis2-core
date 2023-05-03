@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -60,7 +60,7 @@ import com.google.common.collect.Lists;
 public class DefaultTrackerObjectsDeletionService
     implements TrackerObjectDeletionService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackedEntityInstanceService teiService;
 
@@ -85,7 +85,7 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.ENROLLMENT, uid, idx );
 
-            Enrollment enrollment = programInstanceService.getProgramInstance( uid );
+            Enrollment enrollment = enrollmentService.getEnrollment( uid );
 
             List<org.hisp.dhis.tracker.imports.domain.Event> events = eventTrackerConverterService
                 .to( Lists.newArrayList( enrollment.getEvents()
@@ -100,7 +100,7 @@ public class DefaultTrackerObjectsDeletionService
             TrackedEntityInstance tei = enrollment.getEntityInstance();
             tei.getEnrollments().remove( enrollment );
 
-            programInstanceService.deleteProgramInstance( enrollment );
+            enrollmentService.deleteEnrollment( enrollment );
             teiService.updateTrackedEntityInstance( tei );
 
             typeReport.getStats().incDeleted();
@@ -134,7 +134,7 @@ public class DefaultTrackerObjectsDeletionService
                 teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
 
                 enrollment.getEvents().remove( event );
-                programInstanceService.updateProgramInstance( enrollment );
+                enrollmentService.updateEnrollment( enrollment );
             }
 
             typeReport.getStats().incDeleted();

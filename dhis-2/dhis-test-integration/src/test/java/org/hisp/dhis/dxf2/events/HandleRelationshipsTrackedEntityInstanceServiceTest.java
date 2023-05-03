@@ -68,7 +68,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     private RelationshipTypeService relationshipTypeService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private EventService eventService;
@@ -115,7 +115,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         manager.save( programStageA2 );
         programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
         manager.update( programA );
-        Enrollment enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstanceA,
             programA, null, null, organisationUnitA );
         eventA = new Event( enrollmentA, programStageA1 );
         eventA.setDueDate( null );

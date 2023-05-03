@@ -46,9 +46,9 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -73,7 +73,7 @@ class ProgramObjectBundleHookTest
     private ProgramObjectBundleHook subject;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private ProgramService programService;
@@ -92,7 +92,7 @@ class ProgramObjectBundleHookTest
     @BeforeEach
     public void setUp()
     {
-        this.subject = new ProgramObjectBundleHook( programInstanceService, programStageService,
+        this.subject = new ProgramObjectBundleHook( enrollmentService, programStageService,
             aclService );
 
         programA = createProgram( 'A' );
@@ -104,7 +104,7 @@ class ProgramObjectBundleHookTest
     {
         subject.preCreate( null, null );
 
-        verifyNoInteractions( programInstanceService );
+        verifyNoInteractions( enrollmentService );
     }
 
     @Test
@@ -112,7 +112,7 @@ class ProgramObjectBundleHookTest
     {
         subject.preCreate( programA, null );
 
-        verifyNoInteractions( programInstanceService );
+        verifyNoInteractions( enrollmentService );
     }
 
     @Test
@@ -123,7 +123,7 @@ class ProgramObjectBundleHookTest
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         subject.postCreate( programA, null );
 
-        verify( programInstanceService ).addProgramInstance( argument.capture() );
+        verify( enrollmentService ).addEnrollment( argument.capture() );
 
         assertThat( argument.getValue().getEnrollmentDate(), is( notNullValue() ) );
         assertThat( argument.getValue().getIncidentDate(), is( notNullValue() ) );
@@ -140,7 +140,7 @@ class ProgramObjectBundleHookTest
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         subject.postCreate( programA, null );
 
-        verify( programInstanceService, times( 0 ) ).addProgramInstance( argument.capture() );
+        verify( enrollmentService, times( 0 ) ).addEnrollment( argument.capture() );
     }
 
     @Test
@@ -156,7 +156,7 @@ class ProgramObjectBundleHookTest
         programInstanceQueryParams.setProgram( programA );
         programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
 
-        when( programInstanceService.getProgramInstances( programA, ProgramStatus.ACTIVE ) )
+        when( enrollmentService.getEnrollments( programA, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( new Enrollment(), new Enrollment() ) );
 
         List<ErrorReport> errors = subject.validate( programA, null );
@@ -171,7 +171,7 @@ class ProgramObjectBundleHookTest
         Program transientObj = createProgram( 'A' );
         subject.validate( transientObj, null );
 
-        verifyNoInteractions( programInstanceService );
+        verifyNoInteractions( enrollmentService );
     }
 
     @Test
