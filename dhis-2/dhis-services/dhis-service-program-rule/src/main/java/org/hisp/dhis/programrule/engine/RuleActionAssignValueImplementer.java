@@ -82,9 +82,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public void implement( RuleEffect ruleEffect, Event event )
     {
-        ProgramInstance programInstance = event.getProgramInstance();
-
-        assignValue( ruleEffect, programInstance );
+        assignValue( ruleEffect, event.getEnrollment() );
     }
 
     private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )

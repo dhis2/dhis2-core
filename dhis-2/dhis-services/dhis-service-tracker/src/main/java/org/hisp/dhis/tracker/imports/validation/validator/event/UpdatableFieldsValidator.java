@@ -30,7 +30,6 @@ package org.hisp.dhis.tracker.imports.validation.validator.event;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1128;
 
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -48,12 +47,12 @@ class UpdatableFieldsValidator
     {
         Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
         ProgramStage programStage = preheatEvent.getProgramStage();
-        ProgramInstance programInstance = preheatEvent.getProgramInstance();
 
         reporter.addErrorIf( () -> !event.getProgramStage().isEqualTo( programStage ), event, E1128,
             "programStage" );
         reporter.addErrorIf(
-            () -> event.getEnrollment() != null && !event.getEnrollment().equals( programInstance.getUid() ),
+            () -> event.getEnrollment() != null
+                && !event.getEnrollment().equals( preheatEvent.getEnrollment().getUid() ),
             event, E1128, "enrollment" );
     }
 

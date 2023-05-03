@@ -114,14 +114,14 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnit );
-        ProgramInstance programInstance = createProgramInstance( program, tei, organisationUnit );
-        programInstance.setUid( PROGRAM_INSTANCE_UID );
+        ProgramInstance enrollment = createProgramInstance( program, tei, organisationUnit );
+        enrollment.setUid( PROGRAM_INSTANCE_UID );
         event = new Event();
         event.setAutoFields();
         event.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
         event.setCreated( today );
         event.setExecutionDate( today );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setOrganisationUnit( organisationUnit );
         event.setProgramStage( programStage );
         event.setEventDataValues( Sets.newHashSet() );

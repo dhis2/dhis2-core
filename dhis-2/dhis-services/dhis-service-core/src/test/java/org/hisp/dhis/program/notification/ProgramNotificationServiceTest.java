@@ -736,23 +736,23 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         tei.getTrackedEntityAttributeValues().add( attributeValue );
         tei.getTrackedEntityAttributeValues().add( attributeValueEmail );
 
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( programA );
-        programInstance.setOrganisationUnit( lvlTwoLeftLeft );
-        programInstance.setEntityInstance( tei );
+        ProgramInstance enrollment = new ProgramInstance();
+        enrollment.setAutoFields();
+        enrollment.setProgram( programA );
+        enrollment.setOrganisationUnit( lvlTwoLeftLeft );
+        enrollment.setEntityInstance( tei );
 
         Event event = new Event();
         event.setAutoFields();
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setOrganisationUnit( lvlTwoLeftLeft );
         event.setProgramStage( programStage );
 
         // lists returned by stubs
         events.add( event );
-        programInstances.add( programInstance );
+        programInstances.add( enrollment );
 
-        programNotificationInstaceForToday.setProgramInstance( programInstance );
+        programNotificationInstaceForToday.setProgramInstance( enrollment );
 
         notificationMessage = new NotificationMessage( SUBJECT, MESSAGE );
     }

@@ -580,7 +580,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         assertEquals( event.getUid(), jsonEvent.getEvent() );
         assertEquals( event.getProgramStage().getUid(), jsonEvent.getProgramStage() );
-        assertEquals( event.getProgramInstance().getUid(), jsonEvent.getEnrollment() );
+        assertEquals( event.getEnrollment().getUid(), jsonEvent.getEnrollment() );
         assertEquals( program.getUid(), jsonEvent.getProgram() );
         assertEquals( "ACTIVE", jsonEvent.getStatus() );
         assertEquals( orgUnit.getUid(), jsonEvent.getOrgUnit() );

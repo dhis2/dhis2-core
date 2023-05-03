@@ -137,7 +137,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     {
         checkNotNull( event, "Event cannot be null" );
 
-        NotificationValidationResult result = validate( ruleEffect, event.getProgramInstance() );
+        NotificationValidationResult result = validate( ruleEffect, event.getEnrollment() );
 
         // For program without registration
         if ( event.getProgramStage().getProgram().isWithoutRegistration() )
@@ -151,11 +151,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramInstance pi = event.getProgramInstance();
-
         ProgramNotificationTemplate template = result.getTemplate();
-
-        String key = generateKey( template, pi );
+        String key = generateKey( template, event.getEnrollment() );
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
