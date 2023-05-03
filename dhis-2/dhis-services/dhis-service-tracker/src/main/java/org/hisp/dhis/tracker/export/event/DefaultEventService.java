@@ -181,7 +181,7 @@ public class DefaultEventService implements EventService
         User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = event.getOrganisationUnit();
 
-        result.setProgramInstance( event.getProgramInstance() );
+        result.setEnrollment( event.getEnrollment() );
         result.setProgramStage( event.getProgramStage() );
 
         List<String> errors = trackerAccessManager.canRead( user, event, false );

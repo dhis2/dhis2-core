@@ -173,7 +173,7 @@ public class DefaultEventService
 
     @Override
     @Transactional
-    public Event createEvent( ProgramInstance programInstance, ProgramStage programStage,
+    public Event createEvent( ProgramInstance enrollment, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
         Event event = null;
@@ -191,16 +191,16 @@ public class DefaultEventService
 
         Date dueDate = DateUtils.addDays( dateCreatedEvent, programStage.getMinDaysFromStart() );
 
-        if ( !programInstance.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
+        if ( !enrollment.getProgram().getIgnoreOverdueEvents() || dueDate.before( currentDate ) )
         {
             event = new Event();
-            event.setProgramInstance( programInstance );
+            event.setEnrollment( enrollment );
             event.setProgramStage( programStage );
             event.setOrganisationUnit( organisationUnit );
             event.setDueDate( dueDate );
             event.setStatus( EventStatus.SCHEDULE );
 
-            if ( programStage.getOpenAfterEnrollment() || programInstance.getProgram().isWithoutRegistration()
+            if ( programStage.getOpenAfterEnrollment() || enrollment.getProgram().isWithoutRegistration()
                 || programStage.getPeriodType() != null )
             {
                 event.setExecutionDate( dueDate );

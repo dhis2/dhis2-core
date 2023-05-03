@@ -98,7 +98,7 @@ class UpdatableFieldsValidatorTest
             .thenReturn( TrackerImportStrategy.UPDATE );
 
         when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
-        when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( programInstance() );
+        when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( getEnrollment() );
         when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
 
         when( bundle.getPreheat() ).thenReturn( preheat );
@@ -158,7 +158,7 @@ class UpdatableFieldsValidatorTest
         return trackedEntityInstance;
     }
 
-    private ProgramInstance programInstance()
+    private ProgramInstance getEnrollment()
     {
         Program program = new Program();
         program.setUid( PROGRAM_ID );
@@ -177,7 +177,7 @@ class UpdatableFieldsValidatorTest
 
         Event event = new Event();
         event.setUid( EVENT_ID );
-        event.setProgramInstance( programInstance() );
+        event.setEnrollment( getEnrollment() );
         event.setProgramStage( programStage );
         return event;
     }

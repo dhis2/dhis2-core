@@ -241,14 +241,14 @@ public abstract class CommandSMSListener extends BaseSMSListener
             return;
         }
 
-        ProgramInstance programInstance = programInstances.get( 0 );
+        ProgramInstance enrollment = programInstances.get( 0 );
 
         UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( currentUserService.getCurrentUser() );
 
         Event event = new Event();
         event.setOrganisationUnit( ous.iterator().next() );
         event.setProgramStage( smsCommand.getProgramStage() );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setExecutionDate( sms.getSentDate() );
         event.setDueDate( sms.getSentDate() );
         event.setAttributeOptionCombo( dataElementCategoryService.getDefaultCategoryOptionCombo() );

@@ -86,7 +86,7 @@ public class HibernateEventStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
-            .addPredicate( root -> root.get( "programInstance" ).in( programInstances ) ) );
+            .addPredicate( root -> root.get( "enrollment" ).in( programInstances ) ) );
     }
 
     @Override

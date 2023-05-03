@@ -98,7 +98,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private final RelationshipType eventToEventType = createRelationshipType( 'F' );
 
-    private ProgramInstance piA;
+    private ProgramInstance enrollmentA;
 
     @Override
     protected void setUpTest()
@@ -147,18 +147,19 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
         manager.save( program, false );
 
-        piA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             orgUnit );
         eventA = new Event();
-        eventA.setProgramInstance( piA );
+        eventA.setEnrollment( enrollmentA );
         eventA.setProgramStage( programStage );
         eventA.setOrganisationUnit( orgUnit );
         manager.save( eventA, false );
 
-        ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
+        ProgramInstance enrollmentB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(),
+            new Date(),
             orgUnit );
         inaccessiblePsi = new Event();
-        inaccessiblePsi.setProgramInstance( piB );
+        inaccessiblePsi.setEnrollment( enrollmentB );
         inaccessiblePsi.setProgramStage( inaccessibleProgramStage );
         inaccessiblePsi.setOrganisationUnit( orgUnit );
         manager.save( inaccessiblePsi, false );
@@ -241,10 +242,10 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         throws ForbiddenException,
         NotFoundException
     {
-        Relationship accessible = relationship( teiA, piA );
-        relationship( teiB, piA, teiToPiInaccessibleType );
+        Relationship accessible = relationship( teiA, enrollmentA );
+        relationship( teiB, enrollmentA, teiToPiInaccessibleType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( piA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( enrollmentA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),

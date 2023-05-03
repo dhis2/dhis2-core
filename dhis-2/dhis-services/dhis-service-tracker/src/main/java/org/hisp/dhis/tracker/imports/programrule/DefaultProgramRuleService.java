@@ -191,7 +191,7 @@ class DefaultProgramRuleService
     {
         Stream<Event> events = preheat.getEvents().values()
             .stream()
-            .filter( e -> e.getProgramInstance().getUid().equals( enrollmentUid ) )
+            .filter( e -> e.getEnrollment().getUid().equals( enrollmentUid ) )
             .filter( e -> bundle.findEventByUid( e.getUid() ).isEmpty() );
 
         Stream<Event> bundleEvents = bundle.getEvents()

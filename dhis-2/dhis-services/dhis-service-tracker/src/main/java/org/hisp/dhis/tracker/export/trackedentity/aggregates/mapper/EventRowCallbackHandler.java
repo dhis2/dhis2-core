@@ -111,7 +111,7 @@ public class EventRowCallbackHandler
         TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
         trackedEntity.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.TEI_UID ) ) );
         enrollment.setEntityInstance( trackedEntity );
-        event.setProgramInstance( enrollment );
+        event.setEnrollment( enrollment );
 
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.PROGRAM_STAGE_UID ) ) );

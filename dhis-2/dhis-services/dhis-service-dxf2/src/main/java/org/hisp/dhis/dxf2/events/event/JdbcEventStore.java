@@ -2066,7 +2066,7 @@ public class JdbcEventStore implements EventStore
         JsonProcessingException
     {
         // @formatter:off
-        ps.setLong(         1, event.getProgramInstance().getId() );
+        ps.setLong(         1, event.getEnrollment().getId() );
         ps.setLong(         2, event.getProgramStage().getId() );
         ps.setTimestamp(    3, JdbcEventSupport.toTimestamp( event.getDueDate() ) );
         ps.setTimestamp(    4, JdbcEventSupport.toTimestamp( event.getExecutionDate() ) );
@@ -2103,7 +2103,7 @@ public class JdbcEventStore implements EventStore
         JsonProcessingException
     {
         return new MapSqlParameterSource()
-            .addValue( "programInstanceId", event.getProgramInstance().getId() )
+            .addValue( "programInstanceId", event.getEnrollment().getId() )
             .addValue( "programstageid", event.getProgramStage()
                 .getId() )
             .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( event.getDueDate() ) )
