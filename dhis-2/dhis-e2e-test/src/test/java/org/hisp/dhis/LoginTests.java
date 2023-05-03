@@ -30,19 +30,10 @@ package org.hisp.dhis;
 import static org.hamcrest.Matchers.*;
 
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.UaaActions;
 import org.hisp.dhis.actions.UserActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
