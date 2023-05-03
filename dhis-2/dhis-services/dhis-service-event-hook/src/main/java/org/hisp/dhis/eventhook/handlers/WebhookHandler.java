@@ -29,6 +29,8 @@ package org.hisp.dhis.eventhook.handlers;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.eventhook.Event;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventhook.Handler;
@@ -94,6 +96,12 @@ public class WebhookHandler implements Handler
         requestFactory.setConnectTimeout( 5_000 );
         requestFactory.setReadTimeout( 10_000 );
         requestFactory.setBufferRequestBody( true );
+
+        HttpClient httpClient = HttpClientBuilder.create()
+            .disableCookieManagement()
+            .build();
+
+        requestFactory.setHttpClient( httpClient );
 
         template.setRequestFactory( requestFactory );
     }
