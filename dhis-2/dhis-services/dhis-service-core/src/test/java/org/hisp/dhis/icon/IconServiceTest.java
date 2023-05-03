@@ -96,19 +96,6 @@ class IconServiceTest
     }
 
     @Test
-    void shouldFailWhenSavingCustomIconWithNoFileResourceId()
-    {
-        String iconKey = "key";
-
-        Exception exception = assertThrows( IllegalArgumentException.class,
-            () -> iconService
-                .addCustomIcon( new CustomIcon( iconKey, "description", List.of( "keyword1" ), null, new User() ) ) );
-
-        String expectedMessage = "File resource cannot be null.";
-        assertEquals( expectedMessage, exception.getMessage() );
-    }
-
-    @Test
     void shouldFailWhenSavingCustomIconWithNonExistentFileResourceId()
     {
         String iconKey = "standard key";
@@ -140,6 +127,20 @@ class IconServiceTest
                     new User() ) ) );
 
         String expectedMessage = "Icon with key " + duplicatedKey + " already exists.";
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
+    void shouldFailWhenCreatingCustomIconWithNoFileResourceId()
+    {
+        String iconKey = "key";
+        List<String> keywords = List.of( "keyword1" );
+        User user = new User();
+
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> new CustomIcon( iconKey, "description", keywords, null, user ) );
+
+        String expectedMessage = "File resource cannot be null.";
         assertEquals( expectedMessage, exception.getMessage() );
     }
 

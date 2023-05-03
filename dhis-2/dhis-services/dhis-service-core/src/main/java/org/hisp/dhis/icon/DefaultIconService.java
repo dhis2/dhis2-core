@@ -250,13 +250,12 @@ public class DefaultIconService
 
     private BaseIcon setStandardIconReference( StandardIcon standardIcon, String contextApiPath )
     {
-        return standardIcon.setReference( String.format( "%s%s/%s/icon.%s", contextApiPath,
-            IconSchemaDescriptor.API_ENDPOINT, standardIcon.getKey(), Icon.SUFFIX ) );
+        return standardIcon.setReference( contextApiPath, IconSchemaDescriptor.API_ENDPOINT, standardIcon.getKey() );
     }
 
     private BaseIcon setCustomIconReference( CustomIcon customIcon, String contextApiPath )
     {
-        return customIcon.setReference( String.format( "%s%s/%s/data", contextApiPath,
-            FileResourceSchemaDescriptor.API_ENDPOINT, customIcon.getFileResourceUid() ) );
+        return customIcon.setReference( contextApiPath, FileResourceSchemaDescriptor.API_ENDPOINT,
+            customIcon.getFileResourceUid() );
     }
 }

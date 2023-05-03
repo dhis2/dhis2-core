@@ -56,6 +56,6 @@ class IconDto
     @JsonProperty
     private String userUid;
 
-    @JsonProperty
+    @JsonProperty( "href" )
     private String reference;
 }

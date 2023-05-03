@@ -75,7 +75,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
         assertEquals( keywords, response.getArray( "keywords" ).toString() );
         assertEquals( currentUserService.getCurrentUser().getUid(), response.getString( "userUid" ).string() );
         assertEquals( String.format( contextService.getApiPath() + "/fileResources/%s/data", fileResourceId ),
-            response.getString( "reference" ).string() );
+            response.getString( "href" ).string() );
     }
 
     @Test

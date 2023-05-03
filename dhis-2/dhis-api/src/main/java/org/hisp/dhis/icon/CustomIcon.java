@@ -38,8 +38,6 @@ import lombok.Setter;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Getter
 @Setter
 @NoArgsConstructor
@@ -47,10 +45,8 @@ public class CustomIcon extends BaseIcon
 {
     private long id;
 
-    @JsonProperty
     private FileResource fileResource;
 
-    @JsonProperty
     private User createdBy;
 
     public CustomIcon( @Nonnull String key, String description, List<String> keywords,
@@ -63,9 +59,9 @@ public class CustomIcon extends BaseIcon
     }
 
     @Override
-    public BaseIcon setReference( String reference )
+    public BaseIcon setReference( String contextApiPath, String endpoint, String fileResourceUid )
     {
-        this.reference = reference;
+        this.reference = String.format( "%s%s/%s/data", contextApiPath, endpoint, fileResourceUid );
         return this;
     }
 }

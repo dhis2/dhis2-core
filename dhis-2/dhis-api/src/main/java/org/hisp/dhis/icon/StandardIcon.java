@@ -38,9 +38,9 @@ public class StandardIcon extends BaseIcon
     }
 
     @Override
-    public BaseIcon setReference( String reference )
+    public BaseIcon setReference( String contextApiPath, String endpoint, String key )
     {
-        this.reference = reference;
+        this.reference = String.format( "%s%s/%s/icon.%s", contextApiPath, endpoint, key, Icon.SUFFIX );
         return this;
     }
 }
