@@ -603,7 +603,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
-        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getEnrollment().getUid(), is( psi2.getEnrollment().getUid() ) );
         assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
         assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
         assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );
@@ -642,7 +642,7 @@ class EventImportTest extends TransactionalIntegrationTest
         Event psi2 = programStageInstanceService.getEvent( uid );
         assertThat( psi.getLastUpdated(), DateMatchers.before( psi2.getLastUpdated() ) );
         assertThat( psi.getCreated(), is( psi2.getCreated() ) );
-        assertThat( psi.getProgramInstance().getUid(), is( psi2.getProgramInstance().getUid() ) );
+        assertThat( psi.getEnrollment().getUid(), is( psi2.getEnrollment().getUid() ) );
         assertThat( psi.getProgramStage().getUid(), is( psi2.getProgramStage().getUid() ) );
         assertThat( psi.getOrganisationUnit().getUid(), is( psi2.getOrganisationUnit().getUid() ) );
         assertThat( psi.getAttributeOptionCombo().getUid(), is( psi2.getAttributeOptionCombo().getUid() ) );

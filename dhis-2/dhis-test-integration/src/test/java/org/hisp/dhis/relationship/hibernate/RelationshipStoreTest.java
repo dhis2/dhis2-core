@@ -268,12 +268,12 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Event addEvent( ProgramInstance programInstance, ProgramStage programStageA )
+    private Event addEvent( ProgramInstance enrollment, ProgramStage programStageA )
     {
         Event event = new Event();
         event.setOrganisationUnit( organisationUnit );
         event.setProgramStage( programStageA );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setAutoFields();
 
         eventService.addEvent( event );

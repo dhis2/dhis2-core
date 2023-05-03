@@ -92,7 +92,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     private ProgramStage programStageA;
 
-    private ProgramInstance programInstanceA;
+    private ProgramInstance enrollmentA;
 
     private ProgramInstance programInstanceB;
 
@@ -190,24 +190,24 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         from.setRelationship( relationshipA );
         relationshipA.setFrom( from );
         RelationshipItem to = new RelationshipItem();
-        to.setProgramInstance( programInstanceA );
+        to.setProgramInstance( enrollmentA );
         to.setRelationship( relationshipA );
         relationshipA.setTo( to );
         relationshipA.setKey( RelationshipUtils.generateRelationshipKey( relationshipA ) );
         relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
         manager.save( relationshipA, false );
 
-        programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
             new Date(),
             orgUnitA );
         eventA = new Event();
-        eventA.setProgramInstance( programInstanceA );
+        eventA.setEnrollment( enrollmentA );
         eventA.setProgramStage( programStageA );
         eventA.setOrganisationUnit( orgUnitA );
         manager.save( eventA, false );
-        programInstanceA.setEvents( Set.of( eventA ) );
-        programInstanceA.setRelationshipItems( Set.of( from, to ) );
-        manager.save( programInstanceA, false );
+        enrollmentA.setEvents( Set.of( eventA ) );
+        enrollmentA.setRelationshipItems( Set.of( from, to ) );
+        manager.save( enrollmentA, false );
 
         programInstanceB = programInstanceService.enrollTrackedEntityInstance( trackedEntityB, programA, new Date(),
             new Date(),
@@ -222,11 +222,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(),
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(),
             EnrollmentParams.FALSE );
 
         assertNotNull( enrollment );
-        assertEquals( programInstanceA.getUid(), enrollment.getUid() );
+        assertEquals( enrollmentA.getUid(), enrollment.getUid() );
     }
 
     @Test
@@ -235,11 +235,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(),
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(),
             EnrollmentParams.FALSE );
 
         assertNotNull( enrollment );
-        assertEquals( programInstanceA.getUid(), enrollment.getUid() );
+        assertEquals( enrollmentA.getUid(), enrollment.getUid() );
     }
 
     @Test
@@ -248,7 +248,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withEnrollmentEventsParams( EnrollmentEventsParams.TRUE );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(), params );
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
 
         assertNotNull( enrollment );
         assertContainsOnly( List.of( eventA.getUid() ), enrollment.getEvents().stream()
@@ -265,7 +265,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeEvents( true );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(), params );
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
 
         assertNotNull( enrollment );
         assertIsEmpty( enrollment.getEvents() );
@@ -277,7 +277,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeRelationships( true );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(), params );
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
 
         assertNotNull( enrollment );
         assertContainsOnly( Set.of( relationshipA.getUid() ), relationshipUids( enrollment ) );
@@ -292,7 +292,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeRelationships( true );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(), params );
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
 
         assertNotNull( enrollment );
         assertIsEmpty( enrollment.getRelationshipItems() );
@@ -304,7 +304,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeAttributes( true );
 
-        ProgramInstance enrollment = enrollmentService.getEnrollment( programInstanceA.getUid(), params );
+        ProgramInstance enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
 
         assertNotNull( enrollment );
         assertContainsOnly( List.of( trackedEntityAttributeA.getUid() ), attributeUids( enrollment ) );
@@ -318,7 +318,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( trackedEntityTypeA );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( programInstanceA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "access to tracked entity type", exception.getMessage() );
     }
 
@@ -331,7 +331,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( userWithoutOrgUnit );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( programInstanceA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
 
@@ -344,7 +344,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( userWithoutOrgUnit );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( programInstanceA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
 
@@ -355,7 +355,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
-            () -> enrollmentService.getEnrollment( programInstanceA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "access to program", exception.getMessage() );
     }
 
@@ -373,7 +373,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
         assertNotNull( enrollments );
-        assertContainsOnly( List.of( programInstanceA.getUid(), programInstanceB.getUid() ), toUid( enrollments ) );
+        assertContainsOnly( List.of( enrollmentA.getUid(), programInstanceB.getUid() ), toUid( enrollments ) );
     }
 
     @Test
@@ -390,7 +390,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
         assertNotNull( enrollments );
-        assertContainsOnly( List.of( programInstanceA.getUid() ), toUid( enrollments ) );
+        assertContainsOnly( List.of( enrollmentA.getUid() ), toUid( enrollments ) );
     }
 
     @Test

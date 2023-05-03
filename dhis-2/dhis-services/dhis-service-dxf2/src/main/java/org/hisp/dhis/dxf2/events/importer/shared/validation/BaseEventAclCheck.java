@@ -76,7 +76,7 @@ public abstract class BaseEventAclCheck implements Checker
         programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
         ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        programStageInstance.setProgramInstance( programInstance );
+        programStageInstance.setEnrollment( programInstance );
 
         return programStageInstance;
     }

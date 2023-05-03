@@ -363,7 +363,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         ProgramRule programRule = setUpSendMessageForEnrollment();
         Event event = eventService.getEvent( "UID-PS1" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
             event, Sets.newHashSet(), List.of( programRule ) );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
@@ -383,7 +383,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         setUpSendMessageForEnrollment();
         Event event = eventService.getEvent( "UID-PS1" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            event.getProgramInstance(), Sets.newHashSet( event ), Lists.newArrayList() );
+            event.getEnrollment(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertEquals( 2, ruleEffects.size() );
         RuleEffects enrollmentRuleEffects = ruleEffects.stream().filter( RuleEffects::isEnrollment ).findFirst().get();
         RuleEffects eventRuleEffects = ruleEffects.stream().filter( RuleEffects::isEvent ).findFirst().get();
@@ -462,7 +462,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         ProgramRule programRule = setUpAssignValueDate();
         Event event = eventService.getEvent( "UID-PS12" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
             event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -474,7 +474,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         setUpAssignValueDate();
         Event event = eventService.getEvent( "UID-PS12" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            event.getProgramInstance(), Sets.newHashSet( event ), Lists.newArrayList() );
+            event.getEnrollment(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertNotNull( ruleEffects );
         assertEquals( 2, ruleEffects.size() );
         assertTrue( ruleEffects.stream().filter( e -> e.isEnrollment() ).findFirst().get().getRuleEffects().isEmpty() );
@@ -487,7 +487,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         ProgramRule programRule = setUpAssignValueAge();
         Event event = eventService.getEvent( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
             event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
@@ -499,7 +499,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         setUpRuleActionForOptionSetName();
 
         Event event = eventService.getEvent( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
             event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
         assertNotNull( ruleEffects );
@@ -513,7 +513,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         setUpRuleActionForOptionSetCode();
 
         Event event = eventService.getEvent( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getProgramInstance(),
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
             event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
 
         assertNotNull( ruleEffects );
