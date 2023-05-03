@@ -33,8 +33,8 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -90,7 +90,7 @@ class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
         {
             this.identifier = this.enrollment;
             this.identifierName = "enrollment";
-            this.identifierClass = ProgramInstance.class;
+            this.identifierClass = Enrollment.class;
             count++;
         }
         if ( !StringUtils.isBlank( this.event ) )

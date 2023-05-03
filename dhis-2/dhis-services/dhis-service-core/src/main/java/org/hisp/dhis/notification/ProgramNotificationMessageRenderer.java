@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
@@ -48,9 +48,9 @@ import com.google.common.collect.Maps;
  */
 @Component
 public class ProgramNotificationMessageRenderer
-    extends BaseNotificationMessageRenderer<ProgramInstance>
+    extends BaseNotificationMessageRenderer<Enrollment>
 {
-    public static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
+    public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<Enrollment, String>>()
         .put( ProgramTemplateVariable.PROGRAM_NAME, pi -> pi.getProgram().getDisplayName() )
         .put( ProgramTemplateVariable.ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getDisplayName() )
         .put( ProgramTemplateVariable.CURRENT_DATE, pi -> formatDate( new Date() ) )
@@ -61,7 +61,7 @@ public class ProgramNotificationMessageRenderer
         .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getName() )
         .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_CODE, pi -> pi.getOrganisationUnit().getCode() )
         .put( ProgramTemplateVariable.PROGRAM_ID, pi -> pi.getProgram().getUid() )
-        .put( ProgramTemplateVariable.ENROLLMENT_ID, ProgramInstance::getUid )
+        .put( ProgramTemplateVariable.ENROLLMENT_ID, Enrollment::getUid )
         .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, pi -> pi.getEntityInstance().getUid() )
         .build();
 
@@ -73,14 +73,14 @@ public class ProgramNotificationMessageRenderer
     // -------------------------------------------------------------------------
 
     @Override
-    protected ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> getVariableResolvers()
+    protected ImmutableMap<TemplateVariable, Function<Enrollment, String>> getVariableResolvers()
     {
         return VARIABLE_RESOLVERS;
     }
 
     @Override
     protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
-        ProgramInstance entity )
+        Enrollment entity )
     {
         if ( attributeKeys.isEmpty() )
         {
@@ -106,7 +106,7 @@ public class ProgramNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramInstance entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, Enrollment entity )
     {
         // DataElements are not supported for program notifications
         return Collections.emptyMap();

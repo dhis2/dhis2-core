@@ -44,10 +44,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -207,9 +207,9 @@ class EventSecurityImportValidationTest extends TrackerTest
         int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         Date dateMar20 = getDate( testYear, 3, 20 );
         Date dateApr10 = getDate( testYear, 4, 10 );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( maleA, programA,
+        Enrollment enrollment = programInstanceService.enrollTrackedEntityInstance( maleA, programA,
             dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
-        programInstanceService.addProgramInstance( programInstance );
+        programInstanceService.addProgramInstance( enrollment );
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),
             organisationUnitA.getUid() );
         manager.update( programA );

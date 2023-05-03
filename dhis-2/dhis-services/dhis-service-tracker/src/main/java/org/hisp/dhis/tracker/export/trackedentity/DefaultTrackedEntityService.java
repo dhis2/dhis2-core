@@ -46,9 +46,9 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -216,7 +216,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         }
         if ( params.isIncludeEnrollments() )
         {
-            result.setProgramInstances( getProgramInstances( trackedEntity, params, user ) );
+            result.setEnrollments( getProgramInstances( trackedEntity, params, user ) );
         }
         if ( params.isIncludeProgramOwners() )
         {
@@ -245,29 +245,29 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         return items;
     }
 
-    private Set<ProgramInstance> getProgramInstances( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
+    private Set<Enrollment> getProgramInstances( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
         User user )
     {
-        Set<ProgramInstance> programInstances = new HashSet<>();
+        Set<Enrollment> enrollments = new HashSet<>();
 
-        for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
+        for ( Enrollment enrollment : trackedEntity.getEnrollments() )
         {
-            if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
-                && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
+            if ( trackerAccessManager.canRead( user, enrollment, false ).isEmpty()
+                && (params.isIncludeDeleted() || !enrollment.isDeleted()) )
             {
                 Set<Event> events = new HashSet<>();
-                for ( Event event : programInstance.getEvents() )
+                for ( Event event : enrollment.getEvents() )
                 {
                     if ( params.isIncludeDeleted() || !event.isDeleted() )
                     {
                         events.add( event );
                     }
                 }
-                programInstance.setEvents( events );
-                programInstances.add( programInstance );
+                enrollment.setEvents( events );
+                enrollments.add( enrollment );
             }
         }
-        return programInstances;
+        return enrollments;
     }
 
     private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance trackedEntity,
@@ -302,10 +302,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService
                     TrackedEntityParams.TRUE.withIncludeRelationships( false ) ) );
             }
         }
-        else if ( item.getProgramInstance() != null )
+        else if ( item.getEnrollment() != null )
         {
-            result.setProgramInstance(
-                enrollmentService.getEnrollment( item.getProgramInstance().getUid(),
+            result.setEnrollment(
+                enrollmentService.getEnrollment( item.getEnrollment().getUid(),
                     EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
         else if ( item.getEvent() != null )
@@ -367,9 +367,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         {
             for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
             {
-                for ( ProgramInstance programInstance : trackedEntity.getProgramInstances() )
+                for ( Enrollment enrollment : trackedEntity.getEnrollments() )
                 {
-                    mapRelationshipItems( programInstance, trackedEntity );
+                    mapRelationshipItems( enrollment, trackedEntity );
                 }
             }
         }
@@ -377,7 +377,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         {
             for ( TrackedEntityInstance trackedEntity : trackedEntityInstances )
             {
-                for ( ProgramInstance enrollment : trackedEntity.getProgramInstances() )
+                for ( Enrollment enrollment : trackedEntity.getEnrollments() )
                 {
                     for ( Event event : enrollment.getEvents() )
                     {
@@ -402,7 +402,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         trackedEntity.setRelationshipItems( result );
     }
 
-    private void mapRelationshipItems( ProgramInstance enrollment, TrackedEntityInstance trackedEntity )
+    private void mapRelationshipItems( Enrollment enrollment, TrackedEntityInstance trackedEntity )
         throws ForbiddenException,
         NotFoundException
     {

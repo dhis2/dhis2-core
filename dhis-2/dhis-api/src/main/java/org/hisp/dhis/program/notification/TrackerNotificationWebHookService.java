@@ -27,18 +27,18 @@
  */
 package org.hisp.dhis.program.notification;
 
+import org.hisp.dhis.program.Enrollment;
+
 /**
  * Defines methods for handling of tracker web hook notifications associated
- * with {@link org.hisp.dhis.program.ProgramInstance} and
- * {@link org.hisp.dhis.program.Event}
+ * with {@link Enrollment} and {@link org.hisp.dhis.program.Event}
  *
  * @author Zubair Asghar
  */
 public interface TrackerNotificationWebHookService
 {
     /**
-     * Sends web hook notifications linked to
-     * {@link org.hisp.dhis.program.ProgramInstance}
+     * Sends web hook notifications linked to {@link Enrollment}
      *
      * @param programInstance to handle
      */

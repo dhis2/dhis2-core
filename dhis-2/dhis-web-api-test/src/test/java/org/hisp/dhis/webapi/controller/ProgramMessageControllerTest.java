@@ -34,8 +34,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -66,7 +66,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private ProgramInstance piA;
+    private Enrollment piA;
 
     @BeforeEach
     void setUp()

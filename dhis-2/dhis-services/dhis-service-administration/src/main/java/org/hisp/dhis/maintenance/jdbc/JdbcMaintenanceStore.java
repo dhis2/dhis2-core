@@ -41,8 +41,8 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.AuditType;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.maintenance.MaintenanceStore;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -57,7 +57,7 @@ import org.springframework.stereotype.Service;
 public class JdbcMaintenanceStore implements MaintenanceStore
 {
     private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = Map.of(
-        ProgramInstance.class, new ProgramInstance(),
+        Enrollment.class, new Enrollment(),
         Event.class, new Event(),
         TrackedEntityInstance.class, new TrackedEntityInstance(),
         Relationship.class, new Relationship() );
@@ -212,7 +212,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         if ( result > 0 )
         {
             auditHardDeletedEntity( associatedEvents, Event.class );
-            auditHardDeletedEntity( deletedEnrollments, ProgramInstance.class );
+            auditHardDeletedEntity( deletedEnrollments, Enrollment.class );
         }
 
         return result;
@@ -296,7 +296,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         if ( result > 0 )
         {
             auditHardDeletedEntity( associatedEvents, Event.class );
-            auditHardDeletedEntity( associatedEnrollments, ProgramInstance.class );
+            auditHardDeletedEntity( associatedEnrollments, Enrollment.class );
             auditHardDeletedEntity( deletedTeiUids, TrackedEntityInstance.class );
         }
 

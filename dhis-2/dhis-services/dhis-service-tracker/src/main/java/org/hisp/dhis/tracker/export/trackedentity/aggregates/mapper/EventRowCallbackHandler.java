@@ -38,9 +38,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -99,7 +99,7 @@ public class EventRowCallbackHandler
         orgUnit.setName( rs.getString( EventQuery.getColumnName( COLUMNS.ORGUNIT_NAME ) ) );
         event.setOrganisationUnit( orgUnit );
 
-        ProgramInstance enrollment = new ProgramInstance();
+        Enrollment enrollment = new Enrollment();
         enrollment.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.ENROLLMENT_UID ) ) );
         Program program = new Program();
         program.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.PROGRAM_UID ) ) );

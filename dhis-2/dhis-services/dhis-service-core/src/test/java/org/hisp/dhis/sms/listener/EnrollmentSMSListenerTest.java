@@ -51,10 +51,10 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -173,7 +173,7 @@ class EnrollmentSMSListenerTest
 
     private ProgramStage programStage;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -211,7 +211,7 @@ class EnrollmentSMSListenerTest
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
         when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
-            .thenReturn( programInstance );
+            .thenReturn( enrollment );
         when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 
         doAnswer( invocation -> {
@@ -358,9 +358,9 @@ class EnrollmentSMSListenerTest
         stages.add( programStage );
         program.setProgramStages( stages );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( program );
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
+        enrollment.setProgram( program );
 
         event = new Event();
         event.setAutoFields();
@@ -393,7 +393,7 @@ class EnrollmentSMSListenerTest
         subm.setTrackerProgram( program.getUid() );
         subm.setTrackedEntityType( trackedEntityType.getUid() );
         subm.setTrackedEntityInstance( trackedEntityInstance.getUid() );
-        subm.setEnrollment( programInstance.getUid() );
+        subm.setEnrollment( enrollment.getUid() );
         subm.setEnrollmentDate( new Date() );
         subm.setIncidentDate( new Date() );
         subm.setEnrollmentStatus( SmsEnrollmentStatus.ACTIVE );

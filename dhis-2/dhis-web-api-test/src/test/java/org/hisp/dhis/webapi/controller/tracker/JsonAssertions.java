@@ -40,8 +40,8 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -111,7 +111,7 @@ public class JsonAssertions
         assertEquals( expectedUid, j.getString( member ).string(), member + " UID" );
     }
 
-    public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonRelationshipItem actual )
+    public static void assertEnrollmentWithinRelationship( Enrollment expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );

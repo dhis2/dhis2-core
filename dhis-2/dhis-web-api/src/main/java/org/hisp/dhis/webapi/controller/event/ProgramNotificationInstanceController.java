@@ -87,7 +87,7 @@ public class ProgramNotificationInstanceController
         @RequestParam( required = false, defaultValue = "50" ) int pageSize )
     {
         ProgramNotificationInstanceParam params = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstanceService.getProgramInstance( programInstance ) )
+            .enrollment( programInstanceService.getProgramInstance( programInstance ) )
             .event( eventService.getEvent( programStageInstance ) )
             .skipPaging( skipPaging )
             .page( page )

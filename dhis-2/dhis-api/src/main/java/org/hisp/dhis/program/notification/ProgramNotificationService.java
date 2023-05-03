@@ -29,8 +29,8 @@ package org.hisp.dhis.program.notification;
 
 import java.util.Date;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.scheduling.JobProgress;
 
 /**
@@ -85,7 +85,7 @@ public interface ProgramNotificationService
      */
     void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
 
-    void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance );
+    void sendProgramRuleTriggeredNotifications( long pnt, Enrollment enrollment );
 
     /**
      * Send completion notifications for the Event triggered by ProgramRule

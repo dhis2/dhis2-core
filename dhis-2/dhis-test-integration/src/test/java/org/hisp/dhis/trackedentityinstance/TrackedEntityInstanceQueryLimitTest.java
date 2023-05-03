@@ -38,8 +38,8 @@ import java.util.Set;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
@@ -86,13 +86,13 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
 
     private Program program;
 
-    private ProgramInstance pi1;
+    private Enrollment pi1;
 
-    private ProgramInstance pi2;
+    private Enrollment pi2;
 
-    private ProgramInstance pi3;
+    private Enrollment pi3;
 
-    private ProgramInstance pi4;
+    private Enrollment pi4;
 
     private TrackedEntityInstance tei1;
 

@@ -39,9 +39,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -113,14 +113,14 @@ public class SimpleEventSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
 
-        List<ProgramInstance> programInstances = new ArrayList<>(
+        List<Enrollment> enrollments = new ArrayList<>(
             programInstanceService.getProgramInstances( program, ProgramStatus.ACTIVE ) );
 
         // For Simple Events, the Program should have one Program Instance
         // If it doesn't exist, this is the first event, we can create it here
-        if ( programInstances.isEmpty() )
+        if ( enrollments.isEmpty() )
         {
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setEnrollmentDate( new Date() );
             pi.setIncidentDate( new Date() );
             pi.setProgram( program );
@@ -128,23 +128,23 @@ public class SimpleEventSMSListener extends CompressionSMSListener
 
             programInstanceService.addProgramInstance( pi );
 
-            programInstances.add( pi );
+            enrollments.add( pi );
         }
-        else if ( programInstances.size() > 1 )
+        else if ( enrollments.size() > 1 )
         {
             // TODO: Are we sure this is a problem we can't recover from?
             throw new SMSProcessingException( SmsResponse.MULTI_PROGRAMS.set( progid ) );
         }
 
-        ProgramInstance programInstance = programInstances.get( 0 );
-        Set<ProgramStage> programStages = programInstance.getProgram().getProgramStages();
+        Enrollment enrollment = enrollments.get( 0 );
+        Set<ProgramStage> programStages = enrollment.getProgram().getProgramStages();
         if ( programStages.size() > 1 )
         {
             throw new SMSProcessingException( SmsResponse.MULTI_STAGES.set( progid ) );
         }
         ProgramStage programStage = programStages.iterator().next();
 
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )

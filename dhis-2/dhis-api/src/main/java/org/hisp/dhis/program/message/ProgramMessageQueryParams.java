@@ -30,8 +30,8 @@ package org.hisp.dhis.program.message;
 import java.util.Date;
 import java.util.Set;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -42,7 +42,7 @@ public class ProgramMessageQueryParams
 
     private ProgramMessageStatus messageStatus;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -64,13 +64,13 @@ public class ProgramMessageQueryParams
     }
 
     public ProgramMessageQueryParams( Set<String> organisationUnit, ProgramMessageStatus messageStatus,
-        ProgramInstance programInstance, Event event, Date afterDate, Date beforeDate,
+        Enrollment enrollment, Event event, Date afterDate, Date beforeDate,
         Integer page, Integer pageSize )
     {
         super();
         this.organisationUnit = organisationUnit;
         this.messageStatus = messageStatus;
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
         this.event = event;
         this.afterDate = afterDate;
         this.beforeDate = beforeDate;
@@ -89,7 +89,7 @@ public class ProgramMessageQueryParams
 
     public boolean hasProgramInstance()
     {
-        return programInstance != null;
+        return enrollment != null;
     }
 
     public boolean hasEvent()
@@ -106,14 +106,14 @@ public class ProgramMessageQueryParams
     // Getters and Setters
     // -------------------------------------------------------------------------
 
-    public ProgramInstance getProgramInstance()
+    public Enrollment getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( ProgramInstance programInstance )
+    public void setEnrollment( Enrollment enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
     public Event getEvent()

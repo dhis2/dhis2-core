@@ -34,9 +34,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
@@ -159,12 +159,12 @@ public class RelationshipSMSListener extends CompressionSMSListener
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUid() );
+            Enrollment progInst = programInstanceService.getProgramInstance( objId.getUid() );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
             }
-            relItem.setProgramInstance( progInst );
+            relItem.setEnrollment( progInst );
             break;
 
         case PROGRAM_STAGE_INSTANCE:

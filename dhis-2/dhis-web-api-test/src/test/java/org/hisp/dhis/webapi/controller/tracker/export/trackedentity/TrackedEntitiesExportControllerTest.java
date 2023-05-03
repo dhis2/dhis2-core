@@ -49,9 +49,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -422,7 +422,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     void shouldGetEnrollmentWhenFieldsHasEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
@@ -441,7 +441,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event programStageInstance = programStageInstanceWithDataValue( programInstance );
@@ -467,7 +467,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event programStageInstance = programStageInstanceWithDataValue( programInstance );
@@ -498,7 +498,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event event = programStageInstanceWithDataValue( programInstance );
@@ -522,10 +522,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertHasNoMember( jsonEvent, "relationships" );
     }
 
-    private Event programStageInstanceWithDataValue( ProgramInstance programInstance )
+    private Event programStageInstanceWithDataValue( Enrollment enrollment )
     {
-        Event event = new Event( programInstance, programStage,
-            programInstance.getOrganisationUnit() );
+        Event event = new Event( enrollment, programStage,
+            enrollment.getOrganisationUnit() );
         event.setAutoFields();
         event.setExecutionDate( DateUtils.parseDate( EVENT_OCCURRED_AT ) );
 
@@ -546,7 +546,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     }
 
     private JsonEnrollment assertDefaultEnrollmentResponse( JsonList<JsonEnrollment> enrollments,
-        ProgramInstance programInstance )
+        Enrollment programInstance )
     {
         assertFalse( enrollments.isEmpty() );
         JsonEnrollment enrollment = enrollments.get( 0 );

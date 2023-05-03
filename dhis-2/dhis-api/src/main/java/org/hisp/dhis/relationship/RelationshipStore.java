@@ -30,8 +30,8 @@ package org.hisp.dhis.relationship;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -51,12 +51,12 @@ public interface RelationshipStore
     List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    default List<Relationship> getByProgramInstance( ProgramInstance pi )
+    default List<Relationship> getByProgramInstance( Enrollment pi )
     {
         return getByProgramInstance( pi, null );
     }
 
-    List<Relationship> getByProgramInstance( ProgramInstance pi,
+    List<Relationship> getByProgramInstance( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     default List<Relationship> getByEvent( Event event )

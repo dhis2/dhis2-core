@@ -47,9 +47,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -216,12 +216,12 @@ public abstract class CommandSMSListener extends BaseSMSListener
         return true;
     }
 
-    protected void register( List<ProgramInstance> programInstances, Map<String, String> commandValuePairs,
+    protected void register( List<Enrollment> enrollments, Map<String, String> commandValuePairs,
         SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
     {
-        if ( programInstances.isEmpty() )
+        if ( enrollments.isEmpty() )
         {
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setEnrollmentDate( new Date() );
             pi.setIncidentDate( new Date() );
             pi.setProgram( smsCommand.getProgram() );
@@ -229,9 +229,9 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
             programInstanceService.addProgramInstance( pi );
 
-            programInstances.add( pi );
+            enrollments.add( pi );
         }
-        else if ( programInstances.size() > 1 )
+        else if ( enrollments.size() > 1 )
         {
             update( sms, SmsMessageStatus.FAILED, false );
 
@@ -241,7 +241,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             return;
         }
 
-        ProgramInstance enrollment = programInstances.get( 0 );
+        Enrollment enrollment = enrollments.get( 0 );
 
         UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( currentUserService.getCurrentUser() );
 

@@ -33,10 +33,9 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramInstanceMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -47,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = Enrollment.class, mapper = ProgramInstanceMapper.class )
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Enrollment.class, mapper = ProgramInstanceMapper.class )
 public class EnrollmentStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull
@@ -58,10 +57,10 @@ public class EnrollmentStrategy implements ClassBasedSupplierStrategy
     {
         for ( List<String> ids : splitList )
         {
-            List<ProgramInstance> programInstances = programInstanceStore.getIncludingDeleted( ids );
+            List<Enrollment> enrollments = programInstanceStore.getIncludingDeleted( ids );
 
             preheat.putEnrollments(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), programInstances ) );
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(), enrollments ) );
 
         }
     }

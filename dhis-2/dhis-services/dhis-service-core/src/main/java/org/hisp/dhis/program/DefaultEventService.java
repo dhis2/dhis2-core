@@ -173,7 +173,7 @@ public class DefaultEventService
 
     @Override
     @Transactional
-    public Event createEvent( ProgramInstance enrollment, ProgramStage programStage,
+    public Event createEvent( Enrollment enrollment, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
         Event event = null;

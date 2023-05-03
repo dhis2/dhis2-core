@@ -33,10 +33,10 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -87,11 +87,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 
     private TrackedEntityInstance teiC;
 
-    private ProgramInstance piA;
+    private Enrollment piA;
 
-    private ProgramInstance piB;
+    private Enrollment piB;
 
-    private ProgramInstance piC;
+    private Enrollment piC;
 
     private Event eventA;
 
@@ -156,7 +156,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     private long getProgramInstanceCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
-            .createQuery( "select count(*) from ProgramInstance pi where pi.organisationUnit = :target" )
+            .createQuery( "select count(*) from Enrollment pi where pi.organisationUnit = :target" )
             .setParameter( "target", target ).uniqueResult();
     }
 }

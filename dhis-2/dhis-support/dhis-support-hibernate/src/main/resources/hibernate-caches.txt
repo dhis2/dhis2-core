@@ -51,7 +51,7 @@ org.hisp.dhis.deletedobject.DeletedObject
 org.hisp.dhis.security.oauth2.OAuth2Client
 org.hisp.dhis.configuration.Configuration
 org.hisp.dhis.version.Version
-org.hisp.dhis.program.ProgramInstance
+org.hisp.dhis.program.Enrollment
 org.hisp.dhis.constant.Constant
 org.hisp.dhis.period.Period
 org.hisp.dhis.dataentryform.DataEntryForm

@@ -63,9 +63,9 @@ import org.hisp.dhis.notification.NotificationMessage;
 import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
@@ -118,7 +118,7 @@ public class DefaultProgramNotificationService
     private final IdentifiableObjectManager identifiableObjectManager;
 
     @Nonnull
-    private final NotificationMessageRenderer<ProgramInstance> programNotificationRenderer;
+    private final NotificationMessageRenderer<Enrollment> programNotificationRenderer;
 
     @Nonnull
     private final NotificationMessageRenderer<Event> programStageNotificationRenderer;
@@ -179,7 +179,7 @@ public class DefaultProgramNotificationService
                 .filter( this::hasProgramInstance )
                 .map( iwt -> createProgramInstanceMessageBatch(
                     iwt.getProgramNotificationTemplate(),
-                    List.of( iwt.getProgramNotificationInstance().getProgramInstance() ) ) );
+                    List.of( iwt.getProgramNotificationInstance().getEnrollment() ) ) );
 
             Stream<MessageBatch> programStageInstanceBatches = instancesWithTemplates.stream()
                 .filter( this::hasEvent )
@@ -294,10 +294,10 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
-    public void sendProgramRuleTriggeredNotifications( long pnt, ProgramInstance programInstance )
+    public void sendProgramRuleTriggeredNotifications( long pnt, Enrollment enrollment )
     {
         MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programInstance ) );
+            Collections.singletonList( enrollment ) );
         sendAll( messageBatch );
     }
 
@@ -328,10 +328,10 @@ public class DefaultProgramNotificationService
         List<Event> events = eventStore
             .getWithScheduledNotifications( template, day );
 
-        List<ProgramInstance> programInstances = programInstanceStore.getWithScheduledNotifications( template, day );
+        List<Enrollment> enrollments = programInstanceStore.getWithScheduledNotifications( template, day );
 
         MessageBatch eventBatch = createEventMessageBatch( template, events );
-        MessageBatch psBatch = createProgramInstanceMessageBatch( template, programInstances );
+        MessageBatch psBatch = createProgramInstanceMessageBatch( template, enrollments );
 
         return new MessageBatch( eventBatch, psBatch );
     }
@@ -365,18 +365,18 @@ public class DefaultProgramNotificationService
         }
     }
 
-    private void sendProgramInstanceNotifications( ProgramInstance programInstance, NotificationTrigger trigger )
+    private void sendProgramInstanceNotifications( Enrollment enrollment, NotificationTrigger trigger )
     {
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             return;
         }
 
-        Set<ProgramNotificationTemplate> templates = resolveTemplates( programInstance, trigger );
+        Set<ProgramNotificationTemplate> templates = resolveTemplates( enrollment, trigger );
 
         for ( ProgramNotificationTemplate template : templates )
         {
-            MessageBatch batch = createProgramInstanceMessageBatch( template, Lists.newArrayList( programInstance ) );
+            MessageBatch batch = createProgramInstanceMessageBatch( template, Lists.newArrayList( enrollment ) );
             sendAll( batch );
         }
     }
@@ -404,21 +404,21 @@ public class DefaultProgramNotificationService
     }
 
     private MessageBatch createProgramInstanceMessageBatch( ProgramNotificationTemplate template,
-        List<ProgramInstance> programInstances )
+        List<Enrollment> enrollments )
     {
         MessageBatch batch = new MessageBatch();
 
         if ( template.getNotificationRecipient().isExternalRecipient() )
         {
             batch.programMessages.addAll(
-                programInstances.stream()
+                enrollments.stream()
                     .map( pi -> createProgramMessage( pi, template ) )
                     .collect( Collectors.toSet() ) );
         }
         else
         {
             batch.dhisMessages.addAll(
-                programInstances.stream()
+                enrollments.stream()
                     .map( ps -> createDhisMessage( ps, template ) )
                     .collect( Collectors.toSet() ) );
         }
@@ -439,25 +439,25 @@ public class DefaultProgramNotificationService
             .build();
     }
 
-    private ProgramMessage createProgramMessage( ProgramInstance programInstance, ProgramNotificationTemplate template )
+    private ProgramMessage createProgramMessage( Enrollment enrollment, ProgramNotificationTemplate template )
     {
-        NotificationMessage message = programNotificationRenderer.render( programInstance, template );
+        NotificationMessage message = programNotificationRenderer.render( enrollment, template );
 
         return ProgramMessage.builder().subject( message.getSubject() )
             .text( message.getMessage() )
-            .recipients( resolveProgramNotificationRecipients( template, programInstance.getOrganisationUnit(),
-                programInstance ) )
+            .recipients( resolveProgramNotificationRecipients( template, enrollment.getOrganisationUnit(),
+                enrollment ) )
             .deliveryChannels( Sets.newHashSet( template.getDeliveryChannels() ) )
-            .programInstance( programInstance )
+            .enrollment( enrollment )
             .notificationTemplate( Optional.ofNullable( template.getUid() ).orElse( StringUtils.EMPTY ) )
             .build();
     }
 
     private Set<User> resolveDhisMessageRecipients(
-        ProgramNotificationTemplate template, @Nullable ProgramInstance programInstance,
+        ProgramNotificationTemplate template, @Nullable Enrollment enrollment,
         @Nullable Event event )
     {
-        if ( programInstance == null && event == null )
+        if ( enrollment == null && event == null )
         {
             throw new IllegalArgumentException(
                 "Either of the arguments [programInstance, event] must be non-null" );
@@ -465,7 +465,7 @@ public class DefaultProgramNotificationService
 
         Set<User> recipients = Sets.newHashSet();
 
-        OrganisationUnit eventOrgUnit = programInstance != null ? programInstance.getOrganisationUnit()
+        OrganisationUnit eventOrgUnit = enrollment != null ? enrollment.getOrganisationUnit()
             : event.getOrganisationUnit();
 
         Set<OrganisationUnit> orgUnitInHierarchy = Sets.newHashSet();
@@ -513,9 +513,9 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveProgramNotificationRecipients(
-        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, ProgramInstance programInstance )
+        ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Enrollment enrollment )
     {
-        return resolveRecipients( template, organisationUnit, programInstance.getEntityInstance(), programInstance );
+        return resolveRecipients( template, organisationUnit, enrollment.getEntityInstance(), enrollment );
     }
 
     private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
@@ -551,7 +551,7 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-        TrackedEntityInstance tei, ProgramInstance pi )
+        TrackedEntityInstance tei, Enrollment pi )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -586,10 +586,10 @@ public class DefaultProgramNotificationService
         return recipients;
     }
 
-    private Set<ProgramNotificationTemplate> resolveTemplates( ProgramInstance programInstance,
+    private Set<ProgramNotificationTemplate> resolveTemplates( Enrollment enrollment,
         final NotificationTrigger trigger )
     {
-        return programInstance.getProgram().getNotificationTemplates().stream()
+        return enrollment.getProgram().getNotificationTemplates().stream()
             .filter( t -> t.getNotificationTrigger() == trigger )
             .collect( Collectors.toSet() );
     }
@@ -612,7 +612,7 @@ public class DefaultProgramNotificationService
         return dhisMessage;
     }
 
-    private DhisMessage createDhisMessage( ProgramInstance pi, ProgramNotificationTemplate template )
+    private DhisMessage createDhisMessage( Enrollment pi, ProgramNotificationTemplate template )
     {
         DhisMessage dhisMessage = new DhisMessage();
 

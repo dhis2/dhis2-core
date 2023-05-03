@@ -33,8 +33,8 @@ import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -73,9 +73,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         {
             return relationshipItem.getTrackedEntityInstance().getUid();
         }
-        else if ( relationshipItem.getProgramInstance() != null )
+        else if ( relationshipItem.getEnrollment() != null )
         {
-            return relationshipItem.getProgramInstance().getUid();
+            return relationshipItem.getEnrollment().getUid();
         }
         else if ( relationshipItem.getEvent() != null )
         {
@@ -146,9 +146,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
             ri.setTrackedEntityInstance( tei );
             break;
         case "pi":
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setUid( uid );
-            ri.setProgramInstance( pi );
+            ri.setEnrollment( pi );
             break;
         case "psi":
             Event event = new Event();

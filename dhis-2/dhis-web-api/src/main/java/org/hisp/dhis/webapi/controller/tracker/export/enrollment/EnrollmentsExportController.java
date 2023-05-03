@@ -44,13 +44,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -92,7 +91,7 @@ public class EnrollmentsExportController
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<ProgramInstance> enrollmentList;
+        List<Enrollment> enrollmentList;
 
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
@@ -134,11 +133,11 @@ public class EnrollmentsExportController
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
 
-        Enrollment enrollment = ENROLLMENT_MAPPER
+        org.hisp.dhis.webapi.controller.tracker.view.Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
         if ( enrollment == null )
         {
-            throw new NotFoundException( Enrollment.class, id );
+            throw new NotFoundException( org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class, id );
         }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }

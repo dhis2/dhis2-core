@@ -51,10 +51,10 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
@@ -261,7 +261,7 @@ public abstract class CompressionSMSListener
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
-        ProgramInstance enrollment, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SmsDataValue> values,
+        Enrollment enrollment, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SmsDataValue> values,
         SmsEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
         ArrayList<Object> errorUids = new ArrayList<>();

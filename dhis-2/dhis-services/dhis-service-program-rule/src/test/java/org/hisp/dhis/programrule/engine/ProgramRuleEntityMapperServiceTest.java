@@ -53,9 +53,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -138,9 +138,9 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private EventDataValue eventDataValueB;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
     private TrackedEntityInstance trackedEntityInstance;
 
@@ -307,16 +307,16 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
     {
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues = Collections.emptyList();
         assertThrows( IllegalStateException.class,
-            () -> subject.toMappedRuleEnrollment( programInstanceB, trackedEntityAttributeValues ) );
+            () -> subject.toMappedRuleEnrollment( enrollmentB, trackedEntityAttributeValues ) );
     }
 
     @Test
     void testMappedEnrollment()
     {
-        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( programInstance, Collections.emptyList() );
+        RuleEnrollment ruleEnrollment = subject.toMappedRuleEnrollment( enrollment, Collections.emptyList() );
 
-        assertEquals( ruleEnrollment.enrollment(), programInstance.getUid() );
-        assertEquals( ruleEnrollment.organisationUnit(), programInstance.getOrganisationUnit().getUid() );
+        assertEquals( ruleEnrollment.enrollment(), enrollment.getUid() );
+        assertEquals( ruleEnrollment.organisationUnit(), enrollment.getOrganisationUnit().getUid() );
         assertEquals( ruleEnrollment.attributeValues().size(), 1 );
         assertEquals( ruleEnrollment.attributeValues().get( 0 ).value(), SAMPLE_VALUE_A );
     }
@@ -445,18 +445,18 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         eventDataValueB.setValue( SAMPLE_VALUE_B );
         eventDataValueB.setAutoFields();
 
-        programInstanceB = new ProgramInstance( new Date(), new Date(), trackedEntityInstance, program );
-        programInstance = new ProgramInstance( new Date(), new Date(), trackedEntityInstance, program );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEntityInstance( trackedEntityInstance );
+        enrollmentB = new Enrollment( new Date(), new Date(), trackedEntityInstance, program );
+        enrollment = new Enrollment( new Date(), new Date(), trackedEntityInstance, program );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setEntityInstance( trackedEntityInstance );
 
-        eventA = new Event( programInstance, programStage );
-        eventB = new Event( programInstance, programStage );
-        eventC = new Event( programInstance, programStage );
+        eventA = new Event( enrollment, programStage );
+        eventB = new Event( enrollment, programStage );
+        eventC = new Event( enrollment, programStage );
 
         eventA.setOrganisationUnit( organisationUnit );
         eventA.setAutoFields();
