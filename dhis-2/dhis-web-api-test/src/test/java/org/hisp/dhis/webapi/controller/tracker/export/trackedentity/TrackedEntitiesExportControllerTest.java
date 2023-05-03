@@ -444,9 +444,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
-        Event programStageInstance = programStageInstanceWithDataValue( programInstance );
+        Event event = eventWithDataValue( programInstance );
 
-        programInstance.getEvents().add( programStageInstance );
+        programInstance.getEvents().add( event );
         manager.update( programInstance );
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
@@ -457,9 +457,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertTrue( enrollment.getArray( "relationships" ).isEmpty() );
         assertTrue( enrollment.getAttributes().isEmpty() );
 
-        JsonEvent event = assertDefaultEventResponse( enrollment, programStageInstance );
+        JsonEvent jsonEvent = assertDefaultEventResponse( enrollment, event );
 
-        assertTrue( event.getRelationships().isEmpty() );
+        assertTrue( jsonEvent.getRelationships().isEmpty() );
     }
 
     @Test
@@ -470,11 +470,11 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
-        Event programStageInstance = programStageInstanceWithDataValue( programInstance );
-        programInstance.getEvents().add( programStageInstance );
+        Event event = eventWithDataValue( programInstance );
+        programInstance.getEvents().add( event );
         manager.update( programInstance );
 
-        Relationship teiToEventRelationship = relationship( trackedEntityInstance, programStageInstance );
+        Relationship teiToEventRelationship = relationship( trackedEntityInstance, event );
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
             trackedEntityInstance.getUid() )
@@ -484,13 +484,13 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertTrue( enrollment.getAttributes().isEmpty() );
         assertTrue( enrollment.getArray( "relationships" ).isEmpty() );
 
-        JsonEvent event = assertDefaultEventResponse( enrollment, programStageInstance );
+        JsonEvent jsonEvent = assertDefaultEventResponse( enrollment, event );
 
-        JsonRelationship relationship = event.getRelationships().get( 0 );
+        JsonRelationship relationship = jsonEvent.getRelationships().get( 0 );
 
         assertEquals( teiToEventRelationship.getUid(), relationship.getRelationship() );
         assertEquals( trackedEntityInstance.getUid(), relationship.getFrom().getTrackedEntity().getTrackedEntity() );
-        assertEquals( programStageInstance.getUid(), relationship.getTo().getEvent().getEvent() );
+        assertEquals( event.getUid(), relationship.getTo().getEvent().getEvent() );
     }
 
     @Test
@@ -501,7 +501,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
-        Event event = programStageInstanceWithDataValue( programInstance );
+        Event event = eventWithDataValue( programInstance );
 
         programInstance.getEvents().add( event );
         manager.update( programInstance );
@@ -522,7 +522,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertHasNoMember( jsonEvent, "relationships" );
     }
 
-    private Event programStageInstanceWithDataValue( Enrollment enrollment )
+    private Event eventWithDataValue( Enrollment enrollment )
     {
         Event event = new Event( enrollment, programStage,
             enrollment.getOrganisationUnit() );

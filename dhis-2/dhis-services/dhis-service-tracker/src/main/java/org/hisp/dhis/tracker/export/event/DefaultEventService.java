@@ -48,6 +48,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -64,6 +65,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Service( "org.hisp.dhis.tracker.export.event.EventService" )
+@Transactional( readOnly = true )
 @RequiredArgsConstructor
 public class DefaultEventService implements EventService
 {
@@ -71,86 +73,25 @@ public class DefaultEventService implements EventService
 
     private final EventStore eventStore;
 
+    private final org.hisp.dhis.program.EventService eventService;
+
     private final TrackerAccessManager trackerAccessManager;
 
     private final DataElementService dataElementService;
 
-    @Transactional( readOnly = true )
     @Override
-    public Events getEvents( EventSearchParams params )
+    public Event getEvent( String uid, EventParams eventParams )
+        throws NotFoundException
     {
-        User user = currentUserService.getCurrentUser();
-
-        validate( params, user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
+        Event event = eventService.getEvent( uid );
+        if ( event == null )
         {
-            params.setDefaultPaging();
+            throw new NotFoundException( Event.class, uid );
         }
 
-        Events events = new Events();
-
-        if ( params.isSkipPaging() )
-        {
-            events.setEvents( eventStore.getEvents( params, emptyMap() ) );
-            return events;
-        }
-
-        Pager pager;
-        List<Event> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
-
-        if ( params.isTotalPages() )
-        {
-            int count = eventStore.getEventCount( params );
-            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
-        }
-        else
-        {
-            pager = handleLastPageFlag( params, eventList );
-        }
-
-        events.setPager( pager );
-        events.setEvents( eventList );
-
-        return events;
+        return getEvent( event, eventParams );
     }
 
-    /**
-     * This method will apply the logic related to the parameter
-     * 'totalPages=false'. This works in conjunction with the method:
-     * {@link EventStore#getEvents(EventSearchParams,Map<String,Set<String>>)}
-     *
-     * This is needed because we need to query (pageSize + 1) at DB level. The
-     * resulting query will allow us to evaluate if we are in the last page or
-     * not. And this is what his method does, returning the respective Pager
-     * object.
-     *
-     * @param params the request params
-     * @param eventList the reference to the list of Event
-     * @return the populated SlimPager instance
-     */
-    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
-    {
-        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
-        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
-        boolean isLastPage = false;
-
-        if ( isNotEmpty( eventList ) )
-        {
-            isLastPage = eventList.size() <= originalPageSize;
-            if ( !isLastPage )
-            {
-                // Get the same number of elements of the pageSize, forcing
-                // the removal of the last additional element added at querying
-                // time.
-                eventList.retainAll( eventList.subList( 0, originalPageSize ) );
-            }
-        }
-
-        return new SlimPager( originalPage, originalPageSize, isLastPage );
-    }
-
-    @Transactional( readOnly = true )
     @Override
     public Event getEvent( Event event, EventParams eventParams )
     {
@@ -238,6 +179,80 @@ public class DefaultEventService implements EventService
         }
 
         return result;
+    }
+
+    @Override
+    public Events getEvents( EventSearchParams params )
+    {
+        User user = currentUserService.getCurrentUser();
+
+        validate( params, user );
+
+        if ( !params.isPaging() && !params.isSkipPaging() )
+        {
+            params.setDefaultPaging();
+        }
+
+        Events events = new Events();
+
+        if ( params.isSkipPaging() )
+        {
+            events.setEvents( eventStore.getEvents( params, emptyMap() ) );
+            return events;
+        }
+
+        Pager pager;
+        List<Event> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
+
+        if ( params.isTotalPages() )
+        {
+            int count = eventStore.getEventCount( params );
+            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+        }
+        else
+        {
+            pager = handleLastPageFlag( params, eventList );
+        }
+
+        events.setPager( pager );
+        events.setEvents( eventList );
+
+        return events;
+    }
+
+    /**
+     * This method will apply the logic related to the parameter
+     * 'totalPages=false'. This works in conjunction with the method:
+     * {@link EventStore#getEvents(EventSearchParams,Map<String,Set<String>>)}
+     *
+     * This is needed because we need to query (pageSize + 1) at DB level. The
+     * resulting query will allow us to evaluate if we are in the last page or
+     * not. And this is what his method does, returning the respective Pager
+     * object.
+     *
+     * @param params the request params
+     * @param eventList the reference to the list of Event
+     * @return the populated SlimPager instance
+     */
+    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
+    {
+        Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
+        Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
+        boolean isLastPage = false;
+
+        if ( isNotEmpty( eventList ) )
+        {
+            isLastPage = eventList.size() <= originalPageSize;
+            if ( !isLastPage )
+            {
+                // Get the same number of elements of the pageSize, forcing
+                // the removal of the last additional element added at querying
+                // time.
+                eventList.retainAll( eventList.subList( 0, originalPageSize ) );
+            }
+        }
+
+        return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
     @Override

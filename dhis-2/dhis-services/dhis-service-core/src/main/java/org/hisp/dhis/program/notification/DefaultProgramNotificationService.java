@@ -181,13 +181,13 @@ public class DefaultProgramNotificationService
                     iwt.getProgramNotificationTemplate(),
                     List.of( iwt.getProgramNotificationInstance().getEnrollment() ) ) );
 
-            Stream<MessageBatch> programStageInstanceBatches = instancesWithTemplates.stream()
+            Stream<MessageBatch> eventBatches = instancesWithTemplates.stream()
                 .filter( this::hasEvent )
                 .map( iwt -> createEventMessageBatch(
                     iwt.getProgramNotificationTemplate(),
                     List.of( iwt.getProgramNotificationInstance().getEvent() ) ) );
 
-            return Stream.concat( programInstanceBatches, programStageInstanceBatches ).collect( toList() );
+            return Stream.concat( programInstanceBatches, eventBatches ).collect( toList() );
         } );
 
         progress.startingStage( "Sending message batches", batches.size(), SKIP_ITEM_OUTLIER );
