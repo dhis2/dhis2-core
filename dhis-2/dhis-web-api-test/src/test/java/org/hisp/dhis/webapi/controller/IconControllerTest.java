@@ -29,15 +29,12 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.List;
-
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
-import org.json.JSONArray;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
@@ -48,7 +45,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
 
     private static final String description = "description";
 
-    private static final JSONArray keywords = new JSONArray( List.of( "k1", "k2" ) );
+    private static final String keywords = "[\"k1\",\"k2\"]";
 
     @Autowired
     private CurrentUserService currentUserService;
@@ -75,7 +72,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
         assertEquals( iconKey, response.getString( "key" ).string() );
         assertEquals( description, response.getString( "description" ).string() );
         assertEquals( fileResourceId, response.getString( "fileResourceUid" ).string() );
-        assertEquals( keywords.toString(), response.getArray( "keywords" ).toString() );
+        assertEquals( keywords, response.getArray( "keywords" ).toString() );
         assertEquals( currentUserService.getCurrentUser().getUid(), response.getString( "userUid" ).string() );
         assertEquals( String.format( contextService.getApiPath() + "/fileResources/%s/data", fileResourceId ),
             response.getString( "reference" ).string() );
@@ -85,7 +82,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
     void shouldUpdateIconWhenKeyExists()
     {
         String updatedDescription = "updatedDescription";
-        JSONArray updatedKeywords = new JSONArray( List.of( "new k1", "new k2" ) );
+        String updatedKeywords = "['new k1', 'new k2']";
         createIcon( createFileResource() );
 
         JsonObject response = PUT( "/icons", "{'key':'" + iconKey + "', 'description':'" + updatedDescription
