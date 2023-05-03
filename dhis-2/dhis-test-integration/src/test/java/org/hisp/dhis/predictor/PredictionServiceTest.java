@@ -1593,11 +1593,12 @@ class PredictionServiceTest extends IntegrationTestBase
         assertEquals( expectedA, getDataValue( deP, cocAa, sourceA, makeMonth( 2022, 1 ) ) );
         assertEquals( expectedB, getDataValue( deP, cocAb, sourceA, makeMonth( 2022, 1 ) ) );
 
-        // Test prediction disaggregation with and without query modifiers
+        // Test prediction disaggregation with and without query modifiers and
+        // with default output catOptionCombo
 
         expr = "#{" + deQ.getUid() + "} + 3 * #{" + deQ.getUid() + "}.minDate(2022-01-01)";
         expression = new Expression( expr, "description", MissingValueStrategy.SKIP_IF_ALL_VALUES_MISSING );
-        p = createPredictor( deP, null, "Disags", expression, null, periodTypeMonthly,
+        p = createPredictor( deP, defaultCombo, "Disags", expression, null, periodTypeMonthly,
             orgUnitLevel1, 0, 0, 0 );
 
         summary = new PredictionSummary();
