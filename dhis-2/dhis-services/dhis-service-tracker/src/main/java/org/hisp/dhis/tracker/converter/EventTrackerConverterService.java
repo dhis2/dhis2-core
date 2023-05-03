@@ -218,11 +218,11 @@ public class EventTrackerConverterService
             programStageInstance.setCreated( now );
             programStageInstance.setStoredBy( event.getStoredBy() );
             programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
+            programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         }
         programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         programStageInstance.setLastUpdated( now );
         programStageInstance.setDeleted( false );
-        programStageInstance.setCreatedAtClient( DateUtils.fromInstant( event.getCreatedAtClient() ) );
         programStageInstance.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
         programStageInstance.setProgramInstance(
             getProgramInstance( preheat, event.getEnrollment(), program ) );

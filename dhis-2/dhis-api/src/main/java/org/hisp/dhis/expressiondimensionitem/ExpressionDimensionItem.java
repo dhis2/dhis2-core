@@ -32,6 +32,8 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.expression.MissingValueStrategy;
+import org.hisp.dhis.indicator.Indicator;
+import org.hisp.dhis.indicator.IndicatorType;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -169,5 +171,29 @@ public class ExpressionDimensionItem
     public DimensionItemType getDimensionItemType()
     {
         return DimensionItemType.EXPRESSION_DIMENSION_ITEM;
+    }
+
+    /**
+     * Converts the current object to {@Indicator}.
+     *
+     * @return the {@link Indicator} object.
+     */
+    public Indicator toIndicator()
+    {
+        IndicatorType indicatorType = new IndicatorType();
+        indicatorType.setNumber( true );
+        indicatorType.setFactor( 1 );
+
+        Indicator indicator = new Indicator();
+        indicator.setUid( getUid() );
+        indicator.setName( getName() );
+        indicator.setCode( getCode() );
+        indicator.setIndicatorType( indicatorType );
+        indicator.setNumerator( getExpression() );
+        indicator.setNumeratorDescription( getDescription() );
+        indicator.setDenominator( "1" );
+        indicator.setAnnualized( false );
+
+        return indicator;
     }
 }

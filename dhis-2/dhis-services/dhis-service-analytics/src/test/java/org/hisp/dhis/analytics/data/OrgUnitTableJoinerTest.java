@@ -130,13 +130,13 @@ class OrgUnitTableJoinerTest
             .build();
 
         assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and cast(ax.\"daily\" as date) between own.\"startdate\" and own.\"enddate\" " +
+            "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" " +
             "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
             "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
             joinOrgUnitTables( params, EVENT ) );
 
         assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and cast(ax.\"daily\" as date) between own.\"startdate\" and own.\"enddate\" ",
+            "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" ",
             joinOrgUnitTables( params, ENROLLMENT ) );
     }
 
@@ -151,16 +151,14 @@ class OrgUnitTableJoinerTest
             .addDimension( ouGroupSetA )
             .build();
 
-        assertEquals( "left join _periodstructure periodstruct on ax.\"monthly\" = periodstruct.\"iso\" " +
-            "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and periodstruct.\"startdate\" between own.\"startdate\" and own.\"enddate\" " +
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" " +
             "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
             "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
             joinOrgUnitTables( params, EVENT ) );
 
-        assertEquals( "left join _periodstructure periodstruct on ax.\"monthly\" = periodstruct.\"iso\" " +
-            "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and periodstruct.\"startdate\" between own.\"startdate\" and own.\"enddate\" ",
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
             joinOrgUnitTables( params, ENROLLMENT ) );
     }
 
@@ -199,13 +197,13 @@ class OrgUnitTableJoinerTest
             .build();
 
         assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and cast(ax.\"daily\" as date) + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" " +
+            "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" " +
             "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
             "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
             joinOrgUnitTables( params, EVENT ) );
 
         assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and cast(ax.\"daily\" as date) + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" ",
+            "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" ",
             joinOrgUnitTables( params, ENROLLMENT ) );
     }
 
@@ -220,16 +218,14 @@ class OrgUnitTableJoinerTest
             .addDimension( ouGroupSetA )
             .build();
 
-        assertEquals( "left join _periodstructure periodstruct on ax.\"monthly\" = periodstruct.\"iso\" " +
-            "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and periodstruct.\"enddate\" + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" " +
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" " +
             "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
             "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
             joinOrgUnitTables( params, EVENT ) );
 
-        assertEquals( "left join _periodstructure periodstruct on ax.\"monthly\" = periodstruct.\"iso\" " +
-            "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and periodstruct.\"enddate\" + INTERVAL '1 day' between own.\"startdate\" and own.\"enddate\" ",
+        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
+            "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" ",
             joinOrgUnitTables( params, ENROLLMENT ) );
     }
 

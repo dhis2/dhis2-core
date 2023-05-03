@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.dataitem.query;
 
-import java.io.Serializable;
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 
 /**
- * @author Jan Bernitt
+ * Unit tests for {@link ExpressionDimensionItemQuery} class.
+ *
+ * @author maikel arabori
  */
-@Getter
-@AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
+class ExpressionDimensionItemQueryTest
 {
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
+    @Test
+    void testGetStatementContainsOwnerCheck()
+    {
+        // Given
+        MapSqlParameterSource anyMap = new MapSqlParameterSource();
+        ExpressionDimensionItemQuery query = new ExpressionDimensionItemQuery();
 
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+        // When
+        String statement = query.getStatement( anyMap );
+
+        // Then
+        assertTrue( statement.contains( "(jsonb_extract_path_text(t.item_sharing, 'owner') = :userUid)" ) );
+    }
 }

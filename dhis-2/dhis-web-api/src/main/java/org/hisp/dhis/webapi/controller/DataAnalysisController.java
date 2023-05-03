@@ -400,9 +400,12 @@ public class DataAnalysisController
 
     @GetMapping( value = "/followup", produces = APPLICATION_JSON_VALUE )
     @ResponseStatus( HttpStatus.OK )
-    public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( FollowupAnalysisRequest request )
+    public @ResponseBody FollowupAnalysisResponse performFollowupAnalysis( HttpSession session,
+        FollowupAnalysisRequest request )
     {
-        return followupAnalysisService.getFollowupDataValues( request );
+        FollowupAnalysisResponse results = followupAnalysisService.getFollowupDataValues( request );
+        session.setAttribute( KEY_ANALYSIS_DATA_VALUES, results );
+        return results;
     }
 
     @PostMapping( value = "/followup/mark", consumes = APPLICATION_JSON_VALUE )
@@ -442,10 +445,9 @@ public class DataAnalysisController
     public void getPdfReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".pdf";
         contextUtils
@@ -459,10 +461,9 @@ public class DataAnalysisController
     public void getXlsReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".xls";
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
@@ -475,17 +476,19 @@ public class DataAnalysisController
     public void getCSVReport( HttpSession session, HttpServletResponse response )
         throws Exception
     {
-        @SuppressWarnings( "unchecked" )
-        List<DeflatedDataValue> results = (List<DeflatedDataValue>) session.getAttribute( KEY_ANALYSIS_DATA_VALUES );
-        Grid grid = generateAnalysisReportGridFromResults( results, (OrganisationUnit) session.getAttribute(
-            KEY_ORG_UNIT ) );
+        Grid grid = getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) );
 
         String filename = filenameEncode( grid.getTitle() ) + ".csv";
         contextUtils
             .configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING, filename,
                 false );
 
-        GridUtils.toCsv( grid, response.getWriter() );
+        GridUtils.toCsv( getGridFromAnalysisResult( session.getAttribute( KEY_ANALYSIS_DATA_VALUES ),
+            (OrganisationUnit) session.getAttribute(
+                KEY_ORG_UNIT ) ),
+            response.getWriter() );
     }
 
     @GetMapping( "validationRules/report.pdf" )
@@ -698,5 +701,27 @@ public class DataAnalysisController
         }
 
         return validationResultViews;
+    }
+
+    /**
+     * Generate Grid response from analysis result.
+     *
+     * @param result
+     * @param organisationUnit
+     * @return {@link Grid} to be returned to the client
+     */
+    private Grid getGridFromAnalysisResult( Object result, OrganisationUnit organisationUnit )
+    {
+        Grid grid;
+        if ( result instanceof FollowupAnalysisResponse )
+        {
+            grid = followupAnalysisService.generateAnalysisReport( (FollowupAnalysisResponse) result );
+        }
+        else
+        {
+            grid = generateAnalysisReportGridFromResults( (List<DeflatedDataValue>) result, organisationUnit );
+        }
+
+        return grid;
     }
 }

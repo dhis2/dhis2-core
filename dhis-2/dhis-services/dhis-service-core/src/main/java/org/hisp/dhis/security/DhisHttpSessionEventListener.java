@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,43 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.security;
 
-import java.io.Serializable;
-import java.util.List;
+import javax.servlet.http.HttpSession;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.springframework.context.event.EventListener;
+import org.springframework.security.web.session.HttpSessionCreatedEvent;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Jan Bernitt
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-@AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
+@Component
+@Slf4j
+@RequiredArgsConstructor
+public class DhisHttpSessionEventListener
 {
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
+    private final DhisConfigurationProvider config;
 
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+    @EventListener
+    public void sessionCreated( HttpSessionCreatedEvent event )
+    {
+        HttpSession session = event.getSession();
+        try
+        {
+            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
+            session.setMaxInactiveInterval( Integer.parseInt( property ) );
+        }
+        catch ( Exception e )
+        {
+            session.setMaxInactiveInterval(
+                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
+            log.error( "Could not read session timeout value from config", e );
+        }
+    }
 }

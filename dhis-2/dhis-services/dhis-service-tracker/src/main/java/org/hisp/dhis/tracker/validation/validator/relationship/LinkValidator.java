@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,26 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dataanalysis;
+package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import java.io.Serializable;
-import java.util.List;
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import org.hisp.dhis.tracker.TrackerImportStrategy;
+import org.hisp.dhis.tracker.bundle.TrackerBundle;
+import org.hisp.dhis.tracker.domain.Relationship;
+import org.hisp.dhis.tracker.validation.Reporter;
+import org.hisp.dhis.tracker.validation.Validator;
 
-/**
- * @author Jan Bernitt
- */
-@Getter
-@AllArgsConstructor
-public class FollowupAnalysisResponse implements Serializable
+public class LinkValidator implements Validator<Relationship>
 {
-    @JsonProperty
-    private final FollowupAnalysisMetadata metadata;
+    @Override
+    public void validate( Reporter reporter, TrackerBundle bundle, Relationship relationship )
+    {
+        validateRelationshipDoesNotLinkEntityToItself( reporter, relationship );
+    }
 
-    @JsonProperty
-    private final List<FollowupValue> followupValues;
+    private void validateRelationshipDoesNotLinkEntityToItself( Reporter reporter, Relationship relationship )
+    {
+        if ( Objects.equals( relationship.getFrom(), relationship.getTo() ) )
+        {
+            reporter.addError( relationship, E4000, relationship.getRelationship() );
+        }
+    }
+
+    @Override
+    public boolean needsToRun( TrackerImportStrategy strategy )
+    {
+        return strategy.isCreate();
+    }
 }
