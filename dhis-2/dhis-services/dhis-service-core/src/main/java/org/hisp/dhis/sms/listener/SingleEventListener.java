@@ -62,22 +62,17 @@ public class SingleEventListener extends CommandSMSListener
 {
     private final SMSCommandService smsCommandService;
 
-    private final EnrollmentService enrollmentService;
-
     public SingleEventListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        EnrollmentService enrollmentService1 )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService )
     {
         super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
-        checkNotNull( enrollmentService1 );
 
         this.smsCommandService = smsCommandService;
-        this.enrollmentService = enrollmentService1;
     }
 
     // -------------------------------------------------------------------------

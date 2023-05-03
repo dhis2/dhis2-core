@@ -79,8 +79,6 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final EnrollmentService enrollmentService;
-
     private final ProgramService programService;
 
     public TrackedEntityRegistrationSMSListener( ProgramService programService,
@@ -96,12 +94,10 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
         checkNotNull( smsCommandService );
         checkNotNull( trackedEntityTypeService );
         checkNotNull( trackedEntityInstanceService );
-        checkNotNull( enrollmentService );
 
         this.smsCommandService = smsCommandService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.enrollmentService = enrollmentService;
         this.programService = programService;
     }
 

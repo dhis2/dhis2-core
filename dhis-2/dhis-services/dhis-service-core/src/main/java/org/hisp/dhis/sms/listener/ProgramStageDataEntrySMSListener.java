@@ -83,15 +83,12 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
 
     private final SMSCommandService smsCommandService;
 
-    private final EnrollmentService enrollmentService;
-
     public ProgramStageDataEntrySMSListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
         TrackedEntityInstanceService trackedEntityInstanceService,
-        TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService,
-        EnrollmentService enrollmentService1 )
+        TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService )
     {
         super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
@@ -99,12 +96,10 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         checkNotNull( trackedEntityAttributeService );
         checkNotNull( trackedEntityInstanceService );
         checkNotNull( smsCommandService );
-        checkNotNull( enrollmentService );
 
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.smsCommandService = smsCommandService;
-        this.enrollmentService = enrollmentService1;
     }
 
     // -------------------------------------------------------------------------
