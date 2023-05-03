@@ -43,8 +43,8 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.junit.jupiter.api.BeforeEach;
@@ -86,9 +86,9 @@ class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstanceMap.put( event.getUid(), programInstance );
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
+        Enrollment enrollment = new Enrollment();
+        programInstanceMap.put( event.getUid(), enrollment );
         Pair<TrackedEntityInstance, Boolean> teiPair = Pair.of( tei, true );
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
@@ -97,7 +97,7 @@ class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
         when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( programInstance.getId() ),
+        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( enrollment.getId() ),
             eq( programStage.getId() ), eq( tei.getId() ) ) ).thenReturn( true );
         // Method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
@@ -118,9 +118,9 @@ class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
         Map<String, Program> programMap = new HashMap<>();
         programMap.put( program.getUid(), program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstanceMap.put( event.getUid(), programInstance );
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
+        Enrollment enrollment = new Enrollment();
+        programInstanceMap.put( event.getUid(), enrollment );
         Pair<TrackedEntityInstance, Boolean> teiPair = Pair.of( tei, true );
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
@@ -129,7 +129,7 @@ class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
         when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( programInstance.getId() ),
+        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( enrollment.getId() ),
             eq( programStage.getId() ), eq( tei.getId() ) ) ).thenReturn( false );
         // Method under test
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );

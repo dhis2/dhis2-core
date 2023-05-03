@@ -43,9 +43,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceStore;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -61,47 +61,47 @@ import com.google.common.collect.Sets;
 /**
  * @author Abyot Asalefew
  */
-@Repository( "org.hisp.dhis.program.ProgramStageInstanceStore" )
-public class HibernateProgramStageInstanceStore
-    extends SoftDeleteHibernateObjectStore<ProgramStageInstance>
-    implements ProgramStageInstanceStore
+@Repository( "org.hisp.dhis.program.EventStore" )
+public class HibernateEventStore
+    extends SoftDeleteHibernateObjectStore<Event>
+    implements EventStore
 {
-    private final static String PSI_HQL_BY_UIDS = "from ProgramStageInstance as psi where psi.uid in (:uids)";
+    private final static String EVENT_HQL_BY_UIDS = "from Event as psi where psi.uid in (:uids)";
 
-    private final static Set<NotificationTrigger> SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS = Sets.intersection(
-        NotificationTrigger.getAllApplicableToProgramStageInstance(),
+    private final static Set<NotificationTrigger> SCHEDULED_EVENT_TRIGGERS = Sets.intersection(
+        NotificationTrigger.getAllApplicableToEvent(),
         NotificationTrigger.getAllScheduledTriggers() );
 
-    public HibernateProgramStageInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateEventStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstance.class, currentUserService,
+        super( sessionFactory, jdbcTemplate, publisher, Event.class, currentUserService,
             aclService, false );
     }
 
     @Override
-    public List<ProgramStageInstance> get( Collection<ProgramInstance> programInstances, EventStatus status )
+    public List<Event> get( Collection<Enrollment> enrollments, EventStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
-            .addPredicate( root -> root.get( "programInstance" ).in( programInstances ) ) );
+            .addPredicate( root -> root.get( "enrollment" ).in( enrollments ) ) );
     }
 
     @Override
-    public List<ProgramStageInstance> get( TrackedEntityInstance entityInstance, EventStatus status )
+    public List<Event> get( TrackedEntityInstance entityInstance, EventStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
             .addPredicate(
-                root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
+                root -> builder.equal( root.join( "enrollment" ).get( "entityInstance" ), entityInstance ) ) );
     }
 
     @Override
-    public long getProgramStageInstanceCountLastUpdatedAfter( Date time )
+    public long getEventCountLastUpdatedAfter( Date time )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -143,7 +143,7 @@ public class HibernateProgramStageInstanceStore
     @Override
     public List<String> getUidsIncludingDeleted( List<String> uids )
     {
-        final String hql = "select psi.uid " + PSI_HQL_BY_UIDS;
+        final String hql = "select psi.uid " + EVENT_HQL_BY_UIDS;
         List<String> resultUids = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
@@ -160,40 +160,40 @@ public class HibernateProgramStageInstanceStore
     }
 
     @Override
-    public List<ProgramStageInstance> getIncludingDeleted( List<String> uids )
+    public List<Event> getIncludingDeleted( List<String> uids )
     {
-        List<ProgramStageInstance> programStageInstances = new ArrayList<>();
+        List<Event> events = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
         for ( List<String> uidsPartition : uidsPartitions )
         {
             if ( !uidsPartition.isEmpty() )
             {
-                programStageInstances.addAll( getSession().createQuery( PSI_HQL_BY_UIDS, ProgramStageInstance.class )
+                events.addAll( getSession().createQuery( EVENT_HQL_BY_UIDS, Event.class )
                     .setParameter( "uids", uidsPartition ).list() );
             }
         }
 
-        return programStageInstances;
+        return events;
     }
 
     @Override
-    public void updateProgramStageInstancesSyncTimestamp( List<String> programStageInstanceUIDs, Date lastSynchronized )
+    public void updateEventsSyncTimestamp( List<String> eventUids, Date lastSynchronized )
     {
-        String hql = "update ProgramStageInstance set lastSynchronized = :lastSynchronized WHERE uid in :programStageInstances";
+        String hql = "update Event set lastSynchronized = :lastSynchronized WHERE uid in :events";
 
         getQuery( hql )
             .setParameter( "lastSynchronized", lastSynchronized )
-            .setParameter( "programStageInstances", programStageInstanceUIDs )
+            .setParameter( "events", eventUids )
             .executeUpdate();
     }
 
     @Override
-    public List<ProgramStageInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+    public List<Event> getWithScheduledNotifications( ProgramNotificationTemplate template,
         Date notificationDate )
     {
         if ( notificationDate == null
-            || !SCHEDULED_PROGRAM_STAGE_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+            || !SCHEDULED_EVENT_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -205,7 +205,7 @@ public class HibernateProgramStageInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        String hql = "select distinct psi from ProgramStageInstance as psi " +
+        String hql = "select distinct psi from Event as psi " +
             "inner join psi.programStage as ps " +
             "where :notificationTemplate in elements(ps.notificationTemplates) " +
             "and psi.dueDate is not null " +
@@ -222,14 +222,14 @@ public class HibernateProgramStageInstanceStore
 
     @Override
     protected void preProcessPredicates( CriteriaBuilder builder,
-        List<Function<Root<ProgramStageInstance>, Predicate>> predicates )
+        List<Function<Root<Event>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
 
     @Override
-    protected ProgramStageInstance postProcessObject( ProgramStageInstance programStageInstance )
+    protected Event postProcessObject( Event event )
     {
-        return (programStageInstance == null || programStageInstance.isDeleted()) ? null : programStageInstance;
+        return (event == null || event.isDeleted()) ? null : event;
     }
 }

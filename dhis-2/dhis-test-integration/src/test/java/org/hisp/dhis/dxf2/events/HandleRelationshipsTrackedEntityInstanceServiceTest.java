@@ -34,7 +34,6 @@ import java.util.*;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
@@ -72,7 +71,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -91,7 +90,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
 
     private TrackedEntityType trackedEntityType;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
     @Override
     protected void setUpTest()
@@ -116,18 +115,18 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         manager.save( programStageA2 );
         programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
         manager.update( programA );
-        ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
+        Enrollment enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
             programA, null, null, organisationUnitA );
-        programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA1 );
-        programStageInstanceA.setDueDate( null );
-        programStageInstanceA.setUid( "UID-A" );
+        eventA = new Event( enrollmentA, programStageA1 );
+        eventA.setDueDate( null );
+        eventA.setUid( "UID-A" );
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );
         CategoryOptionCombo categoryOptionComboA = createCategoryOptionCombo( 'A' );
         categoryOptionComboA.setCategoryCombo( categoryComboA );
         manager.save( categoryComboA );
         manager.save( categoryOptionComboA );
-        programStageInstanceA.setAttributeOptionCombo( categoryOptionComboA );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        eventA.setAttributeOptionCombo( categoryOptionComboA );
+        eventService.addEvent( eventA );
     }
 
     @Test
@@ -192,7 +191,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         malariaCaseLinkedToPersonRelationshipType.setBidirectional( false );
         relationshipTypeService.addRelationshipType( malariaCaseLinkedToPersonRelationshipType );
         Relationship relationship = createEventToTeiRelationship( 'A', malariaCaseLinkedToPersonRelationshipType,
-            trackedEntityInstance, programStageInstanceA );
+            trackedEntityInstance, eventA );
         trackedEntityInstance.setRelationships( Lists.newArrayList( relationship ) );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, null, true );
@@ -213,7 +212,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
             trackedEntityType );
         relationshipTypeService.addRelationshipType( relationshipType );
         Relationship relationship = createEventToTeiRelationship( 'A', relationshipType, trackedEntityInstance,
-            programStageInstanceA );
+            eventA );
         trackedEntityInstance.setRelationships( Lists.newArrayList( relationship ) );
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, null, true );
@@ -222,10 +221,10 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     }
 
     private Relationship createEventToTeiRelationship( char uniqueCharacter, RelationshipType relationshipType,
-        TrackedEntityInstance trackedEntityInstance, ProgramStageInstance programStageInstance )
+        TrackedEntityInstance trackedEntityInstance, Event programStageInstance )
     {
         RelationshipItem relationshipItemEvent = new RelationshipItem();
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( programStageInstance.getUid() );
         relationshipItemEvent.setEvent( event );
         RelationshipItem relationshipItemTei = new RelationshipItem();

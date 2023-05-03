@@ -43,7 +43,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -72,18 +72,18 @@ public class EventAggregate
      * @return a Map where the key is a Program Instance Primary Key, and the
      *         value is a List of {@see Event}
      */
-    Multimap<String, ProgramStageInstance> findByEnrollmentIds( List<Long> ids, Context ctx )
+    Multimap<String, Event> findByEnrollmentIds( List<Long> ids, Context ctx )
     {
         // Fetch all the Events that are linked to the given Enrollment IDs
 
-        Multimap<String, ProgramStageInstance> events = this.eventStore.getEventsByEnrollmentIds( ids, ctx );
+        Multimap<String, Event> events = this.eventStore.getEventsByEnrollmentIds( ids, ctx );
 
         if ( events.isEmpty() )
         {
             return events;
         }
 
-        List<Long> eventIds = events.values().stream().map( ProgramStageInstance::getId )
+        List<Long> eventIds = events.values().stream().map( Event::getId )
             .collect( Collectors.toList() );
 
         /*
@@ -112,7 +112,7 @@ public class EventAggregate
             Multimap<String, TrackedEntityComment> notes = notesAsync.join();
             Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
 
-            for ( ProgramStageInstance event : events.values() )
+            for ( Event event : events.values() )
             {
                 if ( ctx.getParams().isIncludeRelationships() )
                 {

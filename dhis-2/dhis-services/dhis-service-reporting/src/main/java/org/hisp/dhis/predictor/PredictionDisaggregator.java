@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.predictor;
 
+import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.util.stream.Collectors.toSet;
-import static java.util.stream.Collectors.toUnmodifiableList;
 import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 
 import java.util.Collection;
@@ -98,12 +98,19 @@ public class PredictionDisaggregator
      * The items we will fetch the data for, including fetching any existing
      * predictions.
      * <p>
+     * This will be a disaggregation prediction if the output data element has a
+     * non-default category combination, and the output catOptionCombo is either
+     * null or default.
+     * <p>
      * If this is a disaggregation prediction, then replace every data element
      * with a wildcard data element operand, to collect all category option
      * combo values for that data element.
      */
     @Getter
     private final Set<DimensionalItemObject> disaggregatedItems;
+
+    @Getter
+    private final CategoryOptionCombo outputCombo;
 
     /**
      * Whether we are generating disaggregated predictions.
@@ -125,7 +132,8 @@ public class PredictionDisaggregator
      */
     private final MapMap<Long, Long, Boolean> allowedCocs = new MapMap<>();
 
-    public PredictionDisaggregator( Predictor predictor, Collection<DimensionalItemObject> items )
+    public PredictionDisaggregator( Predictor predictor, Collection<DimensionalItemObject> items,
+        CategoryOptionCombo defaultCategoryOptionCombo )
     {
         CategoryCombo outputCatCombo = predictor.getOutput().getCategoryCombo();
 
@@ -133,10 +141,15 @@ public class PredictionDisaggregator
         this.allOutputOptions = outputCatCombo.getCategoryOptions().stream()
             .map( CategoryOption::getUid ).collect( toSet() );
 
-        this.disagPredictions = (predictor.getOutputCombo() == null);
+        outputCombo = (!outputCatCombo.isDefault() &&
+            (predictor.getOutputCombo() == null || predictor.getOutputCombo().isDefault()))
+                ? null
+                : firstNonNull( predictor.getOutputCombo(), defaultCategoryOptionCombo );
+
+        this.disagPredictions = (outputCombo == null);
 
         Set<DimensionalItemObject> inputItems = new ImmutableSet.Builder<DimensionalItemObject>()
-            .add( new DataElementOperand( predictor.getOutput(), predictor.getOutputCombo() ) )
+            .add( new DataElementOperand( predictor.getOutput(), outputCombo ) )
             .addAll( items ).build();
 
         if ( disagPredictions )
@@ -164,7 +177,7 @@ public class PredictionDisaggregator
         return contexts.stream()
             .map( this::disagregateContext )
             .flatMap( Collection::stream )
-            .collect( toUnmodifiableList() );
+            .toList();
     }
 
     // -------------------------------------------------------------------------
@@ -197,7 +210,7 @@ public class PredictionDisaggregator
     {
         return outputCocs.stream()
             .map( coc -> getDisaggregatedContext( context, coc ) )
-            .collect( toUnmodifiableList() );
+            .toList();
     }
 
     /**

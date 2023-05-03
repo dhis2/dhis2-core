@@ -40,7 +40,7 @@ import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.User;
 
@@ -59,16 +59,16 @@ public interface EventService
 
     Grid getEventsGrid( EventSearchParams params );
 
-    Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams );
+    org.hisp.dhis.dxf2.events.event.Event getEvent( Event event, EventParams eventParams );
 
-    Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+    org.hisp.dhis.dxf2.events.event.Event getEvent( Event event, boolean isSynchronizationQuery,
         boolean skipOwnershipCheck, EventParams eventParams );
 
     // TODO remove these 2 methods and move the logic to the front-end
-    List<Event> getEventsXml( InputStream inputStream )
+    List<org.hisp.dhis.dxf2.events.event.Event> getEventsXml( InputStream inputStream )
         throws IOException;
 
-    List<Event> getEventsJson( InputStream inputStream )
+    List<org.hisp.dhis.dxf2.events.event.Event> getEventsJson( InputStream inputStream )
         throws IOException;
 
     /**
@@ -101,11 +101,14 @@ public interface EventService
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport );
+    ImportSummary addEvent( org.hisp.dhis.dxf2.events.event.Event event, ImportOptions importOptions,
+        boolean bulkImport );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession );
+    ImportSummaries addEvents( List<org.hisp.dhis.dxf2.events.event.Event> events, ImportOptions importOptions,
+        boolean clearSession );
 
-    ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummaries addEvents( List<org.hisp.dhis.dxf2.events.event.Event> events, ImportOptions importOptions,
+        JobConfiguration jobId );
 
     ImportSummaries addEventsXml( InputStream inputStream, ImportOptions importOptions )
         throws IOException;
@@ -129,7 +132,8 @@ public interface EventService
      * @param bulkUpdate TODO this can be removed
      * @return an {@see ImportSummary} containing the outcome of the operation
      */
-    ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions, boolean bulkUpdate );
+    ImportSummary updateEvent( org.hisp.dhis.dxf2.events.event.Event event, boolean singleValue,
+        ImportOptions importOptions, boolean bulkUpdate );
 
     /**
      *
@@ -141,12 +145,13 @@ public interface EventService
      * @param clearSession TODO this can be removed
      * @return an {@see ImportSummary} containing the outcome of the operation
      */
-    ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+    ImportSummaries updateEvents( List<org.hisp.dhis.dxf2.events.event.Event> events, ImportOptions importOptions,
+        boolean singleValue,
         boolean clearSession );
 
-    void updateEventForNote( Event event );
+    void updateEventForNote( org.hisp.dhis.dxf2.events.event.Event event );
 
-    void updateEventForEventDate( Event event );
+    void updateEventForEventDate( org.hisp.dhis.dxf2.events.event.Event event );
 
     /**
      * Updates a last sync timestamp on specified Events
@@ -157,7 +162,8 @@ public interface EventService
      */
     void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized );
 
-    ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummaries processEventImport( List<org.hisp.dhis.dxf2.events.event.Event> events, ImportOptions importOptions,
+        JobConfiguration jobId );
 
     // -------------------------------------------------------------------------
     // DELETE

@@ -40,8 +40,8 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
@@ -78,7 +78,7 @@ public class JsonAssertions
         assertTrue( rels.isEmpty(), "instances should not contain any relationships" );
     }
 
-    public static void assertEventWithinRelationshipItem( ProgramStageInstance expected, JsonRelationshipItem actual )
+    public static void assertEventWithinRelationshipItem( Event expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
         assertFalse( jsonEvent.isEmpty(), "event should not be empty" );
@@ -86,7 +86,7 @@ public class JsonAssertions
 
         assertEquals( expected.getStatus().toString(), jsonEvent.getStatus(), "event status" );
         assertEquals( expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID" );
-        assertEquals( expected.getProgramInstance().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
+        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
         assertFalse( jsonEvent.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
@@ -111,7 +111,7 @@ public class JsonAssertions
         assertEquals( expectedUid, j.getString( member ).string(), member + " UID" );
     }
 
-    public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonRelationshipItem actual )
+    public static void assertEnrollmentWithinRelationship( Enrollment expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );

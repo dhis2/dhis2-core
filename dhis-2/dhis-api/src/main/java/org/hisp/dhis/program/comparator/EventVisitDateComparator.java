@@ -25,42 +25,34 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.program.comparator;
 
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import java.util.Comparator;
+import java.util.Date;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    ProgramStageMapper.class,
-    OrganisationUnitMapper.class,
-    ProgramInstanceMapper.class
-} )
-public interface ProgramStageInstanceMapper extends PreheatMapper<ProgramStageInstance>
+import org.hisp.dhis.program.Event;
+
+/**
+ * @author Chau Thu Tran
+ */
+public class EventVisitDateComparator
+    implements Comparator<Event>
 {
-    ProgramStageInstanceMapper INSTANCE = Mappers.getMapper( ProgramStageInstanceMapper.class );
-
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "programStage" )
-    @Mapping( target = "status" )
-    @Mapping( target = "organisationUnit" )
-    @Mapping( target = "created" )
-    @Mapping( target = "programInstance" )
-    @Mapping( target = "eventDataValues" )
-    @Mapping( target = "comments" )
-    @Mapping( target = "dueDate" )
-    @Mapping( target = "executionDate" )
-    @Mapping( target = "completedDate" )
-    @Mapping( target = "completedBy" )
-    @Mapping( target = "deleted" )
-    @Mapping( target = "createdByUserInfo" )
-    @Mapping( target = "lastUpdatedByUserInfo" )
-    ProgramStageInstance map( ProgramStageInstance programStageInstance );
+    @Override
+    public int compare( Event event1, Event event2 )
+    {
+        Date d1 = (event1.getExecutionDate() != null) ? event1.getExecutionDate()
+            : event1.getDueDate();
+        Date d2 = (event2.getExecutionDate() != null) ? event2.getExecutionDate()
+            : event2.getDueDate();
+        if ( d1.before( d2 ) )
+        {
+            return -1;
+        }
+        else if ( d1.after( d2 ) )
+        {
+            return 1;
+        }
+        return 0;
+    }
 }

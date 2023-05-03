@@ -39,10 +39,10 @@ import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.BeforeEach;
@@ -73,9 +73,9 @@ class RelationshipControllerTest
 
     private TrackedEntityInstance tei = new TrackedEntityInstance();
 
-    private ProgramInstance enrollment = new ProgramInstance();
+    private Enrollment enrollment = new Enrollment();
 
-    private ProgramStageInstance event = new ProgramStageInstance();
+    private Event event = new Event();
 
     private Relationship relationship = new Relationship();
 
@@ -89,7 +89,7 @@ class RelationshipControllerTest
     private ProgramInstanceService programInstanceService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @InjectMocks
     private RelationshipController relationshipController;
@@ -136,11 +136,11 @@ class RelationshipControllerTest
     void verifyEndpointWithEvent()
         throws Exception
     {
-        when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
+        when( eventService.getEvent( EVENT_ID ) ).thenReturn( event );
         mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ).andExpect( status().isOk() );
 
-        verify( programStageInstanceService ).getProgramStageInstance( EVENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramStageInstance( eq( event ), any(), eq( false ) );
+        verify( eventService ).getEvent( EVENT_ID );
+        verify( relationshipService ).getRelationshipsByEvent( eq( event ), any(), eq( false ) );
     }
 
     @Test

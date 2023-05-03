@@ -59,7 +59,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Abyot Asalefew
  */
 @Auditable( scope = AuditScope.TRACKER )
-public class ProgramStageInstance
+public class Event
     extends SoftDeletableObject
 {
     private Date createdAtClient;
@@ -67,7 +67,7 @@ public class ProgramStageInstance
     private Date lastUpdatedAtClient;
 
     @AuditAttribute
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     @AuditAttribute
     private ProgramStage programStage;
@@ -114,20 +114,20 @@ public class ProgramStageInstance
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramStageInstance()
+    public Event()
     {
     }
 
-    public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage )
+    public Event( Enrollment enrollment, ProgramStage programStage )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
         this.programStage = programStage;
     }
 
-    public ProgramStageInstance( ProgramInstance programInstance, ProgramStage programStage,
+    public Event( Enrollment enrollment, ProgramStage programStage,
         OrganisationUnit organisationUnit )
     {
-        this( programInstance, programStage );
+        this( enrollment, programStage );
         this.organisationUnit = organisationUnit;
     }
 
@@ -175,14 +175,14 @@ public class ProgramStageInstance
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramInstance getProgramInstance()
+    public Enrollment getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( ProgramInstance programInstance )
+    public void setEnrollment( Enrollment enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
     @JsonProperty
@@ -285,7 +285,7 @@ public class ProgramStageInstance
         return organisationUnit;
     }
 
-    public ProgramStageInstance setOrganisationUnit( OrganisationUnit organisationUnit )
+    public Event setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
         return this;
@@ -361,7 +361,7 @@ public class ProgramStageInstance
         return status;
     }
 
-    public ProgramStageInstance setStatus( EventStatus status )
+    public Event setStatus( EventStatus status )
     {
         this.status = status;
         return this;
@@ -427,13 +427,13 @@ public class ProgramStageInstance
     @Override
     public String toString()
     {
-        return "ProgramStageInstance{" +
+        return "Event{" +
             "id=" + id +
             ", uid='" + uid + '\'' +
             ", name='" + name + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
-            ", programInstance=" + (programInstance != null ? programInstance.getUid() : null) +
+            ", enrollment=" + (enrollment != null ? enrollment.getUid() : null) +
             ", programStage=" + (programStage != null ? programStage.getUid() : null) +
             ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +

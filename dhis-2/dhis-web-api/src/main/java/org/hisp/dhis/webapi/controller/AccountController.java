@@ -197,11 +197,6 @@ public class AccountController
             return conflict( "Account recovery is not enabled" );
         }
 
-        if ( !ValidationUtils.passwordIsValid( password ) )
-        {
-            return badRequest( "Password is not specified or invalid" );
-        }
-
         if ( password.trim().equals( user.getUsername() ) )
         {
             return badRequest( "Password cannot be equal to username" );

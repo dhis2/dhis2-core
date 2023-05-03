@@ -66,7 +66,7 @@ import org.hisp.dhis.deduplication.PotentialDuplicateCriteria;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -288,13 +288,13 @@ public class HibernatePotentialDuplicateStore
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> enrollments )
     {
-        List<ProgramInstance> pis = duplicate.getProgramInstances()
+        List<Enrollment> pis = duplicate.getEnrollments()
             .stream()
             .filter( e -> !e.isDeleted() )
             .filter( e -> enrollments.contains( e.getUid() ) )
             .collect( Collectors.toList() );
 
-        pis.forEach( duplicate.getProgramInstances()::remove );
+        pis.forEach( duplicate.getEnrollments()::remove );
 
         pis.forEach( e -> {
             e.setEntityInstance( original );

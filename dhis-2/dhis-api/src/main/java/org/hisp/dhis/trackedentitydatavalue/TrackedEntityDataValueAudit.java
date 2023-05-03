@@ -34,7 +34,7 @@ import java.util.Objects;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -51,7 +51,7 @@ public class TrackedEntityDataValueAudit
 
     private DataElement dataElement;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private Date created;
 
@@ -71,11 +71,11 @@ public class TrackedEntityDataValueAudit
     {
     }
 
-    public TrackedEntityDataValueAudit( DataElement dataElement, ProgramStageInstance programStageInstance,
-        String value, String modifiedBy, boolean providedElsewhere, AuditType auditType )
+    public TrackedEntityDataValueAudit( DataElement dataElement, Event event, String value, String modifiedBy,
+        boolean providedElsewhere, AuditType auditType )
     {
         this.dataElement = dataElement;
-        this.programStageInstance = programStageInstance;
+        this.event = event;
         this.providedElsewhere = providedElsewhere;
         this.created = new Date();
         this.value = value;
@@ -86,7 +86,7 @@ public class TrackedEntityDataValueAudit
     @Override
     public int hashCode()
     {
-        return Objects.hash( dataElement, programStageInstance, created, value, providedElsewhere, modifiedBy,
+        return Objects.hash( dataElement, event, created, value, providedElsewhere, modifiedBy,
             auditType );
     }
 
@@ -106,7 +106,7 @@ public class TrackedEntityDataValueAudit
         final TrackedEntityDataValueAudit other = (TrackedEntityDataValueAudit) obj;
 
         return Objects.equals( this.dataElement, other.dataElement )
-            && Objects.equals( this.programStageInstance, other.programStageInstance )
+            && Objects.equals( this.event, other.event )
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.value, other.value )
             && Objects.equals( this.providedElsewhere, other.providedElsewhere )
@@ -118,7 +118,7 @@ public class TrackedEntityDataValueAudit
     public String toString()
     {
         return "[dataElement: '" + dataElement.getUid() + "', " +
-            "programStageInstance: '" + programStageInstance.getUid() + "', " +
+            "event: '" + event.getUid() + "', " +
             "value: '" + value + "']";
     }
 
@@ -138,14 +138,14 @@ public class TrackedEntityDataValueAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramStageInstance getProgramStageInstance()
+    public Event getEvent()
     {
-        return programStageInstance;
+        return event;
     }
 
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void setEvent( Event event )
     {
-        this.programStageInstance = programStageInstance;
+        this.event = event;
     }
 
     @JsonProperty

@@ -45,8 +45,8 @@ import java.util.List;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
@@ -118,7 +118,7 @@ class ProgramObjectBundleHookTest
     @Test
     void verifyProgramInstanceIsSavedForEventProgram()
     {
-        ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
+        ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass( Enrollment.class );
 
         programA.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         subject.postCreate( programA, null );
@@ -135,7 +135,7 @@ class ProgramObjectBundleHookTest
     @Test
     void verifyProgramInstanceIsNotSavedForTrackerProgram()
     {
-        ArgumentCaptor<ProgramInstance> argument = ArgumentCaptor.forClass( ProgramInstance.class );
+        ArgumentCaptor<Enrollment> argument = ArgumentCaptor.forClass( Enrollment.class );
 
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         subject.postCreate( programA, null );
@@ -157,7 +157,7 @@ class ProgramObjectBundleHookTest
         programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
 
         when( programInstanceService.getProgramInstances( programA, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( new ProgramInstance(), new ProgramInstance() ) );
+            .thenReturn( Lists.newArrayList( new Enrollment(), new Enrollment() ) );
 
         List<ErrorReport> errors = subject.validate( programA, null );
 

@@ -46,9 +46,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.report.Report;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -87,8 +87,8 @@ public enum Objects
     MAP( "map", Map.class ),
     DASHBOARD( "dashboard", Dashboard.class ),
     PROGRAM( "program", Program.class ),
-    PROGRAMSTAGEINSTANCE( "programStageInstance", ProgramStageInstance.class ),
-    PROGRAMINSTANCE( "programInstance", ProgramInstance.class ),
+    PROGRAMSTAGEINSTANCE( "programStageInstance", Event.class ),
+    PROGRAMINSTANCE( "programInstance", Enrollment.class ),
     TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntityInstance.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
     EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );

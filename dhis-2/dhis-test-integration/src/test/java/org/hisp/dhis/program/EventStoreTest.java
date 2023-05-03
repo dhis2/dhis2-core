@@ -62,11 +62,11 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-class ProgramStageInstanceStoreTest extends TransactionalIntegrationTest
+class EventStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private ProgramStageInstanceStore programStageInstanceStore;
+    private EventStore eventStore;
 
     @Autowired
     private ProgramStageDataElementStore programStageDataElementStore;
@@ -124,19 +124,19 @@ class ProgramStageInstanceStoreTest extends TransactionalIntegrationTest
 
     private Date enrollmentDate;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
-    private ProgramStageInstance programStageInstanceC;
+    private Event eventC;
 
-    private ProgramStageInstance programStageInstanceD1;
+    private Event eventD1;
 
-    private ProgramStageInstance programStageInstanceD2;
+    private Event eventD2;
 
     private TrackedEntityInstance entityInstanceA;
 
@@ -205,63 +205,63 @@ class ProgramStageInstanceStoreTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-PIA" );
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programB );
-        programInstanceService.addProgramInstance( programInstanceB );
-        programStageInstanceA = new ProgramStageInstance( programInstanceA, stageA );
-        programStageInstanceA.setDueDate( enrollmentDate );
-        programStageInstanceA.setUid( "UID-A" );
-        programStageInstanceB = new ProgramStageInstance( programInstanceA, stageB );
-        programStageInstanceB.setDueDate( enrollmentDate );
-        programStageInstanceB.setUid( "UID-B" );
-        programStageInstanceC = new ProgramStageInstance( programInstanceB, stageC );
-        programStageInstanceC.setDueDate( enrollmentDate );
-        programStageInstanceC.setUid( "UID-C" );
-        programStageInstanceD1 = new ProgramStageInstance( programInstanceB, stageD );
-        programStageInstanceD1.setDueDate( enrollmentDate );
-        programStageInstanceD1.setUid( "UID-D1" );
-        programStageInstanceD2 = new ProgramStageInstance( programInstanceB, stageD );
-        programStageInstanceD2.setDueDate( enrollmentDate );
-        programStageInstanceD2.setUid( "UID-D2" );
+        enrollmentA = new Enrollment( enrollmentDate, incidenDate, entityInstanceA, programA );
+        enrollmentA.setUid( "UID-PIA" );
+        programInstanceService.addProgramInstance( enrollmentA );
+        enrollmentB = new Enrollment( enrollmentDate, incidenDate, entityInstanceB, programB );
+        programInstanceService.addProgramInstance( enrollmentB );
+        eventA = new Event( enrollmentA, stageA );
+        eventA.setDueDate( enrollmentDate );
+        eventA.setUid( "UID-A" );
+        eventB = new Event( enrollmentA, stageB );
+        eventB.setDueDate( enrollmentDate );
+        eventB.setUid( "UID-B" );
+        eventC = new Event( enrollmentB, stageC );
+        eventC.setDueDate( enrollmentDate );
+        eventC.setUid( "UID-C" );
+        eventD1 = new Event( enrollmentB, stageD );
+        eventD1.setDueDate( enrollmentDate );
+        eventD1.setUid( "UID-D1" );
+        eventD2 = new Event( enrollmentB, stageD );
+        eventD2.setDueDate( enrollmentDate );
+        eventD2.setUid( "UID-D2" );
     }
 
     @Test
-    void testProgramStageInstanceExists()
+    void testEventExists()
     {
-        programStageInstanceStore.save( programStageInstanceA );
-        programStageInstanceStore.save( programStageInstanceB );
+        eventStore.save( eventA );
+        eventStore.save( eventB );
         dbmsManager.flushSession();
-        assertTrue( programStageInstanceStore.exists( programStageInstanceA.getUid() ) );
-        assertTrue( programStageInstanceStore.exists( programStageInstanceB.getUid() ) );
-        assertFalse( programStageInstanceStore.exists( "aaaabbbbccc" ) );
-        assertFalse( programStageInstanceStore.exists( null ) );
+        assertTrue( eventStore.exists( eventA.getUid() ) );
+        assertTrue( eventStore.exists( eventB.getUid() ) );
+        assertFalse( eventStore.exists( "aaaabbbbccc" ) );
+        assertFalse( eventStore.exists( null ) );
     }
 
     @Test
-    void testGetProgramStageInstancesByInstanceListComplete()
+    void testGetEventsByInstanceListComplete()
     {
-        programStageInstanceA.setStatus( EventStatus.COMPLETED );
-        programStageInstanceB.setStatus( EventStatus.ACTIVE );
-        programStageInstanceC.setStatus( EventStatus.COMPLETED );
-        programStageInstanceD1.setStatus( EventStatus.ACTIVE );
-        programStageInstanceStore.save( programStageInstanceA );
-        programStageInstanceStore.save( programStageInstanceB );
-        programStageInstanceStore.save( programStageInstanceC );
-        programStageInstanceStore.save( programStageInstanceD1 );
-        List<ProgramInstance> programInstances = new ArrayList<>();
-        programInstances.add( programInstanceA );
-        programInstances.add( programInstanceB );
-        List<ProgramStageInstance> stageInstances = programStageInstanceStore.get( programInstances,
+        eventA.setStatus( EventStatus.COMPLETED );
+        eventB.setStatus( EventStatus.ACTIVE );
+        eventC.setStatus( EventStatus.COMPLETED );
+        eventD1.setStatus( EventStatus.ACTIVE );
+        eventStore.save( eventA );
+        eventStore.save( eventB );
+        eventStore.save( eventC );
+        eventStore.save( eventD1 );
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( enrollmentA );
+        enrollments.add( enrollmentB );
+        List<Event> stageInstances = eventStore.get( enrollments,
             EventStatus.COMPLETED );
         assertEquals( 2, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceA ) );
-        assertTrue( stageInstances.contains( programStageInstanceC ) );
-        stageInstances = programStageInstanceStore.get( programInstances, EventStatus.ACTIVE );
+        assertTrue( stageInstances.contains( eventA ) );
+        assertTrue( stageInstances.contains( eventC ) );
+        stageInstances = eventStore.get( enrollments, EventStatus.ACTIVE );
         assertEquals( 2, stageInstances.size() );
-        assertTrue( stageInstances.contains( programStageInstanceB ) );
-        assertTrue( stageInstances.contains( programStageInstanceD1 ) );
+        assertTrue( stageInstances.contains( eventB ) );
+        assertTrue( stageInstances.contains( eventD1 ) );
     }
 
     @Test
@@ -313,38 +313,38 @@ class ProgramStageInstanceStoreTest extends TransactionalIntegrationTest
         cal.add( Calendar.DATE, -2 );
         Date yesterday = cal.getTime();
         // Events
-        ProgramStageInstance eventA = new ProgramStageInstance( programInstanceA, stageA );
+        Event eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( tomorrow );
-        programStageInstanceStore.save( eventA );
-        ProgramStageInstance eventB = new ProgramStageInstance( programInstanceB, stageB );
+        eventStore.save( eventA );
+        Event eventB = new Event( enrollmentB, stageB );
         eventB.setDueDate( today );
-        programStageInstanceStore.save( eventB );
-        ProgramStageInstance eventC = new ProgramStageInstance( programInstanceB, stageC );
+        eventStore.save( eventB );
+        Event eventC = new Event( enrollmentB, stageC );
         eventC.setDueDate( yesterday );
-        programStageInstanceStore.save( eventC );
+        eventStore.save( eventC );
         // Queries
-        List<ProgramStageInstance> results;
+        List<Event> results;
         // A
-        results = programStageInstanceStore.getWithScheduledNotifications( a1, today );
+        results = eventStore.getWithScheduledNotifications( a1, today );
         assertEquals( 1, results.size() );
         assertEquals( eventA, results.get( 0 ) );
-        results = programStageInstanceStore.getWithScheduledNotifications( a2, today );
+        results = eventStore.getWithScheduledNotifications( a2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( a3, today );
+        results = eventStore.getWithScheduledNotifications( a3, today );
         assertEquals( 0, results.size() );
         // B
-        results = programStageInstanceStore.getWithScheduledNotifications( b1, today );
+        results = eventStore.getWithScheduledNotifications( b1, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( b2, today );
+        results = eventStore.getWithScheduledNotifications( b2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( b3, today );
+        results = eventStore.getWithScheduledNotifications( b3, today );
         assertEquals( 0, results.size() );
         // C
-        results = programStageInstanceStore.getWithScheduledNotifications( c1, today );
+        results = eventStore.getWithScheduledNotifications( c1, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( c2, today );
+        results = eventStore.getWithScheduledNotifications( c2, today );
         assertEquals( 0, results.size() );
-        results = programStageInstanceStore.getWithScheduledNotifications( c3, today );
+        results = eventStore.getWithScheduledNotifications( c3, today );
         assertEquals( 1, results.size() );
         assertEquals( eventC, results.get( 0 ) );
     }

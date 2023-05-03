@@ -105,13 +105,13 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
 
     private OrganisationUnit organisationUnitB;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
-    private ProgramInstance programInstanceC;
+    private Enrollment enrollmentC;
 
-    private ProgramInstance programInstanceD;
+    private Enrollment enrollmentD;
 
     private TrackedEntityInstance entityInstanceA;
 
@@ -155,26 +155,26 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-A" );
-        programInstanceB = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programB );
-        programInstanceB.setUid( "UID-B" );
-        programInstanceB.setStatus( ProgramStatus.CANCELLED );
-        programInstanceC = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programC );
-        programInstanceC.setUid( "UID-C" );
-        programInstanceC.setStatus( ProgramStatus.COMPLETED );
-        programInstanceD = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceB, programA );
-        programInstanceD.setUid( "UID-D" );
+        enrollmentA = new Enrollment( enrollmentDate, incidentDate, entityInstanceA, programA );
+        enrollmentA.setUid( "UID-A" );
+        enrollmentB = new Enrollment( enrollmentDate, incidentDate, entityInstanceA, programB );
+        enrollmentB.setUid( "UID-B" );
+        enrollmentB.setStatus( ProgramStatus.CANCELLED );
+        enrollmentC = new Enrollment( enrollmentDate, incidentDate, entityInstanceA, programC );
+        enrollmentC.setUid( "UID-C" );
+        enrollmentC.setStatus( ProgramStatus.COMPLETED );
+        enrollmentD = new Enrollment( enrollmentDate, incidentDate, entityInstanceB, programA );
+        enrollmentD.setUid( "UID-D" );
     }
 
     @Test
-    void testProgramStageInstanceExists()
+    void testEventExists()
     {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
+        programInstanceStore.save( enrollmentA );
+        programInstanceStore.save( enrollmentB );
         dbmsManager.flushSession();
-        assertTrue( programInstanceStore.exists( programInstanceA.getUid() ) );
-        assertTrue( programInstanceStore.exists( programInstanceB.getUid() ) );
+        assertTrue( programInstanceStore.exists( enrollmentA.getUid() ) );
+        assertTrue( programInstanceStore.exists( enrollmentB.getUid() ) );
         assertFalse( programInstanceStore.exists( "aaaabbbbccc" ) );
         assertFalse( programInstanceStore.exists( null ) );
     }
@@ -182,32 +182,32 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramInstancesByProgram()
     {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceD );
-        List<ProgramInstance> programInstances = programInstanceStore.get( programA );
-        assertEquals( 2, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
-        assertTrue( programInstances.contains( programInstanceD ) );
-        programInstances = programInstanceStore.get( programB );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceB ) );
+        programInstanceStore.save( enrollmentA );
+        programInstanceStore.save( enrollmentB );
+        programInstanceStore.save( enrollmentD );
+        List<Enrollment> enrollments = programInstanceStore.get( programA );
+        assertEquals( 2, enrollments.size() );
+        assertTrue( enrollments.contains( enrollmentA ) );
+        assertTrue( enrollments.contains( enrollmentD ) );
+        enrollments = programInstanceStore.get( programB );
+        assertEquals( 1, enrollments.size() );
+        assertTrue( enrollments.contains( enrollmentB ) );
     }
 
     @Test
     void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.save( programInstanceC );
-        programInstanceStore.save( programInstanceD );
-        List<ProgramInstance> programInstances = programInstanceStore.get( entityInstanceA, programC,
+        programInstanceStore.save( enrollmentA );
+        programInstanceStore.save( enrollmentB );
+        programInstanceStore.save( enrollmentC );
+        programInstanceStore.save( enrollmentD );
+        List<Enrollment> enrollments = programInstanceStore.get( entityInstanceA, programC,
             ProgramStatus.COMPLETED );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceC ) );
-        programInstances = programInstanceStore.get( entityInstanceA, programA, ProgramStatus.ACTIVE );
-        assertEquals( 1, programInstances.size() );
-        assertTrue( programInstances.contains( programInstanceA ) );
+        assertEquals( 1, enrollments.size() );
+        assertTrue( enrollments.contains( enrollmentC ) );
+        enrollments = programInstanceStore.get( entityInstanceA, programA, ProgramStatus.ACTIVE );
+        assertEquals( 1, enrollments.size() );
+        assertTrue( enrollments.contains( enrollmentA ) );
     }
 
     @Test
@@ -241,12 +241,12 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
         cal.add( Calendar.DATE, -6 );
         Date aWeekAgo = cal.getTime();
         // Enrollments
-        ProgramInstance enrollmentA = new ProgramInstance( today, tomorrow, teiX, programA );
+        Enrollment enrollmentA = new Enrollment( today, tomorrow, teiX, programA );
         programInstanceStore.save( enrollmentA );
-        ProgramInstance enrollmentB = new ProgramInstance( aWeekAgo, yesterday, teiY, programA );
+        Enrollment enrollmentB = new Enrollment( aWeekAgo, yesterday, teiY, programA );
         programInstanceStore.save( enrollmentB );
         // Queries
-        List<ProgramInstance> results;
+        List<Enrollment> results;
         // A
         results = programInstanceStore.getWithScheduledNotifications( a1, today );
         assertEquals( 1, results.size() );
@@ -264,9 +264,9 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetExcludeDeletedProgramInstance()
     {
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceB );
-        programInstanceStore.delete( programInstanceA );
+        programInstanceStore.save( enrollmentA );
+        programInstanceStore.save( enrollmentB );
+        programInstanceStore.delete( enrollmentA );
         assertEquals( 1, programInstanceStore.getAll().size() );
     }
 
@@ -277,18 +277,18 @@ class ProgramInstanceStoreTest extends TransactionalIntegrationTest
         // programInstanceA.
         // This should really never happen in production
         // Doing it here to test that the query can return both instances
-        ProgramInstance programInstanceZ = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA,
+        Enrollment enrollmentZ = new Enrollment( enrollmentDate, incidentDate, entityInstanceA,
             programA );
-        programInstanceZ.setUid( "UID-Z" );
-        programInstanceStore.save( programInstanceA );
-        programInstanceStore.save( programInstanceZ );
+        enrollmentZ.setUid( "UID-Z" );
+        programInstanceStore.save( enrollmentA );
+        programInstanceStore.save( enrollmentZ );
         List<Pair<Program, TrackedEntityInstance>> programTeiPair = new ArrayList<>();
         Pair<Program, TrackedEntityInstance> pair1 = Pair.of( programA, entityInstanceA );
         programTeiPair.add( pair1 );
-        final List<ProgramInstance> programInstances = programInstanceStore
+        final List<Enrollment> enrollments = programInstanceStore
             .getByProgramAndTrackedEntityInstance( programTeiPair, ProgramStatus.ACTIVE );
-        assertEquals( 2, programInstances.size() );
-        assertThat( programInstances, containsInAnyOrder( Matchers.hasProperty( "uid", is( "UID-Z" ) ),
+        assertEquals( 2, enrollments.size() );
+        assertThat( enrollments, containsInAnyOrder( Matchers.hasProperty( "uid", is( "UID-Z" ) ),
             Matchers.hasProperty( "uid", is( "UID-A" ) ) ) );
     }
 }

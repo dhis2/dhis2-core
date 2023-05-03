@@ -40,12 +40,11 @@ import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors;
@@ -60,14 +59,15 @@ import com.google.common.base.Objects;
 @RequiredArgsConstructor
 @Service
 public class EnrollmentTrackerConverterService
-    implements RuleEngineConverterService<Enrollment, ProgramInstance>
+    implements RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment>
 {
     private final NotesConverterService notesConverterService;
 
     @Override
-    public Enrollment to( ProgramInstance programInstance )
+    public org.hisp.dhis.tracker.imports.domain.Enrollment to( Enrollment enrollment )
     {
-        List<Enrollment> enrollments = to( Collections.singletonList( programInstance ) );
+        List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = to(
+            Collections.singletonList( enrollment ) );
 
         if ( enrollments.isEmpty() )
         {
@@ -78,9 +78,9 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public List<Enrollment> to( List<ProgramInstance> programInstances )
+    public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to( List<Enrollment> programInstances )
     {
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
 
         programInstances.forEach( tei -> {
             // TODO: Add implementation
@@ -90,14 +90,15 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment )
+    public Enrollment from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
-        ProgramInstance programInstance = preheat.getEnrollment( enrollment.getEnrollment() );
+        Enrollment programInstance = preheat.getEnrollment( enrollment.getEnrollment() );
         return from( preheat, enrollment, programInstance );
     }
 
     @Override
-    public List<ProgramInstance> from( TrackerPreheat preheat, List<Enrollment> enrollments )
+    public List<Enrollment> from( TrackerPreheat preheat,
+        List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments )
     {
         return enrollments
             .stream()
@@ -106,12 +107,14 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public ProgramInstance fromForRuleEngine( TrackerPreheat preheat, Enrollment enrollment )
+    public Enrollment fromForRuleEngine( TrackerPreheat preheat,
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
         return from( preheat, enrollment, null );
     }
 
-    private ProgramInstance from( TrackerPreheat preheat, Enrollment enrollment, ProgramInstance programInstance )
+    private Enrollment from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
+        Enrollment programInstance )
     {
         OrganisationUnit organisationUnit = preheat.getOrganisationUnit( enrollment.getOrgUnit() );
 
@@ -127,7 +130,7 @@ public class EnrollmentTrackerConverterService
 
         if ( isNewEntity( programInstance ) )
         {
-            programInstance = new ProgramInstance();
+            programInstance = new Enrollment();
             programInstance.setUid(
                 !StringUtils.isEmpty( enrollment.getEnrollment() ) ? enrollment.getEnrollment() : enrollment.getUid() );
             programInstance.setCreated( now );

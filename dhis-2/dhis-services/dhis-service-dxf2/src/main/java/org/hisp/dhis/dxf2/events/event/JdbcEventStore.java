@@ -121,9 +121,9 @@ import org.hisp.dhis.jdbc.BatchPreparedStatementSetterWithKeyHolder;
 import org.hisp.dhis.jdbc.JdbcUtils;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -366,13 +366,14 @@ public class JdbcEventStore implements EventStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<Event> getEvents( EventSearchParams params, Map<String, Set<String>> psdesWithSkipSyncTrue )
+    public List<org.hisp.dhis.dxf2.events.event.Event> getEvents( EventSearchParams params,
+        Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
         User user = currentUserService.getCurrentUser();
 
         setAccessiblePrograms( user, params );
 
-        List<Event> events = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = new ArrayList<>();
         List<Long> relationshipIds = new ArrayList<>();
 
         final Gson gson = new Gson();
@@ -398,7 +399,7 @@ public class JdbcEventStore implements EventStore
 
                 validateIdentifiersPresence( resultSet, params.getIdSchemes(), true );
 
-                Event event = new Event();
+                org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
 
                 if ( !params.isSkipEventId() )
                 {
@@ -547,7 +548,8 @@ public class JdbcEventStore implements EventStore
             {
                 CachingMap<String, String> dataElementUidToIdentifierCache = new CachingMap<>();
 
-                List<Collection<DataValue>> dataValuesList = events.stream().map( Event::getDataValues )
+                List<Collection<DataValue>> dataValuesList = events.stream()
+                    .map( org.hisp.dhis.dxf2.events.event.Event::getDataValues )
                     .collect( Collectors.toList() );
                 populateCache( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
                 convertDataValuesIdentifiers( dataElementIdScheme, dataValuesList, dataElementUidToIdentifierCache );
@@ -559,7 +561,7 @@ public class JdbcEventStore implements EventStore
     }
 
     @Override
-    public List<ProgramStageInstance> saveEvents( List<ProgramStageInstance> events )
+    public List<Event> saveEvents( List<org.hisp.dhis.program.Event> events )
     {
         try
         {
@@ -573,23 +575,23 @@ public class JdbcEventStore implements EventStore
     }
 
     @Override
-    public List<ProgramStageInstance> updateEvents( List<ProgramStageInstance> programStageInstances )
+    public List<org.hisp.dhis.program.Event> updateEvents( List<Event> events )
     {
         try
         {
-            SqlParameterSource[] parameters = new SqlParameterSource[programStageInstances.size()];
+            SqlParameterSource[] parameters = new SqlParameterSource[events.size()];
 
-            for ( int i = 0; i < programStageInstances.size(); i++ )
+            for ( int i = 0; i < events.size(); i++ )
             {
                 try
                 {
-                    parameters[i] = getSqlParametersForUpdate( programStageInstances.get( i ) );
+                    parameters[i] = getSqlParametersForUpdate( events.get( i ) );
                 }
                 catch ( SQLException | JsonProcessingException e )
                 {
                     log.warn(
-                        "PSI failed to update and will be ignored. PSI UID: " + programStageInstances.get( i ).getUid(),
-                        programStageInstances.get( i ).getUid(), e );
+                        "PSI failed to update and will be ignored. PSI UID: " + events.get( i ).getUid(),
+                        events.get( i ).getUid(), e );
                 }
             }
 
@@ -601,7 +603,7 @@ public class JdbcEventStore implements EventStore
             throw e;
         }
 
-        return programStageInstances;
+        return events;
     }
 
     @Override
@@ -1957,24 +1959,23 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Saves a list of {@see ProgramStageInstance} using JDBC batch update.
+     * Saves a list of {@see Event} using JDBC batch update.
      * <p>
      * Note that this method is using JdbcTemplate to execute the batch
      * operation, therefore it's able to participate in any Spring-initiated
      * transaction
      *
-     * @param batch the list of {@see ProgramStageInstance}
-     * @return the list of created {@see ProgramStageInstance} with primary keys
-     *         assigned
+     * @param batch the list of {@see Event}
+     * @return the list of created {@see Event} with primary keys assigned
      */
-    private List<ProgramStageInstance> saveAllEvents( List<ProgramStageInstance> batch )
+    private List<Event> saveAllEvents( List<org.hisp.dhis.program.Event> batch )
     {
 
         JdbcUtils.batchUpdateWithKeyHolder( jdbcTemplate.getJdbcTemplate(), INSERT_EVENT_SQL,
             new BatchPreparedStatementSetterWithKeyHolder<>( sort( batch ) )
             {
                 @Override
-                protected void setValues( PreparedStatement ps, ProgramStageInstance event )
+                protected void setValues( PreparedStatement ps, Event event )
                 {
                     try
                     {
@@ -1988,7 +1989,7 @@ public class JdbcEventStore implements EventStore
                 }
 
                 @Override
-                protected void setPrimaryKey( Map<String, Object> primaryKey, ProgramStageInstance event )
+                protected void setPrimaryKey( Map<String, Object> primaryKey, Event event )
                 {
                     event.setId( (Long) primaryKey.get( "programstageinstanceid" ) );
                 }
@@ -2060,12 +2061,12 @@ public class JdbcEventStore implements EventStore
             PreparedStatement::execute );
     }
 
-    private void bindEventParamsForInsert( PreparedStatement ps, ProgramStageInstance event )
+    private void bindEventParamsForInsert( PreparedStatement ps, Event event )
         throws SQLException,
         JsonProcessingException
     {
         // @formatter:off
-        ps.setLong(         1, event.getProgramInstance().getId() );
+        ps.setLong(         1, event.getEnrollment().getId() );
         ps.setLong(         2, event.getProgramStage().getId() );
         ps.setTimestamp(    3, JdbcEventSupport.toTimestamp( event.getDueDate() ) );
         ps.setTimestamp(    4, JdbcEventSupport.toTimestamp( event.getExecutionDate() ) );
@@ -2097,38 +2098,38 @@ public class JdbcEventStore implements EventStore
         // @formatter:on
     }
 
-    private MapSqlParameterSource getSqlParametersForUpdate( ProgramStageInstance programStageInstance )
+    private MapSqlParameterSource getSqlParametersForUpdate( org.hisp.dhis.program.Event event )
         throws SQLException,
         JsonProcessingException
     {
         return new MapSqlParameterSource()
-            .addValue( "programInstanceId", programStageInstance.getProgramInstance().getId() )
-            .addValue( "programstageid", programStageInstance.getProgramStage()
+            .addValue( "programInstanceId", event.getEnrollment().getId() )
+            .addValue( "programstageid", event.getProgramStage()
                 .getId() )
-            .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( programStageInstance.getDueDate() ) )
+            .addValue( DUE_DATE.getColumnName(), JdbcEventSupport.toTimestamp( event.getDueDate() ) )
             .addValue( EXECUTION_DATE.getColumnName(),
-                JdbcEventSupport.toTimestamp( programStageInstance.getExecutionDate() ) )
-            .addValue( "organisationunitid", programStageInstance.getOrganisationUnit().getId() )
-            .addValue( STATUS.getColumnName(), programStageInstance.getStatus().toString() )
+                JdbcEventSupport.toTimestamp( event.getExecutionDate() ) )
+            .addValue( "organisationunitid", event.getOrganisationUnit().getId() )
+            .addValue( STATUS.getColumnName(), event.getStatus().toString() )
             .addValue( COMPLETEDDATE.getColumnName(),
-                JdbcEventSupport.toTimestamp( programStageInstance.getCompletedDate() ) )
+                JdbcEventSupport.toTimestamp( event.getCompletedDate() ) )
             .addValue( UPDATED.getColumnName(), JdbcEventSupport.toTimestamp( new Date() ) )
-            .addValue( "attributeoptioncomboid", programStageInstance.getAttributeOptionCombo().getId() )
-            .addValue( STOREDBY.getColumnName(), programStageInstance.getStoredBy() )
+            .addValue( "attributeoptioncomboid", event.getAttributeOptionCombo().getId() )
+            .addValue( STOREDBY.getColumnName(), event.getStoredBy() )
             .addValue( "lastupdatedbyuserinfo",
-                userInfoToJson( programStageInstance.getLastUpdatedByUserInfo(), jsonMapper ) )
-            .addValue( COMPLETEDBY.getColumnName(), programStageInstance.getCompletedBy() )
-            .addValue( DELETED.getColumnName(), programStageInstance.isDeleted() )
-            .addValue( "code", programStageInstance.getCode() )
+                userInfoToJson( event.getLastUpdatedByUserInfo(), jsonMapper ) )
+            .addValue( COMPLETEDBY.getColumnName(), event.getCompletedBy() )
+            .addValue( DELETED.getColumnName(), event.isDeleted() )
+            .addValue( "code", event.getCode() )
             .addValue( UPDATEDCLIENT.getColumnName(),
-                JdbcEventSupport.toTimestamp( programStageInstance.getLastUpdatedAtClient() ) )
-            .addValue( GEOMETRY.getColumnName(), JdbcEventSupport.toGeometry( programStageInstance.getGeometry() ) )
+                JdbcEventSupport.toTimestamp( event.getLastUpdatedAtClient() ) )
+            .addValue( GEOMETRY.getColumnName(), JdbcEventSupport.toGeometry( event.getGeometry() ) )
             .addValue( "assigneduserid",
-                (programStageInstance.getAssignedUser() != null ? programStageInstance.getAssignedUser().getId()
+                (event.getAssignedUser() != null ? event.getAssignedUser().getId()
                     : null) )
             .addValue( "eventdatavalues",
-                eventDataValuesToJson( programStageInstance.getEventDataValues(), jsonMapper ) )
-            .addValue( UID.getColumnName(), programStageInstance.getUid() );
+                eventDataValuesToJson( event.getEventDataValues(), jsonMapper ) )
+            .addValue( UID.getColumnName(), event.getUid() );
     }
 
     private Set<EventDataValue> convertEventDataValueJsonIntoSet( String jsonString )
@@ -2206,11 +2207,11 @@ public class JdbcEventStore implements EventStore
     }
 
     @Override
-    public void delete( final List<Event> events )
+    public void delete( final List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( isNotEmpty( events ) )
         {
-            final List<String> psiUids = events.stream().map( Event::getEvent )
+            final List<String> psiUids = events.stream().map( org.hisp.dhis.dxf2.events.event.Event::getEvent )
                 .collect( toList() );
 
             jdbcTemplate.update( "UPDATE programstageinstance SET deleted = true where uid in (:uids)",
@@ -2236,12 +2237,12 @@ public class JdbcEventStore implements EventStore
     }
 
     /**
-     * Sort the list of {@see ProgramStageInstance} by UID
+     * Sort the list of {@see Event} by UID
      */
-    private List<ProgramStageInstance> sort( List<ProgramStageInstance> batch )
+    private List<Event> sort( List<Event> batch )
     {
         return batch.stream()
-            .sorted( Comparator.comparing( ProgramStageInstance::getUid ) )
+            .sorted( Comparator.comparing( org.hisp.dhis.program.Event::getUid ) )
             .collect( toList() );
     }
 

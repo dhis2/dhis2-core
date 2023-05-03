@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -68,7 +68,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, ProgramInstance> enrollments = preheat.getEnrollments();
+        final Map<String, Enrollment> enrollments = preheat.getEnrollments();
         List<Long> programStageIds = enrollments.values().stream().map( IdentifiableObject::getId )
             .collect( Collectors.toList() );
 

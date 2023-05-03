@@ -25,30 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.appmanager;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
-import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
-import org.hisp.dhis.datastore.DatastoreService;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.program.Event;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.factory.Mappers;
 
-/**
- * The main purpose (so far) of the {@link AndroidSettingApp} component is to
- * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
- * that only the app can write to it using a role having the {@link #AUTHORITY}.
- *
- * @author Jan Bernitt
- */
-@Component
-public class AndroidSettingApp
+@Mapper( uses = {
+    DebugMapper.class,
+    ProgramStageMapper.class,
+    OrganisationUnitMapper.class,
+    ProgramInstanceMapper.class
+} )
+public interface EventMapper extends PreheatMapper<Event>
 {
-    public static final String NAMESPACE = "ANDROID_SETTING_APP";
+    EventMapper INSTANCE = Mappers.getMapper( EventMapper.class );
 
-    public static final String AUTHORITY = "M_Android_Setting";
-
-    public AndroidSettingApp( DatastoreService service )
-    {
-        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
-            ProtectionType.RESTRICTED, false, AUTHORITY ) );
-    }
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "user" )
+    @Mapping( target = "enrollment" )
+    @Mapping( target = "programStage" )
+    @Mapping( target = "status" )
+    @Mapping( target = "organisationUnit" )
+    @Mapping( target = "created" )
+    @Mapping( target = "eventDataValues" )
+    @Mapping( target = "comments" )
+    @Mapping( target = "dueDate" )
+    @Mapping( target = "executionDate" )
+    @Mapping( target = "completedDate" )
+    @Mapping( target = "completedBy" )
+    @Mapping( target = "deleted" )
+    @Mapping( target = "createdByUserInfo" )
+    @Mapping( target = "lastUpdatedByUserInfo" )
+    Event map( Event event );
 }

@@ -37,8 +37,8 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.preheat.PreheatIdentifier;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -124,7 +124,7 @@ public class ProgramObjectBundleHook extends AbstractObjectBundleHook<Program>
     {
         if ( getProgramInstancesCount( program ) == 0 && program.isWithoutRegistration() )
         {
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setEnrollmentDate( new Date() );
             pi.setIncidentDate( new Date() );
             pi.setProgram( program );

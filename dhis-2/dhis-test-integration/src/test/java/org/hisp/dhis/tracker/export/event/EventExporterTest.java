@@ -64,9 +64,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -110,7 +110,7 @@ class EventExporterTest extends TrackerTest
 
     final Function<EventSearchParams, List<String>> eventsFunction = ( params ) -> eventService.getEvents( params )
         .getEvents()
-        .stream().map( ProgramStageInstance::getUid ).collect( Collectors.toList() );
+        .stream().map( Event::getUid ).collect( Collectors.toList() );
 
     private TrackedEntityInstance trackedEntityInstance;
 
@@ -156,9 +156,9 @@ class EventExporterTest extends TrackerTest
         params.setTrackedEntity( trackedEntityInstance );
         params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
 
-        List<ProgramStageInstance> events = eventService.getEvents( params ).getEvents();
+        List<Event> events = eventService.getEvents( params ).getEvents();
 
-        assertEquals( get( ProgramStageInstance.class, "D9PbzJY8bJM" ).getAssignedUser(),
+        assertEquals( get( Event.class, "D9PbzJY8bJM" ).getAssignedUser(),
             events.get( 0 ).getAssignedUser() );
     }
 
@@ -543,7 +543,7 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
-                () -> assertEquals( "multi-program", e.getProgramInstance().getProgram().getUid() ),
+                () -> assertEquals( "multi-program", e.getEnrollment().getProgram().getUid() ),
                 () -> assertEquals( "multi-stage", e.getProgramStage().getUid() ),
                 () -> assertEquals( "DiszpKrYNg8", e.getOrganisationUnit().getUid() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452", e.getAttributeOptionCombo().getUid() ),
@@ -572,7 +572,7 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
-                () -> assertEquals( "multi-program-attribute", e.getProgramInstance().getProgram().getUid() ),
+                () -> assertEquals( "multi-program-attribute", e.getEnrollment().getProgram().getUid() ),
                 () -> assertEquals( "multi-program-stage-attribute", e.getProgramStage().getUid() ),
                 () -> assertEquals( "DiszpKrYNg8", e.getOrganisationUnit().getUid() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452-attribute", e.getAttributeOptionCombo().getUid() ),
@@ -703,7 +703,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledBefore( parseDate( "2021-02-27T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertIsEmpty( enrollments );
@@ -717,7 +717,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
@@ -731,7 +731,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
@@ -745,7 +745,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
@@ -759,7 +759,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
@@ -773,7 +773,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertIsEmpty( enrollments );
@@ -787,7 +787,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredBefore( parseDate( "2021-02-27T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertIsEmpty( enrollments );
@@ -801,7 +801,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
@@ -815,7 +815,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
@@ -829,7 +829,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredAfter( parseDate( "2021-03-27T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
@@ -843,7 +843,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
@@ -863,7 +863,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( queryItem );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -878,7 +878,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities );
@@ -895,7 +895,7 @@ class EventExporterTest extends TrackerTest
             queryItem( "notUpdated0", QueryOperator.EQ, "winter day" ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -912,7 +912,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( item );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -928,7 +928,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -944,7 +944,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -961,7 +961,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -978,7 +978,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -992,7 +992,7 @@ class EventExporterTest extends TrackerTest
         params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T13:05:00.000" ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertIsEmpty( enrollments );
@@ -1006,7 +1006,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "TvctPPhpD8z", "nxP7UnKhomJ" ), enrollments );
@@ -1020,7 +1020,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getUid() )
+            .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments );
@@ -1109,7 +1109,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1126,7 +1126,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1145,7 +1145,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -1163,7 +1163,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( psi -> psi.getProgramInstance().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1211,7 +1211,7 @@ class EventExporterTest extends TrackerTest
     private static List<String> eventUids( Events events )
     {
         return events.getEvents()
-            .stream().map( ProgramStageInstance::getUid ).collect( Collectors.toList() );
+            .stream().map( Event::getUid ).collect( Collectors.toList() );
     }
 
     private static void assertSlimPager( int pageNumber, int pageSize, boolean isLast, Events events )

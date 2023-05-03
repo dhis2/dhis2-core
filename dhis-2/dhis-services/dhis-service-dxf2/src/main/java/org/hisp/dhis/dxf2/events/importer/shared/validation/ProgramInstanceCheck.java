@@ -38,8 +38,8 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.stereotype.Component;
@@ -54,7 +54,7 @@ public class ProgramInstanceCheck implements Checker
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
         final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
         String teiUid = "";
@@ -63,23 +63,23 @@ public class ProgramInstanceCheck implements Checker
             teiUid = trackedEntityInstance.get().getUid();
         }
 
-        List<ProgramInstance> programInstances;
+        List<Enrollment> enrollments;
 
-        if ( programInstance == null ) // Program Instance should be NOT null,
-                                      // after the pre-processing stage
+        if ( enrollment == null ) // Program Instance should be NOT null,
+                                 // after the pre-processing stage
         {
             if ( program.isRegistration() )
             {
-                programInstances = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
+                enrollments = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
                     .get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
 
-                if ( programInstances.isEmpty() )
+                if ( enrollments.isEmpty() )
                 {
                     return error( "Tracked entity instance: "
                         + teiUid + " is not enrolled in program: " + program.getUid(),
                         event.getEvent() );
                 }
-                else if ( programInstances.size() > 1 )
+                else if ( enrollments.size() > 1 )
                 {
                     return error( "Tracked entity instance: " + teiUid
                         + " has multiple active enrollments in program: " + program.getUid(),
@@ -88,10 +88,10 @@ public class ProgramInstanceCheck implements Checker
             }
             else
             {
-                programInstances = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
+                enrollments = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
                     ProgramStatus.ACTIVE );
 
-                if ( programInstances.size() > 1 )
+                if ( enrollments.size() > 1 )
                 {
                     return error( "Multiple active program instances exists for program: " + program.getUid(),
                         event.getEvent() );

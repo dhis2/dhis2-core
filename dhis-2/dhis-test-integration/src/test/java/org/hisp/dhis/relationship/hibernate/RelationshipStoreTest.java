@@ -42,13 +42,13 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
@@ -77,7 +77,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramService programService;
@@ -121,24 +121,24 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramStageInstance()
+    void testGetByEvent()
     {
         Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+        Enrollment enrollment = addProgramInstance( programA );
 
         ProgramStage programStageA = addProgramStage( programA );
 
-        ProgramStageInstance programStageInstance = addProgramStageInstance( programInstance, programStageA );
+        Event event = addEvent( enrollment, programStageA );
 
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
-        Relationship relationshipA = addTeiToProgramStageInstanceRelationship( trackedEntityInstanceA,
-            programStageInstance );
+        Relationship relationshipA = addTeiToEventRelationship( trackedEntityInstanceA,
+            event );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, true );
+            .getRelationshipsByEvent( event, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -154,13 +154,13 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+        Enrollment enrollment = addProgramInstance( programA );
 
         Relationship relationshipA = addTeiToProgramInstanceRelationship( trackedEntityInstanceA,
-            programInstance );
+            enrollment );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, true );
+            .getRelationshipsByProgramInstance( enrollment, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -230,13 +230,13 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return teiRelationship;
     }
 
-    private Relationship addTeiToProgramStageInstanceRelationship( TrackedEntityInstance entityInstance,
-        ProgramStageInstance programStageInstance )
+    private Relationship addTeiToEventRelationship( TrackedEntityInstance entityInstance,
+        Event event )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( entityInstance );
         RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramStageInstance( programStageInstance );
+        relationshipItemTo.setEvent( event );
 
         Relationship relationshipA = new Relationship();
         relationshipA.setRelationshipType( relationshipType );
@@ -250,12 +250,12 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     private Relationship addTeiToProgramInstanceRelationship( TrackedEntityInstance entityInstance,
-        ProgramInstance programInstance )
+        Enrollment enrollment )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( entityInstance );
         RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramInstance( programInstance );
+        relationshipItemTo.setEnrollment( enrollment );
 
         Relationship relationshipA = new Relationship();
         relationshipA.setRelationshipType( relationshipType );
@@ -268,16 +268,16 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private ProgramStageInstance addProgramStageInstance( ProgramInstance programInstance, ProgramStage programStageA )
+    private Event addEvent( Enrollment enrollment, ProgramStage programStageA )
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
+        Event event = new Event();
+        event.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStageA );
+        event.setEnrollment( enrollment );
+        event.setAutoFields();
 
-        programStageInstanceService.addProgramStageInstance( programStageInstance );
-        return programStageInstance;
+        eventService.addEvent( event );
+        return event;
     }
 
     private ProgramStage addProgramStage( Program programA )
@@ -289,16 +289,16 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return programStageA;
     }
 
-    private ProgramInstance addProgramInstance( Program programA )
+    private Enrollment addProgramInstance( Program programA )
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( programInstance );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( programA );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        programInstanceService.addProgramInstance( enrollment );
+        return enrollment;
     }
 
     private Program addProgram()

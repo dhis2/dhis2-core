@@ -35,12 +35,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.rules.models.RuleValidationResult;
@@ -70,7 +70,7 @@ public class DefaultProgramRuleEngineService
 
     private final ProgramInstanceService programInstanceService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final ProgramService programService;
 
@@ -85,7 +85,7 @@ public class DefaultProgramRuleEngineService
             return List.of();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment );
+        Enrollment programInstance = programInstanceService.getProgramInstance( enrollment );
 
         if ( programInstance == null )
         {
@@ -100,7 +100,7 @@ public class DefaultProgramRuleEngineService
         }
 
         List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
-            programInstance.getProgramStageInstances(), programRules );
+            programInstance.getEvents(), programRules );
 
         for ( RuleEffect effect : ruleEffects )
         {
@@ -123,9 +123,7 @@ public class DefaultProgramRuleEngineService
             return Lists.newArrayList();
         }
 
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( event );
-
-        return evaluateEventAndRunEffects( psi );
+        return evaluateEventAndRunEffects( eventService.getEvent( event ) );
     }
 
     @Override
@@ -144,15 +142,16 @@ public class DefaultProgramRuleEngineService
         return programRuleEngine.getDataExpressionDescription( dataExpression, program );
     }
 
-    private List<RuleEffect> evaluateEventAndRunEffects( ProgramStageInstance psi )
+    private List<RuleEffect> evaluateEventAndRunEffects( Event event )
     {
-        if ( psi == null )
+        if ( event == null )
         {
             return Lists.newArrayList();
         }
 
-        Program program = psi.getProgramStage().getProgram();
-        List<ProgramRule> programRules = programRuleEngine.getProgramRules( program, List.of( psi.getProgramStage() ) );
+        Program program = event.getProgramStage().getProgram();
+        List<ProgramRule> programRules = programRuleEngine.getProgramRules( program,
+            List.of( event.getProgramStage() ) );
 
         if ( programRules.isEmpty() )
         {
@@ -163,14 +162,14 @@ public class DefaultProgramRuleEngineService
 
         if ( program.isWithoutRegistration() )
         {
-            ruleEffects = programRuleEngine.evaluateProgramEvent( psi, program, programRules );
+            ruleEffects = programRuleEngine.evaluateProgramEvent( event, program, programRules );
         }
         else
         {
-            ProgramInstance programInstance = programInstanceService
-                .getProgramInstance( psi.getProgramInstance().getId() );
+            Enrollment enrollment = programInstanceService
+                .getProgramInstance( event.getEnrollment().getId() );
 
-            ruleEffects = programRuleEngine.evaluate( programInstance, psi, programInstance.getProgramStageInstances(),
+            ruleEffects = programRuleEngine.evaluate( enrollment, event, enrollment.getEvents(),
                 programRules );
         }
 
@@ -179,7 +178,7 @@ public class DefaultProgramRuleEngineService
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( effect, psi );
+                i.implement( effect, event );
             } );
         }
 

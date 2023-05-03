@@ -32,7 +32,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -82,12 +82,12 @@ class RepeatedEventsValidator
 
     private void validateNotMultipleEvents( Reporter reporter, TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        Enrollment enrollment = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
 
         TrackerImportStrategy strategy = bundle.getStrategy( event );
 
-        if ( strategy == TrackerImportStrategy.CREATE && programStage != null && programInstance != null
+        if ( strategy == TrackerImportStrategy.CREATE && programStage != null && enrollment != null
             && !programStage.getRepeatable()
             && bundle.getPreheat().hasProgramStageWithEvents( event.getProgramStage(),
                 event.getEnrollment() ) )

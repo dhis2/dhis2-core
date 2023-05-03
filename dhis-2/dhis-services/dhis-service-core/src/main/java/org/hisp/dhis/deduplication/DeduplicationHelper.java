@@ -39,7 +39,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -95,7 +95,7 @@ public class DeduplicationHelper
         Set<String> validRelationships = duplicate.getRelationshipItems().stream()
             .map( rel -> rel.getRelationship().getUid() ).collect( Collectors.toSet() );
 
-        Set<String> validEnrollments = duplicate.getProgramInstances().stream()
+        Set<String> validEnrollments = duplicate.getEnrollments().stream()
             .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
@@ -141,14 +141,14 @@ public class DeduplicationHelper
                 + "'. A similar relationship already exists on original.";
         }
 
-        Set<String> programUidOfExistingEnrollments = original.getProgramInstances().stream()
-            .map( ProgramInstance::getProgram )
+        Set<String> programUidOfExistingEnrollments = original.getEnrollments().stream()
+            .map( Enrollment::getProgram )
             .map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
-        String duplicateEnrollment = duplicate.getProgramInstances().stream()
+        String duplicateEnrollment = duplicate.getEnrollments().stream()
             .filter( pi -> mergeObject.getEnrollments().contains( pi.getUid() ) )
-            .map( ProgramInstance::getProgram )
+            .map( Enrollment::getProgram )
             .map( IdentifiableObject::getUid )
             .filter( programUidOfExistingEnrollments::contains )
             .findAny()
@@ -218,10 +218,10 @@ public class DeduplicationHelper
 
     private boolean isSameRelationshipItem( RelationshipItem a, RelationshipItem b )
     {
-        IdentifiableObject idoA = ObjectUtils.firstNonNull( a.getTrackedEntityInstance(), a.getProgramInstance(),
-            a.getProgramStageInstance() );
-        IdentifiableObject idoB = ObjectUtils.firstNonNull( b.getTrackedEntityInstance(), b.getProgramInstance(),
-            b.getProgramStageInstance() );
+        IdentifiableObject idoA = ObjectUtils.firstNonNull( a.getTrackedEntityInstance(), a.getEnrollment(),
+            a.getEvent() );
+        IdentifiableObject idoB = ObjectUtils.firstNonNull( b.getTrackedEntityInstance(), b.getEnrollment(),
+            b.getEvent() );
 
         return idoA.getUid().equals( idoB.getUid() );
     }
@@ -277,7 +277,7 @@ public class DeduplicationHelper
             return "Missing data write access to one or more Relationship Types.";
         }
 
-        List<ProgramInstance> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
+        List<Enrollment> enrollments = programInstanceService.getProgramInstances( mergeObject.getEnrollments() );
 
         if ( enrollments.stream().anyMatch( e -> !aclService.canDataWrite( user, e.getProgram() ) ) )
         {
@@ -373,21 +373,21 @@ public class DeduplicationHelper
     {
         List<String> enrollments = new ArrayList<>();
 
-        Set<String> programs = original.getProgramInstances()
+        Set<String> programs = original.getEnrollments()
             .stream()
             .filter( e -> !e.isDeleted() )
             .map( e -> e.getProgram().getUid() )
             .collect( Collectors.toSet() );
 
-        for ( ProgramInstance programInstance : duplicate.getProgramInstances() )
+        for ( Enrollment enrollment : duplicate.getEnrollments() )
         {
-            if ( programs.contains( programInstance.getProgram().getUid() ) )
+            if ( programs.contains( enrollment.getProgram().getUid() ) )
             {
                 throw new PotentialDuplicateConflictException(
                     "Potential Duplicate contains enrollments with the same program" +
                         " and cannot be merged." );
             }
-            enrollments.add( programInstance.getUid() );
+            enrollments.add( enrollment.getUid() );
         }
 
         return enrollments;

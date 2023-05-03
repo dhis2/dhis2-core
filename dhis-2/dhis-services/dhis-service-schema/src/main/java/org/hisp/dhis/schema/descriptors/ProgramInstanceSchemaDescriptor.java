@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
@@ -42,6 +42,6 @@ public class ProgramInstanceSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        return new Schema( ProgramInstance.class, SINGULAR, PLURAL );
+        return new Schema( Enrollment.class, SINGULAR, PLURAL );
     }
 }

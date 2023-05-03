@@ -25,34 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program.comparator;
+package org.hisp.dhis.appmanager;
 
-import java.util.Comparator;
-import java.util.Date;
-
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection;
+import org.hisp.dhis.datastore.DatastoreNamespaceProtection.ProtectionType;
+import org.hisp.dhis.datastore.DatastoreService;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Chau Thu Tran
+ * The main purpose (so far) of the {@link AndroidSettingsApp} component is to
+ * establish the protected {@link #NAMESPACE} in the {@link DatastoreService} so
+ * that only the app can write to it using a role having the {@link #AUTHORITY}.
+ *
+ * @author Jan Bernitt
  */
-public class ProgramStageInstanceVisitDateComparator
-    implements Comparator<ProgramStageInstance>
+@Component
+public class AndroidSettingsApp
 {
-    @Override
-    public int compare( ProgramStageInstance programStageInstance1, ProgramStageInstance programStageInstance2 )
+    public static final String NAMESPACE = "ANDROID_SETTINGS_APP";
+
+    public static final String AUTHORITY = "M_androidsettingsapp";
+
+    public AndroidSettingsApp( DatastoreService service )
     {
-        Date d1 = (programStageInstance1.getExecutionDate() != null) ? programStageInstance1.getExecutionDate()
-            : programStageInstance1.getDueDate();
-        Date d2 = (programStageInstance2.getExecutionDate() != null) ? programStageInstance2.getExecutionDate()
-            : programStageInstance2.getDueDate();
-        if ( d1.before( d2 ) )
-        {
-            return -1;
-        }
-        else if ( d1.after( d2 ) )
-        {
-            return 1;
-        }
-        return 0;
+        service.addProtection( new DatastoreNamespaceProtection( NAMESPACE, ProtectionType.NONE,
+            ProtectionType.RESTRICTED, false, AUTHORITY ) );
     }
 }

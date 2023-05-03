@@ -41,7 +41,7 @@ import org.hisp.dhis.dataelement.DataElement;
  */
 public interface ProgramStageDataElementService
 {
-    String ID = ProgramStageInstanceService.class.getName();
+    String ID = ProgramStageDataElementService.class.getName();
 
     /**
      * Adds an {@link ProgramStageDataElement}

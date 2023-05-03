@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleEffect;
 
@@ -48,16 +48,16 @@ public interface RuleActionImplementer
      * actions
      *
      * @param ruleEffect received tracker importer
-     * @param programInstance enrollment to implement the action against
+     * @param enrollment enrollment to implement the action against
      */
-    void implement( RuleEffect ruleEffect, ProgramInstance programInstance );
+    void implement( RuleEffect ruleEffect, Enrollment enrollment );
 
     /**
      * This method is directly called by SideEffectHandlerService to implement
      * actions
      *
      * @param ruleEffect received tracker importer
-     * @param programStageInstance event to implement the action against
+     * @param event event to implement the action against
      */
-    void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance );
+    void implement( RuleEffect ruleEffect, Event event );
 }

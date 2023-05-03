@@ -39,8 +39,8 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -72,10 +72,10 @@ class DeduplicationServiceTest
     private TrackedEntityInstance trackedEntityInstanceB;
 
     @Mock
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
     @Mock
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
     @Mock
     private DeduplicationHelper deduplicationHelper;
@@ -119,10 +119,10 @@ class DeduplicationServiceTest
 
     private void setUpPrograms()
     {
-        when( trackedEntityInstanceA.getProgramInstances() )
-            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceA ) ) );
-        when( trackedEntityInstanceB.getProgramInstances() )
-            .thenReturn( new HashSet<>( Collections.singletonList( programInstanceB ) ) );
+        when( trackedEntityInstanceA.getEnrollments() )
+            .thenReturn( new HashSet<>( Collections.singletonList( enrollmentA ) ) );
+        when( trackedEntityInstanceB.getEnrollments() )
+            .thenReturn( new HashSet<>( Collections.singletonList( enrollmentB ) ) );
         Program programA = new Program();
         programA.setUid( CodeGenerator.generateUid() );
         programA.setDescription( "programADescr" );
@@ -131,8 +131,8 @@ class DeduplicationServiceTest
         programB.setUid( CodeGenerator.generateUid() );
         programB.setDescription( "programBDescr" );
         programB.setName( "programBName" );
-        when( programInstanceA.getProgram() ).thenReturn( programA );
-        when( programInstanceB.getProgram() ).thenReturn( programB );
+        when( enrollmentA.getProgram() ).thenReturn( programA );
+        when( enrollmentB.getProgram() ).thenReturn( programB );
     }
 
     private void setAttributeValues()
@@ -200,10 +200,10 @@ class DeduplicationServiceTest
     {
         Program program = new Program();
         program.setUid( "programUid" );
-        when( programInstanceA.getProgram() ).thenReturn( program );
-        when( programInstanceB.getProgram() ).thenReturn( program );
-        when( trackedEntityInstanceA.getProgramInstances() ).thenReturn( Sets.newHashSet( programInstanceA ) );
-        when( trackedEntityInstanceB.getProgramInstances() ).thenReturn( Sets.newHashSet( programInstanceB ) );
+        when( enrollmentA.getProgram() ).thenReturn( program );
+        when( enrollmentB.getProgram() ).thenReturn( program );
+        when( trackedEntityInstanceA.getEnrollments() ).thenReturn( Sets.newHashSet( enrollmentA ) );
+        when( trackedEntityInstanceB.getEnrollments() ).thenReturn( Sets.newHashSet( enrollmentB ) );
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );
@@ -237,8 +237,8 @@ class DeduplicationServiceTest
         program.setUid( "progrUid" );
         program.setDescription( "programDescr" );
         program.setName( "programName" );
-        when( programInstanceA.getProgram() ).thenReturn( program );
-        when( programInstanceB.getProgram() ).thenReturn( program );
+        when( enrollmentA.getProgram() ).thenReturn( program );
+        when( enrollmentB.getProgram() ).thenReturn( program );
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationService.autoMerge( deduplicationMergeParams ) );
         verify( deduplicationHelper, times( 0 ) ).generateMergeObject( trackedEntityInstanceA, trackedEntityInstanceB );

@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.ProgramStageInstance" table="programstageinstance">
+  <class name="org.hisp.dhis.program.Event" table="programstageinstance">
 
     <id name="id" column="programstageinstanceid">
       <generator class="sequence">
@@ -30,9 +30,9 @@
 
     <property name="lastSynchronized" column="lastsynchronized" type="timestamp" not-null="false" />
 
-    <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
-      column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
-      index="programstageinstance_programinstanceid" />
+    <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
+                 column="programinstanceid" not-null="true" foreign-key="fk_programstageinstance_programinstanceid"
+                 index="programstageinstance_programinstanceid" />
 
     <many-to-one name="programStage" class="org.hisp.dhis.program.ProgramStage"
       column="programstageid" not-null="true" foreign-key="fk_programstageinstance_programstageid" />

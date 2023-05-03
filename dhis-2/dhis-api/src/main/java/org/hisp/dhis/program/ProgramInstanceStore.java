@@ -39,7 +39,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
  * @author Abyot Asalefew
  */
 public interface ProgramInstanceStore
-    extends IdentifiableObjectStore<ProgramInstance>
+    extends IdentifiableObjectStore<Enrollment>
 {
     String ID = ProgramInstanceStore.class.getName();
 
@@ -57,7 +57,7 @@ public interface ProgramInstanceStore
      * @param params ProgramInstanceQueryParams to use
      * @return PIs matching params
      */
-    List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params );
+    List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params );
 
     /**
      * Retrieve program instances on a program
@@ -65,7 +65,7 @@ public interface ProgramInstanceStore
      * @param program Program
      * @return ProgramInstance list
      */
-    List<ProgramInstance> get( Program program );
+    List<Enrollment> get( Program program );
 
     /**
      * Retrieve program instances on a program by status
@@ -75,7 +75,7 @@ public interface ProgramInstanceStore
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
-    List<ProgramInstance> get( Program program, ProgramStatus status );
+    List<Enrollment> get( Program program, ProgramStatus status );
 
     /**
      * Retrieve program instances on a TrackedEntityInstance with a status by a
@@ -87,7 +87,7 @@ public interface ProgramInstanceStore
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return ProgramInstance list
      */
-    List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
+    List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
      * Checks for the existence of a PI by UID, Deleted PIs are not taken into
@@ -123,7 +123,7 @@ public interface ProgramInstanceStore
      * @return a List containing the ProgramInstances matching the given
      *         parameters list
      */
-    List<ProgramInstance> getIncludingDeleted( List<String> uids );
+    List<Enrollment> getIncludingDeleted( List<String> uids );
 
     /**
      * Get all ProgramInstances which have notifications with the given
@@ -133,7 +133,7 @@ public interface ProgramInstanceStore
      * @param notificationDate the Date for which the notification is scheduled.
      * @return a list of ProgramInstance.
      */
-    List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
+    List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
     /**
      * Return all program instance linked to programs.
@@ -141,7 +141,7 @@ public interface ProgramInstanceStore
      * @param programs Programs to fetch by
      * @return List of all PIs that that are linked to programs
      */
-    List<ProgramInstance> getByPrograms( List<Program> programs );
+    List<Enrollment> getByPrograms( List<Program> programs );
 
     /**
      * Return all program instance by type.
@@ -152,14 +152,14 @@ public interface ProgramInstanceStore
      * @param type ProgramType to fetch by
      * @return List of all PIs that matches the wanted type
      */
-    List<ProgramInstance> getByType( ProgramType type );
+    List<Enrollment> getByType( ProgramType type );
 
     /**
-     * Hard deletes a {@link ProgramInstance}.
+     * Hard deletes a {@link Enrollment}.
      *
-     * @param programInstance the ProgramInstance to delete.
+     * @param enrollment the ProgramInstance to delete.
      */
-    void hardDelete( ProgramInstance programInstance );
+    void hardDelete( Enrollment enrollment );
 
     /**
      * Executes a query to fetch all {@see ProgramInstance} matching the
@@ -183,6 +183,6 @@ public interface ProgramInstanceStore
      * @param programStatus filter on the status of all the Program
      * @return a List of {@see ProgramInstance}
      */
-    List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+    List<Enrollment> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
 }

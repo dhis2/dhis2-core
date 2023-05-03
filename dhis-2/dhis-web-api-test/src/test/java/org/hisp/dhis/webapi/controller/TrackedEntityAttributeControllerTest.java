@@ -39,8 +39,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -65,7 +65,7 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 
     private TrackedEntityInstance tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttribute teaA;
 
@@ -146,13 +146,13 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 
-        programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance );
+        enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        enrollment.setFollowup( true );
+        manager.save( enrollment );
     }
 
     @Test

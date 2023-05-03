@@ -35,8 +35,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Zubair Asghar
@@ -49,28 +49,28 @@ public class ProgramNotificationInstanceParam extends BaseNotificationParam
 {
     @Builder
     public ProgramNotificationInstanceParam( Integer page, Integer pageSize, boolean skipPaging,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date scheduledAt )
+        Enrollment enrollment, Event event, Date scheduledAt )
     {
         super( page, pageSize, skipPaging );
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
+        this.enrollment = enrollment;
+        this.event = event;
         this.scheduledAt = scheduledAt;
     }
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private Date scheduledAt;
 
     public boolean hasProgramInstance()
     {
-        return programInstance != null;
+        return enrollment != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasEvent()
     {
-        return programStageInstance != null;
+        return event != null;
     }
 
     public boolean hasScheduledAt()

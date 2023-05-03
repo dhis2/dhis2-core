@@ -43,13 +43,13 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -89,7 +89,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     private ProgramInstanceService programInstanceService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     private OrganisationUnit ouA;
 
@@ -111,15 +111,15 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
     private DataElement deB;
 
-    private ProgramStageInstance psiA;
+    private Event eventA;
 
-    private ProgramStageInstance psiB;
+    private Event eventB;
 
-    private ProgramStageInstance psiC;
+    private Event eventC;
 
-    private ProgramStageInstance psiD;
+    private Event eventD;
 
-    private ProgramStageInstance psiE;
+    private Event eventE;
 
     private EventDataValue dvA;
 
@@ -165,7 +165,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         TrackedEntityInstance teiA = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( teiA );
 
-        ProgramInstance piA = programInstanceService.enrollTrackedEntityInstance(
+        Enrollment piA = programInstanceService.enrollTrackedEntityInstance(
             teiA, pA, new Date(), new Date(), ouA );
 
         dvA = new EventDataValue( deA.getUid(), "A", USER_SNAP_A );
@@ -174,26 +174,26 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dvD = new EventDataValue( deB.getUid(), "D", USER_SNAP_A );
         dvE = new EventDataValue( deB.getUid(), "E", USER_SNAP_A );
 
-        psiA = createProgramStageInstance( piA, psA, ouA, Set.of( dvA, dvB ) );
-        psiB = createProgramStageInstance( piA, psB, ouB, Set.of( dvC, dvD ) );
-        psiC = createProgramStageInstance( piA, psA, ouC, Set.of( dvA, dvB ) );
-        psiD = createProgramStageInstance( piA, psB, ouD, Set.of( dvC, dvD ) );
-        psiE = createProgramStageInstance( piA, psA, ouE, Set.of( dvA, dvE ) );
-        programStageInstanceService.addProgramStageInstance( psiA );
-        programStageInstanceService.addProgramStageInstance( psiB );
-        programStageInstanceService.addProgramStageInstance( psiC );
-        programStageInstanceService.addProgramStageInstance( psiD );
-        programStageInstanceService.addProgramStageInstance( psiE );
+        eventA = createEvent( piA, psA, ouA, Set.of( dvA, dvB ) );
+        eventB = createEvent( piA, psB, ouB, Set.of( dvC, dvD ) );
+        eventC = createEvent( piA, psA, ouC, Set.of( dvA, dvB ) );
+        eventD = createEvent( piA, psB, ouD, Set.of( dvC, dvD ) );
+        eventE = createEvent( piA, psA, ouE, Set.of( dvA, dvE ) );
+        eventService.addEvent( eventA );
+        eventService.addEvent( eventB );
+        eventService.addEvent( eventC );
+        eventService.addEvent( eventD );
+        eventService.addEvent( eventE );
     }
 
     @Test
     void testGetTrackedEntityDataValueAuditsByDataElement()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventA,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventB,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
@@ -201,14 +201,14 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA, deB ) )
-            .setProgramStageInstances( List.of( psiA ) )
+            .setEvents( List.of( eventA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( List.of( dvaA, dvaB ), auditStore.getTrackedEntityDataValueAudits( params ) );
         assertEquals( 2, auditStore.countTrackedEntityDataValueAudits( params ) );
 
         params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( List.of( deA ) )
-            .setProgramStageInstances( List.of( psiA ) )
+            .setEvents( List.of( eventA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
         assertContainsOnly( List.of( dvaA ), auditStore.getTrackedEntityDataValueAudits( params ) );
         assertEquals( 1, auditStore.countTrackedEntityDataValueAudits( params ) );
@@ -217,11 +217,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     @Test
     void testGetTrackedEntityDataValueAuditsByOrgUnitSelected()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventA,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventB,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
@@ -243,15 +243,15 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     @Test
     void testGetTrackedEntityDataValueAuditsByOrgUnitDescendants()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiB,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventB,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiC,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventC,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaD = new TrackedEntityDataValueAudit( deB, psiD,
+        TrackedEntityDataValueAudit dvaD = new TrackedEntityDataValueAudit( deB, eventD,
             dvD.getAuditValue(), USER_A, dvD.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaE = new TrackedEntityDataValueAudit( deA, psiE,
+        TrackedEntityDataValueAudit dvaE = new TrackedEntityDataValueAudit( deA, eventE,
             dvE.getAuditValue(), USER_A, dvE.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
@@ -278,11 +278,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     @Test
     void testGetTrackedEntityDataValueAuditsByProgramStage()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventA,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventB,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );
@@ -304,13 +304,13 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     @Test
     void testGetTrackedEntityDataValueAuditsByStartEndDate()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.UPDATE );
         dvaA.setCreated( getDate( 2021, 6, 1 ) );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventA,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
         dvaB.setCreated( getDate( 2021, 7, 1 ) );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventB,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.UPDATE );
         dvaC.setCreated( getDate( 2021, 8, 1 ) );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
@@ -335,11 +335,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     @Test
     void testGetTrackedEntityDataValueAuditsByAuditType()
     {
-        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, psiA,
+        TrackedEntityDataValueAudit dvaA = new TrackedEntityDataValueAudit( deA, eventA,
             dvA.getAuditValue(), USER_A, dvA.getProvidedElsewhere(), AuditType.CREATE );
-        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, psiA,
+        TrackedEntityDataValueAudit dvaB = new TrackedEntityDataValueAudit( deB, eventA,
             dvB.getAuditValue(), USER_A, dvB.getProvidedElsewhere(), AuditType.UPDATE );
-        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, psiB,
+        TrackedEntityDataValueAudit dvaC = new TrackedEntityDataValueAudit( deA, eventB,
             dvC.getAuditValue(), USER_A, dvC.getProvidedElsewhere(), AuditType.DELETE );
         auditStore.addTrackedEntityDataValueAudit( dvaA );
         auditStore.addTrackedEntityDataValueAudit( dvaB );

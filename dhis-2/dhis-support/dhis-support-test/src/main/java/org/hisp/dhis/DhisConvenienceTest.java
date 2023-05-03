@@ -144,14 +144,14 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -1683,42 +1683,42 @@ public abstract class DhisConvenienceTest
         return program;
     }
 
-    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+    public static Enrollment createProgramInstance( Program program, TrackedEntityInstance tei,
         OrganisationUnit organisationUnit )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
-        programInstance.setAutoFields();
+        Enrollment enrollment = new Enrollment( program, tei, organisationUnit );
+        enrollment.setAutoFields();
 
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( tei );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
+        enrollment.setProgram( program );
+        enrollment.setEntityInstance( tei );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
 
-        return programInstance;
+        return enrollment;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
-        ProgramInstance pi, OrganisationUnit organisationUnit )
+    public static Event createEvent( ProgramStage programStage,
+        Enrollment enrollment, OrganisationUnit organisationUnit )
     {
-        ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setAutoFields();
+        Event event = new Event();
+        event.setAutoFields();
 
-        psi.setProgramStage( programStage );
-        psi.setProgramInstance( pi );
-        psi.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStage );
+        event.setEnrollment( enrollment );
+        event.setOrganisationUnit( organisationUnit );
 
-        return psi;
+        return event;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+    public static Event createEvent( Enrollment enrollment,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
-        psi.setExecutionDate( new Date() );
-        psi.setStatus( EventStatus.ACTIVE );
-        psi.setEventDataValues( dataValues );
-        return psi;
+        Event event = createEvent( programStage, enrollment, organisationUnit );
+        event.setExecutionDate( new Date() );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setEventDataValues( dataValues );
+        return event;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
@@ -1963,10 +1963,10 @@ public abstract class DhisConvenienceTest
         Program program,
         TrackedEntityType trackedEntityType )
     {
-        RelationshipConstraint psiConstraint = new RelationshipConstraint();
-        psiConstraint.setProgram( program );
-        psiConstraint.setTrackedEntityType( trackedEntityType );
-        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint eventConstraint = new RelationshipConstraint();
+        eventConstraint.setProgram( program );
+        eventConstraint.setTrackedEntityType( trackedEntityType );
+        eventConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         RelationshipConstraint teiConstraint = new RelationshipConstraint();
         teiConstraint.setProgram( program );
         teiConstraint.setTrackedEntityType( trackedEntityType );
@@ -1974,7 +1974,7 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
         relationshipType.setName( "Malaria case linked to person" );
         relationshipType.setBidirectional( true );
-        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setFromConstraint( eventConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
     }
@@ -2000,7 +2000,7 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, ProgramInstance to,
+    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, Enrollment to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
@@ -2008,7 +2008,7 @@ public abstract class DhisConvenienceTest
         RelationshipItem riTo = new RelationshipItem();
 
         riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramInstance( to );
+        riTo.setEnrollment( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );
@@ -2021,8 +2021,8 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
-        ProgramStageInstance to,
+    public static Relationship createTeiToEventRelationship( TrackedEntityInstance from,
+        Event to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
@@ -2030,7 +2030,7 @@ public abstract class DhisConvenienceTest
         RelationshipItem riTo = new RelationshipItem();
 
         riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramStageInstance( to );
+        riTo.setEvent( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );

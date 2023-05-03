@@ -45,10 +45,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -87,7 +87,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
     private TrackedEntityInstance tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttribute tea;
 
@@ -95,7 +95,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
     private ProgramStage programStage;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private DataElement dataElement;
 
@@ -146,18 +146,18 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         programStage = createProgramStage( 'A', program );
         manager.save( programStage );
 
-        programInstance = programInstance( tei );
-        programStageInstance = event();
-        programInstance.setProgramStageInstances( Set.of( programStageInstance ) );
-        manager.update( programInstance );
+        enrollment = programInstance( tei );
+        event = event();
+        enrollment.setEvents( Set.of( event ) );
+        manager.update( enrollment );
 
-        manager.save( relationship( programInstance, tei ) );
+        manager.save( relationship( enrollment, tei ) );
     }
 
     @Test
     void getEnrollmentById()
     {
-        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}", programInstance.getUid() )
+        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}", this.enrollment.getUid() )
             .content( HttpStatus.OK ).as( JsonEnrollment.class );
 
         assertDefaultResponse( enrollment );
@@ -166,20 +166,20 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEnrollmentByIdWithFields()
     {
-        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}?fields=orgUnit,status", programInstance.getUid() )
+        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}?fields=orgUnit,status", this.enrollment.getUid() )
             .content( HttpStatus.OK ).as( JsonEnrollment.class );
 
         assertHasOnlyMembers( enrollment, "orgUnit", "status" );
-        assertEquals( programInstance.getOrganisationUnit().getUid(), enrollment.getOrgUnit() );
-        assertEquals( programInstance.getStatus().toString(), enrollment.getStatus() );
+        assertEquals( this.enrollment.getOrganisationUnit().getUid(), enrollment.getOrgUnit() );
+        assertEquals( this.enrollment.getStatus().toString(), enrollment.getStatus() );
     }
 
     @Test
     void getEnrollmentByIdWithNotes()
     {
-        programInstance.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
+        enrollment.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
 
-        JsonEnrollment enrollment = GET( "/tracker/enrollments/{uid}?fields=notes", programInstance.getUid() )
+        JsonEnrollment enrollment = GET( "/tracker/enrollments/{uid}?fields=notes", this.enrollment.getUid() )
             .content( HttpStatus.OK ).as( JsonEnrollment.class );
 
         JsonNote note = enrollment.getNotes().get( 0 );
@@ -191,7 +191,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEnrollmentByIdWithAttributes()
     {
-        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}?fields=attributes", programInstance.getUid() )
+        JsonEnrollment enrollment = GET( "/tracker/enrollments/{id}?fields=attributes", this.enrollment.getUid() )
             .content( HttpStatus.OK ).as( JsonEnrollment.class );
 
         assertHasOnlyMembers( enrollment, "attributes" );
@@ -211,15 +211,15 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     void getEnrollmentByIdWithRelationshipsFields()
     {
         JsonList<JsonRelationship> relationships = GET( "/tracker/enrollments/{id}?fields=relationships",
-            programInstance.getUid() )
+            enrollment.getUid() )
                 .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
         JsonRelationship jsonRelationship = relationships.get( 0 );
         assertEquals( relationship.getUid(), jsonRelationship.getRelationship() );
 
         JsonRelationshipItem.JsonEnrollment enrollment = jsonRelationship.getFrom().getEnrollment();
-        assertEquals( relationship.getFrom().getProgramInstance().getUid(), enrollment.getEnrollment() );
-        assertEquals( relationship.getFrom().getProgramInstance().getEntityInstance().getUid(),
+        assertEquals( relationship.getFrom().getEnrollment().getUid(), enrollment.getEnrollment() );
+        assertEquals( relationship.getFrom().getEnrollment().getEntityInstance().getUid(),
             enrollment.getTrackedEntity() );
 
         JsonRelationshipItem.JsonTrackedEntity trackedEntity = jsonRelationship.getTo().getTrackedEntity();
@@ -235,12 +235,12 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEnrollmentByIdWithEventsFields()
     {
-        JsonList<JsonEvent> events = GET( "/tracker/enrollments/{id}?fields=events", programInstance.getUid() )
+        JsonList<JsonEvent> events = GET( "/tracker/enrollments/{id}?fields=events", enrollment.getUid() )
             .content( HttpStatus.OK ).getList( "events", JsonEvent.class );
 
         JsonEvent event = events.get( 0 );
-        assertEquals( programStageInstance.getUid(), event.getEvent() );
-        assertEquals( programInstance.getUid(), event.getEnrollment() );
+        assertEquals( this.event.getUid(), event.getEvent() );
+        assertEquals( enrollment.getUid(), event.getEnrollment() );
         assertEquals( tei.getUid(), event.getTrackedEntity() );
         assertEquals( dataElement.getUid(), event.getDataValues().get( 0 ).getDataElement() );
         assertEquals( eventDataValue.getValue(), event.getDataValues().get( 0 ).getValue() );
@@ -258,7 +258,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     void getEnrollmentByIdWithExcludedFields()
     {
         assertTrue(
-            (GET( "/tracker/enrollments/{id}?fields=!attributes,!relationships,!events", programInstance.getUid() )
+            (GET( "/tracker/enrollments/{id}?fields=!attributes,!relationships,!events", enrollment.getUid() )
                 .content( HttpStatus.OK )).isEmpty() );
     }
 
@@ -271,11 +271,11 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
                 .getMessage() );
     }
 
-    private ProgramStageInstance event()
+    private Event event()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance( programInstance, programStage,
-            programInstance.getOrganisationUnit() );
-        programStageInstance.setAutoFields();
+        Event event = new Event( enrollment, programStage,
+            enrollment.getOrganisationUnit() );
+        event.setAutoFields();
 
         eventDataValue = new EventDataValue();
         eventDataValue.setValue( "value" );
@@ -284,17 +284,17 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         manager.save( dataElement );
         eventDataValue.setDataElement( dataElement.getUid() );
         Set<EventDataValue> eventDataValues = Set.of( eventDataValue );
-        programStageInstance.setEventDataValues( eventDataValues );
-        manager.save( programStageInstance );
-        return programStageInstance;
+        event.setEventDataValues( eventDataValues );
+        manager.save( event );
+        return event;
     }
 
-    private Relationship relationship( ProgramInstance from, TrackedEntityInstance to )
+    private Relationship relationship( Enrollment from, TrackedEntityInstance to )
     {
         relationship = new Relationship();
 
         RelationshipItem fromItem = new RelationshipItem();
-        fromItem.setProgramInstance( from );
+        fromItem.setEnrollment( from );
         from.getRelationshipItems().add( fromItem );
         relationship.setFrom( fromItem );
         fromItem.setRelationship( relationship );
@@ -323,7 +323,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     private void assertDefaultResponse( JsonEnrollment enrollment )
     {
         assertFalse( enrollment.isEmpty() );
-        assertEquals( programInstance.getUid(), enrollment.getEnrollment() );
+        assertEquals( this.enrollment.getUid(), enrollment.getEnrollment() );
         assertEquals( tei.getUid(), enrollment.getTrackedEntity() );
         assertEquals( program.getUid(), enrollment.getProgram() );
         assertEquals( "COMPLETED", enrollment.getStatus() );
@@ -342,18 +342,18 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         assertHasNoMember( enrollment, "attributes" );
     }
 
-    private ProgramInstance programInstance( TrackedEntityInstance tei )
+    private Enrollment programInstance( TrackedEntityInstance tei )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance, false );
-        tei.setProgramInstances( Set.of( programInstance ) );
+        Enrollment enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        enrollment.setFollowup( true );
+        manager.save( enrollment, false );
+        tei.setEnrollments( Set.of( enrollment ) );
         manager.save( tei, false );
-        return programInstance;
+        return enrollment;
     }
 
     private TrackedEntityComment note( String note, String value, String storedBy )

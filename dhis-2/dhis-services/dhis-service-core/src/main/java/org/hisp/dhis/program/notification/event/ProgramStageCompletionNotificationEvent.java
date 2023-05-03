@@ -34,16 +34,16 @@ import org.springframework.context.ApplicationEvent;
  */
 public class ProgramStageCompletionNotificationEvent extends ApplicationEvent
 {
-    private long programStageInstance;
+    private long event;
 
-    public ProgramStageCompletionNotificationEvent( Object source, long programStageInstance )
+    public ProgramStageCompletionNotificationEvent( Object source, long event )
     {
         super( source );
-        this.programStageInstance = programStageInstance;
+        this.event = event;
     }
 
-    public long getProgramStageInstance()
+    public long getEvent()
     {
-        return programStageInstance;
+        return event;
     }
 }

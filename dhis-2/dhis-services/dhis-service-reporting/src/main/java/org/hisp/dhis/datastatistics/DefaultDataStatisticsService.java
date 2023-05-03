@@ -46,7 +46,7 @@ import org.hisp.dhis.datasummary.DataSummary;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.eventvisualization.EventVisualizationStore;
 import org.hisp.dhis.indicator.Indicator;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.statistics.StatisticsProvider;
 import org.hisp.dhis.system.SystemInfo;
@@ -82,7 +82,7 @@ public class DefaultDataStatisticsService
 
     private final StatisticsProvider statisticsProvider;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final EventVisualizationStore eventVisualizationStore;
 
@@ -241,10 +241,10 @@ public class DefaultDataStatisticsService
         // Events
         Map<Integer, Long> eventCount = new HashMap<>();
 
-        eventCount.put( 0, programStageInstanceService.getProgramStageInstanceCount( 0 ) );
-        eventCount.put( 1, programStageInstanceService.getProgramStageInstanceCount( 1 ) );
-        eventCount.put( 7, programStageInstanceService.getProgramStageInstanceCount( 7 ) );
-        eventCount.put( 30, programStageInstanceService.getProgramStageInstanceCount( 30 ) );
+        eventCount.put( 0, eventService.getEventCount( 0 ) );
+        eventCount.put( 1, eventService.getEventCount( 1 ) );
+        eventCount.put( 7, eventService.getEventCount( 7 ) );
+        eventCount.put( 30, eventService.getEventCount( 30 ) );
 
         statistics.setEventCount( eventCount );
 

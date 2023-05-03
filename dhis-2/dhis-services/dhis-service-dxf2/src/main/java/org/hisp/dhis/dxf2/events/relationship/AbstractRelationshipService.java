@@ -47,9 +47,7 @@ import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -58,8 +56,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -113,9 +111,9 @@ public abstract class AbstractRelationshipService
 
     private HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
 
-    private HashMap<String, ProgramInstance> programInstanceCache = new HashMap<>();
+    private HashMap<String, Enrollment> programInstanceCache = new HashMap<>();
 
-    private HashMap<String, ProgramStageInstance> programStageInstanceCache = new HashMap<>();
+    private HashMap<String, Event> programStageInstanceCache = new HashMap<>();
 
     @Override
     @Transactional( readOnly = true )
@@ -138,7 +136,7 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
@@ -155,14 +153,14 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
+    public List<Relationship> getRelationshipsByEvent( Event psi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .getRelationshipsByEvent( psi, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )
@@ -413,8 +411,8 @@ public abstract class AbstractRelationshipService
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipInput )
     {
         relationshipItem.setTrackedEntityInstance( null );
-        relationshipItem.setProgramStageInstance( null );
-        relationshipItem.setProgramInstance( null );
+        relationshipItem.setEvent( null );
+        relationshipItem.setEnrollment( null );
 
         if ( relationshipConstraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
@@ -424,12 +422,12 @@ public abstract class AbstractRelationshipService
         else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             relationshipItem
-                .setProgramInstance(
+                .setEnrollment(
                     programInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
         else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-            relationshipItem.setProgramStageInstance(
+            relationshipItem.setEvent(
                 programStageInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
     }
@@ -539,10 +537,10 @@ public abstract class AbstractRelationshipService
 
             relationshipItem.setTrackedEntityInstance( tei );
         }
-        else if ( dao.getProgramInstance() != null )
+        else if ( dao.getEnrollment() != null )
         {
-            Enrollment enrollment = new Enrollment();
-            String uid = dao.getProgramInstance().getUid();
+            org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+            String uid = dao.getEnrollment().getUid();
 
             if ( uidOnly )
             {
@@ -552,15 +550,15 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), EnrollmentParams.TRUE );
+                enrollment = enrollmentService.getEnrollment( dao.getEnrollment(), EnrollmentParams.TRUE );
             }
 
             relationshipItem.setEnrollment( enrollment );
         }
-        else if ( dao.getProgramStageInstance() != null )
+        else if ( dao.getEvent() != null )
         {
-            Event event = new Event();
-            String uid = dao.getProgramStageInstance().getUid();
+            org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+            String uid = dao.getEvent().getUid();
 
             if ( uidOnly )
             {
@@ -569,7 +567,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                event = eventService.getEvent( dao.getProgramStageInstance(), EventParams.FALSE );
+                event = eventService.getEvent( dao.getEvent(), EventParams.FALSE );
             }
 
             relationshipItem.setEvent( event );
@@ -704,7 +702,7 @@ public abstract class AbstractRelationshipService
         }
         else if ( PROGRAM_INSTANCE.equals( entity ) )
         {
-            ProgramInstance pi = programInstanceCache.get( itemUid );
+            Enrollment pi = programInstanceCache.get( itemUid );
 
             if ( pi == null )
             {
@@ -719,12 +717,12 @@ public abstract class AbstractRelationshipService
         }
         else if ( PROGRAM_STAGE_INSTANCE.equals( entity ) )
         {
-            ProgramStageInstance psi = programStageInstanceCache.get( itemUid );
+            Event psi = programStageInstanceCache.get( itemUid );
 
             if ( psi == null )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "ProgramStageInstance '" + itemUid + "' not found." );
+                    "Event '" + itemUid + "' not found." );
             }
             else
             {
@@ -732,13 +730,13 @@ public abstract class AbstractRelationshipService
                     !psi.getProgramStage().getProgram().equals( constraint.getProgram() ) )
                 {
                     importConflicts.addConflict( relationshipUid,
-                        "ProgramStageInstance '" + itemUid + "' has invalid Program." );
+                        "Event '" + itemUid + "' has invalid Program." );
                 }
                 else if ( constraint.getProgramStage() != null &&
                     !psi.getProgramStage().equals( constraint.getProgramStage() ) )
                 {
                     importConflicts.addConflict( relationshipUid,
-                        "ProgramStageInstance '" + itemUid + "' has invalid ProgramStage." );
+                        "Event '" + itemUid + "' has invalid ProgramStage." );
                 }
             }
         }
@@ -787,12 +785,12 @@ public abstract class AbstractRelationshipService
         {
             fromItem = new RelationshipItem();
             fromItem
-                .setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
+                .setEnrollment( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setProgramStageInstance(
+            fromItem.setEvent(
                 programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
 
@@ -806,12 +804,12 @@ public abstract class AbstractRelationshipService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
+            toItem.setEnrollment( programInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramStageInstance(
+            toItem.setEvent(
                 programStageInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
 
@@ -867,20 +865,20 @@ public abstract class AbstractRelationshipService
 
         if ( relationshipEntities.get( PROGRAM_INSTANCE ) != null )
         {
-            Query piQuery = Query.from( schemaService.getDynamicSchema( ProgramInstance.class ) );
+            Query piQuery = Query.from( schemaService.getDynamicSchema( Enrollment.class ) );
             piQuery.setUser( user );
             piQuery.add( Restrictions.in( "id", relationshipEntities.get( PROGRAM_INSTANCE ) ) );
             queryService.query( piQuery )
-                .forEach( pi -> programInstanceCache.put( pi.getUid(), (ProgramInstance) pi ) );
+                .forEach( pi -> programInstanceCache.put( pi.getUid(), (Enrollment) pi ) );
         }
 
         if ( relationshipEntities.get( PROGRAM_STAGE_INSTANCE ) != null )
         {
-            Query psiQuery = Query.from( schemaService.getDynamicSchema( ProgramStageInstance.class ) );
+            Query psiQuery = Query.from( schemaService.getDynamicSchema( Event.class ) );
             psiQuery.setUser( user );
             psiQuery.add( Restrictions.in( "id", relationshipEntities.get( PROGRAM_STAGE_INSTANCE ) ) );
             queryService.query( psiQuery )
-                .forEach( psi -> programStageInstanceCache.put( psi.getUid(), (ProgramStageInstance) psi ) );
+                .forEach( psi -> programStageInstanceCache.put( psi.getUid(), (Event) psi ) );
         }
     }
 

@@ -114,9 +114,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramStageInstances()
+    public int deleteSoftDeletedEvents()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+        int result = maintenanceStore.deleteSoftDeletedEvents();
 
         log.info( "Permanently deleted soft deleted events: " + result );
 
