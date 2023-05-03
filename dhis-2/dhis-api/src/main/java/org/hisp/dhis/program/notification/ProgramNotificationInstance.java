@@ -37,8 +37,8 @@ import lombok.ToString;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.template.snapshot.ProgramNotificationTemplateSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -68,7 +68,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
@@ -85,7 +85,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
 
     public boolean hasProgramInstance()
     {
-        return programInstance != null;
+        return enrollment != null;
     }
 
     public boolean hasEvent()

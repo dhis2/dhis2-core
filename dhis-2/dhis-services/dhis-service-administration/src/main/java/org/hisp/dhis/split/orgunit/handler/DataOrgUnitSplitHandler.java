@@ -64,7 +64,7 @@ public class DataOrgUnitSplitHandler
 
         migrate( request, "ProgramMessage", "recipients." + PARAM_ORG_UNIT );
         migrate( request, "Event", PARAM_ORG_UNIT );
-        migrate( request, "ProgramInstance", PARAM_ORG_UNIT );
+        migrate( request, "Enrollment", PARAM_ORG_UNIT );
         migrate( request, "ProgramOwnershipHistory", PARAM_ORG_UNIT );
         migrate( request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT );
         migrate( request, "TrackedEntityInstance", PARAM_ORG_UNIT );

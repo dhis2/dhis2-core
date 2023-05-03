@@ -37,8 +37,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
@@ -73,7 +73,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     @Mock
     private ProgramStore programStore;
 
-    private List<ProgramInstance> programInstances;
+    private List<Enrollment> enrollments;
 
     private Program programWithRegistration;
 
@@ -85,27 +85,27 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
     private TrackerPreheat preheat;
 
-    private ProgramInstance programInstanceWithoutRegistration;
+    private Enrollment enrollmentWithoutRegistration;
 
     @BeforeEach
     public void setUp()
     {
-        programInstances = rnd.objects( ProgramInstance.class, 2 ).collect( Collectors.toList() );
+        enrollments = rnd.objects( Enrollment.class, 2 ).collect( Collectors.toList() );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
-        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
+        enrollments.forEach( p -> p.getOrganisationUnit().setParent( null ) );
 
         programWithRegistration = createProgram( 'A' );
         programWithRegistration.setProgramType( WITH_REGISTRATION );
-        ProgramInstance programInstanceWithRegistration = programInstances.get( 0 );
-        programInstanceWithRegistration.setProgram( programWithRegistration );
+        Enrollment enrollmentWithRegistration = enrollments.get( 0 );
+        enrollmentWithRegistration.setProgram( programWithRegistration );
 
         programWithoutRegistration = createProgram( 'B' );
         programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
-        programInstanceWithoutRegistration = programInstances.get( 1 );
-        programInstanceWithoutRegistration.setProgram( programWithoutRegistration );
+        enrollmentWithoutRegistration = enrollments.get( 1 );
+        enrollmentWithoutRegistration.setProgram( programWithoutRegistration );
 
         when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
-            .thenReturn( programInstances );
+            .thenReturn( enrollments );
 
         params = TrackerImportParams.builder().build();
         preheat = new TrackerPreheat();
@@ -118,7 +118,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        final List<String> programUids = programInstances
+        final List<String> programUids = enrollments
             .stream()
             .map( pi -> pi.getProgram().getUid() )
             .collect( Collectors.toList() );
@@ -132,17 +132,17 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     void verifySupplierWhenNoProgramsArePresent()
     {
         when( programStore.getByType( WITHOUT_REGISTRATION ) ).thenReturn( List.of( programWithoutRegistration ) );
-        programInstances = rnd.objects( ProgramInstance.class, 1 ).collect( Collectors.toList() );
+        enrollments = rnd.objects( Enrollment.class, 1 ).collect( Collectors.toList() );
         // set the OrgUnit parent to null to avoid recursive errors when mapping
-        programInstances.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        ProgramInstance programInstance = programInstances.get( 0 );
-        programInstance.setProgram( programWithoutRegistration );
+        enrollments.forEach( p -> p.getOrganisationUnit().setParent( null ) );
+        Enrollment enrollment = enrollments.get( 0 );
+        enrollment.setProgram( programWithoutRegistration );
         when( programInstanceStore.getByPrograms( List.of( programWithoutRegistration ) ) )
-            .thenReturn( programInstances );
+            .thenReturn( enrollments );
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( programInstance,
+        assertProgramInstanceInPreheat( enrollment,
             preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
@@ -154,11 +154,11 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( programInstanceWithoutRegistration,
+        assertProgramInstanceInPreheat( enrollmentWithoutRegistration,
             preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
-    private void assertProgramInstanceInPreheat( ProgramInstance expected, ProgramInstance actual )
+    private void assertProgramInstanceInPreheat( Enrollment expected, Enrollment actual )
     {
         assertEquals( expected.getUid(), actual.getUid() );
         assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );

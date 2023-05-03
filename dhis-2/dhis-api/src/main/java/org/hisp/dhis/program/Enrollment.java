@@ -59,7 +59,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @Auditable( scope = AuditScope.TRACKER )
 @JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramInstance
+public class Enrollment
     extends SoftDeletableObject
 {
     private Date createdAtClient;
@@ -107,11 +107,11 @@ public class ProgramInstance
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramInstance()
+    public Enrollment()
     {
     }
 
-    public ProgramInstance( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
+    public Enrollment( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
         Program program )
     {
         this.enrollmentDate = enrollmentDate;
@@ -120,7 +120,7 @@ public class ProgramInstance
         this.program = program;
     }
 
-    public ProgramInstance( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit )
+    public Enrollment( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit )
     {
         this.program = program;
         this.entityInstance = entityInstance;
@@ -154,7 +154,7 @@ public class ProgramInstance
     public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
     {
         setEntityInstance( entityInstance );
-        entityInstance.getProgramInstances().add( this );
+        entityInstance.getEnrollments().add( this );
 
         setProgram( program );
     }
@@ -243,10 +243,10 @@ public class ProgramInstance
     @Override
     public boolean equals( Object obj )
     {
-        return this == obj || obj instanceof ProgramInstance && objectEquals( (ProgramInstance) obj );
+        return this == obj || obj instanceof Enrollment && objectEquals( (Enrollment) obj );
     }
 
-    private boolean objectEquals( ProgramInstance other )
+    private boolean objectEquals( Enrollment other )
     {
         return Objects.equals( incidentDate, other.incidentDate )
             && Objects.equals( enrollmentDate, other.enrollmentDate )
@@ -290,7 +290,7 @@ public class ProgramInstance
         return organisationUnit;
     }
 
-    public ProgramInstance setOrganisationUnit( OrganisationUnit organisationUnit )
+    public Enrollment setOrganisationUnit( OrganisationUnit organisationUnit )
     {
         this.organisationUnit = organisationUnit;
         return this;

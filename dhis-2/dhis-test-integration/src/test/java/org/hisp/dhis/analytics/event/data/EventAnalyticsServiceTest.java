@@ -92,10 +92,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
@@ -396,12 +396,12 @@ class EventAnalyticsServiceTest
         attributeValueService.addTrackedEntityAttributeValue( atv );
 
         // Program Instances (Enrollments)
-        ProgramInstance piA = programInstanceService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
+        Enrollment piA = programInstanceService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
         piA.setEnrollmentDate( jan1 );
         piA.setIncidentDate( jan1 );
         programInstanceService.addProgramInstance( piA );
 
-        ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
+        Enrollment piB = programInstanceService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
         piB.setEnrollmentDate( jan1 );
         piB.setIncidentDate( jan1 );
         programInstanceService.addProgramInstance( piB );

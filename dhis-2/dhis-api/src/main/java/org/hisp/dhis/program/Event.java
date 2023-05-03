@@ -67,7 +67,7 @@ public class Event
     private Date lastUpdatedAtClient;
 
     @AuditAttribute
-    private ProgramInstance enrollment;
+    private Enrollment enrollment;
 
     @AuditAttribute
     private ProgramStage programStage;
@@ -118,13 +118,13 @@ public class Event
     {
     }
 
-    public Event( ProgramInstance enrollment, ProgramStage programStage )
+    public Event( Enrollment enrollment, ProgramStage programStage )
     {
         this.enrollment = enrollment;
         this.programStage = programStage;
     }
 
-    public Event( ProgramInstance enrollment, ProgramStage programStage,
+    public Event( Enrollment enrollment, ProgramStage programStage,
         OrganisationUnit organisationUnit )
     {
         this( enrollment, programStage );
@@ -175,12 +175,12 @@ public class Event
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramInstance getEnrollment()
+    public Enrollment getEnrollment()
     {
         return enrollment;
     }
 
-    public void setEnrollment( ProgramInstance enrollment )
+    public void setEnrollment( Enrollment enrollment )
     {
         this.enrollment = enrollment;
     }

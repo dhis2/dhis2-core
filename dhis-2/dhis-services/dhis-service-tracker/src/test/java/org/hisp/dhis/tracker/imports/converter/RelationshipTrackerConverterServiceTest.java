@@ -36,9 +36,9 @@ import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -79,7 +79,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private TrackedEntityInstance tei;
 
-    private ProgramInstance pi;
+    private Enrollment pi;
 
     private Event event;
 
@@ -133,7 +133,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
             if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
                 assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
-                assertEquals( ENROLLMENT, relationship.getTo().getProgramInstance().getUid() );
+                assertEquals( ENROLLMENT, relationship.getTo().getEnrollment().getUid() );
             }
             else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {

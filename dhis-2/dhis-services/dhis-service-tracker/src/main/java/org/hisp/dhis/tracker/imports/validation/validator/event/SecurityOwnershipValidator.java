@@ -50,9 +50,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -60,7 +60,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -213,18 +212,18 @@ class SecurityOwnershipValidator
             return null;
         }
 
-        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        Enrollment enrollment = bundle.getPreheat().getEnrollment( event.getEnrollment() );
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             return bundle
                 .findEnrollmentByUid( event.getEnrollment() )
-                .map( Enrollment::getTrackedEntity )
+                .map( org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity )
                 .orElse( null );
         }
         else
         {
-            return programInstance.getEntityInstance().getUid();
+            return enrollment.getEntityInstance().getUid();
         }
     }
 

@@ -70,12 +70,12 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -246,12 +246,12 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicator );
         programService.updateProgram( program );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
-        programInstanceService.addProgramInstance( programInstance );
-        Event stageInstanceA = eventService.createEvent( programInstance,
+        programInstanceService.addProgramInstance( enrollment );
+        Event stageInstanceA = eventService.createEvent( enrollment,
             stageA, dateMar20, dateMar20, orgUnitA );
-        Event stageInstanceB = eventService.createEvent( programInstance,
+        Event stageInstanceB = eventService.createEvent( enrollment,
             stageA, dateApr10, dateApr10, orgUnitA );
         stageInstanceA.setExecutionDate( dateMar20 );
         stageInstanceB.setExecutionDate( dateApr10 );

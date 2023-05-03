@@ -37,8 +37,8 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -106,9 +106,9 @@ public class SingleEventListener extends CommandSMSListener
     private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms,
         Set<OrganisationUnit> ous )
     {
-        List<ProgramInstance> programInstances = new ArrayList<>(
+        List<Enrollment> enrollments = new ArrayList<>(
             programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
-        register( programInstances, commandValuePairs, smsCommand, sms, ous );
+        register( enrollments, commandValuePairs, smsCommand, sms, ous );
     }
 }

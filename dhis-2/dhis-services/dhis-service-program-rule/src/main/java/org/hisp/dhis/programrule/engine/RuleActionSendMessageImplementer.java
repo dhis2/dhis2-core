@@ -33,9 +33,9 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
@@ -85,9 +85,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
-        NotificationValidationResult result = validate( ruleEffect, programInstance );
+        NotificationValidationResult result = validate( ruleEffect, enrollment );
 
         if ( !result.isValid() )
         {
@@ -96,9 +96,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         ProgramNotificationTemplate template = result.getTemplate();
 
-        String key = generateKey( template, programInstance );
+        String key = generateKey( template, enrollment );
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), enrollment ) );
 
         if ( result.getLogEntry() != null )
         {

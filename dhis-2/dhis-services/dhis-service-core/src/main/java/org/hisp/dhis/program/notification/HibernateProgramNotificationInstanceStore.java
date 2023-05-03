@@ -106,8 +106,8 @@ public class HibernateProgramNotificationInstanceStore
 
         if ( params.hasProgramInstance() )
         {
-            predicates.add( root -> builder.equal( root.get( "programInstance" ),
-                params.getProgramInstance() ) );
+            predicates.add( root -> builder.equal( root.get( "enrollment" ),
+                params.getEnrollment() ) );
         }
 
         if ( params.hasScheduledAt() )

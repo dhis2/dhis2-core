@@ -47,7 +47,6 @@ import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.EventParams;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -57,8 +56,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -112,7 +111,7 @@ public abstract class AbstractRelationshipService
 
     private HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
 
-    private HashMap<String, ProgramInstance> programInstanceCache = new HashMap<>();
+    private HashMap<String, Enrollment> programInstanceCache = new HashMap<>();
 
     private HashMap<String, Event> programStageInstanceCache = new HashMap<>();
 
@@ -137,7 +136,7 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
@@ -413,7 +412,7 @@ public abstract class AbstractRelationshipService
     {
         relationshipItem.setTrackedEntityInstance( null );
         relationshipItem.setEvent( null );
-        relationshipItem.setProgramInstance( null );
+        relationshipItem.setEnrollment( null );
 
         if ( relationshipConstraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
@@ -423,7 +422,7 @@ public abstract class AbstractRelationshipService
         else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             relationshipItem
-                .setProgramInstance(
+                .setEnrollment(
                     programInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
         else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
@@ -538,10 +537,10 @@ public abstract class AbstractRelationshipService
 
             relationshipItem.setTrackedEntityInstance( tei );
         }
-        else if ( dao.getProgramInstance() != null )
+        else if ( dao.getEnrollment() != null )
         {
-            Enrollment enrollment = new Enrollment();
-            String uid = dao.getProgramInstance().getUid();
+            org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+            String uid = dao.getEnrollment().getUid();
 
             if ( uidOnly )
             {
@@ -551,7 +550,7 @@ public abstract class AbstractRelationshipService
             }
             else
             {
-                enrollment = enrollmentService.getEnrollment( dao.getProgramInstance(), EnrollmentParams.TRUE );
+                enrollment = enrollmentService.getEnrollment( dao.getEnrollment(), EnrollmentParams.TRUE );
             }
 
             relationshipItem.setEnrollment( enrollment );
@@ -703,7 +702,7 @@ public abstract class AbstractRelationshipService
         }
         else if ( PROGRAM_INSTANCE.equals( entity ) )
         {
-            ProgramInstance pi = programInstanceCache.get( itemUid );
+            Enrollment pi = programInstanceCache.get( itemUid );
 
             if ( pi == null )
             {
@@ -786,7 +785,7 @@ public abstract class AbstractRelationshipService
         {
             fromItem = new RelationshipItem();
             fromItem
-                .setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
+                .setEnrollment( programInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
@@ -805,7 +804,7 @@ public abstract class AbstractRelationshipService
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setProgramInstance( programInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
+            toItem.setEnrollment( programInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
@@ -866,11 +865,11 @@ public abstract class AbstractRelationshipService
 
         if ( relationshipEntities.get( PROGRAM_INSTANCE ) != null )
         {
-            Query piQuery = Query.from( schemaService.getDynamicSchema( ProgramInstance.class ) );
+            Query piQuery = Query.from( schemaService.getDynamicSchema( Enrollment.class ) );
             piQuery.setUser( user );
             piQuery.add( Restrictions.in( "id", relationshipEntities.get( PROGRAM_INSTANCE ) ) );
             queryService.query( piQuery )
-                .forEach( pi -> programInstanceCache.put( pi.getUid(), (ProgramInstance) pi ) );
+                .forEach( pi -> programInstanceCache.put( pi.getUid(), (Enrollment) pi ) );
         }
 
         if ( relationshipEntities.get( PROGRAM_STAGE_INSTANCE ) != null )

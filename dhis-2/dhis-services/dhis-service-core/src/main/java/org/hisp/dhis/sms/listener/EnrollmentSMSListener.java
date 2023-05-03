@@ -42,9 +42,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -175,7 +175,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
-        ProgramInstance enrollment;
+        Enrollment enrollment;
         boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUid() );
         if ( enrollmentExists )
         {
@@ -303,7 +303,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         return trackedEntityAttributeValue;
     }
 
-    protected List<Object> processEvent( SmsEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
+    protected List<Object> processEvent( SmsEvent event, User user, Enrollment enrollment, IncomingSms sms )
     {
         Uid stageid = event.getProgramStage();
         Uid aocid = event.getAttributeOptionCombo();
@@ -327,7 +327,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
             aoc, user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
             event.getCoordinates() );
 

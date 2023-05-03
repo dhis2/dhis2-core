@@ -88,7 +88,7 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
+        relationshipItem.setEnrollment( from.getEnrollment() != null ? from.getEnrollment().getUid() : null );
         relationshipItem
             .setEvent( from.getEvent() != null ? from.getEvent().getUid() : null );
         relationshipItem.setTrackedEntity(
@@ -149,7 +149,7 @@ public class RelationshipTrackerConverterService
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
-            fromItem.setProgramInstance(
+            fromItem.setEnrollment(
                 preheat.getEnrollment(
                     fromRelationship.getFrom().getEnrollment() ) );
         }
@@ -169,7 +169,7 @@ public class RelationshipTrackerConverterService
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
-            toItem.setProgramInstance(
+            toItem.setEnrollment(
                 preheat.getEnrollment(
                     fromRelationship.getTo().getEnrollment() ) );
         }

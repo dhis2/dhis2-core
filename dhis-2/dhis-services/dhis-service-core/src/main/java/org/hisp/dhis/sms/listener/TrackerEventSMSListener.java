@@ -36,8 +36,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -95,9 +95,9 @@ public class TrackerEventSMSListener extends CompressionSMSListener
         OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( ouid.getUid() );
         User user = userService.getUser( subm.getUserId().getUid() );
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrolmentid.getUid() );
+        Enrollment enrollment = programInstanceService.getProgramInstance( enrolmentid.getUid() );
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( enrolmentid ) );
         }
@@ -116,7 +116,7 @@ public class TrackerEventSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( subm.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
             aoc, user, subm.getValues(), subm.getEventStatus(), subm.getEventDate(), subm.getDueDate(),
             subm.getCoordinates() );
         if ( !errorUIDs.isEmpty() )

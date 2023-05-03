@@ -36,8 +36,8 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -74,9 +74,9 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 
     private TrackedEntityInstance trackedEntityInstance;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
     @Autowired
     private ProgramInstanceService programInstanceService;
@@ -126,23 +126,23 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         manager.save( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         manager.update( programRule );
-        programInstance = createProgramInstance( program, trackedEntityInstance, organisationUnit );
-        programInstanceService.addProgramInstance( programInstance );
-        programInstanceB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
-        programInstanceService.addProgramInstance( programInstanceB );
+        enrollment = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        programInstanceService.addProgramInstance( enrollment );
+        enrollmentB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        programInstanceService.addProgramInstance( enrollmentB );
     }
 
     @Test
     void testGetProgramNotificationInstance()
     {
-        programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstance.getId() );
+        programRuleEngineService.evaluateEnrollmentAndRunEffects( enrollment.getId() );
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
         assertFalse( programNotificationInstances.isEmpty() );
-        assertSame( programInstance, programNotificationInstances.get( 0 ).getProgramInstance() );
+        assertSame( enrollment, programNotificationInstances.get( 0 ).getEnrollment() );
         ProgramNotificationInstanceParam param = ProgramNotificationInstanceParam.builder()
-            .programInstance( programInstance ).build();
+            .enrollment( enrollment ).build();
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances( param );
         assertFalse( instances.isEmpty() );
@@ -151,16 +151,16 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
     @Test
     void testDeleteProgramNotificationInstance()
     {
-        programRuleEngineService.evaluateEnrollmentAndRunEffects( programInstanceB.getId() );
+        programRuleEngineService.evaluateEnrollmentAndRunEffects( enrollmentB.getId() );
         List<ProgramNotificationInstance> programNotificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstanceB ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollmentB ).build() );
         assertFalse( programNotificationInstances.isEmpty() );
-        assertSame( programInstanceB, programNotificationInstances.get( 0 ).getProgramInstance() );
+        assertSame( enrollmentB, programNotificationInstances.get( 0 ).getEnrollment() );
         programNotificationInstanceService.delete( programNotificationInstances.get( 0 ) );
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstanceB ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollmentB ).build() );
         assertTrue( instances.isEmpty() );
     }
 }

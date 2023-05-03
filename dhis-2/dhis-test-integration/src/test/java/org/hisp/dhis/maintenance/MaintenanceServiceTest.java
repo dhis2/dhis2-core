@@ -50,10 +50,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -143,9 +143,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     private OrganisationUnit organisationUnit;
 
-    private ProgramInstance enrollment;
+    private Enrollment enrollment;
 
-    private ProgramInstance enrollmentWithTeiAssociation;
+    private Enrollment enrollmentWithTeiAssociation;
 
     private Event event;
 
@@ -195,10 +195,10 @@ class MaintenanceServiceTest extends IntegrationTestBase
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        enrollment = new ProgramInstance( enrollmentDate, incidenDate, entityInstance, program );
+        enrollment = new Enrollment( enrollmentDate, incidenDate, entityInstance, program );
         enrollment.setUid( "UID-A" );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollmentWithTeiAssociation = new ProgramInstance( enrollmentDate, incidenDate,
+        enrollmentWithTeiAssociation = new Enrollment( enrollmentDate, incidenDate,
             entityInstanceWithAssociations, program );
         enrollmentWithTeiAssociation.setUid( "UID-B" );
         enrollmentWithTeiAssociation.setOrganisationUnit( organisationUnit );
@@ -231,7 +231,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         relationshipTypeService.addRelationshipType( rType );
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
-        rItem1.setProgramInstance( enrollment );
+        rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
         rItem2.setTrackedEntityInstance( entityInstance );
         r.setFrom( rItem1 );
@@ -264,7 +264,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programMessageRecipients.setTrackedEntityInstance( entityInstance );
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
             .recipients( programMessageRecipients ).deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
-            .programInstance( enrollment ).build();
+            .enrollment( enrollment ).build();
         long idA = programInstanceService.addProgramInstance( enrollment );
         programMessageService.saveProgramMessage( message );
         assertNotNull( programInstanceService.getProgramInstance( idA ) );
@@ -391,7 +391,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         relationshipTypeService.addRelationshipType( rType );
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
-        rItem1.setProgramInstance( enrollment );
+        rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
         rItem2.setTrackedEntityInstance( entityInstance );
         r.setFrom( rItem1 );

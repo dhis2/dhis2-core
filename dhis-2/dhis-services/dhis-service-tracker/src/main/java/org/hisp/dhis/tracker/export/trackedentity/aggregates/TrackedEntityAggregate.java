@@ -52,8 +52,8 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -175,7 +175,7 @@ public class TrackedEntityAggregate
          * Async fetch Enrollments for the given TrackedEntityInstance id (only
          * if isIncludeEnrollments = true)
          */
-        final CompletableFuture<Multimap<String, ProgramInstance>> enrollmentsAsync = conditionalAsyncFetch(
+        final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
 
@@ -217,7 +217,7 @@ public class TrackedEntityAggregate
 
                 Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
                 Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
-                Multimap<String, ProgramInstance> enrollments = enrollmentsAsync.join();
+                Multimap<String, Enrollment> enrollments = enrollmentsAsync.join();
                 Multimap<String, TrackedEntityProgramOwner> programOwners = programOwnersAsync.join();
                 Multimap<String, String> ownedTeis = ownedTeiAsync.join();
 
@@ -240,7 +240,7 @@ public class TrackedEntityAggregate
                                 s -> trackedEntityAttributeService.getTrackedEntityAttributesByProgram() ),
                         ctx ) );
                     tei.setRelationshipItems( new HashSet<>( relationships.get( uid ) ) );
-                    tei.setProgramInstances( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
+                    tei.setEnrollments( filterEnrollments( enrollments.get( uid ), ownedTeis.get( uid ), ctx ) );
                     tei.setProgramOwners( new HashSet<>( programOwners.get( uid ) ) );
                     return tei;
 
@@ -253,11 +253,11 @@ public class TrackedEntityAggregate
      * Filter enrollments based on ownership and super user status.
      *
      */
-    private Set<ProgramInstance> filterEnrollments( Collection<ProgramInstance> enrollments,
+    private Set<Enrollment> filterEnrollments( Collection<Enrollment> enrollments,
         Collection<String> programs,
         Context ctx )
     {
-        Set<ProgramInstance> enrollmentList = new HashSet<>();
+        Set<Enrollment> enrollmentList = new HashSet<>();
 
         if ( enrollments.isEmpty() )
         {

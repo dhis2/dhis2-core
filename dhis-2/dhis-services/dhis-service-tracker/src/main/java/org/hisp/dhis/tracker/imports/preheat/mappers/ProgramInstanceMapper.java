@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -41,7 +41,7 @@ import org.mapstruct.factory.Mappers;
     OrganisationUnitMapper.class,
     AttributeValueMapper.class
 } )
-public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
+public interface ProgramInstanceMapper extends PreheatMapper<Enrollment>
 {
     ProgramInstanceMapper INSTANCE = Mappers.getMapper( ProgramInstanceMapper.class );
 
@@ -60,7 +60,7 @@ public interface ProgramInstanceMapper extends PreheatMapper<ProgramInstance>
     @Mapping( target = "deleted" )
     @Mapping( target = "createdByUserInfo" )
     @Mapping( target = "lastUpdatedByUserInfo" )
-    ProgramInstance map( ProgramInstance programInstance );
+    Enrollment map( Enrollment enrollment );
 
     @Named( "program" )
     @BeanMapping( ignoreByDefault = true )

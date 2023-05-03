@@ -29,8 +29,8 @@ package org.hisp.dhis.trackedentitycomment;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.system.deletion.IdObjectDeletionHandler;
 
 /**
@@ -44,13 +44,13 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
     @Override
     protected void registerHandler()
     {
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteProgramInstance );
         whenDeleting( Event.class, this::deleteEvent );
     }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( Enrollment enrollment )
     {
-        for ( TrackedEntityComment comment : programInstance.getComments() )
+        for ( TrackedEntityComment comment : enrollment.getComments() )
         {
             commentService.deleteTrackedEntityComment( comment );
         }

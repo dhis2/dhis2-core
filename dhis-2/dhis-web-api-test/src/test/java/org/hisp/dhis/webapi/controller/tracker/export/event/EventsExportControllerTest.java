@@ -45,9 +45,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -287,8 +287,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     {
 
         TrackedEntityInstance tei = trackedEntityInstance();
-        ProgramInstance programInstance = programInstance( tei );
-        Event programStageInstance = event( programInstance );
+        Enrollment enrollment = programInstance( tei );
+        Event programStageInstance = event( enrollment );
         programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
         programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
         programStageInstance.setAssignedUser( user );
@@ -307,7 +307,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         assertTrue( event.isObject() );
         assertFalse( event.isEmpty() );
         assertEquals( programStageInstance.getUid(), event.getString( "event" ).string() );
-        assertEquals( programInstance.getUid(), event.getString( "enrollment" ).string() );
+        assertEquals( enrollment.getUid(), event.getString( "enrollment" ).string() );
         assertEquals( orgUnit.getUid(), event.getString( "orgUnit" ).string() );
         assertEquals( user.getUsername(), event.getString( "createdBy.username" ).string() );
         assertEquals( user.getUsername(), event.getString( "updatedBy.username" ).string() );
@@ -386,21 +386,21 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         return tei;
     }
 
-    private ProgramInstance programInstance( TrackedEntityInstance tei )
+    private Enrollment programInstance( TrackedEntityInstance tei )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, tei.getOrganisationUnit() );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        manager.save( programInstance );
-        return programInstance;
+        Enrollment enrollment = new Enrollment( program, tei, tei.getOrganisationUnit() );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        manager.save( enrollment );
+        return enrollment;
     }
 
-    private Event event( ProgramInstance programInstance )
+    private Event event( Enrollment enrollment )
     {
-        Event event = new Event( programInstance, programStage,
-            programInstance.getOrganisationUnit() );
+        Event event = new Event( enrollment, programStage,
+            enrollment.getOrganisationUnit() );
         event.setAutoFields();
         manager.save( event );
         return event;

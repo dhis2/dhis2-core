@@ -34,8 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -74,7 +74,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertImportedObjects( 13, persistenceReport, TrackerType.TRACKED_ENTITY );
         assertImportedObjects( 2, persistenceReport, TrackerType.ENROLLMENT );
         assertImportedObjects( 2, persistenceReport, TrackerType.EVENT );
-        assertEquals( 6, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 6, manager.getAll( Enrollment.class ).size() );
         assertEquals( persistenceReport.getTypeReportMap().get( TrackerType.EVENT ).getStats().getCreated(),
             manager.getAll( Event.class ).size() );
     }
@@ -92,7 +92,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertDeletedObjects( 9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY );
         // remaining
         assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
-        assertEquals( 4, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 4, manager.getAll( Enrollment.class ).size() );
     }
 
     @Test
@@ -109,7 +109,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
 
         assertDeletedObjects( 1, importReport.getPersistenceReport(), TrackerType.ENROLLMENT );
         // remaining
-        assertEquals( 5, manager.getAll( ProgramInstance.class ).size() );
+        assertEquals( 5, manager.getAll( Enrollment.class ).size() );
         // delete associated events as well
         assertEquals( 1, manager.getAll( Event.class ).size() );
     }

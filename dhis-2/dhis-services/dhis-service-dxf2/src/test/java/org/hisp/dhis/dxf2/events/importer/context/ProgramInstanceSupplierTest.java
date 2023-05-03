@@ -41,8 +41,8 @@ import java.util.Map;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,7 +56,7 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance>
+class ProgramInstanceSupplierTest extends AbstractSupplierTest<Enrollment>
 {
 
     private ProgramInstanceSupplier subject;
@@ -102,17 +102,17 @@ class ProgramInstanceSupplierTest extends AbstractSupplierTest<ProgramInstance>
         final ImportOptions defaultImportOptions = ImportOptions.getDefaultImportOptions();
         when( programSupplier.get( defaultImportOptions, Collections.singletonList( event ) ) )
             .thenReturn( programMap );
-        Map<String, ProgramInstance> map = subject.get( defaultImportOptions, new HashMap<>(),
+        Map<String, Enrollment> map = subject.get( defaultImportOptions, new HashMap<>(),
             Collections.singletonList( event ) );
-        ProgramInstance programInstance = map.get( event.getUid() );
-        assertThat( programInstance, is( notNullValue() ) );
-        assertThat( programInstance.getId(), is( 100L ) );
-        assertThat( programInstance.getUid(), is( "abcded" ) );
-        assertThat( programInstance.getEntityInstance(), is( notNullValue() ) );
-        assertThat( programInstance.getEntityInstance().getUid(), is( "efghil" ) );
-        assertThat( programInstance.getEntityInstance().getOrganisationUnit(), is( notNullValue() ) );
-        assertThat( programInstance.getEntityInstance().getOrganisationUnit().getUid(), is( "ouabcde" ) );
-        assertThat( programInstance.getProgram(), is( notNullValue() ) );
-        assertThat( programInstance.getProgram().getUid(), is( "prabcde" ) );
+        Enrollment enrollment = map.get( event.getUid() );
+        assertThat( enrollment, is( notNullValue() ) );
+        assertThat( enrollment.getId(), is( 100L ) );
+        assertThat( enrollment.getUid(), is( "abcded" ) );
+        assertThat( enrollment.getEntityInstance(), is( notNullValue() ) );
+        assertThat( enrollment.getEntityInstance().getUid(), is( "efghil" ) );
+        assertThat( enrollment.getEntityInstance().getOrganisationUnit(), is( notNullValue() ) );
+        assertThat( enrollment.getEntityInstance().getOrganisationUnit().getUid(), is( "ouabcde" ) );
+        assertThat( enrollment.getProgram(), is( notNullValue() ) );
+        assertThat( enrollment.getProgram().getUid(), is( "prabcde" ) );
     }
 }

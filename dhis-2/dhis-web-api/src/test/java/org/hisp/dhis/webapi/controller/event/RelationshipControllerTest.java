@@ -39,9 +39,9 @@ import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -73,7 +73,7 @@ class RelationshipControllerTest
 
     private TrackedEntityInstance tei = new TrackedEntityInstance();
 
-    private ProgramInstance enrollment = new ProgramInstance();
+    private Enrollment enrollment = new Enrollment();
 
     private Event event = new Event();
 

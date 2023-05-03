@@ -115,9 +115,9 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         manager.save( programStageA2 );
         programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
         manager.update( programA );
-        ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
+        Enrollment enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstanceA,
             programA, null, null, organisationUnitA );
-        eventA = new Event( programInstanceA, programStageA1 );
+        eventA = new Event( enrollmentA, programStageA1 );
         eventA.setDueDate( null );
         eventA.setUid( "UID-A" );
         CategoryCombo categoryComboA = createCategoryCombo( 'A' );

@@ -71,10 +71,10 @@ public class DefaultProgramNotificationInstanceService
     {
         if ( params.hasProgramInstance() )
         {
-            if ( !programInstanceService.programInstanceExists( params.getProgramInstance().getUid() ) )
+            if ( !programInstanceService.programInstanceExists( params.getEnrollment().getUid() ) )
             {
                 throw new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) );
+                    String.format( "Program instance %s does not exist", params.getEnrollment().getUid() ) );
             }
 
         }

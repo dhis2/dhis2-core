@@ -38,8 +38,8 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.springframework.stereotype.Component;
 
 /**
@@ -51,15 +51,15 @@ public class ProgramOrgUnitCheck implements Checker
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
 
         final Map<Long, List<Long>> programWithOrgUnitsMap = ctx.getProgramWithOrgUnitsMap();
         final Map<String, OrganisationUnit> organisationUnitMap = ctx.getOrganisationUnitMap();
 
-        if ( programInstance != null )
+        if ( enrollment != null )
         {
             final OrganisationUnit organisationUnit = organisationUnitMap.get( event.getUid() );
-            final Program program = programInstance.getProgram();
+            final Program program = enrollment.getProgram();
 
             if ( organisationUnit != null && program != null )
             {

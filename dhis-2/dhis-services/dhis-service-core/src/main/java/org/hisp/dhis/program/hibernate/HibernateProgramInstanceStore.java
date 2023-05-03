@@ -61,8 +61,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
@@ -85,10 +85,10 @@ import com.google.common.collect.Sets;
  */
 @Repository( "org.hisp.dhis.program.ProgramInstanceStore" )
 public class HibernateProgramInstanceStore
-    extends SoftDeleteHibernateObjectStore<ProgramInstance>
+    extends SoftDeleteHibernateObjectStore<Enrollment>
     implements ProgramInstanceStore
 {
-    private final static String PI_HQL_BY_UIDS = "from ProgramInstance as pi where pi.uid in (:uids)";
+    private final static String PI_HQL_BY_UIDS = "from Enrollment as pi where pi.uid in (:uids)";
 
     private final static String STATUS = "status";
 
@@ -99,7 +99,7 @@ public class HibernateProgramInstanceStore
     public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramInstance.class, currentUserService, aclService, true );
+        super( sessionFactory, jdbcTemplate, publisher, Enrollment.class, currentUserService, aclService, true );
     }
 
     @Override
@@ -114,16 +114,16 @@ public class HibernateProgramInstanceStore
 
     private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).getQuery().replaceFirst( "from ProgramInstance pi",
-            "select count(distinct uid) from ProgramInstance pi" );
+        return buildProgramInstanceHql( params ).getQuery().replaceFirst( "from Enrollment pi",
+            "select count(distinct uid) from Enrollment pi" );
     }
 
     @Override
-    public List<ProgramInstance> getProgramInstances( ProgramInstanceQueryParams params )
+    public List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params )
     {
         String hql = buildProgramInstanceHql( params ).getFullQuery();
 
-        Query<ProgramInstance> query = getQuery( hql );
+        Query<Enrollment> query = getQuery( hql );
 
         if ( !params.isSkipPaging() )
         {
@@ -145,7 +145,7 @@ public class HibernateProgramInstanceStore
 
     private QueryWithOrderBy buildProgramInstanceHql( ProgramInstanceQueryParams params )
     {
-        String hql = "from ProgramInstance pi";
+        String hql = "from Enrollment pi";
         SqlHelper hlp = new SqlHelper( true );
 
         if ( params.hasLastUpdatedDuration() )
@@ -259,7 +259,7 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> get( Program program )
+    public List<Enrollment> get( Program program )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -268,7 +268,7 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> get( Program program, ProgramStatus status )
+    public List<Enrollment> get( Program program, ProgramStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -278,7 +278,7 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
+    public List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -338,25 +338,25 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> getIncludingDeleted( List<String> uids )
+    public List<Enrollment> getIncludingDeleted( List<String> uids )
     {
-        List<ProgramInstance> programInstances = new ArrayList<>();
+        List<Enrollment> enrollments = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
         for ( List<String> uidsPartition : uidsPartitions )
         {
             if ( !uidsPartition.isEmpty() )
             {
-                programInstances.addAll( getSession().createQuery( PI_HQL_BY_UIDS, ProgramInstance.class )
+                enrollments.addAll( getSession().createQuery( PI_HQL_BY_UIDS, Enrollment.class )
                     .setParameter( "uids", uidsPartition ).list() );
             }
         }
 
-        return programInstances;
+        return enrollments;
     }
 
     @Override
-    public List<ProgramInstance> getWithScheduledNotifications( ProgramNotificationTemplate template,
+    public List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template,
         Date notificationDate )
     {
         if ( notificationDate == null
@@ -374,7 +374,7 @@ public class HibernateProgramInstanceStore
 
         Date targetDate = DateUtils.addDays( notificationDate, template.getRelativeScheduledDays() * -1 );
 
-        String hql = "select distinct pi from ProgramInstance as pi " +
+        String hql = "select distinct pi from Enrollment as pi " +
             "inner join pi.program as p " +
             "where :notificationTemplate in elements(p.notificationTemplates) " +
             "and pi." + dateProperty + " is not null " +
@@ -388,7 +388,7 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> getByPrograms( List<Program> programs )
+    public List<Enrollment> getByPrograms( List<Program> programs )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -397,25 +397,25 @@ public class HibernateProgramInstanceStore
     }
 
     @Override
-    public List<ProgramInstance> getByType( ProgramType type )
+    public List<Enrollment> getByType( ProgramType type )
     {
-        String hql = "select pi from ProgramInstance pi join fetch pi.program p where p.programType = :type";
+        String hql = "select pi from Enrollment pi join fetch pi.program p where p.programType = :type";
 
-        Query<ProgramInstance> query = getQuery( hql );
+        Query<Enrollment> query = getQuery( hql );
         query.setParameter( "type", type );
 
         return query.list();
     }
 
     @Override
-    public void hardDelete( ProgramInstance programInstance )
+    public void hardDelete( Enrollment enrollment )
     {
-        publisher.publishEvent( new ObjectDeletionRequestedEvent( programInstance ) );
-        getSession().delete( programInstance );
+        publisher.publishEvent( new ObjectDeletionRequestedEvent( enrollment ) );
+        getSession().delete( enrollment );
     }
 
     @Override
-    public List<ProgramInstance> getByProgramAndTrackedEntityInstance(
+    public List<Enrollment> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
     {
         checkNotNull( programTeiPair );
@@ -426,8 +426,8 @@ public class HibernateProgramInstanceStore
         }
 
         CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
-        CriteriaQuery<ProgramInstance> cr = cb.createQuery( ProgramInstance.class );
-        Root<ProgramInstance> programInstance = cr.from( ProgramInstance.class );
+        CriteriaQuery<Enrollment> cr = cb.createQuery( Enrollment.class );
+        Root<Enrollment> programInstance = cr.from( Enrollment.class );
 
         // Constructing list of parameters
         List<Predicate> predicates = new ArrayList<>();
@@ -465,14 +465,14 @@ public class HibernateProgramInstanceStore
 
     @Override
     protected void preProcessPredicates( CriteriaBuilder builder,
-        List<Function<Root<ProgramInstance>, Predicate>> predicates )
+        List<Function<Root<Enrollment>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
 
     @Override
-    protected ProgramInstance postProcessObject( ProgramInstance programInstance )
+    protected Enrollment postProcessObject( Enrollment enrollment )
     {
-        return (programInstance == null || programInstance.isDeleted()) ? null : programInstance;
+        return (enrollment == null || enrollment.isDeleted()) ? null : enrollment;
     }
 }

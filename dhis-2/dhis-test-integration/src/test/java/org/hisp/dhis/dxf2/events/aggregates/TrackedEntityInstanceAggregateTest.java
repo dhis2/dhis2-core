@@ -59,7 +59,6 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
 import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
@@ -67,8 +66,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
@@ -495,7 +494,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        Enrollment enrollment = tei.getEnrollments().get( 0 );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
         org.hisp.dhis.dxf2.events.event.Event event = enrollment.getEvents().get( 0 );
         assertNotNull( event );
         // The id is not serialized to JSON
@@ -549,7 +548,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
             false, false, false );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
-        Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments()
+            .get( 0 );
         assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
             is( trackedEntityTypeA.getUid() ) );
         assertThat( "Tracked Entity Instance UID does not match", enrollment.getTrackedEntityInstance(),
@@ -591,7 +591,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        Enrollment enrollment = tei.getEnrollments().get( 0 );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
         org.hisp.dhis.dxf2.events.event.Event event = enrollment.getEvents().get( 0 );
         assertThat( enrollment.getFollowup(), is( true ) );
         assertThat( event.getFollowup(), is( true ) );
@@ -631,7 +631,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         doInTransaction( () -> {
             org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
             org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstanceWithEnrollment();
-            ProgramInstance pi = t2.getProgramInstances().iterator().next();
+            Enrollment pi = t2.getEnrollments().iterator().next();
             this.persistRelationship( t1, pi );
             relationshipItemsUid[0] = t1.getUid();
             relationshipItemsUid[1] = pi.getUid();
@@ -675,7 +675,7 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
             sessionFactory.getCurrentSession().clear();
             t2 = manager.getByUid( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
                 Collections.singletonList( t2.getUid() ) ).get( 0 );
-            ProgramInstance pi = t2.getProgramInstances().iterator().next();
+            Enrollment pi = t2.getEnrollments().iterator().next();
             final Event psi = pi.getEvents().iterator().next();
             this.persistRelationship( t1, psi );
             relationshipItemsUid[0] = t1.getUid();

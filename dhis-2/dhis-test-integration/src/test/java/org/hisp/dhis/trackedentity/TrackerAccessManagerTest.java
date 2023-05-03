@@ -45,9 +45,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -168,7 +168,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        ProgramInstance enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        Enrollment enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );
@@ -245,7 +245,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        Enrollment pi = tei.getEnrollments().iterator().next();
         // Can create enrollment
         assertNoErrors( trackerAccessManager.canCreate( user, pi, false ) );
         // Can update enrollment
@@ -283,7 +283,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        Enrollment pi = tei.getEnrollments().iterator().next();
         pi.setOrganisationUnit( null );
         // Can create enrollment
         assertNoErrors( trackerAccessManager.canCreate( user, pi, false ) );
@@ -306,7 +306,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitB ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        Enrollment pi = tei.getEnrollments().iterator().next();
         // Cannot create enrollment if enrollmentOU falls outside capture scope
         assertHasError( trackerAccessManager.canCreate( user, pi, false ) );
         // Can update enrollment if ownerOU falls inside search scope

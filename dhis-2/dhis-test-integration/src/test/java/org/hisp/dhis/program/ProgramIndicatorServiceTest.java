@@ -121,7 +121,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
 
     private Program programB;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private DataElement deAInteger;
 
@@ -248,11 +248,11 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         entityInstanceService.addTrackedEntityInstance( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         // TODO enroll twice?
         // ---------------------------------------------------------------------
@@ -271,15 +271,15 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         // ---------------------------------------------------------------------
         // TrackedEntityDataValue
         // ---------------------------------------------------------------------
-        Event stageInstanceA = eventService.createEvent( programInstance,
+        Event stageInstanceA = eventService.createEvent( enrollment,
             psA, enrollmentDate, incidentDate, organisationUnit );
-        Event stageInstanceB = eventService.createEvent( programInstance,
+        Event stageInstanceB = eventService.createEvent( enrollment,
             psB, enrollmentDate, incidentDate, organisationUnit );
         Set<Event> events = new HashSet<>();
         events.add( stageInstanceA );
         events.add( stageInstanceB );
-        programInstance.setEvents( events );
-        programInstance.setProgram( programA );
+        enrollment.setEvents( events );
+        enrollment.setProgram( programA );
         // ---------------------------------------------------------------------
         // Constant
         // ---------------------------------------------------------------------

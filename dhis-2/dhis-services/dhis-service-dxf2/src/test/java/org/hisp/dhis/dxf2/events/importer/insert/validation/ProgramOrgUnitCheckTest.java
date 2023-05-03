@@ -41,8 +41,8 @@ import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -84,9 +84,9 @@ class ProgramOrgUnitCheckTest extends BaseValidationTest
         ou.setUid( orgUnitId );
         when( workContext.getOrganisationUnitMap() ).thenReturn( Map.of( event.getUid(), ou ) );
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( Map.of( 1L, List.of( 1L ) ) );
-        ProgramInstance pi = new ProgramInstance();
+        Enrollment pi = new Enrollment();
         pi.setProgram( program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
@@ -110,9 +110,9 @@ class ProgramOrgUnitCheckTest extends BaseValidationTest
         ou.setUid( event.getOrgUnit() );
         when( workContext.getOrganisationUnitMap() ).thenReturn( Map.of( event.getUid(), ou ) );
         when( workContext.getProgramWithOrgUnitsMap() ).thenReturn( new HashMap<>() );
-        ProgramInstance pi = new ProgramInstance();
+        Enrollment pi = new Enrollment();
         pi.setProgram( program );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
         programInstanceMap.put( event.getUid(), pi );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         // method under test

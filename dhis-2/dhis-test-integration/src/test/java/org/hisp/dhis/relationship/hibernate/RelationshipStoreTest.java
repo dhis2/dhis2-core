@@ -42,10 +42,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -125,11 +125,11 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     {
         Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+        Enrollment enrollment = addProgramInstance( programA );
 
         ProgramStage programStageA = addProgramStage( programA );
 
-        Event event = addEvent( programInstance, programStageA );
+        Event event = addEvent( enrollment, programStageA );
 
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
@@ -154,13 +154,13 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         Program programA = addProgram();
 
-        ProgramInstance programInstance = addProgramInstance( programA );
+        Enrollment enrollment = addProgramInstance( programA );
 
         Relationship relationshipA = addTeiToProgramInstanceRelationship( trackedEntityInstanceA,
-            programInstance );
+            enrollment );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, true );
+            .getRelationshipsByProgramInstance( enrollment, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -250,12 +250,12 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     private Relationship addTeiToProgramInstanceRelationship( TrackedEntityInstance entityInstance,
-        ProgramInstance programInstance )
+        Enrollment enrollment )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         relationshipItemFrom.setTrackedEntityInstance( entityInstance );
         RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemTo.setProgramInstance( programInstance );
+        relationshipItemTo.setEnrollment( enrollment );
 
         Relationship relationshipA = new Relationship();
         relationshipA.setRelationshipType( relationshipType );
@@ -268,7 +268,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Event addEvent( ProgramInstance enrollment, ProgramStage programStageA )
+    private Event addEvent( Enrollment enrollment, ProgramStage programStageA )
     {
         Event event = new Event();
         event.setOrganisationUnit( organisationUnit );
@@ -289,16 +289,16 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return programStageA;
     }
 
-    private ProgramInstance addProgramInstance( Program programA )
+    private Enrollment addProgramInstance( Program programA )
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( programInstance );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( programA );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        programInstanceService.addProgramInstance( enrollment );
+        return enrollment;
     }
 
     private Program addProgram()

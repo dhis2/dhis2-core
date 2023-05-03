@@ -48,9 +48,9 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
@@ -110,7 +110,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private RuleAction setMandatoryFieldFalse;
 
-    private ProgramInstance enrollment;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -315,7 +315,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         programRuleA.setProgram( programA );
 
-        enrollment = new ProgramInstance();
+        enrollment = new Enrollment();
         enrollment.setProgram( programA );
         enrollment.setAutoFields();
 

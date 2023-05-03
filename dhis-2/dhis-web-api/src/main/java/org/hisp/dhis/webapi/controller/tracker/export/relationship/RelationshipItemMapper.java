@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
@@ -56,7 +57,6 @@ interface RelationshipItemMapper
     extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
 {
     @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "programInstance" )
     @Override
     RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
 
@@ -70,7 +70,6 @@ interface RelationshipItemMapper
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    @Mapping( target = "enrollments", source = "programInstances" )
     RelationshipItem.TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
 
     @Mapping( target = "enrollment", source = "uid" )
@@ -90,7 +89,7 @@ interface RelationshipItemMapper
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Enrollment from( org.hisp.dhis.program.ProgramInstance enrollment );
+    RelationshipItem.Enrollment from( Enrollment enrollment );
 
     default EnrollmentStatus from( ProgramStatus programStatus )
     {

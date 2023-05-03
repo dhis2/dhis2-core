@@ -39,9 +39,9 @@
       <one-to-many class="org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue"/>
     </set>
 
-    <set name="programInstances" inverse="true">
+    <set name="enrollments" inverse="true">
       <key column="trackedentityinstanceid"/>
-      <one-to-many class="org.hisp.dhis.program.ProgramInstance"/>
+      <one-to-many class="org.hisp.dhis.program.Enrollment"/>
     </set>
 
       <set name="programOwners" inverse="true">

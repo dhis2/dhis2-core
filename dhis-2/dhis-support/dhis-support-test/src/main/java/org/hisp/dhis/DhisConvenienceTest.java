@@ -144,11 +144,11 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
@@ -1683,23 +1683,23 @@ public abstract class DhisConvenienceTest
         return program;
     }
 
-    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+    public static Enrollment createProgramInstance( Program program, TrackedEntityInstance tei,
         OrganisationUnit organisationUnit )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
-        programInstance.setAutoFields();
+        Enrollment enrollment = new Enrollment( program, tei, organisationUnit );
+        enrollment.setAutoFields();
 
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( tei );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
+        enrollment.setProgram( program );
+        enrollment.setEntityInstance( tei );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
 
-        return programInstance;
+        return enrollment;
     }
 
     public static Event createEvent( ProgramStage programStage,
-        ProgramInstance enrollment, OrganisationUnit organisationUnit )
+        Enrollment enrollment, OrganisationUnit organisationUnit )
     {
         Event event = new Event();
         event.setAutoFields();
@@ -1711,10 +1711,10 @@ public abstract class DhisConvenienceTest
         return event;
     }
 
-    public static Event createEvent( ProgramInstance programInstance,
+    public static Event createEvent( Enrollment enrollment,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        Event event = createEvent( programStage, programInstance, organisationUnit );
+        Event event = createEvent( programStage, enrollment, organisationUnit );
         event.setExecutionDate( new Date() );
         event.setStatus( EventStatus.ACTIVE );
         event.setEventDataValues( dataValues );
@@ -2000,7 +2000,7 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, ProgramInstance to,
+    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, Enrollment to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
@@ -2008,7 +2008,7 @@ public abstract class DhisConvenienceTest
         RelationshipItem riTo = new RelationshipItem();
 
         riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramInstance( to );
+        riTo.setEnrollment( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );

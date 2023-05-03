@@ -41,8 +41,8 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -76,9 +76,9 @@ public class EnrollmentAggregate
      * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
      *         the key a List of {@see Enrollment} objects
      */
-    Multimap<String, ProgramInstance> findByTrackedEntityInstanceIds( List<Long> ids, Context ctx )
+    Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, Context ctx )
     {
-        Multimap<String, ProgramInstance> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids,
+        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids,
             ctx );
 
         if ( enrollments.isEmpty() )
@@ -86,7 +86,7 @@ public class EnrollmentAggregate
             return enrollments;
         }
 
-        List<Long> enrollmentIds = enrollments.values().stream().map( ProgramInstance::getId )
+        List<Long> enrollmentIds = enrollments.values().stream().map( Enrollment::getId )
             .collect( Collectors.toList() );
 
         final CompletableFuture<Multimap<String, Event>> eventAsync = conditionalAsyncFetch(
@@ -111,7 +111,7 @@ public class EnrollmentAggregate
             Multimap<String, RelationshipItem> relationships = relationshipAsync.join();
             Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
 
-            for ( ProgramInstance enrollment : enrollments.values() )
+            for ( Enrollment enrollment : enrollments.values() )
             {
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeEvents() )
                 {
