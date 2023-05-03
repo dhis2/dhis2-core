@@ -67,7 +67,7 @@ public class Event
     private Date lastUpdatedAtClient;
 
     @AuditAttribute
-    private ProgramInstance programInstance;
+    private ProgramInstance enrollment;
 
     @AuditAttribute
     private ProgramStage programStage;
@@ -118,16 +118,16 @@ public class Event
     {
     }
 
-    public Event( ProgramInstance programInstance, ProgramStage programStage )
+    public Event( ProgramInstance enrollment, ProgramStage programStage )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
         this.programStage = programStage;
     }
 
-    public Event( ProgramInstance programInstance, ProgramStage programStage,
+    public Event( ProgramInstance enrollment, ProgramStage programStage,
         OrganisationUnit organisationUnit )
     {
-        this( programInstance, programStage );
+        this( enrollment, programStage );
         this.organisationUnit = organisationUnit;
     }
 
@@ -175,14 +175,14 @@ public class Event
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ProgramInstance getProgramInstance()
+    public ProgramInstance getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( ProgramInstance programInstance )
+    public void setEnrollment( ProgramInstance enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
     @JsonProperty
@@ -433,7 +433,7 @@ public class Event
             ", name='" + name + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
-            ", programInstance=" + (programInstance != null ? programInstance.getUid() : null) +
+            ", enrollment=" + (enrollment != null ? enrollment.getUid() : null) +
             ", programStage=" + (programStage != null ? programStage.getUid() : null) +
             ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +

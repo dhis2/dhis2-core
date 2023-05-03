@@ -124,7 +124,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         instance.getEventDataValues().forEach( dv -> requestPayload.put( dv.getDataElement(), dv.getValue() ) );
 
         // populate tracked entity attributes
-        instance.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues()
+        instance.getEnrollment().getEntityInstance().getTrackedEntityAttributeValues()
             .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
 
         sendPost( templates, renderService.toJsonAsString( requestPayload ) );

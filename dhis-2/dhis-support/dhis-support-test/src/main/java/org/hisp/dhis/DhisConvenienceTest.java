@@ -1699,13 +1699,13 @@ public abstract class DhisConvenienceTest
     }
 
     public static Event createEvent( ProgramStage programStage,
-        ProgramInstance pi, OrganisationUnit organisationUnit )
+        ProgramInstance enrollment, OrganisationUnit organisationUnit )
     {
         Event event = new Event();
         event.setAutoFields();
 
         event.setProgramStage( programStage );
-        event.setProgramInstance( pi );
+        event.setEnrollment( enrollment );
         event.setOrganisationUnit( organisationUnit );
 
         return event;

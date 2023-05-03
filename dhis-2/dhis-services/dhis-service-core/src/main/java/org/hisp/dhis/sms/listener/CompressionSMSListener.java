@@ -261,7 +261,7 @@ public abstract class CompressionSMSListener
     }
 
     protected List<Object> saveNewEvent( String eventUid, OrganisationUnit orgUnit, ProgramStage programStage,
-        ProgramInstance programInstance, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SmsDataValue> values,
+        ProgramInstance enrollment, IncomingSms sms, CategoryOptionCombo aoc, User user, List<SmsDataValue> values,
         SmsEventStatus eventStatus, Date eventDate, Date dueDate, GeoPoint coordinates )
     {
         ArrayList<Object> errorUids = new ArrayList<>();
@@ -280,7 +280,7 @@ public abstract class CompressionSMSListener
 
         event.setOrganisationUnit( orgUnit );
         event.setProgramStage( programStage );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( enrollment );
         event.setExecutionDate( eventDate );
         event.setDueDate( dueDate );
         event.setAttributeOptionCombo( aoc );

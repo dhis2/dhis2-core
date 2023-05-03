@@ -95,7 +95,7 @@ public class EventTrackerConverterService
             org.hisp.dhis.tracker.imports.domain.Event e = new org.hisp.dhis.tracker.imports.domain.Event();
             e.setEvent( event.getUid() );
 
-            e.setFollowup( BooleanUtils.toBoolean( event.getProgramInstance().getFollowup() ) );
+            e.setFollowup( BooleanUtils.toBoolean( event.getEnrollment().getFollowup() ) );
             e.setStatus( event.getStatus() );
             e.setOccurredAt( DateUtils.instantFromDate( event.getExecutionDate() ) );
             e.setScheduledAt( DateUtils.instantFromDate( event.getDueDate() ) );
@@ -116,7 +116,7 @@ public class EventTrackerConverterService
                 e.setOrgUnit( MetadataIdentifier.ofUid( ou ) );
             }
 
-            e.setEnrollment( event.getProgramInstance().getUid() );
+            e.setEnrollment( event.getEnrollment().getUid() );
             e.setProgramStage( MetadataIdentifier.ofUid( event.getProgramStage() ) );
             e.setAttributeOptionCombo( MetadataIdentifier.ofUid( event.getAttributeOptionCombo() ) );
             e.setAttributeCategoryOptions( event.getAttributeOptionCombo().getCategoryOptions().stream()
@@ -222,9 +222,7 @@ public class EventTrackerConverterService
         result.setLastUpdated( now );
         result.setDeleted( false );
         result.setLastUpdatedAtClient( DateUtils.fromInstant( event.getUpdatedAtClient() ) );
-        result.setProgramInstance(
-            getProgramInstance( preheat, event.getEnrollment(), program ) );
-
+        result.setEnrollment( getEnrollment( preheat, event.getEnrollment(), program ) );
         result.setProgramStage( programStage );
         result.setOrganisationUnit( organisationUnit );
         result.setExecutionDate( DateUtils.fromInstant( event.getOccurredAt() ) );
@@ -292,7 +290,7 @@ public class EventTrackerConverterService
         return result;
     }
 
-    private ProgramInstance getProgramInstance( TrackerPreheat preheat, String enrollment, Program program )
+    private ProgramInstance getEnrollment( TrackerPreheat preheat, String enrollment, Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {

@@ -141,9 +141,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
     private Program programB;
 
-    private ProgramInstance programInstanceA;
+    private ProgramInstance enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private ProgramInstance enrollmentB;
 
     private Event eventA;
 
@@ -253,10 +253,10 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
             new Date(), orgUnitA );
         eventA = new Event();
-        eventA.setProgramInstance( programInstanceA );
+        eventA.setEnrollment( enrollmentA );
         eventA.setProgramStage( programStageA1 );
         eventA.setOrganisationUnit( orgUnitA );
         eventA.setAttributeOptionCombo( defaultCategoryOptionCombo );
@@ -270,20 +270,20 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         note1.setLastUpdated( new Date() );
         eventA.setComments( List.of( note1 ) );
         manager.save( eventA, false );
-        programInstanceA.setEvents( Set.of( eventA ) );
-        programInstanceA.setFollowup( true );
-        manager.save( programInstanceA, false );
+        enrollmentA.setEvents( Set.of( eventA ) );
+        enrollmentA.setFollowup( true );
+        manager.save( enrollmentA, false );
 
-        programInstanceB = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
+        enrollmentB = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
             new Date(), orgUnitA );
         eventB = new Event();
-        eventB.setProgramInstance( programInstanceB );
+        eventB.setEnrollment( enrollmentB );
         eventB.setProgramStage( programStageB1 );
         eventB.setOrganisationUnit( orgUnitA );
         eventB.setAttributeOptionCombo( defaultCategoryOptionCombo );
         manager.save( eventB, false );
-        programInstanceB.setEvents( Set.of( eventB ) );
-        manager.save( programInstanceB, false );
+        enrollmentB.setEvents( Set.of( eventB ) );
+        manager.save( enrollmentB, false );
 
         trackedEntityB = createTrackedEntityInstance( orgUnitB );
         trackedEntityB.setTrackedEntityType( trackedEntityTypeA );
@@ -348,7 +348,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         fromB.setRelationship( relationshipB );
         relationshipB.setFrom( fromB );
         RelationshipItem toB = new RelationshipItem();
-        toB.setProgramInstance( programInstanceA );
+        toB.setProgramInstance( enrollmentA );
         toB.setRelationship( relationshipB );
         relationshipB.setTo( toB );
         relationshipB.setKey( RelationshipUtils.generateRelationshipKey( relationshipB ) );
@@ -454,7 +454,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             TrackedEntityParams.TRUE );
 
         assertContainsOnly( List.of( trackedEntityA.getUid() ), uids( trackedEntities ) );
-        assertContainsOnly( Set.of( programInstanceA.getUid() ),
+        assertContainsOnly( Set.of( enrollmentA.getUid() ),
             uids( trackedEntities.get( 0 ).getProgramInstances() ) );
 
         assertAll(
@@ -633,7 +633,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .collect( Collectors.toSet() );
         assertIsEmpty( deletedEvents );
 
-        programInstanceService.deleteProgramInstance( programInstanceA );
+        programInstanceService.deleteProgramInstance( enrollmentA );
         eventService.deleteEvent( eventA );
 
         trackedEntities = trackedEntityService.getTrackedEntities( queryParams, TrackedEntityParams.TRUE );
@@ -641,11 +641,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         assertContainsOnly( List.of( trackedEntityA ), trackedEntities );
         trackedEntity = trackedEntities.get( 0 );
 
-        assertContainsOnly( Set.of( programInstanceA.getUid(), programInstanceB.getUid() ),
+        assertContainsOnly( Set.of( enrollmentA.getUid(), enrollmentB.getUid() ),
             uids( trackedEntity.getProgramInstances() ) );
         deletedEnrollments = trackedEntity.getProgramInstances().stream()
             .filter( ProgramInstance::isDeleted ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
-        assertContainsOnly( Set.of( programInstanceA.getUid() ), deletedEnrollments );
+        assertContainsOnly( Set.of( enrollmentA.getUid() ), deletedEnrollments );
 
         Set<Event> events = trackedEntity.getProgramInstances().stream()
             .flatMap( programInstance -> programInstance.getEvents().stream() )
@@ -662,7 +662,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         assertContainsOnly( List.of( trackedEntityA ), trackedEntities );
         trackedEntity = trackedEntities.get( 0 );
-        assertContainsOnly( Set.of( programInstanceB.getUid() ), uids( trackedEntity.getProgramInstances() ) );
+        assertContainsOnly( Set.of( enrollmentB.getUid() ), uids( trackedEntity.getProgramInstances() ) );
         events = trackedEntity.getProgramInstances().stream()
             .flatMap( programInstance -> programInstance.getEvents().stream() )
             .collect( Collectors.toSet() );
@@ -685,12 +685,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         List<TrackedEntityInstance> trackedEntities = trackedEntityService.getTrackedEntities( queryParams, params );
 
         assertContainsOnly( List.of( trackedEntityA.getUid() ), uids( trackedEntities ) );
-        assertContainsOnly( Set.of( programInstanceA.getUid(), programInstanceB.getUid() ),
+        assertContainsOnly( Set.of( enrollmentA.getUid(), enrollmentB.getUid() ),
             uids( trackedEntities.get( 0 ).getProgramInstances() ) );
         // ensure that EnrollmentAggregate is called and attaches the enrollments attributes (program attributes)
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
+            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         assertContainsOnly( Set.of( "C" ),
             attributeNames( enrollmentA.get().getEntityInstance().getTrackedEntityAttributeValues() ) );
     }
@@ -729,12 +729,12 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         List<TrackedEntityInstance> trackedEntities = trackedEntityService.getTrackedEntities( queryParams, params );
 
         assertContainsOnly( List.of( trackedEntityA ), trackedEntities );
-        assertContainsOnly( Set.of( programInstanceA.getUid(), programInstanceB.getUid() ),
+        assertContainsOnly( Set.of( enrollmentA.getUid(), enrollmentB.getUid() ),
             uids( trackedEntities.get( 0 ).getProgramInstances() ) );
         // ensure that EventAggregate is called and attaches the events with notes
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
+            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         Set<Event> events = enrollmentA.get().getEvents();
         assertContainsOnly( Set.of( eventA ), events );
         assertContainsOnly( Set.of( note1 ), events.stream().findFirst().get().getComments() );
@@ -755,11 +755,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         List<TrackedEntityInstance> trackedEntities = trackedEntityService.getTrackedEntities( queryParams, params );
 
         assertContainsOnly( List.of( trackedEntityA.getUid() ), uids( trackedEntities ) );
-        assertContainsOnly( Set.of( programInstanceA.getUid(), programInstanceB.getUid() ),
+        assertContainsOnly( Set.of( enrollmentA.getUid(), enrollmentB.getUid() ),
             uids( trackedEntities.get( 0 ).getProgramInstances() ) );
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
+            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         assertIsEmpty( enrollmentA.get().getEvents() );
     }
 
@@ -809,11 +809,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentOpt = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
+            .filter( pi -> pi.getUid().equals( enrollmentA.getUid() ) ).findFirst();
         assertTrue( enrollmentOpt.isPresent() );
         ProgramInstance enrollment = enrollmentOpt.get();
         assertAll(
-            () -> assertEquals( programInstanceA.getId(), enrollment.getId() ),
+            () -> assertEquals( enrollmentA.getId(), enrollment.getId() ),
             () -> assertEquals( trackedEntityA.getUid(), enrollment.getEntityInstance().getUid() ),
             () -> assertEquals( trackedEntityA.getTrackedEntityType().getUid(),
                 enrollment.getEntityInstance().getTrackedEntityType().getUid() ),
@@ -849,7 +849,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         List<ProgramInstance> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getProgramInstances() );
         Optional<ProgramInstance> enrollmentOpt = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( programInstanceA.getUid() ) ).findFirst();
+            .filter( pi -> pi.getUid().equals( enrollmentA.getUid() ) ).findFirst();
         assertTrue( enrollmentOpt.isPresent() );
         ProgramInstance enrollment = enrollmentOpt.get();
         Optional<Event> eventOpt = enrollment.getEvents().stream().findFirst();
@@ -861,14 +861,14 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             () -> assertEquals( EventStatus.ACTIVE, event.getStatus() ),
             () -> assertEquals( orgUnitA.getUid(), event.getOrganisationUnit().getUid() ),
             () -> assertEquals( orgUnitA.getName(), event.getOrganisationUnit().getName() ),
-            () -> assertEquals( programInstanceA.getUid(), event.getProgramInstance().getUid() ),
-            () -> assertEquals( programA.getUid(), event.getProgramInstance().getProgram().getUid() ),
-            () -> assertEquals( ProgramStatus.ACTIVE, event.getProgramInstance().getStatus() ),
-            () -> assertEquals( trackedEntityA.getUid(), event.getProgramInstance().getEntityInstance().getUid() ),
+            () -> assertEquals( enrollmentA.getUid(), event.getEnrollment().getUid() ),
+            () -> assertEquals( programA.getUid(), event.getEnrollment().getProgram().getUid() ),
+            () -> assertEquals( ProgramStatus.ACTIVE, event.getEnrollment().getStatus() ),
+            () -> assertEquals( trackedEntityA.getUid(), event.getEnrollment().getEntityInstance().getUid() ),
             () -> assertEquals( eventA.getProgramStage().getUid(), event.getProgramStage().getUid() ),
             () -> assertEquals( defaultCategoryOptionCombo.getUid(), event.getAttributeOptionCombo().getUid() ),
             () -> assertFalse( event.isDeleted() ),
-            () -> assertTrue( event.getProgramInstance().getFollowup() ),
+            () -> assertTrue( event.getEnrollment().getFollowup() ),
             () -> assertEquals( user, event.getAssignedUser() ),
             () -> checkDate( currentTime, event.getCreated() ),
             () -> checkDate( currentTime, event.getLastUpdated() ),
@@ -923,7 +923,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         Relationship actual = relOpt.get().getRelationship();
         assertAll(
             () -> assertEquals( trackedEntityA.getUid(), actual.getFrom().getTrackedEntityInstance().getUid() ),
-            () -> assertEquals( programInstanceA.getUid(), actual.getTo().getProgramInstance().getUid() ) );
+            () -> assertEquals( enrollmentA.getUid(), actual.getTo().getProgramInstance().getUid() ) );
     }
 
     @Test

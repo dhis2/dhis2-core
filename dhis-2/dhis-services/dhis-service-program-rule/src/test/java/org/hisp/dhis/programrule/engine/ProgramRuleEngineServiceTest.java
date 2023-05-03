@@ -329,7 +329,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         event = new Event();
         event.setProgramStage( programStageA );
-        event.setProgramInstance( programInstance );
+        event.setEnrollment( programInstance );
         event.setUid( "PSI1" );
 
         programRules.add( programRuleA );
