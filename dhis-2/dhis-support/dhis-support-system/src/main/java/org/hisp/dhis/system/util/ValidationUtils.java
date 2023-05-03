@@ -72,8 +72,6 @@ import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
@@ -86,10 +84,6 @@ public class ValidationUtils
 
     private static final Pattern POINT_PATTERN = Pattern.compile( "\\[(.+),\\s?(.+)\\]" );
 
-    private static final Pattern DIGIT_PATTERN = Pattern.compile( ".*\\d.*" );
-
-    private static final Pattern UPPERCASE_PATTERN = Pattern.compile( ".*[A-Z].*" );
-
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile( "^#?([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$" );
 
     private static final Pattern TIME_OF_DAY_PATTERN = Pattern.compile( "^([0-9]|0[0-9]|1[0-9]|2[0-3]):[0-5][0-9]$" );
@@ -99,15 +93,11 @@ public class ValidationUtils
 
     private static final Pattern INTERNATIONAL_PHONE_PATTERN = Pattern.compile( "^\\+(?:[0-9].?){4,14}[0-9]$" );
 
-    public static final String NOT_VALID_VALUE_TYPE_CLASS = "not_valid_value_type_class";
-
     public static final String NOT_VALID_VALUE_TYPE_OPTION_CLASS = "not_valid_value_type_option_class";
 
-    public static final int MAX_PASSWORD_LENGTH = 35;
+    private static final Set<String> BOOL_FALSE_VARIANTS = Set.of( "false", "False", "FALSE", "f", "F", "0" );
 
-    private static Set<String> BOOL_FALSE_VARIANTS = Sets.newHashSet( "false", "False", "FALSE", "f", "F", "0" );
-
-    private static Set<String> BOOL_TRUE_VARIANTS = Sets.newHashSet( "true", "True", "TRUE", "t", "T", "1" );
+    private static final Set<String> BOOL_TRUE_VARIANTS = Set.of( "true", "True", "TRUE", "t", "T", "1" );
 
     private static final int VALUE_MAX_LENGTH = 50000;
 
@@ -244,29 +234,6 @@ public class ValidationUtils
 
         Matcher matcher = USERNAME_PATTERN.matcher( username );
         return matcher.matches();
-    }
-
-    /**
-     * Validates whether a password is valid. A password must:
-     * <p/>
-     * <ul>
-     * <li>Be between 8 and 80 characters long</li>
-     * <li>Include at least one digit</li>
-     * <li>Include at least one uppercase letter</li>
-     * </ul>
-     *
-     * @param password the password.
-     *
-     * @return true if the password is valid, false otherwise.
-     */
-    public static boolean passwordIsValid( String password )
-    {
-        if ( password == null || password.trim().length() < 8 || password.trim().length() > MAX_PASSWORD_LENGTH )
-        {
-            return false;
-        }
-
-        return DIGIT_PATTERN.matcher( password ).matches() && UPPERCASE_PATTERN.matcher( password ).matches();
     }
 
     /**
