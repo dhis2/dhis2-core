@@ -72,8 +72,6 @@ import org.hisp.dhis.render.ObjectValueTypeRenderingOption;
 import org.hisp.dhis.render.StaticRenderingConfiguration;
 import org.hisp.dhis.render.type.ValueTypeRenderingType;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
