@@ -55,7 +55,7 @@
     <snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
     <sonar.organization>dhis2</sonar.organization>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
-    <surefireArgLine>-Xmx2024m --illegal-access=permit</surefireArgLine>
+    <surefireArgLine>-Xmx2024m</surefireArgLine>
 
     <!-- Needed so we can disable running tests when the default profile 
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
@@ -559,9 +559,6 @@
           <artifactId>maven-failsafe-plugin</artifactId>
           <version>${maven-failsafe-plugin.version}</version>
           <configuration>
-            <argLine>
-              --illegal-access=permit
-            </argLine>
             <encoding>${project.build.sourceEncoding}</encoding>
           </configuration>
         </plugin>
