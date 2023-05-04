@@ -33,16 +33,15 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -93,7 +92,8 @@ class UpdatableFieldsValidatorTest
         when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
+            .thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
             .thenReturn( TrackerImportStrategy.UPDATE );
 
@@ -158,16 +158,16 @@ class UpdatableFieldsValidatorTest
         return trackedEntityInstance;
     }
 
-    private ProgramInstance getEnrollment()
+    private Enrollment getEnrollment()
     {
         Program program = new Program();
         program.setUid( PROGRAM_ID );
 
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_ID );
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( trackedEntityInstance() );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( ENROLLMENT_ID );
+        enrollment.setProgram( program );
+        enrollment.setEntityInstance( trackedEntityInstance() );
+        return enrollment;
     }
 
     private Event event()

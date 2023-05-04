@@ -38,8 +38,8 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
@@ -117,13 +117,13 @@ class RepeatedEventsValidatorTest extends DhisConvenienceTest
             .thenReturn( notRepeatebleProgramStageWithRegistration() );
         // given
         Event event = notRepeatableEvent( "A" );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( event.getEnrollment() );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( event.getEnrollment() );
 
         // when
         bundle.setStrategy( event, TrackerImportStrategy.CREATE );
 
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
         when( preheat.hasProgramStageWithEvents( event.getProgramStage(), event.getEnrollment() ) ).thenReturn( true );
         bundle.setEvents( Lists.newArrayList( event ) );
 

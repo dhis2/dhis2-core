@@ -32,9 +32,9 @@ import java.util.List;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.user.User;
 
@@ -53,13 +53,13 @@ public interface TrackerAccessManager
     List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
         boolean skipOwnershipCheck );
 
-    List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canRead( User user, Enrollment enrollment, boolean skipOwnershipCheck );
 
-    List<String> canCreate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canCreate( User user, Enrollment enrollment, boolean skipOwnershipCheck );
 
-    List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canUpdate( User user, Enrollment enrollment, boolean skipOwnershipCheck );
 
-    List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck );
+    List<String> canDelete( User user, Enrollment enrollment, boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Event event, boolean skipOwnershipCheck );
 

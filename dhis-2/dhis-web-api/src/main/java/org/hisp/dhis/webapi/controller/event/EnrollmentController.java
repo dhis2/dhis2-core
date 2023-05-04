@@ -54,7 +54,6 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -68,8 +67,8 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
@@ -107,13 +106,13 @@ public class EnrollmentController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private EnrollmentService enrollmentService;
+    private org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService;
 
     @Autowired
     private AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService programInstanceService;
 
     @Autowired
     protected FieldFilterService fieldFilterService;
@@ -147,7 +146,7 @@ public class EnrollmentController
 
         if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
+            EnrollmentQueryParams params = enrollmentCriteriaMapper.getFromUrl(
                 TextUtils.splitToSet( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
                 enrollmentCriteria.getOuMode(),
                 enrollmentCriteria.getLastUpdated(),
@@ -342,7 +341,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage cancelEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.programInstanceExists( id ) )
+        if ( !programInstanceService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }
@@ -356,7 +355,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage completeEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.programInstanceExists( id ) )
+        if ( !programInstanceService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }
@@ -370,7 +369,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage incompleteEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.programInstanceExists( id ) )
+        if ( !programInstanceService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }

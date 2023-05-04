@@ -87,7 +87,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     private DbmsManager dbmsManager;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -124,9 +124,9 @@ class EventStoreTest extends TransactionalIntegrationTest
 
     private Date enrollmentDate;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
     private Event eventA;
 
@@ -205,24 +205,24 @@ class EventStoreTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-PIA" );
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programB );
-        programInstanceService.addProgramInstance( programInstanceB );
-        eventA = new Event( programInstanceA, stageA );
+        enrollmentA = new Enrollment( enrollmentDate, incidenDate, entityInstanceA, programA );
+        enrollmentA.setUid( "UID-PIA" );
+        enrollmentService.addEnrollment( enrollmentA );
+        enrollmentB = new Enrollment( enrollmentDate, incidenDate, entityInstanceB, programB );
+        enrollmentService.addEnrollment( enrollmentB );
+        eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( enrollmentDate );
         eventA.setUid( "UID-A" );
-        eventB = new Event( programInstanceA, stageB );
+        eventB = new Event( enrollmentA, stageB );
         eventB.setDueDate( enrollmentDate );
         eventB.setUid( "UID-B" );
-        eventC = new Event( programInstanceB, stageC );
+        eventC = new Event( enrollmentB, stageC );
         eventC.setDueDate( enrollmentDate );
         eventC.setUid( "UID-C" );
-        eventD1 = new Event( programInstanceB, stageD );
+        eventD1 = new Event( enrollmentB, stageD );
         eventD1.setDueDate( enrollmentDate );
         eventD1.setUid( "UID-D1" );
-        eventD2 = new Event( programInstanceB, stageD );
+        eventD2 = new Event( enrollmentB, stageD );
         eventD2.setDueDate( enrollmentDate );
         eventD2.setUid( "UID-D2" );
     }
@@ -250,15 +250,15 @@ class EventStoreTest extends TransactionalIntegrationTest
         eventStore.save( eventB );
         eventStore.save( eventC );
         eventStore.save( eventD1 );
-        List<ProgramInstance> programInstances = new ArrayList<>();
-        programInstances.add( programInstanceA );
-        programInstances.add( programInstanceB );
-        List<Event> stageInstances = eventStore.get( programInstances,
+        List<Enrollment> enrollments = new ArrayList<>();
+        enrollments.add( enrollmentA );
+        enrollments.add( enrollmentB );
+        List<Event> stageInstances = eventStore.get( enrollments,
             EventStatus.COMPLETED );
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( eventA ) );
         assertTrue( stageInstances.contains( eventC ) );
-        stageInstances = eventStore.get( programInstances, EventStatus.ACTIVE );
+        stageInstances = eventStore.get( enrollments, EventStatus.ACTIVE );
         assertEquals( 2, stageInstances.size() );
         assertTrue( stageInstances.contains( eventB ) );
         assertTrue( stageInstances.contains( eventD1 ) );
@@ -313,13 +313,13 @@ class EventStoreTest extends TransactionalIntegrationTest
         cal.add( Calendar.DATE, -2 );
         Date yesterday = cal.getTime();
         // Events
-        Event eventA = new Event( programInstanceA, stageA );
+        Event eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( tomorrow );
         eventStore.save( eventA );
-        Event eventB = new Event( programInstanceB, stageB );
+        Event eventB = new Event( enrollmentB, stageB );
         eventB.setDueDate( today );
         eventStore.save( eventB );
-        Event eventC = new Event( programInstanceB, stageC );
+        Event eventC = new Event( enrollmentB, stageC );
         eventC.setDueDate( yesterday );
         eventStore.save( eventC );
         // Queries

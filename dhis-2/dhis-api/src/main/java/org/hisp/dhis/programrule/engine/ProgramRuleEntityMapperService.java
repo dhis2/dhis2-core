@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.DataItem;
@@ -84,9 +84,9 @@ public interface ProgramRuleEntityMapperService
     RuleEvent toMappedRuleEvent( Event eventToEvaluate );
 
     /**
-     * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
+     * @return A mapped RuleEnrollment for DHIS enrollment.
      */
-    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance,
+    RuleEnrollment toMappedRuleEnrollment( Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**

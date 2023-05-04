@@ -54,7 +54,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.Events;
@@ -91,9 +90,6 @@ public class EventsExportController
 
     @Nonnull
     private final EventCriteriaMapper requestToSearchParams;
-
-    @Nonnull
-    private final EventService programStageInstanceService;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
@@ -169,7 +165,7 @@ public class EventsExportController
     private boolean areAllEnrollmentsInvalid( EventCriteria eventCriteria, EventSearchParams eventSearchParams )
     {
         return !CollectionUtils.isEmpty( eventCriteria.getEnrollments() ) &&
-            CollectionUtils.isEmpty( eventSearchParams.getProgramInstances() );
+            CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 
     @GetMapping( "{uid}" )
@@ -179,12 +175,7 @@ public class EventsExportController
         throws NotFoundException
     {
         EventParams eventParams = eventsMapper.map( fields );
-        Event event = eventService.getEvent( programStageInstanceService.getEvent( uid ),
-            eventParams );
-        if ( event == null )
-        {
-            throw new NotFoundException( org.hisp.dhis.webapi.controller.tracker.view.Event.class, uid );
-        }
+        Event event = eventService.getEvent( uid, eventParams );
 
         return ResponseEntity
             .ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );

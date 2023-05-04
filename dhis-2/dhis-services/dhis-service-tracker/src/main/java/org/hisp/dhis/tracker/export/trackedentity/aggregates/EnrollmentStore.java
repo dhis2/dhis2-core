@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -47,7 +47,7 @@ public interface EnrollmentStore
      * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
      *         the key a List of {@see Enrollment} objects
      */
-    Multimap<String, ProgramInstance> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, Context ctx );
+    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, Context ctx );
 
     /**
      *

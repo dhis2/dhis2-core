@@ -36,10 +36,10 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -71,12 +71,12 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
         NotificationLoggingService notificationLoggingService,
-        ProgramInstanceService programInstanceService,
+        EnrollmentService enrollmentService,
         EventService eventService,
         ProgramNotificationInstanceService programNotificationInstanceService,
         NotificationTemplateService notificationTemplateService )
     {
-        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
+        super( programNotificationTemplateService, notificationLoggingService, enrollmentService,
             eventService );
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.notificationTemplateService = notificationTemplateService;
@@ -90,9 +90,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     @Override
     @Transactional
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
-        NotificationValidationResult result = validate( ruleEffect, programInstance );
+        NotificationValidationResult result = validate( ruleEffect, enrollment );
 
         if ( !result.isValid() )
         {
@@ -101,7 +101,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = result.getTemplate();
 
-        String key = generateKey( template, programInstance );
+        String key = generateKey( template, enrollment );
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
@@ -113,7 +113,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
         notificationInstance.setEvent( null );
-        notificationInstance.setProgramInstance( programInstance );
+        notificationInstance.setEnrollment( enrollment );
 
         programNotificationInstanceService.save( notificationInstance );
 
@@ -164,7 +164,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
         notificationInstance.setEvent( event );
-        notificationInstance.setProgramInstance( null );
+        notificationInstance.setEnrollment( null );
 
         programNotificationInstanceService.save( notificationInstance );
 
@@ -206,7 +206,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
         notificationInstance.setEvent( event );
-        notificationInstance.setProgramInstance( null );
+        notificationInstance.setEnrollment( null );
 
         programNotificationInstanceService.save( notificationInstance );
 

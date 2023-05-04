@@ -58,9 +58,9 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
@@ -231,7 +231,7 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<String, ProgramInstance> enrollments = new HashMap<>();
+    private final Map<String, Enrollment> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming
@@ -279,12 +279,12 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+    private Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     /**
-     * A Map of program uid and without registration {@see ProgramInstance}.
+     * A Map of program uid and without registration {@see Enrollment}.
      */
-    private final Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
+    private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
 
     /**
      * A map of valid users by username that are present in the payload. A user
@@ -310,7 +310,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private List<String> programInstanceWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+    private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
     /**
      * A list of Program Stage UID having 1 or more Events
@@ -534,19 +534,19 @@ public class TrackerPreheat
         trackedEntities.put( uid, trackedEntityInstance );
     }
 
-    public ProgramInstance getEnrollment( String uid )
+    public Enrollment getEnrollment( String uid )
     {
         return enrollments.get( uid );
     }
 
-    public void putEnrollments( List<ProgramInstance> programInstances )
+    public void putEnrollments( List<Enrollment> enrollments )
     {
-        programInstances.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
+        enrollments.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
     }
 
-    public void putEnrollment( String uid, ProgramInstance programInstance )
+    public void putEnrollment( String uid, Enrollment enrollment )
     {
-        enrollments.put( uid, programInstance );
+        enrollments.put( uid, enrollment );
     }
 
     public Event getEvent( String uid )
@@ -636,14 +636,14 @@ public class TrackerPreheat
         }
     }
 
-    public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
+    public Enrollment getEnrollmentsWithoutRegistration( String programUid )
     {
-        return programInstancesWithoutRegistration.get( programUid );
+        return enrollmentsWithoutRegistration.get( programUid );
     }
 
-    public void putProgramInstancesWithoutRegistration( String programUid, ProgramInstance programInstance )
+    public void putEnrollmentsWithoutRegistration( String programUid, Enrollment enrollment )
     {
-        this.programInstancesWithoutRegistration.put( programUid, programInstance );
+        this.enrollmentsWithoutRegistration.put( programUid, enrollment );
     }
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
@@ -752,7 +752,7 @@ public class TrackerPreheat
     public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
     {
         ProgramStage ps = this.getProgramStage( programStage );
-        ProgramInstance pi = this.getEnrollment( enrollmentUid );
+        Enrollment pi = this.getEnrollment( enrollmentUid );
         return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
     }
 

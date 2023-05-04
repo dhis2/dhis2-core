@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
@@ -50,9 +49,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -60,7 +59,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -188,7 +186,7 @@ class SecurityOwnershipValidator
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( preheatEvent, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( preheatEvent, EVENT_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
         checkEventWriteAccess( reporter, bundle, event, preheatEvent.getProgramStage(),
@@ -213,18 +211,18 @@ class SecurityOwnershipValidator
             return null;
         }
 
-        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        Enrollment enrollment = bundle.getPreheat().getEnrollment( event.getEnrollment() );
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             return bundle
                 .findEnrollmentByUid( event.getEnrollment() )
-                .map( Enrollment::getTrackedEntity )
+                .map( org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity )
                 .orElse( null );
         }
         else
         {
-            return programInstance.getEntityInstance().getUid();
+            return enrollment.getEntityInstance().getUid();
         }
     }
 

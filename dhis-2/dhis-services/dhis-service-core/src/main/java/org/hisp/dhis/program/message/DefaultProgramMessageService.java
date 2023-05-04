@@ -46,9 +46,9 @@ import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatchService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponseSummary;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
@@ -99,20 +99,20 @@ public class DefaultProgramMessageService
 
     @Override
     @Transactional( readOnly = true )
-    public ProgramMessageQueryParams getFromUrl( Set<String> ou, String piUid, String eventUid,
+    public ProgramMessageQueryParams getFromUrl( Set<String> ou, String enrollmentUid, String eventUid,
         ProgramMessageStatus messageStatus, Integer page, Integer pageSize, Date afterDate, Date beforeDate )
     {
         ProgramMessageQueryParams params = new ProgramMessageQueryParams();
 
-        if ( piUid != null )
+        if ( enrollmentUid != null )
         {
-            if ( manager.exists( ProgramInstance.class, piUid ) )
+            if ( manager.exists( Enrollment.class, enrollmentUid ) )
             {
-                params.setProgramInstance( manager.get( ProgramInstance.class, piUid ) );
+                params.setEnrollment( manager.get( Enrollment.class, enrollmentUid ) );
             }
             else
             {
-                throw new IllegalQueryException( "ProgramInstance does not exist." );
+                throw new IllegalQueryException( "Enrollment does not exist." );
             }
         }
 
@@ -237,13 +237,13 @@ public class DefaultProgramMessageService
     @Transactional( readOnly = true )
     public void currentUserHasAccess( ProgramMessageQueryParams params )
     {
-        ProgramInstance enrollment = null;
+        Enrollment enrollment = null;
 
         Set<Program> programs;
 
         if ( params.hasProgramInstance() )
         {
-            enrollment = params.getProgramInstance();
+            enrollment = params.getEnrollment();
         }
 
         if ( params.hasEvent() )
@@ -253,7 +253,7 @@ public class DefaultProgramMessageService
 
         if ( enrollment == null )
         {
-            throw new IllegalQueryException( "ProgramInstance or Event has to be provided" );
+            throw new IllegalQueryException( "Enrollment or Event has to be provided" );
         }
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );
@@ -301,7 +301,7 @@ public class DefaultProgramMessageService
             violation = "Delivery channel must be specified";
         }
 
-        if ( message.getProgramInstance() == null && message.getEvent() == null )
+        if ( message.getEnrollment() == null && message.getEvent() == null )
         {
             violation = "Program instance or program stage instance must be specified";
         }
@@ -339,7 +339,7 @@ public class DefaultProgramMessageService
 
         if ( message.hasProgramInstance() )
         {
-            object = message.getProgramInstance().getProgram();
+            object = message.getEnrollment().getProgram();
         }
         else if ( message.hasEvent() )
         {
@@ -371,7 +371,7 @@ public class DefaultProgramMessageService
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
     {
-        message.setProgramInstance( getProgramInstance( message ) );
+        message.setEnrollment( getProgramInstance( message ) );
         message.setEvent( getEvent( message ) );
         message.setProcessedDate( new Date() );
         message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
@@ -387,11 +387,11 @@ public class DefaultProgramMessageService
             .collect( Collectors.toList() );
     }
 
-    private ProgramInstance getProgramInstance( ProgramMessage programMessage )
+    private Enrollment getProgramInstance( ProgramMessage programMessage )
     {
-        if ( programMessage.getProgramInstance() != null )
+        if ( programMessage.getEnrollment() != null )
         {
-            return manager.get( ProgramInstance.class, programMessage.getProgramInstance().getUid() );
+            return manager.get( Enrollment.class, programMessage.getEnrollment().getUid() );
         }
 
         return null;

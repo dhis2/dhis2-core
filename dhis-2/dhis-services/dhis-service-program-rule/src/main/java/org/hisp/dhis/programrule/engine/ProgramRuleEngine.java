@@ -38,9 +38,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
@@ -76,14 +76,14 @@ public class ProgramRuleEngine
     @Nonnull
     private final SupplementaryDataProvider supplementaryDataProvider;
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Set<Event> events,
+    public List<RuleEffect> evaluate( Enrollment enrollment, Set<Event> events,
         List<ProgramRule> rules )
     {
         return evaluateProgramRules( enrollment, null, enrollment.getProgram(), Collections.emptyList(),
             getRuleEvents( events, null ), rules );
     }
 
-    public List<RuleEffects> evaluateEnrollmentAndEvents( ProgramInstance enrollment, Set<Event> events,
+    public List<RuleEffects> evaluateEnrollmentAndEvents( Enrollment enrollment, Set<Event> events,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         List<ProgramRule> rules = getProgramRules( enrollment.getProgram(),
@@ -104,14 +104,14 @@ public class ProgramRuleEngine
         return evaluateProgramRules( null, null, program, List.of(), getRuleEvents( Set.of( event ), null ), rules );
     }
 
-    public List<RuleEffect> evaluate( ProgramInstance enrollment, Event event,
+    public List<RuleEffect> evaluate( Enrollment enrollment, Event event,
         Set<Event> events, List<ProgramRule> rules )
     {
         return evaluateProgramRules( enrollment, event, enrollment.getProgram(),
             Collections.emptyList(), getRuleEvents( events, event ), rules );
     }
 
-    private List<RuleEffect> evaluateProgramRules( ProgramInstance enrollment,
+    private List<RuleEffect> evaluateProgramRules( Enrollment enrollment,
         Event event, Program program,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents,
         List<ProgramRule> rules )
@@ -132,7 +132,7 @@ public class ProgramRuleEngine
         }
     }
 
-    private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects( ProgramInstance enrollment,
+    private List<RuleEffects> evaluateProgramRulesForMultipleTrackerObjects( Enrollment enrollment,
         Program program,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues, List<RuleEvent> ruleEvents,
         List<ProgramRule> rules )
@@ -151,7 +151,7 @@ public class ProgramRuleEngine
     }
 
     private RuleEngine getRuleEngine( Program program,
-        ProgramInstance enrollment,
+        Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues,
         List<RuleEvent> ruleEvents, List<ProgramRule> programRules )
     {
@@ -301,13 +301,13 @@ public class ProgramRuleEngine
         return programRuleEntityMapperService.toMappedRuleEvents( events, event );
     }
 
-    private RuleEnrollment getRuleEnrollment( ProgramInstance enrollment,
+    private RuleEnrollment getRuleEnrollment( Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         return programRuleEntityMapperService.toMappedRuleEnrollment( enrollment, trackedEntityAttributeValues );
     }
 
-    private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, ProgramInstance enrollment,
+    private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, Enrollment enrollment,
         Event event, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
         throws Exception
     {

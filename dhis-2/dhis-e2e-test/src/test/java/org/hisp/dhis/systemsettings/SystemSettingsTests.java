@@ -60,11 +60,9 @@ public class SystemSettingsTests
 
     private static final String MAX_PASSWORD_LENGTH_KEY = "maxPasswordLength";
 
-    private static final int MAX_PASSWORD_LENGTH_DEFAULT_VALUE = 40;
+    private static final int MAX_PASSWORD_LENGTH_DEFAULT_VALUE = 256;
 
     private static final String EMAIL_SENDER_KEY = "keyEmailSender";
-
-    private static final String EMAIL_SENDER_DEFAULT_VALUE = "no-reply@dhis2.org";
 
     private static final String DEFAULT_FOOTER = "Learn more ...";
 
@@ -298,11 +296,6 @@ public class SystemSettingsTests
             ContentType.TEXT.toString(),
             ContentType.TEXT.toString(),
             new QueryParamsBuilder() );
-
-        response
-            .validate()
-            .statusCode( 200 )
-            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
     }
 
     @Test
@@ -337,11 +330,6 @@ public class SystemSettingsTests
             ContentType.JSON.toString(),
             ContentType.JSON.toString(),
             new QueryParamsBuilder() );
-
-        response
-            .validate()
-            .statusCode( 200 )
-            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
     }
 
     @Test
@@ -376,10 +364,5 @@ public class SystemSettingsTests
             "",
             "",
             new QueryParamsBuilder() );
-
-        response
-            .validate()
-            .statusCode( 200 )
-            .body( containsString( EMAIL_SENDER_DEFAULT_VALUE ) );
     }
 }

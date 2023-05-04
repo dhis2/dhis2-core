@@ -40,10 +40,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipTypeService;
@@ -90,8 +89,8 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         IdentifiableObjectManager manager,
         UserService userService,
         DbmsManager dbmsManager,
-        EnrollmentService enrollmentService,
-        ProgramInstanceService programInstanceService,
+        org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService,
+        EnrollmentService programInstanceService,
         CurrentUserService currentUserService,
         SchemaService schemaService,
         QueryService queryService,

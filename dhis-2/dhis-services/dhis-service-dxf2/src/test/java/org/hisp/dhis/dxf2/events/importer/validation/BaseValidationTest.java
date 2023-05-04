@@ -52,7 +52,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -84,7 +84,7 @@ public abstract class BaseValidationTest
     protected ObjectMapper objectMapper = new ObjectMapper();
 
     @Mock
-    protected ProgramInstanceStore programInstanceStore;
+    protected EnrollmentStore enrollmentStore;
 
     @BeforeEach
     public void superSetUp()
@@ -97,7 +97,7 @@ public abstract class BaseValidationTest
 
         // Service delegator
         when( serviceDelegator.getJsonMapper() ).thenReturn( objectMapper );
-        when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
+        when( serviceDelegator.getEnrollmentStore() ).thenReturn( enrollmentStore );
 
     }
 

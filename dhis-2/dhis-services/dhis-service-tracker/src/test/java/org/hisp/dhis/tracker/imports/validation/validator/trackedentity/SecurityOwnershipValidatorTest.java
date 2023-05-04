@@ -39,8 +39,8 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
@@ -371,7 +371,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
+        trackedEntityInstance.setEnrollments( Sets.newHashSet() );
         trackedEntityInstance.setTrackedEntityType( trackedEntityType );
 
         return trackedEntityInstance;
@@ -379,12 +379,12 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
     private TrackedEntityInstance getTEIWithDeleteProgramInstances()
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setDeleted( true );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setDeleted( true );
 
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( programInstance ) );
+        trackedEntityInstance.setEnrollments( Sets.newHashSet( enrollment ) );
         trackedEntityInstance.setTrackedEntityType( trackedEntityType );
 
         return trackedEntityInstance;
@@ -394,7 +394,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet( new ProgramInstance() ) );
+        trackedEntityInstance.setEnrollments( Sets.newHashSet( new Enrollment() ) );
         trackedEntityInstance.setTrackedEntityType( trackedEntityType );
 
         return trackedEntityInstance;

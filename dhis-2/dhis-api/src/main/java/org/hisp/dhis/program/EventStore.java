@@ -45,11 +45,11 @@ public interface EventStore
     /**
      * Retrieve an event list on program instance list with a certain status
      *
-     * @param programInstances ProgramInstance list
+     * @param enrollments Enrollment list
      * @param status EventStatus
      * @return Event list
      */
-    List<Event> get( Collection<ProgramInstance> programInstances, EventStatus status );
+    List<Event> get( Collection<Enrollment> enrollments, EventStatus status );
 
     /**
      * Get all events by TrackedEntityInstance, optionally filtering by

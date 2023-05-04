@@ -59,7 +59,6 @@ interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedE
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    @Mapping( target = "enrollments", source = "programInstances" )
     @Override
     TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
 }

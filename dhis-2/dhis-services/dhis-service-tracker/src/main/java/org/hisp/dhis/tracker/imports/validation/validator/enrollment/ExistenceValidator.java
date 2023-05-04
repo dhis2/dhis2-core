@@ -31,10 +31,9 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1080;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1081;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1113;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -42,14 +41,15 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ExistenceValidator
-    implements Validator<Enrollment>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( enrollment );
 
-        ProgramInstance existingPi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
+        Enrollment existingPi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingPi != null && existingPi.isDeleted() )

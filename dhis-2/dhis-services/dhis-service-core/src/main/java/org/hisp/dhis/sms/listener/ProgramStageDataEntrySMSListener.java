@@ -42,10 +42,10 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -83,28 +83,23 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
 
     private final SMSCommandService smsCommandService;
 
-    private final ProgramInstanceService programInstanceService;
-
-    public ProgramStageDataEntrySMSListener( ProgramInstanceService programInstanceService,
+    public ProgramStageDataEntrySMSListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
         TrackedEntityInstanceService trackedEntityInstanceService,
-        TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService,
-        ProgramInstanceService programInstanceService1 )
+        TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService )
     {
-        super( programInstanceService, dataElementCategoryService, eventService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( trackedEntityAttributeService );
         checkNotNull( trackedEntityInstanceService );
         checkNotNull( smsCommandService );
-        checkNotNull( programInstanceService );
 
         this.trackedEntityInstanceService = trackedEntityInstanceService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.smsCommandService = smsCommandService;
-        this.programInstanceService = programInstanceService1;
     }
 
     // -------------------------------------------------------------------------
@@ -136,10 +131,10 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
     private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand,
         Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
-        List<ProgramInstance> programInstances = new ArrayList<>(
-            programInstanceService.getProgramInstances( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
+        List<Enrollment> enrollments = new ArrayList<>(
+            enrollmentService.getEnrollments( tei, smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
-        register( programInstances, keyValue, smsCommand, sms, ous );
+        register( enrollments, keyValue, smsCommand, sms, ous );
     }
 
     private List<TrackedEntityInstance> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command,

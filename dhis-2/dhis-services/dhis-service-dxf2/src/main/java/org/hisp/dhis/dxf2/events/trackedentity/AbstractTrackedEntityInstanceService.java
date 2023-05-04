@@ -60,8 +60,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -72,9 +70,9 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
@@ -138,9 +136,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected DbmsManager dbmsManager;
 
-    protected EnrollmentService enrollmentService;
+    protected org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService;
 
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService programInstanceService;
 
     protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
@@ -546,7 +544,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     {
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = new ArrayList<>();
 
         List<TrackedEntityInstance> validTeis = resolveImportableTeis( trackedEntityInstances, importSummaries );
 
@@ -685,7 +683,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
         else
         {
-            for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
+            for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : dtoEntityInstance.getEnrollments() )
             {
                 enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
                 enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
@@ -705,7 +703,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         List<List<TrackedEntityInstance>> partitions = Lists.partition( trackedEntityInstances, FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = new ArrayList<>();
 
         for ( List<TrackedEntityInstance> _trackedEntityInstances : partitions )
         {
@@ -853,7 +851,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         }
         else
         {
-            for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
+            for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : dtoEntityInstance.getEnrollments() )
             {
                 enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
                 enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
@@ -962,13 +960,14 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // -------------------------------------------------------------------------
 
     private void linkEnrollmentSummaries( ImportSummaries importSummaries, ImportSummaries enrollmentImportSummaries,
-        List<Enrollment> enrollments )
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments )
     {
         importSummaries.getImportSummaries().forEach( is -> is.setEnrollments( new ImportSummaries() ) );
 
-        Map<String, List<Enrollment>> enrollmentsGroupedByTe = enrollments.stream()
+        Map<String, List<org.hisp.dhis.dxf2.events.enrollment.Enrollment>> enrollmentsGroupedByTe = enrollments.stream()
             .filter( en -> !StringUtils.isEmpty( en.getTrackedEntityInstance() ) )
-            .collect( Collectors.groupingBy( Enrollment::getTrackedEntityInstance ) );
+            .collect(
+                Collectors.groupingBy( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getTrackedEntityInstance ) );
 
         Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
             .filter( en -> !StringUtils.isEmpty( en.getReference() ) )
@@ -979,7 +978,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             .filter( en -> !StringUtils.isEmpty( en.getReference() ) )
             .collect( Collectors.groupingBy( ImportSummary::getReference ) );
 
-        for ( Map.Entry<String, List<Enrollment>> set : enrollmentsGroupedByTe.entrySet() )
+        for ( Map.Entry<String, List<org.hisp.dhis.dxf2.events.enrollment.Enrollment>> set : enrollmentsGroupedByTe
+            .entrySet() )
         {
             if ( !summariesGroupedByReference.containsKey( set.getKey() ) )
             {
@@ -989,7 +989,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             ImportSummary importSummary = summariesGroupedByReference.get( set.getKey() ).get( 0 );
             ImportSummaries enrollmentSummaries = new ImportSummaries();
 
-            for ( Enrollment enrollment : set.getValue() )
+            for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : set.getValue() )
             {
                 if ( !enrollmentSummariesGroupedByReference.containsKey( enrollment.getEnrollment() ) )
                 {
@@ -1130,11 +1130,11 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     private ImportSummaries handleEnrollments( TrackedEntityInstance dtoEntityInstance,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance, ImportOptions importOptions )
     {
-        List<Enrollment> create = new ArrayList<>();
-        List<Enrollment> update = new ArrayList<>();
-        List<Enrollment> delete = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> create = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> update = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> delete = new ArrayList<>();
 
-        for ( Enrollment enrollment : dtoEntityInstance.getEnrollments() )
+        for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : dtoEntityInstance.getEnrollments() )
         {
             enrollment.setTrackedEntityType( dtoEntityInstance.getTrackedEntityType() );
             enrollment.setTrackedEntityInstance( daoEntityInstance.getUid() );
@@ -1143,7 +1143,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 delete.add( enrollment );
             }
-            else if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            else if ( !programInstanceService.enrollmentExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }
@@ -1568,10 +1568,10 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     private void isAllowedToDelete( User user, org.hisp.dhis.trackedentity.TrackedEntityInstance tei,
         ImportConflicts importConflicts )
     {
-        Set<ProgramInstance> programInstances = tei.getProgramInstances().stream().filter( pi -> !pi.isDeleted() )
+        Set<Enrollment> enrollments = tei.getEnrollments().stream().filter( pi -> !pi.isDeleted() )
             .collect( Collectors.toSet() );
 
-        if ( !programInstances.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
+        if ( !enrollments.isEmpty() && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
         {
             importConflicts.addConflict( tei.getUid(),
                 "Tracked entity instance " + tei.getUid()
@@ -1641,13 +1641,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( params.isIncludeEnrollments() )
         {
-            for ( ProgramInstance programInstance : daoTrackedEntityInstance.getProgramInstances() )
+            for ( Enrollment enrollment : daoTrackedEntityInstance.getEnrollments() )
             {
-                if ( trackerAccessManager.canRead( user, programInstance, false ).isEmpty()
-                    && (params.isIncludeDeleted() || !programInstance.isDeleted()) )
+                if ( trackerAccessManager.canRead( user, enrollment, false ).isEmpty()
+                    && (params.isIncludeDeleted() || !enrollment.isDeleted()) )
                 {
                     trackedEntityInstance.getEnrollments()
-                        .add( enrollmentService.getEnrollment( user, programInstance,
+                        .add( enrollmentService.getEnrollment( user, enrollment,
                             params.getEnrollmentParams(), true ) );
                 }
             }
@@ -1695,7 +1695,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( params.isDataSynchronizationQuery() )
         {
-            List<String> programs = trackedEntityInstance.getEnrollments().stream().map( Enrollment::getProgram )
+            List<String> programs = trackedEntityInstance.getEnrollments().stream()
+                .map( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getProgram )
                 .collect( Collectors.toList() );
 
             readableAttributesCopy = readableAttributes.stream().filter( att -> !att.getSkipSynchronization() )

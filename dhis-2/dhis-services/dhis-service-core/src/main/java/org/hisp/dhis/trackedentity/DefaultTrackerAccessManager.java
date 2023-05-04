@@ -37,9 +37,9 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -189,17 +189,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
+    public List<String> canRead( User user, Enrollment enrollment, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || programInstance == null )
+        if ( user == null || user.isSuper() || enrollment == null )
         {
             return errors;
         }
 
-        Program program = programInstance.getProgram();
+        Program program = enrollment.getProgram();
 
         if ( !aclService.canDataRead( user, program ) )
         {
@@ -215,14 +215,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
         }
         else // this branch will only happen if coming from /events
         {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            OrganisationUnit ou = enrollment.getOrganisationUnit();
 
             if ( ou != null && !canAccess( user, program, ou ) )
             {
@@ -234,19 +234,19 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canCreate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
+    public List<String> canCreate( User user, Enrollment enrollment, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || programInstance == null )
+        if ( user == null || user.isSuper() || enrollment == null )
         {
             return errors;
         }
 
-        Program program = programInstance.getProgram();
+        Program program = enrollment.getProgram();
 
-        OrganisationUnit ou = programInstance.getOrganisationUnit();
+        OrganisationUnit ou = enrollment.getOrganisationUnit();
         if ( ou != null )
         {
             if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
@@ -269,7 +269,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -279,17 +279,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canUpdate( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
+    public List<String> canUpdate( User user, Enrollment enrollment, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || programInstance == null )
+        if ( user == null || user.isSuper() || enrollment == null )
         {
             return errors;
         }
 
-        Program program = programInstance.getProgram();
+        Program program = enrollment.getProgram();
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -305,7 +305,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -313,7 +313,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         }
         else
         {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            OrganisationUnit ou = enrollment.getOrganisationUnit();
             if ( ou != null )
             {
                 if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
@@ -327,17 +327,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canDelete( User user, ProgramInstance programInstance, boolean skipOwnershipCheck )
+    public List<String> canDelete( User user, Enrollment enrollment, boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || programInstance == null )
+        if ( user == null || user.isSuper() || enrollment == null )
         {
             return errors;
         }
 
-        Program program = programInstance.getProgram();
+        Program program = enrollment.getProgram();
 
         if ( !aclService.canDataWrite( user, program ) )
         {
@@ -353,7 +353,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, programInstance.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -361,7 +361,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
 
         else
         {
-            OrganisationUnit ou = programInstance.getOrganisationUnit();
+            OrganisationUnit ou = enrollment.getOrganisationUnit();
             if ( ou != null )
             {
                 if ( !organisationUnitService.isInUserHierarchyCached( user, ou ) )
@@ -658,11 +658,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         to = relationship.getTo();
 
         errors.addAll( canRead( user, from.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, from.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, from.getEnrollment(), false ) );
         errors.addAll( canRead( user, from.getEvent(), false ) );
 
         errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canRead( user, to.getProgramInstance(), false ) );
+        errors.addAll( canRead( user, to.getEnrollment(), false ) );
         errors.addAll( canRead( user, to.getEvent(), false ) );
 
         return errors;
@@ -693,11 +693,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         to = relationship.getTo();
 
         errors.addAll( canWrite( user, from.getTrackedEntityInstance() ) );
-        errors.addAll( canUpdate( user, from.getProgramInstance(), false ) );
+        errors.addAll( canUpdate( user, from.getEnrollment(), false ) );
         errors.addAll( canUpdate( user, from.getEvent(), false ) );
 
         errors.addAll( canWrite( user, to.getTrackedEntityInstance() ) );
-        errors.addAll( canUpdate( user, to.getProgramInstance(), false ) );
+        errors.addAll( canUpdate( user, to.getEnrollment(), false ) );
         errors.addAll( canUpdate( user, to.getEvent(), false ) );
 
         return errors;

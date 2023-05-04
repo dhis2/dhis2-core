@@ -65,7 +65,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
 
     private Program programA;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
     private TrackedEntityInstance teiA;
 
@@ -114,7 +114,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private ProgramMessageStore programMessageStore;
 
     @Autowired
-    private ProgramInstanceStore programInstanceStore;
+    private EnrollmentStore enrollmentStore;
 
     @Autowired
     private OrganisationUnitService orgUnitService;
@@ -164,9 +164,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        programInstanceA = new ProgramInstance( enrollmentDate, incidentDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-A" );
-        eventA = new Event( programInstanceA, stageA );
+        enrollmentA = new Enrollment( enrollmentDate, incidentDate, entityInstanceA, programA );
+        enrollmentA.setUid( "UID-A" );
+        eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( enrollmentDate );
         eventA.setUid( "UID-A" );
         Set<OrganisationUnit> ouSet = new HashSet<>();
@@ -260,23 +260,23 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramMessageByProgramInstance()
     {
-        programInstanceStore.save( programInstanceA );
-        pmsgA.setProgramInstance( programInstanceA );
-        pmsgB.setProgramInstance( programInstanceA );
+        enrollmentStore.save( enrollmentA );
+        pmsgA.setEnrollment( enrollmentA );
+        pmsgB.setEnrollment( enrollmentA );
         programMessageStore.save( pmsgA );
         programMessageStore.save( pmsgB );
-        params.setProgramInstance( programInstanceA );
+        params.setEnrollment( enrollmentA );
         List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
         assertNotNull( programMessages );
         assertTrue( equals( programMessages, pmsgA, pmsgB ) );
         assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
-        assertTrue( programInstanceA.equals( programMessages.get( 0 ).getProgramInstance() ) );
+        assertTrue( enrollmentA.equals( programMessages.get( 0 ).getEnrollment() ) );
     }
 
     @Test
     void testGetProgramMessageByEvent()
     {
-        programInstanceStore.save( programInstanceA );
+        enrollmentStore.save( enrollmentA );
         eventStore.save( eventA );
         pmsgA.setEvent( eventA );
         pmsgB.setEvent( eventA );
@@ -306,17 +306,17 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramMessageByMultipleParameters()
     {
-        programInstanceStore.save( programInstanceA );
-        pmsgA.setProgramInstance( programInstanceA );
-        pmsgB.setProgramInstance( programInstanceA );
+        enrollmentStore.save( enrollmentA );
+        pmsgA.setEnrollment( enrollmentA );
+        pmsgB.setEnrollment( enrollmentA );
         programMessageStore.save( pmsgA );
         programMessageStore.save( pmsgB );
-        params.setProgramInstance( programInstanceA );
+        params.setEnrollment( enrollmentA );
         params.setMessageStatus( messageStatus );
         List<ProgramMessage> programMessages = programMessageStore.getProgramMessages( params );
         assertNotNull( programMessages );
         assertTrue( equals( programMessages, pmsgA, pmsgB ) );
         assertTrue( channels.equals( programMessages.get( 0 ).getDeliveryChannels() ) );
-        assertTrue( programInstanceA.equals( programMessages.get( 0 ).getProgramInstance() ) );
+        assertTrue( enrollmentA.equals( programMessages.get( 0 ).getEnrollment() ) );
     }
 }

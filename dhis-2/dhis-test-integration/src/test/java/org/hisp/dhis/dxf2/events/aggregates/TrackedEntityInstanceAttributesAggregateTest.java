@@ -49,8 +49,8 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -293,10 +293,10 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             // Create a TEI associated to program B
             final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
                 Map.of( "program", programB ) );
-            ProgramInstance piB = new ProgramInstance( programB, trackedEntityInstance, organisationUnitA );
+            Enrollment piB = new Enrollment( programB, trackedEntityInstance, organisationUnitA );
             piB.setEnrollmentDate( new Date() );
             manager.save( piB );
-            ProgramInstance piA = new ProgramInstance( programA, trackedEntityInstance, organisationUnitA );
+            Enrollment piA = new Enrollment( programA, trackedEntityInstance, organisationUnitA );
             piA.setEnrollmentDate( new Date() );
             manager.save( piA );
             if ( removeOwnership )

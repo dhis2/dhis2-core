@@ -194,7 +194,7 @@ class EventCriteriaMapper
             .addOrders( getOrderParams( criteria.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setProgramInstances( programInstances )
+            .setEvents( eventIds ).setEnrollments( programInstances )
             .setIncludeDeleted( criteria.isIncludeDeleted() );
     }
 

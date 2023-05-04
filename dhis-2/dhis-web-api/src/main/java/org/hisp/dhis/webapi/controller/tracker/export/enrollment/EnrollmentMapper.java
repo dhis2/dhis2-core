@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.event.EventMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
@@ -47,7 +46,8 @@ import org.mapstruct.Mapping;
     RelationshipMapper.class,
     UserMapper.class
 } )
-public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment>
+public interface EnrollmentMapper
+    extends ViewMapper<Enrollment, org.hisp.dhis.webapi.controller.tracker.view.Enrollment>
 {
     @Mapping( target = "enrollment", source = "uid" )
     @Mapping( target = "createdAt", source = "created" )
@@ -68,5 +68,5 @@ public interface EnrollmentMapper extends ViewMapper<ProgramInstance, Enrollment
     @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )
     @Override
-    Enrollment from( ProgramInstance programInstance );
+    org.hisp.dhis.webapi.controller.tracker.view.Enrollment from( Enrollment enrollment );
 }

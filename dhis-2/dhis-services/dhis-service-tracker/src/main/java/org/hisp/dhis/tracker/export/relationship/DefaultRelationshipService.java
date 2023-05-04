@@ -36,8 +36,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -89,7 +89,7 @@ public class DefaultRelationshipService implements RelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
+    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
@@ -181,7 +181,7 @@ public class DefaultRelationshipService implements RelationshipService
 
         // the call to the individual services is to detach and apply some logic like filtering out attribute values
         // for tracked entity type attributes from programInstance.entityInstance. Enrollment attributes are actually
-        // owned by the TEI and cannot be set on the ProgramInstance. When returning enrollments in our API an enrollment
+        // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
         if ( item.getTrackedEntityInstance() != null )
         {
@@ -189,10 +189,10 @@ public class DefaultRelationshipService implements RelationshipService
                 .getTrackedEntity( item.getTrackedEntityInstance(),
                     TrackedEntityParams.TRUE.withIncludeRelationships( false ) ) );
         }
-        else if ( item.getProgramInstance() != null )
+        else if ( item.getEnrollment() != null )
         {
-            result.setProgramInstance(
-                enrollmentService.getEnrollment( item.getProgramInstance(),
+            result.setEnrollment(
+                enrollmentService.getEnrollment( item.getEnrollment(),
                     EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
         else if ( item.getEvent() != null )

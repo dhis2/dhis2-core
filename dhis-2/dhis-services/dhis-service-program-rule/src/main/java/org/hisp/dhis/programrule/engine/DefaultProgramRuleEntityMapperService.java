@@ -42,8 +42,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.constant.ConstantService;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
@@ -246,7 +246,7 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
     }
 
     @Override
-    public RuleEnrollment toMappedRuleEnrollment( ProgramInstance enrollment,
+    public RuleEnrollment toMappedRuleEnrollment( Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
     {
         if ( enrollment == null )

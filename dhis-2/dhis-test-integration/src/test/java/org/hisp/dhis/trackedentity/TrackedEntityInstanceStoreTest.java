@@ -50,8 +50,8 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -80,7 +80,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -214,8 +214,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        programInstanceService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
@@ -314,8 +314,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        programInstanceService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
@@ -351,8 +351,8 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        programInstanceService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
@@ -393,7 +393,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         teiB.setCreated( today );
         teiStore.save( teiA );
         teiStore.save( teiB );
-        programInstanceService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrders(
@@ -449,7 +449,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         teiStore.save( teiA );
         attributeValueService
             .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
-        programInstanceService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+        enrollmentService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );

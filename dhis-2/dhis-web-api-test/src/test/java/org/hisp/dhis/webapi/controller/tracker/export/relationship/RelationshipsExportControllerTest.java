@@ -50,9 +50,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.relationship.Relationship;
@@ -168,7 +168,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsById()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         Relationship r = relationship( from, to );
 
         JsonRelationship relationship = GET( "/tracker/relationships/{uid}", r.getUid() )
@@ -184,7 +184,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByIdWithFieldsAll()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         Relationship r = relationship( from, to );
 
         JsonRelationship relationship = GET( "/tracker/relationships/{uid}?fields=*", r.getUid() )
@@ -199,7 +199,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByIdWithFields()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         Relationship r = relationship( from, to );
 
         JsonRelationship relationship = GET( "/tracker/relationships/{uid}?fields=relationship,from[event]",
@@ -243,7 +243,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEvent()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?event={uid}", from.getUid() )
@@ -259,7 +259,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEventWithFields()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET(
@@ -278,7 +278,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEventWithAssignedUser()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         from.setAssignedUser( owner );
         relationship( from, to );
 
@@ -296,7 +296,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEventWithDataValues()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         from.setEventDataValues( Set.of( new EventDataValue( dataElement.getUid(), "12" ) ) );
         relationship( from, to );
 
@@ -314,7 +314,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEventWithNotes()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        Event from = programStageInstance( programInstance( to ) );
+        Event from = event( programInstance( to ) );
         from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         relationship( from, to );
 
@@ -339,7 +339,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEnrollment()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?enrollment=" + from.getUid() )
@@ -355,7 +355,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEnrollmentWithFieldsAll()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?enrollment={uid}&fields=*",
@@ -370,8 +370,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollmentWithEvents()
     {
-        ProgramInstance from = programInstance( trackedEntityInstance() );
-        Event to = programStageInstance( from );
+        Enrollment from = programInstance( trackedEntityInstance() );
+        Event to = event( from );
         relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET(
@@ -390,7 +390,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         to.setTrackedEntityAttributeValues( Set.of( attributeValue( tea, to, "12" ) ) );
         program.setProgramAttributes( List.of( createProgramTrackedEntityAttribute( program, tea ) ) );
 
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET(
@@ -407,7 +407,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByEnrollmentWithNotes()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         relationship( from, to );
 
@@ -432,7 +432,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByTrackedEntity()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?trackedEntity={tei}", to.getUid() )
@@ -448,7 +448,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByTei()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?tei=" + to.getUid() )
@@ -464,7 +464,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByTrackedEntityWithEnrollments()
     {
         TrackedEntityInstance to = trackedEntityInstance();
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET(
@@ -485,7 +485,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         to.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, to, "12" ), attributeValue( tea2, to, "24" ) ) );
         program.setProgramAttributes( List.of( createProgramTrackedEntityAttribute( program, tea2 ) ) );
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET(
@@ -505,7 +505,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByTrackedEntityWithProgramOwners()
     {
         TrackedEntityInstance to = trackedEntityInstance( orgUnit );
-        ProgramInstance from = programInstance( to );
+        Enrollment from = programInstance( to );
         to.setProgramOwners( Set.of( new TrackedEntityProgramOwner( to, from.getProgram(), orgUnit ) ) );
         relationship( from, to );
 
@@ -665,26 +665,26 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         return tei;
     }
 
-    private ProgramInstance programInstance( TrackedEntityInstance tei )
+    private Enrollment programInstance( TrackedEntityInstance tei )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        manager.save( programInstance, false );
-        tei.setProgramInstances( Set.of( programInstance ) );
+        Enrollment enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        manager.save( enrollment, false );
+        tei.setEnrollments( Set.of( enrollment ) );
         manager.save( tei, false );
-        return programInstance;
+        return enrollment;
     }
 
-    private Event programStageInstance( ProgramInstance programInstance )
+    private Event event( Enrollment enrollment )
     {
-        Event event = new Event( programInstance, programStage, orgUnit );
+        Event event = new Event( enrollment, programStage, orgUnit );
         event.setAutoFields();
         manager.save( event, false );
-        programInstance.setEvents( Set.of( event ) );
-        manager.save( programInstance, false );
+        enrollment.setEvents( Set.of( event ) );
+        manager.save( enrollment, false );
         return event;
     }
 
@@ -783,12 +783,12 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         return r;
     }
 
-    private Relationship relationship( ProgramInstance from, Event to )
+    private Relationship relationship( Enrollment from, Event to )
     {
         Relationship r = new Relationship();
 
         RelationshipItem fromItem = new RelationshipItem();
-        fromItem.setProgramInstance( from );
+        fromItem.setEnrollment( from );
         from.getRelationshipItems().add( fromItem );
         r.setFrom( fromItem );
         fromItem.setRelationship( r );
@@ -811,7 +811,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         return r;
     }
 
-    private Relationship relationship( ProgramInstance from, TrackedEntityInstance to )
+    private Relationship relationship( Enrollment from, TrackedEntityInstance to )
     {
         manager.save( from, false );
         manager.save( to, false );
@@ -819,7 +819,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         Relationship r = new Relationship();
 
         RelationshipItem fromItem = new RelationshipItem();
-        fromItem.setProgramInstance( from );
+        fromItem.setEnrollment( from );
         from.getRelationshipItems().add( fromItem );
         r.setFrom( fromItem );
         fromItem.setRelationship( r );

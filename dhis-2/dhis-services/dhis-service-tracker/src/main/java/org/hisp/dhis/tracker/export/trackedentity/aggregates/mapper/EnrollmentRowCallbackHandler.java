@@ -33,8 +33,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -44,10 +44,10 @@ import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EnrollmentQue
 /**
  * @author Luciano Fiandesio
  */
-public class EnrollmentRowCallbackHandler extends AbstractMapper<ProgramInstance>
+public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
 {
     @Override
-    ProgramInstance getItem( ResultSet rs )
+    Enrollment getItem( ResultSet rs )
         throws SQLException
     {
         return getEnrollment( rs );
@@ -59,10 +59,10 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<ProgramInstance
         return "tei_uid";
     }
 
-    private ProgramInstance getEnrollment( ResultSet rs )
+    private Enrollment getEnrollment( ResultSet rs )
         throws SQLException
     {
-        ProgramInstance enrollment = new ProgramInstance();
+        Enrollment enrollment = new Enrollment();
         enrollment.setId( rs.getLong( EnrollmentQuery.getColumnName( COLUMNS.ID ) ) );
         enrollment.setUid( rs.getString( EnrollmentQuery.getColumnName( COLUMNS.UID ) ) );
 

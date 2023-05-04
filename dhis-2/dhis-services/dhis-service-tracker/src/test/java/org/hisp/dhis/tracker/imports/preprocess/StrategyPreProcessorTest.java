@@ -31,14 +31,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisConvenienceTest;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +71,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private Event dbEvent;
 
-    private ProgramInstance pi;
+    private Enrollment pi;
 
     private TrackedEntityInstance tei;
 
@@ -82,9 +81,9 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private org.hisp.dhis.tracker.imports.domain.Event newEvent;
 
-    private Enrollment enrollment;
+    private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
-    private Enrollment newEnrollment;
+    private org.hisp.dhis.tracker.imports.domain.Enrollment newEnrollment;
 
     private TrackedEntity trackedEntity;
 
@@ -108,11 +107,11 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         trackedEntity.setTrackedEntity( TEI_UID );
         newTrackedEntity = new TrackedEntity();
         newTrackedEntity.setTrackedEntity( NEW_TEI_UID );
-        pi = new ProgramInstance();
+        pi = new Enrollment();
         pi.setUid( ENROLLMENT_UID );
-        enrollment = new Enrollment();
+        enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         enrollment.setEnrollment( ENROLLMENT_UID );
-        newEnrollment = new Enrollment();
+        newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         newEnrollment.setEnrollment( NEW_ENROLLMENT_UID );
         dbEvent = new Event();
         dbEvent.setUid( EVENT_UID );

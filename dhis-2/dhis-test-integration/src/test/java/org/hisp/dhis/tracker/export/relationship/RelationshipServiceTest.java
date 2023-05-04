@@ -41,10 +41,10 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
@@ -68,7 +68,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     protected UserService _userService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -98,7 +98,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
 
     private final RelationshipType eventToEventType = createRelationshipType( 'F' );
 
-    private ProgramInstance enrollmentA;
+    private Enrollment enrollmentA;
 
     @Override
     protected void setUpTest()
@@ -147,7 +147,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
         manager.save( program, false );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             orgUnit );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -155,7 +155,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         eventA.setOrganisationUnit( orgUnit );
         manager.save( eventA, false );
 
-        ProgramInstance enrollmentB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(),
+        Enrollment enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(),
             new Date(),
             orgUnit );
         inaccessiblePsi = new Event();
@@ -287,12 +287,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, ProgramInstance to )
+    private Relationship relationship( TrackedEntityInstance from, Enrollment to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, ProgramInstance to, RelationshipType type )
+    private Relationship relationship( TrackedEntityInstance from, Enrollment to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -352,10 +352,10 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationshipItem;
     }
 
-    private RelationshipItem item( ProgramInstance from )
+    private RelationshipItem item( Enrollment from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setProgramInstance( from );
+        relationshipItem.setEnrollment( from );
         return relationshipItem;
     }
 

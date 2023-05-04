@@ -47,10 +47,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -82,7 +82,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    protected final ProgramInstanceService programInstanceService;
+    protected final EnrollmentService enrollmentService;
 
     protected final CategoryService dataElementCategoryService;
 
@@ -92,20 +92,20 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
     protected final CurrentUserService currentUserService;
 
-    public CommandSMSListener( ProgramInstanceService programInstanceService,
+    public CommandSMSListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         MessageSender smsSender )
     {
         super( incomingSmsService, smsSender );
 
-        checkNotNull( programInstanceService );
+        checkNotNull( enrollmentService );
         checkNotNull( dataElementCategoryService );
         checkNotNull( eventService );
         checkNotNull( userService );
         checkNotNull( currentUserService );
 
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
         this.dataElementCategoryService = dataElementCategoryService;
         this.eventService = eventService;
         this.userService = userService;
@@ -216,22 +216,22 @@ public abstract class CommandSMSListener extends BaseSMSListener
         return true;
     }
 
-    protected void register( List<ProgramInstance> programInstances, Map<String, String> commandValuePairs,
+    protected void register( List<Enrollment> enrollments, Map<String, String> commandValuePairs,
         SMSCommand smsCommand, IncomingSms sms, Set<OrganisationUnit> ous )
     {
-        if ( programInstances.isEmpty() )
+        if ( enrollments.isEmpty() )
         {
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setEnrollmentDate( new Date() );
             pi.setIncidentDate( new Date() );
             pi.setProgram( smsCommand.getProgram() );
             pi.setStatus( ProgramStatus.ACTIVE );
 
-            programInstanceService.addProgramInstance( pi );
+            enrollmentService.addEnrollment( pi );
 
-            programInstances.add( pi );
+            enrollments.add( pi );
         }
-        else if ( programInstances.size() > 1 )
+        else if ( enrollments.size() > 1 )
         {
             update( sms, SmsMessageStatus.FAILED, false );
 
@@ -241,7 +241,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             return;
         }
 
-        ProgramInstance enrollment = programInstances.get( 0 );
+        Enrollment enrollment = enrollments.get( 0 );
 
         UserInfoSnapshot currentUserInfo = UserInfoSnapshot.from( currentUserService.getCurrentUser() );
 

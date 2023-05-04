@@ -33,16 +33,15 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -93,7 +92,8 @@ class UpdatableFieldsValidatorTest
         when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
+            .thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
             .thenReturn( TrackerImportStrategy.UPDATE );
 
@@ -109,7 +109,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEnrollmentValidationSuccess()
     {
-        Enrollment enrollment = validEnrollment();
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = validEnrollment();
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -119,7 +119,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEnrollmentValidationFailsWhenUpdateProgram()
     {
-        Enrollment enrollment = validEnrollment( "NewProgramId" );
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = validEnrollment( "NewProgramId" );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -129,7 +129,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyEnrollmentValidationFailsWhenUpdateTrackedEntity()
     {
-        Enrollment enrollment = validEnrollment();
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = validEnrollment();
         enrollment.setTrackedEntity( "NewTrackedEntityId" );
 
         validator.validate( reporter, bundle, enrollment );
@@ -137,14 +137,14 @@ class UpdatableFieldsValidatorTest
         assertHasError( reporter, enrollment, E1127, "trackedEntity" );
     }
 
-    private Enrollment validEnrollment()
+    private org.hisp.dhis.tracker.imports.domain.Enrollment validEnrollment()
     {
         return validEnrollment( PROGRAM_ID );
     }
 
-    private Enrollment validEnrollment( String uid )
+    private org.hisp.dhis.tracker.imports.domain.Enrollment validEnrollment( String uid )
     {
-        return Enrollment.builder()
+        return org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .enrollment( ENROLLMENT_ID )
             .trackedEntity( TRACKED_ENTITY_ID )
             .program( MetadataIdentifier.ofUid( uid ) )
@@ -162,16 +162,16 @@ class UpdatableFieldsValidatorTest
         return trackedEntityInstance;
     }
 
-    private ProgramInstance getEnrollment()
+    private Enrollment getEnrollment()
     {
         Program program = new Program();
         program.setUid( PROGRAM_ID );
 
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_ID );
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( trackedEntityInstance() );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( ENROLLMENT_ID );
+        enrollment.setProgram( program );
+        enrollment.setEntityInstance( trackedEntityInstance() );
+        return enrollment;
     }
 
     private Event event()

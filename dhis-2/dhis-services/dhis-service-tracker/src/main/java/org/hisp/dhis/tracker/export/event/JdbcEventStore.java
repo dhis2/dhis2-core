@@ -89,9 +89,9 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
@@ -310,7 +310,7 @@ public class JdbcEventStore implements EventStore
                 Program program = new Program();
                 program.setUid( resultSet.getString( "p_identifier" ) );
                 program.setProgramType( programType );
-                ProgramInstance enrollment = new ProgramInstance();
+                Enrollment enrollment = new Enrollment();
                 enrollment.setUid( resultSet.getString( "pi_uid" ) );
                 enrollment.setProgram( program );
                 enrollment.setEntityInstance( tei );
@@ -1039,9 +1039,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.lastupdated > psi.lastsynchronized " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );
@@ -1314,9 +1314,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.deleted is false " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );

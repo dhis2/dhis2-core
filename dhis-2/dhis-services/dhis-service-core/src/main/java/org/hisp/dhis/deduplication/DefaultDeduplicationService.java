@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -144,7 +144,7 @@ public class DefaultDeduplicationService
             return "One or both entities have already been marked as deleted.";
         }
 
-        if ( haveSameEnrollment( original.getProgramInstances(), duplicate.getProgramInstances() ) )
+        if ( haveSameEnrollment( original.getEnrollments(), duplicate.getEnrollments() ) )
         {
             return "Both entities enrolled in the same program.";
         }
@@ -189,8 +189,8 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.auditMerge( params );
     }
 
-    private boolean haveSameEnrollment( Set<ProgramInstance> originalEnrollments,
-        Set<ProgramInstance> duplicateEnrollments )
+    private boolean haveSameEnrollment( Set<Enrollment> originalEnrollments,
+        Set<Enrollment> duplicateEnrollments )
     {
         Set<String> originalPrograms = originalEnrollments.stream()
             .filter( e -> !e.isDeleted() )

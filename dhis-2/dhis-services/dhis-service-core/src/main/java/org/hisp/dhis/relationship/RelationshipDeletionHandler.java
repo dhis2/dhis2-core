@@ -33,8 +33,8 @@ import java.util.Collection;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -56,7 +56,7 @@ public class RelationshipDeletionHandler extends DeletionHandler
     {
         whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
         whenDeleting( Event.class, this::deleteEvent );
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteProgramInstance );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
@@ -88,10 +88,10 @@ public class RelationshipDeletionHandler extends DeletionHandler
         }
     }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( Enrollment enrollment )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, false );
+            .getRelationshipsByProgramInstance( enrollment, false );
 
         if ( relationships != null )
         {

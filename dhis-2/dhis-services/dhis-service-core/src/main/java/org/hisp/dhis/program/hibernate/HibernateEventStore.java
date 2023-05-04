@@ -43,9 +43,9 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
@@ -80,13 +80,13 @@ public class HibernateEventStore
     }
 
     @Override
-    public List<Event> get( Collection<ProgramInstance> programInstances, EventStatus status )
+    public List<Event> get( Collection<Enrollment> enrollments, EventStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
-            .addPredicate( root -> root.get( "enrollment" ).in( programInstances ) ) );
+            .addPredicate( root -> root.get( "enrollment" ).in( enrollments ) ) );
     }
 
     @Override
@@ -97,7 +97,7 @@ public class HibernateEventStore
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
             .addPredicate(
-                root -> builder.equal( root.join( "programInstance" ).get( "entityInstance" ), entityInstance ) ) );
+                root -> builder.equal( root.join( "enrollment" ).get( "entityInstance" ), entityInstance ) ) );
     }
 
     @Override

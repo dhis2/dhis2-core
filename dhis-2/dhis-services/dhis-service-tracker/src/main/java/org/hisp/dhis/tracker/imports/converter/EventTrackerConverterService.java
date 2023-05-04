@@ -48,9 +48,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -290,7 +290,7 @@ public class EventTrackerConverterService
         return result;
     }
 
-    private ProgramInstance getEnrollment( TrackerPreheat preheat, String enrollment, Program program )
+    private Enrollment getEnrollment( TrackerPreheat preheat, String enrollment, Program program )
     {
         if ( ProgramType.WITH_REGISTRATION == program.getProgramType() )
         {
@@ -299,7 +299,7 @@ public class EventTrackerConverterService
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
+            return preheat.getEnrollmentsWithoutRegistration( program.getUid() );
         }
 
         // no valid enrollment given and program not single event, just return

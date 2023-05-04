@@ -47,11 +47,11 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
@@ -100,7 +100,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
     private ProgramStage programStageA;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -111,7 +111,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     private ResponseEntity<String> responseEntity;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private EventService eventService;
@@ -143,22 +143,22 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
         programStageA = createProgramStage( 'A', programA );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( programA );
-        programInstance.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEntityInstance( tei );
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
+        enrollment.setProgram( programA );
+        enrollment.setOrganisationUnit( organisationUnitA );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setEntityInstance( tei );
 
         event = new Event();
         event.setAutoFields();
         event.setProgramStage( programStageA );
         event.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
+        enrollment.setEnrollmentDate( new Date() );
         event.setExecutionDate( new Date() );
         event.setDueDate( new Date() );
-        event.setEnrollment( programInstance );
+        event.setEnrollment( enrollment );
 
         dataValue = new EventDataValue();
         dataValue.setValue( "dataValue123" );
@@ -187,7 +187,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEnrollmentNotificationWebHook()
     {
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
         when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
         when( templateService.getProgramLinkedToWebHookNotifications( any( Program.class ) ) )
             .thenReturn( Lists.newArrayList( programNotification ) );
@@ -200,7 +200,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
         ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
-        subject.handleEnrollment( programInstance.getUid() );
+        subject.handleEnrollment( enrollment.getUid() );
 
         verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
         verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),

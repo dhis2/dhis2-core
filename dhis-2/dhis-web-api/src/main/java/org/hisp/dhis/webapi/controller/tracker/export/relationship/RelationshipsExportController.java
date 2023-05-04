@@ -47,10 +47,10 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -87,7 +87,7 @@ public class RelationshipsExportController
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Nonnull
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     @Nonnull
     private final EventService eventService;
@@ -114,14 +114,14 @@ public class RelationshipsExportController
     {
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
             .put( TrackedEntityInstance.class, trackedEntityInstanceService::getTrackedEntityInstance )
-            .put( ProgramInstance.class, programInstanceService::getProgramInstance )
+            .put( Enrollment.class, enrollmentService::getEnrollment )
             .put( Event.class, eventService::getEvent )
             .build();
 
         relationshipRetrievers = ImmutableMap
             .<Class<?>, CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>> builder()
             .put( TrackedEntityInstance.class, getRelationshipsByTrackedEntity() )
-            .put( ProgramInstance.class, getRelationshipsByEnrollment() )
+            .put( Enrollment.class, getRelationshipsByEnrollment() )
             .put( Event.class, getRelationshipsByEvent() )
             .build();
     }
@@ -134,7 +134,7 @@ public class RelationshipsExportController
 
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByEnrollment()
     {
-        return ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (ProgramInstance) o,
+        return ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (Enrollment) o,
             criteria );
     }
 

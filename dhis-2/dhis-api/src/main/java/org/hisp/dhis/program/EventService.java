@@ -142,14 +142,14 @@ public interface EventService
     /**
      * Creates an event.
      *
-     * @param programInstance the ProgramInstance.
+     * @param enrollment the Enrollment.
      * @param programStage the ProgramStage.
      * @param enrollmentDate the enrollment date.
      * @param incidentDate date of the incident.
      * @param organisationUnit the OrganisationUnit where the event took place.
      * @return Event the Event which was created.
      */
-    Event createEvent( ProgramInstance programInstance, ProgramStage programStage,
+    Event createEvent( Enrollment enrollment, ProgramStage programStage,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit );
 
     /**

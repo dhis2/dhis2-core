@@ -68,8 +68,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
@@ -112,7 +112,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -217,10 +217,10 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
         teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance( femaleA );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( uniqueId );
-        programInstanceService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
+        enrollmentService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
+        enrollmentService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
             null, organisationUnitA );
-        programInstanceService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
+        enrollmentService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 

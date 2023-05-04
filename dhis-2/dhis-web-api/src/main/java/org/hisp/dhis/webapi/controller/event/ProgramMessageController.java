@@ -107,7 +107,7 @@ public class ProgramMessageController
         if ( programInstance == null && programStageInstance == null )
         {
             throw new WebMessageException(
-                conflict( "ProgramInstance or Event must be specified." ) );
+                conflict( "Enrollment or Event must be specified." ) );
         }
 
         return programMessageService.getProgramMessages( params );

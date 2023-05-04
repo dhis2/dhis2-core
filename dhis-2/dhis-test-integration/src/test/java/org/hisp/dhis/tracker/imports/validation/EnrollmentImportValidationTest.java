@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -59,7 +59,7 @@ class EnrollmentImportValidationTest extends TrackerTest
 {
 
     @Autowired
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService enrollmentService;
 
     @Autowired
     private TrackerImportService trackerImportService;

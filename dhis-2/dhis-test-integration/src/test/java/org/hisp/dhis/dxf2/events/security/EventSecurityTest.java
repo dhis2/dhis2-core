@@ -48,11 +48,11 @@ import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -76,7 +76,7 @@ class EventSecurityTest extends TransactionalIntegrationTest
     private org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private EventService programStageInstanceService;
@@ -126,11 +126,11 @@ class EventSecurityTest extends TransactionalIntegrationTest
         programA.getProgramStages().add( programStageA );
         manager.update( programStageA );
         manager.update( programA );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstanceService.addProgramInstance( programInstance );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( programA );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollmentService.addEnrollment( enrollment );
         manager.update( programA );
         manager.flush();
     }

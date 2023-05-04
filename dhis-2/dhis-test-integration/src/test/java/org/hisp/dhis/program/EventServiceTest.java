@@ -81,7 +81,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     private TrackedEntityInstanceService entityInstanceService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityAttributeService attributeService;
@@ -121,9 +121,9 @@ class EventServiceTest extends TransactionalIntegrationTest
 
     private Date enrollmentDate;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
     private Event eventA;
 
@@ -223,24 +223,24 @@ class EventServiceTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        programInstanceA = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceA, programA );
-        programInstanceA.setUid( "UID-PIA" );
-        programInstanceService.addProgramInstance( programInstanceA );
-        programInstanceB = new ProgramInstance( enrollmentDate, incidenDate, entityInstanceB, programB );
-        programInstanceService.addProgramInstance( programInstanceB );
-        eventA = new Event( programInstanceA, stageA );
+        enrollmentA = new Enrollment( enrollmentDate, incidenDate, entityInstanceA, programA );
+        enrollmentA.setUid( "UID-PIA" );
+        enrollmentService.addEnrollment( enrollmentA );
+        enrollmentB = new Enrollment( enrollmentDate, incidenDate, entityInstanceB, programB );
+        enrollmentService.addEnrollment( enrollmentB );
+        eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( enrollmentDate );
         eventA.setUid( "UID-A" );
-        eventB = new Event( programInstanceA, stageB );
+        eventB = new Event( enrollmentA, stageB );
         eventB.setDueDate( enrollmentDate );
         eventB.setUid( "UID-B" );
-        eventC = new Event( programInstanceB, stageC );
+        eventC = new Event( enrollmentB, stageC );
         eventC.setDueDate( enrollmentDate );
         eventC.setUid( "UID-C" );
-        eventD1 = new Event( programInstanceB, stageD );
+        eventD1 = new Event( enrollmentB, stageD );
         eventD1.setDueDate( enrollmentDate );
         eventD1.setUid( "UID-D1" );
-        eventD2 = new Event( programInstanceB, stageD );
+        eventD2 = new Event( enrollmentB, stageD );
         eventD2.setDueDate( enrollmentDate );
         eventD2.setUid( "UID-D2" );
         /*

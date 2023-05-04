@@ -46,9 +46,9 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -92,7 +92,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private CategoryService dataElementCategoryService;
@@ -157,7 +157,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @BeforeEach
     public void initTest()
     {
-        subject = new TrackedEntityRegistrationSMSListener( programService, programInstanceService,
+        subject = new TrackedEntityRegistrationSMSListener( programService, enrollmentService,
             dataElementCategoryService,
             eventService, userService, currentUserService, incomingSmsService, smsSender,
             smsCommandService,

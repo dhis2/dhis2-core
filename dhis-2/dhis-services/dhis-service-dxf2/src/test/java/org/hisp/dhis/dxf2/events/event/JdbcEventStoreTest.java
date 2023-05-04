@@ -48,8 +48,8 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.EventStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.statementbuilder.PostgreSQLStatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -134,7 +134,7 @@ class JdbcEventStoreTest
     void shouldUpdateEventsWhenDateFieldsAreNotSet()
     {
         List<Event> events = new ArrayList<>();
-        Event psi = new Event( new ProgramInstance(), new ProgramStage(),
+        Event psi = new Event( new Enrollment(), new ProgramStage(),
             new OrganisationUnit() );
         psi.setStatus( EventStatus.ACTIVE );
         psi.setAttributeOptionCombo( new CategoryOptionCombo() );

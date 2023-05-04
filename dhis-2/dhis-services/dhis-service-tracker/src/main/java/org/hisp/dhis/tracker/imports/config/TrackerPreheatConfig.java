@@ -34,6 +34,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ClassBasedSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DefaultsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DuplicateRelationshipSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.EnrollmentsWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventCategoryOptionComboSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.EventProgramStageMapSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.FileResourceSupplier;
@@ -41,11 +43,9 @@ import org.hisp.dhis.tracker.imports.preheat.supplier.OrgUnitValueTypeSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PeriodTypeSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatStrategyScanner;
 import org.hisp.dhis.tracker.imports.preheat.supplier.PreheatSupplier;
-import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramInstanceSupplier;
-import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramInstancesWithAtLeastOneEventSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOrgUnitsSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.ProgramOwnerSupplier;
-import org.hisp.dhis.tracker.imports.preheat.supplier.TrackedEntityProgramInstanceSupplier;
+import org.hisp.dhis.tracker.imports.preheat.supplier.TrackedEntityEnrollmentSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.UniqueAttributesSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.UserSupplier;
 import org.hisp.dhis.tracker.imports.preheat.supplier.UsernameValueTypeSupplier;
@@ -58,9 +58,9 @@ public class TrackerPreheatConfig
     private final List<Class<? extends PreheatSupplier>> preheatOrder = List.of(
         ClassBasedSupplier.class,
         DefaultsSupplier.class,
-        TrackedEntityProgramInstanceSupplier.class,
-        ProgramInstanceSupplier.class,
-        ProgramInstancesWithAtLeastOneEventSupplier.class,
+        TrackedEntityEnrollmentSupplier.class,
+        EnrollmentSupplier.class,
+        EnrollmentsWithAtLeastOneEventSupplier.class,
         EventProgramStageMapSupplier.class,
         ProgramOrgUnitsSupplier.class,
         ProgramOwnerSupplier.class,

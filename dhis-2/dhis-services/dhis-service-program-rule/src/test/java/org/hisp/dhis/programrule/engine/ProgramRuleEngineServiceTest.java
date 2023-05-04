@@ -49,11 +49,11 @@ import java.util.List;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
@@ -96,7 +96,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private EventService eventService;
@@ -122,7 +122,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @InjectMocks
     private DefaultProgramRuleEngineService service;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -157,7 +157,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     {
         setProgramRuleActionType_ShowError();
 
-        verify( programRuleEngine, never() ).evaluate( programInstance, Sets.newHashSet(), List.of( programRuleA ) );
+        verify( programRuleEngine, never() ).evaluate( enrollment, Sets.newHashSet(), List.of( programRuleA ) );
         assertEquals( 0, ruleEffects.size() );
     }
 
@@ -167,20 +167,20 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
             return ruleEffects;
-        } ).when( ruleActionSendMessage ).implement( any(), any( ProgramInstance.class ) );
+        } ).when( ruleActionSendMessage ).implement( any(), any( Enrollment.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
-        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyLong() ) ).thenReturn( enrollment );
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
         when( programRuleEngine.getProgramRules( any() ) ).thenReturn( List.of( programRuleA ) );
 
         setProgramRuleActionType_SendMessage();
 
-        ArgumentCaptor<ProgramInstance> argumentCaptor = ArgumentCaptor.forClass( ProgramInstance.class );
+        ArgumentCaptor<Enrollment> argumentCaptor = ArgumentCaptor.forClass( Enrollment.class );
 
-        List<RuleEffect> ruleEffects = service.evaluateEnrollmentAndRunEffects( programInstance.getId() );
+        List<RuleEffect> ruleEffects = service.evaluateEnrollmentAndRunEffects( enrollment.getId() );
 
         assertEquals( 1, ruleEffects.size() );
 
@@ -193,7 +193,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         }
 
         verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
-        assertEquals( programInstance, argumentCaptor.getValue() );
+        assertEquals( enrollment, argumentCaptor.getValue() );
 
         verify( ruleActionSendMessage ).accept( action );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
@@ -203,7 +203,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testWithImplementableActionExist_programStageInstance()
+    void testWithImplementableActionExist_event()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
@@ -214,7 +214,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
 
         when( eventService.getEvent( anyString() ) ).thenReturn( event );
-        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyLong() ) ).thenReturn( enrollment );
 
         when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of( programRuleA ) );
         when( programRuleEngine.evaluate( any(), any(), anySet(), anyList() ) ).thenReturn( effects );
@@ -226,7 +226,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         assertEquals( 1, ruleEffects.size() );
 
         verify( programRuleEngine, times( 1 ) )
-            .evaluate( programInstance, event, programInstance.getEvents(),
+            .evaluate( enrollment, event, enrollment.getEvents(),
                 List.of( programRuleA ) );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
@@ -249,7 +249,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         Program program = createProgram( 'A' );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         ProgramStage programStage = createProgramStage( 'A', program );
-        Event programEvent = createEvent( programStage, programInstance,
+        Event programEvent = createEvent( programStage, enrollment,
             createOrganisationUnit( 'A' ) );
 
         when( eventService.getEvent( programEvent.getUid() ) ).thenReturn( programEvent );
@@ -268,7 +268,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         verify( programRuleEngine, times( 1 ) )
             .evaluateProgramEvent( programEvent, program, List.of( programRuleA ) );
 
-        verify( programInstanceService, never() ).getProgramInstance( any() );
+        verify( enrollmentService, never() ).getEnrollment( any() );
 
         verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( Event.class ) );
@@ -281,7 +281,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     void shouldNotTryToEvaluateWhenThereAreNoRulesToRun()
     {
         when( eventService.getEvent( anyString() ) ).thenReturn( event );
-        when( programInstanceService.getProgramInstance( anyLong() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyLong() ) ).thenReturn( enrollment );
 
         when( programRuleEngine.getProgramRules( any(), any() ) ).thenReturn( List.of() );
 
@@ -291,7 +291,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         verify( programRuleEngine, never() ).evaluateProgramEvent( any(), any(), anyList() );
         verify( programRuleEngine, never() ).evaluate( any(), any(), anyList() );
-        verify( programInstanceService, never() ).getProgramInstance( any() );
+        verify( enrollmentService, never() ).getEnrollment( any() );
     }
 
     @Test
@@ -321,15 +321,15 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         programRuleA.setProgram( programA );
 
-        programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
+        enrollment = new Enrollment();
+        enrollment.setProgram( programA );
 
         programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
         event = new Event();
         event.setProgramStage( programStageA );
-        event.setEnrollment( programInstance );
+        event.setEnrollment( enrollment );
         event.setUid( "PSI1" );
 
         programRules.add( programRuleA );

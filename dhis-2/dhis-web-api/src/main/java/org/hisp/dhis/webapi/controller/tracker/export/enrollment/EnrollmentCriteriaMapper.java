@@ -46,8 +46,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -61,8 +61,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Maps query parameters from {@link EnrollmentsExportController} stored in
- * {@link EnrollmentCriteria} to {@link ProgramInstanceQueryParams} which is
- * used to fetch enrollments from the DB.
+ * {@link EnrollmentCriteria} to {@link EnrollmentQueryParams} which is used to
+ * fetch enrollments from the DB.
  */
 @Service( "org.hisp.dhis.webapi.controller.tracker.export.EnrollmentCriteriaMapper" )
 @RequiredArgsConstructor
@@ -88,7 +88,7 @@ public class EnrollmentCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams map( EnrollmentCriteria criteria )
+    public EnrollmentQueryParams map( EnrollmentCriteria criteria )
         throws BadRequestException,
         ForbiddenException
     {
@@ -107,7 +107,7 @@ public class EnrollmentCriteriaMapper
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
         Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( program );
         params.setProgramStatus( criteria.getProgramStatus() );
         params.setFollowUp( criteria.getFollowUp() );
