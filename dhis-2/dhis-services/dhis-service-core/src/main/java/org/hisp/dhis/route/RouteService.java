@@ -31,8 +31,11 @@ import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCR
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.function.Function;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -40,9 +43,12 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.user.User;
 import org.jasypt.encryption.pbe.PBEStringCleanablePasswordEncryptor;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,6 +83,14 @@ public class RouteService
 
     private static final RestTemplate restTemplate = new RestTemplate();
 
+    private static List<String> allowedRequestHeaders = List.of( "accept", "accept-encoding", "accept-language",
+        "x-requested-with", "user-agent", "cache-control", "if-match", "if-modified-since", "if-none-match", "if-range",
+        "if-unmodified-since", "x-forwarded-for", "x-forwarded-host", "x-forwarded-port", "x-forwarded-proto",
+        "x-forwarded-prefix", "forwarded" );
+
+    private static List<String> allowedResponseHeaders = List.of( "content-encoding", "content-language",
+        "content-length", "content-type", "expires", "cache-control", "last-modified", "etag" );
+
     static
     {
         HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
@@ -84,6 +98,12 @@ public class RouteService
         requestFactory.setConnectTimeout( 5_000 );
         requestFactory.setReadTimeout( 10_000 );
         requestFactory.setBufferRequestBody( true );
+
+        HttpClient httpClient = HttpClientBuilder.create()
+            .disableCookieManagement()
+            .useSystemProperties()
+            .build();
+        requestFactory.setHttpClient( httpClient );
 
         restTemplate.setRequestFactory( requestFactory );
     }
@@ -114,7 +134,7 @@ public class RouteService
         }
         catch ( JsonProcessingException ex )
         {
-            log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check it's data." );
+            log.error( "Unable to create clone of Route with ID " + route.getUid() + ". Please check its data." );
             return null;
         }
 
@@ -123,14 +143,19 @@ public class RouteService
         return route;
     }
 
-    public ResponseEntity<String> exec( Route route, User user, HttpServletRequest request )
-        throws IOException
+    public ResponseEntity<String> exec( Route route, User user, Optional<String> subPath, HttpServletRequest request )
+        throws IOException,
+        BadRequestException
     {
-        HttpHeaders headers = new HttpHeaders();
+        HttpHeaders headers = filterRequestHeaders( request );
+        headers.forEach( ( String name, List<String> values ) -> log
+            .debug( String.format( "Forwarded header %s=%s", name, values.toString() ) ) );
+
         route.getHeaders().forEach( headers::add );
 
         if ( user != null && StringUtils.hasText( user.getUsername() ) )
         {
+            log.debug( String.format( "Route accessed by user %s", user.getUsername() ) );
             headers.add( "X-Forwarded-User", user.getUsername() );
         }
 
@@ -142,17 +167,68 @@ public class RouteService
         HttpHeaders queryParameters = new HttpHeaders();
         request.getParameterMap().forEach( ( key, value ) -> queryParameters.addAll( key, List.of( value ) ) );
 
-        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( route.getUrl() )
+        UriComponentsBuilder uriComponentsBuilder = UriComponentsBuilder.fromHttpUrl( route.getBaseUrl() )
             .queryParams( queryParameters );
 
+        if ( subPath.isPresent() )
+        {
+            if ( !route.allowsSubpaths() )
+            {
+                throw new BadRequestException(
+                    String.format( "Route %s does not allow subpaths", route.getId() ) );
+            }
+            uriComponentsBuilder.path( subPath.get() );
+        }
+
         String body = StreamUtils.copyToString( request.getInputStream(), StandardCharsets.UTF_8 );
-
         HttpEntity<String> entity = new HttpEntity<>( body, headers );
-
         HttpMethod httpMethod = Objects.requireNonNullElse( HttpMethod.resolve( request.getMethod() ), HttpMethod.GET );
+        String targetUri = uriComponentsBuilder.toUriString();
 
-        return restTemplate.exchange( uriComponentsBuilder.toUriString(), httpMethod,
+        log.info( String.format( "Sending %s %s via route %s (%s)", httpMethod, targetUri, route.getName(),
+            route.getUid() ) );
+
+        ResponseEntity<String> response = restTemplate.exchange( targetUri, httpMethod,
             entity, String.class );
+
+        HttpHeaders responseHeaders = filterResponseHeaders( response.getHeaders() );
+
+        String responseBody = response.getBody();
+
+        responseHeaders.forEach( ( String name, List<String> values ) -> log
+            .debug( String.format( "Response header %s=%s", name, values.toString() ) ) );
+        log.info( String.format( "Request %s %s responded with HTTP status %s via route %s (%s)", httpMethod, targetUri,
+            response.getStatusCode().toString(), route.getName(), route.getUid() ) );
+
+        return new ResponseEntity<>( responseBody, responseHeaders, response.getStatusCode() );
+    }
+
+    private HttpHeaders filterHeaders( Iterable<String> names, List<String> allowedHeaders,
+        Function<String, List<String>> valuesGetter )
+    {
+        HttpHeaders headers = new HttpHeaders();
+        names.forEach( ( String name ) -> {
+            String lowercaseName = name.toLowerCase();
+            if ( !allowedHeaders.contains( lowercaseName ) )
+            {
+                log.debug( String.format( "Blocked header %s", name ) );
+                return;
+            }
+            List<String> values = valuesGetter.apply( name );
+            headers.addAll( name, values );
+        } );
+        return headers;
+    }
+
+    private HttpHeaders filterRequestHeaders( HttpServletRequest request )
+    {
+        return filterHeaders( Collections.list( request.getHeaderNames() ), allowedRequestHeaders,
+            ( String name ) -> Collections.list( request.getHeaders( name ) ) );
+    }
+
+    private HttpHeaders filterResponseHeaders( HttpHeaders responseHeaders )
+    {
+        return filterHeaders( responseHeaders.keySet(), allowedResponseHeaders, responseHeaders::get );
     }
 
     private void decrypt( Route route )

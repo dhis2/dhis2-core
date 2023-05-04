@@ -54,6 +54,8 @@ public class Route
     extends BaseIdentifiableObject
     implements MetadataObject
 {
+    public static final String PATH_WILDCARD_SUFFIX = "/**";
+
     @JsonProperty
     private String description;
 
@@ -71,4 +73,32 @@ public class Route
 
     @JsonProperty
     private List<String> authorities = new ArrayList<>();
+
+    /**
+     * If the route url ends with /** return true. Otherwise return false.
+     *
+     * @return true if the route is configured to allow subpaths
+     */
+    public boolean allowsSubpaths()
+    {
+        return url.endsWith( PATH_WILDCARD_SUFFIX );
+    }
+
+    /**
+     * If this route supports sub-paths, return the base URL without the /**
+     * path wildcard suffix but including the trailing slash. For example, if
+     * the url is configured as https://google.com/**, return
+     * https://google.com/. If the route does not support sub-paths, return the
+     * full configured url.
+     *
+     * @return the base url String
+     */
+    public String getBaseUrl()
+    {
+        if ( allowsSubpaths() )
+        {
+            return url.substring( 0, url.length() - PATH_WILDCARD_SUFFIX.length() ) + "/";
+        }
+        return url;
+    }
 }
