@@ -296,5 +296,4 @@ public enum ValueType
         return Arrays.stream( ValueType.values() )
             .filter( v -> Arrays.stream( AggregationType.values() ).anyMatch( v::isAggregatable ) ).collect( toSet() );
     }
-
 }

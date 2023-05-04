@@ -37,7 +37,6 @@ import static org.hisp.dhis.trackedentity.TrackedEntityAttributeService.TEA_VALU
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
@@ -49,7 +48,6 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -60,7 +58,6 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.exception.InvalidIdentifierReferenceException;
 import org.hisp.dhis.commons.collection.CachingMap;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.Constants;
@@ -607,6 +604,7 @@ public abstract class AbstractEnrollmentService
         }
 
         programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
+        programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
         programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
 
@@ -824,16 +822,12 @@ public abstract class AbstractEnrollmentService
                 " is a program without registration. An enrollment cannot be created into program without registration.";
         }
 
-        SetValuedMap<String, String> programAssociations = programService
-            .getProgramOrganisationUnitsAssociations( Collections.singleton( program.getUid() ) );
-
-        if ( !CollectionUtils.isEmpty( programAssociations.get( program.getUid() ) ) )
+        if ( !programService
+            .checkProgramOrganisationUnitsAssociations( program.getUid(), orgUnit.getUid() ) )
         {
-            if ( !programAssociations.get( program.getUid() ).contains( orgUnit.getUid() ) )
-            {
-                return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
-            }
+            return "Program is not assigned to this Organisation Unit: " + enrollment.getOrgUnit();
         }
+
         return null;
     }
 

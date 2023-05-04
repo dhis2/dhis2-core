@@ -772,6 +772,7 @@ public class DefaultDataValueSetService
         if ( importValidator.skipDataValue( dataValue, context, dataSetContext, valueContext ) )
         {
             importCount.incrementIgnored();
+            context.addRejected( valueContext.getIndex() );
             return;
         }
 
@@ -821,6 +822,7 @@ public class DefaultDataValueSetService
             else
             {
                 importCount.incrementIgnored();
+                context.addRejected( valueContext.getIndex() );
             }
         }
         else
@@ -832,6 +834,7 @@ public class DefaultDataValueSetService
             else
             {
                 importCount.incrementIgnored();
+                context.addRejected( valueContext.getIndex() );
             }
         }
     }
@@ -897,13 +900,11 @@ public class DefaultDataValueSetService
         {
             if ( valueContext.getDataElement().isFileType() )
             {
-                DataValue actualDataValue = valueContext.getActualDataValue( dataValueService );
+                FileResource fr = fileResourceService.getFileResource( existingValue.getValue() );
 
-                if ( actualDataValue != null )
+                if ( fr != null )
                 {
-                    FileResource fr = fileResourceService.getFileResource( actualDataValue.getValue() );
-
-                    fileResourceService.updateFileResource( fr );
+                    fileResourceService.deleteFileResource( fr );
                 }
             }
 
@@ -958,13 +959,21 @@ public class DefaultDataValueSetService
 
             if ( valueContext.getDataElement().isFileType() )
             {
-                FileResource fr = fileResourceService.getFileResource( internalValue.getValue() );
+                FileResource fr = fileResourceService.getFileResource( existingValue.getValue() );
+                if ( auditType == AuditType.DELETE )
+                {
+                    fileResourceService.deleteFileResource( fr );
+                }
+                else
+                {
+                    if ( fr != null && !fr.isAssigned() )
+                    {
+                        fr.setAssigned( true );
 
-                fr.setAssigned( true );
-
-                fileResourceService.updateFileResource( fr );
+                        fileResourceService.updateFileResource( fr );
+                    }
+                }
             }
-
         }
     }
 

@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.datavalueset;
 
-import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import java.util.ArrayList;
@@ -213,6 +212,11 @@ public final class ImportContext
         return this;
     }
 
+    public void addRejected( int index )
+    {
+        summary.addRejected( index );
+    }
+
     public void addConflict( String object, String value )
     {
         summary.addConflict( object, value );
@@ -324,12 +328,6 @@ public final class ImportContext
         private final CategoryOptionCombo outerAttrOptionCombo;
 
         private final CategoryOptionCombo fallbackCategoryOptionCombo;
-
-        public Set<DataElement> getDataSetDataElements()
-        {
-            return dataSet != null ? dataSet.getDataElements() : emptySet();
-        }
-
     }
 
     /**

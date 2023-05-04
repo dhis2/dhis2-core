@@ -49,6 +49,7 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -75,7 +76,6 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.utils.FileResourceUtils;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
 import org.hisp.dhis.webapi.webdomain.DataValueFollowUpRequest;
@@ -192,14 +192,16 @@ public class DataValueController
         @RequestParam( required = false ) String comment,
         @RequestParam( required = false ) Boolean followUp,
         @RequestParam( required = false ) boolean force,
-        @RequestParam MultipartFile file,
+        @RequestParam( required = false ) MultipartFile file,
         @CurrentUser User currentUser )
         throws WebMessageException,
         IOException
     {
         DataValueCategoryDto attribute = dataValidator.getDataValueCategoryDto( cc, cp );
 
-        FileResource fileResource = fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
+        FileResource fileResource = file == null
+            ? null
+            : fileResourceUtils.saveFileResource( file, FileResourceDomain.DATA_VALUE );
 
         DataValueDto dataValue = new DataValueDto()
             .setDataElement( de )
@@ -208,7 +210,7 @@ public class DataValueController
             .setPeriod( pe )
             .setOrgUnit( ou )
             .setDataSet( ds )
-            .setValue( fileResource.getUid() )
+            .setValue( fileResource == null ? null : fileResource.getUid() )
             .setComment( comment )
             .setFollowUp( followUp )
             .setForce( force );
@@ -216,8 +218,10 @@ public class DataValueController
         saveDataValueInternal( dataValue, currentUser );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.ACCEPTED );
-        webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
-
+        if ( fileResource != null )
+        {
+            webMessage.setResponse( new FileResourceWebMessageResponse( fileResource ) );
+        }
         return webMessage;
     }
 
@@ -337,7 +341,7 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType().isFile() )
+            if ( dataElement.getValueType().isFile() && value != null )
             {
                 String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
                     attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
@@ -367,30 +371,32 @@ public class DataValueController
             // Deal with file resource
             // ---------------------------------------------------------------------
 
-            if ( dataElement.getValueType().isFile() )
+            if ( dataElement.isFileType() )
             {
-                String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
-                    attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
-
-                fileResource = dataValidator.validateAndSetAssigned( value,
-                    dataElement.getValueType(),
-                    dataElement.getValueTypeOptions(), fileResourceOwner );
-            }
-
-            if ( dataElement.isFileType() && retentionStrategy == FileResourceRetentionStrategy.NONE && value == null )
-            {
-                try
+                if ( value != null )
                 {
-                    fileResourceService.deleteFileResource( persistedDataValue.getValue() );
-                }
-                catch ( AuthorizationException exception )
-                {
-                    // If we fail to delete the fileResource now, mark it as
-                    // unassigned for removal later
-                    fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
-                }
+                    String fileResourceOwner = getFileResourceOwner( dataElement.getUid(), categoryOptionCombo.getUid(),
+                        attributeOptionCombo.getUid(), period.getUid(), organisationUnit.getUid() );
 
-                persistedDataValue.setValue( StringUtils.EMPTY );
+                    fileResource = dataValidator.validateAndSetAssigned( value,
+                        dataElement.getValueType(),
+                        dataElement.getValueTypeOptions(), fileResourceOwner );
+                }
+                else if ( retentionStrategy == FileResourceRetentionStrategy.NONE )
+                {
+                    try
+                    {
+                        fileResourceService.deleteFileResource( persistedDataValue.getValue() );
+                    }
+                    catch ( AuthorizationException exception )
+                    {
+                        // If we fail to delete the fileResource now, mark it as
+                        // unassigned for removal later
+                        fileResourceService.getFileResource( persistedDataValue.getValue() ).setAssigned( false );
+                    }
+
+                    persistedDataValue.setValue( StringUtils.EMPTY );
+                }
             }
 
             // -----------------------------------------------------------------

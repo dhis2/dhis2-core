@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dataanalysis;
 
+import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
 
@@ -38,7 +39,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * @author Jan Bernitt
  */
 @Getter
-public class FollowupAnalysisMetadata
+public class FollowupAnalysisMetadata implements Serializable
 {
 
     @JsonProperty

@@ -29,41 +29,28 @@ package org.hisp.dhis.scheduling.parameters;
 
 import java.util.Optional;
 
-import org.hisp.dhis.common.DxfNamespaces;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author David Katuscak <katuscak.d@gmail.com>
  */
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
-public class EventProgramsDataSynchronizationJobParameters
-    implements JobParameters
+@Getter
+@Setter
+public class EventProgramsDataSynchronizationJobParameters implements JobParameters
 {
-    private static final long serialVersionUID = 168332662397563659L;
-
     static final int PAGE_SIZE_MIN = 5;
 
     static final int PAGE_SIZE_MAX = 200;
 
-    private int pageSize = 60;
-
     @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getPageSize()
-    {
-        return pageSize;
-    }
-
-    public void setPageSize( final int pageSize )
-    {
-        this.pageSize = pageSize;
-    }
+    private int pageSize = 60;
 
     @Override
     public Optional<ErrorReport> validate()

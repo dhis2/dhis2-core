@@ -27,10 +27,15 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
+import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
+import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.Mockito.when;
 
+import java.util.Collections;
+
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.tracker.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.TrackerImportStrategy;
 import org.hisp.dhis.tracker.ValidationMode;
@@ -85,9 +90,13 @@ class MandatoryFieldsValidatorTest
     @Test
     void verifyRelationshipValidationSuccess()
     {
+        String relTypeUid = CodeGenerator.generateUid();
+        RelationshipType relationshipType = new RelationshipType();
+        relationshipType.setUid( relTypeUid );
+
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
-            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
                 .build() )
@@ -95,6 +104,11 @@ class MandatoryFieldsValidatorTest
                 .trackedEntity( trackedEntity() )
                 .build() )
             .build();
+
+        when( preheat.getAll( RelationshipType.class ) )
+            .thenReturn( Collections.singletonList( relationshipType ) );
+        when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) )
+            .thenReturn( relationshipType );
 
         validator.validate( reporter, bundle, relationship );
 
@@ -102,10 +116,11 @@ class MandatoryFieldsValidatorTest
     }
 
     @Test
-    void verifyRelationshipValidationFailsOnMissingFrom()
+    void shouldFailWhenRelationshipMissingFrom()
     {
+        String relationshipUid = CodeGenerator.generateUid();
         Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
+            .relationship( relationshipUid )
             .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .to( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
@@ -114,14 +129,57 @@ class MandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship, "from" );
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `from` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test
-    void verifyRelationshipValidationFailsOnMissingTo()
+    void shouldFailWhenFromItemHasNoEntities()
     {
+        String relationshipUid = CodeGenerator.generateUid();
         Relationship relationship = Relationship.builder()
-            .relationship( CodeGenerator.generateUid() )
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder().build() )
+            .to( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `from` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
+    }
+
+    @Test
+    void shouldFailWhenFromItemHasMultipleEntities()
+    {
+        String relationshipUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder().trackedEntity( "tracked entity" ).enrollment( "enrollment" ).build() )
+            .to( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `from` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
+    }
+
+    @Test
+    void shouldFailWhenRelationshipMissingTo()
+    {
+        String relationshipUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
             .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
             .from( RelationshipItem.builder()
                 .trackedEntity( trackedEntity() )
@@ -130,7 +188,50 @@ class MandatoryFieldsValidatorTest
 
         validator.validate( reporter, bundle, relationship );
 
-        assertMissingProperty( reporter, relationship, "to" );
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `to` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
+    }
+
+    @Test
+    void shouldFailWhenToItemHasNoEntities()
+    {
+        String relationshipUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .to( RelationshipItem.builder()
+                .build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `to` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
+    }
+
+    @Test
+    void shouldFailWhenToItemHasMultipleEntities()
+    {
+        String relationshipUid = CodeGenerator.generateUid();
+        Relationship relationship = Relationship.builder()
+            .relationship( relationshipUid )
+            .relationshipType( MetadataIdentifier.ofUid( CodeGenerator.generateUid() ) )
+            .from( RelationshipItem.builder()
+                .trackedEntity( trackedEntity() )
+                .build() )
+            .to( RelationshipItem.builder().trackedEntity( "tracked entity" ).enrollment( "enrollment" ).build() )
+            .build();
+
+        validator.validate( reporter, bundle, relationship );
+
+        assertHasError( reporter, relationship, E4001,
+            "Relationship item `to` for relationship `" + relationshipUid
+                + "` is invalid: an item must link to exactly one of trackedEntity, enrollment, event." );
     }
 
     @Test

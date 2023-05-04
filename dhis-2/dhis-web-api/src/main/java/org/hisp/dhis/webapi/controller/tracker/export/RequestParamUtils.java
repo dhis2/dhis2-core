@@ -65,34 +65,47 @@ class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    private static final String OPERATOR_GROUP = EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
+    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
+        .filter( QueryOperator::isComparison ).map( Enum::toString )
         .collect( Collectors.joining( "|" ) );
 
     /**
-     * RegEx to search and validate
-     * {identifier}:{operator}:{value}[:{operator}:{value}] for attributes
-     * filters. It is operator case-insensitive using (?i) and has ?! for lookup
-     * to include until another operator:value definition. This will allow to
-     * define a filter value with any character
+     * For multi operand, we support digits and dates
+     * {@link org.hisp.dhis.util.DateUtils}.
      */
-    private static final String OPERATOR_VALUE_ITEM_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
-        DIMENSION_NAME_SEP + "(.(?i)(?!" + OPERATOR_GROUP + "))+";
+    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
 
-    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN = Pattern
-        .compile(
-            "(.*)" + DIMENSION_NAME_SEP + OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+    private static final Pattern MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN = Pattern
+        .compile( "(?i)(" + COMPARISON_OPERATOR + ")" + DIMENSION_NAME_SEP
+            + DIGITS_DATES_VALUES_REG_EX + "(?!" + "(?i)(" + COMPARISON_OPERATOR + ")"
+            + ")" );
 
-    private static final Pattern OPERATOR_VALUE_ITEM_FILTER_PATTERN = Pattern
-        .compile( OPERATOR_VALUE_ITEM_FILTER_REG_EX );
+    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
+        + DIMENSION_NAME_SEP
+        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
 
     /**
-     * RegEx to validate {operator}:{value} in a query filter
+     * RegEx to search and validate multiple operand
+     * {operator}:{value}[:{operator}:{value}], We allow comparison for digits
+     * and dates,
      */
-    private static final String OPERATOR_VALUE_QUERY_FILTER_REG_EX = "(?i)(" + OPERATOR_GROUP + ")" +
+    private static final Pattern MULTI_OPERAND_VALUE_PATTERN = Pattern
+        .compile(
+            MULTI_OPERAND_VALUE_REG_EX
+                + DIMENSION_NAME_SEP
+                + MULTI_OPERAND_VALUE_REG_EX );
+
+    /**
+     * RegEx to validate and match {operator}:{value} in a filter
+     */
+    private static final String SINGLE_OPERAND_REG_EX = "(?i)("
+        + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
+            .collect( Collectors.joining( "|" ) )
+        + ")" +
         DIMENSION_NAME_SEP + "(.)+";
 
-    private static final Pattern OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN = Pattern
-        .compile( OPERATOR_VALUE_QUERY_FILTER_REG_EX );
+    private static final Pattern SINGLE_OPERAND_VALIDATION_PATTERN = Pattern
+        .compile( SINGLE_OPERAND_REG_EX );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -210,8 +223,9 @@ class RequestParamUtils
      * Creates a QueryItem with QueryFilters from the given item string.
      * Expected item format is
      * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed, and it is
-     * validated by a regular expression.
+     * is mandatory. Multiple operator:value pairs are allowed, If is not a
+     * multiple operand, a single operator:value filter will be created.
+     * Otherwise, the query item is not valid.
      * <p>
      * The identifier is passed to given map function which translates the
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
@@ -222,29 +236,38 @@ class RequestParamUtils
     public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
         throws BadRequestException
     {
-        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP );
+        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP ) + 1;
 
-        if ( identifierIndex == -1 || fullPath.length() - 1 == identifierIndex )
+        if ( identifierIndex == 0 || fullPath.length() == identifierIndex )
         {
             return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex ) );
+        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex - 1 ) );
 
-        if ( !OPERATOR_VALUE_ITEM_FILTER_VALIDATION_PATTERN
-            .matcher( fullPath ).matches() )
+        String filter = fullPath.substring( identifierIndex );
+
+        if ( MULTI_OPERAND_VALUE_PATTERN
+            .matcher( filter ).matches() )
         {
-            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
+            Matcher matcher = MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN.matcher( filter );
+
+            while ( matcher.find() )
+            {
+                queryItem.getFilters().add( singleOperatorValueFilter( matcher.group() ) );
+            }
+
+            return queryItem;
         }
 
-        Matcher matcher = OPERATOR_VALUE_ITEM_FILTER_PATTERN.matcher( fullPath );
-
-        while ( matcher.find() )
+        if ( SINGLE_OPERAND_VALIDATION_PATTERN
+            .matcher( filter ).matches() )
         {
-            String[] operatorValueSplit = matcher.group().split( DIMENSION_NAME_SEP, 2 );
-
-            queryItem.getFilters()
-                .add( new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] ) );
+            queryItem.getFilters().add( singleOperatorValueFilter( filter ) );
+        }
+        else
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
         }
 
         return queryItem;
@@ -272,13 +295,18 @@ class RequestParamUtils
             return new QueryFilter( QueryOperator.EQ, query );
         }
 
-        if ( !OPERATOR_VALUE_QUERY_FILTER_VALIDATION_PATTERN
+        if ( !SINGLE_OPERAND_VALIDATION_PATTERN
             .matcher( query ).matches() )
         {
             throw new BadRequestException( "Query has invalid format: " + query );
         }
 
-        String[] operatorValueSplit = query.split( DIMENSION_NAME_SEP, 2 );
+        return singleOperatorValueFilter( query );
+    }
+
+    private static QueryFilter singleOperatorValueFilter( String operatorValue )
+    {
+        String[] operatorValueSplit = operatorValue.split( DIMENSION_NAME_SEP, 2 );
 
         return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
     }

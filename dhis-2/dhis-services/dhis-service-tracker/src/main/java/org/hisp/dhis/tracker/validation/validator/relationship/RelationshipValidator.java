@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.validation.validator.relationship;
 
-import static org.hisp.dhis.tracker.validation.validator.All.all;
 import static org.hisp.dhis.tracker.validation.validator.Each.each;
 import static org.hisp.dhis.tracker.validation.validator.Seq.seq;
 
@@ -55,10 +54,9 @@ public class RelationshipValidator implements Validator<TrackerBundle>
                                 new ExistenceValidator(),
                                 new MandatoryFieldsValidator(),
                                 new MetaValidator(),
-                                new DataRelationsValidator(),
-                                all(
-                                        new RelationshipsValidator()
-                                )
+                                new LinkValidator(),
+                                new ConstraintValidator(),
+                                new DuplicationValidator()
                         )
                 );
         // @formatter:on

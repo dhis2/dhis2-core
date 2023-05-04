@@ -43,6 +43,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dxf2.common.TranslateParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -64,7 +65,6 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.version.VersionService;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -318,7 +318,7 @@ public class OrganisationUnitController
         rpLevels = rpLevels != null ? rpLevels : new ArrayList<>();
         rpParents = rpParents != null ? rpParents : new ArrayList<>();
 
-        List<OrganisationUnit> parents = manager.getByUid( OrganisationUnit.class, rpParents );
+        List<OrganisationUnit> parents = new ArrayList<>( manager.getByUid( OrganisationUnit.class, rpParents ) );
 
         if ( rpLevels.isEmpty() )
         {

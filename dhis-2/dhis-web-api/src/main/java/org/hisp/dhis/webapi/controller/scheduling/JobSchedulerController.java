@@ -28,6 +28,8 @@
 package org.hisp.dhis.webapi.controller.scheduling;
 
 import static java.util.Comparator.comparing;
+import static java.util.Comparator.naturalOrder;
+import static java.util.Comparator.nullsLast;
 import static java.util.function.Predicate.not;
 import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.toList;
@@ -47,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -54,7 +57,6 @@ import org.hisp.dhis.scheduling.JobConfigurationService;
 import org.hisp.dhis.scheduling.JobQueueService;
 import org.hisp.dhis.scheduling.SchedulingType;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.openapi.SchemaGenerators.UID;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -92,7 +94,7 @@ public class JobSchedulerController
             .stream().collect( groupingBy( JobConfiguration::getQueueIdentifier ) );
         Comparator<SchedulerEntry> sortBy = "name".equals( order )
             ? comparing( SchedulerEntry::getName )
-            : comparing( SchedulerEntry::getNextExecutionTime );
+            : comparing( SchedulerEntry::getNextExecutionTime, nullsLast( naturalOrder() ) );
         return configsByQueueNameOrUid.values().stream()
             .map( SchedulerEntry::of )
             .sorted( sortBy )

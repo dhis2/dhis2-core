@@ -16,9 +16,9 @@
 
         &identifiableProperties;
 
-        <property name="name" column="name" not-null="true" unique="true" length="230" />
+        <property name="name" column="name" not-null="true" length="230" />
 
-        <property name="shortName" type="text"/>
+        <property name="shortName" not-null="true" type="text" length="50" />
 
         <property name="formName" type="text" />
 
