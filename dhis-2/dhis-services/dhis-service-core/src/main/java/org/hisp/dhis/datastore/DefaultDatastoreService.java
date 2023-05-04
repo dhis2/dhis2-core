@@ -152,9 +152,13 @@ public class DefaultDatastoreService
     public void updateEntry( DatastoreEntry entry )
     {
         validateEntry( entry );
+        DatastoreNamespaceProtection protection = protectionByNamespace.get( entry.getNamespace() );
+        Runnable update = protection == null || protection.isSharingRespected()
+            ? () -> store.update( entry )
+            : () -> store.updateNoAcl( entry );
         writeProtectedIn( entry.getNamespace(),
             () -> singletonList( entry ),
-            () -> store.update( entry ) );
+            update );
     }
 
     @Override
