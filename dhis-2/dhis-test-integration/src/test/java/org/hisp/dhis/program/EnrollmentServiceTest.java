@@ -52,11 +52,11 @@ import com.google.common.collect.Sets;
 /**
  * @author Chau Thu Tran
  */
-class ProgramInstanceServiceTest extends TransactionalIntegrationTest
+class EnrollmentServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityInstanceService entityInstanceService;
@@ -156,80 +156,80 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testAddProgramInstance()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idB = programInstanceService.addProgramInstance( enrollmentB );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idB = enrollmentService.addEnrollment( enrollmentB );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
+        assertNotNull( enrollmentService.getEnrollment( idB ) );
     }
 
     @Test
     void testDeleteProgramInstance()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idB = programInstanceService.addProgramInstance( enrollmentB );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
-        programInstanceService.deleteProgramInstance( enrollmentA );
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNotNull( programInstanceService.getProgramInstance( idB ) );
-        programInstanceService.deleteProgramInstance( enrollmentB );
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertNull( programInstanceService.getProgramInstance( idB ) );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idB = enrollmentService.addEnrollment( enrollmentB );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
+        assertNotNull( enrollmentService.getEnrollment( idB ) );
+        enrollmentService.deleteEnrollment( enrollmentA );
+        assertNull( enrollmentService.getEnrollment( idA ) );
+        assertNotNull( enrollmentService.getEnrollment( idB ) );
+        enrollmentService.deleteEnrollment( enrollmentB );
+        assertNull( enrollmentService.getEnrollment( idA ) );
+        assertNull( enrollmentService.getEnrollment( idB ) );
     }
 
     @Test
     void testSoftDeleteProgramInstanceAndLinkedEvent()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
         long eventIdA = eventService.addEvent( eventA );
         enrollmentA.setEvents( Sets.newHashSet( eventA ) );
-        programInstanceService.updateProgramInstance( enrollmentA );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        enrollmentService.updateEnrollment( enrollmentA );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
         assertNotNull( eventService.getEvent( eventIdA ) );
-        programInstanceService.deleteProgramInstance( enrollmentA );
-        assertNull( programInstanceService.getProgramInstance( idA ) );
+        enrollmentService.deleteEnrollment( enrollmentA );
+        assertNull( enrollmentService.getEnrollment( idA ) );
         assertNull( eventService.getEvent( eventIdA ) );
     }
 
     @Test
     void testUpdateProgramInstance()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
         enrollmentA.setIncidentDate( enrollmentDate );
-        programInstanceService.updateProgramInstance( enrollmentA );
-        assertEquals( enrollmentDate, programInstanceService.getProgramInstance( idA ).getIncidentDate() );
+        enrollmentService.updateEnrollment( enrollmentA );
+        assertEquals( enrollmentDate, enrollmentService.getEnrollment( idA ).getIncidentDate() );
     }
 
     @Test
     void testGetProgramInstanceById()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idB = programInstanceService.addProgramInstance( enrollmentB );
-        assertEquals( enrollmentA, programInstanceService.getProgramInstance( idA ) );
-        assertEquals( enrollmentB, programInstanceService.getProgramInstance( idB ) );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idB = enrollmentService.addEnrollment( enrollmentB );
+        assertEquals( enrollmentA, enrollmentService.getEnrollment( idA ) );
+        assertEquals( enrollmentB, enrollmentService.getEnrollment( idB ) );
     }
 
     @Test
     void testGetProgramInstanceByUid()
     {
-        programInstanceService.addProgramInstance( enrollmentA );
-        programInstanceService.addProgramInstance( enrollmentB );
-        assertEquals( "UID-A", programInstanceService.getProgramInstance( "UID-A" ).getUid() );
-        assertEquals( "UID-B", programInstanceService.getProgramInstance( "UID-B" ).getUid() );
+        enrollmentService.addEnrollment( enrollmentA );
+        enrollmentService.addEnrollment( enrollmentB );
+        assertEquals( "UID-A", enrollmentService.getEnrollment( "UID-A" ).getUid() );
+        assertEquals( "UID-B", enrollmentService.getEnrollment( "UID-B" ).getUid() );
     }
 
     @Test
     void testGetProgramInstancesByProgram()
     {
-        programInstanceService.addProgramInstance( enrollmentA );
-        programInstanceService.addProgramInstance( enrollmentB );
-        programInstanceService.addProgramInstance( enrollmentD );
-        List<Enrollment> enrollments = programInstanceService.getProgramInstances( programA );
+        enrollmentService.addEnrollment( enrollmentA );
+        enrollmentService.addEnrollment( enrollmentB );
+        enrollmentService.addEnrollment( enrollmentD );
+        List<Enrollment> enrollments = enrollmentService.getEnrollments( programA );
         assertEquals( 2, enrollments.size() );
         assertTrue( enrollments.contains( enrollmentA ) );
         assertTrue( enrollments.contains( enrollmentD ) );
-        enrollments = programInstanceService.getProgramInstances( programB );
+        enrollments = enrollmentService.getEnrollments( programB );
         assertEquals( 1, enrollments.size() );
         assertTrue( enrollments.contains( enrollmentB ) );
     }
@@ -237,21 +237,21 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramInstancesByEntityInstanceProgramStatus()
     {
-        programInstanceService.addProgramInstance( enrollmentA );
-        Enrollment enrollment1 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+        enrollmentService.addEnrollment( enrollmentA );
+        Enrollment enrollment1 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment1.setStatus( ProgramStatus.COMPLETED );
-        programInstanceService.updateProgramInstance( enrollment1 );
-        Enrollment enrollment2 = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+        enrollmentService.updateEnrollment( enrollment1 );
+        Enrollment enrollment2 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment2.setStatus( ProgramStatus.COMPLETED );
-        programInstanceService.updateProgramInstance( enrollment2 );
-        List<Enrollment> enrollments = programInstanceService.getProgramInstances( entityInstanceA, programA,
+        enrollmentService.updateEnrollment( enrollment2 );
+        List<Enrollment> enrollments = enrollmentService.getEnrollments( entityInstanceA, programA,
             ProgramStatus.COMPLETED );
         assertEquals( 2, enrollments.size() );
         assertTrue( enrollments.contains( enrollment1 ) );
         assertTrue( enrollments.contains( enrollment2 ) );
-        enrollments = programInstanceService.getProgramInstances( entityInstanceA, programA,
+        enrollments = enrollmentService.getEnrollments( entityInstanceA, programA,
             ProgramStatus.ACTIVE );
         assertEquals( 1, enrollments.size() );
         assertTrue( enrollments.contains( enrollmentA ) );
@@ -260,11 +260,11 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramInstancesByOuProgram()
     {
-        programInstanceService.addProgramInstance( enrollmentA );
-        programInstanceService.addProgramInstance( enrollmentC );
-        programInstanceService.addProgramInstance( enrollmentD );
-        List<Enrollment> enrollments = programInstanceService
-            .getProgramInstances( new ProgramInstanceQueryParams().setProgram( programA )
+        enrollmentService.addEnrollment( enrollmentA );
+        enrollmentService.addEnrollment( enrollmentC );
+        enrollmentService.addEnrollment( enrollmentD );
+        List<Enrollment> enrollments = enrollmentService
+            .getEnrollments( new ProgramInstanceQueryParams().setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
         assertEquals( 1, enrollments.size() );
@@ -274,20 +274,20 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testEnrollTrackedEntityInstance()
     {
-        Enrollment enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstanceA, programB,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstanceA, programB,
             enrollmentDate, incidentDate, organisationUnitA );
-        assertNotNull( programInstanceService.getProgramInstance( enrollment.getId() ) );
+        assertNotNull( enrollmentService.getEnrollment( enrollment.getId() ) );
     }
 
     @Test
     void testCompleteProgramInstanceStatus()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idD = programInstanceService.addProgramInstance( enrollmentD );
-        programInstanceService.completeProgramInstanceStatus( enrollmentA );
-        programInstanceService.completeProgramInstanceStatus( enrollmentD );
-        assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.COMPLETED, programInstanceService.getProgramInstance( idD ).getStatus() );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idD = enrollmentService.addEnrollment( enrollmentD );
+        enrollmentService.completeEnrollmentStatus( enrollmentA );
+        enrollmentService.completeEnrollmentStatus( enrollmentD );
+        assertEquals( ProgramStatus.COMPLETED, enrollmentService.getEnrollment( idA ).getStatus() );
+        assertEquals( ProgramStatus.COMPLETED, enrollmentService.getEnrollment( idD ).getStatus() );
     }
 
     @Test
@@ -295,22 +295,22 @@ class ProgramInstanceServiceTest extends TransactionalIntegrationTest
     {
         enrollmentA.setStatus( ProgramStatus.COMPLETED );
         enrollmentD.setStatus( ProgramStatus.COMPLETED );
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idD = programInstanceService.addProgramInstance( enrollmentD );
-        programInstanceService.incompleteProgramInstanceStatus( enrollmentA );
-        programInstanceService.incompleteProgramInstanceStatus( enrollmentD );
-        assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.ACTIVE, programInstanceService.getProgramInstance( idD ).getStatus() );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idD = enrollmentService.addEnrollment( enrollmentD );
+        enrollmentService.incompleteEnrollmentStatus( enrollmentA );
+        enrollmentService.incompleteEnrollmentStatus( enrollmentD );
+        assertEquals( ProgramStatus.ACTIVE, enrollmentService.getEnrollment( idA ).getStatus() );
+        assertEquals( ProgramStatus.ACTIVE, enrollmentService.getEnrollment( idD ).getStatus() );
     }
 
     @Test
     void testCancelProgramInstanceStatus()
     {
-        long idA = programInstanceService.addProgramInstance( enrollmentA );
-        long idD = programInstanceService.addProgramInstance( enrollmentD );
-        programInstanceService.cancelProgramInstanceStatus( enrollmentA );
-        programInstanceService.cancelProgramInstanceStatus( enrollmentD );
-        assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idA ).getStatus() );
-        assertEquals( ProgramStatus.CANCELLED, programInstanceService.getProgramInstance( idD ).getStatus() );
+        long idA = enrollmentService.addEnrollment( enrollmentA );
+        long idD = enrollmentService.addEnrollment( enrollmentD );
+        enrollmentService.cancelEnrollmentStatus( enrollmentA );
+        enrollmentService.cancelEnrollmentStatus( enrollmentD );
+        assertEquals( ProgramStatus.CANCELLED, enrollmentService.getEnrollment( idA ).getStatus() );
+        assertEquals( ProgramStatus.CANCELLED, enrollmentService.getEnrollment( idD ).getStatus() );
     }
 }

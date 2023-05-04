@@ -66,8 +66,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.program.ProgramInstanceService" )
-public class DefaultProgramInstanceService
-    implements ProgramInstanceService
+public class DefaultEnrollmentService
+    implements EnrollmentService
 {
     private final ProgramInstanceStore programInstanceStore;
 
@@ -89,7 +89,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public long addProgramInstance( Enrollment enrollment )
+    public long addEnrollment( Enrollment enrollment )
     {
         programInstanceStore.save( enrollment );
         return enrollment.getId();
@@ -97,7 +97,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public long addProgramInstance( Enrollment enrollment, User user )
+    public long addEnrollment( Enrollment enrollment, User user )
     {
         programInstanceStore.save( enrollment, user );
         return enrollment.getId();
@@ -105,7 +105,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void deleteProgramInstance( Enrollment enrollment )
+    public void deleteEnrollment( Enrollment enrollment )
     {
         enrollment.setStatus( ProgramStatus.CANCELLED );
         programInstanceStore.update( enrollment );
@@ -114,14 +114,14 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void hardDeleteProgramInstance( Enrollment enrollment )
+    public void hardDeleteEnrollment( Enrollment enrollment )
     {
         programInstanceStore.hardDelete( enrollment );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Enrollment getProgramInstance( long id )
+    public Enrollment getEnrollment( long id )
     {
         Enrollment enrollment = programInstanceStore.get( id );
 
@@ -130,7 +130,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public Enrollment getProgramInstance( String uid )
+    public Enrollment getEnrollment( String uid )
     {
         Enrollment enrollment = programInstanceStore.getByUid( uid );
 
@@ -139,42 +139,42 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getProgramInstances( @Nonnull List<String> uids )
+    public List<Enrollment> getEnrollments( @Nonnull List<String> uids )
     {
         return programInstanceStore.getByUid( uids );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean programInstanceExists( String uid )
+    public boolean enrollmentExists( String uid )
     {
         return programInstanceStore.exists( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean programInstanceExistsIncludingDeleted( String uid )
+    public boolean enrollmentExistsIncludingDeleted( String uid )
     {
         return programInstanceStore.existsIncludingDeleted( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getProgramInstancesUidsIncludingDeleted( List<String> uids )
+    public List<String> getEnrollmentsUidsIncludingDeleted( List<String> uids )
     {
         return programInstanceStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
     @Transactional
-    public void updateProgramInstance( Enrollment enrollment )
+    public void updateEnrollment( Enrollment enrollment )
     {
         programInstanceStore.update( enrollment );
     }
 
     @Override
     @Transactional
-    public void updateProgramInstance( Enrollment enrollment, User user )
+    public void updateEnrollment( Enrollment enrollment, User user )
     {
         programInstanceStore.update( enrollment, user );
     }
@@ -182,7 +182,7 @@ public class DefaultProgramInstanceService
     // TODO consider security
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params )
+    public List<Enrollment> getEnrollments( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
         validate( params );
@@ -216,7 +216,7 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public int countProgramInstances( ProgramInstanceQueryParams params )
+    public int countEnrollments( ProgramInstanceQueryParams params )
     {
         decideAccess( params );
         validate( params );
@@ -347,21 +347,21 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getProgramInstances( Program program )
+    public List<Enrollment> getEnrollments( Program program )
     {
         return programInstanceStore.get( program );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getProgramInstances( Program program, ProgramStatus status )
+    public List<Enrollment> getEnrollments( Program program, ProgramStatus status )
     {
         return programInstanceStore.get( program, status );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getProgramInstances( TrackedEntityInstance entityInstance, Program program,
+    public List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
         ProgramStatus status )
     {
         return programInstanceStore.get( entityInstance, program, status );
@@ -370,7 +370,7 @@ public class DefaultProgramInstanceService
     @Nonnull
     @Override
     @Transactional
-    public Enrollment prepareProgramInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    public Enrollment prepareEnrollment( TrackedEntityInstance trackedEntityInstance, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit,
         String uid )
     {
@@ -427,10 +427,10 @@ public class DefaultProgramInstanceService
         // Add program instance
         // ---------------------------------------------------------------------
 
-        Enrollment enrollment = prepareProgramInstance( trackedEntityInstance, program, ProgramStatus.ACTIVE,
+        Enrollment enrollment = prepareEnrollment( trackedEntityInstance, program, ProgramStatus.ACTIVE,
             enrollmentDate,
             incidentDate, organisationUnit, uid );
-        addProgramInstance( enrollment );
+        addEnrollment( enrollment );
 
         // ---------------------------------------------------------------------
         // Add program owner and overwrite if already exists.
@@ -450,7 +450,7 @@ public class DefaultProgramInstanceService
         // Update ProgramInstance and TEI
         // -----------------------------------------------------------------
 
-        updateProgramInstance( enrollment );
+        updateEnrollment( enrollment );
         trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance );
 
         return enrollment;
@@ -458,14 +458,14 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void completeProgramInstanceStatus( Enrollment enrollment )
+    public void completeEnrollmentStatus( Enrollment enrollment )
     {
         // -----------------------------------------------------------------
         // Update program-instance
         // -----------------------------------------------------------------
 
         enrollment.setStatus( ProgramStatus.COMPLETED );
-        updateProgramInstance( enrollment );
+        updateEnrollment( enrollment );
 
         // ---------------------------------------------------------------------
         // Send sms-message after program completion
@@ -479,13 +479,13 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void cancelProgramInstanceStatus( Enrollment enrollment )
+    public void cancelEnrollmentStatus( Enrollment enrollment )
     {
         // ---------------------------------------------------------------------
         // Set status of the program-instance
         // ---------------------------------------------------------------------
         enrollment.setStatus( ProgramStatus.CANCELLED );
-        updateProgramInstance( enrollment );
+        updateEnrollment( enrollment );
 
         // ---------------------------------------------------------------------
         // Set statuses of the program-stage-instances
@@ -514,13 +514,13 @@ public class DefaultProgramInstanceService
 
     @Override
     @Transactional
-    public void incompleteProgramInstanceStatus( Enrollment enrollment )
+    public void incompleteEnrollmentStatus( Enrollment enrollment )
     {
         Program program = enrollment.getProgram();
 
         TrackedEntityInstance tei = enrollment.getEntityInstance();
 
-        if ( getProgramInstances( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
+        if ( getEnrollments( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {
             log.warn( "Program has another active enrollment going on. Not possible to incomplete" );
 
@@ -535,6 +535,6 @@ public class DefaultProgramInstanceService
         enrollment.setStatus( ProgramStatus.ACTIVE );
         enrollment.setEndDate( null );
 
-        updateProgramInstance( enrollment );
+        updateEnrollment( enrollment );
     }
 }

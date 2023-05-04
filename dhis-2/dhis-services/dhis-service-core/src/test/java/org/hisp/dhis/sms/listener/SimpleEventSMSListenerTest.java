@@ -51,10 +51,10 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -126,7 +126,7 @@ class SimpleEventSMSListenerTest
     // Needed for this test
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private SimpleEventSMSListener subject;
 
@@ -152,7 +152,7 @@ class SimpleEventSMSListenerTest
     {
         subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            eventService, programInstanceService, identifiableObjectManager );
+            eventService, enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 

@@ -51,10 +51,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -87,7 +87,7 @@ import com.google.common.collect.Sets;
 class MaintenanceServiceTest extends IntegrationTestBase
 {
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramMessageService programMessageService;
@@ -203,8 +203,8 @@ class MaintenanceServiceTest extends IntegrationTestBase
         enrollmentWithTeiAssociation.setUid( "UID-B" );
         enrollmentWithTeiAssociation.setOrganisationUnit( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( entityInstanceWithAssociations );
-        programInstanceService.addProgramInstance( enrollmentWithTeiAssociation );
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollmentWithTeiAssociation );
+        enrollmentService.addEnrollment( enrollment );
         event = new Event( enrollment, stageA );
         event.setUid( "PSUID-B" );
         event.setOrganisationUnit( organisationUnit );
@@ -265,14 +265,14 @@ class MaintenanceServiceTest extends IntegrationTestBase
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
             .recipients( programMessageRecipients ).deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
             .enrollment( enrollment ).build();
-        long idA = programInstanceService.addProgramInstance( enrollment );
+        long idA = enrollmentService.addEnrollment( enrollment );
         programMessageService.saveProgramMessage( message );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        programInstanceService.deleteProgramInstance( enrollment );
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
+        enrollmentService.deleteEnrollment( enrollment );
+        assertNull( enrollmentService.getEnrollment( idA ) );
+        assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramInstances();
-        assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
     }
 
     @Test
@@ -331,13 +331,13 @@ class MaintenanceServiceTest extends IntegrationTestBase
         TrackedEntityDataValueAudit trackedEntityDataValueAudit = new TrackedEntityDataValueAudit( dataElement,
             eventA, "value", "modifiedBy", false, org.hisp.dhis.common.AuditType.UPDATE );
         trackedEntityDataValueAuditService.addTrackedEntityDataValueAudit( trackedEntityDataValueAudit );
-        long idA = programInstanceService.addProgramInstance( enrollment );
-        assertNotNull( programInstanceService.getProgramInstance( idA ) );
-        programInstanceService.deleteProgramInstance( enrollment );
-        assertNull( programInstanceService.getProgramInstance( idA ) );
-        assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        long idA = enrollmentService.addEnrollment( enrollment );
+        assertNotNull( enrollmentService.getEnrollment( idA ) );
+        enrollmentService.deleteEnrollment( enrollment );
+        assertNull( enrollmentService.getEnrollment( idA ) );
+        assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramInstances();
-        assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
     }
 
     @Test
@@ -400,15 +400,15 @@ class MaintenanceServiceTest extends IntegrationTestBase
         r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
         r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
         relationshipService.addRelationship( r );
-        assertNotNull( programInstanceService.getProgramInstance( enrollment.getId() ) );
+        assertNotNull( enrollmentService.getEnrollment( enrollment.getId() ) );
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
-        programInstanceService.deleteProgramInstance( enrollment );
-        assertNull( programInstanceService.getProgramInstance( enrollment.getId() ) );
+        enrollmentService.deleteEnrollment( enrollment );
+        assertNull( enrollmentService.getEnrollment( enrollment.getId() ) );
         assertNull( relationshipService.getRelationship( r.getId() ) );
-        assertTrue( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedProgramInstances();
-        assertFalse( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getUid() ) );
+        assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }
 

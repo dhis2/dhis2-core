@@ -60,7 +60,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.aggregates.TrackedEntityInstanceAggregate;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -72,8 +71,8 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.query.Query;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.query.Restrictions;
@@ -136,9 +135,9 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected DbmsManager dbmsManager;
 
-    protected EnrollmentService enrollmentService;
+    protected org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService;
 
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService programInstanceService;
 
     protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
@@ -1141,7 +1140,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 delete.add( enrollment );
             }
-            else if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            else if ( !programInstanceService.enrollmentExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }

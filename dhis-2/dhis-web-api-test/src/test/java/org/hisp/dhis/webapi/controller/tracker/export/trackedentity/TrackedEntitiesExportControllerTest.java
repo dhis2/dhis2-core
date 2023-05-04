@@ -50,9 +50,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
@@ -93,7 +93,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private OrganisationUnit orgUnit;
 
@@ -251,7 +251,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         TrackedEntityInstance trackedEntity = trackedEntityInstance();
         trackedEntity.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, trackedEntity, "12" ), attributeValue( tea2, trackedEntity, "24" ) ) );
-        programInstanceService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
+        enrollmentService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonAttribute> attributes = GET( "/tracker/trackedEntities/{id}?fields=attributes[attribute,value]",
             trackedEntity.getUid() )
@@ -270,7 +270,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         TrackedEntityInstance trackedEntity = trackedEntityInstance();
         trackedEntity.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, trackedEntity, "12" ), attributeValue( tea2, trackedEntity, "24" ) ) );
-        programInstanceService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
+        enrollmentService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonAttribute> attributes = GET(
             "/tracker/trackedEntities/{id}?program={id}&fields=attributes[attribute,value]", trackedEntity.getUid(),
@@ -422,7 +422,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     void shouldGetEnrollmentWhenFieldsHasEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
-        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
@@ -441,7 +441,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( programInstance );
@@ -467,7 +467,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( programInstance );
@@ -498,7 +498,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstance();
 
-        Enrollment programInstance = programInstanceService.enrollTrackedEntityInstance( trackedEntityInstance,
+        Enrollment programInstance = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstance,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( programInstance );

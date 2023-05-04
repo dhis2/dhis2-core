@@ -61,12 +61,12 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -113,7 +113,7 @@ class EventPredictionServiceTest extends IntegrationTestBase
     private ProgramService programService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -273,9 +273,9 @@ class EventPredictionServiceTest extends IntegrationTestBase
         program.getProgramIndicators().add( programIndicatorA );
         program.getProgramIndicators().add( programIndicatorB );
         programService.updateProgram( program );
-        Enrollment enrollment = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
         Event stageInstanceA = eventService.createEvent( enrollment,
             stageA, dateMar20, dateMar20, orgUnitA );
         Event stageInstanceB = eventService.createEvent( enrollment,

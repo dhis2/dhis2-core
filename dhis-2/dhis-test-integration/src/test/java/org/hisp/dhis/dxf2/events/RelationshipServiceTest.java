@@ -48,9 +48,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -63,7 +63,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class RelationshipServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -122,10 +122,10 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         manager.save( program );
         manager.save( programStage );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             organisationUnit );
 
-        enrollmentB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
+        enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
             organisationUnit );
 
         eventA = new Event();

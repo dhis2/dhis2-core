@@ -35,9 +35,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
@@ -77,7 +77,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     public RelationshipSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
@@ -85,7 +85,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, EventService eventService,
         RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        TrackedEntityInstanceService trackedEntityInstanceService, EnrollmentService enrollmentService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
@@ -95,7 +95,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
@@ -159,7 +159,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
             break;
 
         case PROGRAM_INSTANCE:
-            Enrollment progInst = programInstanceService.getProgramInstance( objId.getUid() );
+            Enrollment progInst = enrollmentService.getEnrollment( objId.getUid() );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );

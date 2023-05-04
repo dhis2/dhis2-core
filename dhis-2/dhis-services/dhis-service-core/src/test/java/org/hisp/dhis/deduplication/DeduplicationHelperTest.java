@@ -42,8 +42,8 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -86,7 +86,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     private OrganisationUnitService organisationUnitService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private OrganisationUnit organisationUnitA;
 
@@ -138,7 +138,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
         when( aclService.canDataWrite( user, enrollment.getProgram() ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
-        when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
+        when( enrollmentService.getEnrollments( enrollmentUids ) ).thenReturn( getEnrollments() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( true );
     }

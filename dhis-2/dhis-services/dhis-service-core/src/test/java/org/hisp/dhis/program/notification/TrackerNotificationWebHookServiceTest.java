@@ -48,10 +48,10 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
@@ -111,7 +111,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     private ResponseEntity<String> responseEntity;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private EventService eventService;
@@ -187,7 +187,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEnrollmentNotificationWebHook()
     {
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( enrollment );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
         when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
         when( templateService.getProgramLinkedToWebHookNotifications( any( Program.class ) ) )
             .thenReturn( Lists.newArrayList( programNotification ) );

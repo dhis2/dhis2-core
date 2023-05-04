@@ -43,10 +43,10 @@ import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -83,7 +83,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private ProgramService programService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -297,7 +297,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
         enrollment.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
         return enrollment;
     }
 
