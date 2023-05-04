@@ -27,8 +27,12 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
+import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
+
 import lombok.AllArgsConstructor;
 
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.BaseIcon;
 import org.hisp.dhis.icon.CustomIcon;
@@ -50,8 +54,16 @@ public class IconMapper
     }
 
     public CustomIcon to( IconDto iconDto )
+        throws BadRequestException
     {
+        FileResource fileResource = fileResourceService.getFileResource( iconDto.getFileResourceUid(), CUSTOM_ICON );
+        if ( fileResource == null )
+        {
+            throw new BadRequestException(
+                String.format( "File resource with uid %s does not exist", iconDto.getFileResourceUid() ) );
+        }
+
         return new CustomIcon( iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords(),
-            fileResourceService.getFileResource( iconDto.getFileResourceUid() ), currentUserService.getCurrentUser() );
+            fileResource, currentUserService.getCurrentUser() );
     }
 }

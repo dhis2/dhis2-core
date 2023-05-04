@@ -101,6 +101,12 @@ public class DefaultFileResourceService
     }
 
     @Override
+    public FileResource getFileResource( String uid, FileResourceDomain domain )
+    {
+        return fileResourceStore.findByUidAndDomain( uid, domain );
+    }
+
+    @Override
     @Transactional( readOnly = true )
     public List<FileResource> getFileResources( @Nonnull List<String> uids )
     {

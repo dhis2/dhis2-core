@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor.API_ENDPOINT;
 
 import java.util.Arrays;
@@ -183,6 +184,12 @@ public class DefaultIconService
     {
         CustomIcon icon = validateCustomIconExists( key );
 
+        if ( description == null && keywords == null )
+        {
+            throw new BadRequestException( String
+                .format( "Can't update icon %s if none of description and keywords are present in the request", key ) );
+        }
+
         if ( description != null )
         {
             icon.setDescription( description );
@@ -236,7 +243,7 @@ public class DefaultIconService
             throw new BadRequestException( "File resource id not specified." );
         }
 
-        if ( fileResourceService.getFileResource( fileResource.getUid() ) == null )
+        if ( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) == null )
         {
             throw new NotFoundException( String.format( "File resource %s does not exist", fileResource.getUid() ) );
         }

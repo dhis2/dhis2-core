@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -41,6 +42,7 @@ import java.util.List;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -73,7 +75,7 @@ class IconServiceTest
         FileResource fileResource = new FileResource();
         fileResource.setUid( fileResourceUid );
         when( customIconStore.getIconByKey( uniqueKey ) ).thenReturn( null );
-        when( fileResourceService.getFileResource( fileResourceUid ) ).thenReturn( new FileResource() );
+        when( fileResourceService.getFileResource( fileResourceUid, CUSTOM_ICON ) ).thenReturn( new FileResource() );
 
         iconService
             .addCustomIcon(
@@ -103,7 +105,7 @@ class IconServiceTest
         FileResource fileResource = new FileResource();
         fileResource.setUid( fileResourceUid );
         when( customIconStore.getIconByKey( iconKey ) ).thenReturn( null );
-        when( fileResourceService.getFileResource( anyString() ) ).thenReturn( null );
+        when( fileResourceService.getFileResource( anyString(), any( FileResourceDomain.class ) ) ).thenReturn( null );
 
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.addCustomIcon(
@@ -183,14 +185,28 @@ class IconServiceTest
     }
 
     @Test
+    void shouldFailWhenUpdatingCustomIconWithoutDescriptionNorKeywords()
+    {
+        String uniqueKey = "key";
+
+        when( customIconStore.getIconByKey( uniqueKey ) ).thenReturn(
+            new CustomIcon( uniqueKey, "description", Collections.emptyList(), new FileResource(), new User() ) );
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> iconService.updateCustomIcon( uniqueKey, null, null ) );
+
+        String expectedMessage = String
+            .format( "Can't update icon %s if none of description and keywords are present in the request", uniqueKey );
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
     void shouldDeleteIconWhenKeyPresentAndCustomIconExists()
         throws BadRequestException,
         NotFoundException
     {
         String uniqueKey = "key";
-        when( customIconStore.getIconByKey( uniqueKey ) )
-            .thenReturn(
-                new CustomIcon( uniqueKey, "description", Collections.emptyList(), new FileResource(), new User() ) );
+        when( customIconStore.getIconByKey( uniqueKey ) ).thenReturn(
+            new CustomIcon( uniqueKey, "description", Collections.emptyList(), new FileResource(), new User() ) );
         when( fileResourceService.getFileResource( null ) ).thenReturn( new FileResource() );
 
         iconService.deleteCustomIcon( uniqueKey );

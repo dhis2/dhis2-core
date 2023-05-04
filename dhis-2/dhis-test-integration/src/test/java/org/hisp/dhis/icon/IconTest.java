@@ -206,7 +206,7 @@ class IconTest extends TrackerTest
         String contentType = MimeTypeUtils.APPLICATION_OCTET_STREAM_VALUE;
 
         FileResource fileResource = new FileResource( filename, contentType, content.length,
-            contentMd5.toString(), FileResourceDomain.DATA_VALUE );
+            contentMd5.toString(), FileResourceDomain.CUSTOM_ICON );
         fileResource.setAssigned( false );
         fileResource.setCreated( new Date() );
         fileResource.setAutoFields();

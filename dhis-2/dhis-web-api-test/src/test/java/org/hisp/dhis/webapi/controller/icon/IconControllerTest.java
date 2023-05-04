@@ -25,9 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller;
+package org.hisp.dhis.webapi.controller.icon;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
@@ -55,6 +58,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
 
     @Test
     void shouldCreateCustomIconWhenFileResourceExist()
+        throws IOException
     {
         String message = createIcon( createFileResource() );
 
@@ -63,6 +67,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
 
     @Test
     void shouldGetIconWhenIconKeyExists()
+        throws IOException
     {
         String fileResourceId = createFileResource();
         createIcon( fileResourceId );
@@ -80,6 +85,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
 
     @Test
     void shouldUpdateIconWhenKeyExists()
+        throws IOException
     {
         String updatedDescription = "updatedDescription";
         String updatedKeywords = "['new k1', 'new k2']";
@@ -93,6 +99,7 @@ class IconControllerTest extends DhisControllerConvenienceTest
 
     @Test
     void shouldDeleteIconWhenKeyExists()
+        throws IOException
     {
         createIcon( createFileResource() );
 
@@ -111,10 +118,12 @@ class IconControllerTest extends DhisControllerConvenienceTest
     }
 
     private String createFileResource()
+        throws IOException
     {
-        MockMultipartFile image = new MockMultipartFile( "file", "OU_profile_image.png", "image/png",
-            "<<png data>>".getBytes() );
-        HttpResponse response = POST_MULTIPART( "/fileResources?domain=ORG_UNIT", image );
+        InputStream in = getClass().getResourceAsStream( "/icon/test-image.png" );
+        MockMultipartFile image = new MockMultipartFile( "file", "test-image.png", "image/png", in );
+
+        HttpResponse response = POST_MULTIPART( "/fileResources?domain=CUSTOM_ICON", image );
         JsonObject savedObject = response.content( HttpStatus.ACCEPTED ).getObject( "response" )
             .getObject( "fileResource" );
 
