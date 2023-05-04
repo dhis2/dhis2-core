@@ -77,7 +77,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     protected UserService _userService;
 
     @Autowired
-    private EnrollmentService enrollmentService;
+    private EnrollmentService programInstanceService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -197,7 +197,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
         manager.save( relationshipA, false );
 
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
             new Date(),
             orgUnitA );
         eventA = new Event();
@@ -209,7 +209,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         enrollmentA.setRelationshipItems( Set.of( from, to ) );
         manager.save( enrollmentA, false );
 
-        enrollmentB = enrollmentService.enrollTrackedEntityInstance( trackedEntityB, programA, new Date(),
+        enrollmentB = programInstanceService.enrollTrackedEntityInstance( trackedEntityB, programA, new Date(),
             new Date(),
             orgUnitB );
 

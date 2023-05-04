@@ -123,7 +123,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private EnrollmentService enrollmentService;
+    private EnrollmentService programInstanceService;
 
     @Autowired
     private EventService programStageInstanceService;
@@ -321,7 +321,7 @@ class EventImportTest extends TransactionalIntegrationTest
         pi.setProgram( programB );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
-        enrollmentService.addEnrollment( pi );
+        programInstanceService.addEnrollment( pi );
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
@@ -477,7 +477,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testEventDeletion()
     {
-        enrollmentService.addEnrollment( pi );
+        programInstanceService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -494,7 +494,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEvent()
     {
-        enrollmentService.addEnrollment( pi );
+        programInstanceService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -510,7 +510,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEventInBulk()
     {
-        enrollmentService.addEnrollment( pi );
+        programInstanceService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );

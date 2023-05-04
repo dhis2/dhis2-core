@@ -90,7 +90,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         UserService userService,
         DbmsManager dbmsManager,
         org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService,
-        EnrollmentService enrollmentService,
+        EnrollmentService programInstanceService,
         CurrentUserService currentUserService,
         SchemaService schemaService,
         QueryService queryService,
@@ -116,7 +116,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( userService );
         checkNotNull( dbmsManager );
         checkNotNull( enrollmentService );
-        checkNotNull( enrollmentService );
+        checkNotNull( programInstanceService );
         checkNotNull( currentUserService );
         checkNotNull( schemaService );
         checkNotNull( queryService );
@@ -141,7 +141,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.userService = userService;
         this.dbmsManager = dbmsManager;
         this.enrollmentService = enrollmentService;
-        this.enrollmentService = enrollmentService;
+        this.programInstanceService = programInstanceService;
         this.currentUserService = currentUserService;
         this.schemaService = schemaService;
         this.queryService = queryService;
