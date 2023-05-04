@@ -193,4 +193,9 @@ public class ProgramDataElementDimensionItem
     {
         this.dataElement = dataElement;
     }
+
+    public boolean hasDataElement()
+    {
+        return dataElement != null;
+    }
 }

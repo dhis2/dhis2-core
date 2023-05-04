@@ -433,4 +433,34 @@ public class DataDimensionItem
     {
         this.expressionDimensionItem = expressionDimensionItem;
     }
+
+    public boolean hasIndicator()
+    {
+        return indicator != null;
+    }
+
+    public boolean hasDataElement()
+    {
+        return dataElement != null;
+    }
+
+    public boolean hasDataElementOperand()
+    {
+        return dataElementOperand != null;
+    }
+
+    public boolean hasReportingRate()
+    {
+        return reportingRate != null;
+    }
+
+    public boolean hasProgramIndicator()
+    {
+        return programIndicator != null;
+    }
+
+    public boolean hasProgramTrackedEntityAttributeDimensionItem()
+    {
+        return programAttribute != null;
+    }
 }

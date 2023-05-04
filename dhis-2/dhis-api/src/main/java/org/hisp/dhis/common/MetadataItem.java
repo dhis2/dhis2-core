@@ -45,6 +45,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -202,20 +203,14 @@ public class MetadataItem
         if ( dimensionalItemObject instanceof DataElement dataElement )
         {
             this.valueType = dataElement.getValueType().toSimplifiedValueType();
-            addIconPathToStyle( dataElement.getStyle() );
         }
         else if ( dimensionalItemObject instanceof DataElementOperand operand )
         {
             this.valueType = operand.getValueType().toSimplifiedValueType();
         }
-        else if ( dimensionalItemObject instanceof DataSet dataSet )
-        {
-            addIconPathToStyle( dataSet.getStyle() );
-        }
         else if ( dimensionalItemObject instanceof TrackedEntityAttribute attribute )
         {
             this.valueType = attribute.getValueType().toSimplifiedValueType();
-            addIconPathToStyle( attribute.getStyle() );
         }
         else if ( dimensionalItemObject instanceof Period period )
         {
@@ -228,17 +223,82 @@ public class MetadataItem
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
-
-            addIconPathToStyle( indicator.getStyle() );
-        }
-        else if ( dimensionalItemObject instanceof ProgramIndicator programIndicator )
-        {
-            addIconPathToStyle( programIndicator.getStyle() );
         }
         else if ( dimensionalItemObject instanceof ExpressionDimensionItem expressionDimensionItem )
         {
             this.expression = expressionDimensionItem.getExpression();
         }
+
+        addIconPathToStyle( getDimensionalItemObjectStyle( dimensionalItemObject ) );
+    }
+
+    private ObjectStyle getDimensionalItemObjectStyle( DimensionalItemObject dimensionalItemObject )
+    {
+        if ( dimensionalItemObject instanceof ProgramDataElementDimensionItem programDataElementDimensionItem )
+        {
+            if ( programDataElementDimensionItem.hasDataElement() )
+            {
+                return programDataElementDimensionItem.getDataElement().getStyle();
+            }
+        }
+        else if ( dimensionalItemObject instanceof DataDimensionItem dataDimensionItem )
+        {
+            if( dataDimensionItem.hasDataElement() )
+            {
+                return dataDimensionItem.getDataElement().getStyle();
+            }
+
+            if( dataDimensionItem.hasIndicator() )
+            {
+                return dataDimensionItem.getIndicator().getStyle();
+            }
+
+            if( dataDimensionItem.hasDataElementOperand() && dataDimensionItem.getDataElementOperand().getDataElement() != null )
+            {
+                return dataDimensionItem.getDataElementOperand().getDataElement().getStyle();
+            }
+
+            if( dataDimensionItem.hasProgramIndicator() )
+            {
+                return dataDimensionItem.getProgramIndicator().getStyle();
+            }
+
+            if( dataDimensionItem.hasReportingRate() && dataDimensionItem.getReportingRate().getDataSet() != null )
+            {
+                return dataDimensionItem.getReportingRate().getDataSet().getStyle();
+            }
+
+            if( dataDimensionItem.hasProgramTrackedEntityAttributeDimensionItem() && dataDimensionItem.getProgramAttribute().getAttribute() != null )
+            {
+                return dataDimensionItem.getProgramAttribute().getAttribute().getStyle();
+            }
+        }
+        else if ( dimensionalItemObject instanceof  ReportingRate reportingRate && reportingRate.getDataSet() != null )
+        {
+            return reportingRate.getDataSet().getStyle();
+        }
+        else if ( dimensionalItemObject instanceof DataElement dataElement )
+        {
+            return dataElement.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof DataSet dataSet )
+        {
+            return dataSet.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof TrackedEntityAttribute attribute )
+        {
+            return attribute.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof Indicator indicator )
+        {
+            return indicator.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof ProgramIndicator programIndicator )
+        {
+            return programIndicator.getStyle();
+        }
+
+        return null;
     }
 
     /**
