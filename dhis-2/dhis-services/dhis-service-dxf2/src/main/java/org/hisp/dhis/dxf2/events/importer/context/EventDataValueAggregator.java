@@ -40,9 +40,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 /**
  * Consolidates Event Data Values in a single Map, where the key is the Event
@@ -53,14 +52,14 @@ import org.hisp.dhis.program.ProgramStageInstance;
  */
 public class EventDataValueAggregator
 {
-    public Map<String, Set<EventDataValue>> aggregateDataValues( List<Event> events,
-        Map<String, ProgramStageInstance> programStageInstanceMap, ImportOptions importOptions )
+    public Map<String, Set<EventDataValue>> aggregateDataValues( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        Map<String, Event> programStageInstanceMap, ImportOptions importOptions )
     {
         checkNotNull( programStageInstanceMap );
         checkNotNull( events );
 
         Map<String, Set<EventDataValue>> eventDataValueMap = new HashMap<>();
-        for ( Event event : events )
+        for ( org.hisp.dhis.dxf2.events.event.Event event : events )
         {
             if ( isNew( event.getUid(), programStageInstanceMap ) )
             {
@@ -75,10 +74,10 @@ public class EventDataValueAggregator
         return eventDataValueMap;
     }
 
-    private Set<EventDataValue> aggregateForUpdate( Event event,
-        Map<String, ProgramStageInstance> programStageInstanceMap, ImportOptions importOptions )
+    private Set<EventDataValue> aggregateForUpdate( org.hisp.dhis.dxf2.events.event.Event event,
+        Map<String, Event> programStageInstanceMap, ImportOptions importOptions )
     {
-        final ProgramStageInstance programStageInstance = programStageInstanceMap.get( event.getUid() );
+        final Event programStageInstance = programStageInstanceMap.get( event.getUid() );
 
         Set<EventDataValue> eventDataValues = new HashSet<>();
 
@@ -103,7 +102,7 @@ public class EventDataValueAggregator
 
     }
 
-    private Set<EventDataValue> getDataValues( ProgramStageInstance psi, Set<DataValue> dataValues )
+    private Set<EventDataValue> getDataValues( Event psi, Set<DataValue> dataValues )
     {
         Set<EventDataValue> result = new HashSet<>();
 
@@ -160,7 +159,7 @@ public class EventDataValueAggregator
             .collect( Collectors.toSet() );
     }
 
-    private boolean isNew( String eventUid, Map<String, ProgramStageInstance> programStageInstanceMap )
+    private boolean isNew( String eventUid, Map<String, Event> programStageInstanceMap )
     {
         return !programStageInstanceMap.containsKey( eventUid );
     }

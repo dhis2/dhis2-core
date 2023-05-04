@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -101,7 +101,7 @@ class RelationshipSMSListenerTest
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -127,12 +127,12 @@ class RelationshipSMSListenerTest
     private RelationshipTypeService relationshipTypeService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private RelationshipType relationshipType;
 
@@ -142,8 +142,8 @@ class RelationshipSMSListenerTest
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
-            programInstanceService, identifiableObjectManager );
+            eventService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
+            enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -155,7 +155,7 @@ class RelationshipSMSListenerTest
         } );
 
         when( relationshipTypeService.getRelationshipType( anyString() ) ).thenReturn( relationshipType );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
@@ -181,8 +181,8 @@ class RelationshipSMSListenerTest
         user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
 
         relationshipType = new RelationshipType();
         relationshipType.setAutoFields();
@@ -201,8 +201,8 @@ class RelationshipSMSListenerTest
         subm.setUserId( user.getUid() );
         subm.setRelationshipType( relationshipType.getUid() );
         subm.setRelationship( "uf3svrmpzOj" );
-        subm.setFrom( programInstance.getUid() );
-        subm.setTo( programInstance.getUid() );
+        subm.setFrom( enrollment.getUid() );
+        subm.setTo( enrollment.getUid() );
         subm.setSubmissionId( 1 );
 
         return subm;

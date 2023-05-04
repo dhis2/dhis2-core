@@ -34,11 +34,10 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -91,7 +90,8 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        List<String> trackedEntityList = params.getEnrollments().stream().map( Enrollment::getTrackedEntity )
+        List<String> trackedEntityList = params.getEnrollments().stream()
+            .map( org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity )
             .collect( Collectors.toList() );
 
         List<String> programList = preheat.getAll( Program.class ).stream().map( IdentifiableObject::getUid )
@@ -103,7 +103,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         if ( programList.isEmpty() || teiList.isEmpty() )
             return;
 
-        Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+        Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
 
         if ( params.getEnrollments().isEmpty() )
             return;
@@ -116,7 +116,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         preheat.setTrackedEntityToProgramInstanceMap( trackedEntityToProgramInstanceMap );
     }
 
-    private void queryTeiAndAddToMap( Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap,
+    private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap,
         List<String> trackedEntityListSubList, List<String> programList )
     {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -126,7 +126,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         jdbcTemplate.query( SQL, parameters, resultSet -> {
             String tei = resultSet.getString( TEI_UID_COLUMN_ALIAS );
 
-            ProgramInstance newPi = new ProgramInstance();
+            Enrollment newPi = new Enrollment();
             newPi.setUid( resultSet.getString( PI_UID_COLUMN_ALIAS ) );
             newPi.setStatus( ProgramStatus.valueOf( resultSet.getString( PI_STATUS_COLUMN_ALIAS ) ) );
 
@@ -134,7 +134,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
             program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
             newPi.setProgram( program );
 
-            List<ProgramInstance> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
+            List<Enrollment> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
                 new ArrayList<>() );
 
             piList.add( newPi );

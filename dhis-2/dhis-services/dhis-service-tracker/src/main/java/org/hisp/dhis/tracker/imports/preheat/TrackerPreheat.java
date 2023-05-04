@@ -58,10 +58,10 @@ import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -231,14 +231,14 @@ public class TrackerPreheat
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<String, ProgramInstance> enrollments = new HashMap<>();
+    private final Map<String, Enrollment> enrollments = new HashMap<>();
 
     /**
      * Internal map of all preheated events, mainly used for confirming
      * existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<String, ProgramStageInstance> events = new HashMap<>();
+    private final Map<String, Event> events = new HashMap<>();
 
     /**
      * Internal map of all preheated relationships, mainly used for confirming
@@ -279,12 +279,12 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<String, List<ProgramInstance>> trackedEntityToProgramInstanceMap = new HashMap<>();
+    private Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
 
     /**
      * A Map of program uid and without registration {@see ProgramInstance}.
      */
-    private final Map<String, ProgramInstance> programInstancesWithoutRegistration = new HashMap<>();
+    private final Map<String, Enrollment> programInstancesWithoutRegistration = new HashMap<>();
 
     /**
      * A map of valid users by username that are present in the payload. A user
@@ -534,34 +534,34 @@ public class TrackerPreheat
         trackedEntities.put( uid, trackedEntityInstance );
     }
 
-    public ProgramInstance getEnrollment( String uid )
+    public Enrollment getEnrollment( String uid )
     {
         return enrollments.get( uid );
     }
 
-    public void putEnrollments( List<ProgramInstance> programInstances )
+    public void putEnrollments( List<Enrollment> enrollments )
     {
-        programInstances.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
+        enrollments.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
     }
 
-    public void putEnrollment( String uid, ProgramInstance programInstance )
+    public void putEnrollment( String uid, Enrollment enrollment )
     {
-        enrollments.put( uid, programInstance );
+        enrollments.put( uid, enrollment );
     }
 
-    public ProgramStageInstance getEvent( String uid )
+    public Event getEvent( String uid )
     {
         return events.get( uid );
     }
 
-    public void putEvents( List<ProgramStageInstance> programStageInstances )
+    public void putEvents( List<Event> events )
     {
-        programStageInstances.forEach( psi -> putEvent( psi.getUid(), psi ) );
+        events.forEach( event -> putEvent( event.getUid(), event ) );
     }
 
-    public void putEvent( String uid, ProgramStageInstance programStageInstance )
+    public void putEvent( String uid, Event event )
     {
-        events.put( uid, programStageInstance );
+        events.put( uid, event );
     }
 
     public void putNotes( List<TrackedEntityComment> trackedEntityComments )
@@ -636,14 +636,14 @@ public class TrackerPreheat
         }
     }
 
-    public ProgramInstance getProgramInstancesWithoutRegistration( String programUid )
+    public Enrollment getProgramInstancesWithoutRegistration( String programUid )
     {
         return programInstancesWithoutRegistration.get( programUid );
     }
 
-    public void putProgramInstancesWithoutRegistration( String programUid, ProgramInstance programInstance )
+    public void putProgramInstancesWithoutRegistration( String programUid, Enrollment enrollment )
     {
-        this.programInstancesWithoutRegistration.put( programUid, programInstance );
+        this.programInstancesWithoutRegistration.put( programUid, enrollment );
     }
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
@@ -752,7 +752,7 @@ public class TrackerPreheat
     public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
     {
         ProgramStage ps = this.getProgramStage( programStage );
-        ProgramInstance pi = this.getEnrollment( enrollmentUid );
+        Enrollment pi = this.getEnrollment( enrollmentUid );
         return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
     }
 

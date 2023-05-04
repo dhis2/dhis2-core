@@ -46,8 +46,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -802,12 +802,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return programStage;
     }
 
-    private ProgramInstance programInstance( String uid, Program program )
+    private Enrollment programInstance( String uid, Program program )
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( uid );
-        programInstance.setProgram( program );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( uid );
+        enrollment.setProgram( program );
+        return enrollment;
     }
 
     private Program setupProgram( OrganisationUnit orgUnit )

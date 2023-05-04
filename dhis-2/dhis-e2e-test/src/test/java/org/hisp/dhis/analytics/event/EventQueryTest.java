@@ -51,7 +51,7 @@ import org.junit.jupiter.api.Test;
  */
 public class EventQueryTest extends AnalyticsApiTest
 {
-    private AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
+    private final AnalyticsEventActions analyticsEventActions = new AnalyticsEventActions();
 
     @Test
     public void queryWithProgramAndProgramStageWhenTotalPagesIsFalse()
@@ -637,5 +637,44 @@ public class EventQueryTest extends AnalyticsApiTest
             List.of( "Ngelehun CHC",
                 "0",
                 "2021-08-15 00:00:00.0" ) );
+    }
+
+    @Test
+    public void eventQueryWithProgramAndRepeatableProgramStage()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add( "dimension=edqlbukwRfQ.vANAXwtLwcT,ou:ImspTQPwCqd" )
+            .add( "headers=ou,ounamehierarchy,edqlbukwRfQ.vANAXwtLwcT" )
+            .add( "stage=edqlbukwRfQ" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=EVENT" )
+            .add( "desc=incidentdate" )
+            .add( "totalPages=false" )
+            .add( "pageSize=100" )
+            .add( "page=1" )
+            .add( "rowContext=true" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "WSGAb5XwJ3Y", JSON, JSON, params );
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 3 ) ) )
+            .body( "rows", hasSize( equalTo( 100 ) ) );
+
+        validateHeader( response, 0, "ou", "Organisation unit", "TEXT", "java.lang.String", false, true );
+        validateHeader( response, 1, "ounamehierarchy", "Organisation unit name hierarchy", "TEXT", "java.lang.String",
+            false, true );
+        validateHeader( response, 2, "edqlbukwRfQ.vANAXwtLwcT", "WHOMCH Hemoglobin value", "NUMBER",
+            "java.lang.Double", false, true );
+
+        validateRow( response,
+            List.of( "NjyJYiIuKIG",
+                "Sierra Leone / Bombali / Sella Limba / Kathanta Yimbor CHC",
+                "14.0" ) );
+        validateRow( response,
+            List.of( "xATvj8pdYoT",
+                "Sierra Leone / Kailahun / Peje Bongre / Grima Jou MCHP",
+                "24.0" ) );
     }
 }

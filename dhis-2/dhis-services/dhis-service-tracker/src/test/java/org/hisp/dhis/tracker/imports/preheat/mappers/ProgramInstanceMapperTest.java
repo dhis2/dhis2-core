@@ -35,8 +35,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.junit.jupiter.api.Test;
 
 class ProgramInstanceMapperTest
@@ -52,10 +52,10 @@ class ProgramInstanceMapperTest
             "friendship",
             "red",
             attributeValues( "m0GpPuMUfFW", "yellow" ) );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setProgram( program );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( program );
 
-        ProgramInstance mapped = ProgramInstanceMapper.INSTANCE.map( programInstance );
+        Enrollment mapped = ProgramInstanceMapper.INSTANCE.map( enrollment );
 
         assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
         assertEquals( "friendship", mapped.getProgram().getName() );

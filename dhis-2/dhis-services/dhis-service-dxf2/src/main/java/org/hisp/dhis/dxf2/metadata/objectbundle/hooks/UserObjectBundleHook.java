@@ -87,6 +87,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
         // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
 
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid( user.getUid() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4014, user.getUid(), "uid" )
+                    .setErrorProperty( "uid" ) );
+        }
+
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
             user.isInvitation() ) )
         {

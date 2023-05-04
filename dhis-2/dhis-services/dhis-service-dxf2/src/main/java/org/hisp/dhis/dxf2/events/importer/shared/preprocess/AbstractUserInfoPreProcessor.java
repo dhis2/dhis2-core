@@ -34,13 +34,12 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.user.User;
 
@@ -48,7 +47,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
 {
 
     @Override
-    public void process( Event event, WorkContext workContext )
+    public void process( org.hisp.dhis.dxf2.events.event.Event event, WorkContext workContext )
     {
         User user = findUserFromImportOptions( workContext.getImportOptions() )
             .orElseGet( () -> getUser( workContext ) );
@@ -59,7 +58,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
             updateEventUserInfo( event, userInfo );
 
             Set<String> updatableDataValues = Optional.ofNullable( event )
-                .map( Event::getDataValues )
+                .map( org.hisp.dhis.dxf2.events.event.Event::getDataValues )
                 .orElse( Collections.emptySet() )
                 .stream()
                 .map( DataValue::getDataElement )
@@ -75,7 +74,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
         }
     }
 
-    private ProgramStageInstance getExistingPsi( WorkContext workContext, String uid )
+    private Event getExistingPsi( WorkContext workContext, String uid )
     {
         return Optional.ofNullable( workContext )
             .map( WorkContext::getProgramStageInstanceMap )
@@ -91,7 +90,7 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
             .get( uid );
     }
 
-    protected void updateDataValuesUserInfo( ProgramStageInstance existingPsi, Set<EventDataValue> eventDataValueMap,
+    protected void updateDataValuesUserInfo( Event existingPsi, Set<EventDataValue> eventDataValueMap,
         UserInfoSnapshot userInfo )
     {
         Optional.ofNullable( eventDataValueMap )
@@ -99,10 +98,11 @@ public abstract class AbstractUserInfoPreProcessor implements Processor
             .forEach( dataValue -> updateDataValueUserInfo( existingPsi, dataValue, userInfo ) );
     }
 
-    protected abstract void updateDataValueUserInfo( ProgramStageInstance existingPsi, EventDataValue dataValue,
+    protected abstract void updateDataValueUserInfo( Event existingPsi, EventDataValue dataValue,
         UserInfoSnapshot userInfo );
 
-    protected abstract void updateEventUserInfo( Event event, UserInfoSnapshot eventUserInfo );
+    protected abstract void updateEventUserInfo( org.hisp.dhis.dxf2.events.event.Event event,
+        UserInfoSnapshot eventUserInfo );
 
     private User getUser( WorkContext workContext )
     {

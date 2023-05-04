@@ -45,11 +45,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -349,14 +348,15 @@ class DataRelationsValidator
 
     private Program getEnrollmentProgramFromEvent( TrackerBundle bundle, Event event )
     {
-        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        Enrollment programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
         if ( programInstance != null )
         {
             return programInstance.getProgram();
         }
         else
         {
-            final Optional<Enrollment> enrollment = bundle.findEnrollmentByUid( event.getEnrollment() );
+            final Optional<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollment = bundle
+                .findEnrollmentByUid( event.getEnrollment() );
             if ( enrollment.isPresent() )
             {
                 return bundle.getPreheat().getProgram( enrollment.get().getProgram() );

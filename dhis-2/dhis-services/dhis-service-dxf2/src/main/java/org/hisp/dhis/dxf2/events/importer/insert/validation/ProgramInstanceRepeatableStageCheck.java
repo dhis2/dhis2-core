@@ -35,8 +35,8 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,7 +53,7 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
     {
         IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         TrackedEntityInstance tei = null;
 
@@ -67,11 +67,11 @@ public class ProgramInstanceRepeatableStageCheck implements Checker
          * ProgramInstanceCheck should report this anomaly.
          */
         // @formatter:off
-        if ( programInstance != null &&
+        if ( enrollment != null &&
              tei != null &&
              program.isRegistration() &&
              !programStage.getRepeatable() &&
-             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), programInstance.getId(), programStage.getId(), tei.getId() ) )
+             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), enrollment.getId(), programStage.getId(), tei.getId() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )

@@ -46,8 +46,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -60,7 +60,7 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component( "workContextProgramInstancesSupplier" )
-public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, ProgramInstance>>
+public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enrollment>>
 {
     private final ProgramSupplier programSupplier;
 
@@ -70,7 +70,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         this.programSupplier = programSupplier;
     }
 
-    public Map<String, ProgramInstance> get( ImportOptions importOptions,
+    public Map<String, Enrollment> get( ImportOptions importOptions,
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap, List<Event> events )
     {
         if ( events == null )
@@ -83,7 +83,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
             .map( Event::getEnrollment )
             .filter( StringUtils::isNotEmpty ).collect( Collectors.toSet() );
 
-        Map<String, ProgramInstance> programInstances = new HashMap<>();
+        Map<String, Enrollment> programInstances = new HashMap<>();
 
         if ( !programInstanceUids.isEmpty() )
         {
@@ -114,7 +114,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
      * Instance by Program and Tracked Entity Instance
      */
     private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
-        Map<String, ProgramInstance> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
+        Map<String, Enrollment> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
     {
         for ( Event event : events )
         {
@@ -127,11 +127,11 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
                 {
                     TrackedEntityInstance tei = teiPair.getKey();
 
-                    ProgramInstance programInstance = getByTeiAndProgram( importOptions, tei.getId(), program.getId(),
+                    Enrollment enrollment = getByTeiAndProgram( importOptions, tei.getId(), program.getId(),
                         event );
-                    if ( programInstance != null )
+                    if ( enrollment != null )
                     {
-                        programInstances.put( event.getUid(), programInstance );
+                        programInstances.put( event.getUid(), enrollment );
                     }
                 }
             }
@@ -146,10 +146,10 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
      *
      */
     private void mapExistingEventsToProgramInstances( ImportOptions importOptions, List<Event> events,
-        Map<String, ProgramInstance> programInstances )
+        Map<String, Enrollment> programInstances )
     {
         // Collect all the Program Instances by event uid
-        final Map<String, ProgramInstance> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
+        final Map<String, Enrollment> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
 
         if ( !programInstancesByEvent.isEmpty() )
         {
@@ -176,7 +176,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         return programs.stream().filter( p -> p.getUid().equals( uid ) ).findFirst().orElse( null );
     }
 
-    private ProgramInstance getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
+    private Enrollment getByTeiAndProgram( ImportOptions importOptions, Long teiId, Long programId, Event event )
     {
         final String sql = "select pi.programinstanceid, pi.programid, pi.uid , t.trackedentityinstanceid as tei_id, t.uid as tei_uid, "
             +
@@ -191,9 +191,9 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         parameters.addValue( "programid", programId );
         parameters.addValue( "teiid", teiId );
 
-        List<ProgramInstance> query = jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
+        List<Enrollment> query = jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
 
-            List<ProgramInstance> results = new ArrayList<>();
+            List<Enrollment> results = new ArrayList<>();
 
             while ( rs.next() )
             {
@@ -212,7 +212,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         }
     }
 
-    private Map<String, ProgramInstance> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events )
+    private Map<String, Enrollment> getProgramInstanceByEvent( ImportOptions importOptions, List<Event> events )
     {
         final Set<String> eventUids = events.stream().map( Event::getUid ).collect( Collectors.toSet() );
         if ( isEmpty( eventUids ) )
@@ -231,7 +231,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         parameters.addValue( "ids", eventUids );
 
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
+            Map<String, Enrollment> results = new HashMap<>();
 
             while ( rs.next() )
             {
@@ -241,7 +241,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         } );
     }
 
-    private Map<String, ProgramInstance> getProgramInstancesByUid( ImportOptions importOptions, List<Event> events,
+    private Map<String, Enrollment> getProgramInstancesByUid( ImportOptions importOptions, List<Event> events,
         Multimap<String, String> programInstanceToEvent, Set<String> uids )
     {
 
@@ -254,11 +254,11 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
         parameters.addValue( "ids", uids );
 
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, ProgramInstance> results = new HashMap<>();
+            Map<String, Enrollment> results = new HashMap<>();
 
             while ( rs.next() )
             {
-                ProgramInstance pi = mapFromResultset( rs, importOptions, events );
+                Enrollment pi = mapFromResultset( rs, importOptions, events );
 
                 for ( String event : programInstanceToEvent.get( pi.getUid() ) )
                 {
@@ -270,10 +270,10 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
 
     }
 
-    private ProgramInstance mapFromResultset( ResultSet rs, ImportOptions importOptions, List<Event> events )
+    private Enrollment mapFromResultset( ResultSet rs, ImportOptions importOptions, List<Event> events )
         throws SQLException
     {
-        ProgramInstance pi = new ProgramInstance();
+        Enrollment pi = new Enrollment();
         pi.setId( rs.getLong( "programinstanceid" ) );
         pi.setUid( rs.getString( "uid" ) );
         pi.setProgram(
@@ -303,7 +303,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Progra
     }
 
     @Override
-    public Map<String, ProgramInstance> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, Enrollment> get( ImportOptions importOptions, List<Event> events )
     {
         throw new NotImplementedException( "Use other get method" );
     }

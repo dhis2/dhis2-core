@@ -42,12 +42,12 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -79,7 +79,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
 {
     private final TrackedEntityInstanceService teiService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -92,17 +92,17 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService,
+        EventService eventService,
         TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
-        ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
+        EnrollmentService enrollmentService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            programService, organisationUnitService, categoryService, dataElementService, eventService,
             identifiableObjectManager );
 
         this.teiService = teiService;
         this.programStageService = programStageService;
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
         this.attributeValueService = attributeValueService;
         this.userService = userService;
     }
@@ -175,18 +175,18 @@ public class EnrollmentSMSListener extends CompressionSMSListener
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
-        ProgramInstance enrollment;
-        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUid() );
+        Enrollment enrollment;
+        boolean enrollmentExists = enrollmentService.enrollmentExists( enrollmentid.getUid() );
         if ( enrollmentExists )
         {
-            enrollment = programInstanceService.getProgramInstance( enrollmentid.getUid() );
+            enrollment = enrollmentService.getEnrollment( enrollmentid.getUid() );
             // Update these dates in case they've changed
             enrollment.setEnrollmentDate( enrollmentDate );
             enrollment.setIncidentDate( incidentDate );
         }
         else
         {
-            enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
+            enrollment = enrollmentService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
                 orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
@@ -195,7 +195,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
         enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
-        programInstanceService.updateProgramInstance( enrollment );
+        enrollmentService.updateEnrollment( enrollment );
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserId().getUid() );
@@ -209,7 +209,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
         enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
-        programInstanceService.updateProgramInstance( enrollment );
+        enrollmentService.updateEnrollment( enrollment );
 
         if ( !errorUIDs.isEmpty() )
         {
@@ -303,7 +303,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         return trackedEntityAttributeValue;
     }
 
-    protected List<Object> processEvent( SmsEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
+    protected List<Object> processEvent( SmsEvent event, User user, Enrollment enrollment, IncomingSms sms )
     {
         Uid stageid = event.getProgramStage();
         Uid aocid = event.getAttributeOptionCombo();
@@ -327,7 +327,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
             aoc, user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
             event.getCoordinates() );
 

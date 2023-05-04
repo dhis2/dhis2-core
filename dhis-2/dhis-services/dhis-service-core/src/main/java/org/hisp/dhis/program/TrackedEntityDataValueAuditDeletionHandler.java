@@ -47,7 +47,7 @@ public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler
     protected void register()
     {
         whenDeleting( DataElement.class, this::deleteDataElement );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
+        whenDeleting( Event.class, this::deleteEvent );
     }
 
     private void deleteDataElement( DataElement dataElement )
@@ -55,8 +55,8 @@ public class TrackedEntityDataValueAuditDeletionHandler extends DeletionHandler
         trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( dataElement );
     }
 
-    private void deleteProgramStageInstance( ProgramStageInstance psi )
+    private void deleteEvent( Event event )
     {
-        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( psi );
+        trackedEntityDataValueAuditService.deleteTrackedEntityDataValueAudit( event );
     }
 }

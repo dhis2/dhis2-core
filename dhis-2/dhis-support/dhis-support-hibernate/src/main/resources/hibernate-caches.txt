@@ -48,10 +48,9 @@ org.hisp.dhis.category.CategoryDimension
 org.hisp.dhis.predictor.PredictorGroup
 org.hisp.dhis.category.CategoryOptionGroupSetDimension
 org.hisp.dhis.deletedobject.DeletedObject
-org.hisp.dhis.security.oauth2.OAuth2Client
 org.hisp.dhis.configuration.Configuration
 org.hisp.dhis.version.Version
-org.hisp.dhis.program.ProgramInstance
+org.hisp.dhis.program.Enrollment
 org.hisp.dhis.constant.Constant
 org.hisp.dhis.period.Period
 org.hisp.dhis.dataentryform.DataEntryForm
@@ -179,7 +178,6 @@ org.hisp.dhis.program.ProgramSection.translations
 org.hisp.dhis.attribute.Attribute.userGroupAccesses
 org.hisp.dhis.programrule.ProgramRule.translations
 org.hisp.dhis.indicator.Indicator.dataSets
-org.hisp.dhis.security.oauth2.OAuth2Client.redirectUris
 org.hisp.dhis.dataset.Section.indicators
 org.hisp.dhis.organisationunit.OrganisationUnitGroup.userAccesses
 org.hisp.dhis.dataapproval.DataApprovalWorkflow.userGroupAccesses
@@ -305,7 +303,6 @@ org.hisp.dhis.indicator.IndicatorGroupSet.userGroupAccesses
 org.hisp.dhis.user.UserGroup.members
 org.hisp.dhis.option.OptionSet.attributeValues
 org.hisp.dhis.category.CategoryDimension.items
-org.hisp.dhis.security.oauth2.OAuth2Client.grantTypes
 org.hisp.dhis.constant.Constant.attributeValues
 org.hisp.dhis.program.message.ProgramMessage.translations
 org.hisp.dhis.program.ProgramIndicator.userAccesses

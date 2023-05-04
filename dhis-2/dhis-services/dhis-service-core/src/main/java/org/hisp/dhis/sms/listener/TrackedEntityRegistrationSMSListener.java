@@ -39,10 +39,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -79,29 +79,25 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
-
     private final ProgramService programService;
 
     public TrackedEntityRegistrationSMSListener( ProgramService programService,
-        ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        EnrollmentService enrollmentService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService )
     {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
         checkNotNull( trackedEntityTypeService );
         checkNotNull( trackedEntityInstanceService );
-        checkNotNull( programInstanceService );
 
         this.smsCommandService = smsCommandService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
         this.programService = programService;
     }
 
@@ -154,7 +150,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
         TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
 
-        programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+        enrollmentService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 
         sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + tei.getUid() ),
             senderPhoneNumber, INFO );

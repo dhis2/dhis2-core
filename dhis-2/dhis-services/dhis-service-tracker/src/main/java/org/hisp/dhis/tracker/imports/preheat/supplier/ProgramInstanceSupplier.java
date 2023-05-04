@@ -34,9 +34,9 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -52,7 +52,7 @@ import org.springframework.stereotype.Component;
 public class ProgramInstanceSupplier extends AbstractPreheatSupplier
 {
     @Nonnull
-    private final ProgramInstanceStore programInstanceStore;
+    private final EnrollmentStore enrollmentStore;
 
     @Nonnull
     private final ProgramStore programStore;
@@ -70,10 +70,10 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
         }
         if ( !programsWithoutRegistration.isEmpty() )
         {
-            List<ProgramInstance> programInstances = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
-                programInstanceStore.getByPrograms( programsWithoutRegistration ) );
+            List<Enrollment> enrollments = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
+                enrollmentStore.getByPrograms( programsWithoutRegistration ) );
 
-            programInstances
+            enrollments
                 .forEach( pi -> {
                     preheat.putEnrollment( pi.getUid(), pi );
                     preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi );

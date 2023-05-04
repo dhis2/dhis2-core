@@ -33,10 +33,10 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.*;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
@@ -69,12 +69,12 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     public RuleActionSendMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
         NotificationLoggingService notificationLoggingService,
-        ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService,
+        EnrollmentService enrollmentService,
+        EventService eventService,
         ApplicationEventPublisher publisher )
     {
-        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
-            programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, enrollmentService,
+            eventService );
         this.publisher = publisher;
     }
 
@@ -85,9 +85,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
-        NotificationValidationResult result = validate( ruleEffect, programInstance );
+        NotificationValidationResult result = validate( ruleEffect, enrollment );
 
         if ( !result.isValid() )
         {
@@ -96,9 +96,9 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
         ProgramNotificationTemplate template = result.getTemplate();
 
-        String key = generateKey( template, programInstance );
+        String key = generateKey( template, enrollment );
 
-        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), programInstance ) );
+        publisher.publishEvent( new ProgramRuleEnrollmentEvent( this, template.getId(), enrollment ) );
 
         if ( result.getLogEntry() != null )
         {
@@ -113,16 +113,16 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    public void implement( RuleEffect ruleEffect, Event event )
     {
-        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+        checkNotNull( event, "Event cannot be null" );
 
-        NotificationValidationResult result = validate( ruleEffect, programStageInstance.getProgramInstance() );
+        NotificationValidationResult result = validate( ruleEffect, event.getEnrollment() );
 
         // For program without registration
-        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        if ( event.getProgramStage().getProgram().isWithoutRegistration() )
         {
-            handleSingleEvent( ruleEffect, programStageInstance );
+            handleSingleEvent( ruleEffect, event );
             return;
         }
 
@@ -131,13 +131,10 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
             return;
         }
 
-        ProgramInstance pi = programStageInstance.getProgramInstance();
-
         ProgramNotificationTemplate template = result.getTemplate();
+        String key = generateKey( template, event.getEnrollment() );
 
-        String key = generateKey( template, pi );
-
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), event ) );
 
         if ( result.getLogEntry() != null )
         {
@@ -151,7 +148,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
         notificationLoggingService.save( entry );
     }
 
-    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    private void handleSingleEvent( RuleEffect ruleEffect, Event event )
     {
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
@@ -160,6 +157,6 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
             return;
         }
 
-        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), programStageInstance ) );
+        publisher.publishEvent( new ProgramRuleStageEvent( this, template.getId(), event ) );
     }
 }

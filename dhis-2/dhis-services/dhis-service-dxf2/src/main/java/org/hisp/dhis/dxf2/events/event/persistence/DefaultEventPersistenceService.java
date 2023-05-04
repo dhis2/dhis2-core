@@ -37,12 +37,11 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventCommentStore;
 import org.hisp.dhis.dxf2.events.event.EventStore;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.mapper.ProgramStageInstanceMapper;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -63,13 +62,13 @@ public class DefaultEventPersistenceService
 
     @Override
     @Transactional
-    public void save( WorkContext context, List<Event> events )
+    public void save( WorkContext context, List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( isNotEmpty( events ) )
         {
             ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+            List<Event> programStageInstances = jdbcEventStore
                 .saveEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
             jdbcEventCommentStore.saveAllComments( programStageInstances );
@@ -89,13 +88,13 @@ public class DefaultEventPersistenceService
      */
     @Override
     @Transactional
-    public void update( final WorkContext context, final List<Event> events )
+    public void update( final WorkContext context, final List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( isNotEmpty( events ) )
         {
             ProgramStageInstanceMapper mapper = new ProgramStageInstanceMapper( context );
 
-            List<ProgramStageInstance> programStageInstances = jdbcEventStore
+            List<Event> programStageInstances = jdbcEventStore
                 .updateEvents( events.stream().map( mapper::map ).collect( Collectors.toList() ) );
 
             jdbcEventCommentStore.saveAllComments( programStageInstances );
@@ -115,7 +114,7 @@ public class DefaultEventPersistenceService
      */
     @Override
     @Transactional
-    public void delete( final WorkContext context, final List<Event> events )
+    public void delete( final WorkContext context, final List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( isNotEmpty( events ) )
         {
@@ -130,7 +129,7 @@ public class DefaultEventPersistenceService
      * @param context a {@see WorkContext}
      * @param events a List of {@see Event}
      */
-    private void updateTeis( final WorkContext context, final List<Event> events )
+    private void updateTeis( final WorkContext context, final List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         // Make sure that the TEI uids are not duplicated
         final List<String> distinctTeiList = events.stream()

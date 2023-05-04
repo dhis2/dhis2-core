@@ -30,8 +30,8 @@ package org.hisp.dhis.tracker.imports.job;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
@@ -91,7 +91,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
-                ProgramInstance pi = sideEffectDataBundle.getProgramInstance();
+                Enrollment pi = sideEffectDataBundle.getEnrollment();
                 pi.setProgram( sideEffectDataBundle.getProgram() );
 
                 entry.getValue()
@@ -102,13 +102,13 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )
             {
-                ProgramStageInstance psi = sideEffectDataBundle.getProgramStageInstance();
-                psi.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
+                Event event = sideEffectDataBundle.getEvent();
+                event.getProgramStage().setProgram( sideEffectDataBundle.getProgram() );
 
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implement( effect, psi ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, event ) );
             }
         }
 

@@ -192,7 +192,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .add( "desc=enrollmentdate" )
             .add( "totalPages=false" )
             .add( "pageSize=2" )
-            .add( "page=4" );
+            .add( "page=4" )
+            .add( "rowContext=true" );
 
         // When
         ApiResponse response = enrollmentsActions.query().get( "WSGAb5XwJ3Y", JSON, JSON, params );
@@ -211,10 +212,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             "java.lang.Double", false, true,
             "edqlbukwRfQ", "startIndex:10 count:1 startDate:null endDate: null", 10 );
 
-        validateRowContext( response, 0, 2, "SET" );
-        validateRowContext( response, 0, 3, "UNDEFINED" );
-        validateRowContext( response, 1, 2, "SET" );
-        validateRowContext( response, 1, 3, "UNDEFINED" );
+        validateRowContext( response, 0, 3, "ND" );
+        validateRowContext( response, 1, 3, "ND" );
 
         validateRow( response, 0,
             List.of( "VFF7f43dJv4",

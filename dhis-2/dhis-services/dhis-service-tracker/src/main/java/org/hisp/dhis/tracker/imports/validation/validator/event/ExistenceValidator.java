@@ -31,10 +31,9 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1030;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1032;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1082;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -42,27 +41,27 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ExistenceValidator
-    implements Validator<Event>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Event>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( event );
 
-        ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+        Event existingEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
         // If the event is soft-deleted no operation is allowed
-        if ( existingPsi != null && existingPsi.isDeleted() )
+        if ( existingEvent != null && existingEvent.isDeleted() )
         {
             reporter.addError( event, E1082, event.getEvent() );
             return;
         }
 
-        if ( existingPsi != null && importStrategy.isCreate() )
+        if ( existingEvent != null && importStrategy.isCreate() )
         {
             reporter.addError( event, E1030, event.getEvent() );
         }
-        else if ( existingPsi == null && importStrategy.isUpdateOrDelete() )
+        else if ( existingEvent == null && importStrategy.isUpdateOrDelete() )
         {
             reporter.addError( event, E1032, event.getEvent() );
         }

@@ -35,11 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.artemis.MessageType;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 import org.junit.jupiter.api.Test;
 
@@ -54,18 +52,18 @@ class TrackerSideEffectDataBundleTest
     @Test
     void testSideEffectDataBundleForEnrollment()
     {
-        Enrollment enrollment = new Enrollment();
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         enrollment.setEnrollment( "test-enrollment" );
         Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
         enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
-        ProgramInstance programInstance = new ProgramInstance();
+        Enrollment programInstance = new Enrollment();
         programInstance.setAutoFields();
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
             .enrollmentRuleEffects( enrollmentRuleEffects ).accessedBy( "testUser" )
             .importStrategy( TrackerImportStrategy.CREATE ).object( programInstance.getUid() )
-            .klass( ProgramInstance.class ).build();
+            .klass( Enrollment.class ).build();
         assertEquals( programInstance.getUid(), bundle.getObject() );
-        assertEquals( ProgramInstance.class, bundle.getKlass() );
+        assertEquals( Enrollment.class, bundle.getKlass() );
         assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
         assertTrue( bundle.getEventRuleEffects().isEmpty() );
         assertEquals( TrackerImportStrategy.CREATE, bundle.getImportStrategy() );
@@ -75,16 +73,16 @@ class TrackerSideEffectDataBundleTest
     @Test
     void testSideEffectDataBundleForEvent()
     {
-        Event event = new Event();
+        org.hisp.dhis.tracker.imports.domain.Event event = new org.hisp.dhis.tracker.imports.domain.Event();
         event.setEvent( "test-event" );
         Map<String, List<TrackerRuleEngineSideEffect>> eventRuleEffects = new HashMap<>();
         eventRuleEffects.put( event.getEvent(), Lists.newArrayList() );
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        Event expected = new Event();
+        expected.setAutoFields();
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder().eventRuleEffects( eventRuleEffects )
-            .object( programStageInstance.getUid() ).klass( ProgramStageInstance.class ).build();
-        assertEquals( programStageInstance.getUid(), bundle.getObject() );
-        assertEquals( ProgramStageInstance.class, bundle.getKlass() );
+            .object( expected.getUid() ).klass( Event.class ).build();
+        assertEquals( expected.getUid(), bundle.getObject() );
+        assertEquals( Event.class, bundle.getKlass() );
         assertTrue( bundle.getEventRuleEffects().containsKey( "test-event" ) );
         assertTrue( bundle.getEnrollmentRuleEffects().isEmpty() );
     }

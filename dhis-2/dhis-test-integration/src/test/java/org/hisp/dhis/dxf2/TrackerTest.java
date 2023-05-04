@@ -56,20 +56,18 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.hibernate.HibernateService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -249,21 +247,21 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistRelationship( from, to );
     }
 
-    public Relationship persistRelationship( TrackedEntityInstance tei, ProgramInstance pi )
+    public Relationship persistRelationship( TrackedEntityInstance tei, Enrollment pi )
     {
         RelationshipItem from = new RelationshipItem();
         from.setTrackedEntityInstance( tei );
         RelationshipItem to = new RelationshipItem();
-        to.setProgramInstance( pi );
+        to.setEnrollment( pi );
         return _persistRelationship( from, to );
     }
 
-    public Relationship persistRelationship( TrackedEntityInstance tei, ProgramStageInstance psi )
+    public Relationship persistRelationship( TrackedEntityInstance tei, Event event )
     {
         RelationshipItem from = new RelationshipItem();
         from.setTrackedEntityInstance( tei );
         RelationshipItem to = new RelationshipItem();
-        to.setProgramStageInstance( psi );
+        to.setEvent( event );
         return _persistRelationship( from, to );
     }
 
@@ -283,25 +281,26 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
     }
 
-    public Enrollment deleteOneEnrollment(
+    public org.hisp.dhis.dxf2.events.enrollment.Enrollment deleteOneEnrollment(
         org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
     {
-        List<Enrollment> enrollments = trackedEntityInstance.getEnrollments();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = trackedEntityInstance.getEnrollments();
         assertThat( enrollments, is( not( empty() ) ) );
 
-        Enrollment enrollment = enrollments.get( 0 );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollments.get( 0 );
         ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
         assertEquals( 0, importSummary.getConflictCount() );
         return enrollment;
 
     }
 
-    public Event deleteOneEvent( Enrollment enrollment )
+    public org.hisp.dhis.dxf2.events.event.Event deleteOneEvent(
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment )
     {
-        List<Event> events = enrollment.getEvents();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = enrollment.getEvents();
         assertThat( events, is( not( empty() ) ) );
 
-        Event event = events.get( 0 );
+        org.hisp.dhis.dxf2.events.event.Event event = events.get( 0 );
         ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
         assertEquals( 0, importSummary.getConflictCount() );
         return event;
@@ -319,10 +318,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         return entityInstance;
     }
 
-    private Enrollment createEnrollmentWithEvents( Program program, TrackedEntityInstance trackedEntityInstance,
+    private org.hisp.dhis.dxf2.events.enrollment.Enrollment createEnrollmentWithEvents( Program program,
+        TrackedEntityInstance trackedEntityInstance,
         int events )
     {
-        Enrollment enrollment = new Enrollment();
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setOrgUnit( organisationUnitA.getUid() );
         enrollment.setProgram( program.getUid() );
@@ -334,11 +334,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         enrollment.setCompletedBy( "hello-world" );
         if ( events > 0 )
         {
-            List<Event> eventList = new ArrayList<>();
+            List<org.hisp.dhis.dxf2.events.event.Event> eventList = new ArrayList<>();
             String now = DateUtils.getIso8601NoTz( new Date() );
             for ( int i = 0; i < events; i++ )
             {
-                Event event1 = new Event();
+                org.hisp.dhis.dxf2.events.event.Event event1 = new org.hisp.dhis.dxf2.events.event.Event();
                 event1.setEnrollment( enrollment.getEnrollment() );
                 event1.setEventDate(
                     DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
@@ -362,10 +362,12 @@ public abstract class TrackerTest extends IntegrationTestBase
         return enrollment;
     }
 
-    private Enrollment createEnrollmentWithEvents( Program program, TrackedEntityInstance trackedEntityInstance,
+    private org.hisp.dhis.dxf2.events.enrollment.Enrollment createEnrollmentWithEvents( Program program,
+        TrackedEntityInstance trackedEntityInstance,
         int events, Map<String, Object> enrollmentValues )
     {
-        Enrollment enrollment = createEnrollmentWithEvents( program, trackedEntityInstance, events );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = createEnrollmentWithEvents( program,
+            trackedEntityInstance, events );
         if ( enrollmentValues != null && !enrollmentValues.isEmpty() )
         {
             for ( String method : enrollmentValues.keySet() )

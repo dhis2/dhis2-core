@@ -39,7 +39,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -68,7 +68,7 @@ public class TrackedEntityInstance
 
     private Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-    private Set<ProgramInstance> programInstances = new HashSet<>();
+    private Set<Enrollment> enrollments = new HashSet<>();
 
     private Set<TrackedEntityProgramOwner> programOwners = new HashSet<>();
 
@@ -212,16 +212,16 @@ public class TrackedEntityInstance
     }
 
     @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programInstances", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<ProgramInstance> getProgramInstances()
+    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
+    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
+    public Set<Enrollment> getEnrollments()
     {
-        return programInstances;
+        return enrollments;
     }
 
-    public void setProgramInstances( Set<ProgramInstance> programInstances )
+    public void setEnrollments( Set<Enrollment> enrollments )
     {
-        this.programInstances = programInstances;
+        this.enrollments = enrollments;
     }
 
     @JsonProperty

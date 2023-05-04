@@ -40,8 +40,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -64,7 +64,7 @@ class EventDataValueTest extends TrackerTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Override
     protected void initTest()
@@ -99,10 +99,10 @@ class EventDataValueTest extends TrackerTest
             .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
 
         assertNoErrors( importReport );
-        List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
+        List<Event> events = manager.getAll( Event.class );
         assertEquals( 1, events.size() );
-        ProgramStageInstance psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+        Event event = events.get( 0 );
+        Set<EventDataValue> eventDataValues = event.getEventDataValues();
         assertEquals( 4, eventDataValues.size() );
     }
 
@@ -114,10 +114,10 @@ class EventDataValueTest extends TrackerTest
             .importTracker( fromJson( "tracker/event_with_data_values.json" ) );
 
         assertNoErrors( importReport );
-        List<ProgramStageInstance> events = manager.getAll( ProgramStageInstance.class );
+        List<Event> events = manager.getAll( Event.class );
         assertEquals( 1, events.size() );
-        ProgramStageInstance psi = events.get( 0 );
-        Set<EventDataValue> eventDataValues = psi.getEventDataValues();
+        Event event = events.get( 0 );
+        Set<EventDataValue> eventDataValues = event.getEventDataValues();
         assertEquals( 4, eventDataValues.size() );
         // update
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
@@ -128,10 +128,10 @@ class EventDataValueTest extends TrackerTest
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
-        List<ProgramStageInstance> updatedEvents = manager.getAll( ProgramStageInstance.class );
+        List<Event> updatedEvents = manager.getAll( Event.class );
         assertEquals( 1, updatedEvents.size() );
-        ProgramStageInstance updatedPsi = programStageInstanceService
-            .getProgramStageInstance( updatedEvents.get( 0 ).getUid() );
+        Event updatedPsi = eventService
+            .getEvent( updatedEvents.get( 0 ).getUid() );
         assertEquals( 3, updatedPsi.getEventDataValues().size() );
         List<String> values = updatedPsi.getEventDataValues().stream().map( EventDataValue::getValue )
             .collect( Collectors.toList() );

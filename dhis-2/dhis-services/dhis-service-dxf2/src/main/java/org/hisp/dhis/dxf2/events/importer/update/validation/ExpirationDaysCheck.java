@@ -42,8 +42,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
@@ -59,7 +59,7 @@ public class ExpirationDaysCheck implements Checker
     {
         final ImportOptions importOptions = ctx.getImportOptions();
         final Program program = ctx.getProgramsMap().get( event.getProgram() );
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
 
         if ( importOptions == null || importOptions.getUser() == null
             || importOptions.getUser().isAuthorized( Authorities.F_EDIT_EXPIRED.getAuthority() ) )
@@ -84,7 +84,7 @@ public class ExpirationDaysCheck implements Checker
     }
 
     private ImportSummary checkEventOrPsiCompletedDate( Program program, ImmutableEvent event,
-        ProgramStageInstance programStageInstance )
+        Event programStageInstance )
     {
         if ( program.getCompleteEventsExpiryDays() > 0 )
         {
@@ -123,7 +123,7 @@ public class ExpirationDaysCheck implements Checker
     }
 
     private ImportSummary checkEventOrPsiExpirationDate( Program program, ImmutableEvent event,
-        ProgramStageInstance programStageInstance )
+        Event programStageInstance )
     {
 
         PeriodType periodType = program.getExpiryPeriodType();

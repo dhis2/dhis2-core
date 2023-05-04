@@ -40,8 +40,8 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -111,10 +111,10 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        ProgramInstance programInstance2 = new ProgramInstance();
-        when( this.programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
+        Enrollment enrollment1 = new Enrollment();
+        Enrollment enrollment2 = new Enrollment();
+        when( this.enrollmentStore.get( tei, program, ProgramStatus.ACTIVE ) )
+            .thenReturn( Lists.newArrayList( enrollment1, enrollment2 ) );
         event.setProgram( program.getUid() );
         //
         // Method under test
@@ -144,10 +144,10 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        ProgramInstance programInstance2 = new ProgramInstance();
-        when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance1, programInstance2 ) );
+        Enrollment enrollment1 = new Enrollment();
+        Enrollment enrollment2 = new Enrollment();
+        when( this.enrollmentStore.get( programNoReg, ProgramStatus.ACTIVE ) )
+            .thenReturn( Lists.newArrayList( enrollment1, enrollment2 ) );
         event.setProgram( programNoReg.getUid() );
         //
         // Method under test

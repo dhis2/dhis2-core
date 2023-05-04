@@ -35,8 +35,8 @@ import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
@@ -71,25 +71,23 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( programInstance, "ProgramInstance cannot be null" );
+        checkNotNull( enrollment, "ProgramInstance cannot be null" );
 
-        assignValue( ruleEffect, programInstance );
+        assignValue( ruleEffect, enrollment );
     }
 
     @Override
-    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    public void implement( RuleEffect ruleEffect, Event event )
     {
-        ProgramInstance programInstance = programStageInstance.getProgramInstance();
-
-        assignValue( ruleEffect, programInstance );
+        assignValue( ruleEffect, event.getEnrollment() );
     }
 
-    private void assignValue( RuleEffect ruleEffect, ProgramInstance programInstance )
+    private void assignValue( RuleEffect ruleEffect, Enrollment enrollment )
     {
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             log.info( "No value assigned by AssignValue action" );
             return;
@@ -110,11 +108,11 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
 
         log.debug( "Assigning: " + variable + " with value: " + value );
 
-        if ( !variableMap.containsKey( programInstance.getUid() ) )
+        if ( !variableMap.containsKey( enrollment.getUid() ) )
         {
-            variableMap.put( programInstance.getUid(), new HashMap<>() );
+            variableMap.put( enrollment.getUid(), new HashMap<>() );
         }
 
-        variableMap.get( programInstance.getUid() ).put( variable, value );
+        variableMap.get( enrollment.getUid() ).put( variable, value );
     }
 }

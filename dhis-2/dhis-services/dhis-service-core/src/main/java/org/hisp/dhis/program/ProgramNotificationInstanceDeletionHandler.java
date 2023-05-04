@@ -53,44 +53,44 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
     @Override
     protected void registerHandler()
     {
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-        whenVetoing( ProgramInstance.class, this::allowDeleteProgramInstance );
-        whenVetoing( ProgramStageInstance.class, this::allowDeleteProgramStageInstance );
+        whenDeleting( Enrollment.class, this::deleteProgramInstance );
+        whenDeleting( Event.class, this::deleteEvent );
+        whenVetoing( Enrollment.class, this::allowDeleteProgramInstance );
+        whenVetoing( Event.class, this::allowDeleteEvent );
     }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( Enrollment enrollment )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteEvent( Event event )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
+                ProgramNotificationInstanceParam.builder().event( event ).build() );
 
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    private DeletionVeto allowDeleteProgramInstance( ProgramInstance programInstance )
+    private DeletionVeto allowDeleteProgramInstance( Enrollment enrollment )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
 
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }
 
-    private DeletionVeto allowDeleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private DeletionVeto allowDeleteEvent( Event event )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programStageInstance( programStageInstance ).build() );
+                ProgramNotificationInstanceParam.builder().event( event ).build() );
 
         return instances == null || instances.isEmpty() ? ACCEPT : VETO;
     }

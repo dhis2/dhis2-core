@@ -52,7 +52,7 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     @Mapping( target = "organisationUnit", qualifiedByName = "organisationUnit" )
     @Mapping( target = "trackedEntityType" )
     @Mapping( target = "inactive" )
-    @Mapping( target = "programInstances" )
+    @Mapping( target = "enrollments" )
     @Mapping( target = "created" )
     @Mapping( target = "trackedEntityAttributeValues" )
     @Mapping( target = "deleted" )

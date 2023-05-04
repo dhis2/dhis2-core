@@ -660,6 +660,17 @@ public class HibernateTrackedEntityInstanceStore
                     .append( SINGLE_QUOTE );
             }
         }
+        if ( params.isSynchronizationQuery() )
+        {
+            trackedEntity.append( whereAnd.whereAnd() )
+                .append( " TEI.lastupdated >= TEI.lastsynchronized " );
+            if ( params.getSkipChangedBefore() != null )
+            {
+                trackedEntity.append( " AND TEI.lastupdated >= '" )
+                    .append( getMediumDateString( params.getSkipChangedBefore() ) )
+                    .append( SINGLE_QUOTE );
+            }
+        }
 
         if ( !params.isIncludeDeleted() )
         {
@@ -973,7 +984,7 @@ public class HibernateTrackedEntityInstanceStore
 
         if ( params.hasFilterForEvents() )
         {
-            program.append( getFromSubQueryProgramStageInstance( params ) );
+            program.append( getFromSubQueryEvent( params ) );
         }
 
         program
@@ -1048,7 +1059,7 @@ public class HibernateTrackedEntityInstanceStore
      * @param params
      * @return an SQL INNER JOIN for filtering on events.
      */
-    private String getFromSubQueryProgramStageInstance( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryEvent( TrackedEntityInstanceQueryParams params )
     {
         StringBuilder events = new StringBuilder();
         SqlHelper whereHlp = new SqlHelper( true );

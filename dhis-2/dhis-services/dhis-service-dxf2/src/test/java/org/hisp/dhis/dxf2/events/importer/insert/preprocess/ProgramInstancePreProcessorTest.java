@@ -46,8 +46,8 @@ import java.util.Optional;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.events.importer.BasePreProcessTest;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -76,7 +76,7 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
 
     private ProgramInstancePreProcessor subject;
 
-    private final Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
+    private final Map<String, Enrollment> programInstanceMap = new HashMap<>();
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -113,17 +113,17 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
         //
         TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( CodeGenerator.generateUid() );
-        when( programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
-            .thenReturn( Lists.newArrayList( programInstance ) );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( CodeGenerator.generateUid() );
+        when( enrollmentStore.get( tei, program, ProgramStatus.ACTIVE ) )
+            .thenReturn( Lists.newArrayList( enrollment ) );
         event.setProgram( program.getUid() );
         //
         // Method under test
         //
         subject.process( event, workContext );
-        assertThat( event.getEnrollment(), is( programInstance.getUid() ) );
-        assertThat( programInstanceMap.get( event.getUid() ), is( programInstance ) );
+        assertThat( event.getEnrollment(), is( enrollment.getUid() ) );
+        assertThat( programInstanceMap.get( event.getUid() ), is( enrollment ) );
     }
 
     @Test
@@ -155,23 +155,23 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
         programMap.put( programWithoutReg.getUid(), programWithoutReg );
         // make sure tha map is returned when invoking the mock work context
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( CodeGenerator.generateUid() );
-        programInstance.setId( 100L );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( CodeGenerator.generateUid() );
+        enrollment.setId( 100L );
         when( workContext.getServiceDelegator().getJdbcTemplate() ).thenReturn( jdbcTemplate );
         //
         // simulate one record returned from query
         //
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance.getId() );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( programInstance.getUid() );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( enrollment.getId() );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( enrollment.getUid() );
         // Mock jdbc call
         mockResultSetExtractor( mockResultSet );
         event.setProgram( programWithoutReg.getUid() );
         // method under test
         subject.process( event, workContext );
-        assertThat( event.getEnrollment(), is( programInstance.getUid() ) );
-        assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( programInstance.getUid() ) );
+        assertThat( event.getEnrollment(), is( enrollment.getUid() ) );
+        assertThat( programInstanceMap.get( event.getUid() ).getUid(), is( enrollment.getUid() ) );
         assertThat( programInstanceMap.get( event.getUid() ).getProgram().getUid(), is( programWithoutReg.getUid() ) );
         assertThat( sql.getValue(), is(
             "select pi.programinstanceid, pi.programid, pi.uid from programinstance pi where pi.programid = ? and pi.status = ?" ) );
@@ -189,20 +189,20 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
         programMap.put( programWithoutReg.getUid(), programWithoutReg );
         // make sure tha map is returned when invoking the mock work context
         when( workContext.getProgramsMap() ).thenReturn( programMap );
-        ProgramInstance programInstance1 = new ProgramInstance();
-        programInstance1.setUid( CodeGenerator.generateUid() );
-        programInstance1.setId( 100L );
-        ProgramInstance programInstance2 = new ProgramInstance();
-        programInstance2.setUid( CodeGenerator.generateUid() );
-        programInstance2.setId( 100L );
+        Enrollment enrollment1 = new Enrollment();
+        enrollment1.setUid( CodeGenerator.generateUid() );
+        enrollment1.setId( 100L );
+        Enrollment enrollment2 = new Enrollment();
+        enrollment2.setUid( CodeGenerator.generateUid() );
+        enrollment2.setId( 100L );
         when( workContext.getServiceDelegator().getJdbcTemplate() ).thenReturn( jdbcTemplate );
         //
         // simulate 2 records returned from query
         //
         when( mockResultSet.next() ).thenReturn( true ).thenReturn( true ).thenReturn( false );
-        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( programInstance1.getId(),
-            programInstance2.getId() );
-        when( mockResultSet.getString( "uid" ) ).thenReturn( programInstance1.getUid(), programInstance2.getUid() );
+        when( mockResultSet.getLong( "programinstanceid" ) ).thenReturn( enrollment1.getId(),
+            enrollment2.getId() );
+        when( mockResultSet.getString( "uid" ) ).thenReturn( enrollment1.getUid(), enrollment2.getUid() );
         // Mock jdbc call
         mockResultSetExtractor( mockResultSet );
         event.setProgram( programWithoutReg.getUid() );
@@ -216,9 +216,9 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
     public void mockResultSetExtractor( ResultSet resultSetMock )
     {
         when( jdbcTemplate.query( sql.capture(), (Object[]) any( Object.class ), any( ResultSetExtractor.class ) ) )
-            .thenAnswer( (Answer<List<ProgramInstance>>) invocationOnMock -> {
+            .thenAnswer( (Answer<List<Enrollment>>) invocationOnMock -> {
                 Object[] args = invocationOnMock.getArguments();
-                ResultSetExtractor<List<ProgramInstance>> rm = (ResultSetExtractor<List<ProgramInstance>>) args[2];
+                ResultSetExtractor<List<Enrollment>> rm = (ResultSetExtractor<List<Enrollment>>) args[2];
                 return rm.extractData( resultSetMock );
             } );
     }

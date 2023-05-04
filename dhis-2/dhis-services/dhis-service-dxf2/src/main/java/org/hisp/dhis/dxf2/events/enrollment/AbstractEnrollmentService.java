@@ -65,8 +65,6 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.events.NoteHelper;
 import org.hisp.dhis.dxf2.events.RelationshipParams;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventService;
 import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
@@ -79,16 +77,17 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
@@ -127,7 +126,7 @@ import com.google.common.collect.Maps;
  */
 @Slf4j
 public abstract class AbstractEnrollmentService
-    implements EnrollmentService
+    implements org.hisp.dhis.dxf2.events.enrollment.EnrollmentService
 {
     private static final String ATTRIBUTE_VALUE = "Attribute.value";
 
@@ -137,9 +136,9 @@ public abstract class AbstractEnrollmentService
 
     private static final String ATTRIBUTE_ATTRIBUTE = "Attribute.attribute";
 
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService enrollmentService;
 
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected EventService programStageInstanceService;
 
     protected ProgramService programService;
 
@@ -167,7 +166,7 @@ public abstract class AbstractEnrollmentService
 
     protected DbmsManager dbmsManager;
 
-    protected EventService eventService;
+    protected org.hisp.dhis.dxf2.events.event.EventService eventService;
 
     protected TrackerAccessManager trackerAccessManager;
 
@@ -199,14 +198,14 @@ public abstract class AbstractEnrollmentService
     public Enrollments getEnrollments( ProgramInstanceQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
-        List<ProgramInstance> programInstances = new ArrayList<>();
+        List<Enrollment> programInstances = new ArrayList<>();
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setDefaultPaging();
         }
 
-        programInstances.addAll( programInstanceService.getProgramInstances( params ) );
+        programInstances.addAll( enrollmentService.getEnrollments( params ) );
 
         if ( !params.isSkipPaging() )
         {
@@ -214,7 +213,7 @@ public abstract class AbstractEnrollmentService
 
             if ( params.isTotalPages() )
             {
-                int count = programInstanceService.countProgramInstances( params );
+                int count = enrollmentService.countEnrollments( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
@@ -233,7 +232,7 @@ public abstract class AbstractEnrollmentService
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(ProgramInstanceQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or
@@ -241,25 +240,25 @@ public abstract class AbstractEnrollmentService
      * object.
      *
      * @param params the request params
-     * @param programInstances the reference to the list of ProgramInstance
+     * @param enrollments the reference to the list of ProgramInstance
      * @return the populated SlimPager instance
      */
     private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
-        List<ProgramInstance> programInstances )
+        List<Enrollment> enrollments )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
 
-        if ( isNotEmpty( programInstances ) )
+        if ( isNotEmpty( enrollments ) )
         {
-            isLastPage = programInstances.size() <= originalPageSize;
+            isLastPage = enrollments.size() <= originalPageSize;
             if ( !isLastPage )
             {
                 // Get the same number of elements of the pageSize, forcing
                 // the removal of the last additional element added at querying
                 // time.
-                programInstances.retainAll( programInstances.subList( 0, originalPageSize ) );
+                enrollments.retainAll( enrollments.subList( 0, originalPageSize ) );
             }
         }
 
@@ -267,17 +266,17 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances )
+    public List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> getEnrollments( Iterable<Enrollment> programInstances )
     {
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        for ( ProgramInstance programInstance : programInstances )
+        for ( Enrollment enrollment : programInstances )
         {
-            if ( programInstance != null && trackerOwnershipAccessManager
-                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+            if ( enrollment != null && trackerOwnershipAccessManager
+                .hasAccess( user, enrollment.getEntityInstance(), enrollment.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE, true ) );
+                enrollments.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE, true ) );
             }
         }
 
@@ -285,23 +284,25 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public Enrollment getEnrollment( String id, EnrollmentParams params )
+    public org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( String id, EnrollmentParams params )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( id );
-        return programInstance != null ? getEnrollment( programInstance, params ) : null;
+        Enrollment enrollment = enrollmentService.getEnrollment( id );
+        return enrollment != null ? getEnrollment( enrollment, params ) : null;
     }
 
     @Override
-    public Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params )
+    public org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( Enrollment enrollment,
+        EnrollmentParams params )
     {
-        return getEnrollment( currentUserService.getCurrentUser(), programInstance, params, false );
+        return getEnrollment( currentUserService.getCurrentUser(), enrollment, params, false );
     }
 
     @Override
-    public Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
+    public org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( User user, Enrollment programInstance,
+        EnrollmentParams params,
         boolean skipOwnershipCheck )
     {
-        Enrollment enrollment = new Enrollment();
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
         List<String> errors = trackerAccessManager.canRead( user, programInstance, skipOwnershipCheck );
 
@@ -347,13 +348,13 @@ public abstract class AbstractEnrollmentService
 
         if ( params.isIncludeEvents() )
         {
-            for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+            for ( Event event : programInstance.getEvents() )
             {
-                if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
-                    && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
+                if ( (params.isIncludeDeleted() || !event.isDeleted())
+                    && trackerAccessManager.canRead( user, event, true ).isEmpty() )
                 {
                     enrollment.getEvents().add(
-                        eventService.getEvent( programStageInstance, params.isDataSynchronizationQuery(), true,
+                        eventService.getEvent( event, params.isDataSynchronizationQuery(), true,
                             params.getEnrollmentEventsParams().getEventParams() ) );
                 }
             }
@@ -412,14 +413,16 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    public ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         boolean clearSession )
     {
         return addEnrollments( enrollments, importOptions, null, clearSession );
     }
 
     @Override
-    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    public ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         JobConfiguration jobId )
     {
         notifier.clear( jobId ).notify( jobId, "Importing enrollments" );
@@ -447,7 +450,8 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    public ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean clearSession )
     {
         importOptions = updateImportOptions( importOptions );
@@ -456,19 +460,20 @@ public abstract class AbstractEnrollmentService
         List<String> conflictingEnrollmentUids = checkForExistingEnrollmentsIncludingDeleted( enrollments,
             importSummaries );
 
-        List<Enrollment> validEnrollments = enrollments.stream()
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> validEnrollments = enrollments.stream()
             .filter( e -> !conflictingEnrollmentUids.contains( e.getEnrollment() ) )
             .collect( toList() );
 
-        List<List<Enrollment>> partitions = Lists.partition( validEnrollments, FLUSH_FREQUENCY );
-        List<Event> events = new ArrayList<>();
+        List<List<org.hisp.dhis.dxf2.events.enrollment.Enrollment>> partitions = Lists.partition( validEnrollments,
+            FLUSH_FREQUENCY );
+        List<org.hisp.dhis.dxf2.events.event.Event> events = new ArrayList<>();
 
-        for ( List<Enrollment> _enrollments : partitions )
+        for ( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> _enrollments : partitions )
         {
             reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
-            for ( Enrollment enrollment : _enrollments )
+            for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : _enrollments )
             {
                 ImportSummary importSummary = addEnrollment( enrollment, importOptions, daoTrackedEntityInstance,
                     false );
@@ -476,7 +481,7 @@ public abstract class AbstractEnrollmentService
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    List<Event> enrollmentEvents = enrollment.getEvents();
+                    List<org.hisp.dhis.dxf2.events.event.Event> enrollmentEvents = enrollment.getEvents();
                     enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
                     events.addAll( enrollmentEvents );
                 }
@@ -494,11 +499,13 @@ public abstract class AbstractEnrollmentService
         return importSummaries;
     }
 
-    private List<String> checkForExistingEnrollmentsIncludingDeleted( List<Enrollment> enrollments,
+    private List<String> checkForExistingEnrollmentsIncludingDeleted(
+        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
         ImportSummaries importSummaries )
     {
-        List<String> foundEnrollments = programInstanceService.getProgramInstancesUidsIncludingDeleted(
-            enrollments.stream().map( Enrollment::getEnrollment ).collect( toList() ) );
+        List<String> foundEnrollments = enrollmentService.getEnrollmentsUidsIncludingDeleted(
+            enrollments.stream().map( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getEnrollment )
+                .collect( toList() ) );
 
         for ( String foundEnrollmentUid : foundEnrollments )
         {
@@ -512,9 +519,10 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    public ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions )
     {
-        if ( programInstanceService.programInstanceExistsIncludingDeleted( enrollment.getEnrollment() ) )
+        if ( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getEnrollment() ) )
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier" )
@@ -525,13 +533,15 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
+    public ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance )
     {
         return addEnrollment( enrollment, importOptions, daoTrackedEntityInstance, true );
     }
 
-    private ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
+    private ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions,
         org.hisp.dhis.trackedentity.TrackedEntityInstance daoTrackedEntityInstance, boolean handleEvents )
     {
         importOptions = updateImportOptions( importOptions );
@@ -562,7 +572,7 @@ public abstract class AbstractEnrollmentService
         }
 
         List<String> errors = trackerAccessManager.canCreate( importOptions.getUser(),
-            new ProgramInstance( program, daoTrackedEntityInstance, organisationUnit ), false );
+            new Enrollment( program, daoTrackedEntityInstance, organisationUnit ), false );
 
         if ( !errors.isEmpty() )
         {
@@ -578,7 +588,8 @@ public abstract class AbstractEnrollmentService
         ProgramStatus programStatus = enrollment.getStatus() == EnrollmentStatus.ACTIVE ? ProgramStatus.ACTIVE
             : enrollment.getStatus() == EnrollmentStatus.COMPLETED ? ProgramStatus.COMPLETED : ProgramStatus.CANCELLED;
 
-        ProgramInstance programInstance = programInstanceService.prepareProgramInstance( daoTrackedEntityInstance,
+        org.hisp.dhis.program.Enrollment programInstance = enrollmentService.prepareEnrollment(
+            daoTrackedEntityInstance,
             program, programStatus,
             enrollment.getEnrollmentDate(), enrollment.getIncidentDate(), organisationUnit,
             enrollment.getEnrollment() );
@@ -606,7 +617,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
         programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
-        programInstanceService.addProgramInstance( programInstance, importOptions.getUser() );
+        enrollmentService.addEnrollment( programInstance, importOptions.getUser() );
 
         importSummary = validateProgramInstance( program, programInstance, enrollment, importSummary );
 
@@ -631,7 +642,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setFollowup( enrollment.getFollowup() );
         programInstance.setStoredBy( storedBy );
 
-        programInstanceService.updateProgramInstance( programInstance, importOptions.getUser() );
+        enrollmentService.updateEnrollment( programInstance, importOptions.getUser() );
         trackerOwnershipAccessManager.assignOwnership( daoTrackedEntityInstance, program, organisationUnit, true,
             true );
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
@@ -646,7 +657,7 @@ public abstract class AbstractEnrollmentService
         }
         else
         {
-            for ( Event event : enrollment.getEvents() )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : enrollment.getEvents() )
             {
                 event.setEnrollment( enrollment.getEnrollment() );
                 event.setProgram( programInstance.getProgram().getUid() );
@@ -657,8 +668,8 @@ public abstract class AbstractEnrollmentService
         return importSummary;
     }
 
-    private ImportSummary validateProgramInstance( Program program, ProgramInstance programInstance,
-        Enrollment enrollment, ImportSummary importSummary )
+    private ImportSummary validateProgramInstance( Program program, Enrollment programInstance,
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment, ImportSummary importSummary )
     {
         if ( programInstance == null )
         {
@@ -725,7 +736,8 @@ public abstract class AbstractEnrollmentService
 
     private ImportSummary validateRequest( Program program,
         org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
-        Enrollment enrollment, OrganisationUnit organisationUnit, ImportOptions importOptions )
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment, OrganisationUnit organisationUnit,
+        ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
@@ -750,9 +762,10 @@ public abstract class AbstractEnrollmentService
         // endpoint is used for bulk import and sync purposes as well
         if ( enrollment.getStatus() != EnrollmentStatus.CANCELLED )
         {
-            List<Enrollment> enrollments = getEnrollments( programInstanceService.getProgramInstances( params ) );
+            List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = getEnrollments(
+                enrollmentService.getEnrollments( params ) );
 
-            Set<Enrollment> activeEnrollments = enrollments.stream()
+            Set<org.hisp.dhis.dxf2.events.enrollment.Enrollment> activeEnrollments = enrollments.stream()
                 .filter( e -> e.getStatus() == EnrollmentStatus.ACTIVE )
                 .collect( Collectors.toSet() );
 
@@ -774,7 +787,7 @@ public abstract class AbstractEnrollmentService
             if ( program.getOnlyEnrollOnce() )
             {
 
-                Set<Enrollment> activeOrCompletedEnrollments = enrollments.stream()
+                Set<org.hisp.dhis.dxf2.events.enrollment.Enrollment> activeOrCompletedEnrollments = enrollments.stream()
                     .filter(
                         e -> e.getStatus() == EnrollmentStatus.ACTIVE || e.getStatus() == EnrollmentStatus.COMPLETED )
                     .collect( Collectors.toSet() );
@@ -803,7 +816,8 @@ public abstract class AbstractEnrollmentService
         return importSummary;
     }
 
-    private String validateProgramForEnrollment( Program program, Enrollment enrollment, OrganisationUnit orgUnit,
+    private String validateProgramForEnrollment( Program program,
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment, OrganisationUnit orgUnit,
         ImportOptions importOptions )
     {
         if ( program == null )
@@ -836,27 +850,29 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    public ImportSummaries updateEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         boolean clearSession )
     {
-        List<List<Enrollment>> partitions = Lists.partition( enrollments, FLUSH_FREQUENCY );
+        List<List<org.hisp.dhis.dxf2.events.enrollment.Enrollment>> partitions = Lists.partition( enrollments,
+            FLUSH_FREQUENCY );
         importOptions = updateImportOptions( importOptions );
         ImportSummaries importSummaries = new ImportSummaries();
-        List<Event> events = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> events = new ArrayList<>();
 
-        for ( List<Enrollment> _enrollments : partitions )
+        for ( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> _enrollments : partitions )
         {
             reloadUser( importOptions );
             prepareCaches( _enrollments, importOptions.getUser() );
 
-            for ( Enrollment enrollment : _enrollments )
+            for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : _enrollments )
             {
                 ImportSummary importSummary = updateEnrollment( enrollment, importOptions, false );
                 importSummaries.addImportSummary( importSummary );
 
                 if ( importSummary.isStatus( ImportStatus.SUCCESS ) )
                 {
-                    List<Event> enrollmentEvents = enrollment.getEvents();
+                    List<org.hisp.dhis.dxf2.events.event.Event> enrollmentEvents = enrollment.getEvents();
                     enrollmentEvents.forEach( e -> e.setEnrollment( enrollment.getEnrollment() ) );
                     events.addAll( enrollmentEvents );
                 }
@@ -875,12 +891,14 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions )
+    public ImportSummary updateEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions )
     {
         return updateEnrollment( enrollment, importOptions, true );
     }
 
-    private ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions, boolean handleEvents )
+    private ImportSummary updateEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions, boolean handleEvents )
     {
         importOptions = updateImportOptions( importOptions );
 
@@ -890,7 +908,7 @@ public abstract class AbstractEnrollmentService
                 .incrementIgnored();
         }
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
+        Enrollment programInstance = enrollmentService.getEnrollment( enrollment.getEnrollment() );
         List<String> errors = trackerAccessManager.canUpdate( importOptions.getUser(), programInstance, false );
 
         if ( programInstance == null )
@@ -974,18 +992,18 @@ public abstract class AbstractEnrollmentService
             {
                 programInstance.setEndDate( endDate );
 
-                programInstanceService.cancelProgramInstanceStatus( programInstance );
+                enrollmentService.cancelEnrollmentStatus( programInstance );
             }
             else if ( EnrollmentStatus.COMPLETED == enrollment.getStatus() )
             {
                 programInstance.setEndDate( endDate );
                 programInstance.setCompletedBy( user );
 
-                programInstanceService.completeProgramInstanceStatus( programInstance );
+                enrollmentService.completeEnrollmentStatus( programInstance );
             }
             else if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
             {
-                programInstanceService.incompleteProgramInstanceStatus( programInstance );
+                enrollmentService.incompleteEnrollmentStatus( programInstance );
             }
         }
 
@@ -1001,7 +1019,7 @@ public abstract class AbstractEnrollmentService
 
         programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
-        programInstanceService.updateProgramInstance( programInstance, importOptions.getUser() );
+        enrollmentService.updateEnrollment( programInstance, importOptions.getUser() );
         teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), importOptions.getUser() );
 
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
@@ -1015,7 +1033,7 @@ public abstract class AbstractEnrollmentService
         }
         else
         {
-            for ( Event event : enrollment.getEvents() )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : enrollment.getEvents() )
             {
                 event.setEnrollment( enrollment.getEnrollment() );
                 event.setProgram( programInstance.getProgram().getUid() );
@@ -1027,7 +1045,7 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummary updateEnrollmentForNote( Enrollment enrollment )
+    public ImportSummary updateEnrollmentForNote( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment )
     {
         if ( enrollment == null || enrollment.getEnrollment() == null )
         {
@@ -1037,7 +1055,7 @@ public abstract class AbstractEnrollmentService
 
         ImportSummary importSummary = new ImportSummary( enrollment.getEnrollment() );
 
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( enrollment.getEnrollment() );
+        Enrollment programInstance = enrollmentService.getEnrollment( enrollment.getEnrollment() );
 
         if ( programInstance == null )
         {
@@ -1063,16 +1081,17 @@ public abstract class AbstractEnrollmentService
         return deleteEnrollment( uid, null, null );
     }
 
-    private ImportSummary deleteEnrollment( String uid, Enrollment enrollment, ImportOptions importOptions )
+    private ImportSummary deleteEnrollment( String uid, org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions )
     {
         ImportSummary importSummary = new ImportSummary();
         importOptions = updateImportOptions( importOptions );
 
-        boolean existsEnrollment = programInstanceService.programInstanceExists( uid );
+        boolean existsEnrollment = enrollmentService.enrollmentExists( uid );
 
         if ( existsEnrollment )
         {
-            ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+            Enrollment programInstance = enrollmentService.getEnrollment( uid );
 
             if ( enrollment != null )
             {
@@ -1093,7 +1112,7 @@ public abstract class AbstractEnrollmentService
                 }
             }
 
-            programInstanceService.deleteProgramInstance( programInstance );
+            enrollmentService.deleteEnrollment( programInstance );
             teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
 
             importSummary.setReference( uid );
@@ -1114,14 +1133,15 @@ public abstract class AbstractEnrollmentService
     }
 
     @Override
-    public ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    public ImportSummaries deleteEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
         int counter = 0;
 
-        for ( Enrollment enrollment : enrollments )
+        for ( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment : enrollments )
         {
             importSummaries
                 .addImportSummary( deleteEnrollment( enrollment.getEnrollment(), enrollment, importOptions ) );
@@ -1140,25 +1160,25 @@ public abstract class AbstractEnrollmentService
     @Override
     public void cancelEnrollment( String uid )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        programInstanceService.cancelProgramInstanceStatus( programInstance );
-        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
+        enrollmentService.cancelEnrollmentStatus( enrollment );
+        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
     }
 
     @Override
     public void completeEnrollment( String uid )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        programInstanceService.completeProgramInstanceStatus( programInstance );
-        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
+        enrollmentService.completeEnrollmentStatus( enrollment );
+        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
     }
 
     @Override
     public void incompleteEnrollment( String uid )
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        programInstanceService.incompleteProgramInstanceStatus( programInstance );
-        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
+        enrollmentService.incompleteEnrollmentStatus( enrollment );
+        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
     }
 
     // -------------------------------------------------------------------------
@@ -1166,13 +1186,13 @@ public abstract class AbstractEnrollmentService
     // -------------------------------------------------------------------------
 
     private void linkEventSummaries( ImportSummaries importSummaries, ImportSummaries eventImportSummaries,
-        List<Event> events )
+        List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         importSummaries.getImportSummaries().forEach( is -> is.setEvents( new ImportSummaries() ) );
 
-        Map<String, List<Event>> eventsGroupedByEnrollment = events.stream()
+        Map<String, List<org.hisp.dhis.dxf2.events.event.Event>> eventsGroupedByEnrollment = events.stream()
             .filter( ev -> !StringUtils.isEmpty( ev.getEnrollment() ) )
-            .collect( Collectors.groupingBy( Event::getEnrollment ) );
+            .collect( Collectors.groupingBy( org.hisp.dhis.dxf2.events.event.Event::getEnrollment ) );
 
         Map<String, List<ImportSummary>> summariesGroupedByReference = importSummaries.getImportSummaries().stream()
             .filter( ev -> !StringUtils.isEmpty( ev.getReference() ) )
@@ -1183,7 +1203,8 @@ public abstract class AbstractEnrollmentService
             .filter( ev -> !StringUtils.isEmpty( ev.getReference() ) )
             .collect( Collectors.groupingBy( ImportSummary::getReference ) );
 
-        for ( Map.Entry<String, List<Event>> set : eventsGroupedByEnrollment.entrySet() )
+        for ( Map.Entry<String, List<org.hisp.dhis.dxf2.events.event.Event>> set : eventsGroupedByEnrollment
+            .entrySet() )
         {
             if ( !summariesGroupedByReference.containsKey( set.getKey() ) )
             {
@@ -1193,7 +1214,7 @@ public abstract class AbstractEnrollmentService
             ImportSummary importSummary = summariesGroupedByReference.get( set.getKey() ).get( 0 );
             ImportSummaries eventSummaries = new ImportSummaries();
 
-            for ( Event event : set.getValue() )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : set.getValue() )
             {
                 if ( !eventSummariesGroupedByReference.containsKey( event.getEvent() ) )
                 {
@@ -1213,14 +1234,15 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private ImportSummaries handleEvents( Enrollment enrollment, ProgramInstance programInstance,
+    private ImportSummaries handleEvents( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        Enrollment programInstance,
         ImportOptions importOptions )
     {
-        List<Event> create = new ArrayList<>();
-        List<Event> update = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> create = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> update = new ArrayList<>();
         List<String> delete = new ArrayList<>();
 
-        for ( Event event : enrollment.getEvents() )
+        for ( org.hisp.dhis.dxf2.events.event.Event event : enrollment.getEvents() )
         {
             event.setEnrollment( enrollment.getEnrollment() );
             event.setProgram( programInstance.getProgram().getUid() );
@@ -1230,7 +1252,7 @@ public abstract class AbstractEnrollmentService
             {
                 delete.add( event.getEvent() );
             }
-            else if ( !programStageInstanceService.programStageInstanceExists( event.getEvent() ) )
+            else if ( !programStageInstanceService.eventExists( event.getEvent() ) )
             {
                 create.add( event );
             }
@@ -1248,9 +1270,10 @@ public abstract class AbstractEnrollmentService
         return importSummaries;
     }
 
-    private void prepareCaches( List<Enrollment> enrollments, User user )
+    private void prepareCaches( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments, User user )
     {
-        Collection<String> orgUnits = enrollments.stream().map( Enrollment::getOrgUnit ).collect( Collectors.toSet() );
+        Collection<String> orgUnits = enrollments.stream()
+            .map( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getOrgUnit ).collect( Collectors.toSet() );
 
         if ( !orgUnits.isEmpty() )
         {
@@ -1261,7 +1284,8 @@ public abstract class AbstractEnrollmentService
                 .forEach( ou -> organisationUnitCache.put( ou.getUid(), (OrganisationUnit) ou ) );
         }
 
-        Collection<String> programs = enrollments.stream().map( Enrollment::getProgram ).collect( Collectors.toSet() );
+        Collection<String> programs = enrollments.stream()
+            .map( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getProgram ).collect( Collectors.toSet() );
 
         if ( !programs.isEmpty() )
         {
@@ -1283,7 +1307,8 @@ public abstract class AbstractEnrollmentService
                 .forEach( tea -> trackedEntityAttributeCache.put( tea.getUid(), (TrackedEntityAttribute) tea ) );
         }
 
-        Collection<String> trackedEntityInstances = enrollments.stream().map( Enrollment::getTrackedEntityInstance )
+        Collection<String> trackedEntityInstances = enrollments.stream()
+            .map( org.hisp.dhis.dxf2.events.enrollment.Enrollment::getTrackedEntityInstance )
             .collect( toList() );
 
         if ( !trackedEntityInstances.isEmpty() )
@@ -1297,7 +1322,8 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private void updateFeatureType( Program program, Enrollment enrollment, ProgramInstance programInstance )
+    private void updateFeatureType( Program program, org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        Enrollment programInstance )
     {
         if ( program.getFeatureType() != null )
         {
@@ -1325,7 +1351,8 @@ public abstract class AbstractEnrollmentService
 
     private void checkAttributes(
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance,
-        Enrollment enrollment, ImportOptions importOptions, ImportConflicts importConflicts )
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment, ImportOptions importOptions,
+        ImportConflicts importConflicts )
     {
         Map<TrackedEntityAttribute, Boolean> mandatoryMap = Maps.newHashMap();
         Map<String, String> attributeValueMap = Maps.newHashMap();
@@ -1444,7 +1471,8 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private void updateAttributeValues( Enrollment enrollment, ImportOptions importOptions )
+    private void updateAttributeValues( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions )
     {
         org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = teiService
             .getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
@@ -1530,7 +1558,8 @@ public abstract class AbstractEnrollmentService
         }
     }
 
-    private void saveTrackedEntityComment( ProgramInstance programInstance, Enrollment enrollment, User user )
+    private void saveTrackedEntityComment( Enrollment programInstance,
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment, User user )
     {
         for ( Note note : enrollment.getNotes() )
         {
@@ -1560,7 +1589,7 @@ public abstract class AbstractEnrollmentService
 
                 programInstance.getComments().add( comment );
 
-                programInstanceService.updateProgramInstance( programInstance, user );
+                enrollmentService.updateEnrollment( programInstance, user );
                 teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), user );
             }
         }
@@ -1593,7 +1622,8 @@ public abstract class AbstractEnrollmentService
         dbmsManager.flushSession();
     }
 
-    private void updateDateFields( Enrollment enrollment, ProgramInstance programInstance )
+    private void updateDateFields( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        Enrollment programInstance )
     {
         programInstance.setAutoFields();
 
@@ -1641,14 +1671,14 @@ public abstract class AbstractEnrollmentService
         importOptions.setUser( userService.getUser( importOptions.getUser().getUid() ) );
     }
 
-    private void isAllowedToDelete( User user, ProgramInstance pi, ImportConflicts importConflicts )
+    private void isAllowedToDelete( User user, Enrollment pi, ImportConflicts importConflicts )
     {
 
-        Set<ProgramStageInstance> notDeletedProgramStageInstances = pi.getProgramStageInstances().stream()
+        Set<Event> notDeletedEvents = pi.getEvents().stream()
             .filter( psi -> !psi.isDeleted() )
             .collect( Collectors.toSet() );
 
-        if ( !notDeletedProgramStageInstances.isEmpty()
+        if ( !notDeletedEvents.isEmpty()
             && !user.isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() ) )
         {
             importConflicts.addConflict( pi.getUid(),

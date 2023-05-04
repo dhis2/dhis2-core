@@ -33,8 +33,8 @@ import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
@@ -73,13 +73,13 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         {
             return relationshipItem.getTrackedEntityInstance().getUid();
         }
-        else if ( relationshipItem.getProgramInstance() != null )
+        else if ( relationshipItem.getEnrollment() != null )
         {
-            return relationshipItem.getProgramInstance().getUid();
+            return relationshipItem.getEnrollment().getUid();
         }
-        else if ( relationshipItem.getProgramStageInstance() != null )
+        else if ( relationshipItem.getEvent() != null )
         {
-            return relationshipItem.getProgramStageInstance().getUid();
+            return relationshipItem.getEvent().getUid();
         }
         throw new IllegalStateException( "RelationshipItem must have one of trackedEntity, enrollment or event set" );
     }
@@ -146,14 +146,14 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
             ri.setTrackedEntityInstance( tei );
             break;
         case "pi":
-            ProgramInstance pi = new ProgramInstance();
+            Enrollment pi = new Enrollment();
             pi.setUid( uid );
-            ri.setProgramInstance( pi );
+            ri.setEnrollment( pi );
             break;
         case "psi":
-            ProgramStageInstance psi = new ProgramStageInstance();
-            psi.setUid( uid );
-            ri.setProgramStageInstance( psi );
+            Event event = new Event();
+            event.setUid( uid );
+            ri.setEvent( event );
             break;
         default:
             log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );

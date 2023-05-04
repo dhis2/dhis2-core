@@ -51,7 +51,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
     private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
-    private static final Long elapsedSinceStart = System.currentTimeMillis();
+    private static final Long ELAPSED_SINCE_START = System.currentTimeMillis();
 
     public JettyEmbeddedCoreWeb()
     {
@@ -104,6 +104,9 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
         setupServlets( context, webApplicationContext );
 
+        context.addServlet( "LogoutServlet", LogoutServlet.class )
+            .addMapping( "/dhis-web-commons-security/logout.action" );
+
         context.addServlet( "GetModulesServlet", GetAppMenuServlet.class )
             .addMapping( "/dhis-web-commons/menu/getModules.action" );
 
@@ -122,6 +125,6 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
     public static Long getElapsedMsSinceStart()
     {
-        return System.currentTimeMillis() - elapsedSinceStart;
+        return System.currentTimeMillis() - ELAPSED_SINCE_START;
     }
 }
