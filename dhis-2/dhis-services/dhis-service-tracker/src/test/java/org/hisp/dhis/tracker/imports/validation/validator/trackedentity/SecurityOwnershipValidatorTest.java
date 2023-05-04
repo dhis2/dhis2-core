@@ -153,7 +153,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifyValidationSuccessForTrackedEntityWithNoProgramInstancesUsingDeleteStrategy()
+    void verifyValidationSuccessForTrackedEntityWithNoEnrollmentsUsingDeleteStrategy()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -162,7 +162,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoEnrollments() );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -227,7 +227,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoProgramInstances() );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithNoEnrollments() );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -239,7 +239,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifyValidationSuccessForTrackedEntityWithDeletedProgramInstancesUsingDeleteStrategy()
+    void verifyValidationSuccessForTrackedEntityWithDeletedEnrollmentsUsingDeleteStrategy()
     {
         TrackedEntity trackedEntity = TrackedEntity.builder()
             .trackedEntity( TEI_ID )
@@ -248,7 +248,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithDeleteProgramInstances() );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithDeleteEnrollments() );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -270,7 +270,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getUser() ).thenReturn( deleteTeiAuthorisedUser() );
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithEnrollments() );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -291,7 +291,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
             .build();
 
         when( bundle.getStrategy( trackedEntity ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithProgramInstances() );
+        when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( getTEIWithEnrollments() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityType ) ).thenReturn( true );
@@ -367,7 +367,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertHasError( reporter, trackedEntity, E1001 );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntityInstance getTEIWithNoEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
@@ -377,7 +377,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         return trackedEntityInstance;
     }
 
-    private TrackedEntityInstance getTEIWithDeleteProgramInstances()
+    private TrackedEntityInstance getTEIWithDeleteEnrollments()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setDeleted( true );
@@ -390,7 +390,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         return trackedEntityInstance;
     }
 
-    private TrackedEntityInstance getTEIWithProgramInstances()
+    private TrackedEntityInstance getTEIWithEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );

@@ -37,8 +37,8 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
@@ -79,7 +79,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
     private Enrollment enrollmentB;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramService programService;
@@ -126,10 +126,10 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         manager.save( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         manager.update( programRule );
-        enrollment = createProgramInstance( program, trackedEntityInstance, organisationUnit );
-        programInstanceService.addProgramInstance( enrollment );
-        enrollmentB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
-        programInstanceService.addProgramInstance( enrollmentB );
+        enrollment = createEnrollment( program, trackedEntityInstance, organisationUnit );
+        enrollmentService.addEnrollment( enrollment );
+        enrollmentB = createEnrollment( program, trackedEntityInstance, organisationUnit );
+        enrollmentService.addEnrollment( enrollmentB );
     }
 
     @Test

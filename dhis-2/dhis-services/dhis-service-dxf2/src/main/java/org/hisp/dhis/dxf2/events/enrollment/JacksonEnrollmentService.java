@@ -46,8 +46,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
@@ -80,7 +80,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class JacksonEnrollmentService extends AbstractEnrollmentService
 {
     public JacksonEnrollmentService(
-        ProgramInstanceService programInstanceService,
+        EnrollmentService enrollmentService,
         EventService programStageInstanceService,
         ProgramService programService,
         TrackedEntityInstanceService trackedEntityInstanceService,
@@ -104,7 +104,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )
     {
-        checkNotNull( programInstanceService );
+        checkNotNull( enrollmentService );
         checkNotNull( programStageInstanceService );
         checkNotNull( programService );
         checkNotNull( trackedEntityInstanceService );
@@ -128,7 +128,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
         this.programStageInstanceService = programStageInstanceService;
         this.programService = programService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
@@ -322,7 +322,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
     private void sortCreatesAndUpdates( List<Enrollment> enrollments, List<Enrollment> create, List<Enrollment> update )
     {
         List<String> ids = enrollments.stream().map( Enrollment::getEnrollment ).collect( Collectors.toList() );
-        List<String> existingUids = programInstanceService.getProgramInstancesUidsIncludingDeleted( ids );
+        List<String> existingUids = enrollmentService.getEnrollmentsUidsIncludingDeleted( ids );
 
         for ( Enrollment enrollment : enrollments )
         {
@@ -346,7 +346,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         }
         else
         {
-            if ( !programInstanceService.programInstanceExists( enrollment.getEnrollment() ) )
+            if ( !enrollmentService.enrollmentExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }

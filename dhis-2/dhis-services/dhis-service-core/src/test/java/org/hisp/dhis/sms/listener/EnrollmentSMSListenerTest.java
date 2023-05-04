@@ -52,10 +52,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -133,7 +133,7 @@ class EnrollmentSMSListenerTest
     private TrackedEntityInstanceService teiService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private TrackedEntityAttributeValueService attributeValueService;
@@ -195,7 +195,7 @@ class EnrollmentSMSListenerTest
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, eventService, attributeValueService, teiService, programInstanceService,
+            programStageService, eventService, attributeValueService, teiService, enrollmentService,
             identifiableObjectManager );
 
         setUpInstances();
@@ -210,7 +210,7 @@ class EnrollmentSMSListenerTest
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
+        when( enrollmentService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( enrollment );
         when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 

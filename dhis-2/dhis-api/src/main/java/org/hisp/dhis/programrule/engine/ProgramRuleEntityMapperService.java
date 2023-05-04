@@ -84,7 +84,7 @@ public interface ProgramRuleEntityMapperService
     RuleEvent toMappedRuleEvent( Event eventToEvaluate );
 
     /**
-     * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
+     * @return A mapped RuleEnrollment for DHIS enrollment.
      */
     RuleEnrollment toMappedRuleEnrollment( Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues );

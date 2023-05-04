@@ -142,7 +142,7 @@ public interface EventService
     /**
      * Creates an event.
      *
-     * @param enrollment the ProgramInstance.
+     * @param enrollment the Enrollment.
      * @param programStage the ProgramStage.
      * @param enrollmentDate the enrollment date.
      * @param incidentDate date of the incident.

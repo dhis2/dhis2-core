@@ -78,11 +78,11 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to( List<Enrollment> programInstances )
+    public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to( List<Enrollment> preheatEnrollments )
     {
         List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
 
-        programInstances.forEach( tei -> {
+        preheatEnrollments.forEach( tei -> {
             // TODO: Add implementation
         } );
 
@@ -92,8 +92,8 @@ public class EnrollmentTrackerConverterService
     @Override
     public Enrollment from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
-        Enrollment programInstance = preheat.getEnrollment( enrollment.getEnrollment() );
-        return from( preheat, enrollment, programInstance );
+        Enrollment preheatEnrollment = preheat.getEnrollment( enrollment.getEnrollment() );
+        return from( preheat, enrollment, preheatEnrollment );
     }
 
     @Override
@@ -114,7 +114,7 @@ public class EnrollmentTrackerConverterService
     }
 
     private Enrollment from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment,
-        Enrollment programInstance )
+        Enrollment dbEnrollment )
     {
         OrganisationUnit organisationUnit = preheat.getOrganisationUnit( enrollment.getOrgUnit() );
 
@@ -128,59 +128,59 @@ public class EnrollmentTrackerConverterService
 
         Date now = new Date();
 
-        if ( isNewEntity( programInstance ) )
+        if ( isNewEntity( dbEnrollment ) )
         {
-            programInstance = new Enrollment();
-            programInstance.setUid(
+            dbEnrollment = new Enrollment();
+            dbEnrollment.setUid(
                 !StringUtils.isEmpty( enrollment.getEnrollment() ) ? enrollment.getEnrollment() : enrollment.getUid() );
-            programInstance.setCreated( now );
-            programInstance.setStoredBy( enrollment.getStoredBy() );
-            programInstance.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
+            dbEnrollment.setCreated( now );
+            dbEnrollment.setStoredBy( enrollment.getStoredBy() );
+            dbEnrollment.setCreatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
         }
 
-        programInstance.setLastUpdated( now );
-        programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
-        programInstance.setDeleted( false );
-        programInstance.setCreatedAtClient( DateUtils.fromInstant( enrollment.getCreatedAtClient() ) );
-        programInstance.setLastUpdatedAtClient( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ) );
+        dbEnrollment.setLastUpdated( now );
+        dbEnrollment.setLastUpdatedByUserInfo( UserInfoSnapshot.from( preheat.getUser() ) );
+        dbEnrollment.setDeleted( false );
+        dbEnrollment.setCreatedAtClient( DateUtils.fromInstant( enrollment.getCreatedAtClient() ) );
+        dbEnrollment.setLastUpdatedAtClient( DateUtils.fromInstant( enrollment.getUpdatedAtClient() ) );
 
         Date enrollmentDate = DateUtils.fromInstant( enrollment.getEnrolledAt() );
         Date incidentDate = DateUtils.fromInstant( enrollment.getOccurredAt() );
 
-        programInstance.setEnrollmentDate( enrollmentDate );
-        programInstance.setIncidentDate( incidentDate != null ? incidentDate : enrollmentDate );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( trackedEntityInstance );
-        programInstance.setFollowup( enrollment.isFollowUp() );
-        programInstance.setGeometry( enrollment.getGeometry() );
+        dbEnrollment.setEnrollmentDate( enrollmentDate );
+        dbEnrollment.setIncidentDate( incidentDate != null ? incidentDate : enrollmentDate );
+        dbEnrollment.setOrganisationUnit( organisationUnit );
+        dbEnrollment.setProgram( program );
+        dbEnrollment.setEntityInstance( trackedEntityInstance );
+        dbEnrollment.setFollowup( enrollment.isFollowUp() );
+        dbEnrollment.setGeometry( enrollment.getGeometry() );
 
         if ( enrollment.getStatus() == null )
         {
             enrollment.setStatus( EnrollmentStatus.ACTIVE );
         }
 
-        ProgramStatus previousStatus = programInstance.getStatus();
-        programInstance.setStatus( enrollment.getStatus().getProgramStatus() );
+        ProgramStatus previousStatus = dbEnrollment.getStatus();
+        dbEnrollment.setStatus( enrollment.getStatus().getProgramStatus() );
 
-        if ( !Objects.equal( previousStatus, programInstance.getStatus() ) )
+        if ( !Objects.equal( previousStatus, dbEnrollment.getStatus() ) )
         {
-            if ( programInstance.isCompleted() )
+            if ( dbEnrollment.isCompleted() )
             {
-                programInstance.setEndDate( new Date() );
-                programInstance.setCompletedBy( preheat.getUsername() );
+                dbEnrollment.setEndDate( new Date() );
+                dbEnrollment.setCompletedBy( preheat.getUsername() );
             }
-            else if ( programInstance.getStatus().equals( ProgramStatus.CANCELLED ) )
+            else if ( dbEnrollment.getStatus().equals( ProgramStatus.CANCELLED ) )
             {
-                programInstance.setEndDate( new Date() );
+                dbEnrollment.setEndDate( new Date() );
             }
         }
 
         if ( isNotEmpty( enrollment.getNotes() ) )
         {
-            programInstance.getComments()
+            dbEnrollment.getComments()
                 .addAll( notesConverterService.from( preheat, enrollment.getNotes() ) );
         }
-        return programInstance;
+        return dbEnrollment;
     }
 }

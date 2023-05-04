@@ -55,13 +55,13 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
-        programNotificationService.sendEnrollmentNotifications( event.getProgramInstance() );
+        programNotificationService.sendEnrollmentNotifications( event.getEnrollment() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
-        programNotificationService.sendEnrollmentCompletionNotifications( event.getProgramInstance() );
+        programNotificationService.sendEnrollmentCompletionNotifications( event.getEnrollmentId() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
@@ -75,7 +75,7 @@ public class ProgramNotificationListener
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(),
-            event.getProgramInstance() );
+            event.getEnrollment() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
@@ -94,6 +94,6 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onTrackerEnrollmentWebHook( TrackerEnrollmentWebHookEvent event )
     {
-        trackerNotificationWebHookService.handleEnrollment( event.getProgramInstance() );
+        trackerNotificationWebHookService.handleEnrollment( event.getEnrollment() );
     }
 }

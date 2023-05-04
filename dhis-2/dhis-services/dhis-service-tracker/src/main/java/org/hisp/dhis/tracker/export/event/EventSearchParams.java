@@ -203,7 +203,7 @@ public class EventSearchParams
      */
     private Date skipChangedBefore;
 
-    private Set<String> programInstances;
+    private Set<String> enrollments;
 
     @Getter
     private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
@@ -814,14 +814,14 @@ public class EventSearchParams
         return this;
     }
 
-    public Set<String> getProgramInstances()
+    public Set<String> getEnrollments()
     {
-        return programInstances;
+        return enrollments;
     }
 
-    public EventSearchParams setProgramInstances( Set<String> programInstances )
+    public EventSearchParams setEnrollments( Set<String> enrollments )
     {
-        this.programInstances = programInstances;
+        this.enrollments = enrollments;
         return this;
     }
 

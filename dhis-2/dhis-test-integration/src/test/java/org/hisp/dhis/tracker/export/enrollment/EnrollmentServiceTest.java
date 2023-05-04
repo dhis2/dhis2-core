@@ -47,10 +47,10 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
@@ -71,13 +71,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EnrollmentServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private EnrollmentService enrollmentService;
+    private org.hisp.dhis.tracker.export.enrollment.EnrollmentService enrollmentService;
 
     @Autowired
     protected UserService _userService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService programInstanceService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -365,7 +365,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( programA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setUser( user );
@@ -382,7 +382,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
         params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
         params.setUser( user );
@@ -403,7 +403,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( trackedEntityTypeA );
 
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
         params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
         params.setUser( user );

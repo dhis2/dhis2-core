@@ -74,7 +74,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
-        checkNotNull( enrollment, "ProgramInstance cannot be null" );
+        checkNotNull( enrollment, "Enrollment cannot be null" );
 
         assignValue( ruleEffect, enrollment );
     }

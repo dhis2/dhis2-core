@@ -39,8 +39,8 @@ import java.util.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
@@ -72,7 +72,7 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -108,10 +108,10 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         Program program1 = createProgram( 'B' );
         programService.addProgram( program );
         programService.addProgram( program1 );
-        Enrollment enrollment1 = createProgramInstance( program, original, ou );
-        Enrollment enrollment2 = createProgramInstance( program1, duplicate, ou );
-        programInstanceService.addProgramInstance( enrollment1 );
-        programInstanceService.addProgramInstance( enrollment2 );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
         original.getEnrollments().add( enrollment1 );
         duplicate.getEnrollments().add( enrollment2 );
         trackedEntityInstanceService.updateTrackedEntityInstance( original );
@@ -155,12 +155,12 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         programService.addProgram( program1 );
         program.setSharing( sharing );
         program1.setSharing( sharing );
-        Enrollment enrollment1 = createProgramInstance( program, original, ou );
-        Enrollment enrollment2 = createProgramInstance( program1, duplicate, ou );
-        programInstanceService.addProgramInstance( enrollment1 );
-        programInstanceService.addProgramInstance( enrollment2 );
-        programInstanceService.updateProgramInstance( enrollment1 );
-        programInstanceService.updateProgramInstance( enrollment2 );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
+        enrollmentService.updateEnrollment( enrollment1 );
+        enrollmentService.updateEnrollment( enrollment2 );
         original.getEnrollments().add( enrollment1 );
         duplicate.getEnrollments().add( enrollment2 );
         trackedEntityInstanceService.updateTrackedEntityInstance( original );

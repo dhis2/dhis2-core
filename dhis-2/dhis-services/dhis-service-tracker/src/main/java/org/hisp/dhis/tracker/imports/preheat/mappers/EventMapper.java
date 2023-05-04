@@ -37,7 +37,7 @@ import org.mapstruct.factory.Mappers;
     DebugMapper.class,
     ProgramStageMapper.class,
     OrganisationUnitMapper.class,
-    ProgramInstanceMapper.class
+    EnrollmentMapper.class
 } )
 public interface EventMapper extends PreheatMapper<Event>
 {

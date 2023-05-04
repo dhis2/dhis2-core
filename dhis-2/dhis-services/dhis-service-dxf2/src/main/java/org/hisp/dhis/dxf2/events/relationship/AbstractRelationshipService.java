@@ -136,14 +136,14 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
+            .getRelationshipsByEnrollment( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )
             .filter( Optional::isPresent )
@@ -707,12 +707,12 @@ public abstract class AbstractRelationshipService
             if ( pi == null )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "ProgramInstance '" + itemUid + "' not found." );
+                    "Enrollment '" + itemUid + "' not found." );
             }
             else if ( !pi.getProgram().equals( constraint.getProgram() ) )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "ProgramInstance '" + itemUid + "' has invalid Program." );
+                    "Enrollment '" + itemUid + "' has invalid Program." );
             }
         }
         else if ( PROGRAM_STAGE_INSTANCE.equals( entity ) )

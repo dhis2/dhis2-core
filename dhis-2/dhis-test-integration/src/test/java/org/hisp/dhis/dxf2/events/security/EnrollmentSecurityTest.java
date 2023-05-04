@@ -52,8 +52,8 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -320,7 +320,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
         user.setDataViewOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
         injectSecurityContext( user );
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( programA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setUser( user );

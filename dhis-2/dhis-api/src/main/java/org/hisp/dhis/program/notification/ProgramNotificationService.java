@@ -41,7 +41,7 @@ public interface ProgramNotificationService
     /**
      * Send all scheduled notifications for the given day.
      *
-     * Queries for any upcoming events or ProgramInstances which have a
+     * Queries for any upcoming events or Enrollments which have a
      * {@link ProgramNotificationTemplate} scheduled for the given day, creates
      * the messages and immediately dispatches them.
      *
@@ -76,14 +76,14 @@ public interface ProgramNotificationService
     void sendEventCompletionNotifications( long eventId );
 
     /**
-     * Send completion notifications for the ProgramInstance triggered by
-     * ProgramRule evaluation. {@link ProgramNotificationTemplate templates},
-     * nothing will happen.
+     * Send completion notifications for the Enrollment triggered by ProgramRule
+     * evaluation. {@link ProgramNotificationTemplate templates}, nothing will
+     * happen.
      *
      * @param pnt ProgramNotificationTemplate id to send
-     * @param programInstance the ProgramInstance id.
+     * @param enrollment the Enrollment id.
      */
-    void sendProgramRuleTriggeredNotifications( long pnt, long programInstance );
+    void sendProgramRuleTriggeredNotifications( long pnt, long enrollment );
 
     void sendProgramRuleTriggeredNotifications( long pnt, Enrollment enrollment );
 
@@ -100,20 +100,20 @@ public interface ProgramNotificationService
     void sendProgramRuleTriggeredEventNotifications( long pnt, Event event );
 
     /**
-     * Send completion notifications for the ProgramInstance. If the Program is
-     * not configured with suitable {@link ProgramNotificationTemplate
-     * templates}, nothing will happen.
+     * Send completion notifications for the Enrollment. If the Program is not
+     * configured with suitable {@link ProgramNotificationTemplate templates},
+     * nothing will happen.
      *
-     * @param programInstance the ProgramInstance id.
+     * @param enrollment the Enrollment id.
      */
-    void sendEnrollmentCompletionNotifications( long programInstance );
+    void sendEnrollmentCompletionNotifications( long enrollment );
 
     /**
-     * Send enrollment notifications for the ProgramInstance. If the Program is
-     * not configured with suitable {@link ProgramNotificationTemplate
-     * templates}, nothing will happen.
+     * Send enrollment notifications for the Enrollment. If the Program is not
+     * configured with suitable {@link ProgramNotificationTemplate templates},
+     * nothing will happen.
      *
-     * @param programInstance the ProgramInstance id.
+     * @param enrollment the Enrollment id.
      */
-    void sendEnrollmentNotifications( long programInstance );
+    void sendEnrollmentNotifications( long enrollment );
 }

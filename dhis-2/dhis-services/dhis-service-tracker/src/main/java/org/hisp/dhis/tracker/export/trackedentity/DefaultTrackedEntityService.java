@@ -216,7 +216,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         }
         if ( params.isIncludeEnrollments() )
         {
-            result.setEnrollments( getProgramInstances( trackedEntity, params, user ) );
+            result.setEnrollments( getEnrollments( trackedEntity, params, user ) );
         }
         if ( params.isIncludeProgramOwners() )
         {
@@ -245,7 +245,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         return items;
     }
 
-    private Set<Enrollment> getProgramInstances( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
+    private Set<Enrollment> getEnrollments( TrackedEntityInstance trackedEntity, TrackedEntityParams params,
         User user )
     {
         Set<Enrollment> enrollments = new HashSet<>();

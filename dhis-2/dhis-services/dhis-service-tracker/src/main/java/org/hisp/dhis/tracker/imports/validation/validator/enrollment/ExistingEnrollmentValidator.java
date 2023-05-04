@@ -96,13 +96,13 @@ class ExistingEnrollmentValidator
             .collect( Collectors.toSet() );
 
         Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment = bundle.getPreheat()
-            .getTrackedEntityToProgramInstanceMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
+            .getTrackedEntityToEnrollmentMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
             .stream()
             .filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().getUid().equals( program.getUid() )
                 && !pi.getUid().equals( enrollment.getEnrollment() ) )
             .filter( pi -> ProgramStatus.ACTIVE == pi.getStatus() || ProgramStatus.COMPLETED == pi.getStatus() )
-            .distinct().map( this::getEnrollmentFromProgramInstance )
+            .distinct().map( this::getEnrollmentFromDbEnrollment )
             .collect( Collectors.toSet() );
 
         // Priority to payload
@@ -134,12 +134,12 @@ class ExistingEnrollmentValidator
         }
     }
 
-    public org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollmentFromProgramInstance(
-        Enrollment programInstance )
+    public org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollmentFromDbEnrollment(
+        Enrollment dbEnrollment )
     {
         org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
-        enrollment.setEnrollment( programInstance.getUid() );
-        enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
+        enrollment.setEnrollment( dbEnrollment.getUid() );
+        enrollment.setStatus( EnrollmentStatus.fromProgramStatus( dbEnrollment.getStatus() ) );
 
         return enrollment;
     }

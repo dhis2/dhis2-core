@@ -51,10 +51,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -130,7 +130,7 @@ class TrackerEventSMSListenerTest
     // Needed for this test
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private ProgramStageService programStageService;
@@ -163,7 +163,7 @@ class TrackerEventSMSListenerTest
     {
         subject = new TrackerEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            eventService, programStageService, programInstanceService, identifiableObjectManager );
+            eventService, programStageService, enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -176,7 +176,7 @@ class TrackerEventSMSListenerTest
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( enrollment );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
 

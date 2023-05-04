@@ -117,7 +117,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -215,7 +215,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn(
-                programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+                enrollment( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -251,7 +251,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -802,7 +802,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return programStage;
     }
 
-    private Enrollment programInstance( String uid, Program program )
+    private Enrollment enrollment( String uid, Program program )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( uid );
@@ -820,7 +820,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
         return program;
     }
 

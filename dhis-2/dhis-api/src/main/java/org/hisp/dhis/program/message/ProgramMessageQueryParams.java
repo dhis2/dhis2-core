@@ -87,7 +87,7 @@ public class ProgramMessageQueryParams
         return organisationUnit != null;
     }
 
-    public boolean hasProgramInstance()
+    public boolean hasEnrollment()
     {
         return enrollment != null;
     }

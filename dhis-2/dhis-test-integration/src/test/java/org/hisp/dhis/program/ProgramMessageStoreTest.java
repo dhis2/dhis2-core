@@ -114,7 +114,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private ProgramMessageStore programMessageStore;
 
     @Autowired
-    private ProgramInstanceStore programInstanceStore;
+    private EnrollmentStore enrollmentStore;
 
     @Autowired
     private OrganisationUnitService orgUnitService;
@@ -258,9 +258,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramMessageByProgramInstance()
+    void testGetProgramMessageByEnrollment()
     {
-        programInstanceStore.save( enrollmentA );
+        enrollmentStore.save( enrollmentA );
         pmsgA.setEnrollment( enrollmentA );
         pmsgB.setEnrollment( enrollmentA );
         programMessageStore.save( pmsgA );
@@ -276,7 +276,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramMessageByEvent()
     {
-        programInstanceStore.save( enrollmentA );
+        enrollmentStore.save( enrollmentA );
         eventStore.save( eventA );
         pmsgA.setEvent( eventA );
         pmsgB.setEvent( eventA );
@@ -306,7 +306,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetProgramMessageByMultipleParameters()
     {
-        programInstanceStore.save( enrollmentA );
+        enrollmentStore.save( enrollmentA );
         pmsgA.setEnrollment( enrollmentA );
         pmsgB.setEnrollment( enrollmentA );
         programMessageStore.save( pmsgA );

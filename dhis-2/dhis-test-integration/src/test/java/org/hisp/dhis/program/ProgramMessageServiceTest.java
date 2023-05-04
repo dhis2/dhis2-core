@@ -118,7 +118,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
     private TrackedEntityInstanceService teiService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramService programService;
@@ -147,10 +147,10 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         piA = new Enrollment();
         piA.setProgram( program );
         piA.setOrganisationUnit( ouA );
-        piA.setName( "programInstanceA" );
+        piA.setName( "enrollmentA" );
         piA.setEnrollmentDate( new Date() );
         piA.setAutoFields();
-        programInstanceService.addProgramInstance( piA );
+        enrollmentService.addEnrollment( piA );
         Set<OrganisationUnit> ouSet = new HashSet<>();
         ouSet.add( ouA );
         Set<String> ouUids = new HashSet<>();

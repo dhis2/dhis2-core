@@ -144,7 +144,7 @@ class EventRequestToSearchParamsMapper
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
         boolean includeAttributes,
-        Set<String> events, Set<String> programInstances, Boolean skipEventId,
+        Set<String> events, Set<String> enrollments, Boolean skipEventId,
         AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
         boolean includeDeleted )
@@ -239,9 +239,9 @@ class EventRequestToSearchParamsMapper
                 .collect( Collectors.toSet() );
         }
 
-        if ( programInstances != null )
+        if ( enrollments != null )
         {
-            programInstances = programInstances.stream()
+            enrollments = enrollments.stream()
                 .filter( CodeGenerator::isValidUid )
                 .collect( Collectors.toSet() );
         }
@@ -256,7 +256,7 @@ class EventRequestToSearchParamsMapper
             .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
             .setIncludeAllDataElements( includeAllDataElements ).addOrders( orders ).addGridOrders( gridOrders )
-            .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
+            .setEvents( events ).setEnrollments( enrollments ).setIncludeDeleted( includeDeleted );
     }
 
     private QueryItem getQueryItem( String item )
@@ -332,7 +332,7 @@ class EventRequestToSearchParamsMapper
             getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
             false,
             eventIds,
-            eventCriteria.getProgramInstances(),
+            eventCriteria.getEnrollments(),
             eventCriteria.getSkipEventId(),
             eventCriteria.getAssignedUserMode(),
             assignedUserIds,

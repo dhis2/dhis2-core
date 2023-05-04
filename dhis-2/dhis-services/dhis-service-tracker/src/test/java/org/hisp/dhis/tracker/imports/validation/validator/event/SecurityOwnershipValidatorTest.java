@@ -484,7 +484,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertIsEmpty( reporter.getErrors() );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntityInstance getTEIWithNoEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
@@ -503,7 +503,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( enrollmentUid );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.setEntityInstance( getTEIWithNoProgramInstances() );
+        enrollment.setEntityInstance( getTEIWithNoEnrollments() );
         enrollment.setProgram( program );
         enrollment.setStatus( ProgramStatus.ACTIVE );
         return enrollment;

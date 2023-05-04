@@ -43,9 +43,9 @@ public interface EventStore
     extends IdentifiableObjectStore<Event>
 {
     /**
-     * Retrieve an event list on program instance list with a certain status
+     * Retrieve an event list on enrollment list with a certain status
      *
-     * @param enrollments ProgramInstance list
+     * @param enrollments Enrollment list
      * @param status EventStatus
      * @return Event list
      */

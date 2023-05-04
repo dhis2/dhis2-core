@@ -48,8 +48,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -81,7 +81,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest
     private UserService _userService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private OrganisationUnit organisationUnitA;
 
@@ -121,7 +121,7 @@ class EventXmlImportTest extends TransactionalIntegrationTest
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
         enrollment.setStatus( ProgramStatus.ACTIVE );
-        programInstanceService.addProgramInstance( enrollment );
+        enrollmentService.addEnrollment( enrollment );
         programStageA.getProgramStageDataElements().add( programStageDataElement );
         programStageA.setProgram( programA );
         programA.getProgramStages().add( programStageA );

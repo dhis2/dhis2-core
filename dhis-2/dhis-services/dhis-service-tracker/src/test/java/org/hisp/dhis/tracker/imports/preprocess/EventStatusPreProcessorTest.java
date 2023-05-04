@@ -65,14 +65,14 @@ class EventStatusPreProcessorTest
         event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( "programInstanceUid" );
+        enrollment.setUid( "enrollmentUid" );
         Program program = new Program();
         program.setUid( "programUid" );
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "programStageUid" );
         programStage.setProgram( program );
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putProgramInstancesWithoutRegistration( "programUid", enrollment );
+        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
         preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When

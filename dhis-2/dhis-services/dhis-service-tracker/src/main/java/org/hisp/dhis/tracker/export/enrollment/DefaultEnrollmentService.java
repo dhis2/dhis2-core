@@ -45,9 +45,10 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -62,9 +63,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.tracker.export.enrollment.EnrollmentService" )
-public class DefaultEnrollmentService implements EnrollmentService
+public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -77,7 +78,7 @@ public class DefaultEnrollmentService implements EnrollmentService
     @Override
     public Enrollment getEnrollment( String uid, EnrollmentParams params )
     {
-        Enrollment enrollment = programInstanceService.getProgramInstance( uid );
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
         return enrollment != null ? getEnrollment( enrollment, params ) : null;
     }
 
@@ -192,7 +193,7 @@ public class DefaultEnrollmentService implements EnrollmentService
     }
 
     @Override
-    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    public Enrollments getEnrollments( EnrollmentQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
 
@@ -201,26 +202,26 @@ public class DefaultEnrollmentService implements EnrollmentService
             params.setDefaultPaging();
         }
 
-        List<Enrollment> programInstances = new ArrayList<>(
-            programInstanceService.getProgramInstances( params ) );
+        List<Enrollment> enrollmentList = new ArrayList<>(
+            enrollmentService.getEnrollments( params ) );
         if ( !params.isSkipPaging() )
         {
             Pager pager;
 
             if ( params.isTotalPages() )
             {
-                int count = programInstanceService.countProgramInstances( params );
+                int count = enrollmentService.countEnrollments( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
             {
-                pager = handleLastPageFlag( params, programInstances );
+                pager = handleLastPageFlag( params, enrollmentList );
             }
 
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        enrollments.setEnrollments( getEnrollments( enrollmentList ) );
 
         return enrollments;
     }
@@ -228,7 +229,7 @@ public class DefaultEnrollmentService implements EnrollmentService
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or
@@ -236,10 +237,10 @@ public class DefaultEnrollmentService implements EnrollmentService
      * object.
      *
      * @param params the request params
-     * @param enrollments the reference to the list of ProgramInstance
+     * @param enrollments the reference to the list of Enrollment
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
+    private Pager handleLastPageFlag( EnrollmentQueryParams params,
         List<Enrollment> enrollments )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
@@ -261,20 +262,20 @@ public class DefaultEnrollmentService implements EnrollmentService
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<Enrollment> getEnrollments( Iterable<Enrollment> programInstances )
+    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments )
     {
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<Enrollment> enrollmentList = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        for ( Enrollment enrollment : programInstances )
+        for ( Enrollment enrollment : enrollments )
         {
             if ( enrollment != null && trackerOwnershipAccessManager
                 .hasAccess( user, enrollment.getEntityInstance(), enrollment.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
+                enrollmentList.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
             }
         }
 
-        return enrollments;
+        return enrollmentList;
     }
 }

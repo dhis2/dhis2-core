@@ -87,7 +87,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     private DbmsManager dbmsManager;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private IdentifiableObjectManager idObjectManager;
@@ -196,7 +196,7 @@ class EventStoreTest extends TransactionalIntegrationTest
         programB.getProgramStages().addAll( programStages );
         programService.updateProgram( programB );
         /**
-         * Program Instance and Program Stage Instance
+         * Enrollment and Program Stage Instance
          */
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -207,9 +207,9 @@ class EventStoreTest extends TransactionalIntegrationTest
         enrollmentDate = testDate2.toDate();
         enrollmentA = new Enrollment( enrollmentDate, incidenDate, entityInstanceA, programA );
         enrollmentA.setUid( "UID-PIA" );
-        programInstanceService.addProgramInstance( enrollmentA );
+        enrollmentService.addEnrollment( enrollmentA );
         enrollmentB = new Enrollment( enrollmentDate, incidenDate, entityInstanceB, programB );
-        programInstanceService.addProgramInstance( enrollmentB );
+        enrollmentService.addEnrollment( enrollmentB );
         eventA = new Event( enrollmentA, stageA );
         eventA.setDueDate( enrollmentDate );
         eventA.setUid( "UID-A" );

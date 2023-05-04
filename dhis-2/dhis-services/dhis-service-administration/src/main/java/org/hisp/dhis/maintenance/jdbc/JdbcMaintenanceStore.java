@@ -162,7 +162,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     }
 
     @Override
-    public int deleteSoftDeletedProgramInstances()
+    public int deleteSoftDeletedEnrollments()
     {
         String piSelect = "(select programinstanceid from programinstance where deleted is true)";
 

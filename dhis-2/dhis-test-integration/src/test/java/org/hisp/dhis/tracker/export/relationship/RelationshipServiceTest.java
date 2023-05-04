@@ -42,9 +42,9 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.Relationship;
@@ -68,7 +68,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     protected UserService _userService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -147,7 +147,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
         manager.save( program, false );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
             orgUnit );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -155,7 +155,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         eventA.setOrganisationUnit( orgUnit );
         manager.save( eventA, false );
 
-        Enrollment enrollmentB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(),
+        Enrollment enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(),
             new Date(),
             orgUnit );
         inaccessiblePsi = new Event();
@@ -238,14 +238,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByProgramInstanceIfUserHasNoAccessToRelationshipType()
+    void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
         throws ForbiddenException,
         NotFoundException
     {
         Relationship accessible = relationship( teiA, enrollmentA );
         relationship( teiB, enrollmentA, teiToPiInaccessibleType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( enrollmentA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByEnrollment( enrollmentA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),

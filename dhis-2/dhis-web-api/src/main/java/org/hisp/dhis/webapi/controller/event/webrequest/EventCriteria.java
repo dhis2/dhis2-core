@@ -105,7 +105,7 @@ public class EventCriteria extends PagingAndSortingCriteriaAdapter
 
     private Set<String> filter;
 
-    private Set<String> programInstances;
+    private Set<String> enrollments;
 
     private IdSchemes idSchemes = new IdSchemes();
 

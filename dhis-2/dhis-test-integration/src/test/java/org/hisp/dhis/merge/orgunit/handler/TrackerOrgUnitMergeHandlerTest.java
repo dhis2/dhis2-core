@@ -34,10 +34,10 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.merge.orgunit.OrgUnitMergeRequest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -57,7 +57,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     private TrackedEntityInstanceService teiService;
 
     @Autowired
-    private ProgramInstanceService piService;
+    private EnrollmentService piService;
 
     @Autowired
     private EventService eventService;
@@ -118,12 +118,12 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         teiService.addTrackedEntityInstance( teiA );
         teiService.addTrackedEntityInstance( teiB );
         teiService.addTrackedEntityInstance( teiC );
-        piA = createProgramInstance( prA, teiA, ouA );
-        piB = createProgramInstance( prA, teiB, ouB );
-        piC = createProgramInstance( prA, teiC, ouA );
-        piService.addProgramInstance( piA );
-        piService.addProgramInstance( piB );
-        piService.addProgramInstance( piC );
+        piA = createEnrollment( prA, teiA, ouA );
+        piB = createEnrollment( prA, teiB, ouB );
+        piC = createEnrollment( prA, teiC, ouA );
+        piService.addEnrollment( piA );
+        piService.addEnrollment( piB );
+        piService.addEnrollment( piC );
         eventA = new Event( piA, psA, ouA );
         eventB = new Event( piB, psA, ouB );
         eventC = new Event( piC, psA, ouA );
@@ -133,17 +133,17 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testMigrateProgramInstances()
+    void testMigrateEnrollments()
     {
-        assertEquals( 2, getProgramInstanceCount( ouA ) );
-        assertEquals( 1, getProgramInstanceCount( ouB ) );
-        assertEquals( 0, getProgramInstanceCount( ouC ) );
+        assertEquals( 2, getEnrollmentCount( ouA ) );
+        assertEquals( 1, getEnrollmentCount( ouB ) );
+        assertEquals( 0, getEnrollmentCount( ouC ) );
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
             .withTarget( ouC ).build();
-        mergeHandler.mergeProgramInstances( request );
-        assertEquals( 0, getProgramInstanceCount( ouA ) );
-        assertEquals( 0, getProgramInstanceCount( ouB ) );
-        assertEquals( 3, getProgramInstanceCount( ouC ) );
+        mergeHandler.mergeEnrollments( request );
+        assertEquals( 0, getEnrollmentCount( ouA ) );
+        assertEquals( 0, getEnrollmentCount( ouB ) );
+        assertEquals( 3, getEnrollmentCount( ouC ) );
     }
 
     /**
@@ -153,7 +153,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
      * @param target the {@link OrganisationUnit}
      * @return the count of interpretations.
      */
-    private long getProgramInstanceCount( OrganisationUnit target )
+    private long getEnrollmentCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from Enrollment pi where pi.organisationUnit = :target" )

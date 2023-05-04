@@ -32,8 +32,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,7 +47,7 @@ public class DefaultProgramNotificationInstanceService
 {
     private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final EventService eventService;
 
@@ -69,12 +69,12 @@ public class DefaultProgramNotificationInstanceService
     @Transactional( readOnly = true )
     public void validateQueryParameters( ProgramNotificationInstanceParam params )
     {
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
-            if ( !programInstanceService.programInstanceExists( params.getEnrollment().getUid() ) )
+            if ( !enrollmentService.enrollmentExists( params.getEnrollment().getUid() ) )
             {
                 throw new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getEnrollment().getUid() ) );
+                    String.format( "Enrollment %s does not exist", params.getEnrollment().getUid() ) );
             }
 
         }

@@ -48,9 +48,9 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.sms.command.SMSCommand;
@@ -82,7 +82,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
     // Dependencies
     // -------------------------------------------------------------------------
 
-    protected final ProgramInstanceService programInstanceService;
+    protected final EnrollmentService enrollmentService;
 
     protected final CategoryService dataElementCategoryService;
 
@@ -92,20 +92,20 @@ public abstract class CommandSMSListener extends BaseSMSListener
 
     protected final CurrentUserService currentUserService;
 
-    public CommandSMSListener( ProgramInstanceService programInstanceService,
+    public CommandSMSListener( EnrollmentService enrollmentService,
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         MessageSender smsSender )
     {
         super( incomingSmsService, smsSender );
 
-        checkNotNull( programInstanceService );
+        checkNotNull( enrollmentService );
         checkNotNull( dataElementCategoryService );
         checkNotNull( eventService );
         checkNotNull( userService );
         checkNotNull( currentUserService );
 
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
         this.dataElementCategoryService = dataElementCategoryService;
         this.eventService = eventService;
         this.userService = userService;
@@ -227,7 +227,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
             pi.setProgram( smsCommand.getProgram() );
             pi.setStatus( ProgramStatus.ACTIVE );
 
-            programInstanceService.addProgramInstance( pi );
+            enrollmentService.addEnrollment( pi );
 
             enrollments.add( pi );
         }
@@ -235,7 +235,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
         {
             update( sms, SmsMessageStatus.FAILED, false );
 
-            sendFeedback( "Multiple active program instances exists for program: " + smsCommand.getProgram().getUid(),
+            sendFeedback( "Multiple active Enrollments exists for program: " + smsCommand.getProgram().getUid(),
                 sms.getOriginator(), ERROR );
 
             return;

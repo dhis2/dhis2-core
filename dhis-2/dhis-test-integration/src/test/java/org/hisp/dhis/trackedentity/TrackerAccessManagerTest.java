@@ -46,9 +46,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
@@ -84,7 +84,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     private ProgramStageDataElementService programStageDataElementService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -168,7 +168,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        Enrollment enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );

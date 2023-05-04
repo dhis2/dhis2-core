@@ -62,13 +62,13 @@ public enum NotificationTrigger
     SCHEDULED_DAYS_DUE_DATE,
 
     /**
-     * Scheduled days relative to the incidentDate of the ProgramInstance
+     * Scheduled days relative to the incidentDate of the Enrollment
      * (enrollment).
      */
     SCHEDULED_DAYS_INCIDENT_DATE,
 
     /**
-     * Scheduled days relative to the enrollmentDate of the ProgramInstance
+     * Scheduled days relative to the enrollmentDate of the Enrollment
      * (enrollment).
      */
     SCHEDULED_DAYS_ENROLLMENT_DATE;
@@ -79,7 +79,7 @@ public enum NotificationTrigger
     private static final Set<NotificationTrigger> SCHEDULED_TRIGGERS = new ImmutableSet.Builder<NotificationTrigger>()
         .add( SCHEDULED_DAYS_DUE_DATE, SCHEDULED_DAYS_INCIDENT_DATE, SCHEDULED_DAYS_ENROLLMENT_DATE ).build();
 
-    private static final Set<NotificationTrigger> APPLICABLE_TO_PROGRAM_INSTANCE = new ImmutableSet.Builder<NotificationTrigger>()
+    private static final Set<NotificationTrigger> APPLICABLE_TO_ENROLLMENT = new ImmutableSet.Builder<NotificationTrigger>()
         .add( ENROLLMENT, COMPLETION, SCHEDULED_DAYS_INCIDENT_DATE, SCHEDULED_DAYS_ENROLLMENT_DATE ).build();
 
     private static final Set<NotificationTrigger> APPLICABLE_TO_EVENT = new ImmutableSet.Builder<NotificationTrigger>()
@@ -105,9 +105,9 @@ public enum NotificationTrigger
         return IMMEDIATE_TRIGGERS;
     }
 
-    public static Set<NotificationTrigger> getAllApplicableToProgramInstance()
+    public static Set<NotificationTrigger> getAllApplicableToEnrollment()
     {
-        return APPLICABLE_TO_PROGRAM_INSTANCE;
+        return APPLICABLE_TO_ENROLLMENT;
     }
 
     public static Set<NotificationTrigger> getAllApplicableToEvent()
@@ -120,8 +120,8 @@ public enum NotificationTrigger
         return APPLICABLE_TO_EVENT.contains( this );
     }
 
-    public boolean isApplicableToProgramInstance()
+    public boolean isApplicableToEnrollment()
     {
-        return APPLICABLE_TO_PROGRAM_INSTANCE.contains( this );
+        return APPLICABLE_TO_ENROLLMENT.contains( this );
     }
 }
