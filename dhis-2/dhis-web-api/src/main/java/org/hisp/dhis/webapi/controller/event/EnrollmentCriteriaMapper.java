@@ -42,8 +42,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -97,14 +97,14 @@ public class EnrollmentCriteriaMapper
      * @return a ProgramInstanceQueryParams.
      */
     @Transactional( readOnly = true )
-    public ProgramInstanceQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,
+    public EnrollmentQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,
         Date lastUpdated, String lastUpdatedDuration, String programUid, ProgramStatus programStatus,
         Date programStartDate, Date programEndDate, String trackedEntityType, String trackedEntityInstance,
         Boolean followUp, Integer page, Integer pageSize, boolean totalPages, boolean skipPaging,
         boolean includeDeleted, List<OrderCriteria> orderCriteria )
         throws ForbiddenException
     {
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
 
         User user = currentUserService.getCurrentUser();
 

@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPreheatSupplier
+public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatSupplier
 {
     private final static String COLUMN = "uid";
 
@@ -60,7 +60,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
         "and programinstance.deleted = false) " +
         "and programinstanceid in (:ids)";
 
-    protected ProgramInstancesWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
+    protected EnrollmentsWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
@@ -81,7 +81,7 @@ public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPre
             jdbcTemplate.query( SQL, parameters, rs -> {
                 uids.add( rs.getString( COLUMN ) );
             } );
-            preheat.setProgramInstanceWithOneOrMoreNonDeletedEvent( uids );
+            preheat.setEnrollmentsWithOneOrMoreNonDeletedEvent( uids );
         }
     }
 }

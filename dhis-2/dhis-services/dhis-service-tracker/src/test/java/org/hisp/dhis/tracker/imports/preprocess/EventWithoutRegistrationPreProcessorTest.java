@@ -71,7 +71,7 @@ class EventWithoutRegistrationPreProcessorTest
         programStage.setUid( "programStageUid" );
         programStage.setProgram( program );
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putProgramInstancesWithoutRegistration( "programUid", enrollment );
+        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
         preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When
@@ -94,7 +94,7 @@ class EventWithoutRegistrationPreProcessorTest
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "programStageUid" );
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putProgramInstancesWithoutRegistration( "programUid", enrollment );
+        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
         preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When

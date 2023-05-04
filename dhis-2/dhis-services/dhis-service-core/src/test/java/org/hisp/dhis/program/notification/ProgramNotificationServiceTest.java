@@ -724,7 +724,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataElement.setValueType( ValueType.PHONE_NUMBER );
         dataElementEmail.setValueType( ValueType.EMAIL );
 
-        // ProgramInstance & TEI
+        // Enrollment & TEI
         tei = new TrackedEntityInstance();
         tei.setAutoFields();
         tei.setOrganisationUnit( lvlTwoLeftLeft );

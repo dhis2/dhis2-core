@@ -48,7 +48,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
  */
 @Data
 @Accessors( chain = true )
-public class ProgramInstanceQueryParams
+public class EnrollmentQueryParams
 {
     public static final int DEFAULT_PAGE = 1;
 
@@ -155,7 +155,7 @@ public class ProgramInstanceQueryParams
     // Constructors
     // -------------------------------------------------------------------------
 
-    public ProgramInstanceQueryParams()
+    public EnrollmentQueryParams()
     {
     }
 

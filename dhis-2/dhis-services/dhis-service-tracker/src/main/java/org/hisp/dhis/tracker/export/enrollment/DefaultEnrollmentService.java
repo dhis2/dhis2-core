@@ -45,9 +45,9 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -193,7 +193,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     }
 
     @Override
-    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    public Enrollments getEnrollments( EnrollmentQueryParams params )
     {
         Enrollments enrollments = new Enrollments();
 
@@ -229,7 +229,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link HibernateEnrollmentStore#getEnrollments(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or
@@ -237,10 +237,10 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
      * object.
      *
      * @param params the request params
-     * @param enrollments the reference to the list of ProgramInstance
+     * @param enrollments the reference to the list of Enrollment
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
+    private Pager handleLastPageFlag( EnrollmentQueryParams params,
         List<Enrollment> enrollments )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );

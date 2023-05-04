@@ -112,7 +112,7 @@ public class DefaultProgramMessageService
             }
             else
             {
-                throw new IllegalQueryException( "ProgramInstance does not exist." );
+                throw new IllegalQueryException( "Enrollment does not exist." );
             }
         }
 
@@ -253,7 +253,7 @@ public class DefaultProgramMessageService
 
         if ( enrollment == null )
         {
-            throw new IllegalQueryException( "ProgramInstance or Event has to be provided" );
+            throw new IllegalQueryException( "Enrollment or Event has to be provided" );
         }
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );

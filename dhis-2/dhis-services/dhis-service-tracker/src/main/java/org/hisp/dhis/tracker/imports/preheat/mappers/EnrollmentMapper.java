@@ -41,9 +41,9 @@ import org.mapstruct.factory.Mappers;
     OrganisationUnitMapper.class,
     AttributeValueMapper.class
 } )
-public interface ProgramInstanceMapper extends PreheatMapper<Enrollment>
+public interface EnrollmentMapper extends PreheatMapper<Enrollment>
 {
-    ProgramInstanceMapper INSTANCE = Mappers.getMapper( ProgramInstanceMapper.class );
+    EnrollmentMapper INSTANCE = Mappers.getMapper( EnrollmentMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )

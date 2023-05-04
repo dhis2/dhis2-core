@@ -279,12 +279,12 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
+    private Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     /**
-     * A Map of program uid and without registration {@see ProgramInstance}.
+     * A Map of program uid and without registration {@see Enrollment}.
      */
-    private final Map<String, Enrollment> programInstancesWithoutRegistration = new HashMap<>();
+    private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
 
     /**
      * A map of valid users by username that are present in the payload. A user
@@ -310,7 +310,7 @@ public class TrackerPreheat
      */
     @Getter
     @Setter
-    private List<String> programInstanceWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+    private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
     /**
      * A list of Program Stage UID having 1 or more Events
@@ -636,14 +636,14 @@ public class TrackerPreheat
         }
     }
 
-    public Enrollment getProgramInstancesWithoutRegistration( String programUid )
+    public Enrollment getEnrollmentsWithoutRegistration( String programUid )
     {
-        return programInstancesWithoutRegistration.get( programUid );
+        return enrollmentsWithoutRegistration.get( programUid );
     }
 
-    public void putProgramInstancesWithoutRegistration( String programUid, Enrollment enrollment )
+    public void putEnrollmentsWithoutRegistration( String programUid, Enrollment enrollment )
     {
-        this.programInstancesWithoutRegistration.put( programUid, enrollment );
+        this.enrollmentsWithoutRegistration.put( programUid, enrollment );
     }
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )

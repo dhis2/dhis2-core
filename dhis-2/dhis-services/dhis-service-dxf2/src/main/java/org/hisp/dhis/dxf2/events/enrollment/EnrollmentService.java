@@ -35,7 +35,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
@@ -69,7 +69,7 @@ public interface EnrollmentService
     List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> getEnrollments(
         Iterable<org.hisp.dhis.program.Enrollment> programInstances );
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( EnrollmentQueryParams params );
 
     // -------------------------------------------------------------------------
     // CREATE

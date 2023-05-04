@@ -56,10 +56,10 @@ import org.mockito.quality.Strictness;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ProgramInstanceSupplierTest extends AbstractSupplierTest<Enrollment>
+class EnrollmentSupplierTest extends AbstractSupplierTest<Enrollment>
 {
 
-    private ProgramInstanceSupplier subject;
+    private EnrollmentSupplier subject;
 
     @Mock
     private ProgramSupplier programSupplier;
@@ -67,7 +67,7 @@ class ProgramInstanceSupplierTest extends AbstractSupplierTest<Enrollment>
     @BeforeEach
     void setUp()
     {
-        this.subject = new ProgramInstanceSupplier( jdbcTemplate, programSupplier );
+        this.subject = new EnrollmentSupplier( jdbcTemplate, programSupplier );
     }
 
     @Test

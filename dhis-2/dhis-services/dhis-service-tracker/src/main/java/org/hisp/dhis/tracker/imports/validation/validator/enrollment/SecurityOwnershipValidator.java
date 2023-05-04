@@ -132,7 +132,7 @@ class SecurityOwnershipValidator
 
     private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
     {
-        return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+        return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
     }
 
     private void checkEnrollmentOrgUnit( Reporter reporter, TrackerBundle bundle,
@@ -147,7 +147,7 @@ class SecurityOwnershipValidator
 
             if ( enrollmentOrgUnit == null )
             {
-                log.warn( "ProgramInstance " + enrollment.getEnrollment()
+                log.warn( "Enrollment " + enrollment.getEnrollment()
                     + ORG_UNIT_NO_USER_ASSIGNED );
                 return;
             }

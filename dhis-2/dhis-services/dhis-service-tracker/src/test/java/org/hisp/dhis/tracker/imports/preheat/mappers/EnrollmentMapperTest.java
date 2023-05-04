@@ -25,32 +25,42 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.update.preprocess;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import static org.hisp.dhis.organisationunit.FeatureType.NONE;
-import static org.hisp.dhis.system.util.GeoUtils.SRID;
+import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
+import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
+import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
-import org.springframework.stereotype.Component;
+import java.util.Set;
 
-/**
- * @author maikel arabori
- */
-@Component
-public class ProgramInstanceGeometryPreProcessor implements Processor
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
+import org.junit.jupiter.api.Test;
+
+class EnrollmentMapperTest
 {
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
 
-            if ( event.getGeometry() != null && (!psi.getProgramStage().getFeatureType().equals( NONE ) || psi
-                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() )) )
-            {
-                event.getGeometry().setSRID( SRID );
-            }
-        } );
+    @Test
+    void testIdSchemeRelatedFieldsAreMapped()
+    {
+
+        Program program = setIdSchemeFields(
+            new Program(),
+            "WTTYiPQDqh1",
+            "friendship",
+            "red",
+            attributeValues( "m0GpPuMUfFW", "yellow" ) );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setProgram( program );
+
+        Enrollment mapped = EnrollmentMapper.INSTANCE.map( enrollment );
+
+        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
+        assertEquals( "friendship", mapped.getProgram().getName() );
+        assertEquals( "red", mapped.getProgram().getCode() );
+        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
+            mapped.getProgram().getAttributeValues() );
     }
 }

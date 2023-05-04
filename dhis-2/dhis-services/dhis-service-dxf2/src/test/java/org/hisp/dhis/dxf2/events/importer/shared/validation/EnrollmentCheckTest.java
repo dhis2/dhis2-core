@@ -56,17 +56,17 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramInstanceCheckTest extends BaseValidationTest
+class EnrollmentCheckTest extends BaseValidationTest
 {
 
-    private ProgramInstanceCheck rule;
+    private EnrollmentCheck rule;
 
     private Program program;
 
     @BeforeEach
     void setUp()
     {
-        rule = new ProgramInstanceCheck();
+        rule = new EnrollmentCheck();
         //
         // Program
         //

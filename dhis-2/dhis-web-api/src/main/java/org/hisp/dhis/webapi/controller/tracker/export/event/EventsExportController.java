@@ -165,7 +165,7 @@ public class EventsExportController
     private boolean areAllEnrollmentsInvalid( EventCriteria eventCriteria, EventSearchParams eventSearchParams )
     {
         return !CollectionUtils.isEmpty( eventCriteria.getEnrollments() ) &&
-            CollectionUtils.isEmpty( eventSearchParams.getProgramInstances() );
+            CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 
     @GetMapping( "{uid}" )

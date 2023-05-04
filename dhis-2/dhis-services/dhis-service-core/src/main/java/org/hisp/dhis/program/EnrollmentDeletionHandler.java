@@ -45,7 +45,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-public class ProgramInstanceDeletionHandler extends IdObjectDeletionHandler<Enrollment>
+public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollment>
 {
     private final EnrollmentService enrollmentService;
 

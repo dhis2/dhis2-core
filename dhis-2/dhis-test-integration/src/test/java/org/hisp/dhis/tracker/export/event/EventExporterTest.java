@@ -154,7 +154,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.setTrackedEntity( trackedEntityInstance );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
 
         List<Event> events = eventService.getEvents( params ).getEvents();
 
@@ -195,7 +195,7 @@ class EventExporterTest extends TrackerTest
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
         params.setTrackedEntity( trackedEntityInstance );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
 
         List<String> events = eventsFunction.apply( params );
 
@@ -208,7 +208,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         params.setStartDate( getDate( 2018, 1, 1 ) );
@@ -226,7 +226,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         params.setUpdatedAtDuration( "1d" );
@@ -242,7 +242,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         Date date = new Date();
@@ -264,7 +264,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
@@ -285,7 +285,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStatus( ProgramStatus.ACTIVE );
         params.setProgramStage( programStage );
 
@@ -307,7 +307,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramType( ProgramType.WITH_REGISTRATION );
         params.setProgramStage( programStage );
 
@@ -328,7 +328,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00001" );
@@ -349,7 +349,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         DataElement datael00001 = dataElement( "DATAEL00001" );
@@ -369,7 +369,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
         params.setProgram( program );
 
@@ -591,7 +591,7 @@ class EventExporterTest extends TrackerTest
 
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
         params.setProgram( program );
 
@@ -616,7 +616,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -637,7 +637,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -658,7 +658,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00005" );
@@ -679,7 +679,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setProgramInstances( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
+        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
         params.setProgramStage( programStage );
 
         DataElement dataElement = dataElement( "DATAEL00006" );

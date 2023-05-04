@@ -52,8 +52,6 @@ public class TrackerImporterAssertErrors
 
     public static final String ENROLLMENT_CANT_BE_NULL = "Enrollment can't be null";
 
-    public static final String PROGRAM_INSTANCE_CANT_BE_NULL = "ProgramInstance can't be null";
-
     public static final String ORGANISATION_UNIT_CANT_BE_NULL = "OrganisationUnit can't be null";
 
     public static final String OWNER_ORGANISATION_UNIT_CANT_BE_NULL = "Owner OrganisationUnit can't be null";

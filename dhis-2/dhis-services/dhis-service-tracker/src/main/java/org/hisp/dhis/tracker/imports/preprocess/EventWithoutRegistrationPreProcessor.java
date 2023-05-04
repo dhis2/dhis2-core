@@ -35,8 +35,8 @@ import org.hisp.dhis.tracker.imports.domain.Event;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for setting the ProgramInstance UID on an
- * Event if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
+ * This preprocessor is responsible for setting the Enrollment UID on an Event
+ * if the Program that the event belongs is of type 'WITHOUT_REGISTRATION'
  *
  * @author Enrico Colasante
  */
@@ -92,7 +92,7 @@ public class EventWithoutRegistrationPreProcessor
 
     private void setEnrollment( TrackerBundle bundle, String uid, Event event )
     {
-        Enrollment enrollment = bundle.getPreheat().getProgramInstancesWithoutRegistration( uid );
+        Enrollment enrollment = bundle.getPreheat().getEnrollmentsWithoutRegistration( uid );
 
         if ( enrollment != null )
         {

@@ -41,8 +41,8 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -167,7 +167,7 @@ class EnrollmentCriteriaMapperTest
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
     }
@@ -205,7 +205,7 @@ class EnrollmentCriteriaMapperTest
         EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setProgram( PROGRAM_UID );
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertEquals( program, params.getProgram() );
     }
@@ -229,7 +229,7 @@ class EnrollmentCriteriaMapperTest
         EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
@@ -253,7 +253,7 @@ class EnrollmentCriteriaMapperTest
         EnrollmentCriteria criteria = new EnrollmentCriteria();
         criteria.setTrackedEntity( TRACKED_ENTITY_UID );
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityInstanceUid() );
     }
@@ -279,7 +279,7 @@ class EnrollmentCriteriaMapperTest
         OrderCriteria order2 = OrderCriteria.of( "field2", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
             new OrderParam( "field1", SortDirection.ASC ),
@@ -293,7 +293,7 @@ class EnrollmentCriteriaMapperTest
     {
         EnrollmentCriteria criteria = new EnrollmentCriteria();
 
-        ProgramInstanceQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( criteria );
 
         assertIsEmpty( params.getOrder() );
     }

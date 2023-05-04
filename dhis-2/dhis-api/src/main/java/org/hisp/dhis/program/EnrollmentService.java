@@ -146,7 +146,7 @@ public interface EnrollmentService
      * @param params the ProgramInstanceQueryParams.
      * @return List of PIs matching the params
      */
-    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
     /**
      * Returns the number of program instance matches based on the given
@@ -155,7 +155,7 @@ public interface EnrollmentService
      * @param params the ProgramInstanceQueryParams.
      * @return Number of PIs matching the params
      */
-    int countEnrollments( ProgramInstanceQueryParams params );
+    int countEnrollments( EnrollmentQueryParams params );
 
     /**
      * Decides whether current user is authorized to perform the given query.
@@ -163,7 +163,7 @@ public interface EnrollmentService
      *
      * @param params the ProgramInstanceQueryParams.
      */
-    void decideAccess( ProgramInstanceQueryParams params );
+    void decideAccess( EnrollmentQueryParams params );
 
     /**
      * Validates the given ProgramInstanceQueryParams. The params is considered
@@ -172,7 +172,7 @@ public interface EnrollmentService
      * @param params the ProgramInstanceQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validate( ProgramInstanceQueryParams params )
+    void validate( EnrollmentQueryParams params )
         throws IllegalQueryException;
 
     /**

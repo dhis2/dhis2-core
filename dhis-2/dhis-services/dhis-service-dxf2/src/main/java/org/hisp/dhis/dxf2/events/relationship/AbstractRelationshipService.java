@@ -707,12 +707,12 @@ public abstract class AbstractRelationshipService
             if ( pi == null )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "ProgramInstance '" + itemUid + "' not found." );
+                    "Enrollment '" + itemUid + "' not found." );
             }
             else if ( !pi.getProgram().equals( constraint.getProgram() ) )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "ProgramInstance '" + itemUid + "' has invalid Program." );
+                    "Enrollment '" + itemUid + "' has invalid Program." );
             }
         }
         else if ( PROGRAM_STAGE_INSTANCE.equals( entity ) )

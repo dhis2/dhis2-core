@@ -46,9 +46,9 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
@@ -152,9 +152,9 @@ class ProgramObjectBundleHookTest
     @Test
     void verifyProgramFailsValidation()
     {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        programInstanceQueryParams.setProgram( programA );
-        programInstanceQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
+        EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
+        enrollmentQueryParams.setProgram( programA );
+        enrollmentQueryParams.setProgramStatus( ProgramStatus.ACTIVE );
 
         when( enrollmentService.getEnrollments( programA, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( new Enrollment(), new Enrollment() ) );

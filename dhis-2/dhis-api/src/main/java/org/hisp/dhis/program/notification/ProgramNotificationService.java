@@ -41,7 +41,7 @@ public interface ProgramNotificationService
     /**
      * Send all scheduled notifications for the given day.
      *
-     * Queries for any upcoming events or ProgramInstances which have a
+     * Queries for any upcoming events or Enrollments which have a
      * {@link ProgramNotificationTemplate} scheduled for the given day, creates
      * the messages and immediately dispatches them.
      *

@@ -71,10 +71,10 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ProgramInstancePreProcessorTest extends BasePreProcessTest
+class EnrollmentPreProcessorTest extends BasePreProcessTest
 {
 
-    private ProgramInstancePreProcessor subject;
+    private EnrollmentPreProcessor subject;
 
     private final Map<String, Enrollment> programInstanceMap = new HashMap<>();
 
@@ -90,7 +90,7 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
     @BeforeEach
     void setUp()
     {
-        this.subject = new ProgramInstancePreProcessor();
+        this.subject = new EnrollmentPreProcessor();
         //
         // empty Program Instance Map
         //

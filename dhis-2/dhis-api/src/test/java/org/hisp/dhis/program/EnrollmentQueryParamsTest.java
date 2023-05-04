@@ -25,42 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.program;
 
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValue;
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.attributeValues;
-import static org.hisp.dhis.tracker.imports.preheat.mappers.AttributeCreator.setIdSchemeFields;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.Set;
-
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Program;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.junit.jupiter.api.Test;
 
-class ProgramInstanceMapperTest
+import com.google.common.collect.ImmutableList;
+
+class EnrollmentQueryParamsTest
 {
 
     @Test
-    void testIdSchemeRelatedFieldsAreMapped()
+    void verifyIsSorting()
     {
-
-        Program program = setIdSchemeFields(
-            new Program(),
-            "WTTYiPQDqh1",
-            "friendship",
-            "red",
-            attributeValues( "m0GpPuMUfFW", "yellow" ) );
-        Enrollment enrollment = new Enrollment();
-        enrollment.setProgram( program );
-
-        Enrollment mapped = ProgramInstanceMapper.INSTANCE.map( enrollment );
-
-        assertEquals( "WTTYiPQDqh1", mapped.getProgram().getUid() );
-        assertEquals( "friendship", mapped.getProgram().getName() );
-        assertEquals( "red", mapped.getProgram().getCode() );
-        assertContainsOnly( Set.of( attributeValue( "m0GpPuMUfFW", "yellow" ) ),
-            mapped.getProgram().getAttributeValues() );
+        EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
+        assertFalse( enrollmentQueryParams.isSorting() );
+        enrollmentQueryParams.setOrder( ImmutableList
+            .of( new OrderParam( "aField", SortDirection.ASC ) ) );
+        assertTrue( enrollmentQueryParams.isSorting() );
     }
 }
