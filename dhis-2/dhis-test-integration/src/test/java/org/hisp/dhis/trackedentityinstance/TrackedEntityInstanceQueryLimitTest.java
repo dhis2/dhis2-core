@@ -138,10 +138,10 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         trackedEntityInstanceService.addTrackedEntityInstance( tei3 );
         trackedEntityInstanceService.addTrackedEntityInstance( tei4 );
 
-        pi1 = createProgramInstance( program, tei1, orgUnitA );
-        pi2 = createProgramInstance( program, tei2, orgUnitA );
-        pi3 = createProgramInstance( program, tei3, orgUnitA );
-        pi4 = createProgramInstance( program, tei4, orgUnitA );
+        pi1 = createEnrollment( program, tei1, orgUnitA );
+        pi2 = createEnrollment( program, tei2, orgUnitA );
+        pi3 = createEnrollment( program, tei3, orgUnitA );
+        pi4 = createEnrollment( program, tei4, orgUnitA );
 
         enrollmentService.addEnrollment( pi1 );
         enrollmentService.addEnrollment( pi2 );

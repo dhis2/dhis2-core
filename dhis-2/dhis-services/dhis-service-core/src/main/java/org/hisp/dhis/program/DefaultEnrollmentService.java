@@ -424,7 +424,7 @@ public class DefaultEnrollmentService
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
-        // Add program instance
+        // Add enrollment
         // ---------------------------------------------------------------------
 
         Enrollment enrollment = prepareEnrollment( trackedEntityInstance, program, ProgramStatus.ACTIVE,

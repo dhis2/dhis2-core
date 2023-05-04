@@ -136,14 +136,14 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByProgramInstance( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
+            .getRelationshipsByEnrollment( pi, pagingAndSortingCriteriaAdapter, skipAccessValidation ).stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )
             .filter( Optional::isPresent )

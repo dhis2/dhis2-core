@@ -78,15 +78,15 @@ public class EnrollmentPersister
 
     @Override
     protected void updateAttributes( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment programInstance )
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment enrollmentToPersist )
     {
         handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            preheat.getTrackedEntity( programInstance.getEntityInstance().getUid() ) );
+            preheat.getTrackedEntity( enrollmentToPersist.getEntityInstance().getUid() ) );
     }
 
     @Override
     protected void updateDataValues( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment programInstance )
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment enrollmentToPersist )
     {
         // DO NOTHING - TEI HAVE NO DATA VALUES
     }

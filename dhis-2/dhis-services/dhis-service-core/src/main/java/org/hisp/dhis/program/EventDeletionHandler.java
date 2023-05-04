@@ -49,7 +49,7 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event>
     protected void registerHandler()
     {
         whenVetoing( ProgramStage.class, this::allowDeleteProgramStage );
-        whenDeleting( Enrollment.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenVetoing( Program.class, this::allowDeleteProgram );
         whenVetoing( DataElement.class, this::allowDeleteDataElement );
     }
@@ -61,7 +61,7 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event>
             Map.of( "id", programStage.getId() ) );
     }
 
-    private void deleteProgramInstance( Enrollment enrollment )
+    private void deleteEnrollment( Enrollment enrollment )
     {
         for ( Event event : enrollment.getEvents() )
         {

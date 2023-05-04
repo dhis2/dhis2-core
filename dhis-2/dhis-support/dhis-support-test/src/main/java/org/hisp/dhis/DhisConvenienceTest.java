@@ -1683,7 +1683,7 @@ public abstract class DhisConvenienceTest
         return program;
     }
 
-    public static Enrollment createProgramInstance( Program program, TrackedEntityInstance tei,
+    public static Enrollment createEnrollment( Program program, TrackedEntityInstance tei,
         OrganisationUnit organisationUnit )
     {
         Enrollment enrollment = new Enrollment( program, tei, organisationUnit );
@@ -2000,7 +2000,7 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, Enrollment to,
+    public static Relationship createTeiToEnrollmentRelationship( TrackedEntityInstance from, Enrollment to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();

@@ -56,7 +56,7 @@ public class RelationshipDeletionHandler extends DeletionHandler
     {
         whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
         whenDeleting( Event.class, this::deleteEvent );
-        whenDeleting( Enrollment.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
@@ -88,10 +88,10 @@ public class RelationshipDeletionHandler extends DeletionHandler
         }
     }
 
-    private void deleteProgramInstance( Enrollment enrollment )
+    private void deleteEnrollment( Enrollment enrollment )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramInstance( enrollment, false );
+            .getRelationshipsByEnrollment( enrollment, false );
 
         if ( relationships != null )
         {

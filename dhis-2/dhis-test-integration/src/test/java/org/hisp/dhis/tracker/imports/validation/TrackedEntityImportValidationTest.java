@@ -220,12 +220,12 @@ class TrackedEntityImportValidationTest extends TrackerTest
     }
 
     @Test
-    void testDeleteCascadeProgramInstances()
+    void testDeleteCascadeEnrollments()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
         assertNoErrors( trackerImportService.importTracker( params ) );
-        importProgramInstances();
+        importEnrollments();
         manager.flush();
         manager.clear();
         params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
@@ -258,7 +258,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         assertEquals( 1, importReportDelete.getStats().getDeleted() );
     }
 
-    protected void importProgramInstances()
+    protected void importEnrollments()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );

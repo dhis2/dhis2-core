@@ -104,7 +104,7 @@ public class HibernateProgramNotificationInstanceStore
                 params.getEvent() ) );
         }
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
             predicates.add( root -> builder.equal( root.get( "enrollment" ),
                 params.getEnrollment() ) );

@@ -116,7 +116,7 @@ public class SimpleEventSMSListener extends CompressionSMSListener
         List<Enrollment> enrollments = new ArrayList<>(
             enrollmentService.getEnrollments( program, ProgramStatus.ACTIVE ) );
 
-        // For Simple Events, the Program should have one Program Instance
+        // For Simple Events, the Program should have one Enrollment
         // If it doesn't exist, this is the first event, we can create it here
         if ( enrollments.isEmpty() )
         {

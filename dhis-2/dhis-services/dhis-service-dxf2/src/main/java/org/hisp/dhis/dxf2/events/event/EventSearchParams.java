@@ -819,7 +819,7 @@ public class EventSearchParams
         return programInstances;
     }
 
-    public EventSearchParams setProgramInstances( Set<String> programInstances )
+    public EventSearchParams setEnrollments( Set<String> programInstances )
     {
         this.programInstances = programInstances;
         return this;

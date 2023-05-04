@@ -160,10 +160,10 @@ public class DefaultTrackerObjectsDeletionService
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
                 .getTrackedEntityInstance( uid );
 
-            Set<Enrollment> programInstances = daoEntityInstance.getEnrollments();
+            Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
             List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = enrollmentTrackerConverterService
-                .to( Lists.newArrayList( programInstances.stream()
+                .to( Lists.newArrayList( daoEnrollments.stream()
                     .filter( pi -> !pi.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 

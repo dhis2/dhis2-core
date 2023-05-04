@@ -158,7 +158,7 @@ class RelationshipControllerTest
         mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isOk() );
 
         verify( enrollmentService ).getEnrollment( ENROLLMENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramInstance( eq( enrollment ), any(), eq( false ) );
+        verify( relationshipService ).getRelationshipsByEnrollment( eq( enrollment ), any(), eq( false ) );
     }
 
     @Test

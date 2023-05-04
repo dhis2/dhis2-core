@@ -75,7 +75,7 @@ public class EnrollmentCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     /**
-     * Returns a ProgramInstanceQueryParams based on the given input.
+     * Returns a EnrollmentQueryParams based on the given input.
      *
      * @param ou the set of organisation unit identifiers.
      * @param ouMode the OrganisationUnitSelectionMode.
@@ -94,7 +94,7 @@ public class EnrollmentCriteriaMapper
      * @param totalPages indicates whether to include the total number of pages.
      * @param skipPaging whether to skip paging.
      * @param includeDeleted whether to include soft deleted ones
-     * @return a ProgramInstanceQueryParams.
+     * @return a EnrollmentQueryParams.
      */
     @Transactional( readOnly = true )
     public EnrollmentQueryParams getFromUrl( Set<String> ou, OrganisationUnitSelectionMode ouMode,

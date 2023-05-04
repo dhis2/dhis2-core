@@ -147,7 +147,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         piA = new Enrollment();
         piA.setProgram( program );
         piA.setOrganisationUnit( ouA );
-        piA.setName( "programInstanceA" );
+        piA.setName( "enrollmentA" );
         piA.setEnrollmentDate( new Date() );
         piA.setAutoFields();
         enrollmentService.addEnrollment( piA );

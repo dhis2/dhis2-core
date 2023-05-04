@@ -55,7 +55,7 @@ public class TrackerOrgUnitMergeHandler
     }
 
     @Transactional
-    public void mergeProgramInstances( OrgUnitMergeRequest request )
+    public void mergeEnrollments( OrgUnitMergeRequest request )
     {
         migrate( "update Event psi " +
             "set psi.organisationUnit = :target " +

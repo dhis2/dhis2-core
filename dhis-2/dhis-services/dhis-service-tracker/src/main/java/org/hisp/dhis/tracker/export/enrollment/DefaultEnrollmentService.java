@@ -202,7 +202,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             params.setDefaultPaging();
         }
 
-        List<Enrollment> programInstances = new ArrayList<>(
+        List<Enrollment> enrollmentList = new ArrayList<>(
             enrollmentService.getEnrollments( params ) );
         if ( !params.isSkipPaging() )
         {
@@ -215,13 +215,13 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             }
             else
             {
-                pager = handleLastPageFlag( params, programInstances );
+                pager = handleLastPageFlag( params, enrollmentList );
             }
 
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        enrollments.setEnrollments( getEnrollments( enrollmentList ) );
 
         return enrollments;
     }
@@ -262,20 +262,20 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<Enrollment> getEnrollments( Iterable<Enrollment> programInstances )
+    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments )
     {
-        List<Enrollment> enrollments = new ArrayList<>();
+        List<Enrollment> enrollmentList = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        for ( Enrollment enrollment : programInstances )
+        for ( Enrollment enrollment : enrollments )
         {
             if ( enrollment != null && trackerOwnershipAccessManager
                 .hasAccess( user, enrollment.getEntityInstance(), enrollment.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
+                enrollmentList.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
             }
         }
 
-        return enrollments;
+        return enrollmentList;
     }
 }

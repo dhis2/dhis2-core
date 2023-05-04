@@ -65,7 +65,7 @@ public class EnrollmentCheck implements Checker
 
         List<Enrollment> enrollments;
 
-        if ( enrollment == null ) // Program Instance should be NOT null,
+        if ( enrollment == null ) // Enrollment should be NOT null,
                                  // after the pre-processing stage
         {
             if ( program.isRegistration() )
@@ -93,7 +93,7 @@ public class EnrollmentCheck implements Checker
 
                 if ( enrollments.size() > 1 )
                 {
-                    return error( "Multiple active program instances exists for program: " + program.getUid(),
+                    return error( "Multiple active enrollments exists for program: " + program.getUid(),
                         event.getEvent() );
                 }
             }

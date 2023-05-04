@@ -108,8 +108,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         Program program1 = createProgram( 'B' );
         programService.addProgram( program );
         programService.addProgram( program1 );
-        Enrollment enrollment1 = createProgramInstance( program, original, ou );
-        Enrollment enrollment2 = createProgramInstance( program1, duplicate, ou );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
         enrollmentService.addEnrollment( enrollment1 );
         enrollmentService.addEnrollment( enrollment2 );
         original.getEnrollments().add( enrollment1 );
@@ -155,8 +155,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         programService.addProgram( program1 );
         program.setSharing( sharing );
         program1.setSharing( sharing );
-        Enrollment enrollment1 = createProgramInstance( program, original, ou );
-        Enrollment enrollment2 = createProgramInstance( program1, duplicate, ou );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
         enrollmentService.addEnrollment( enrollment1 );
         enrollmentService.addEnrollment( enrollment2 );
         enrollmentService.updateEnrollment( enrollment1 );

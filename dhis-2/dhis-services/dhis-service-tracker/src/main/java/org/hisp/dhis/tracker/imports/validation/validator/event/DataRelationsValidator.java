@@ -348,10 +348,10 @@ class DataRelationsValidator
 
     private Program getEnrollmentProgramFromEvent( TrackerBundle bundle, Event event )
     {
-        Enrollment programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
-        if ( programInstance != null )
+        Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        if ( preheatEnrollment != null )
         {
-            return programInstance.getProgram();
+            return preheatEnrollment.getProgram();
         }
         else
         {

@@ -68,8 +68,8 @@ public class EventAggregate
      *
      * @param ids a List of {@see Enrollment} Primary Keys
      * @param ctx the {@see AggregateContext}
-     * @return a Map where the key is a Program Instance Primary Key, and the
-     *         value is a List of {@see Event}
+     * @return a Map where the key is a Enrollment Primary Key, and the value is
+     *         a List of {@see Event}
      */
     Multimap<String, Event> findByEnrollmentIds( List<Long> ids, AggregateContext ctx )
     {

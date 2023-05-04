@@ -159,10 +159,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
         trackedEntityInstanceService.addTrackedEntityInstance( control2 );
         Program program = createProgram( 'A' );
         programService.addProgram( program );
-        Enrollment enrollment1 = createProgramInstance( program, original, ou );
-        Enrollment enrollment2 = createProgramInstance( program, duplicate, ou );
-        Enrollment enrollment3 = createProgramInstance( program, control1, ou );
-        Enrollment enrollment4 = createProgramInstance( program, control2, ou );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program, duplicate, ou );
+        Enrollment enrollment3 = createEnrollment( program, control1, ou );
+        Enrollment enrollment4 = createEnrollment( program, control2, ou );
         enrollmentService.addEnrollment( enrollment1 );
         enrollmentService.addEnrollment( enrollment2 );
         enrollmentService.addEnrollment( enrollment3 );

@@ -154,7 +154,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testAddProgramInstance()
+    void testAddEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -163,7 +163,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testDeleteProgramInstance()
+    void testDeleteEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -178,7 +178,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testSoftDeleteProgramInstanceAndLinkedEvent()
+    void testSoftDeleteEnrollmentAndLinkedEvent()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long eventIdA = eventService.addEvent( eventA );
@@ -192,7 +192,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testUpdateProgramInstance()
+    void testUpdateEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         assertNotNull( enrollmentService.getEnrollment( idA ) );
@@ -202,7 +202,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstanceById()
+    void testGetEnrollmentById()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -211,7 +211,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstanceByUid()
+    void testGetEnrollmentByUid()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentB );
@@ -220,7 +220,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByProgram()
+    void testGetEnrollmentsByProgram()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentB );
@@ -235,7 +235,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByEntityInstanceProgramStatus()
+    void testGetEnrollmentsByEntityInstanceProgramStatus()
     {
         enrollmentService.addEnrollment( enrollmentA );
         Enrollment enrollment1 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
@@ -258,7 +258,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByOuProgram()
+    void testGetEnrollmentsByOuProgram()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentC );
@@ -280,7 +280,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testCompleteProgramInstanceStatus()
+    void testCompleteEnrollmentStatus()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idD = enrollmentService.addEnrollment( enrollmentD );
@@ -291,7 +291,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testIncompleteProgramInstanceStatus()
+    void testIncompleteEnrollmentStatus()
     {
         enrollmentA.setStatus( ProgramStatus.COMPLETED );
         enrollmentD.setStatus( ProgramStatus.COMPLETED );
@@ -304,7 +304,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testCancelProgramInstanceStatus()
+    void testCancelEnrollmentStatus()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idD = enrollmentService.addEnrollment( enrollmentD );

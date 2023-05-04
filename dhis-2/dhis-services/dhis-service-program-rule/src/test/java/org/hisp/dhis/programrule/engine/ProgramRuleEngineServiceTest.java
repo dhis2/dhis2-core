@@ -153,7 +153,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testWhenNoImplementableActionExist_programInstance()
+    void testWhenNoImplementableActionExist_enrollment()
     {
         setProgramRuleActionType_ShowError();
 
@@ -162,7 +162,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testWithImplementableActionExist_programInstance()
+    void testWithImplementableActionExist_enrollment()
     {
         doAnswer( invocationOnMock -> {
             ruleEffects.add( (RuleEffect) invocationOnMock.getArguments()[0] );
