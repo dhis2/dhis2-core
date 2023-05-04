@@ -288,7 +288,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -315,7 +315,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getUser() ).thenReturn( deleteEnrollmentAuthorisedUser() );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
@@ -342,7 +342,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -368,7 +368,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );

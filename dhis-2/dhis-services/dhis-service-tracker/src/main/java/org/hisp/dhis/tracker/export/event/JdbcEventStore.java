@@ -1039,9 +1039,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.lastupdated > psi.lastsynchronized " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );
@@ -1314,9 +1314,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.deleted is false " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );

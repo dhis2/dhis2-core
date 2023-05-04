@@ -41,7 +41,7 @@ import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramInstanceMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-public class ProgramInstanceSupplier extends AbstractPreheatSupplier
+public class EnrollmentSupplier extends AbstractPreheatSupplier
 {
     @Nonnull
     private final EnrollmentStore enrollmentStore;
@@ -70,13 +70,13 @@ public class ProgramInstanceSupplier extends AbstractPreheatSupplier
         }
         if ( !programsWithoutRegistration.isEmpty() )
         {
-            List<Enrollment> enrollments = DetachUtils.detach( ProgramInstanceMapper.INSTANCE,
+            List<Enrollment> enrollments = DetachUtils.detach( EnrollmentMapper.INSTANCE,
                 enrollmentStore.getByPrograms( programsWithoutRegistration ) );
 
             enrollments
                 .forEach( pi -> {
                     preheat.putEnrollment( pi.getUid(), pi );
-                    preheat.putProgramInstancesWithoutRegistration( pi.getProgram().getUid(), pi );
+                    preheat.putEnrollmentsWithoutRegistration( pi.getProgram().getUid(), pi );
                 } );
         }
     }

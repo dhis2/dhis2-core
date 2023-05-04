@@ -47,12 +47,12 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 /**
- * Adds to the preheat a Map of Tracked Entities to related Program Instances
+ * Adds to the preheat a Map of Tracked Entities to related enrollments
  *
  * @author Luca Cambi
  */
 @Component
-public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSupplier
+public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 {
 
     private static final String PR_UID_COLUMN = "pr.uid";
@@ -82,7 +82,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         " and tei.uid in (:teuids)" +
         " and pr.uid in (:pruids)";
 
-    protected TrackedEntityProgramInstanceSupplier( JdbcTemplate jdbcTemplate )
+    protected TrackedEntityEnrollmentSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
@@ -113,7 +113,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
             queryTeiAndAddToMap( trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList );
         }
 
-        preheat.setTrackedEntityToProgramInstanceMap( trackedEntityToProgramInstanceMap );
+        preheat.setTrackedEntityToEnrollmentMap( trackedEntityToProgramInstanceMap );
     }
 
     private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap,

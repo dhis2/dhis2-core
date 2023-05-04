@@ -51,7 +51,7 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramInstancePreProcessor implements Processor
+public class EnrollmentPreProcessor implements Processor
 {
     @Override
     public void process( Event event, WorkContext ctx )

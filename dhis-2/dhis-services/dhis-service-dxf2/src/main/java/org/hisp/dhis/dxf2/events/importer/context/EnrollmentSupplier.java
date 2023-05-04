@@ -60,11 +60,11 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component( "workContextProgramInstancesSupplier" )
-public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enrollment>>
+public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>>
 {
     private final ProgramSupplier programSupplier;
 
-    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier )
+    public EnrollmentSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier )
     {
         super( jdbcTemplate );
         this.programSupplier = programSupplier;

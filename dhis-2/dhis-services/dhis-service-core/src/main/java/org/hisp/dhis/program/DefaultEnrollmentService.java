@@ -182,7 +182,7 @@ public class DefaultEnrollmentService
     // TODO consider security
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getEnrollments( ProgramInstanceQueryParams params )
+    public List<Enrollment> getEnrollments( EnrollmentQueryParams params )
     {
         decideAccess( params );
         validate( params );
@@ -216,7 +216,7 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional( readOnly = true )
-    public int countEnrollments( ProgramInstanceQueryParams params )
+    public int countEnrollments( EnrollmentQueryParams params )
     {
         decideAccess( params );
         validate( params );
@@ -248,7 +248,7 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional( readOnly = true )
-    public void decideAccess( ProgramInstanceQueryParams params )
+    public void decideAccess( EnrollmentQueryParams params )
     {
         if ( params.hasProgram() )
         {
@@ -278,7 +278,7 @@ public class DefaultEnrollmentService
     }
 
     @Override
-    public void validate( ProgramInstanceQueryParams params )
+    public void validate( EnrollmentQueryParams params )
         throws IllegalQueryException
     {
         String violation = null;
@@ -447,7 +447,7 @@ public class DefaultEnrollmentService
         eventPublisher.publishEvent( new EnrollmentEvaluationEvent( this, enrollment.getId() ) );
 
         // -----------------------------------------------------------------
-        // Update ProgramInstance and TEI
+        // Update Enrollment and TEI
         // -----------------------------------------------------------------
 
         updateEnrollment( enrollment );

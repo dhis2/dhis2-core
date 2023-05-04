@@ -426,7 +426,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
                 .auditScope( Sets.newHashSet( AuditScope.TRACKER ) ).build() );
         assertFalse( audits.isEmpty() );
         assertEquals( 1,
-            audits.stream().filter( a -> a.getKlass().equals( "org.hisp.dhis.program.ProgramInstance" ) ).count() );
+            audits.stream().filter( a -> a.getKlass().equals( "org.hisp.dhis.program.Enrollment" ) ).count() );
         assertEquals( 1, audits.stream()
             .filter( a -> a.getKlass().equals( "org.hisp.dhis.program.Event" ) ).count() );
         assertEquals( 1, audits.stream()

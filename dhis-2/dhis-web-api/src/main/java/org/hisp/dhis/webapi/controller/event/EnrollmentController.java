@@ -67,8 +67,8 @@ import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.RootNode;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.EnrollmentCriteria;
@@ -146,7 +146,7 @@ public class EnrollmentController
 
         if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.getFromUrl(
+            EnrollmentQueryParams params = enrollmentCriteriaMapper.getFromUrl(
                 TextUtils.splitToSet( enrollmentCriteria.getOu(), TextUtils.SEMICOLON ),
                 enrollmentCriteria.getOuMode(),
                 enrollmentCriteria.getLastUpdated(),

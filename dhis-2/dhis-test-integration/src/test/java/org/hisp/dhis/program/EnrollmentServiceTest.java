@@ -264,7 +264,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         enrollmentService.addEnrollment( enrollmentC );
         enrollmentService.addEnrollment( enrollmentD );
         List<Enrollment> enrollments = enrollmentService
-            .getEnrollments( new ProgramInstanceQueryParams().setProgram( programA )
+            .getEnrollments( new EnrollmentQueryParams().setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
         assertEquals( 1, enrollments.size() );

@@ -279,7 +279,7 @@ class ExistingEnrollmentValidatorTest
 
     private void setTeiInDb( ProgramStatus programStatus )
     {
-        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<>()
+        when( preheat.getTrackedEntityToEnrollmentMap() ).thenReturn( new HashMap<>()
         {
             {
                 Enrollment enrollment = new Enrollment();

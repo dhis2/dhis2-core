@@ -56,7 +56,7 @@ public class WorkContextLoader
 
     private final TrackedEntityInstanceSupplier trackedEntityInstanceSupplier;
 
-    private final ProgramInstanceSupplier programInstanceSupplier;
+    private final EnrollmentSupplier enrollmentSupplier;
 
     private final ProgramStageInstanceSupplier programStageInstanceSupplier;
 
@@ -81,7 +81,7 @@ public class WorkContextLoader
         ProgramSupplier programSupplier,
         OrganisationUnitSupplier organisationUnitSupplier,
         TrackedEntityInstanceSupplier trackedEntityInstanceSupplier,
-        ProgramInstanceSupplier programInstanceSupplier,
+        EnrollmentSupplier enrollmentSupplier,
         ProgramStageInstanceSupplier programStageInstanceSupplier,
         CategoryOptionComboSupplier categoryOptionComboSupplier,
         DataElementSupplier dataElementSupplier,
@@ -96,7 +96,7 @@ public class WorkContextLoader
         this.programSupplier = programSupplier;
         this.organisationUnitSupplier = organisationUnitSupplier;
         this.trackedEntityInstanceSupplier = trackedEntityInstanceSupplier;
-        this.programInstanceSupplier = programInstanceSupplier;
+        this.enrollmentSupplier = enrollmentSupplier;
         this.programStageInstanceSupplier = programStageInstanceSupplier;
         this.categoryOptionComboSupplier = categoryOptionComboSupplier;
         this.dataElementSupplier = dataElementSupplier;
@@ -142,7 +142,7 @@ public class WorkContextLoader
             .persistedProgramStageInstanceMap( persistedProgramStageInstanceMap )
             .organisationUnitMap( orgUniMap )
             .trackedEntityInstanceMap( teiMap )
-            .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
+            .programInstanceMap( enrollmentSupplier.get( localImportOptions, teiMap, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )

@@ -62,9 +62,9 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -103,7 +103,7 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public int countEnrollments( ProgramInstanceQueryParams params )
+    public int countEnrollments( EnrollmentQueryParams params )
     {
         String hql = buildCountEnrollmentHql( params );
 
@@ -112,14 +112,14 @@ public class HibernateEnrollmentStore
         return query.getSingleResult().intValue();
     }
 
-    private String buildCountEnrollmentHql( ProgramInstanceQueryParams params )
+    private String buildCountEnrollmentHql( EnrollmentQueryParams params )
     {
         return buildEnrollmentHql( params ).getQuery().replaceFirst( "from Enrollment pi",
             "select count(distinct uid) from Enrollment pi" );
     }
 
     @Override
-    public List<Enrollment> getEnrollments( ProgramInstanceQueryParams params )
+    public List<Enrollment> getEnrollments( EnrollmentQueryParams params )
     {
         String hql = buildEnrollmentHql( params ).getFullQuery();
 
@@ -143,7 +143,7 @@ public class HibernateEnrollmentStore
         return query.list();
     }
 
-    private QueryWithOrderBy buildEnrollmentHql( ProgramInstanceQueryParams params )
+    private QueryWithOrderBy buildEnrollmentHql( EnrollmentQueryParams params )
     {
         String hql = "from Enrollment pi";
         SqlHelper hlp = new SqlHelper( true );

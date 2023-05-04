@@ -25,27 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.dxf2.events.importer.update.preprocess;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hisp.dhis.organisationunit.FeatureType.NONE;
+import static org.hisp.dhis.system.util.GeoUtils.SRID;
 
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.events.importer.Processor;
+import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.springframework.stereotype.Component;
 
-import com.google.common.collect.ImmutableList;
-
-class ProgramInstanceQueryParamsTest
+/**
+ * @author maikel arabori
+ */
+@Component
+public class EnrollmentGeometryPreProcessor implements Processor
 {
-
-    @Test
-    void verifyIsSorting()
+    @Override
+    public void process( final Event event, final WorkContext ctx )
     {
-        ProgramInstanceQueryParams programInstanceQueryParams = new ProgramInstanceQueryParams();
-        assertFalse( programInstanceQueryParams.isSorting() );
-        programInstanceQueryParams.setOrder( ImmutableList
-            .of( new OrderParam( "aField", SortDirection.ASC ) ) );
-        assertTrue( programInstanceQueryParams.isSorting() );
+        ctx.getProgramStageInstance( event.getUid() ).ifPresent( psi -> {
+
+            if ( event.getGeometry() != null && (!psi.getProgramStage().getFeatureType().equals( NONE ) || psi
+                .getProgramStage().getFeatureType().value().equals( event.getGeometry().getGeometryType() )) )
+            {
+                event.getGeometry().setSRID( SRID );
+            }
+        } );
     }
 }

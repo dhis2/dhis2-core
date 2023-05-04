@@ -58,10 +58,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
+class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
 {
 
-    private ProgramInstanceRepeatableStageCheck rule;
+    private EnrollmentRepeatableStageCheck rule;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -69,7 +69,7 @@ class ProgramInstanceRepeatableStageCheckTest extends BaseValidationTest
     @BeforeEach
     void setUp()
     {
-        rule = new ProgramInstanceRepeatableStageCheck();
+        rule = new EnrollmentRepeatableStageCheck();
     }
 
     @Test

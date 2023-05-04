@@ -49,7 +49,7 @@ public interface EnrollmentStore
      * @param params ProgramInstanceQueryParams to use
      * @return Count of matching PIs
      */
-    int countEnrollments( ProgramInstanceQueryParams params );
+    int countEnrollments( EnrollmentQueryParams params );
 
     /**
      * Get all program instances by PI query params.
@@ -57,7 +57,7 @@ public interface EnrollmentStore
      * @param params ProgramInstanceQueryParams to use
      * @return PIs matching params
      */
-    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
     /**
      * Retrieve program instances on a program

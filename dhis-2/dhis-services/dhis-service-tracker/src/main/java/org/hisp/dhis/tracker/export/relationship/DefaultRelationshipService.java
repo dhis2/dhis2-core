@@ -181,7 +181,7 @@ public class DefaultRelationshipService implements RelationshipService
 
         // the call to the individual services is to detach and apply some logic like filtering out attribute values
         // for tracked entity type attributes from programInstance.entityInstance. Enrollment attributes are actually
-        // owned by the TEI and cannot be set on the ProgramInstance. When returning enrollments in our API an enrollment
+        // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
         if ( item.getTrackedEntityInstance() != null )
         {
