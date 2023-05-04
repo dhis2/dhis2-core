@@ -40,9 +40,9 @@ public interface TrackerNotificationWebHookService
     /**
      * Sends web hook notifications linked to {@link Enrollment}
      *
-     * @param programInstance to handle
+     * @param enrollment to handle
      */
-    void handleEnrollment( String programInstance );
+    void handleEnrollment( String enrollment );
 
     /**
      * Sends web hook notifications linked to

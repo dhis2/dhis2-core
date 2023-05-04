@@ -87,6 +87,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.programrule.engine.TrackerEnrollmentWebHookEvent;
@@ -231,7 +232,7 @@ public abstract class AbstractEnrollmentService
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(ProgramInstanceQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or

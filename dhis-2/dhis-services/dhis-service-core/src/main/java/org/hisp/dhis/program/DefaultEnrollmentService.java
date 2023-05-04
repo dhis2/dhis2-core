@@ -65,11 +65,11 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramInstanceService" )
+@Service( "org.hisp.dhis.program.EnrollmentService" )
 public class DefaultEnrollmentService
     implements EnrollmentService
 {
-    private final ProgramInstanceStore programInstanceStore;
+    private final EnrollmentStore enrollmentStore;
 
     private final EventStore eventStore;
 
@@ -91,7 +91,7 @@ public class DefaultEnrollmentService
     @Transactional
     public long addEnrollment( Enrollment enrollment )
     {
-        programInstanceStore.save( enrollment );
+        enrollmentStore.save( enrollment );
         return enrollment.getId();
     }
 
@@ -99,7 +99,7 @@ public class DefaultEnrollmentService
     @Transactional
     public long addEnrollment( Enrollment enrollment, User user )
     {
-        programInstanceStore.save( enrollment, user );
+        enrollmentStore.save( enrollment, user );
         return enrollment.getId();
     }
 
@@ -108,22 +108,22 @@ public class DefaultEnrollmentService
     public void deleteEnrollment( Enrollment enrollment )
     {
         enrollment.setStatus( ProgramStatus.CANCELLED );
-        programInstanceStore.update( enrollment );
-        programInstanceStore.delete( enrollment );
+        enrollmentStore.update( enrollment );
+        enrollmentStore.delete( enrollment );
     }
 
     @Override
     @Transactional
     public void hardDeleteEnrollment( Enrollment enrollment )
     {
-        programInstanceStore.hardDelete( enrollment );
+        enrollmentStore.hardDelete( enrollment );
     }
 
     @Override
     @Transactional( readOnly = true )
     public Enrollment getEnrollment( long id )
     {
-        Enrollment enrollment = programInstanceStore.get( id );
+        Enrollment enrollment = enrollmentStore.get( id );
 
         return enrollment;
     }
@@ -132,7 +132,7 @@ public class DefaultEnrollmentService
     @Transactional( readOnly = true )
     public Enrollment getEnrollment( String uid )
     {
-        Enrollment enrollment = programInstanceStore.getByUid( uid );
+        Enrollment enrollment = enrollmentStore.getByUid( uid );
 
         return enrollment;
     }
@@ -141,42 +141,42 @@ public class DefaultEnrollmentService
     @Transactional( readOnly = true )
     public List<Enrollment> getEnrollments( @Nonnull List<String> uids )
     {
-        return programInstanceStore.getByUid( uids );
+        return enrollmentStore.getByUid( uids );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean enrollmentExists( String uid )
     {
-        return programInstanceStore.exists( uid );
+        return enrollmentStore.exists( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
     public boolean enrollmentExistsIncludingDeleted( String uid )
     {
-        return programInstanceStore.existsIncludingDeleted( uid );
+        return enrollmentStore.existsIncludingDeleted( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<String> getEnrollmentsUidsIncludingDeleted( List<String> uids )
     {
-        return programInstanceStore.getUidsIncludingDeleted( uids );
+        return enrollmentStore.getUidsIncludingDeleted( uids );
     }
 
     @Override
     @Transactional
     public void updateEnrollment( Enrollment enrollment )
     {
-        programInstanceStore.update( enrollment );
+        enrollmentStore.update( enrollment );
     }
 
     @Override
     @Transactional
     public void updateEnrollment( Enrollment enrollment, User user )
     {
-        programInstanceStore.update( enrollment, user );
+        enrollmentStore.update( enrollment, user );
     }
 
     // TODO consider security
@@ -211,7 +211,7 @@ public class DefaultEnrollmentService
             params.setDefaultPaging();
         }
 
-        return programInstanceStore.getProgramInstances( params );
+        return enrollmentStore.getEnrollments( params );
     }
 
     @Override
@@ -243,7 +243,7 @@ public class DefaultEnrollmentService
 
         params.setSkipPaging( true );
 
-        return programInstanceStore.countProgramInstances( params );
+        return enrollmentStore.countEnrollments( params );
     }
 
     @Override
@@ -349,14 +349,14 @@ public class DefaultEnrollmentService
     @Transactional( readOnly = true )
     public List<Enrollment> getEnrollments( Program program )
     {
-        return programInstanceStore.get( program );
+        return enrollmentStore.get( program );
     }
 
     @Override
     @Transactional( readOnly = true )
     public List<Enrollment> getEnrollments( Program program, ProgramStatus status )
     {
-        return programInstanceStore.get( program, status );
+        return enrollmentStore.get( program, status );
     }
 
     @Override
@@ -364,7 +364,7 @@ public class DefaultEnrollmentService
     public List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
         ProgramStatus status )
     {
-        return programInstanceStore.get( entityInstance, program, status );
+        return enrollmentStore.get( entityInstance, program, status );
     }
 
     @Nonnull

@@ -113,7 +113,7 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
         Enrollment enrollment1 = new Enrollment();
         Enrollment enrollment2 = new Enrollment();
-        when( this.programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
+        when( this.enrollmentStore.get( tei, program, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( enrollment1, enrollment2 ) );
         event.setProgram( program.getUid() );
         //
@@ -146,7 +146,7 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
         Enrollment enrollment1 = new Enrollment();
         Enrollment enrollment2 = new Enrollment();
-        when( this.programInstanceStore.get( programNoReg, ProgramStatus.ACTIVE ) )
+        when( this.enrollmentStore.get( programNoReg, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( enrollment1, enrollment2 ) );
         event.setProgram( programNoReg.getUid() );
         //

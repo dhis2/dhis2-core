@@ -64,9 +64,9 @@ import org.hisp.dhis.notification.NotificationMessageRenderer;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
@@ -109,7 +109,7 @@ public class DefaultProgramNotificationService
     private final MessageService messageService;
 
     @Nonnull
-    private final ProgramInstanceStore programInstanceStore;
+    private final EnrollmentStore enrollmentStore;
 
     @Nonnull
     private final EventStore eventStore;
@@ -271,24 +271,24 @@ public class DefaultProgramNotificationService
 
     @Override
     @Transactional
-    public void sendEnrollmentCompletionNotifications( long programInstance )
+    public void sendEnrollmentCompletionNotifications( long enrollment )
     {
-        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.COMPLETION );
+        sendProgramInstanceNotifications( enrollmentStore.get( enrollment ), NotificationTrigger.COMPLETION );
     }
 
     @Override
     @Transactional
-    public void sendEnrollmentNotifications( long programInstance )
+    public void sendEnrollmentNotifications( long enrollment )
     {
-        sendProgramInstanceNotifications( programInstanceStore.get( programInstance ), NotificationTrigger.ENROLLMENT );
+        sendProgramInstanceNotifications( enrollmentStore.get( enrollment ), NotificationTrigger.ENROLLMENT );
     }
 
     @Override
     @Transactional
-    public void sendProgramRuleTriggeredNotifications( long pnt, long programInstance )
+    public void sendProgramRuleTriggeredNotifications( long pnt, long enrollment )
     {
         MessageBatch messageBatch = createProgramInstanceMessageBatch( notificationTemplateService.get( pnt ),
-            Collections.singletonList( programInstanceStore.get( programInstance ) ) );
+            Collections.singletonList( enrollmentStore.get( enrollment ) ) );
         sendAll( messageBatch );
     }
 
@@ -328,7 +328,7 @@ public class DefaultProgramNotificationService
         List<Event> events = eventStore
             .getWithScheduledNotifications( template, day );
 
-        List<Enrollment> enrollments = programInstanceStore.getWithScheduledNotifications( template, day );
+        List<Enrollment> enrollments = enrollmentStore.getWithScheduledNotifications( template, day );
 
         MessageBatch eventBatch = createEventMessageBatch( template, events );
         MessageBatch psBatch = createProgramInstanceMessageBatch( template, enrollments );

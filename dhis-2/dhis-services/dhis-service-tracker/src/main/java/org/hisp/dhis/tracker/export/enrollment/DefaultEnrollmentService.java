@@ -48,6 +48,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -228,7 +229,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(ProgramInstanceQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or

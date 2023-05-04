@@ -58,7 +58,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Abyot Asalefew
  */
 @Auditable( scope = AuditScope.TRACKER )
-@JacksonXmlRootElement( localName = "programInstance", namespace = DxfNamespaces.DXF_2_0 )
+@JacksonXmlRootElement( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
 public class Enrollment
     extends SoftDeletableObject
 {
@@ -497,7 +497,7 @@ public class Enrollment
     @Override
     public String toString()
     {
-        return "ProgramInstance{" +
+        return "Enrollment{" +
             "id=" + id +
             ", uid='" + uid + '\'' +
             ", code='" + code + '\'' +
