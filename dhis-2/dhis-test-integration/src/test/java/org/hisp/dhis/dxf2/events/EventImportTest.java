@@ -123,7 +123,7 @@ class EventImportTest extends TransactionalIntegrationTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private EnrollmentService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private EventService programStageInstanceService;
@@ -308,11 +308,11 @@ class EventImportTest extends TransactionalIntegrationTest
 
     /**
      * TODO: LUCIANO: this test has been ignored because the Importer should not
-     * import an event linked to a Program with 2 or more Program Instances
+     * import an event linked to a Program with 2 or more Enrollments
      */
     @Test
     @Disabled
-    void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
+    void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment()
         throws IOException
     {
         Enrollment pi = new Enrollment();
@@ -321,7 +321,7 @@ class EventImportTest extends TransactionalIntegrationTest
         pi.setProgram( programB );
         pi.setStatus( ProgramStatus.ACTIVE );
         pi.setStoredBy( "test" );
-        programInstanceService.addEnrollment( pi );
+        enrollmentService.addEnrollment( pi );
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
@@ -477,7 +477,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testEventDeletion()
     {
-        programInstanceService.addEnrollment( pi );
+        enrollmentService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -494,7 +494,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEvent()
     {
-        programInstanceService.addEnrollment( pi );
+        enrollmentService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -510,7 +510,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEventInBulk()
     {
-        programInstanceService.addEnrollment( pi );
+        enrollmentService.addEnrollment( pi );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );

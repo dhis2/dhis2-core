@@ -103,20 +103,20 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
         if ( programList.isEmpty() || teiList.isEmpty() )
             return;
 
-        Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
+        Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
         if ( params.getEnrollments().isEmpty() )
             return;
 
         for ( List<String> trackedEntityListSubList : teiList )
         {
-            queryTeiAndAddToMap( trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList );
+            queryTeiAndAddToMap( trackedEntityToEnrollmentMap, trackedEntityListSubList, programList );
         }
 
-        preheat.setTrackedEntityToEnrollmentMap( trackedEntityToProgramInstanceMap );
+        preheat.setTrackedEntityToEnrollmentMap( trackedEntityToEnrollmentMap );
     }
 
-    private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap,
+    private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
         List<String> trackedEntityListSubList, List<String> programList )
     {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -134,12 +134,12 @@ public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
             program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
             newPi.setProgram( program );
 
-            List<Enrollment> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
+            List<Enrollment> piList = trackedEntityToEnrollmentMap.getOrDefault( tei,
                 new ArrayList<>() );
 
             piList.add( newPi );
 
-            trackedEntityToProgramInstanceMap.put( tei, piList );
+            trackedEntityToEnrollmentMap.put( tei, piList );
         } );
     }
 }

@@ -108,7 +108,7 @@ public class HibernateProgramMessageStore
 
         String hql = " select distinct pm from ProgramMessage pm ";
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
             hql += helper.whereAnd() + "pm.enrollment = :enrollment";
         }
@@ -130,7 +130,7 @@ public class HibernateProgramMessageStore
 
         Query<ProgramMessage> query = getQuery( hql );
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
             query.setParameter( "enrollment", params.getEnrollment() );
         }

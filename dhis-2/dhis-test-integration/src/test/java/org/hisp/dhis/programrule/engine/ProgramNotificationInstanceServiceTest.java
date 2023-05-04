@@ -126,9 +126,9 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         manager.save( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         manager.update( programRule );
-        enrollment = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        enrollment = createEnrollment( program, trackedEntityInstance, organisationUnit );
         enrollmentService.addEnrollment( enrollment );
-        enrollmentB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        enrollmentB = createEnrollment( program, trackedEntityInstance, organisationUnit );
         enrollmentService.addEnrollment( enrollmentB );
     }
 

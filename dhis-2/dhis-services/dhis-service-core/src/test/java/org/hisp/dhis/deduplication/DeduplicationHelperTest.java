@@ -122,7 +122,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         relationshipType = createRelationshipType( 'A' );
         relationshipTypeBidirectional = createRelationshipType( 'B' );
         attribute = createTrackedEntityAttribute( 'A' );
-        enrollment = createProgramInstance( createProgram( 'A' ), getTeiA(), organisationUnitA );
+        enrollment = createEnrollment( createProgram( 'A' ), getTeiA(), organisationUnitA );
         mergeObject = MergeObject.builder()
             .relationships( relationshipUids )
             .trackedEntityAttributes( attributeUids )
@@ -219,7 +219,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToEnrollment()
     {
         when( aclService.canDataWrite( user, enrollment.getProgram() ) ).thenReturn( false );
 
@@ -372,19 +372,19 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     {
         TrackedEntityInstance original = getTeiA();
         Program programA = createProgram( 'A' );
-        Enrollment enrollmentA = createProgramInstance( programA, original, organisationUnitA );
-        enrollmentA.setUid( "programInstanceA" );
+        Enrollment enrollmentA = createEnrollment( programA, original, organisationUnitA );
+        enrollmentA.setUid( "enrollmentA" );
         original.getEnrollments().add( enrollmentA );
 
         TrackedEntityInstance duplicate = getTeiA();
         Program programB = createProgram( 'B' );
-        Enrollment enrollmentB = createProgramInstance( programB, duplicate, organisationUnitA );
-        enrollmentB.setUid( "programInstanceB" );
+        Enrollment enrollmentB = createEnrollment( programB, duplicate, organisationUnitA );
+        enrollmentB.setUid( "enrollmentB" );
         duplicate.getEnrollments().add( enrollmentB );
 
         MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
 
-        assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
+        assertEquals( "enrollmentB", generatedMergeObject.getEnrollments().get( 0 ) );
     }
 
     @Test
@@ -393,11 +393,11 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         TrackedEntityInstance original = getTeiA();
 
         Program program = createProgram( 'A' );
-        Enrollment enrollmentA = createProgramInstance( program, original, organisationUnitA );
+        Enrollment enrollmentA = createEnrollment( program, original, organisationUnitA );
         original.getEnrollments().add( enrollmentA );
 
         TrackedEntityInstance duplicate = getTeiA();
-        Enrollment enrollmentB = createProgramInstance( program, duplicate, organisationUnitA );
+        Enrollment enrollmentB = createEnrollment( program, duplicate, organisationUnitA );
         duplicate.getEnrollments().add( enrollmentB );
 
         assertThrows( PotentialDuplicateConflictException.class,

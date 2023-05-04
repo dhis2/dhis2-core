@@ -65,7 +65,7 @@ class EventStatusPreProcessorTest
         event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
         Enrollment enrollment = new Enrollment();
-        enrollment.setUid( "programInstanceUid" );
+        enrollment.setUid( "enrollmentUid" );
         Program program = new Program();
         program.setUid( "programUid" );
         ProgramStage programStage = new ProgramStage();

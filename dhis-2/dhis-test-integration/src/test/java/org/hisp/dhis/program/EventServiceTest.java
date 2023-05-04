@@ -214,7 +214,7 @@ class EventServiceTest extends TransactionalIntegrationTest
         programB.setProgramStages( programStages );
         programService.updateProgram( programB );
         /**
-         * Program Instance and Program Stage Instance
+         * Enrollment and Program Stage Instance
          */
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();

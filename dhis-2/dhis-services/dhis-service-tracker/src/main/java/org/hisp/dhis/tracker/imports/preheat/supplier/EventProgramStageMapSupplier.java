@@ -54,7 +54,7 @@ public class EventProgramStageMapSupplier
 {
     private static final String PS_UID = "programStageUid";
 
-    private static final String PI_UID = "programInstanceUid";
+    private static final String PI_UID = "enrollmentUid";
 
     private static final String SQL = "select distinct ps.uid as " + PS_UID + ", pi.uid as " + PI_UID + " " +
         " from programinstance as pi " +
@@ -64,7 +64,7 @@ public class EventProgramStageMapSupplier
         " and psi.status != 'SKIPPED' " +
         " and ps.programstageid = psi.programstageid " +
         " and ps.uid in (:programStageUids) " +
-        " and pi.uid in (:programInstanceUids) ";
+        " and pi.uid in (:enrollmentUids) ";
 
     protected EventProgramStageMapSupplier( JdbcTemplate jdbcTemplate )
     {
@@ -89,17 +89,17 @@ public class EventProgramStageMapSupplier
             .distinct()
             .collect( Collectors.toList() );
 
-        List<String> programInstanceUids = params.getEvents().stream()
+        List<String> enrollmentUids = params.getEvents().stream()
             .map( Event::getEnrollment )
             .filter( Objects::nonNull )
             .distinct()
             .collect( Collectors.toList() );
 
-        if ( !notRepeatableProgramStageUids.isEmpty() && !programInstanceUids.isEmpty() )
+        if ( !notRepeatableProgramStageUids.isEmpty() && !enrollmentUids.isEmpty() )
         {
             MapSqlParameterSource parameters = new MapSqlParameterSource();
             parameters.addValue( "programStageUids", notRepeatableProgramStageUids );
-            parameters.addValue( "programInstanceUids", programInstanceUids );
+            parameters.addValue( "enrollmentUids", enrollmentUids );
             jdbcTemplate.query( SQL, parameters, (RowCallbackHandler) rs -> preheat
                 .addProgramStageWithEvents( rs.getString( PS_UID ), rs.getString( PI_UID ) ) );
         }

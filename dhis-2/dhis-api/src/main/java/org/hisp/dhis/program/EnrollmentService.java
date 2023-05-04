@@ -140,19 +140,19 @@ public interface EnrollmentService
     List<String> getEnrollmentsUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Returns a list with program instance values based on the given
-     * ProgramInstanceQueryParams.
+     * Returns a list with Enrollment values based on the given
+     * EnrollmentQueryParams.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      * @return List of PIs matching the params
      */
     List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Returns the number of program instance matches based on the given
-     * ProgramInstanceQueryParams.
+     * Returns the number of Enrollment matches based on the given
+     * EnrollmentQueryParams.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      * @return Number of PIs matching the params
      */
     int countEnrollments( EnrollmentQueryParams params );
@@ -161,22 +161,22 @@ public interface EnrollmentService
      * Decides whether current user is authorized to perform the given query.
      * IllegalQueryException is thrown if not.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      */
     void decideAccess( EnrollmentQueryParams params );
 
     /**
-     * Validates the given ProgramInstanceQueryParams. The params is considered
-     * valid if no exception are thrown and the method returns normally.
+     * Validates the given EnrollmentQueryParams. The params is considered valid
+     * if no exception are thrown and the method returns normally.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
      */
     void validate( EnrollmentQueryParams params )
         throws IllegalQueryException;
 
     /**
-     * Retrieve program instances on a program
+     * Retrieve Enrollments on a program
      *
      * @param program Program
      * @return Enrollment list
@@ -184,7 +184,7 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( Program program );
 
     /**
-     * Retrieve program instances on a program by status
+     * Retrieve enrollments on a program by status
      *
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
@@ -194,7 +194,7 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a
+     * Retrieve enrollments on a TrackedEntityInstance with a status by a
      * program
      *
      * @param entityInstance TrackedEntityInstance
@@ -237,8 +237,8 @@ public interface EnrollmentService
         OrganisationUnit orgunit );
 
     /**
-     * Complete a program instance. Besides, program template messages will be
-     * send if it was defined to send when to complete this program
+     * Complete a enrollment. Besides, program template messages will be send if
+     * it was defined to send when to complete this program
      *
      * @param enrollment Enrollment
      */
@@ -252,8 +252,8 @@ public interface EnrollmentService
     void cancelEnrollmentStatus( Enrollment enrollment );
 
     /**
-     * Incomplete a program instance. This is is possible only if there is no
-     * other program instance with active status.
+     * Incomplete a enrollment. This is is possible only if there is no other
+     * enrollment with active status.
      *
      * @param enrollment Enrollment
      */

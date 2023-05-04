@@ -142,7 +142,7 @@ class EnrollmentSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( enrollment,
+        assertEnrollmentInPreheat( enrollment,
             preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
@@ -154,11 +154,11 @@ class EnrollmentSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( enrollmentWithoutRegistration,
+        assertEnrollmentInPreheat( enrollmentWithoutRegistration,
             preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
-    private void assertProgramInstanceInPreheat( Enrollment expected, Enrollment actual )
+    private void assertEnrollmentInPreheat( Enrollment expected, Enrollment actual )
     {
         assertEquals( expected.getUid(), actual.getUid() );
         assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );

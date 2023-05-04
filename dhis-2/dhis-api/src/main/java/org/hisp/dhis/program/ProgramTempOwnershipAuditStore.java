@@ -48,7 +48,7 @@ public interface ProgramTempOwnershipAuditStore
     /**
      * Deletes audit for the given program
      *
-     * @param program the program instance
+     * @param program the enrollment
      */
     void deleteProgramTempOwnershipAudit( Program program );
 

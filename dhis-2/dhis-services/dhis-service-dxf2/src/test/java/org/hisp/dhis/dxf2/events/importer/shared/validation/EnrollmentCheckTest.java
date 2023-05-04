@@ -81,7 +81,7 @@ class EnrollmentCheckTest extends BaseValidationTest
     {
         // Data preparation
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -103,7 +103,7 @@ class EnrollmentCheckTest extends BaseValidationTest
     {
         // Data preparation
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -134,7 +134,7 @@ class EnrollmentCheckTest extends BaseValidationTest
         programMap.put( programNoReg.getUid(), programNoReg );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -154,6 +154,6 @@ class EnrollmentCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-            "Multiple active program instances exists for program: " + programNoReg.getUid() );
+            "Multiple active enrollments exists for program: " + programNoReg.getUid() );
     }
 }

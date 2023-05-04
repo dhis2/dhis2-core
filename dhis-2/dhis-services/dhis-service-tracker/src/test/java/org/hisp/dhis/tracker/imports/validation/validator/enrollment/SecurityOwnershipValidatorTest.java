@@ -142,7 +142,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned()
+    void verifyValidationSuccessForEnrollmentWhenEnrollmentHasNoOrgUnitAssigned()
     {
         org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
             .builder()
@@ -155,11 +155,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        Enrollment programInstance = getEnrollment( enrollment.getEnrollment() );
-        programInstance.setOrganisationUnit( null );
+        Enrollment preheatEnrollment = getEnrollment( enrollment.getEnrollment() );
+        preheatEnrollment.setOrganisationUnit( null );
 
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
-            .thenReturn( programInstance );
+            .thenReturn( preheatEnrollment );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
 
@@ -434,7 +434,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertHasError( reporter, enrollment, E1104 );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntityInstance getTEIWithNoEnrollments()
     {
         TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstance.setUid( TEI_ID );
@@ -453,7 +453,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( enrollmentUid );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.setEntityInstance( getTEIWithNoProgramInstances() );
+        enrollment.setEntityInstance( getTEIWithNoEnrollments() );
         enrollment.setProgram( program );
         enrollment.setStatus( ProgramStatus.ACTIVE );
         return enrollment;

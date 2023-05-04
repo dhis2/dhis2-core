@@ -105,7 +105,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<org.hisp.dhis.dxf
 
     private Event mapForUpdate( org.hisp.dhis.dxf2.events.event.Event event, Event psi )
     {
-        // Program Instance
+        // Enrollment
         workContext.getProgramInstance( event.getUid() ).ifPresent( psi::setEnrollment );
 
         // Program Stage
@@ -169,7 +169,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<org.hisp.dhis.dxf
             psi.setUid( event.getUid() );
         }
 
-        // Program Instance
+        // Enrollment
         psi.setEnrollment( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
 
         // Program Stage

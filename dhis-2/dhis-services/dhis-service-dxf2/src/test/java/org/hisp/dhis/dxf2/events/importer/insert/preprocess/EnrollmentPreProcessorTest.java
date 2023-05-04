@@ -92,7 +92,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest
     {
         this.subject = new EnrollmentPreProcessor();
         //
-        // empty Program Instance Map
+        // empty Enrollment Map
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
     }

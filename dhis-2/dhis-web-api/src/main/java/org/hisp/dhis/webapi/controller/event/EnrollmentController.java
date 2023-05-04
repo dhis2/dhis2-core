@@ -112,7 +112,7 @@ public class EnrollmentController
     private AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    private EnrollmentService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     protected FieldFilterService fieldFilterService;
@@ -341,7 +341,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage cancelEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.enrollmentExists( id ) )
+        if ( !enrollmentService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }
@@ -355,7 +355,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage completeEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.enrollmentExists( id ) )
+        if ( !enrollmentService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }
@@ -369,7 +369,7 @@ public class EnrollmentController
     @ResponseBody
     public WebMessage incompleteEnrollment( @PathVariable String id )
     {
-        if ( !programInstanceService.enrollmentExists( id ) )
+        if ( !enrollmentService.enrollmentExists( id ) )
         {
             return notFound( "Enrollment not found for ID " + id );
         }

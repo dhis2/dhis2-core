@@ -137,7 +137,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService;
 
-    protected EnrollmentService programInstanceService;
+    protected EnrollmentService enrollmentService;
 
     protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
 
@@ -1140,7 +1140,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             {
                 delete.add( enrollment );
             }
-            else if ( !programInstanceService.enrollmentExists( enrollment.getEnrollment() ) )
+            else if ( !enrollmentService.enrollmentExists( enrollment.getEnrollment() ) )
             {
                 create.add( enrollment );
             }

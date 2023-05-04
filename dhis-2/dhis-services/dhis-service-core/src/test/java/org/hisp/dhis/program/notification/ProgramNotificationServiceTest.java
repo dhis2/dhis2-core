@@ -218,7 +218,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Test
-    void testIfProgramInstanceIsNull()
+    void testIfEnrollmentIsNull()
     {
         when( enrollmentStore.get( anyLong() ) ).thenReturn( null );
 

@@ -255,7 +255,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedProgramInstanceWithAProgramMessage()
+    void testDeleteSoftDeletedEnrollmentWithAProgramMessage()
     {
         ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
@@ -271,7 +271,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         enrollmentService.deleteEnrollment( enrollment );
         assertNull( enrollmentService.getEnrollment( idA ) );
         assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
-        maintenanceService.deleteSoftDeletedProgramInstances();
+        maintenanceService.deleteSoftDeletedEnrollments();
         assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
     }
 
@@ -319,7 +319,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedProgramInstanceLinkedToATrackedEntityDataValueAudit()
+    void testDeleteSoftDeletedEnrollmentLinkedToATrackedEntityDataValueAudit()
     {
         DataElement dataElement = createDataElement( 'A' );
         dataElementService.addDataElement( dataElement );
@@ -336,7 +336,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         enrollmentService.deleteEnrollment( enrollment );
         assertNull( enrollmentService.getEnrollment( idA ) );
         assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
-        maintenanceService.deleteSoftDeletedProgramInstances();
+        maintenanceService.deleteSoftDeletedEnrollments();
         assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
     }
 
@@ -381,7 +381,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedProgramInstanceLinkedToARelationshipItem()
+    void testDeleteSoftDeletedEnrollmentLinkedToARelationshipItem()
     {
         RelationshipType rType = createRelationshipType( 'A' );
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
@@ -407,7 +407,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNull( relationshipService.getRelationship( r.getId() ) );
         assertTrue( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
-        maintenanceService.deleteSoftDeletedProgramInstances();
+        maintenanceService.deleteSoftDeletedEnrollments();
         assertFalse( enrollmentService.enrollmentExistsIncludingDeleted( enrollment.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }

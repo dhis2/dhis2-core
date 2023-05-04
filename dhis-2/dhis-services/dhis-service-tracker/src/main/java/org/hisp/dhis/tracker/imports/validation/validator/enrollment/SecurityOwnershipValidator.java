@@ -103,7 +103,7 @@ class SecurityOwnershipValidator
 
         if ( strategy.isDelete() )
         {
-            boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
+            boolean hasNonDeletedEvents = enrollmentHasEvents( preheat, enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
@@ -130,9 +130,9 @@ class SecurityOwnershipValidator
         }
     }
 
-    private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
+    private boolean enrollmentHasEvents( TrackerPreheat preheat, String enrollmentUid )
     {
-        return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+        return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains( enrollmentUid );
     }
 
     private void checkEnrollmentOrgUnit( Reporter reporter, TrackerBundle bundle,

@@ -180,7 +180,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByProgram()
+    void testGetEnrollmentsByProgram()
     {
         enrollmentStore.save( enrollmentA );
         enrollmentStore.save( enrollmentB );
@@ -195,7 +195,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByEntityInstanceProgramStatus()
+    void testGetEnrollmentsByEntityInstanceProgramStatus()
     {
         enrollmentStore.save( enrollmentA );
         enrollmentStore.save( enrollmentB );
@@ -262,7 +262,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetExcludeDeletedProgramInstance()
+    void testGetExcludeDeletedEnrollment()
     {
         enrollmentStore.save( enrollmentA );
         enrollmentStore.save( enrollmentB );
@@ -273,8 +273,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByProgramAndTrackedEntityInstance()
     {
-        // Create a second Program Instance with identical Program and TEI as
-        // programInstanceA.
+        // Create a second enrollment with identical Program and TEI as
+        // enrollmentA.
         // This should really never happen in production
         // Doing it here to test that the query can return both instances
         Enrollment enrollmentZ = new Enrollment( enrollmentDate, incidentDate, entityInstanceA,

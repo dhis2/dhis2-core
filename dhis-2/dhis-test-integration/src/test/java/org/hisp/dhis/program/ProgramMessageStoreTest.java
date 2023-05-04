@@ -258,7 +258,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramMessageByProgramInstance()
+    void testGetProgramMessageByEnrollment()
     {
         enrollmentStore.save( enrollmentA );
         pmsgA.setEnrollment( enrollmentA );

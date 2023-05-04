@@ -238,14 +238,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByProgramInstanceIfUserHasNoAccessToRelationshipType()
+    void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
         throws ForbiddenException,
         NotFoundException
     {
         Relationship accessible = relationship( teiA, enrollmentA );
         relationship( teiB, enrollmentA, teiToPiInaccessibleType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( enrollmentA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByEnrollment( enrollmentA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),

@@ -51,12 +51,12 @@ public interface RelationshipStore
     List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    default List<Relationship> getByProgramInstance( Enrollment pi )
+    default List<Relationship> getByEnrollment( Enrollment pi )
     {
-        return getByProgramInstance( pi, null );
+        return getByEnrollment( pi, null );
     }
 
-    List<Relationship> getByProgramInstance( Enrollment pi,
+    List<Relationship> getByEnrollment( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     default List<Relationship> getByEvent( Event event )

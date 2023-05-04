@@ -69,7 +69,7 @@ import com.google.common.collect.Sets;
 class EventTrackerConverterServiceTest extends DhisConvenienceTest
 {
 
-    private final static String PROGRAM_INSTANCE_UID = "programInstanceUid";
+    private final static String ENROLLMENT_UID = "enrollmentUid";
 
     private final static String PROGRAM_STAGE_UID = "ProgramStageUid";
 
@@ -114,8 +114,8 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnit );
-        Enrollment enrollment = createProgramInstance( program, tei, organisationUnit );
-        enrollment.setUid( PROGRAM_INSTANCE_UID );
+        Enrollment enrollment = createEnrollment( program, tei, organisationUnit );
+        enrollment.setUid( ENROLLMENT_UID );
         event = new Event();
         event.setAutoFields();
         event.setAttributeOptionCombo( createCategoryOptionCombo( 'C' ) );
@@ -311,7 +311,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
 
         org.hisp.dhis.tracker.imports.domain.Event event = converter.to( this.event );
 
-        assertEquals( PROGRAM_INSTANCE_UID, event.getEnrollment() );
+        assertEquals( ENROLLMENT_UID, event.getEnrollment() );
         assertEquals( event.getStoredBy(), user.getUsername() );
         event.getDataValues().forEach( e -> {
             assertEquals( DateUtils.fromInstant( e.getCreatedAt() ), this.event.getCreated() );

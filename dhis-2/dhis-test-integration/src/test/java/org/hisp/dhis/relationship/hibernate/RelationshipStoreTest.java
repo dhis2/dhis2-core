@@ -125,7 +125,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     {
         Program programA = addProgram();
 
-        Enrollment enrollment = addProgramInstance( programA );
+        Enrollment enrollment = addEnrollment( programA );
 
         ProgramStage programStageA = addProgramStage( programA );
 
@@ -147,20 +147,20 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramInstance()
+    void testGetByEnrollment()
     {
         trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
         trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
 
         Program programA = addProgram();
 
-        Enrollment enrollment = addProgramInstance( programA );
+        Enrollment enrollment = addEnrollment( programA );
 
-        Relationship relationshipA = addTeiToProgramInstanceRelationship( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToEnrollmentRelationship( trackedEntityInstanceA,
             enrollment );
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByProgramInstance( enrollment, true );
+            .getRelationshipsByEnrollment( enrollment, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( relationshipA ) );
@@ -249,7 +249,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Relationship addTeiToProgramInstanceRelationship( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToEnrollmentRelationship( TrackedEntityInstance entityInstance,
         Enrollment enrollment )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
@@ -289,7 +289,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return programStageA;
     }
 
-    private Enrollment addProgramInstance( Program programA )
+    private Enrollment addEnrollment( Program programA )
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setProgram( programA );

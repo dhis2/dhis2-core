@@ -150,7 +150,7 @@ class EnrollmentImportValidationTest extends TrackerTest
     }
 
     @Test
-    void testDeleteCascadeProgramInstances()
+    void testDeleteCascadeEnrollments()
         throws IOException
     {
 

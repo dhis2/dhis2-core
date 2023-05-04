@@ -78,11 +78,11 @@ public class EnrollmentTrackerConverterService
     }
 
     @Override
-    public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to( List<Enrollment> programInstances )
+    public List<org.hisp.dhis.tracker.imports.domain.Enrollment> to( List<Enrollment> preheatEnrollments )
     {
         List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = new ArrayList<>();
 
-        programInstances.forEach( tei -> {
+        preheatEnrollments.forEach( tei -> {
             // TODO: Add implementation
         } );
 
@@ -92,8 +92,8 @@ public class EnrollmentTrackerConverterService
     @Override
     public Enrollment from( TrackerPreheat preheat, org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
-        Enrollment programInstance = preheat.getEnrollment( enrollment.getEnrollment() );
-        return from( preheat, enrollment, programInstance );
+        Enrollment preheatEnrollment = preheat.getEnrollment( enrollment.getEnrollment() );
+        return from( preheat, enrollment, preheatEnrollment );
     }
 
     @Override

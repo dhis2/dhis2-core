@@ -49,7 +49,7 @@ public class Events
 {
     private String program;
 
-    private String programInstance;
+    private String enrollment;
 
     private List<Event> events = new ArrayList<>();
 
@@ -75,14 +75,14 @@ public class Events
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public String getProgramInstance()
+    public String getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( String programInstance )
+    public void setEnrollment( String enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
     @JsonProperty
@@ -129,7 +129,7 @@ public class Events
     {
         return "Events{" +
             "program='" + program + '\'' +
-            ", programInstance='" + programInstance + '\'' +
+            ", enrollment='" + enrollment + '\'' +
             ", events=" + events +
             '}';
     }

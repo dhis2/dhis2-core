@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.artemis.MessageType;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
@@ -56,13 +57,12 @@ class TrackerSideEffectDataBundleTest
         enrollment.setEnrollment( "test-enrollment" );
         Map<String, List<TrackerRuleEngineSideEffect>> enrollmentRuleEffects = new HashMap<>();
         enrollmentRuleEffects.put( enrollment.getEnrollment(), Lists.newArrayList() );
-        Enrollment programInstance = new Enrollment();
-        programInstance.setAutoFields();
+        String enrollmentUid = CodeGenerator.generateUid();
         TrackerSideEffectDataBundle bundle = TrackerSideEffectDataBundle.builder()
             .enrollmentRuleEffects( enrollmentRuleEffects ).accessedBy( "testUser" )
-            .importStrategy( TrackerImportStrategy.CREATE ).object( programInstance.getUid() )
+            .importStrategy( TrackerImportStrategy.CREATE ).object( enrollmentUid )
             .klass( Enrollment.class ).build();
-        assertEquals( programInstance.getUid(), bundle.getObject() );
+        assertEquals( enrollmentUid, bundle.getObject() );
         assertEquals( Enrollment.class, bundle.getKlass() );
         assertTrue( bundle.getEnrollmentRuleEffects().containsKey( "test-enrollment" ) );
         assertTrue( bundle.getEventRuleEffects().isEmpty() );

@@ -83,7 +83,7 @@ public class ProgramNotificationInstance extends BaseIdentifiableObject
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     private Date scheduledAt;
 
-    public boolean hasProgramInstance()
+    public boolean hasEnrollment()
     {
         return enrollment != null;
     }

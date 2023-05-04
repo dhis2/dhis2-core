@@ -275,7 +275,7 @@ public class TrackerPreheat
     private final Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
 
     /**
-     * A Map of trackedEntity uid connected to Program Instances
+     * A Map of trackedEntity uid connected to Enrollments
      */
     @Getter
     @Setter
@@ -305,7 +305,7 @@ public class TrackerPreheat
     private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
 
     /**
-     * A list of all Program Instance UID having at least one Event that is not
+     * A list of all Enrollment UID having at least one Event that is not
      * deleted.
      */
     @Getter
