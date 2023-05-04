@@ -146,7 +146,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         programStage = createProgramStage( 'A', program );
         manager.save( programStage );
 
-        enrollment = programInstance( tei );
+        enrollment = enrollment( tei );
         event = event();
         enrollment.setEvents( Set.of( event ) );
         manager.update( enrollment );
@@ -342,7 +342,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         assertHasNoMember( enrollment, "attributes" );
     }
 
-    private Enrollment programInstance( TrackedEntityInstance tei )
+    private Enrollment enrollment( TrackedEntityInstance tei )
     {
         Enrollment enrollment = new Enrollment( program, tei, orgUnit );
         enrollment.setAutoFields();

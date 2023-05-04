@@ -136,7 +136,7 @@ public abstract class AbstractRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
