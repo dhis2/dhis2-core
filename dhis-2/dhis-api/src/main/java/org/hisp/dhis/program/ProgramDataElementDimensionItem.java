@@ -194,6 +194,11 @@ public class ProgramDataElementDimensionItem
         this.dataElement = dataElement;
     }
 
+    /**
+     * Indicates whether this item has a data element.
+     *
+     * @return
+     */
     public boolean hasDataElement()
     {
         return dataElement != null;

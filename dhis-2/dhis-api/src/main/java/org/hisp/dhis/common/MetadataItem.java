@@ -232,6 +232,12 @@ public class MetadataItem
         addIconPathToStyle( getDimensionalItemObjectStyle( dimensionalItemObject ) );
     }
 
+    /**
+     * Returns Object Style
+     *
+     * @param dimensionalItemObject the {@link DimensionalItemObject}
+     * @return the {@link ObjectStyle}
+     */
     private ObjectStyle getDimensionalItemObjectStyle( DimensionalItemObject dimensionalItemObject )
     {
         if ( dimensionalItemObject instanceof ProgramDataElementDimensionItem programDataElementDimensionItem )
