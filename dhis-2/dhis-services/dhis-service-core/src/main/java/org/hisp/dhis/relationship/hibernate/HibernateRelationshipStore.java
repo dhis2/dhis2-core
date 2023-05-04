@@ -47,8 +47,8 @@ import org.hibernate.query.Query;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
@@ -71,9 +71,9 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 {
     private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";
 
-    private static final String PROGRAM_INSTANCE = "programInstance";
+    private static final String PROGRAM_INSTANCE = "enrollment";
 
-    private static final String PROGRAM_STAGE_INSTANCE = "programStageInstance";
+    private static final String EVENT = "event";
 
     public HibernateRelationshipStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
@@ -92,7 +92,7 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByProgramInstance( ProgramInstance pi,
+    public List<Relationship> getByProgramInstance( Enrollment pi,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
         TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi,
@@ -102,10 +102,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByProgramStageInstance( ProgramStageInstance psi,
+    public List<Relationship> getByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( psi,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( event,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
@@ -158,10 +158,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     {
         if ( entity instanceof TrackedEntityInstance )
             return TRACKED_ENTITY_INSTANCE;
-        else if ( entity instanceof ProgramInstance )
+        else if ( entity instanceof Enrollment )
             return PROGRAM_INSTANCE;
-        else if ( entity instanceof ProgramStageInstance )
-            return PROGRAM_STAGE_INSTANCE;
+        else if ( entity instanceof Event )
+            return EVENT;
         else
             throw new IllegalArgumentException( entity.getClass()
                 .getSimpleName() + " not supported in relationship" );
@@ -341,15 +341,15 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
             return builder.equal( root.join( direction )
                 .get( TRACKED_ENTITY_INSTANCE ), getItem( direction, relationship ).getTrackedEntityInstance() );
         }
-        else if ( relationshipItemDirection.getProgramInstance() != null )
+        else if ( relationshipItemDirection.getEnrollment() != null )
         {
             return builder.equal( root.join( direction )
-                .get( PROGRAM_INSTANCE ), getItem( direction, relationship ).getProgramInstance() );
+                .get( PROGRAM_INSTANCE ), getItem( direction, relationship ).getEnrollment() );
         }
-        else if ( relationshipItemDirection.getProgramStageInstance() != null )
+        else if ( relationshipItemDirection.getEvent() != null )
         {
             return builder.equal( root.join( direction )
-                .get( PROGRAM_STAGE_INSTANCE ), getItem( direction, relationship ).getProgramStageInstance() );
+                .get( EVENT ), getItem( direction, relationship ).getEvent() );
         }
         else
         {

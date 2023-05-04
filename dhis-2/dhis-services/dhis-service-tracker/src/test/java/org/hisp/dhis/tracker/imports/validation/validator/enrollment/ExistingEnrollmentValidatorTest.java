@@ -39,13 +39,12 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.HashMap;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -66,7 +65,7 @@ class ExistingEnrollmentValidatorTest
     private ExistingEnrollmentValidator validator;
 
     @Mock
-    Enrollment enrollment;
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
     @Mock
     TrackerBundle bundle;
@@ -280,26 +279,27 @@ class ExistingEnrollmentValidatorTest
 
     private void setTeiInDb( ProgramStatus programStatus )
     {
-        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<>()
+        when( preheat.getTrackedEntityToEnrollmentMap() ).thenReturn( new HashMap<>()
         {
             {
-                ProgramInstance programInstance = new ProgramInstance();
+                Enrollment enrollment = new Enrollment();
 
                 Program program = new Program();
                 program.setUid( programUid );
 
-                programInstance.setUid( "another_enrollment" );
-                programInstance.setStatus( programStatus );
-                programInstance.setProgram( program );
+                enrollment.setUid( "another_enrollment" );
+                enrollment.setStatus( programStatus );
+                enrollment.setProgram( program );
 
-                put( trackedEntity, Collections.singletonList( programInstance ) );
+                put( trackedEntity, Collections.singletonList( enrollment ) );
             }
         } );
     }
 
     private void setEnrollmentInPayload( EnrollmentStatus enrollmentStatus )
     {
-        Enrollment enrollmentInBundle = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( "another_enrollment" )
             .program( MetadataIdentifier.ofUid( programUid ) )
             .trackedEntity( trackedEntity )

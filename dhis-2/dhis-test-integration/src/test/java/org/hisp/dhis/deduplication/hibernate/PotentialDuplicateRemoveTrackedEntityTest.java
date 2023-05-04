@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -75,7 +75,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramService programService;
@@ -159,18 +159,18 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
         trackedEntityInstanceService.addTrackedEntityInstance( control2 );
         Program program = createProgram( 'A' );
         programService.addProgram( program );
-        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
-        ProgramInstance programInstance2 = createProgramInstance( program, duplicate, ou );
-        ProgramInstance programInstance3 = createProgramInstance( program, control1, ou );
-        ProgramInstance programInstance4 = createProgramInstance( program, control2, ou );
-        programInstanceService.addProgramInstance( programInstance1 );
-        programInstanceService.addProgramInstance( programInstance2 );
-        programInstanceService.addProgramInstance( programInstance3 );
-        programInstanceService.addProgramInstance( programInstance4 );
-        original.getProgramInstances().add( programInstance1 );
-        duplicate.getProgramInstances().add( programInstance2 );
-        control1.getProgramInstances().add( programInstance3 );
-        control2.getProgramInstances().add( programInstance4 );
+        Enrollment enrollment1 = createProgramInstance( program, original, ou );
+        Enrollment enrollment2 = createProgramInstance( program, duplicate, ou );
+        Enrollment enrollment3 = createProgramInstance( program, control1, ou );
+        Enrollment enrollment4 = createProgramInstance( program, control2, ou );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
+        enrollmentService.addEnrollment( enrollment3 );
+        enrollmentService.addEnrollment( enrollment4 );
+        original.getEnrollments().add( enrollment1 );
+        duplicate.getEnrollments().add( enrollment2 );
+        control1.getEnrollments().add( enrollment3 );
+        control2.getEnrollments().add( enrollment4 );
         trackedEntityInstanceService.updateTrackedEntityInstance( original );
         trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
         trackedEntityInstanceService.updateTrackedEntityInstance( control1 );
@@ -180,10 +180,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control1.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( control2.getUid() ) );
         removeTrackedEntity( duplicate );
-        assertNull( programInstanceService.getProgramInstance( programInstance2.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance1.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance3.getUid() ) );
-        assertNotNull( programInstanceService.getProgramInstance( programInstance4.getUid() ) );
+        assertNull( enrollmentService.getEnrollment( enrollment2.getUid() ) );
+        assertNotNull( enrollmentService.getEnrollment( enrollment1.getUid() ) );
+        assertNotNull( enrollmentService.getEnrollment( enrollment3.getUid() ) );
+        assertNotNull( enrollmentService.getEnrollment( enrollment4.getUid() ) );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() ) );
     }
 

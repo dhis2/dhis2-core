@@ -57,11 +57,11 @@ public class TrackerOrgUnitMergeHandler
     @Transactional
     public void mergeProgramInstances( OrgUnitMergeRequest request )
     {
-        migrate( "update ProgramStageInstance psi " +
+        migrate( "update Event psi " +
             "set psi.organisationUnit = :target " +
             "where psi.organisationUnit.id in (:sources)", request );
 
-        migrate( "update ProgramInstance pi " +
+        migrate( "update Enrollment pi " +
             "set pi.organisationUnit = :target " +
             "where pi.organisationUnit.id in (:sources)", request );
     }

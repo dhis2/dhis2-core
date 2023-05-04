@@ -386,12 +386,12 @@ class PredictionDisaggregatorTest
 
     private void setUpWithoutDisag()
     {
-        target = new PredictionDisaggregator( pWithoutDisag, expressionItems );
+        target = new PredictionDisaggregator( pWithoutDisag, expressionItems, cocDefault );
     }
 
     private void setUpWithDisag()
     {
-        target = new PredictionDisaggregator( pWithDisag, expressionItems );
+        target = new PredictionDisaggregator( pWithDisag, expressionItems, cocDefault );
     }
 
     private void assertContextInList( PredictionContext ctx, List<PredictionContext> list )

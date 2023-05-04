@@ -78,7 +78,7 @@ public class ConstraintValidator implements Validator<Relationship>
             validateProgramInstanceRelationship( reporter, bundle, relationship, item, relSide );
             break;
         case PROGRAM_STAGE_INSTANCE:
-            validateProgramStageInstanceRelationship( reporter, bundle, relationship, item, relSide );
+            validateEventRelationship( reporter, bundle, relationship, item, relSide );
             break;
         default:
             break;
@@ -117,7 +117,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private static void validateProgramStageInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+    private static void validateEventRelationship( Reporter reporter, TrackerBundle bundle,
         Relationship relationship, RelationshipItem item, String relSide )
     {
         if ( item.getEvent() == null )

@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
@@ -45,18 +44,18 @@ import org.mapstruct.Mapping;
     NoteMapper.class,
     RelationshipMapper.class,
     UserMapper.class } )
-public interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
+public interface EventMapper extends ViewMapper<Event, org.hisp.dhis.webapi.controller.tracker.view.Event>
 {
     @Mapping( target = "event", source = "uid" )
-    @Mapping( target = "program", source = "programInstance.program.uid" )
+    @Mapping( target = "program", source = "enrollment.program.uid" )
     @Mapping( target = "programStage", source = "programStage.uid" )
-    @Mapping( target = "enrollment", source = "programInstance.uid" )
-    @Mapping( target = "trackedEntity", source = "programInstance.entityInstance.uid" )
+    @Mapping( target = "enrollment", source = "enrollment.uid" )
+    @Mapping( target = "trackedEntity", source = "enrollment.entityInstance.uid" )
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
     @Mapping( target = "occurredAt", source = "executionDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "followup", source = "programInstance.followup" )
+    @Mapping( target = "followup", source = "enrollment.followup" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
@@ -69,5 +68,5 @@ public interface EventMapper extends ViewMapper<ProgramStageInstance, Event>
     @Mapping( target = "dataValues", source = "eventDataValues" )
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "notes", source = "comments" )
-    Event from( ProgramStageInstance event );
+    org.hisp.dhis.webapi.controller.tracker.view.Event from( Event event );
 }

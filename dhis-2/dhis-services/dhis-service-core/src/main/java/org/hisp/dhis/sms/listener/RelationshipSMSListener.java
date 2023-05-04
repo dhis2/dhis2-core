@@ -34,11 +34,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -77,25 +77,25 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     public RelationshipSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataElementService dataElementService, EventService eventService,
         RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        TrackedEntityInstanceService trackedEntityInstanceService, EnrollmentService enrollmentService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            programService, organisationUnitService, categoryService, dataElementService, eventService,
             identifiableObjectManager );
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
         this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
@@ -159,21 +159,21 @@ public class RelationshipSMSListener extends CompressionSMSListener
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUid() );
+            Enrollment progInst = enrollmentService.getEnrollment( objId.getUid() );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
             }
-            relItem.setProgramInstance( progInst );
+            relItem.setEnrollment( progInst );
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUid() );
-            if ( stageInst == null )
+            Event event = eventService.getEvent( objId.getUid() );
+            if ( event == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
             }
-            relItem.setProgramStageInstance( stageInst );
+            relItem.setEvent( event );
             break;
 
         }

@@ -135,7 +135,6 @@ public class DefaultSchemaService
         register( new MapViewSchemaDescriptor() );
         register( new MessageConversationSchemaDescriptor() );
         register( new MetadataVersionSchemaDescriptor() );
-        register( new OAuth2ClientSchemaDescriptor() );
         register( new OptionSchemaDescriptor() );
         register( new OptionSetSchemaDescriptor() );
         register( new OrganisationUnitGroupSchemaDescriptor() );

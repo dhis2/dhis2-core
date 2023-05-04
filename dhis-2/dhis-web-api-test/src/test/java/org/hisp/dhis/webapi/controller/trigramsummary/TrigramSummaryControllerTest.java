@@ -45,8 +45,8 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
@@ -101,7 +101,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
 
     private TrackedEntityInstance tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttribute teaA;
 
@@ -189,13 +189,13 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 
-        programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance );
+        enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        enrollment.setFollowup( true );
+        manager.save( enrollment );
     }
 
     @Test

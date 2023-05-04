@@ -39,8 +39,8 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -132,7 +132,7 @@ class EnrollmentCriteriaMapperTest
         when( trackedEntityInstanceService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
             .thenReturn( trackedEntityInstance );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
+        EnrollmentQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
             ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, ENTITY_INSTANCE, false, 1, 1, false, false, false, null );
 
         assertNotEmpty( params.getOrganisationUnits() );

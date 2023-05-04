@@ -44,15 +44,15 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -82,7 +82,7 @@ class EventSecurityImportValidationTest extends TrackerTest
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private ProgramStageInstanceService programStageServiceInstance;
+    private EventService programStageServiceInstance;
 
     @Autowired
     private TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
@@ -100,7 +100,7 @@ class EventSecurityImportValidationTest extends TrackerTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -207,9 +207,9 @@ class EventSecurityImportValidationTest extends TrackerTest
         int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         Date dateMar20 = getDate( testYear, 3, 20 );
         Date dateApr10 = getDate( testYear, 4, 10 );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( maleA, programA,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( maleA, programA,
             dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
-        programInstanceService.addProgramInstance( programInstance );
+        enrollmentService.addEnrollment( enrollment );
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),
             organisationUnitA.getUid() );
         manager.update( programA );
@@ -253,7 +253,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( params );
         assertNoErrors( importReport );
         // Change just inserted Event to status COMPLETED...
-        ProgramStageInstance zwwuwNp6gVd = programStageServiceInstance.getProgramStageInstance( "ZwwuwNp6gVd" );
+        Event zwwuwNp6gVd = programStageServiceInstance.getEvent( "ZwwuwNp6gVd" );
         zwwuwNp6gVd.setStatus( EventStatus.COMPLETED );
         manager.update( zwwuwNp6gVd );
         TrackerImportParams trackerBundleParams = fromJson(

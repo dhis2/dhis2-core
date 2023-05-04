@@ -36,12 +36,11 @@ import static org.hisp.dhis.util.DateUtils.parseDate;
 import java.util.Date;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.EventUtils;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 
@@ -52,9 +51,9 @@ import org.springframework.stereotype.Component;
 public class ProgramStageInstanceUpdatePreProcessor implements Processor
 {
     @Override
-    public void process( final Event event, final WorkContext ctx )
+    public void process( final org.hisp.dhis.dxf2.events.event.Event event, final WorkContext ctx )
     {
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
+        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getEvent() );
         final OrganisationUnit organisationUnit = ctx.getOrganisationUnitMap().get( event.getUid() );
         final CategoryOptionCombo categoryOptionCombo = ctx.getCategoryOptionComboMap().get( event.getUid() );
 
@@ -89,7 +88,8 @@ public class ProgramStageInstanceUpdatePreProcessor implements Processor
         }
     }
 
-    private void setStatus( ProgramStageInstance programStageInstance, final Event event, WorkContext ctx )
+    private void setStatus( Event programStageInstance, final org.hisp.dhis.dxf2.events.event.Event event,
+        WorkContext ctx )
     {
         if ( event.getStatus() == ACTIVE )
         {

@@ -33,8 +33,8 @@ import java.util.Collection;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
@@ -55,8 +55,8 @@ public class RelationshipDeletionHandler extends DeletionHandler
     protected void register()
     {
         whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
-        whenDeleting( ProgramStageInstance.class, this::deleteProgramStageInstance );
-        whenDeleting( ProgramInstance.class, this::deleteProgramInstance );
+        whenDeleting( Event.class, this::deleteEvent );
+        whenDeleting( Enrollment.class, this::deleteProgramInstance );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
@@ -74,10 +74,10 @@ public class RelationshipDeletionHandler extends DeletionHandler
         }
     }
 
-    private void deleteProgramStageInstance( ProgramStageInstance programStageInstance )
+    private void deleteEvent( Event event )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramStageInstance( programStageInstance, false );
+            .getRelationshipsByEvent( event, false );
 
         if ( relationships != null )
         {
@@ -88,10 +88,10 @@ public class RelationshipDeletionHandler extends DeletionHandler
         }
     }
 
-    private void deleteProgramInstance( ProgramInstance programInstance )
+    private void deleteProgramInstance( Enrollment enrollment )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByProgramInstance( programInstance, false );
+            .getRelationshipsByProgramInstance( enrollment, false );
 
         if ( relationships != null )
         {

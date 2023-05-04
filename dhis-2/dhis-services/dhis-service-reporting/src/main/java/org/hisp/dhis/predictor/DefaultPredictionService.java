@@ -246,10 +246,11 @@ public class DefaultPredictionService
         ExpressionInfo exInfo = new ExpressionInfo();
         ExpressionParams baseExParams = getBaseExParams( predictor, exInfo );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, baseExParams.getItemMap().values() );
+        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, baseExParams.getItemMap().values(),
+            defaultCategoryOptionCombo );
         Set<DimensionalItemObject> items = preDis.getDisaggregatedItems();
         DataElementOperand outputDataElementOperand = new DataElementOperand( predictor.getOutput(),
-            predictor.getOutputCombo() );
+            preDis.getOutputCombo() );
 
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
@@ -294,7 +295,7 @@ public class DefaultPredictionService
                 List<DataValue> predictions = new ArrayList<>();
 
                 List<PredictionContext> contexts = PredictionContextGenerator.getContexts(
-                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, predictor.getOutputCombo(), preDis );
+                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, preDis );
 
                 for ( PredictionContext c : contexts )
                 {

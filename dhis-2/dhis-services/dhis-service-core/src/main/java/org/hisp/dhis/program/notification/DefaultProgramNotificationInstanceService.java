@@ -32,8 +32,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,9 +47,9 @@ public class DefaultProgramNotificationInstanceService
 {
     private final ProgramNotificationInstanceStore notificationInstanceStore;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     @Override
     @Transactional( readOnly = true )
@@ -71,21 +71,21 @@ public class DefaultProgramNotificationInstanceService
     {
         if ( params.hasProgramInstance() )
         {
-            if ( !programInstanceService.programInstanceExists( params.getProgramInstance().getUid() ) )
+            if ( !enrollmentService.enrollmentExists( params.getEnrollment().getUid() ) )
             {
                 throw new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getProgramInstance().getUid() ) );
+                    String.format( "Program instance %s does not exist", params.getEnrollment().getUid() ) );
             }
 
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            if ( !programStageInstanceService.programStageInstanceExists( params.getProgramStageInstance().getUid() ) )
+            if ( !eventService.eventExists( params.getEvent().getUid() ) )
             {
                 throw new IllegalQueryException(
                     String.format( "Program stage instance %s does not exist",
-                        params.getProgramStageInstance().getUid() ) );
+                        params.getEvent().getUid() ) );
             }
         }
     }

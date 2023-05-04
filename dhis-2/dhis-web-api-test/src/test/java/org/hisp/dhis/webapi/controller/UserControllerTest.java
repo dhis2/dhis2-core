@@ -283,7 +283,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     void testReplicateUser_PasswordNotValid()
     {
         assertWebMessage( "Conflict", 409, "ERROR",
-            "Password must have at least 8 characters, one digit, one uppercase",
+            "Password must have at least 8, and at most 256 characters",
             POST( "/users/" + peter.getUid() + "/replica", "{'username':'peter2','password':'lame'}" )
                 .content( HttpStatus.CONFLICT ) );
     }
@@ -365,6 +365,16 @@ class UserControllerTest extends DhisControllerConvenienceTest
             POST( "/users/",
                 "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
                     .content( HttpStatus.CREATED ) );
+    }
+
+    @Test
+    void testPostJsonObjectInvalidUid()
+    {
+        assertWebMessage( "Conflict", HttpStatus.CONFLICT.code(), "ERROR",
+            "One or more errors occurred, please see full details in import report.",
+            POST( "/users/",
+                "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
+                    .content( HttpStatus.CONFLICT ) );
     }
 
     @Test

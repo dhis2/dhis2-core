@@ -32,9 +32,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsConsts.SubmissionType;
@@ -57,11 +57,11 @@ public class DeleteEventSMSListener extends CompressionSMSListener
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataElementService dataElementService, EventService eventService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            programService, organisationUnitService, categoryService, dataElementService, eventService,
             identifiableObjectManager );
     }
 
@@ -72,14 +72,14 @@ public class DeleteEventSMSListener extends CompressionSMSListener
         DeleteSmsSubmission subm = (DeleteSmsSubmission) submission;
 
         Uid eventid = subm.getEvent();
-        ProgramStageInstance psi = programStageInstanceService.getProgramStageInstance( eventid.getUid() );
+        Event event = eventService.getEvent( eventid.getUid() );
 
-        if ( psi == null )
+        if ( event == null )
         {
             throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( eventid ) );
         }
 
-        programStageInstanceService.deleteProgramStageInstance( psi );
+        eventService.deleteEvent( event );
 
         return SmsResponse.SUCCESS;
     }

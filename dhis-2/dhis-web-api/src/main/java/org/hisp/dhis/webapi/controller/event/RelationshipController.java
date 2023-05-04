@@ -57,8 +57,8 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.webapi.controller.event.webrequest.RelationshipCriteria;
@@ -93,9 +93,9 @@ public class RelationshipController
 
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     // -------------------------------------------------------------------------
     // READ
@@ -116,8 +116,8 @@ public class RelationshipController
         }
         else if ( relationshipCriteria.getEnrollment() != null )
         {
-            return Optional.ofNullable( programInstanceService
-                .getProgramInstance( relationshipCriteria.getEnrollment() ) )
+            return Optional.ofNullable( enrollmentService
+                .getEnrollment( relationshipCriteria.getEnrollment() ) )
                 .map(
                     pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
                         false ) )
@@ -126,10 +126,9 @@ public class RelationshipController
         }
         else if ( relationshipCriteria.getEvent() != null )
         {
-            return Optional.ofNullable( programStageInstanceService
-                .getProgramStageInstance( relationshipCriteria.getEvent() ) )
-                .map( psi -> relationshipService.getRelationshipsByProgramStageInstance( psi,
-                    relationshipCriteria, false ) )
+            return Optional.ofNullable( eventService
+                .getEvent( relationshipCriteria.getEvent() ) )
+                .map( event -> relationshipService.getRelationshipsByEvent( event, relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No event '" + relationshipCriteria.getEvent() + "' found." ) ) );
         }

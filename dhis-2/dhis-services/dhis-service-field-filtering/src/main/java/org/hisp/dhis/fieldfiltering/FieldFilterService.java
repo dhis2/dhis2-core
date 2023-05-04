@@ -177,12 +177,14 @@ public class FieldFilterService
         }
     }
 
+    @Transactional( readOnly = true )
     public <T> ObjectNode toObjectNode( T object, String filters )
     {
         List<FieldPath> fieldPaths = FieldFilterParser.parse( filters );
         return toObjectNode( object, fieldPaths );
     }
 
+    @Transactional( readOnly = true )
     public <T> ObjectNode toObjectNode( T object, List<FieldPath> filters )
     {
         List<ObjectNode> objectNodes = toObjectNodes( List.of( object ), filters, null, false );
@@ -195,6 +197,7 @@ public class FieldFilterService
         return objectNodes.get( 0 );
     }
 
+    @Transactional( readOnly = true )
     public List<ObjectNode> toObjectNodes( FieldFilterParams<?> params )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
@@ -208,12 +211,14 @@ public class FieldFilterService
         return toObjectNodes( params.getObjects(), fieldPaths, params.getUser(), params.isSkipSharing() );
     }
 
+    @Transactional( readOnly = true )
     public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths )
     {
         return toObjectNodes( objects, fieldPaths, null, false );
     }
 
-    private <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
+    @Transactional( readOnly = true )
+    public <T> List<ObjectNode> toObjectNodes( List<T> objects, List<FieldPath> fieldPaths, User user,
         boolean isSkipSharing )
     {
         List<ObjectNode> objectNodes = new ArrayList<>();
@@ -306,32 +311,43 @@ public class FieldFilterService
         {
             return;
         }
+
         for ( FieldPath path : fieldPaths )
         {
-            if ( path.getProperty() == null && CodeGenerator.isValidUid( path.getFullPath() ) )
+            applyFieldPath( object, objectNode, path );
+        }
+    }
+
+    private void applyFieldPath( Object object, ObjectNode objectNode, FieldPath path )
+    {
+        if ( path.getProperty() != null || !CodeGenerator.isValidUid( path.getFullPath() ) )
+        {
+            return;
+        }
+
+        AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
+        if ( value == null )
+        {
+            return;
+        }
+
+        String fieldValue = value.getValue();
+        Attribute attribute = attributeService.getAttribute( value.getAttribute().getUid() );
+
+        if ( fieldValue != null && !fieldValue.isBlank() && attribute.getValueType().isJson() )
+        {
+            try
             {
-                AttributeValue value = ((BaseIdentifiableObject) object).getAttributeValue( path.getFullPath() );
-                if ( value != null )
-                {
-                    String v = value.getValue();
-                    Attribute attribute = attributeService.getAttribute( value.getAttribute().getUid() );
-                    if ( v != null && !v.isBlank() && attribute.getValueType().isJson() )
-                    {
-                        try
-                        {
-                            objectNode.set( path.getFullPath(), jsonMapper.readTree( v ) );
-                        }
-                        catch ( JsonProcessingException e )
-                        {
-                            objectNode.put( path.getFullPath(), v );
-                        }
-                    }
-                    else
-                    {
-                        objectNode.put( path.getFullPath(), v );
-                    }
-                }
+                objectNode.set( path.getFullPath(), jsonMapper.readTree( fieldValue ) );
             }
+            catch ( JsonProcessingException e )
+            {
+                objectNode.put( path.getFullPath(), fieldValue );
+            }
+        }
+        else
+        {
+            objectNode.put( path.getFullPath(), fieldValue );
         }
     }
 
@@ -430,27 +446,16 @@ public class FieldFilterService
             {
                 switch ( fieldPathTransformer.getName() )
                 {
-                case "rename":
-                    fieldTransformers.add( new RenameFieldTransformer( fieldPathTransformer ) );
-                    break;
-                case "size":
-                    fieldTransformers.add( SizeFieldTransformer.INSTANCE );
-                    break;
-                case "isEmpty":
-                    fieldTransformers.add( IsEmptyFieldTransformer.INSTANCE );
-                    break;
-                case "isNotEmpty":
-                    fieldTransformers.add( IsNotEmptyFieldTransformer.INSTANCE );
-                    break;
-                case "pluck":
-                    fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
-                    break;
-                case "keyBy":
-                    fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
-                    break;
-                default:
+                case "rename" -> fieldTransformers.add( new RenameFieldTransformer( fieldPathTransformer ) );
+                case "size" -> fieldTransformers.add( SizeFieldTransformer.INSTANCE );
+                case "isEmpty" -> fieldTransformers.add( IsEmptyFieldTransformer.INSTANCE );
+                case "isNotEmpty" -> fieldTransformers.add( IsNotEmptyFieldTransformer.INSTANCE );
+                case "pluck" -> fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
+                case "keyBy" -> fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
+                default ->
+                {
                     // invalid transformer
-                    break;
+                }
                 }
             }
 
@@ -465,9 +470,9 @@ public class FieldFilterService
         applyFieldPathVisitor( object, fieldPaths, isSkipSharing,
             s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
             o -> {
-                if ( o instanceof AttributeValue )
+                if ( o instanceof AttributeValue a)
                 {
-                    ((AttributeValue) o).setAttribute(
+                    a.setAttribute(
                         attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );
                 }
             } );
@@ -501,10 +506,9 @@ public class FieldFilterService
     {
         applyFieldPathVisitor( object, fieldPaths, isSkipSharing, s -> s.equals( "access" ) || s.endsWith( ".access" ),
             o -> {
-                if ( o instanceof BaseIdentifiableObject )
+                if ( o instanceof BaseIdentifiableObject identifiableObject )
                 {
-                    ((BaseIdentifiableObject) o)
-                        .setAccess( aclService.getAccess( ((IdentifiableObject) o), user ) );
+                    identifiableObject.setAccess( aclService.getAccess( ((IdentifiableObject) o), user ) );
                 }
             } );
     }

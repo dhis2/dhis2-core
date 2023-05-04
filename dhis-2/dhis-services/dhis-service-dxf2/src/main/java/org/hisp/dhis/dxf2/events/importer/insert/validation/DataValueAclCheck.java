@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -52,14 +52,14 @@ public class DataValueAclCheck implements Checker
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         final TrackerAccessManager trackerAccessManager = ctx.getServiceDelegator().getTrackerAccessManager();
-        final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
+        final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
 
         Map<String, Set<EventDataValue>> eventDataValueMap = ctx.getEventDataValueMap();
 
         final User user = ctx.getImportOptions().getUser();
         final ImportSummary importSummary = new ImportSummary();
 
-        // Note that here we are passing a ProgramStageInstance, which during a
+        // Note that here we are passing a Event, which during a
         // INSERT
         // operation
         // is going to be null, so the ACL method will not be able to check that

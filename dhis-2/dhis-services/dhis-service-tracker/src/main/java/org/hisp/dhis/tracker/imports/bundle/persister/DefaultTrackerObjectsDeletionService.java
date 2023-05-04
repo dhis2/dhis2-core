@@ -33,10 +33,10 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
@@ -44,8 +44,6 @@ import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.report.Entity;
@@ -62,11 +60,11 @@ import com.google.common.collect.Lists;
 public class DefaultTrackerObjectsDeletionService
     implements TrackerObjectDeletionService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackedEntityInstanceService teiService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final RelationshipService relationshipService;
 
@@ -79,7 +77,7 @@ public class DefaultTrackerObjectsDeletionService
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.ENROLLMENT );
 
-        List<Enrollment> enrollments = bundle.getEnrollments();
+        List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = bundle.getEnrollments();
 
         for ( int idx = 0; idx < enrollments.size(); idx++ )
         {
@@ -87,11 +85,11 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.ENROLLMENT, uid, idx );
 
-            ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
+            Enrollment enrollment = enrollmentService.getEnrollment( uid );
 
-            List<Event> events = eventTrackerConverterService
-                .to( Lists.newArrayList( programInstance.getProgramStageInstances()
-                    .stream().filter( psi -> !psi.isDeleted() )
+            List<org.hisp.dhis.tracker.imports.domain.Event> events = eventTrackerConverterService
+                .to( Lists.newArrayList( enrollment.getEvents()
+                    .stream().filter( event -> !event.isDeleted() )
                     .collect( Collectors.toList() ) ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().events( events ).user( bundle.getUser() )
@@ -99,10 +97,10 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEvents( trackerBundle );
 
-            TrackedEntityInstance tei = programInstance.getEntityInstance();
-            tei.getProgramInstances().remove( programInstance );
+            TrackedEntityInstance tei = enrollment.getEntityInstance();
+            tei.getEnrollments().remove( enrollment );
 
-            programInstanceService.deleteProgramInstance( programInstance );
+            enrollmentService.deleteEnrollment( enrollment );
             teiService.updateTrackedEntityInstance( tei );
 
             typeReport.getStats().incDeleted();
@@ -117,7 +115,7 @@ public class DefaultTrackerObjectsDeletionService
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.EVENT );
 
-        List<Event> events = bundle.getEvents();
+        List<org.hisp.dhis.tracker.imports.domain.Event> events = bundle.getEvents();
 
         for ( int idx = 0; idx < events.size(); idx++ )
         {
@@ -125,18 +123,18 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.EVENT, uid, idx );
 
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+            Event event = eventService.getEvent( uid );
 
-            ProgramInstance programInstance = programStageInstance.getProgramInstance();
+            Enrollment enrollment = event.getEnrollment();
 
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+            eventService.deleteEvent( event );
 
-            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
+            if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+                teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
 
-                programInstance.getProgramStageInstances().remove( programStageInstance );
-                programInstanceService.updateProgramInstance( programInstance );
+                enrollment.getEvents().remove( event );
+                enrollmentService.updateEnrollment( enrollment );
             }
 
             typeReport.getStats().incDeleted();
@@ -162,9 +160,9 @@ public class DefaultTrackerObjectsDeletionService
             org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
                 .getTrackedEntityInstance( uid );
 
-            Set<ProgramInstance> programInstances = daoEntityInstance.getProgramInstances();
+            Set<Enrollment> programInstances = daoEntityInstance.getEnrollments();
 
-            List<Enrollment> enrollments = enrollmentTrackerConverterService
+            List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = enrollmentTrackerConverterService
                 .to( Lists.newArrayList( programInstances.stream()
                     .filter( pi -> !pi.isDeleted() )
                     .collect( Collectors.toList() ) ) );

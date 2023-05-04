@@ -103,7 +103,7 @@ class SecurityOwnershipValidator
         {
             TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
-            if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
+            if ( tei.getEnrollments().stream().anyMatch( pi -> !pi.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
                 reporter.addError( trackedEntity, E1100, user, tei );

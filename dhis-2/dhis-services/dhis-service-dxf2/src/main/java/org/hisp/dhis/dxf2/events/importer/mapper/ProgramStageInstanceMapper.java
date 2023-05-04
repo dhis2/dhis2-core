@@ -42,18 +42,17 @@ import java.util.Optional;
 
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
 /**
  * @author Luciano Fiandesio
  */
-public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramStageInstance>
+public class ProgramStageInstanceMapper extends AbstractMapper<org.hisp.dhis.dxf2.events.event.Event, Event>
 {
     private final ProgramStageInstanceNoteMapper noteMapper;
 
@@ -64,9 +63,9 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
     }
 
     @Override
-    public ProgramStageInstance map( Event event )
+    public Event map( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        ProgramStageInstance psi = workContext.getProgramStageInstanceMap().get( event.getUid() );
+        Event psi = workContext.getProgramStageInstanceMap().get( event.getUid() );
 
         if ( psi == null )
         {
@@ -90,7 +89,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
      * @param dataElementMap a map of persisted data elements.
      * @return a program stage instance with normalized data values.
      */
-    private ProgramStageInstance mapDataValueIdentifier( ProgramStageInstance psi,
+    private Event mapDataValueIdentifier( Event psi,
         Map<String, DataElement> dataElementMap )
     {
         for ( EventDataValue dv : psi.getEventDataValues() )
@@ -104,10 +103,10 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         return psi;
     }
 
-    private ProgramStageInstance mapForUpdate( Event event, ProgramStageInstance psi )
+    private Event mapForUpdate( org.hisp.dhis.dxf2.events.event.Event event, Event psi )
     {
         // Program Instance
-        workContext.getProgramInstance( event.getUid() ).ifPresent( psi::setProgramInstance );
+        workContext.getProgramInstance( event.getUid() ).ifPresent( psi::setEnrollment );
 
         // Program Stage
         getProgramStage( event ).ifPresent( psi::setProgramStage );
@@ -155,11 +154,11 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         return psi;
     }
 
-    public ProgramStageInstance mapForInsert( Event event )
+    public Event mapForInsert( org.hisp.dhis.dxf2.events.event.Event event )
     {
         ImportOptions importOptions = workContext.getImportOptions();
 
-        ProgramStageInstance psi = new ProgramStageInstance();
+        Event psi = new Event();
 
         if ( importOptions.getIdSchemes().getProgramStageInstanceIdScheme().equals( CODE ) )
         {
@@ -171,7 +170,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         }
 
         // Program Instance
-        psi.setProgramInstance( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
+        psi.setEnrollment( this.workContext.getProgramInstanceMap().get( event.getUid() ) );
 
         // Program Stage
         psi.setProgramStage( this.workContext.getProgramStage( importOptions.getIdSchemes().getProgramStageIdScheme(),
@@ -225,7 +224,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         return psi;
     }
 
-    private List<TrackedEntityComment> convertNotes( Event event, WorkContext ctx )
+    private List<TrackedEntityComment> convertNotes( org.hisp.dhis.dxf2.events.event.Event event, WorkContext ctx )
     {
         if ( isNotEmpty( event.getNotes() ) )
         {
@@ -236,18 +235,18 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         return emptyList();
     }
 
-    private Optional<ProgramStage> getProgramStage( Event event )
+    private Optional<ProgramStage> getProgramStage( org.hisp.dhis.dxf2.events.event.Event event )
     {
         return Optional.ofNullable( this.workContext.getProgramStage(
             this.workContext.getImportOptions().getIdSchemes().getProgramStageIdScheme(), event.getProgramStage() ) );
     }
 
-    private Optional<OrganisationUnit> getOrganisationUnit( Event event )
+    private Optional<OrganisationUnit> getOrganisationUnit( org.hisp.dhis.dxf2.events.event.Event event )
     {
         return Optional.ofNullable( this.workContext.getOrganisationUnitMap().get( event.getUid() ) );
     }
 
-    private void setExecutionDate( Event event, ProgramStageInstance psi )
+    private void setExecutionDate( org.hisp.dhis.dxf2.events.event.Event event, Event psi )
     {
         if ( event.getEventDate() != null )
         {
@@ -255,7 +254,7 @@ public class ProgramStageInstanceMapper extends AbstractMapper<Event, ProgramSta
         }
     }
 
-    private void setCompletedDate( Event event, ProgramStageInstance psi )
+    private void setCompletedDate( org.hisp.dhis.dxf2.events.event.Event event, Event psi )
     {
         // Completed Date // FIXME this logic should be moved to a preprocessor
         if ( psi.isCompleted() )

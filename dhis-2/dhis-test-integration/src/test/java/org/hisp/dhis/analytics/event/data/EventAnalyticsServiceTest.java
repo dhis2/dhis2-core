@@ -92,14 +92,14 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramOwnershipHistory;
 import org.hisp.dhis.program.ProgramOwnershipHistoryService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
@@ -148,7 +148,7 @@ class EventAnalyticsServiceTest
     private AnalyticsTableGenerator analyticsTableGenerator;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
@@ -396,15 +396,15 @@ class EventAnalyticsServiceTest
         attributeValueService.addTrackedEntityAttributeValue( atv );
 
         // Program Instances (Enrollments)
-        ProgramInstance piA = programInstanceService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
+        Enrollment piA = enrollmentService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
         piA.setEnrollmentDate( jan1 );
         piA.setIncidentDate( jan1 );
-        programInstanceService.addProgramInstance( piA );
+        enrollmentService.addEnrollment( piA );
 
-        ProgramInstance piB = programInstanceService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
+        Enrollment piB = enrollmentService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
         piB.setEnrollmentDate( jan1 );
         piB.setIncidentDate( jan1 );
-        programInstanceService.addProgramInstance( piB );
+        enrollmentService.addEnrollment( piB );
 
         // Change programA / teiA ownership through time:
         // Jan 1 (enrollment) - Jan 15: ouE
@@ -419,7 +419,7 @@ class EventAnalyticsServiceTest
         trackedEntityProgramOwnerService.createOrUpdateTrackedEntityProgramOwner( teiA, programA, ouH );
 
         // Program Stage Instances (Events)
-        ProgramStageInstance psiA = createProgramStageInstance( psA, piA, ouI );
+        Event psiA = createEvent( psA, piA, ouI );
         psiA.setDueDate( jan15 );
         psiA.setExecutionDate( jan15 );
         psiA.setUid( "progStagInA" );
@@ -428,7 +428,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiA.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiB = createProgramStageInstance( psB, piB, ouI );
+        Event psiB = createEvent( psB, piB, ouI );
         psiB.setDueDate( jan15 );
         psiB.setExecutionDate( jan15 );
         psiB.setUid( "progStagInB" );
@@ -436,7 +436,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouL.getUid() ) ) );
         psiB.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiC = createProgramStageInstance( psA, piA, ouJ );
+        Event psiC = createEvent( psA, piA, ouJ );
         psiC.setDueDate( feb15 );
         psiC.setExecutionDate( feb15 );
         psiC.setUid( "progStagInC" );
@@ -445,7 +445,7 @@ class EventAnalyticsServiceTest
             new EventDataValue( deU.getUid(), ouM.getUid() ) ) );
         psiC.setAttributeOptionCombo( cocDefault );
 
-        ProgramStageInstance psiD = createProgramStageInstance( psA, piA, ouK );
+        Event psiD = createEvent( psA, piA, ouK );
         psiD.setDueDate( mar15 );
         psiD.setExecutionDate( mar15 );
         psiD.setUid( "progStagInD" );
@@ -487,7 +487,7 @@ class EventAnalyticsServiceTest
      * is protected.
      */
     @Transactional
-    protected void saveEvents( List<ProgramStageInstance> events )
+    protected void saveEvents( List<Event> events )
     {
         eventStore.saveEvents( events );
     }

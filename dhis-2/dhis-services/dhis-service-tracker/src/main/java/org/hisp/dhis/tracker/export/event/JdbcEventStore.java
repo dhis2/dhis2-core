@@ -89,10 +89,10 @@ import org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType;
 import org.hisp.dhis.hibernate.jsonb.type.JsonEventDataValueSetBinaryType;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -136,7 +136,7 @@ public class JdbcEventStore implements EventStore
     private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
         + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
-    private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
+    private static final String EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
         " psinote.commenttext            as psinote_value," +
         " psinote.created                as psinote_storeddate," +
@@ -154,11 +154,11 @@ public class JdbcEventStore implements EventStore
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
         " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";
 
-    private static final String PSI_STATUS = "psi_status";
+    private static final String EVENT_STATUS = "psi_status";
 
-    private static final String PSI_STATUS_EQ = " psi.status = ";
+    private static final String EVENT_STATUS_EQ = " psi.status = ";
 
-    private static final String PSI_LASTUPDATED_GT = " psi.lastupdated >= ";
+    private static final String EVENT_LASTUPDATED_GT = " psi.lastupdated >= ";
 
     private static final String DOT_NAME = ".name)";
 
@@ -180,7 +180,7 @@ public class JdbcEventStore implements EventStore
         entry( "trackedEntity", "tei_uid" ),
         entry( EVENT_OCCURRED_AT_DATE_ID, "psi_executiondate" ),
         entry( "followup", "pi_followup" ),
-        entry( EVENT_STATUS_ID, PSI_STATUS ),
+        entry( EVENT_STATUS_ID, EVENT_STATUS ),
         entry( EVENT_SCHEDULE_AT_DATE_ID, "psi_duedate" ),
         entry( EVENT_STORED_BY_ID, "psi_storedby" ),
         entry( EVENT_UPDATED_BY, "psi_lastupdatedbyuserinfo" ),
@@ -263,14 +263,14 @@ public class JdbcEventStore implements EventStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<ProgramStageInstance> getEvents( EventSearchParams params,
+    public List<Event> getEvents( EventSearchParams params,
         Map<String, Set<String>> psdesWithSkipSyncTrue )
     {
         User user = currentUserService.getCurrentUser();
 
         setAccessiblePrograms( user, params );
 
-        List<ProgramStageInstance> events = new ArrayList<>();
+        List<Event> events = new ArrayList<>();
         List<Long> relationshipIds = new ArrayList<>();
 
         final Gson gson = new Gson();
@@ -292,28 +292,28 @@ public class JdbcEventStore implements EventStore
                     continue;
                 }
 
-                String psiUid = resultSet.getString( "psi_uid" );
+                String eventUid = resultSet.getString( "psi_uid" );
 
                 validateIdentifiersPresence( resultSet, params.getIdSchemes() );
 
-                ProgramStageInstance event = new ProgramStageInstance();
+                Event event = new Event();
 
                 if ( !params.isSkipEventId() )
                 {
-                    event.setUid( psiUid );
+                    event.setUid( eventUid );
                 }
 
                 TrackedEntityInstance tei = new TrackedEntityInstance();
                 tei.setUid( resultSet.getString( "tei_uid" ) );
-                event.setStatus( EventStatus.valueOf( resultSet.getString( PSI_STATUS ) ) );
+                event.setStatus( EventStatus.valueOf( resultSet.getString( EVENT_STATUS ) ) );
                 ProgramType programType = ProgramType.fromValue( resultSet.getString( "p_type" ) );
                 Program program = new Program();
                 program.setUid( resultSet.getString( "p_identifier" ) );
                 program.setProgramType( programType );
-                ProgramInstance pi = new ProgramInstance();
-                pi.setUid( resultSet.getString( "pi_uid" ) );
-                pi.setProgram( program );
-                pi.setEntityInstance( tei );
+                Enrollment enrollment = new Enrollment();
+                enrollment.setUid( resultSet.getString( "pi_uid" ) );
+                enrollment.setProgram( program );
+                enrollment.setEntityInstance( tei );
                 OrganisationUnit ou = new OrganisationUnit();
                 ou.setUid( resultSet.getString( "ou_uid" ) );
                 ou.setName( resultSet.getString( "ou_name" ) );
@@ -321,9 +321,9 @@ public class JdbcEventStore implements EventStore
                 ps.setUid( resultSet.getString( "ps_identifier" ) );
                 event.setDeleted( resultSet.getBoolean( "psi_deleted" ) );
 
-                pi.setStatus( ProgramStatus.valueOf( resultSet.getString( "pi_status" ) ) );
-                pi.setFollowup( resultSet.getBoolean( "pi_followup" ) );
-                event.setProgramInstance( pi );
+                enrollment.setStatus( ProgramStatus.valueOf( resultSet.getString( "pi_status" ) ) );
+                enrollment.setFollowup( resultSet.getBoolean( "pi_followup" ) );
+                event.setEnrollment( enrollment );
                 event.setProgramStage( ps );
                 event.setOrganisationUnit( ou );
                 CategoryOptionCombo coc = new CategoryOptionCombo();
@@ -434,13 +434,13 @@ public class JdbcEventStore implements EventStore
 
             for ( Relationship relationship : relationships )
             {
-                if ( relationship.getFrom().getProgramStageInstance() != null )
+                if ( relationship.getFrom().getEvent() != null )
                 {
-                    map.put( relationship.getFrom().getProgramStageInstance().getUid(), relationship.getFrom() );
+                    map.put( relationship.getFrom().getEvent().getUid(), relationship.getFrom() );
                 }
-                if ( relationship.getTo().getProgramStageInstance() != null )
+                if ( relationship.getTo().getEvent() != null )
                 {
-                    map.put( relationship.getTo().getProgramStageInstance().getUid(), relationship.getTo() );
+                    map.put( relationship.getTo().getEvent().getUid(), relationship.getTo() );
                 }
             }
 
@@ -605,7 +605,7 @@ public class JdbcEventStore implements EventStore
             sqlBuilder.append( ") as att on event.tei_id=att.pav_id left join (" );
         }
 
-        sqlBuilder.append( PSI_EVENT_COMMENT_QUERY );
+        sqlBuilder.append( EVENT_COMMENT_QUERY );
 
         sqlBuilder.append( ") as cm on event.psi_id=cm.psic_id " );
 
@@ -912,7 +912,7 @@ public class JdbcEventStore implements EventStore
             mapSqlParameterSource.addValue( "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP );
 
             fromBuilder.append( hlp.whereAnd() )
-                .append( PSI_LASTUPDATED_GT )
+                .append( EVENT_LASTUPDATED_GT )
                 .append( ":skipChangedBefore" )
                 .append( " " );
         }
@@ -1039,9 +1039,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.lastupdated > psi.lastsynchronized " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );
@@ -1284,7 +1284,7 @@ public class JdbcEventStore implements EventStore
             mapSqlParameterSource.addValue( "skipChangedBefore", params.getSkipChangedBefore(), Types.TIMESTAMP );
 
             sqlBuilder.append( hlp.whereAnd() )
-                .append( PSI_LASTUPDATED_GT )
+                .append( EVENT_LASTUPDATED_GT )
                 .append( ":skipChangedBefore " );
         }
 
@@ -1314,9 +1314,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.deleted is false " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );
@@ -1369,30 +1369,30 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.getEventStatus() == EventStatus.VISITED )
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, EventStatus.ACTIVE.name() );
+                mapSqlParameterSource.addValue( EVENT_STATUS, EventStatus.ACTIVE.name() );
 
                 stringBuilder.append( hlp.whereAnd() )
-                    .append( PSI_STATUS_EQ )
-                    .append( ":" + PSI_STATUS )
+                    .append( EVENT_STATUS_EQ )
+                    .append( ":" + EVENT_STATUS )
                     .append( " and psi.executiondate is not null " );
             }
             else if ( params.getEventStatus() == EventStatus.OVERDUE )
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, EventStatus.SCHEDULE.name() );
+                mapSqlParameterSource.addValue( EVENT_STATUS, EventStatus.SCHEDULE.name() );
 
                 stringBuilder.append( hlp.whereAnd() )
                     .append( " date(now()) > date(psi.duedate) and psi.status = " )
-                    .append( ":" + PSI_STATUS )
+                    .append( ":" + EVENT_STATUS )
                     .append( " " );
             }
             else
             {
-                mapSqlParameterSource.addValue( PSI_STATUS, params.getEventStatus()
+                mapSqlParameterSource.addValue( EVENT_STATUS, params.getEventStatus()
                     .name() );
 
                 stringBuilder.append( hlp.whereAnd() )
-                    .append( PSI_STATUS_EQ )
-                    .append( ":" + PSI_STATUS )
+                    .append( EVENT_STATUS_EQ )
+                    .append( ":" + EVENT_STATUS )
                     .append( " " );
             }
         }
@@ -1411,7 +1411,7 @@ public class JdbcEventStore implements EventStore
                 DateUtils.nowMinusDuration( params.getUpdatedAtDuration() ) ), Types.TIMESTAMP_WITH_TIMEZONE );
 
             sqlBuilder.append( hlp.whereAnd() )
-                .append( PSI_LASTUPDATED_GT )
+                .append( EVENT_LASTUPDATED_GT )
                 .append( ":lastUpdated" )
                 .append( " " );
         }
@@ -1422,7 +1422,7 @@ public class JdbcEventStore implements EventStore
                 mapSqlParameterSource.addValue( "lastUpdatedStart", params.getUpdatedAtStartDate(), Types.TIMESTAMP );
 
                 sqlBuilder.append( hlp.whereAnd() )
-                    .append( PSI_LASTUPDATED_GT )
+                    .append( EVENT_LASTUPDATED_GT )
                     .append( ":lastUpdatedStart" )
                     .append( " " );
             }

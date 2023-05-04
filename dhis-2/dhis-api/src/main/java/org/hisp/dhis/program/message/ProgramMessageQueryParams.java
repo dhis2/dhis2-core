@@ -30,8 +30,8 @@ package org.hisp.dhis.program.message;
 import java.util.Date;
 import java.util.Set;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
@@ -42,9 +42,9 @@ public class ProgramMessageQueryParams
 
     private ProgramMessageStatus messageStatus;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private Date afterDate;
 
@@ -64,14 +64,14 @@ public class ProgramMessageQueryParams
     }
 
     public ProgramMessageQueryParams( Set<String> organisationUnit, ProgramMessageStatus messageStatus,
-        ProgramInstance programInstance, ProgramStageInstance programStageInstance, Date afterDate, Date beforeDate,
+        Enrollment enrollment, Event event, Date afterDate, Date beforeDate,
         Integer page, Integer pageSize )
     {
         super();
         this.organisationUnit = organisationUnit;
         this.messageStatus = messageStatus;
-        this.programInstance = programInstance;
-        this.programStageInstance = programStageInstance;
+        this.enrollment = enrollment;
+        this.event = event;
         this.afterDate = afterDate;
         this.beforeDate = beforeDate;
         this.page = page;
@@ -89,12 +89,12 @@ public class ProgramMessageQueryParams
 
     public boolean hasProgramInstance()
     {
-        return programInstance != null;
+        return enrollment != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasEvent()
     {
-        return programStageInstance != null;
+        return event != null;
     }
 
     public boolean hasPaging()
@@ -106,24 +106,24 @@ public class ProgramMessageQueryParams
     // Getters and Setters
     // -------------------------------------------------------------------------
 
-    public ProgramInstance getProgramInstance()
+    public Enrollment getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( ProgramInstance programInstance )
+    public void setEnrollment( Enrollment enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
-    public ProgramStageInstance getProgramStageInstance()
+    public Event getEvent()
     {
-        return programStageInstance;
+        return event;
     }
 
-    public void setProgramStageInstance( ProgramStageInstance programStageInstance )
+    public void setEvent( Event event )
     {
-        this.programStageInstance = programStageInstance;
+        this.event = event;
     }
 
     public Set<String> getOrganisationUnit()

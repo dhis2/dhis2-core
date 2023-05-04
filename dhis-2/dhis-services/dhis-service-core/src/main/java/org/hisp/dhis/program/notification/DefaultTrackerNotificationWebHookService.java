@@ -37,10 +37,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.notification.ProgramNotificationMessageRenderer;
 import org.hisp.dhis.notification.ProgramStageNotificationMessageRenderer;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sms.config.SmsGateway;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -65,9 +65,9 @@ import com.google.common.collect.Lists;
 @Service( "org.hisp.dhis.program.notification.TrackerNotificationWebHookService" )
 public class DefaultTrackerNotificationWebHookService implements TrackerNotificationWebHookService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     private final ProgramNotificationTemplateService templateService;
 
@@ -77,9 +77,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     @Override
     @Transactional
-    public void handleEnrollment( String pi )
+    public void handleEnrollment( String enrollment )
     {
-        ProgramInstance instance = programInstanceService.getProgramInstance( pi );
+        Enrollment instance = enrollmentService.getEnrollment( enrollment );
 
         if ( instance == null
             || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram() ) )
@@ -102,9 +102,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     @Override
     @Transactional
-    public void handleEvent( String psi )
+    public void handleEvent( String event )
     {
-        ProgramStageInstance instance = programStageInstanceService.getProgramStageInstance( psi );
+        Event instance = eventService.getEvent( event );
 
         if ( instance == null
             || !templateService.isProgramStageLinkedToWebHookNotification( instance.getProgramStage() ) )
@@ -124,7 +124,7 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
         instance.getEventDataValues().forEach( dv -> requestPayload.put( dv.getDataElement(), dv.getValue() ) );
 
         // populate tracked entity attributes
-        instance.getProgramInstance().getEntityInstance().getTrackedEntityAttributeValues()
+        instance.getEnrollment().getEntityInstance().getTrackedEntityAttributeValues()
             .forEach( attr -> requestPayload.put( attr.getAttribute().getUid(), attr.getValue() ) );
 
         sendPost( templates, renderService.toJsonAsString( requestPayload ) );

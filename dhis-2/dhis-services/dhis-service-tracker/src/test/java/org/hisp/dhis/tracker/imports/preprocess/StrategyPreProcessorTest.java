@@ -31,15 +31,13 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 import org.hamcrest.Matchers;
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,21 +69,21 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private final static String NEW_RELATIONSHIP_UID = "NewRelationshipUid";
 
-    private ProgramStageInstance psi;
+    private Event dbEvent;
 
-    private ProgramInstance pi;
+    private Enrollment pi;
 
     private TrackedEntityInstance tei;
 
     private Relationship relationship;
 
-    private Event event;
+    private org.hisp.dhis.tracker.imports.domain.Event event;
 
-    private Event newEvent;
+    private org.hisp.dhis.tracker.imports.domain.Event newEvent;
 
-    private Enrollment enrollment;
+    private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
-    private Enrollment newEnrollment;
+    private org.hisp.dhis.tracker.imports.domain.Enrollment newEnrollment;
 
     private TrackedEntity trackedEntity;
 
@@ -109,17 +107,17 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         trackedEntity.setTrackedEntity( TEI_UID );
         newTrackedEntity = new TrackedEntity();
         newTrackedEntity.setTrackedEntity( NEW_TEI_UID );
-        pi = new ProgramInstance();
+        pi = new Enrollment();
         pi.setUid( ENROLLMENT_UID );
-        enrollment = new Enrollment();
+        enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         enrollment.setEnrollment( ENROLLMENT_UID );
-        newEnrollment = new Enrollment();
+        newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         newEnrollment.setEnrollment( NEW_ENROLLMENT_UID );
-        psi = new ProgramStageInstance();
-        psi.setUid( EVENT_UID );
-        event = new Event();
+        dbEvent = new Event();
+        dbEvent.setUid( EVENT_UID );
+        event = new org.hisp.dhis.tracker.imports.domain.Event();
         event.setEvent( EVENT_UID );
-        newEvent = new Event();
+        newEvent = new org.hisp.dhis.tracker.imports.domain.Event();
         newEvent.setEvent( NEW_EVENT_UID );
         relationship = new Relationship();
         relationship.setUid( RELATIONSHIP_UID );
@@ -129,7 +127,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
         Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
         Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( pi );
-        Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( psi );
+        Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( dbEvent );
         Mockito.when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( relationship );
     }
 

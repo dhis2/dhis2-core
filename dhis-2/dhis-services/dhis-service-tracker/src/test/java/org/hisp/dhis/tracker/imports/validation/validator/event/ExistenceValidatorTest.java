@@ -35,11 +35,10 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +83,7 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationSuccessWhenIsCreateAndEventIsNotPresent()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( NOT_PRESENT_EVENT_UID )
             .build();
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
@@ -97,10 +96,11 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationSuccessWhenEventIsNotPresent()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( NOT_PRESENT_EVENT_UID )
             .build();
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, event );
 
@@ -110,11 +110,12 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationSuccessWhenIsUpdate()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( EVENT_UID )
             .build();
         when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, event );
 
@@ -124,11 +125,12 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationFailsWhenIsSoftDeleted()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( SOFT_DELETED_EVENT_UID )
             .build();
         when( preheat.getEvent( SOFT_DELETED_EVENT_UID ) ).thenReturn( getSoftDeletedEvent() );
-        when( bundle.getStrategy( any( Event.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, event );
 
@@ -138,7 +140,7 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationFailsWhenIsCreateAndEventIsAlreadyPresent()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( EVENT_UID )
             .build();
         when( preheat.getEvent( EVENT_UID ) ).thenReturn( getEvent() );
@@ -152,7 +154,7 @@ class ExistenceValidatorTest
     @Test
     void verifyEventValidationFailsWhenIsUpdateAndEventIsNotPresent()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( NOT_PRESENT_EVENT_UID )
             .build();
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
@@ -162,19 +164,19 @@ class ExistenceValidatorTest
         assertHasError( reporter, event, E1032 );
     }
 
-    private ProgramStageInstance getSoftDeletedEvent()
+    private Event getSoftDeletedEvent()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( SOFT_DELETED_EVENT_UID );
-        programStageInstance.setDeleted( true );
-        return programStageInstance;
+        Event event = new Event();
+        event.setUid( SOFT_DELETED_EVENT_UID );
+        event.setDeleted( true );
+        return event;
     }
 
-    private ProgramStageInstance getEvent()
+    private Event getEvent()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( EVENT_UID );
-        programStageInstance.setDeleted( false );
-        return programStageInstance;
+        Event event = new Event();
+        event.setUid( EVENT_UID );
+        event.setDeleted( false );
+        return event;
     }
 }

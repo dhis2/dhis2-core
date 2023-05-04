@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.events.importer.EventImporterUserService;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -56,7 +56,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
 {
     @Nonnull
-    private final ProgramInstanceStore programInstanceStore;
+    private final EnrollmentStore enrollmentStore;
 
     @Nonnull
     private final TrackerAccessManager trackerAccessManager;
@@ -90,7 +90,7 @@ public class ServiceDelegatorSupplier implements Supplier<ServiceDelegator>
     public ServiceDelegator get()
     {
         return ServiceDelegator.builder()
-            .programInstanceStore( programInstanceStore )
+            .enrollmentStore( enrollmentStore )
             .trackerAccessManager( trackerAccessManager )
             .applicationEventPublisher( applicationEventPublisher )
             .programRuleVariableService( programRuleVariableService )

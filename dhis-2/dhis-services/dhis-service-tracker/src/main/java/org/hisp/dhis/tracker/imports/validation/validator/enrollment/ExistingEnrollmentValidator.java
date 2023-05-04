@@ -41,12 +41,11 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -55,10 +54,11 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ExistingEnrollmentValidator
-    implements Validator<Enrollment>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment>
 {
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
         checkNotNull( enrollment, ENROLLMENT_CANT_BE_NULL );
 
@@ -81,13 +81,13 @@ class ExistingEnrollmentValidator
     }
 
     private void validateTeiNotEnrolledAlready( Reporter reporter, TrackerBundle bundle,
-        Enrollment enrollment, Program program )
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Program program )
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
         TrackedEntityInstance tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
-        Set<Enrollment> payloadEnrollment = bundle.getEnrollments()
+        Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment = bundle.getEnrollments()
             .stream().filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().isEqualTo( program ) )
             .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
@@ -95,8 +95,8 @@ class ExistingEnrollmentValidator
             .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
             .collect( Collectors.toSet() );
 
-        Set<Enrollment> dbEnrollment = bundle.getPreheat()
-            .getTrackedEntityToProgramInstanceMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
+        Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment = bundle.getPreheat()
+            .getTrackedEntityToEnrollmentMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
             .stream()
             .filter( Objects::nonNull )
             .filter( pi -> pi.getProgram().getUid().equals( program.getUid() )
@@ -106,17 +106,19 @@ class ExistingEnrollmentValidator
             .collect( Collectors.toSet() );
 
         // Priority to payload
-        Collection<Enrollment> mergedEnrollments = Stream.of( payloadEnrollment, dbEnrollment )
+        Collection<org.hisp.dhis.tracker.imports.domain.Enrollment> mergedEnrollments = Stream
+            .of( payloadEnrollment, dbEnrollment )
             .flatMap( Set::stream )
             .filter( e -> !Objects.equals( e.getEnrollment(), enrollment.getEnrollment() ) )
-            .collect( Collectors.toMap( Enrollment::getEnrollment,
+            .collect( Collectors.toMap( org.hisp.dhis.tracker.imports.domain.Enrollment::getEnrollment,
                 p -> p,
-                ( Enrollment x, Enrollment y ) -> x ) )
+                ( org.hisp.dhis.tracker.imports.domain.Enrollment x,
+                    org.hisp.dhis.tracker.imports.domain.Enrollment y ) -> x ) )
             .values();
 
         if ( EnrollmentStatus.ACTIVE == enrollment.getStatus() )
         {
-            Set<Enrollment> activeOnly = mergedEnrollments.stream()
+            Set<org.hisp.dhis.tracker.imports.domain.Enrollment> activeOnly = mergedEnrollments.stream()
                 .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() )
                 .collect( Collectors.toSet() );
 
@@ -132,9 +134,10 @@ class ExistingEnrollmentValidator
         }
     }
 
-    public Enrollment getEnrollmentFromProgramInstance( ProgramInstance programInstance )
+    public org.hisp.dhis.tracker.imports.domain.Enrollment getEnrollmentFromProgramInstance(
+        Enrollment programInstance )
     {
-        Enrollment enrollment = new Enrollment();
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         enrollment.setEnrollment( programInstance.getUid() );
         enrollment.setStatus( EnrollmentStatus.fromProgramStatus( programInstance.getStatus() ) );
 
