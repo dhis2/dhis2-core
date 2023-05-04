@@ -36,8 +36,8 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -56,7 +56,7 @@ public class ProgramInstancePreProcessor implements Processor
     @Override
     public void process( Event event, WorkContext ctx )
     {
-        ProgramInstanceStore programInstanceStore = ctx.getServiceDelegator().getProgramInstanceStore();
+        EnrollmentStore enrollmentStore = ctx.getServiceDelegator().getEnrollmentStore();
 
         Program program = ctx.getProgramsMap().get( event.getProgram() );
 
@@ -72,7 +72,7 @@ public class ProgramInstancePreProcessor implements Processor
         if ( program.isRegistration() && enrollment == null )
         {
             List<Enrollment> enrollments = new ArrayList<>(
-                programInstanceStore.get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
+                enrollmentStore.get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
 
             if ( enrollments.size() == 1 )
             {

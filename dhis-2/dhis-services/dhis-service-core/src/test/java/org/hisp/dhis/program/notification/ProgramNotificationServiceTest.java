@@ -58,10 +58,10 @@ import org.hisp.dhis.notification.NotificationTemplate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.message.ProgramMessage;
@@ -114,7 +114,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     private MessageService messageService;
 
     @Mock
-    private ProgramInstanceStore programInstanceStore;
+    private EnrollmentStore enrollmentStore;
 
     @Mock
     private EventStore eventStore;
@@ -203,7 +203,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     public void initTest()
     {
         programNotificationService = new DefaultProgramNotificationService( this.programMessageService,
-            this.messageService, this.programInstanceStore, this.eventStore, this.manager,
+            this.messageService, this.enrollmentStore, this.eventStore, this.manager,
             this.programNotificationRenderer, this.programStageNotificationRenderer, notificationTemplateService,
             notificationTemplateMapper );
 
@@ -220,7 +220,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testIfProgramInstanceIsNull()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( null );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( null );
 
         programNotificationService.sendEnrollmentCompletionNotifications( 0 );
 
@@ -240,7 +240,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendCompletionNotification()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -265,7 +265,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testSendEnrollmentNotification()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -291,7 +291,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testUserGroupRecipient()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( messageService.sendMessage( any() ) ).thenAnswer( invocation -> {
             sentInternalMessages.add( new MockMessage( invocation.getArguments() ) );
@@ -317,7 +317,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testOuContactRecipient()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -343,7 +343,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testProgramAttributeRecipientWithSMS()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );
@@ -371,7 +371,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     @Test
     void testProgramAttributeRecipientWithEMAIL()
     {
-        when( programInstanceStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
+        when( enrollmentStore.get( anyLong() ) ).thenReturn( enrollments.iterator().next() );
 
         when( programMessageService.sendMessages( anyList() ) ).thenAnswer( invocation -> {
             sentProgramMessages.addAll( (List<ProgramMessage>) invocation.getArguments()[0] );

@@ -77,9 +77,9 @@ public class DefaultTrackerNotificationWebHookService implements TrackerNotifica
 
     @Override
     @Transactional
-    public void handleEnrollment( String pi )
+    public void handleEnrollment( String enrollment )
     {
-        Enrollment instance = enrollmentService.getEnrollment( pi );
+        Enrollment instance = enrollmentService.getEnrollment( enrollment );
 
         if ( instance == null
             || !templateService.isProgramLinkedToWebHookNotification( instance.getProgram() ) )

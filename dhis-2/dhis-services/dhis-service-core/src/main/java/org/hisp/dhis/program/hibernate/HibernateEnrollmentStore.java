@@ -62,9 +62,9 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
@@ -83,45 +83,45 @@ import com.google.common.collect.Sets;
  * @author Abyot Asalefew
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.program.ProgramInstanceStore" )
-public class HibernateProgramInstanceStore
+@Repository( "org.hisp.dhis.program.EnrollmentStore" )
+public class HibernateEnrollmentStore
     extends SoftDeleteHibernateObjectStore<Enrollment>
-    implements ProgramInstanceStore
+    implements EnrollmentStore
 {
-    private final static String PI_HQL_BY_UIDS = "from Enrollment as pi where pi.uid in (:uids)";
+    private static final String PI_HQL_BY_UIDS = "from Enrollment as pi where pi.uid in (:uids)";
 
-    private final static String STATUS = "status";
+    private static final String STATUS = "status";
 
-    private static final Set<NotificationTrigger> SCHEDULED_PROGRAM_INSTANCE_TRIGGERS = Sets.intersection(
-        NotificationTrigger.getAllApplicableToProgramInstance(),
+    private static final Set<NotificationTrigger> SCHEDULED_ENROLLMENT_TRIGGERS = Sets.intersection(
+        NotificationTrigger.getAllApplicableToEnrollment(),
         NotificationTrigger.getAllScheduledTriggers() );
 
-    public HibernateProgramInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateEnrollmentStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
     {
         super( sessionFactory, jdbcTemplate, publisher, Enrollment.class, currentUserService, aclService, true );
     }
 
     @Override
-    public int countProgramInstances( ProgramInstanceQueryParams params )
+    public int countEnrollments( ProgramInstanceQueryParams params )
     {
-        String hql = buildCountProgramInstanceHql( params );
+        String hql = buildCountEnrollmentHql( params );
 
         Query<Long> query = getTypedQuery( hql );
 
         return query.getSingleResult().intValue();
     }
 
-    private String buildCountProgramInstanceHql( ProgramInstanceQueryParams params )
+    private String buildCountEnrollmentHql( ProgramInstanceQueryParams params )
     {
-        return buildProgramInstanceHql( params ).getQuery().replaceFirst( "from Enrollment pi",
+        return buildEnrollmentHql( params ).getQuery().replaceFirst( "from Enrollment pi",
             "select count(distinct uid) from Enrollment pi" );
     }
 
     @Override
-    public List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params )
+    public List<Enrollment> getEnrollments( ProgramInstanceQueryParams params )
     {
-        String hql = buildProgramInstanceHql( params ).getFullQuery();
+        String hql = buildEnrollmentHql( params ).getFullQuery();
 
         Query<Enrollment> query = getQuery( hql );
 
@@ -143,7 +143,7 @@ public class HibernateProgramInstanceStore
         return query.list();
     }
 
-    private QueryWithOrderBy buildProgramInstanceHql( ProgramInstanceQueryParams params )
+    private QueryWithOrderBy buildEnrollmentHql( ProgramInstanceQueryParams params )
     {
         String hql = "from Enrollment pi";
         SqlHelper hlp = new SqlHelper( true );
@@ -360,7 +360,7 @@ public class HibernateProgramInstanceStore
         Date notificationDate )
     {
         if ( notificationDate == null
-            || !SCHEDULED_PROGRAM_INSTANCE_TRIGGERS.contains( template.getNotificationTrigger() ) )
+            || !SCHEDULED_ENROLLMENT_TRIGGERS.contains( template.getNotificationTrigger() ) )
         {
             return Lists.newArrayList();
         }
@@ -427,7 +427,7 @@ public class HibernateProgramInstanceStore
 
         CriteriaBuilder cb = sessionFactory.getCurrentSession().getCriteriaBuilder();
         CriteriaQuery<Enrollment> cr = cb.createQuery( Enrollment.class );
-        Root<Enrollment> programInstance = cr.from( Enrollment.class );
+        Root<Enrollment> enrollment = cr.from( Enrollment.class );
 
         // Constructing list of parameters
         List<Predicate> predicates = new ArrayList<>();
@@ -438,12 +438,12 @@ public class HibernateProgramInstanceStore
         for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
         {
             predicates.add( cb.and(
-                cb.equal( programInstance.get( "program" ), pair.getLeft() ),
-                cb.equal( programInstance.get( "entityInstance" ), pair.getRight() ),
-                cb.equal( programInstance.get( STATUS ), programStatus ) ) );
+                cb.equal( enrollment.get( "program" ), pair.getLeft() ),
+                cb.equal( enrollment.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( enrollment.get( STATUS ), programStatus ) ) );
         }
 
-        cr.select( programInstance )
+        cr.select( enrollment )
             .where( cb.or( predicates.toArray( new Predicate[] {} ) ) );
 
         return sessionFactory.getCurrentSession().createQuery( cr ).getResultList();

@@ -70,7 +70,7 @@ public class ProgramInstanceCheck implements Checker
         {
             if ( program.isRegistration() )
             {
-                enrollments = new ArrayList<>( ctx.getServiceDelegator().getProgramInstanceStore()
+                enrollments = new ArrayList<>( ctx.getServiceDelegator().getEnrollmentStore()
                     .get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
 
                 if ( enrollments.isEmpty() )
@@ -88,7 +88,7 @@ public class ProgramInstanceCheck implements Checker
             }
             else
             {
-                enrollments = ctx.getServiceDelegator().getProgramInstanceStore().get( program,
+                enrollments = ctx.getServiceDelegator().getEnrollmentStore().get( program,
                     ProgramStatus.ACTIVE );
 
                 if ( enrollments.size() > 1 )

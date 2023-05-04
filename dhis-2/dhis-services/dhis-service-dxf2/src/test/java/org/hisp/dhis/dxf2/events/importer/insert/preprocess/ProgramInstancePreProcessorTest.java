@@ -115,7 +115,7 @@ class ProgramInstancePreProcessorTest extends BasePreProcessTest
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( CodeGenerator.generateUid() );
-        when( programInstanceStore.get( tei, program, ProgramStatus.ACTIVE ) )
+        when( enrollmentStore.get( tei, program, ProgramStatus.ACTIVE ) )
             .thenReturn( Lists.newArrayList( enrollment ) );
         event.setProgram( program.getUid() );
         //

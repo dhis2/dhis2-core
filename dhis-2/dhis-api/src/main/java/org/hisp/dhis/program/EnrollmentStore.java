@@ -38,10 +38,10 @@ import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 /**
  * @author Abyot Asalefew
  */
-public interface ProgramInstanceStore
+public interface EnrollmentStore
     extends IdentifiableObjectStore<Enrollment>
 {
-    String ID = ProgramInstanceStore.class.getName();
+    String ID = EnrollmentStore.class.getName();
 
     /**
      * Count all program instances by PI query params.
@@ -49,7 +49,7 @@ public interface ProgramInstanceStore
      * @param params ProgramInstanceQueryParams to use
      * @return Count of matching PIs
      */
-    int countProgramInstances( ProgramInstanceQueryParams params );
+    int countEnrollments( ProgramInstanceQueryParams params );
 
     /**
      * Get all program instances by PI query params.
@@ -57,13 +57,13 @@ public interface ProgramInstanceStore
      * @param params ProgramInstanceQueryParams to use
      * @return PIs matching params
      */
-    List<Enrollment> getProgramInstances( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
 
     /**
      * Retrieve program instances on a program
      *
      * @param program Program
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
     List<Enrollment> get( Program program );
 
@@ -73,7 +73,7 @@ public interface ProgramInstanceStore
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
     List<Enrollment> get( Program program, ProgramStatus status );
 
@@ -85,7 +85,7 @@ public interface ProgramInstanceStore
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
-     * @return ProgramInstance list
+     * @return Enrollment list
      */
     List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
@@ -108,7 +108,7 @@ public interface ProgramInstanceStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing ProgramInstances (including deleted) from the
+     * Returns UIDs of existing Enrollments (including deleted) from the
      * provided UIDs
      *
      * @param uids PI UIDs to check
@@ -117,21 +117,21 @@ public interface ProgramInstanceStore
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Fetches ProgramInstances matching the given list of UIDs
+     * Fetches Enrollments matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the ProgramInstances matching the given
-     *         parameters list
+     * @return a List containing the Enrollments matching the given parameters
+     *         list
      */
     List<Enrollment> getIncludingDeleted( List<String> uids );
 
     /**
-     * Get all ProgramInstances which have notifications with the given
+     * Get all Enrollments which have notifications with the given
      * ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
-     * @return a list of ProgramInstance.
+     * @return a list of Enrollment.
      */
     List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
@@ -157,12 +157,12 @@ public interface ProgramInstanceStore
     /**
      * Hard deletes a {@link Enrollment}.
      *
-     * @param enrollment the ProgramInstance to delete.
+     * @param enrollment the Enrollment to delete.
      */
     void hardDelete( Enrollment enrollment );
 
     /**
-     * Executes a query to fetch all {@see ProgramInstance} matching the
+     * Executes a query to fetch all {@see Enrollment} matching the
      * Program/TrackedEntityInstance list.
      *
      * Resulting SQL query:
@@ -181,7 +181,7 @@ public interface ProgramInstanceStore
      *        {@see Program} and the right side is a
      *        {@see TrackedEntityInstance}
      * @param programStatus filter on the status of all the Program
-     * @return a List of {@see ProgramInstance}
+     * @return a List of {@see Enrollment}
      */
     List<Enrollment> getByProgramAndTrackedEntityInstance(
         List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );

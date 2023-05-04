@@ -38,8 +38,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.hisp.dhis.program.ProgramStore;
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
@@ -68,7 +68,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
     private ProgramInstanceSupplier supplier;
 
     @Mock
-    private ProgramInstanceStore programInstanceStore;
+    private EnrollmentStore enrollmentStore;
 
     @Mock
     private ProgramStore programStore;
@@ -104,7 +104,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
         enrollmentWithoutRegistration = enrollments.get( 1 );
         enrollmentWithoutRegistration.setProgram( programWithoutRegistration );
 
-        when( programInstanceStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
+        when( enrollmentStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
             .thenReturn( enrollments );
 
         params = TrackerImportParams.builder().build();
@@ -137,7 +137,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
         enrollments.forEach( p -> p.getOrganisationUnit().setParent( null ) );
         Enrollment enrollment = enrollments.get( 0 );
         enrollment.setProgram( programWithoutRegistration );
-        when( programInstanceStore.getByPrograms( List.of( programWithoutRegistration ) ) )
+        when( enrollmentStore.getByPrograms( List.of( programWithoutRegistration ) ) )
             .thenReturn( enrollments );
 
         this.supplier.preheatAdd( params, preheat );
