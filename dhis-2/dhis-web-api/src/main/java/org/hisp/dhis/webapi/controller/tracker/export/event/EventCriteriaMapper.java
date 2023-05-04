@@ -162,7 +162,7 @@ class EventCriteriaMapper
             filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
         }
 
-        Set<String> programInstances = criteria.getEnrollments().stream()
+        Set<String> enrollments = criteria.getEnrollments().stream()
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
@@ -194,7 +194,7 @@ class EventCriteriaMapper
             .addOrders( getOrderParams( criteria.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setProgramInstances( programInstances )
+            .setEvents( eventIds ).setEnrollments( enrollments )
             .setIncludeDeleted( criteria.isIncludeDeleted() );
     }
 

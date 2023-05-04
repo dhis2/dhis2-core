@@ -108,7 +108,7 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
         tei = createTrackedEntityInstance( 'A', orgUnit );
         tei.setUid( TEI_UID );
         tei.setAttributeValues( Collections.singleton( attributeValue ) );
-        enrollment = createProgramInstance( program, tei, orgUnit );
+        enrollment = createEnrollment( program, tei, orgUnit );
         enrollment.setAttributeValues( Collections.singleton( attributeValue ) );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', tei, uniqueAttribute );
     }

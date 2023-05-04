@@ -47,10 +47,10 @@ public interface EventStore
     /**
      * Key: enrollment uid -> Value: Event
      *
-     * @param enrollmentsId a List of Program Instance Primary Keys
+     * @param enrollmentsId a List of Enrollment Primary Keys
      * @param ctx the {@see AggregateContext}
-     * @return A Map, where the key is a Program Instance Primary Key, and the
-     *         value is a List of {@see Event}
+     * @return A Map, where the key is a Enrollment Primary Key, and the value
+     *         is a List of {@see Event}
      */
     Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, AggregateContext ctx );
 

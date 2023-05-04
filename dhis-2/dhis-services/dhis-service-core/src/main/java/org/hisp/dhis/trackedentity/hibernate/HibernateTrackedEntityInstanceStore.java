@@ -936,12 +936,12 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * Generates an INNER JOIN for program instances. If the param we need to
-     * order by is enrolledAt, we need to join the program instance table to be
-     * able to select and order by this value
+     * Generates an INNER JOIN for enrollments. If the param we need to order by
+     * is enrolledAt, we need to join the enrollment table to be able to select
+     * and order by this value
      *
      * @param params
-     * @return a SQL INNER JOIN for program instances
+     * @return a SQL INNER JOIN for enrollments
      */
     private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
     {
@@ -956,10 +956,9 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * Generates an EXISTS condition for program instance (and program stage
-     * instance if specified). The EXIST will allow us to filter by enrollments
-     * with a low overhead. This condition only applies when a program is
-     * specified.
+     * Generates an EXISTS condition for enrollment (and program stage instance
+     * if specified). The EXIST will allow us to filter by enrollments with a
+     * low overhead. This condition only applies when a program is specified.
      *
      * @param whereAnd indicator tracking whether WHERE has been invoked or not
      * @param params
@@ -1052,7 +1051,7 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     /**
-     * Generates an INNER JOIN with the program instances if event-filters are
+     * Generates an INNER JOIN with the enrollments if event-filters are
      * specified. In the case of user assignment is part of the filter, we join
      * with the userinfo table as well.
      *

@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 
 public interface EnrollmentService
 {
@@ -36,5 +36,5 @@ public interface EnrollmentService
 
     Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params );
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( EnrollmentQueryParams params );
 }

@@ -75,7 +75,7 @@ public class ConstraintValidator implements Validator<Relationship>
             validateTrackedEntityInstanceRelationship( reporter, bundle, relationship, item, relSide, constraint );
             break;
         case PROGRAM_INSTANCE:
-            validateProgramInstanceRelationship( reporter, bundle, relationship, item, relSide );
+            validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
             break;
         case PROGRAM_STAGE_INSTANCE:
             validateEventRelationship( reporter, bundle, relationship, item, relSide );
@@ -103,7 +103,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private void validateProgramInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+    private void validateEnrollmentRelationship( Reporter reporter, TrackerBundle bundle,
         Relationship relationship, RelationshipItem item, String relSide )
     {
         if ( item.getEnrollment() == null )

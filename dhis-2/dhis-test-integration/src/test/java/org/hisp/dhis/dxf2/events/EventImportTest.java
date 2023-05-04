@@ -308,11 +308,11 @@ class EventImportTest extends TransactionalIntegrationTest
 
     /**
      * TODO: LUCIANO: this test has been ignored because the Importer should not
-     * import an event linked to a Program with 2 or more Program Instances
+     * import an event linked to a Program with 2 or more Enrollments
      */
     @Test
     @Disabled
-    void testAddEventOnProgramWithoutRegistrationAndExistingProgramInstance()
+    void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment()
         throws IOException
     {
         Enrollment pi = new Enrollment();

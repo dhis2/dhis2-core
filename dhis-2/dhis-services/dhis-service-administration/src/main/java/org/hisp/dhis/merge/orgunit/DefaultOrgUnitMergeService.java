@@ -142,7 +142,7 @@ public class DefaultOrgUnitMergeService
             .add( ( r ) -> dataHandler.mergeMinMaxDataElements( r ) )
             .add( ( r ) -> dataHandler.mergeInterpretations( r ) )
             .add( ( r ) -> trackerHandler.mergeProgramMessages( r ) )
-            .add( ( r ) -> trackerHandler.mergeProgramInstances( r ) )
+            .add( ( r ) -> trackerHandler.mergeEnrollments( r ) )
             .add( ( r ) -> trackerHandler.mergeTrackedEntityInstances( r ) )
             .build();
     }

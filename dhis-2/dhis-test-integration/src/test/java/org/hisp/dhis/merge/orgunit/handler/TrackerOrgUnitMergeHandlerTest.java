@@ -118,9 +118,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         teiService.addTrackedEntityInstance( teiA );
         teiService.addTrackedEntityInstance( teiB );
         teiService.addTrackedEntityInstance( teiC );
-        piA = createProgramInstance( prA, teiA, ouA );
-        piB = createProgramInstance( prA, teiB, ouB );
-        piC = createProgramInstance( prA, teiC, ouA );
+        piA = createEnrollment( prA, teiA, ouA );
+        piB = createEnrollment( prA, teiB, ouB );
+        piC = createEnrollment( prA, teiC, ouA );
         piService.addEnrollment( piA );
         piService.addEnrollment( piB );
         piService.addEnrollment( piC );
@@ -133,17 +133,17 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testMigrateProgramInstances()
+    void testMigrateEnrollments()
     {
-        assertEquals( 2, getProgramInstanceCount( ouA ) );
-        assertEquals( 1, getProgramInstanceCount( ouB ) );
-        assertEquals( 0, getProgramInstanceCount( ouC ) );
+        assertEquals( 2, getEnrollmentCount( ouA ) );
+        assertEquals( 1, getEnrollmentCount( ouB ) );
+        assertEquals( 0, getEnrollmentCount( ouC ) );
         OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
             .withTarget( ouC ).build();
-        mergeHandler.mergeProgramInstances( request );
-        assertEquals( 0, getProgramInstanceCount( ouA ) );
-        assertEquals( 0, getProgramInstanceCount( ouB ) );
-        assertEquals( 3, getProgramInstanceCount( ouC ) );
+        mergeHandler.mergeEnrollments( request );
+        assertEquals( 0, getEnrollmentCount( ouA ) );
+        assertEquals( 0, getEnrollmentCount( ouB ) );
+        assertEquals( 3, getEnrollmentCount( ouC ) );
     }
 
     /**
@@ -153,7 +153,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
      * @param target the {@link OrganisationUnit}
      * @return the count of interpretations.
      */
-    private long getProgramInstanceCount( OrganisationUnit target )
+    private long getEnrollmentCount( OrganisationUnit target )
     {
         return (Long) sessionFactory.getCurrentSession()
             .createQuery( "select count(*) from Enrollment pi where pi.organisationUnit = :target" )

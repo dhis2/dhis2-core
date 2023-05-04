@@ -47,12 +47,12 @@ import org.springframework.stereotype.Component;
 import com.google.common.collect.Lists;
 
 /**
- * Adds to the preheat a Map of Tracked Entities to related Program Instances
+ * Adds to the preheat a Map of Tracked Entities to related enrollments
  *
  * @author Luca Cambi
  */
 @Component
-public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSupplier
+public class TrackedEntityEnrollmentSupplier extends JdbcAbstractPreheatSupplier
 {
 
     private static final String PR_UID_COLUMN = "pr.uid";
@@ -82,7 +82,7 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         " and tei.uid in (:teuids)" +
         " and pr.uid in (:pruids)";
 
-    protected TrackedEntityProgramInstanceSupplier( JdbcTemplate jdbcTemplate )
+    protected TrackedEntityEnrollmentSupplier( JdbcTemplate jdbcTemplate )
     {
         super( jdbcTemplate );
     }
@@ -103,20 +103,20 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
         if ( programList.isEmpty() || teiList.isEmpty() )
             return;
 
-        Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
+        Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
         if ( params.getEnrollments().isEmpty() )
             return;
 
         for ( List<String> trackedEntityListSubList : teiList )
         {
-            queryTeiAndAddToMap( trackedEntityToProgramInstanceMap, trackedEntityListSubList, programList );
+            queryTeiAndAddToMap( trackedEntityToEnrollmentMap, trackedEntityListSubList, programList );
         }
 
-        preheat.setTrackedEntityToProgramInstanceMap( trackedEntityToProgramInstanceMap );
+        preheat.setTrackedEntityToEnrollmentMap( trackedEntityToEnrollmentMap );
     }
 
-    private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap,
+    private void queryTeiAndAddToMap( Map<String, List<Enrollment>> trackedEntityToEnrollmentMap,
         List<String> trackedEntityListSubList, List<String> programList )
     {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
@@ -134,12 +134,12 @@ public class TrackedEntityProgramInstanceSupplier extends JdbcAbstractPreheatSup
             program.setUid( resultSet.getString( PR_UID_COLUMN_ALIAS ) );
             newPi.setProgram( program );
 
-            List<Enrollment> piList = trackedEntityToProgramInstanceMap.getOrDefault( tei,
+            List<Enrollment> piList = trackedEntityToEnrollmentMap.getOrDefault( tei,
                 new ArrayList<>() );
 
             piList.add( newPi );
 
-            trackedEntityToProgramInstanceMap.put( tei, piList );
+            trackedEntityToEnrollmentMap.put( tei, piList );
         } );
     }
 }

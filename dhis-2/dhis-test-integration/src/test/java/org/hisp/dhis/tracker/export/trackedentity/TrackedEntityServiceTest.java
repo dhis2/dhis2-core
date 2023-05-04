@@ -627,7 +627,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             .filter( Enrollment::isDeleted ).map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
         assertIsEmpty( deletedEnrollments );
         Set<String> deletedEvents = trackedEntity.getEnrollments().stream()
-            .flatMap( programInstance -> programInstance.getEvents().stream() )
+            .flatMap( enrollment -> enrollment.getEvents().stream() )
             .filter( Event::isDeleted )
             .map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
@@ -648,7 +648,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         assertContainsOnly( Set.of( enrollmentA.getUid() ), deletedEnrollments );
 
         Set<Event> events = trackedEntity.getEnrollments().stream()
-            .flatMap( programInstance -> programInstance.getEvents().stream() )
+            .flatMap( e -> e.getEvents().stream() )
             .collect( Collectors.toSet() );
         assertContainsOnly( Set.of( eventA.getUid(), eventB.getUid() ), uids( events ) );
         deletedEvents = events.stream()
@@ -664,7 +664,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         trackedEntity = trackedEntities.get( 0 );
         assertContainsOnly( Set.of( enrollmentB.getUid() ), uids( trackedEntity.getEnrollments() ) );
         events = trackedEntity.getEnrollments().stream()
-            .flatMap( programInstance -> programInstance.getEvents().stream() )
+            .flatMap( e -> e.getEvents().stream() )
             .collect( Collectors.toSet() );
         assertContainsOnly( Set.of( eventB.getUid() ), uids( events ) );
     }

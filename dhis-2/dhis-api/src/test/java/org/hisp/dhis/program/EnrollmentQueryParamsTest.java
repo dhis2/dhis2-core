@@ -25,23 +25,27 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.program;
 
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class ProgramStageInstanceSchemaDescriptor implements SchemaDescriptor
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.ImmutableList;
+
+class EnrollmentQueryParamsTest
 {
-    public static final String SINGULAR = "event";
 
-    public static final String PLURAL = "programStageInstances";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    @Test
+    void verifyIsSorting()
     {
-        return new Schema( Event.class, SINGULAR, PLURAL );
+        EnrollmentQueryParams enrollmentQueryParams = new EnrollmentQueryParams();
+        assertFalse( enrollmentQueryParams.isSorting() );
+        enrollmentQueryParams.setOrder( ImmutableList
+            .of( new OrderParam( "aField", SortDirection.ASC ) ) );
+        assertTrue( enrollmentQueryParams.isSorting() );
     }
 }

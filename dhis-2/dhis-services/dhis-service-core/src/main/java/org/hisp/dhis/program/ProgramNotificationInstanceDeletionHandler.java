@@ -53,13 +53,13 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
     @Override
     protected void registerHandler()
     {
-        whenDeleting( Enrollment.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenDeleting( Event.class, this::deleteEvent );
-        whenVetoing( Enrollment.class, this::allowDeleteProgramInstance );
+        whenVetoing( Enrollment.class, this::allowDeleteEnrollment );
         whenVetoing( Event.class, this::allowDeleteEvent );
     }
 
-    private void deleteProgramInstance( Enrollment enrollment )
+    private void deleteEnrollment( Enrollment enrollment )
     {
         List<ProgramNotificationInstance> notificationInstances = programNotificationInstanceService
             .getProgramNotificationInstances(
@@ -77,7 +77,7 @@ public class ProgramNotificationInstanceDeletionHandler extends IdObjectDeletion
         notificationInstances.forEach( programNotificationInstanceService::delete );
     }
 
-    private DeletionVeto allowDeleteProgramInstance( Enrollment enrollment )
+    private DeletionVeto allowDeleteEnrollment( Enrollment enrollment )
     {
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(

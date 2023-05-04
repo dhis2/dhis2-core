@@ -28,6 +28,9 @@
 package org.hisp.dhis.dxf2.events;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -43,6 +46,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,6 +72,7 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
@@ -79,12 +84,11 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
+import org.hisp.dhis.user.User;
+import org.hisp.dhis.user.UserService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -115,6 +119,9 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
 
     @Autowired
     private SessionFactory sessionFactory;
+
+    @Autowired
+    private UserService _userService;
 
     private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
 
@@ -148,10 +155,15 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
 
     private TrackedEntityType trackedEntityType;
 
+    private User user;
+
     @Override
     protected void setUpTest()
         throws Exception
     {
+        userService = _userService;
+        user = createAndAddAdminUser( AUTHORITY_ALL );
+
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitB.setParent( organisationUnitA );
@@ -159,7 +171,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         uniqueIdAttribute.setGenerated( true );
         // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
         TextPattern textPattern = new TextPattern(
-            Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
+            List.of( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
         textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
         textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
         uniqueIdAttribute.setTextPattern( textPattern );
@@ -170,7 +182,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
         trackedEntityTypeAttribute.setTrackedEntityAttribute( uniqueIdAttribute );
         trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
-        trackedEntityType.setTrackedEntityTypeAttributes( Lists.newArrayList( trackedEntityTypeAttribute ) );
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         maleA = createTrackedEntityInstance( organisationUnitA );
         maleB = createTrackedEntityInstance( organisationUnitB );
@@ -180,7 +192,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
         uniqueId.setValue( "12345" );
         maleA.setTrackedEntityType( trackedEntityType );
-        maleA.setTrackedEntityAttributeValues( Sets.newHashSet( uniqueId ) );
+        maleA.setTrackedEntityAttributeValues( Set.of( uniqueId ) );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
         femaleB.setTrackedEntityType( trackedEntityType );
@@ -289,7 +301,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         Enrollment enrollment2 = new Enrollment();
         enrollment2.setTrackedEntityInstance( maleA.getUid() );
         TextPattern textPattern = new TextPattern(
-            Lists.newArrayList( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#######)" ) ) );
+            List.of( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#######)" ) ) );
         textPattern.setOwnerUid( "owneruid" );
         textPattern.setOwnerObject( Objects.CONSTANT );
         uniqueIdAttribute.setTextPattern( textPattern );
@@ -501,7 +513,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     @Test
     void testDeleteTrackedEntityInstances()
     {
-        List<TrackedEntityInstance> teis = Lists.newArrayList(
+        List<TrackedEntityInstance> teis = List.of(
             trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ),
             trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
         ImportOptions importOptions = new ImportOptions();
@@ -520,7 +532,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         attribute.setAttribute( trackedEntityAttributeB.getUid() );
         tei.getAttributes().add( attribute );
         tei.setTrackedEntityType( trackedEntityType.getUid() );
-        List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
+        List<TrackedEntityInstance> teis = List.of( tei );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.UPDATE );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
@@ -573,7 +585,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         uids.add( teiMaleB.getTrackedEntityInstance() );
         uids.add( teiFemaleA.getTrackedEntityInstance() );
         List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
-        assertTrue( Sets.difference( new HashSet<>( uids ), new HashSet<>( fetchedUids ) ).isEmpty() );
+        assertContainsOnly( new HashSet<>( uids ), new HashSet<>( fetchedUids ) );
     }
 
     @Test
@@ -587,7 +599,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         tei.getAttributes().add( attribute );
         tei.setTrackedEntityType( trackedEntityType.getUid() );
         tei.setPotentialDuplicate( true );
-        List<TrackedEntityInstance> teis = Lists.newArrayList( tei );
+        List<TrackedEntityInstance> teis = List.of( tei );
         ImportOptions importOptions = new ImportOptions();
         importOptions.setImportStrategy( ImportStrategy.CREATE );
         ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( teis, importOptions );
@@ -609,5 +621,40 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
             null, importOptions, true );
         assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() );
         assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ).isPotentialDuplicate() );
+    }
+
+    @Test
+    void shouldSetCreatedAndUpdatedByUserInfoWhenCreateTei()
+    {
+        TrackedEntityInstance tei = new TrackedEntityInstance();
+        tei.setOrgUnit( organisationUnitA.getUid() );
+        tei.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        tei.setTrackedEntityType( trackedEntityType.getUid() );
+
+        ImportSummaries importSummaries = trackedEntityInstanceService.addTrackedEntityInstances( List.of( tei ),
+            new ImportOptions().setUser( user ) );
+
+        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
+            () -> assertEquals( UserInfoSnapshot.from( user ),
+                trackedEntityInstanceService.getTrackedEntityInstance( tei.getTrackedEntityInstance() )
+                    .getCreatedByUserInfo() ),
+            () -> assertEquals( UserInfoSnapshot.from( user ),
+                trackedEntityInstanceService.getTrackedEntityInstance( tei.getTrackedEntityInstance() )
+                    .getLastUpdatedByUserInfo() ) );
+    }
+
+    @Test
+    void shouldSetUpdatedByUserInfoWhenUpdateTei()
+    {
+        TrackedEntityInstance tei = trackedEntityInstanceService
+            .getTrackedEntityInstance( maleA.getUid() );
+
+        ImportSummary importSummaries = trackedEntityInstanceService.updateTrackedEntityInstance( tei,
+            null, new ImportOptions().setUser( user ), true );
+
+        assertAll( () -> assertEquals( ImportStatus.SUCCESS, importSummaries.getStatus() ),
+            () -> assertEquals( UserInfoSnapshot.from( user ),
+                trackedEntityInstanceService.getTrackedEntityInstance( tei.getTrackedEntityInstance() )
+                    .getLastUpdatedByUserInfo() ) );
     }
 }

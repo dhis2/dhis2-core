@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
@@ -187,7 +186,7 @@ class SecurityOwnershipValidator
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( preheatEvent, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( preheatEvent, EVENT_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
         checkEventWriteAccess( reporter, bundle, event, preheatEvent.getProgramStage(),

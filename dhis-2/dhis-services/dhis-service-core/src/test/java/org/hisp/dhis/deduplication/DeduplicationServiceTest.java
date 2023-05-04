@@ -194,7 +194,7 @@ class DeduplicationServiceTest
     }
 
     @Test
-    void shouldNotBeAutoMergeableSameProgramInstance()
+    void shouldNotBeAutoMergeableSameEnrollment()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {

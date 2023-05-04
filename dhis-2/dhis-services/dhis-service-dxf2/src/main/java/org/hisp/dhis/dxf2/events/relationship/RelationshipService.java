@@ -59,7 +59,7 @@ public interface RelationshipService
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 

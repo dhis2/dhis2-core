@@ -61,11 +61,11 @@ import com.google.common.collect.Lists;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class ProgramInstanceSupplierTest extends DhisConvenienceTest
+class EnrollmentSupplierTest extends DhisConvenienceTest
 {
 
     @InjectMocks
-    private ProgramInstanceSupplier supplier;
+    private EnrollmentSupplier supplier;
 
     @Mock
     private EnrollmentStore enrollmentStore;
@@ -124,7 +124,7 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
             .collect( Collectors.toList() );
         for ( String programUid : programUids )
         {
-            assertNull( preheat.getProgramInstancesWithoutRegistration( programUid ) );
+            assertNull( preheat.getEnrollmentsWithoutRegistration( programUid ) );
         }
     }
 
@@ -142,8 +142,8 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( enrollment,
-            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
+        assertEnrollmentInPreheat( enrollment,
+            preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
     @Test
@@ -154,11 +154,11 @@ class ProgramInstanceSupplierTest extends DhisConvenienceTest
 
         this.supplier.preheatAdd( params, preheat );
 
-        assertProgramInstanceInPreheat( enrollmentWithoutRegistration,
-            preheat.getProgramInstancesWithoutRegistration( programWithoutRegistration.getUid() ) );
+        assertEnrollmentInPreheat( enrollmentWithoutRegistration,
+            preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
     }
 
-    private void assertProgramInstanceInPreheat( Enrollment expected, Enrollment actual )
+    private void assertEnrollmentInPreheat( Enrollment expected, Enrollment actual )
     {
         assertEquals( expected.getUid(), actual.getUid() );
         assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );

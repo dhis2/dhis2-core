@@ -218,7 +218,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
     // -------------------------------------------------------------------------
 
     @Test
-    void testIfProgramInstanceIsNull()
+    void testIfEnrollmentIsNull()
     {
         when( enrollmentStore.get( anyLong() ) ).thenReturn( null );
 
@@ -724,7 +724,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataElement.setValueType( ValueType.PHONE_NUMBER );
         dataElementEmail.setValueType( ValueType.EMAIL );
 
-        // ProgramInstance & TEI
+        // Enrollment & TEI
         tei = new TrackedEntityInstance();
         tei.setAutoFields();
         tei.setOrganisationUnit( lvlTwoLeftLeft );

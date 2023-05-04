@@ -119,7 +119,7 @@ public class RelationshipController
             return Optional.ofNullable( enrollmentService
                 .getEnrollment( relationshipCriteria.getEnrollment() ) )
                 .map(
-                    pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
+                    pi -> relationshipService.getRelationshipsByEnrollment( pi, relationshipCriteria,
                         false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No enrollment '" + relationshipCriteria.getEnrollment() + "' found." ) ) );

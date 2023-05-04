@@ -395,7 +395,7 @@ class EventAnalyticsServiceTest
         atv.setValue( ouF.getUid() );
         attributeValueService.addTrackedEntityAttributeValue( atv );
 
-        // Program Instances (Enrollments)
+        // Enrollments (Enrollments)
         Enrollment piA = enrollmentService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
         piA.setEnrollmentDate( jan1 );
         piA.setIncidentDate( jan1 );

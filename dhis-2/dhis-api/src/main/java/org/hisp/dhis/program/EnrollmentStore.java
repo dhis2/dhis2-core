@@ -44,23 +44,23 @@ public interface EnrollmentStore
     String ID = EnrollmentStore.class.getName();
 
     /**
-     * Count all program instances by PI query params.
+     * Count all enrollments by PI query params.
      *
-     * @param params ProgramInstanceQueryParams to use
+     * @param params EnrollmentQueryParams to use
      * @return Count of matching PIs
      */
-    int countEnrollments( ProgramInstanceQueryParams params );
+    int countEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Get all program instances by PI query params.
+     * Get all enrollments by PI query params.
      *
-     * @param params ProgramInstanceQueryParams to use
+     * @param params EnrollmentQueryParams to use
      * @return PIs matching params
      */
-    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Retrieve program instances on a program
+     * Retrieve enrollments on a program
      *
      * @param program Program
      * @return Enrollment list
@@ -68,7 +68,7 @@ public interface EnrollmentStore
     List<Enrollment> get( Program program );
 
     /**
-     * Retrieve program instances on a program by status
+     * Retrieve enrollments on a program by status
      *
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
@@ -78,7 +78,7 @@ public interface EnrollmentStore
     List<Enrollment> get( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a
+     * Retrieve enrollments on a TrackedEntityInstance with a status by a
      * program
      *
      * @param entityInstance TrackedEntityInstance
@@ -136,7 +136,7 @@ public interface EnrollmentStore
     List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
     /**
-     * Return all program instance linked to programs.
+     * Return all enrollment linked to programs.
      *
      * @param programs Programs to fetch by
      * @return List of all PIs that that are linked to programs
@@ -144,7 +144,7 @@ public interface EnrollmentStore
     List<Enrollment> getByPrograms( List<Program> programs );
 
     /**
-     * Return all program instance by type.
+     * Return all enrollment by type.
      * <p>
      * Warning: this is meant to be used for WITHOUT_REGISTRATION programs only,
      * be careful if you need it for other uses.

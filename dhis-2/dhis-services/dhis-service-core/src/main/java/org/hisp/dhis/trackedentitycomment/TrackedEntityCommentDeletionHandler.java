@@ -44,11 +44,11 @@ public class TrackedEntityCommentDeletionHandler extends IdObjectDeletionHandler
     @Override
     protected void registerHandler()
     {
-        whenDeleting( Enrollment.class, this::deleteProgramInstance );
+        whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenDeleting( Event.class, this::deleteEvent );
     }
 
-    private void deleteProgramInstance( Enrollment enrollment )
+    private void deleteEnrollment( Enrollment enrollment )
     {
         for ( TrackedEntityComment comment : enrollment.getComments() )
         {

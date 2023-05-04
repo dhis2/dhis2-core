@@ -86,7 +86,7 @@ public class JsonAssertions
 
         assertEquals( expected.getStatus().toString(), jsonEvent.getStatus(), "event status" );
         assertEquals( expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID" );
-        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
+        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID" );
         assertFalse( jsonEvent.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 

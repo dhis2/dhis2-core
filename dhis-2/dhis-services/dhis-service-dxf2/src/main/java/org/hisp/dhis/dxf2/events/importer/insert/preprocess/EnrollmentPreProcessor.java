@@ -44,14 +44,14 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
- * The goal of this Pre-processor is to assign a Program Instance (Enrollment)
- * to the Event getting processed. If the Program Instance can not be assigned,
- * the Event will not pass validation.
+ * The goal of this Pre-processor is to assign a Enrollment (Enrollment) to the
+ * Event getting processed. If the Enrollment can not be assigned, the Event
+ * will not pass validation.
  *
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramInstancePreProcessor implements Processor
+public class EnrollmentPreProcessor implements Processor
 {
     @Override
     public void process( Event event, WorkContext ctx )
@@ -85,7 +85,7 @@ public class ProgramInstancePreProcessor implements Processor
             List<Enrollment> enrollments = getProgramInstances( ctx.getServiceDelegator().getJdbcTemplate(),
                 program, ProgramStatus.ACTIVE );
 
-            // the "original" event import code creates a Program Instance, if
+            // the "original" event import code creates a Enrollment, if
             // none is found
             // but this is no longer needed, since a Program POST-CREATION hook
             // takes care of that
@@ -94,7 +94,7 @@ public class ProgramInstancePreProcessor implements Processor
                 event.setEnrollment( enrollments.get( 0 ).getUid() );
                 ctx.getProgramInstanceMap().put( event.getUid(), enrollments.get( 0 ) );
             }
-            // If more than one Program Instance is present, the validation will
+            // If more than one Enrollment is present, the validation will
             // detect it later
         }
     }

@@ -27,61 +27,57 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.supplier;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.IdentifiableObject;
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentStore;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStore;
+import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.springframework.stereotype.Component;
 
 /**
- * This supplier adds to the pre-heat object a List of all Program Instance UIDs
- * that have at least ONE Program Stage Instance that is not logically deleted
- * ('deleted = true').
- *
  * @author Luciano Fiandesio
  */
+@RequiredArgsConstructor
 @Component
-public class ProgramInstancesWithAtLeastOneEventSupplier extends JdbcAbstractPreheatSupplier
+public class EnrollmentSupplier extends AbstractPreheatSupplier
 {
-    private final static String COLUMN = "uid";
+    @Nonnull
+    private final EnrollmentStore enrollmentStore;
 
-    private final static String SQL = "select  " + COLUMN +
-        " from programinstance " +
-        "where exists( select programstageinstanceid " +
-        "from programstageinstance " +
-        "where programinstance.programinstanceid = programstageinstance.programinstanceid " +
-        "and programinstance.deleted = false) " +
-        "and programinstanceid in (:ids)";
-
-    protected ProgramInstancesWithAtLeastOneEventSupplier( JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
-    }
+    @Nonnull
+    private final ProgramStore programStore;
 
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, Enrollment> enrollments = preheat.getEnrollments();
-        List<Long> programStageIds = enrollments.values().stream().map( IdentifiableObject::getId )
+        List<Program> programsWithoutRegistration = preheat.getAll( Program.class )
+            .stream()
+            .filter( program -> program.getProgramType().equals( ProgramType.WITHOUT_REGISTRATION ) )
             .collect( Collectors.toList() );
-
-        if ( !programStageIds.isEmpty() )
+        if ( programsWithoutRegistration.isEmpty() )
         {
-            List<String> uids = new ArrayList<>();
+            programsWithoutRegistration = programStore.getByType( ProgramType.WITHOUT_REGISTRATION );
+        }
+        if ( !programsWithoutRegistration.isEmpty() )
+        {
+            List<Enrollment> enrollments = DetachUtils.detach( EnrollmentMapper.INSTANCE,
+                enrollmentStore.getByPrograms( programsWithoutRegistration ) );
 
-            MapSqlParameterSource parameters = new MapSqlParameterSource();
-            parameters.addValue( "ids", programStageIds );
-            jdbcTemplate.query( SQL, parameters, rs -> {
-                uids.add( rs.getString( COLUMN ) );
-            } );
-            preheat.setProgramInstanceWithOneOrMoreNonDeletedEvent( uids );
+            enrollments
+                .forEach( pi -> {
+                    preheat.putEnrollment( pi.getUid(), pi );
+                    preheat.putEnrollmentsWithoutRegistration( pi.getProgram().getUid(), pi );
+                } );
         }
     }
 }

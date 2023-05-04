@@ -60,11 +60,11 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component( "workContextProgramInstancesSupplier" )
-public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enrollment>>
+public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>>
 {
     private final ProgramSupplier programSupplier;
 
-    public ProgramInstanceSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier )
+    public EnrollmentSupplier( NamedParameterJdbcTemplate jdbcTemplate, ProgramSupplier programSupplier )
     {
         super( jdbcTemplate );
         this.programSupplier = programSupplier;
@@ -78,7 +78,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enroll
             return new HashMap<>();
         }
 
-        // Collect all the program instance UIDs to pass as SQL query argument
+        // Collect all the enrollment UIDs to pass as SQL query argument
         Set<String> programInstanceUids = events.stream()
             .map( Event::getEnrollment )
             .filter( StringUtils::isNotEmpty ).collect( Collectors.toSet() );
@@ -110,7 +110,7 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enroll
 
     /**
      * Loop through the events and check if there is any event left without a
-     * Program Instance: for each Event without a PI, try to fetch the Program
+     * Enrollment: for each Event without a PI, try to fetch the Program
      * Instance by Program and Tracked Entity Instance
      */
     private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
@@ -141,14 +141,14 @@ public class ProgramInstanceSupplier extends AbstractSupplier<Map<String, Enroll
     /**
      * This method is only used if the Event already exist in the db (update) If
      * the Event does not have the "enrollment" property set OR enrollment is
-     * pointing to an invalid UID, use the Program Instance already connected to
-     * the Event.
+     * pointing to an invalid UID, use the Enrollment already connected to the
+     * Event.
      *
      */
     private void mapExistingEventsToProgramInstances( ImportOptions importOptions, List<Event> events,
         Map<String, Enrollment> programInstances )
     {
-        // Collect all the Program Instances by event uid
+        // Collect all the Enrollments by event uid
         final Map<String, Enrollment> programInstancesByEvent = getProgramInstanceByEvent( importOptions, events );
 
         if ( !programInstancesByEvent.isEmpty() )

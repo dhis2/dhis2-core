@@ -59,8 +59,8 @@ public interface EnrollmentStore
     Multimap<String, Note> getNotes( List<Long> ids );
 
     /**
-     * Fetches all the relationships having the Program Instance id specified in
-     * the arg as "left" or "right" relationship
+     * Fetches all the relationships having the Enrollment id specified in the
+     * arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
      * @return a MultiMap where key is a {@see Enrollment} uid and the key a

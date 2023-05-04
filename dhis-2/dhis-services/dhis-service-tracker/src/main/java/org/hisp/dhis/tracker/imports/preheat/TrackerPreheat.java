@@ -275,16 +275,16 @@ public class TrackerPreheat
     private final Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();
 
     /**
-     * A Map of trackedEntity uid connected to Program Instances
+     * A Map of trackedEntity uid connected to Enrollments
      */
     @Getter
     @Setter
-    private Map<String, List<Enrollment>> trackedEntityToProgramInstanceMap = new HashMap<>();
+    private Map<String, List<Enrollment>> trackedEntityToEnrollmentMap = new HashMap<>();
 
     /**
-     * A Map of program uid and without registration {@see ProgramInstance}.
+     * A Map of program uid and without registration {@see Enrollment}.
      */
-    private final Map<String, Enrollment> programInstancesWithoutRegistration = new HashMap<>();
+    private final Map<String, Enrollment> enrollmentsWithoutRegistration = new HashMap<>();
 
     /**
      * A map of valid users by username that are present in the payload. A user
@@ -305,12 +305,12 @@ public class TrackerPreheat
     private List<UniqueAttributeValue> uniqueAttributeValues = Lists.newArrayList();
 
     /**
-     * A list of all Program Instance UID having at least one Event that is not
+     * A list of all Enrollment UID having at least one Event that is not
      * deleted.
      */
     @Getter
     @Setter
-    private List<String> programInstanceWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
+    private List<String> enrollmentsWithOneOrMoreNonDeletedEvent = Lists.newArrayList();
 
     /**
      * A list of Program Stage UID having 1 or more Events
@@ -636,14 +636,14 @@ public class TrackerPreheat
         }
     }
 
-    public Enrollment getProgramInstancesWithoutRegistration( String programUid )
+    public Enrollment getEnrollmentsWithoutRegistration( String programUid )
     {
-        return programInstancesWithoutRegistration.get( programUid );
+        return enrollmentsWithoutRegistration.get( programUid );
     }
 
-    public void putProgramInstancesWithoutRegistration( String programUid, Enrollment enrollment )
+    public void putEnrollmentsWithoutRegistration( String programUid, Enrollment enrollment )
     {
-        this.programInstancesWithoutRegistration.put( programUid, enrollment );
+        this.enrollmentsWithoutRegistration.put( programUid, enrollment );
     }
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )

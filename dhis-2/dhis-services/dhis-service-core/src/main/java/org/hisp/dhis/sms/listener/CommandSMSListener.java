@@ -235,7 +235,7 @@ public abstract class CommandSMSListener extends BaseSMSListener
         {
             update( sms, SmsMessageStatus.FAILED, false );
 
-            sendFeedback( "Multiple active program instances exists for program: " + smsCommand.getProgram().getUid(),
+            sendFeedback( "Multiple active Enrollments exists for program: " + smsCommand.getProgram().getUid(),
                 sms.getOriginator(), ERROR );
 
             return;

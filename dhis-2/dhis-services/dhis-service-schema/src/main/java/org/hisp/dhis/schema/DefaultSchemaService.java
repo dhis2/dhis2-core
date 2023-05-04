@@ -141,7 +141,6 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramSectionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageDataElementSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.ProgramStageInstanceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageSectionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramStageWorkingListSchemaDescriptor;
@@ -318,7 +317,6 @@ public class DefaultSchemaService
         register( new OrganisationUnitGroupSetDimensionSchemaDescriptor() );
         register( new RelationshipSchemaDescriptor() );
         register( new KeyJsonValueSchemaDescriptor() );
-        register( new ProgramStageInstanceSchemaDescriptor() );
         register( new ProgramStageInstanceFilterSchemaDescriptor() );
         register( new VisualizationSchemaDescriptor() );
         register( new ApiTokenSchemaDescriptor() );

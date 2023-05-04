@@ -109,7 +109,7 @@ class EventBaseCheckTest extends BaseValidationTest
         event.setEvent( event.getUid() );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( importSummary, event, null );
-        assertHasConflict( importSummary, event, "No program instance found for event: " + event.getEvent() );
+        assertHasConflict( importSummary, event, "No enrollment found for event: " + event.getEvent() );
     }
 
     @Test
@@ -134,7 +134,7 @@ class EventBaseCheckTest extends BaseValidationTest
         Map<String, Enrollment> programInstanceMap = new HashMap<>();
         Enrollment enrollment = new Enrollment();
         enrollment.setStatus( ProgramStatus.COMPLETED );
-        // Set program instance end date to NOW - one month
+        // Set enrollment end date to NOW - one month
         enrollment.setEndDate( Date.from( ZonedDateTime.now().minusMonths( 1 ).toInstant() ) );
         programInstanceMap.put( event.getUid(), enrollment );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );

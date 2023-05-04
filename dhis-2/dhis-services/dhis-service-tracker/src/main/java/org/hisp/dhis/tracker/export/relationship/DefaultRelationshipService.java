@@ -89,14 +89,14 @@ public class DefaultRelationshipService implements RelationshipService
     }
 
     @Override
-    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
     {
 
         List<Relationship> relationships = relationshipStore
-            .getByProgramInstance( pi, pagingAndSortingCriteriaAdapter ).stream()
+            .getByEnrollment( enrollment, pagingAndSortingCriteriaAdapter ).stream()
             .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
             .collect( Collectors.toList() );
         return map( relationships );
@@ -180,8 +180,8 @@ public class DefaultRelationshipService implements RelationshipService
         RelationshipItem result = new RelationshipItem();
 
         // the call to the individual services is to detach and apply some logic like filtering out attribute values
-        // for tracked entity type attributes from programInstance.entityInstance. Enrollment attributes are actually
-        // owned by the TEI and cannot be set on the ProgramInstance. When returning enrollments in our API an enrollment
+        // for tracked entity type attributes from enrollment.entityInstance. Enrollment attributes are actually
+        // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
         if ( item.getTrackedEntityInstance() != null )
         {

@@ -46,7 +46,7 @@ public interface ProgramTempOwnershipAuditService
     void addProgramTempOwnershipAudit( ProgramTempOwnershipAudit programTempOwnershipAudit );
 
     /**
-     * Deletes program temp ownership audit for the given program instance
+     * Deletes program temp ownership audit for the given enrollment
      *
      * @param program the program
      */

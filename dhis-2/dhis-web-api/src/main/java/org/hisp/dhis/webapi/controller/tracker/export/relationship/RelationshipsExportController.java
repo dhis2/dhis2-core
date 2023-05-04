@@ -134,7 +134,7 @@ public class RelationshipsExportController
 
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByEnrollment()
     {
-        return ( o, criteria ) -> relationshipService.getRelationshipsByProgramInstance( (Enrollment) o,
+        return ( o, criteria ) -> relationshipService.getRelationshipsByEnrollment( (Enrollment) o,
             criteria );
     }
 

@@ -101,7 +101,7 @@ public class ProgramMessage
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean hasProgramInstance()
+    public boolean hasEnrollment()
     {
         return this.enrollment != null;
     }
@@ -122,7 +122,7 @@ public class ProgramMessage
         return MoreObjects.toStringHelper( this )
             .add( "uid", uid )
             .add( "event", event )
-            .add( "program instance", enrollment )
+            .add( "enrollment", enrollment )
             .add( "recipients", recipients )
             .add( "delivery channels", deliveryChannels )
             .add( "subject", subject )

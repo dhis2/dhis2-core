@@ -78,36 +78,36 @@ public class DefaultProgramRuleEngineService
 
     @Override
     @Transactional
-    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollment )
+    public List<RuleEffect> evaluateEnrollmentAndRunEffects( long enrollmentId )
     {
         if ( config.isDisabled( SYSTEM_PROGRAM_RULE_SERVER_EXECUTION ) )
         {
             return List.of();
         }
 
-        Enrollment programInstance = enrollmentService.getEnrollment( enrollment );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentId );
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             return List.of();
         }
 
-        List<ProgramRule> programRules = programRuleEngine.getProgramRules( programInstance.getProgram() );
+        List<ProgramRule> programRules = programRuleEngine.getProgramRules( enrollment.getProgram() );
 
         if ( programRules.isEmpty() )
         {
             return List.of();
         }
 
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance,
-            programInstance.getEvents(), programRules );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( enrollment,
+            enrollment.getEvents(), programRules );
 
         for ( RuleEffect effect : ruleEffects )
         {
             ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
-                i.implement( effect, programInstance );
+                i.implement( effect, enrollment );
             } );
         }
 

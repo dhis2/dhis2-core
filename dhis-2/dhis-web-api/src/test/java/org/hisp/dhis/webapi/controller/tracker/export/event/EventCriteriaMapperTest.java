@@ -413,7 +413,7 @@ class EventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( enrollments, params.getProgramInstances() );
+        assertEquals( enrollments, params.getEnrollments() );
     }
 
     @Test

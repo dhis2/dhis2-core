@@ -51,7 +51,7 @@ public class ProgramRuleEnrollmentEvent extends ApplicationEvent
         return template;
     }
 
-    public Enrollment getProgramInstance()
+    public Enrollment getEnrollment()
     {
         return enrollment;
     }

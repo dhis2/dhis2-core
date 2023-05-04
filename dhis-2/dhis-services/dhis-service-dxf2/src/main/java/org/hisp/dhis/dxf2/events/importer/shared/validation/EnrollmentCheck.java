@@ -25,80 +25,80 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.insert.validation;
+package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
+import static org.hisp.dhis.dxf2.importsummary.ImportSummary.error;
 import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 
-import org.hisp.dhis.common.IdScheme;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
-import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 /**
  * @author Luciano Fiandesio
  */
 @Component
-public class ProgramInstanceRepeatableStageCheck implements Checker
+public class EnrollmentCheck implements Checker
 {
     @Override
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
-        IdScheme scheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
-        ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = null;
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
+        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
-        if ( program.isRegistration() )
+        String teiUid = "";
+        if ( trackedEntityInstance.isPresent() )
         {
-            tei = ctx.getTrackedEntityInstanceMap().get( event.getUid() ).getLeft();
+            teiUid = trackedEntityInstance.get().getUid();
         }
 
-        /*
-         * ProgramInstance should never be null. If it's null, the
-         * ProgramInstanceCheck should report this anomaly.
-         */
-        // @formatter:off
-        if ( enrollment != null &&
-             tei != null &&
-             program.isRegistration() &&
-             !programStage.getRepeatable() &&
-             hasProgramStageInstance( ctx.getServiceDelegator().getJdbcTemplate(), enrollment.getId(), programStage.getId(), tei.getId() ) )
+        List<Enrollment> enrollments;
+
+        if ( enrollment == null ) // Enrollment should be NOT null,
+                                 // after the pre-processing stage
         {
-            return new ImportSummary( ImportStatus.ERROR,
-                "Program stage is not repeatable and an event already exists" ).setReference( event.getEvent() )
-                    .incrementIgnored();
+            if ( program.isRegistration() )
+            {
+                enrollments = new ArrayList<>( ctx.getServiceDelegator().getEnrollmentStore()
+                    .get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
+
+                if ( enrollments.isEmpty() )
+                {
+                    return error( "Tracked entity instance: "
+                        + teiUid + " is not enrolled in program: " + program.getUid(),
+                        event.getEvent() );
+                }
+                else if ( enrollments.size() > 1 )
+                {
+                    return error( "Tracked entity instance: " + teiUid
+                        + " has multiple active enrollments in program: " + program.getUid(),
+                        event.getEvent() );
+                }
+            }
+            else
+            {
+                enrollments = ctx.getServiceDelegator().getEnrollmentStore().get( program,
+                    ProgramStatus.ACTIVE );
+
+                if ( enrollments.size() > 1 )
+                {
+                    return error( "Multiple active enrollments exists for program: " + program.getUid(),
+                        event.getEvent() );
+                }
+            }
         }
-        // @formatter:on
 
         return success();
-    }
-
-    private boolean hasProgramStageInstance( JdbcTemplate jdbcTemplate, long programInstanceId, long programStageId,
-        long trackedEntityInstanceId )
-    {
-        // @formatter:off
-        final String sql = "select exists( " +
-                "select * " +
-                "from programstageinstance psi " +
-                "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-                "where pi.programinstanceid = ? " +
-                "  and psi.programstageid = ? " +
-                "  and psi.deleted = false " +
-                "  and pi.trackedentityinstanceid = ? " +
-                "  and psi.status != 'SKIPPED'" +
-                ")";
-        // @formatter:on
-
-        return jdbcTemplate.queryForObject( sql, Boolean.class, programInstanceId, programStageId,
-            trackedEntityInstanceId );
     }
 }

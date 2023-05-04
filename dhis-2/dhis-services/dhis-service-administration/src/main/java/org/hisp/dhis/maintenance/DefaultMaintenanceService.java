@@ -134,9 +134,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramInstances()
+    public int deleteSoftDeletedEnrollments()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+        int result = maintenanceStore.deleteSoftDeletedEnrollments();
 
         log.info( "Permanently deleted soft deleted enrollments: " + result );
 

@@ -299,7 +299,7 @@ public class EventTrackerConverterService
 
         if ( ProgramType.WITHOUT_REGISTRATION == program.getProgramType() )
         {
-            return preheat.getProgramInstancesWithoutRegistration( program.getUid() );
+            return preheat.getEnrollmentsWithoutRegistration( program.getUid() );
         }
 
         // no valid enrollment given and program not single event, just return

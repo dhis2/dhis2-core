@@ -56,17 +56,17 @@ import com.google.common.collect.Lists;
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
-class ProgramInstanceCheckTest extends BaseValidationTest
+class EnrollmentCheckTest extends BaseValidationTest
 {
 
-    private ProgramInstanceCheck rule;
+    private EnrollmentCheck rule;
 
     private Program program;
 
     @BeforeEach
     void setUp()
     {
-        rule = new ProgramInstanceCheck();
+        rule = new EnrollmentCheck();
         //
         // Program
         //
@@ -81,7 +81,7 @@ class ProgramInstanceCheckTest extends BaseValidationTest
     {
         // Data preparation
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -103,7 +103,7 @@ class ProgramInstanceCheckTest extends BaseValidationTest
     {
         // Data preparation
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -134,7 +134,7 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         programMap.put( programNoReg.getUid(), programNoReg );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
         //
-        // Program Instance
+        // Enrollment
         //
         when( workContext.getProgramInstanceMap() ).thenReturn( new HashMap<>() );
         //
@@ -154,6 +154,6 @@ class ProgramInstanceCheckTest extends BaseValidationTest
         //
         ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( summary, event,
-            "Multiple active program instances exists for program: " + programNoReg.getUid() );
+            "Multiple active enrollments exists for program: " + programNoReg.getUid() );
     }
 }

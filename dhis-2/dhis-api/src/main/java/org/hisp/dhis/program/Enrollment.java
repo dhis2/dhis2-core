@@ -40,7 +40,6 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -145,8 +144,8 @@ public class Enrollment
     // -------------------------------------------------------------------------
 
     /**
-     * Updated the bi-directional associations between this program instance and
-     * the given entity instance and program.
+     * Updated the bi-directional associations between this Enrollment and the
+     * given entity instance and program.
      *
      * @param entityInstance the entity instance to enroll.
      * @param program the program to enroll the entity instance to.
@@ -162,64 +161,6 @@ public class Enrollment
     public boolean isCompleted()
     {
         return this.status == ProgramStatus.COMPLETED;
-    }
-
-    public Event getEventByStage( int stage )
-    {
-        int count = 1;
-
-        for ( Event programInstanceStage : events )
-        {
-            if ( count == stage )
-            {
-                return programInstanceStage;
-            }
-
-            count++;
-        }
-
-        return null;
-    }
-
-    public Event getActiveEvent()
-    {
-        for ( Event event : events )
-        {
-            if ( event.getProgramStage().getOpenAfterEnrollment()
-                && !event.isCompleted()
-                && (event.getStatus() != null
-                    && event.getStatus() != EventStatus.SKIPPED) )
-            {
-                return event;
-            }
-        }
-
-        for ( Event event : events )
-        {
-            if ( !event.isCompleted()
-                && (event.getStatus() != null
-                    && event.getStatus() != EventStatus.SKIPPED) )
-            {
-                return event;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean hasActiveEvent( ProgramStage programStage )
-    {
-        for ( Event event : events )
-        {
-            if ( !event.isDeleted()
-                && event.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
-                && event.getStatus() == EventStatus.ACTIVE )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // -------------------------------------------------------------------------
