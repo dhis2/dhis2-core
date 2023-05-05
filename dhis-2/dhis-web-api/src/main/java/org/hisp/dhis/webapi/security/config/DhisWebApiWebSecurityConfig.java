@@ -180,9 +180,13 @@ public class DhisWebApiWebSecurityConfig
         http.csrf().disable()
 
             .securityMatcher( "/oauth2/**" )
-            .authorizeHttpRequests( a -> providerIds.forEach( providerId -> a
-                .requestMatchers( "/oauth2/authorization/" + providerId ).permitAll()
-                .requestMatchers( "/oauth2/code/" + providerId ).permitAll() ) )
+            .authorizeHttpRequests( a -> {
+                providerIds.forEach( providerId -> a
+                    .requestMatchers( "/oauth2/authorization/" + providerId ).permitAll()
+                    .requestMatchers( "/oauth2/code/" + providerId ).permitAll() );
+
+                a.anyRequest().authenticated();
+            } )
 
             .oauth2Login( a -> a
                 .tokenEndpoint()
@@ -220,11 +224,13 @@ public class DhisWebApiWebSecurityConfig
             .authorizeHttpRequests( a -> a
                 .requestMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
                 .requestMatchers( "/authentication/login" ).permitAll()
-                .requestMatchers( "/api/authentication/login" ).permitAll().requestMatchers( "/account/recovery" )
-                .permitAll().requestMatchers( "/account/restore" ).permitAll().requestMatchers( "/account" )
-                .permitAll().requestMatchers( "/staticContent/*" ).permitAll()
-                .requestMatchers( "/externalFileResources/*" ).permitAll().requestMatchers( "/icons/*/icon.svg" )
-                .permitAll()
+                .requestMatchers( "/api/authentication/login" ).permitAll()
+                .requestMatchers( "/account/recovery" ).permitAll()
+                .requestMatchers( "/account/restore" ).permitAll()
+                .requestMatchers( "/account" ).permitAll()
+                .requestMatchers( "/staticContent/*" ).permitAll()
+                .requestMatchers( "/externalFileResources/*" ).permitAll()
+                .requestMatchers( "/icons/*/icon.svg" ).permitAll()
 
                 .anyRequest().authenticated() )
 
@@ -276,6 +282,7 @@ public class DhisWebApiWebSecurityConfig
                     .requestMatchers( "/login*" ).permitAll()
 
                     .anyRequest().authenticated() )
+
                 .formLogin()
                 .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
 
