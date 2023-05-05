@@ -47,7 +47,7 @@ public interface EnrollmentStore
      * Count all enrollments by enrollment query params.
      *
      * @param params EnrollmentQueryParams to use
-     * @return Count of matching Enrollments
+     * @return Count of matching enrollments
      */
     int countEnrollments( EnrollmentQueryParams params );
 
@@ -90,7 +90,7 @@ public interface EnrollmentStore
     List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Checks for the existence of an enrollment by UID, Deleted Enrollments are
+     * Checks for the existence of an enrollment by UID, Deleted enrollments are
      * not taken into account.
      *
      * @param uid PSI UID to check for
@@ -100,7 +100,7 @@ public interface EnrollmentStore
 
     /**
      * Checks for the existence of an enrollment by UID. Takes into account also
-     * the deleted Enrollments.
+     * the deleted enrollments.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -108,30 +108,30 @@ public interface EnrollmentStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing Enrollments (including deleted) from the
+     * Returns UIDs of existing enrollments (including deleted) from the
      * provided UIDs
      *
      * @param uids enrollment UIDs to check
-     * @return List containing UIDs of existing Enrollments (including deleted)
+     * @return List containing UIDs of existing enrollments (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Fetches Enrollments matching the given list of UIDs
+     * Fetches enrollments matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the Enrollments matching the given parameters
+     * @return a List containing the enrollments matching the given parameters
      *         list
      */
     List<Enrollment> getIncludingDeleted( List<String> uids );
 
     /**
-     * Get all Enrollments which have notifications with the given
+     * Get all enrollments which have notifications with the given
      * ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
-     * @return a list of Enrollment.
+     * @return a list of enrollments.
      */
     List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
@@ -139,7 +139,7 @@ public interface EnrollmentStore
      * Return all enrollment linked to programs.
      *
      * @param programs Programs to fetch by
-     * @return List of all Enrollments that that are linked to programs
+     * @return List of all enrollments that are linked to programs
      */
     List<Enrollment> getByPrograms( List<Program> programs );
 
@@ -150,14 +150,14 @@ public interface EnrollmentStore
      * be careful if you need it for other uses.
      *
      * @param type ProgramType to fetch by
-     * @return List of all Enrollments that matches the wanted type
+     * @return List of all enrollments that matches the wanted type
      */
     List<Enrollment> getByType( ProgramType type );
 
     /**
      * Hard deletes a {@link Enrollment}.
      *
-     * @param enrollment the Enrollment to delete.
+     * @param enrollment the enrollment to delete.
      */
     void hardDelete( Enrollment enrollment );
 
