@@ -101,10 +101,10 @@ public enum ValueType
         BOOLEAN, TRUE_ONLY );
 
     public static final Set<ValueType> TEXT_TYPES = Set.of(
-        TEXT, LONG_TEXT, LETTER, USERNAME, EMAIL, PHONE_NUMBER, URL );
+        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
     public static final Set<ValueType> DATE_TYPES = Set.of(
-        DATE, DATETIME, TIME, AGE );
+        DATE, DATETIME, AGE );
 
     private static final Set<ValueType> FILE_TYPES = Set.of(
         FILE_RESOURCE, IMAGE );
