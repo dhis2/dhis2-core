@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.analytics.event.data;
 
-import static java.util.Calendar.APRIL;
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
 import static java.util.Calendar.MARCH;
