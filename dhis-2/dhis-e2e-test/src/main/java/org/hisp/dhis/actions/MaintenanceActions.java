@@ -59,8 +59,8 @@ public class MaintenanceActions
 
     public void removeSoftDeletedData()
     {
-        sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityInstanceRemoval=true",
-            "softDeletedProgramStageInstanceRemoval=true", "softDeletedProgramInstanceRemoval=true",
+        sendRequest( true, "softDeletedEventRemoval=true", "softDeletedTrackedEntityRemoval=true",
+            "softDeletedEnrollmentRemoval=true",
             "softDeletedRelationshipRemoval=true", "softDeletedDataValueRemoval=true" );
     }
 
