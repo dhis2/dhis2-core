@@ -42,11 +42,10 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
-@JacksonXmlRootElement( localName = "programStageInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class ProgramStageInstanceFilter extends BaseIdentifiableObject
+@JacksonXmlRootElement( localName = "eventFilter", namespace = DxfNamespaces.DXF_2_0 )
+public class EventFilter extends BaseIdentifiableObject
     implements MetadataObject
 {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -60,7 +59,7 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject
     private String programStage;
 
     /**
-     * Property indicating description of programStageInstanceFilter
+     * Description of the filter.
      */
     private String description;
 
@@ -70,18 +69,10 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject
      */
     private EventQueryCriteria eventQueryCriteria;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public ProgramStageInstanceFilter()
+    public EventFilter()
     {
 
     }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -142,21 +133,4 @@ public class ProgramStageInstanceFilter extends BaseIdentifiableObject
     {
         this.eventQueryCriteria = eventQueryCriteria;
     }
-
-    public void copyValuesFrom( ProgramStageInstanceFilter psiFilter )
-    {
-        if ( psiFilter != null )
-        {
-            this.eventQueryCriteria = psiFilter.getEventQueryCriteria();
-            this.program = psiFilter.getProgram();
-            this.programStage = psiFilter.getProgramStage();
-
-            this.sharing = psiFilter.getSharing().copy();
-
-            this.code = psiFilter.getCode();
-            this.name = psiFilter.getName();
-            this.description = psiFilter.getDescription();
-        }
-    }
-
 }

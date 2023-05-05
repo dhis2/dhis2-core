@@ -25,41 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programstagefilter.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
+import org.hisp.dhis.programstagefilter.EventFilter;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
 
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import com.google.common.collect.Lists;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-@Repository( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterStore" )
-public class HibernateProgramStageInstanceFilterStore
-    extends HibernateIdentifiableObjectStore<ProgramStageInstanceFilter>
-    implements ProgramStageInstanceFilterStore
+public class EventFilterSchemaDescriptor implements SchemaDescriptor
 {
-    public HibernateProgramStageInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramStageInstanceFilter.class, currentUserService,
-            aclService, false );
-    }
+    public static final String SINGULAR = "eventFilter";
+
+    public static final String PLURAL = "eventFilters";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public List<ProgramStageInstanceFilter> getByProgram( String program )
+    public Schema getSchema()
     {
-        String hql = "from ProgramStageInstanceFilter psif where psif.program =:program";
-        return getQuery( hql ).setParameter( "program", program ).getResultList();
+        Schema schema = new Schema( EventFilter.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setDefaultPrivate( true );
+        schema.setImplicitPrivateAuthority( true );
+
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
+        return schema;
     }
 
 }

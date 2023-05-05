@@ -71,7 +71,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "softDeletableObject", // depends on programInstance (see above)
         "relationship", // generator insufficient for embedded fields
         "relationshipType", // generator insufficient for embedded fields
-        "programStageInstanceFilter", // generator insufficient
+        "eventFilter", // generator insufficient
         "interpretation", // required ObjectReport not required in schema
         "user", // generator insufficient to understand user
         "jobConfiguration", // API requires configurable=true
