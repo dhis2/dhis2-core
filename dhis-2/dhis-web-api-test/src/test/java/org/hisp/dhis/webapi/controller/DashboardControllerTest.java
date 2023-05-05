@@ -83,4 +83,11 @@ class DashboardControllerTest extends DhisControllerIntegrationTest
         assertTrue( dashboardItem.isPresent() );
         assertEquals( "gyYXi0rXAIc", dashboardItem.get().getVisualization().getUid() );
     }
+
+    @Test
+    void testDeleteDashboard()
+    {
+        POST( "/metadata", Body( "dashboard/create_dashboard.json" ) ).content( HttpStatus.OK );
+        assertWebMessage( "OK", 200, "OK", null, DELETE( "/dashboards/f1OijtLnf8a" ).content( HttpStatus.OK ) );
+    }
 }
