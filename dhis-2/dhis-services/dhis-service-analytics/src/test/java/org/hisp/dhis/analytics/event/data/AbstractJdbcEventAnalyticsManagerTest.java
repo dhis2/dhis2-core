@@ -334,6 +334,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
 
         EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
             .withProgramIndicator( programIndicator )
+            .withAggregationType( fromAggregationType( programIndicator.getAggregationTypeFallback() ) )
             .build();
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
