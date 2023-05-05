@@ -75,6 +75,7 @@ import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.authentication.configuration.EnableGlobalAuthentication;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -102,7 +103,7 @@ import org.springframework.web.util.UrlPathHelper;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Configuration
-//@Order( 1999 )
+@Order( 1999 )
 @EnableGlobalAuthentication
 public class DhisWebApiWebSecurityConfig
 {
@@ -164,6 +165,12 @@ public class DhisWebApiWebSecurityConfig
     public SessionRegistryImpl sessionRegistry()
     {
         return new SessionRegistryImpl();
+    }
+
+    @Bean
+    public WebSecurityCustomizer webSecurityCustomizer()
+    {
+        return web -> web.ignoring().requestMatchers( antMatcher( "/api/ping" ) );
     }
 
     @Bean
