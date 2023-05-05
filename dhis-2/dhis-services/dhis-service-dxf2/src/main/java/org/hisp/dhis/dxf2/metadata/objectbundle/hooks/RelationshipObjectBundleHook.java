@@ -60,10 +60,10 @@ public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relat
 
     private void handleRelationshipItem( RelationshipItem relationshipItem )
     {
-        if ( relationshipItem.getTrackedEntityInstance() != null )
+        if ( relationshipItem.getTrackedEntity() != null )
         {
-            relationshipItem.setTrackedEntityInstance(
-                trackedEntityInstanceStore.getByUid( relationshipItem.getTrackedEntityInstance().getUid() ) );
+            relationshipItem.setTrackedEntity(
+                trackedEntityInstanceStore.getByUid( relationshipItem.getTrackedEntity().getUid() ) );
         }
     }
 

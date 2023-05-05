@@ -66,7 +66,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Chau Thu Tran
  */
-class TrackedEntityInstanceServiceTest
+class TrackedEntityServiceTest
     extends IntegrationTestBase
 {
     @Autowired
@@ -108,13 +108,13 @@ class TrackedEntityInstanceServiceTest
 
     private Program program;
 
-    private TrackedEntityInstance entityInstanceA1;
+    private TrackedEntity entityInstanceA1;
 
-    private TrackedEntityInstance entityInstanceB1;
+    private TrackedEntity entityInstanceB1;
 
-    private TrackedEntityInstance entityInstanceC1;
+    private TrackedEntity entityInstanceC1;
 
-    private TrackedEntityInstance entityInstanceD1;
+    private TrackedEntity entityInstanceD1;
 
     private OrganisationUnit organisationUnit;
 
@@ -208,8 +208,8 @@ class TrackedEntityInstanceServiceTest
     {
         long idA = entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
-        TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
-        TrackedEntityInstance teiB = entityInstanceService.getTrackedEntityInstance( idB );
+        TrackedEntity teiA = entityInstanceService.getTrackedEntityInstance( idA );
+        TrackedEntity teiB = entityInstanceService.getTrackedEntityInstance( idB );
         assertNotNull( teiA );
         assertNotNull( teiB );
         entityInstanceService.deleteTrackedEntityInstance( entityInstanceA1 );
@@ -230,7 +230,7 @@ class TrackedEntityInstanceServiceTest
         entityInstanceA1.setEnrollments( Set.of( enrollment ) );
         enrollmentService.updateEnrollment( enrollment );
         entityInstanceService.updateTrackedEntityInstance( entityInstanceA1 );
-        TrackedEntityInstance teiA = entityInstanceService.getTrackedEntityInstance( idA );
+        TrackedEntity teiA = entityInstanceService.getTrackedEntityInstance( idA );
         Enrollment psA = enrollmentService.getEnrollment( psIdA );
         Event eventA = eventService.getEvent( eventIdA );
         assertNotNull( teiA );
@@ -277,7 +277,7 @@ class TrackedEntityInstanceServiceTest
     {
         entityInstanceA1.setStoredBy( "test" );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
+        TrackedEntity tei = entityInstanceService.getTrackedEntityInstance( entityInstanceA1.getUid() );
         assertEquals( "test", tei.getStoredBy() );
     }
 
@@ -675,24 +675,24 @@ class TrackedEntityInstanceServiceTest
         assertEquals( "UID-A1", grid.getRows().get( 1 ).get( 0 ) );
     }
 
-    private void initializeEntityInstance( TrackedEntityInstance entityInstance )
+    private void initializeEntityInstance( TrackedEntity entityInstance )
     {
         entityInstance.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
         attributeValueService.addTrackedEntityAttributeValue( createTrackedEntityAttributeValue( entityInstance ) );
     }
 
-    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( TrackedEntityInstance trackedEntityInstance )
+    private TrackedEntityAttributeValue createTrackedEntityAttributeValue( TrackedEntity trackedEntity )
     {
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValue.setEntityInstance( trackedEntity );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
         return trackedEntityAttributeValue;
     }
 
-    private void addEnrollment( TrackedEntityInstance entityInstance, Date enrollmentDate, char programStage )
+    private void addEnrollment( TrackedEntity entityInstance, Date enrollmentDate, char programStage )
     {
         ProgramStage stage = createProgramStage( programStage, program );
         stage.setSortOrder( 1 );
@@ -725,7 +725,7 @@ class TrackedEntityInstanceServiceTest
         entityInstanceService.addTrackedEntityInstance( entityInstanceD1 );
     }
 
-    private void setUpEntityAndAttributeValue( TrackedEntityInstance entityInstance, String attributeValue )
+    private void setUpEntityAndAttributeValue( TrackedEntity entityInstance, String attributeValue )
     {
         entityInstance.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
@@ -745,13 +745,13 @@ class TrackedEntityInstanceServiceTest
         return tea;
     }
 
-    private void createTrackedEntityInstanceAttribute( TrackedEntityInstance trackedEntityInstance,
+    private void createTrackedEntityInstanceAttribute( TrackedEntity trackedEntity,
         TrackedEntityAttribute attribute, String value )
     {
         TrackedEntityAttributeValue trackedEntityAttributeValueA1 = new TrackedEntityAttributeValue();
 
         trackedEntityAttributeValueA1.setAttribute( attribute );
-        trackedEntityAttributeValueA1.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValueA1.setEntityInstance( trackedEntity );
         trackedEntityAttributeValueA1.setValue( value );
 
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA1 );

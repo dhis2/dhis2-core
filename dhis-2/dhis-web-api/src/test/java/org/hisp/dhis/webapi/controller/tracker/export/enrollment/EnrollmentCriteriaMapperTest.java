@@ -44,7 +44,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -135,10 +135,10 @@ class EnrollmentCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( TRACKED_ENTITY_UID );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_UID );
         when( trackedEntityInstanceService.getTrackedEntityInstance( TRACKED_ENTITY_UID ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
     }
 
     @Test

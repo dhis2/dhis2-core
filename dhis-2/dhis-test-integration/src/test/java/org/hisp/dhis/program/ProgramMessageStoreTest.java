@@ -47,7 +47,7 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -67,9 +67,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
 
     private Enrollment enrollmentA;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
     private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
@@ -155,7 +155,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         programService.updateProgram( programA );
         entityInstanceA = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( ouA );
+        TrackedEntity entityInstanceB = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -178,13 +178,13 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         teiService.addTrackedEntityInstance( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );
-        recipientsA.setTrackedEntityInstance( teiA );
+        recipientsA.setTrackedEntity( teiA );
         recipientsB = new ProgramMessageRecipients();
         recipientsB.setOrganisationUnit( ouA );
-        recipientsB.setTrackedEntityInstance( teiA );
+        recipientsB.setTrackedEntity( teiA );
         recipientsC = new ProgramMessageRecipients();
         recipientsC.setOrganisationUnit( ouA );
-        recipientsC.setTrackedEntityInstance( teiA );
+        recipientsC.setTrackedEntity( teiA );
         Set<String> phoneNumberListA = new HashSet<>();
         phoneNumberListA.add( msisdn );
         recipientsA.setPhoneNumbers( phoneNumberListA );

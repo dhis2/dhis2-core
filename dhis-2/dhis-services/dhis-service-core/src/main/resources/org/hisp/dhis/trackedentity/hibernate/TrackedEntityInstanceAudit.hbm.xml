@@ -5,18 +5,13 @@
 
 <hibernate-mapping>
 	<class name="org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit" table="trackedentityinstanceaudit">
-    
         <id name="id" column="trackedentityinstanceauditid">
             <generator class="sequence">
               <param name="sequence_name">trackedentityinstanceaudit_sequence</param>
             </generator>
         </id>
 
-        <!-- <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
-                     column="trackedentityinstanceid"
-                     foreign-key="fk_trackedentityinstanceaudit_trackedentityinstanceid"/>-->
-                     
-        <property name="trackedEntityInstance"/>        
+        <property name="trackedEntity" column="trackedEntityInstance"/>
 
         <property name="created" type="timestamp"/>
 
@@ -31,6 +26,5 @@
         </property>
         
         <property name="comment" length="50000"/>
-
     </class>
 </hibernate-mapping>

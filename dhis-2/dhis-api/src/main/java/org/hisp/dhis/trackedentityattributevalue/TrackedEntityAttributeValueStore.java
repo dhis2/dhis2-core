@@ -32,8 +32,8 @@ import java.util.List;
 
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * @author Abyot Asalefew
@@ -53,33 +53,31 @@ public interface TrackedEntityAttributeValueStore
     /**
      * Deletes all {@link TrackedEntityAttributeValue} of a instance
      *
-     * @param instance {@link TrackedEntityInstance}
+     * @param instance {@link TrackedEntity}
      * @return The error code. If the code is 0, deleting success
      */
-    int deleteByTrackedEntityInstance( TrackedEntityInstance instance );
+    int deleteByTrackedEntityInstance( TrackedEntity instance );
 
     /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a
-     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
+     * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntity}
+     * and {@link TrackedEntityAttribute}
      *
-     * @param instance the {@link TrackedEntityInstance}
+     * @param instance the {@link TrackedEntity}
      * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
      */
-    TrackedEntityAttributeValue get( TrackedEntityInstance instance, TrackedEntityAttribute attribute );
+    TrackedEntityAttributeValue get( TrackedEntity instance, TrackedEntityAttribute attribute );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntity}
      *
-     * @param instance TrackedEntityInstance
+     * @param instance TrackedEntity
      * @return TrackedEntityAttributeValue list
      */
-    List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance );
+    List<TrackedEntityAttributeValue> get( TrackedEntity instance );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntity}
      *
      * @param attribute the {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue list
@@ -110,11 +108,11 @@ public interface TrackedEntityAttributeValueStore
     /**
      * Retrieve attribute values of an instance by a program.
      *
-     * @param instance the TrackedEntityInstance
+     * @param instance the TrackedEntity
      * @param program the Program.
      * @return TrackedEntityAttributeValue list
      */
-    List<TrackedEntityAttributeValue> get( TrackedEntityInstance instance, Program program );
+    List<TrackedEntityAttributeValue> get( TrackedEntity instance, Program program );
 
     /**
      * Return the number of assigned {@link TrackedEntityAttributeValue}s to the

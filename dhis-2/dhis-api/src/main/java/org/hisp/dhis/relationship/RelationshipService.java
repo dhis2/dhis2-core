@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -102,13 +102,13 @@ public interface RelationshipService
 
     List<Relationship> getRelationships( @Nonnull List<String> uids );
 
-    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
         boolean skipAccessValidation )
     {
         return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 

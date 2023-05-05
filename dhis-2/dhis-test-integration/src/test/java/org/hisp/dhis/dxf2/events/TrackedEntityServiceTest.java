@@ -77,6 +77,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternMethod;
 import org.hisp.dhis.textpattern.TextPatternSegment;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -93,7 +94,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
+class TrackedEntityServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
@@ -123,15 +124,15 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+    private TrackedEntity maleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+    private TrackedEntity maleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+    private TrackedEntity femaleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+    private TrackedEntity femaleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance dateConflictsMaleA;
+    private TrackedEntity dateConflictsMaleA;
 
     private OrganisationUnit organisationUnitA;
 
@@ -259,7 +260,7 @@ class TrackedEntityInstanceServiceTest extends TransactionalIntegrationTest
         ImportSummary importSummary = trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance,
             null, null, true );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
-        // assertEquals( "UPDATED_NAME", personService.getTrackedEntityInstance(
+        // assertEquals( "UPDATED_NAME", personService.getTrackedEntity(
         // maleA.getUid() ).getName() );
     }
 

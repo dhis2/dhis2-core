@@ -40,7 +40,7 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -68,13 +68,13 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    private TrackedEntityInstance original;
+    private TrackedEntity original;
 
-    private TrackedEntityInstance duplicate;
+    private TrackedEntity duplicate;
 
-    private TrackedEntityInstance extra1;
+    private TrackedEntity extra1;
 
-    private TrackedEntityInstance extra2;
+    private TrackedEntity extra2;
 
     private RelationshipType relationshipTypeBiDirectional;
 
@@ -124,17 +124,17 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
             Relationship _bi3 = relationshipService.getRelationship( bi3.getUid() );
             Relationship _bi4 = relationshipService.getRelationship( bi4.getUid() );
             assertNotNull( _bi1 );
-            assertEquals( original.getUid(), _bi1.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra2.getUid(), _bi1.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( original.getUid(), _bi1.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra2.getUid(), _bi1.getTo().getTrackedEntity().getUid() );
             assertNotNull( _bi2 );
-            assertEquals( original.getUid(), _bi2.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra1.getUid(), _bi2.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( original.getUid(), _bi2.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra1.getUid(), _bi2.getTo().getTrackedEntity().getUid() );
             assertNotNull( _bi3 );
-            assertEquals( duplicate.getUid(), _bi3.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra2.getUid(), _bi3.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( duplicate.getUid(), _bi3.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra2.getUid(), _bi3.getTo().getTrackedEntity().getUid() );
             assertNotNull( _bi4 );
-            assertEquals( extra1.getUid(), _bi4.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra2.getUid(), _bi4.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( extra1.getUid(), _bi4.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra2.getUid(), _bi4.getTo().getTrackedEntity().getUid() );
             return null;
         } );
     }
@@ -161,17 +161,17 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
         Relationship _uni3 = relationshipService.getRelationship( uni3.getUid() );
         Relationship _uni4 = relationshipService.getRelationship( uni4.getUid() );
         assertNotNull( _uni1 );
-        assertEquals( original.getUid(), _uni1.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( extra2.getUid(), _uni1.getTo().getTrackedEntityInstance().getUid() );
+        assertEquals( original.getUid(), _uni1.getFrom().getTrackedEntity().getUid() );
+        assertEquals( extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid() );
         assertNotNull( _uni2 );
-        assertEquals( duplicate.getUid(), _uni2.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( extra1.getUid(), _uni2.getTo().getTrackedEntityInstance().getUid() );
+        assertEquals( duplicate.getUid(), _uni2.getFrom().getTrackedEntity().getUid() );
+        assertEquals( extra1.getUid(), _uni2.getTo().getTrackedEntity().getUid() );
         assertNotNull( _uni3 );
-        assertEquals( extra2.getUid(), _uni3.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( original.getUid(), _uni3.getTo().getTrackedEntityInstance().getUid() );
+        assertEquals( extra2.getUid(), _uni3.getFrom().getTrackedEntity().getUid() );
+        assertEquals( original.getUid(), _uni3.getTo().getTrackedEntity().getUid() );
         assertNotNull( _uni4 );
-        assertEquals( extra1.getUid(), _uni4.getFrom().getTrackedEntityInstance().getUid() );
-        assertEquals( extra2.getUid(), _uni4.getTo().getTrackedEntityInstance().getUid() );
+        assertEquals( extra1.getUid(), _uni4.getFrom().getTrackedEntity().getUid() );
+        assertEquals( extra2.getUid(), _uni4.getTo().getTrackedEntity().getUid() );
     }
 
     @Test
@@ -197,17 +197,17 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
             Relationship _bi1 = relationshipService.getRelationship( bi1.getUid() );
             Relationship _bi2 = relationshipService.getRelationship( bi2.getUid() );
             assertNotNull( _uni1 );
-            assertEquals( original.getUid(), _uni1.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra2.getUid(), _uni1.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( original.getUid(), _uni1.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra2.getUid(), _uni1.getTo().getTrackedEntity().getUid() );
             assertNotNull( _uni2 );
-            assertEquals( original.getUid(), _uni2.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra1.getUid(), _uni2.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( original.getUid(), _uni2.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra1.getUid(), _uni2.getTo().getTrackedEntity().getUid() );
             assertNotNull( _bi1 );
-            assertEquals( extra2.getUid(), _bi1.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( original.getUid(), _bi1.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( extra2.getUid(), _bi1.getFrom().getTrackedEntity().getUid() );
+            assertEquals( original.getUid(), _bi1.getTo().getTrackedEntity().getUid() );
             assertNotNull( _bi2 );
-            assertEquals( extra1.getUid(), _bi2.getFrom().getTrackedEntityInstance().getUid() );
-            assertEquals( extra2.getUid(), _bi2.getTo().getTrackedEntityInstance().getUid() );
+            assertEquals( extra1.getUid(), _bi2.getFrom().getTrackedEntity().getUid() );
+            assertEquals( extra2.getUid(), _bi2.getTo().getTrackedEntity().getUid() );
             return null;
         } );
     }

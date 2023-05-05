@@ -101,7 +101,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -303,7 +303,7 @@ public class JdbcEventStore implements EventStore
                     event.setUid( eventUid );
                 }
 
-                TrackedEntityInstance tei = new TrackedEntityInstance();
+                TrackedEntity tei = new TrackedEntity();
                 tei.setUid( resultSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( resultSet.getString( EVENT_STATUS ) ) );
                 ProgramType programType = ProgramType.fromValue( resultSet.getString( "p_type" ) );

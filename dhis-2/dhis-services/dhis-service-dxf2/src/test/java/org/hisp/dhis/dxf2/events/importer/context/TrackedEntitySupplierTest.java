@@ -42,7 +42,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -53,7 +53,7 @@ import org.mockito.quality.Strictness;
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
-class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEntityInstance>
+class TrackedEntitySupplierTest extends AbstractSupplierTest<TrackedEntity>
 {
 
     private TrackedEntityInstanceSupplier subject;
@@ -87,12 +87,12 @@ class TrackedEntityInstanceSupplierTest extends AbstractSupplierTest<TrackedEnti
         event.setTrackedEntityInstance( "abcded" );
         // mock resultset extraction
         mockResultSetExtractor( mockResultSet );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> map = subject.get( ImportOptions.getDefaultImportOptions(),
+        Map<String, Pair<TrackedEntity, Boolean>> map = subject.get( ImportOptions.getDefaultImportOptions(),
             Collections.singletonList( event ) );
-        TrackedEntityInstance trackedEntityInstance = map.get( event.getUid() ).getKey();
-        assertThat( trackedEntityInstance, is( notNullValue() ) );
-        assertThat( trackedEntityInstance.getId(), is( 100L ) );
-        assertThat( trackedEntityInstance.getUid(), is( "abcded" ) );
-        assertThat( trackedEntityInstance.getCode(), is( "ALFA" ) );
+        TrackedEntity trackedEntity = map.get( event.getUid() ).getKey();
+        assertThat( trackedEntity, is( notNullValue() ) );
+        assertThat( trackedEntity.getId(), is( 100L ) );
+        assertThat( trackedEntity.getUid(), is( "abcded" ) );
+        assertThat( trackedEntity.getCode(), is( "ALFA" ) );
     }
 }

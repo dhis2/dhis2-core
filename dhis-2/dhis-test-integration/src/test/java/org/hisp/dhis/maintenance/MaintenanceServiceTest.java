@@ -68,7 +68,7 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -153,11 +153,11 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
-    private TrackedEntityInstance entityInstanceWithAssociations;
+    private TrackedEntity entityInstanceWithAssociations;
 
     private RelationshipType relationshipType;
 
@@ -233,7 +233,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntityInstance( entityInstance );
+        rItem2.setTrackedEntity( entityInstance );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
@@ -261,7 +261,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
         programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
         programMessageRecipients.setOrganisationUnit( organisationUnit );
-        programMessageRecipients.setTrackedEntityInstance( entityInstance );
+        programMessageRecipients.setTrackedEntity( entityInstance );
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
             .recipients( programMessageRecipients ).deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
             .enrollment( enrollment ).build();
@@ -304,7 +304,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
         programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
         programMessageRecipients.setOrganisationUnit( organisationUnit );
-        programMessageRecipients.setTrackedEntityInstance( entityInstanceB );
+        programMessageRecipients.setTrackedEntity( entityInstanceB );
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
             .recipients( programMessageRecipients ).deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
             .build();
@@ -359,7 +359,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEvent( eventA );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntityInstance( entityInstance );
+        rItem2.setTrackedEntity( entityInstance );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
@@ -393,7 +393,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntityInstance( entityInstance );
+        rItem2.setTrackedEntity( entityInstance );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
@@ -430,7 +430,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertEquals( 1, audits.stream()
             .filter( a -> a.getKlass().equals( "org.hisp.dhis.program.Event" ) ).count() );
         assertEquals( 1, audits.stream()
-            .filter( a -> a.getKlass().equals( "org.hisp.dhis.trackedentity.TrackedEntityInstance" ) ).count() );
+            .filter( a -> a.getKlass().equals( "org.hisp.dhis.trackedentity.TrackedEntity" ) ).count() );
         audits.forEach( a -> assertSame( a.getAuditType(), AuditType.DELETE ) );
     }
 

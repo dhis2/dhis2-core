@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -55,7 +55,7 @@ public class EnrollmentCheck implements Checker
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
         Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
-        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
+        final Optional<TrackedEntity> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
         String teiUid = "";
         if ( trackedEntityInstance.isPresent() )

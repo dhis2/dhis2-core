@@ -41,7 +41,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -61,7 +61,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceControllerTest
+class TrackedEntityControllerTest
 {
 
     private MockMvc mockMvc;
@@ -85,7 +85,7 @@ class TrackedEntityInstanceControllerTest
     private TrackerAccessManager trackerAccessManager;
 
     @Mock
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
 

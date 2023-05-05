@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.OwnedTeiMapper;
@@ -111,18 +111,18 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
     }
 
     @Override
-    public Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Context ctx )
+    public Map<String, TrackedEntity> getTrackedEntityInstances( List<Long> ids, Context ctx )
     {
         List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 
-        Map<String, TrackedEntityInstance> trackedEntityMap = new LinkedHashMap<>();
+        Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
 
         idPartitions
             .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
         return trackedEntityMap;
     }
 
-    private Map<String, TrackedEntityInstance> getTrackedEntityInstancesPartitioned( List<Long> ids,
+    private Map<String, TrackedEntity> getTrackedEntityInstancesPartitioned( List<Long> ids,
         Context ctx )
     {
         TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();

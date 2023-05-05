@@ -58,9 +58,9 @@ import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -141,7 +141,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
 
-        TrackedEntityInstance entityInstance;
+        TrackedEntity entityInstance;
         boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
 
         if ( teiExists )
@@ -152,7 +152,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         else
         {
             log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUid ) );
-            entityInstance = new TrackedEntityInstance();
+            entityInstance = new TrackedEntity();
             entityInstance.setUid( teiUid.getUid() );
             entityInstance.setOrganisationUnit( orgUnit );
             entityInstance.setTrackedEntityType( entityType );
@@ -171,7 +171,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             teiService.createTrackedEntityInstance( entityInstance, attributeValues );
         }
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
+        TrackedEntity tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
@@ -268,7 +268,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
     }
 
     private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSmsSubmission submission,
-        TrackedEntityInstance entityInstance )
+        TrackedEntity entityInstance )
     {
         if ( submission.getValues() == null )
         {
@@ -279,7 +279,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
     }
 
     protected TrackedEntityAttributeValue createTrackedEntityValue( SmsAttributeValue SMSAttributeValue,
-        TrackedEntityInstance tei )
+        TrackedEntity tei )
     {
         Uid attribUid = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();

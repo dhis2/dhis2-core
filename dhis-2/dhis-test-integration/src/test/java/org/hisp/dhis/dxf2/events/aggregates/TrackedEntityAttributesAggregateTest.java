@@ -56,6 +56,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
@@ -74,7 +75,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
+class TrackedEntityAttributesAggregateTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -291,37 +292,37 @@ class TrackedEntityInstanceAttributesAggregateTest extends TrackerTest
             manager.update( programA );
             manager.update( programB );
             // Create a TEI associated to program B
-            final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance(
+            final TrackedEntity trackedEntity = persistTrackedEntityInstance(
                 Map.of( "program", programB ) );
-            Enrollment piB = new Enrollment( programB, trackedEntityInstance, organisationUnitA );
+            Enrollment piB = new Enrollment( programB, trackedEntity, organisationUnitA );
             piB.setEnrollmentDate( new Date() );
             manager.save( piB );
-            Enrollment piA = new Enrollment( programA, trackedEntityInstance, organisationUnitA );
+            Enrollment piA = new Enrollment( programA, trackedEntity, organisationUnitA );
             piA.setEnrollmentDate( new Date() );
             manager.save( piA );
             if ( removeOwnership )
             {
-                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitB, true,
+                trackerOwnershipManager.assignOwnership( trackedEntity, programB, organisationUnitB, true,
                     true );
-                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programA, organisationUnitA, true,
+                trackerOwnershipManager.assignOwnership( trackedEntity, programA, organisationUnitA, true,
                     true );
             }
             else
             {
-                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programB, organisationUnitA, true,
+                trackerOwnershipManager.assignOwnership( trackedEntity, programB, organisationUnitA, true,
                     true );
-                trackerOwnershipManager.assignOwnership( trackedEntityInstance, programA, organisationUnitA, true,
+                trackerOwnershipManager.assignOwnership( trackedEntity, programA, organisationUnitA, true,
                     true );
             }
             // Assign Attribute A,B,E to Tracked Entity Instance
             attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue(
-                attributeService.getTrackedEntityAttributeByName( "AttributeA" ), trackedEntityInstance, "A" ) );
+                attributeService.getTrackedEntityAttributeByName( "AttributeA" ), trackedEntity, "A" ) );
             attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue(
-                attributeService.getTrackedEntityAttributeByName( "AttributeB" ), trackedEntityInstance, "B" ) );
+                attributeService.getTrackedEntityAttributeByName( "AttributeB" ), trackedEntity, "B" ) );
             attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue(
-                attributeService.getTrackedEntityAttributeByName( "AttributeC" ), trackedEntityInstance, "C" ) );
+                attributeService.getTrackedEntityAttributeByName( "AttributeC" ), trackedEntity, "C" ) );
             attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue(
-                attributeService.getTrackedEntityAttributeByName( "AttributeE" ), trackedEntityInstance, "E" ) );
+                attributeService.getTrackedEntityAttributeByName( "AttributeE" ), trackedEntity, "E" ) );
         } );
     }
 }

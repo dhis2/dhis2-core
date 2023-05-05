@@ -55,8 +55,8 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -85,7 +85,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
     private Program program;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
     private Enrollment enrollment;
 
@@ -223,7 +223,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
             enrollment.getTrackedEntity() );
 
         JsonRelationshipItem.JsonTrackedEntity trackedEntity = jsonRelationship.getTo().getTrackedEntity();
-        assertEquals( relationship.getTo().getTrackedEntityInstance().getUid(), trackedEntity.getTrackedEntity() );
+        assertEquals( relationship.getTo().getTrackedEntity().getUid(), trackedEntity.getTrackedEntity() );
 
         assertHasMember( jsonRelationship, "relationshipName" );
         assertHasMember( jsonRelationship, "relationshipType" );
@@ -289,7 +289,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         return event;
     }
 
-    private Relationship relationship( Enrollment from, TrackedEntityInstance to )
+    private Relationship relationship( Enrollment from, TrackedEntity to )
     {
         relationship = new Relationship();
 
@@ -300,7 +300,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         fromItem.setRelationship( relationship );
 
         RelationshipItem toItem = new RelationshipItem();
-        toItem.setTrackedEntityInstance( to );
+        toItem.setTrackedEntity( to );
         to.getRelationshipItems().add( toItem );
         relationship.setTo( toItem );
         toItem.setRelationship( relationship );
@@ -342,7 +342,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         assertHasNoMember( enrollment, "attributes" );
     }
 
-    private Enrollment enrollment( TrackedEntityInstance tei )
+    private Enrollment enrollment( TrackedEntity tei )
     {
         Enrollment enrollment = new Enrollment( program, tei, orgUnit );
         enrollment.setAutoFields();

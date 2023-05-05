@@ -56,6 +56,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,11 +72,11 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
     private Enrollment enrollmentA;
 
@@ -377,19 +378,19 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     private org.hisp.dhis.relationship.Relationship relationship(
-        org.hisp.dhis.trackedentity.TrackedEntityInstance teiFrom,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance teiTo, Enrollment piTo, Event psiTo )
+        TrackedEntity teiFrom,
+        TrackedEntity teiTo, Enrollment piTo, Event psiTo )
     {
         org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
 
         org.hisp.dhis.relationship.RelationshipItem from = new org.hisp.dhis.relationship.RelationshipItem();
-        from.setTrackedEntityInstance( teiFrom );
+        from.setTrackedEntity( teiFrom );
 
         org.hisp.dhis.relationship.RelationshipItem to = new org.hisp.dhis.relationship.RelationshipItem();
 
         if ( null != teiTo )
         {
-            to.setTrackedEntityInstance( teiTo );
+            to.setTrackedEntity( teiTo );
             relationship.setRelationshipType( relationshipTypeTeiToTei );
         }
         else if ( null != piTo )

@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -194,23 +194,21 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( Program program, ProgramStatus status );
 
     /**
-     * Retrieve enrollments on a TrackedEntityInstance with a status by a
-     * program
+     * Retrieve enrollments on a TrackedEntity with a status by a program
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return Enrollment list
      */
-    List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
+    List<Enrollment> getEnrollments( TrackedEntity entityInstance, Program program,
         ProgramStatus status );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a TrackedEntity into a program. Must be run inside a transaction.
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param enrollmentDate The date of enrollment
      * @param incidentDate The date of incident
@@ -218,21 +216,20 @@ public interface EnrollmentService
      * @param uid UID to use for new instance
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a TrackedEntity into a program. Must be run inside a transaction.
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param enrollmentDate The date of enrollment
      * @param incidentDate The date of incident
      * @param orgunit Organisation Unit
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate,
         OrganisationUnit orgunit );
 
@@ -262,7 +259,7 @@ public interface EnrollmentService
     /**
      * Prepare a Enrollment for storing
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param programStatus ProgramStatus
      * @param enrollmentDate The date of enrollment
@@ -272,6 +269,6 @@ public interface EnrollmentService
      * @return Enrollment
      */
     @Nonnull
-    Enrollment prepareEnrollment( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment prepareEnrollment( TrackedEntity trackedEntity, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }

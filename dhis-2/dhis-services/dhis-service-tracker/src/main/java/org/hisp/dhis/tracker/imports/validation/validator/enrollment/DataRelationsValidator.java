@@ -36,7 +36,7 @@ import java.util.Map;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -92,12 +92,12 @@ class DataRelationsValidator
 
     private boolean trackedEntityTypesMatch( TrackerBundle bundle, Program program, Enrollment enrollment )
     {
-        final TrackedEntityInstance trackedEntityInstance = bundle
+        final TrackedEntity trackedEntity = bundle
             .getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
-        if ( trackedEntityInstance != null )
+        if ( trackedEntity != null )
         {
             return program.getTrackedEntityType().getUid()
-                .equals( trackedEntityInstance.getTrackedEntityType().getUid() );
+                .equals( trackedEntity.getTrackedEntityType().getUid() );
         }
 
         return bundle.findTrackedEntityByUid( enrollment.getTrackedEntity() )

@@ -50,7 +50,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -82,13 +82,13 @@ public class WorkContext
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events
-     * to import.
+     * Holds a Map of all {@see TrackedEntity} associated to the Events to
+     * import.
      *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
+     * Map: key -> Event UID value -> Pair<TrackedEntity,
      * canBeUpdatedByCurrentUser boolean>
      */
-    private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
+    private final Map<String, Pair<TrackedEntity, Boolean>> trackedEntityInstanceMap;
 
     /**
      * Holds a Map of all {@see Enrollment} associated to the Events to import.
@@ -181,9 +181,9 @@ public class WorkContext
         return null;
     }
 
-    public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
+    public Optional<TrackedEntity> getTrackedEntityInstance( String event )
     {
-        final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+        final Pair<TrackedEntity, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }

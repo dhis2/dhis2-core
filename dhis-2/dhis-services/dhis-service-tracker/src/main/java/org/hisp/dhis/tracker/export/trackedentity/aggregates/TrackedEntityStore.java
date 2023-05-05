@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
@@ -43,37 +43,37 @@ import com.google.common.collect.Multimap;
 public interface TrackedEntityStore
 {
     /**
-     * Get a Map of {@see TrackedEntityInstance} by Primary Keys
+     * Get a Map of {@see TrackedEntity} by Primary Keys
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key
-     *         is the corresponding {@see TrackedEntityInstance}
+     * @return a Map where key is a {@see TrackedEntity} uid and the key is the
+     *         corresponding {@see TrackedEntity}
      */
-    Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, Context ctx );
+    Map<String, TrackedEntity> getTrackedEntityInstances( List<Long> ids, Context ctx );
 
     /**
      * Fetches all the relationships having the TEI id specified in the arg as
      * "left" or "right" relationship
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Relationship} objects
      */
     Multimap<String, RelationshipItem> getRelationships( List<Long> ids, Context ctx );
 
     /**
      *
      * @param ids @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Attribute} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Attribute} objects
      */
     Multimap<String, TrackedEntityAttributeValue> getAttributes( List<Long> ids );
 
     /**
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the * key a List of {@see ProgramOwner} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key
+     *         a List of {@see ProgramOwner} objects
      */
     Multimap<String, TrackedEntityProgramOwner> getProgramOwners( List<Long> ids );
 

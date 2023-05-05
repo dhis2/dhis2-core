@@ -112,7 +112,7 @@ public class HibernateTrackedEntityAttributeStore
 
         SqlHelper hlp = new SqlHelper( true );
 
-        String hql = "select tei.uid from TrackedEntityInstance tei ";
+        String hql = "select tei.uid from TrackedEntity tei ";
 
         if ( params.hasOrganisationUnits() )
         {

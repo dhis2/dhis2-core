@@ -162,7 +162,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
 
-        TrackedEntityInstance teiA = createTrackedEntityInstance( ouA );
+        TrackedEntity teiA = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntityInstance( teiA );
 
         Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance(

@@ -34,7 +34,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Abyot Asalefew
@@ -52,14 +52,13 @@ public interface EventStore
     List<Event> get( Collection<Enrollment> enrollments, EventStatus status );
 
     /**
-     * Get all events by TrackedEntityInstance, optionally filtering by
-     * completed.
+     * Get all events by TrackedEntity, optionally filtering by completed.
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param status EventStatus
      * @return Event list
      */
-    List<Event> get( TrackedEntityInstance entityInstance, EventStatus status );
+    List<Event> get( TrackedEntity entityInstance, EventStatus status );
 
     /**
      * Get the number of events updates since the given Date.

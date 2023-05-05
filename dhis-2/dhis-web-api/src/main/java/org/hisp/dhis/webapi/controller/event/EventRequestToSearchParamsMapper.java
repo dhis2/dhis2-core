@@ -73,7 +73,7 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -184,7 +184,7 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
 
-        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
+        TrackedEntity tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
 
         if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {
@@ -246,7 +246,7 @@ class EventRequestToSearchParamsMapper
                 .collect( Collectors.toSet() );
         }
 
-        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
+        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntity( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
             .setUserWithAssignedUsers( assignedUserSelectionMode, user, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )

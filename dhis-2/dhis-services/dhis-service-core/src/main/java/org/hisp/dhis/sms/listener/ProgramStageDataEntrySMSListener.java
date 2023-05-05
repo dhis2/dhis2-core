@@ -53,9 +53,9 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -111,7 +111,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
     {
         Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-        List<TrackedEntityInstance> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
+        List<TrackedEntity> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
 
         if ( !validate( teis, ous, sms ) )
         {
@@ -128,7 +128,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
             ParserType.PROGRAM_STAGE_DATAENTRY_PARSER );
     }
 
-    private void registerProgramStage( TrackedEntityInstance tei, IncomingSms sms, SMSCommand smsCommand,
+    private void registerProgramStage( TrackedEntity tei, IncomingSms sms, SMSCommand smsCommand,
         Map<String, String> keyValue, Set<OrganisationUnit> ous )
     {
         List<Enrollment> enrollments = new ArrayList<>(
@@ -137,13 +137,13 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         register( enrollments, keyValue, smsCommand, sms, ous );
     }
 
-    private List<TrackedEntityInstance> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command,
+    private List<TrackedEntity> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command,
         Set<OrganisationUnit> ous )
     {
         List<TrackedEntityAttribute> attributes = trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
             .filter( attr -> attr.getValueType().equals( ValueType.PHONE_NUMBER ) ).collect( Collectors.toList() );
 
-        List<TrackedEntityInstance> teis = new ArrayList<>();
+        List<TrackedEntity> teis = new ArrayList<>();
 
         attributes.parallelStream().map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
             .forEach(
@@ -152,9 +152,9 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         return teis;
     }
 
-    private boolean hasMoreThanOneEntity( List<TrackedEntityInstance> trackedEntityInstances )
+    private boolean hasMoreThanOneEntity( List<TrackedEntity> trackedEntities )
     {
-        return trackedEntityInstances.size() > 1;
+        return trackedEntities.size() > 1;
     }
 
     private TrackedEntityInstanceQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms,
@@ -177,7 +177,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         return params;
     }
 
-    private boolean validate( List<TrackedEntityInstance> teis, Set<OrganisationUnit> ous, IncomingSms sms )
+    private boolean validate( List<TrackedEntity> teis, Set<OrganisationUnit> ous, IncomingSms sms )
     {
         if ( teis == null || teis.isEmpty() )
         {

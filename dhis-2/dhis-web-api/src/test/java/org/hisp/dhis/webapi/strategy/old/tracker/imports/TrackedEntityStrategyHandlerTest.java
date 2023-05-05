@@ -51,7 +51,7 @@ import org.springframework.http.MediaType;
  * @author Luca Cambi <luca@dhis2.org>
  */
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceStrategyHandlerTest
+class TrackedEntityStrategyHandlerTest
 {
 
     @InjectMocks

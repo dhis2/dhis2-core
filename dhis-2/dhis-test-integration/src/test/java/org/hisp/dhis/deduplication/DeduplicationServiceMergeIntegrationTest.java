@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -98,8 +98,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntityInstance( ou );
+        TrackedEntity duplicate = createTrackedEntityInstance( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
         trackedEntityInstanceService.addTrackedEntityInstance( original );
@@ -143,8 +143,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         trackedEntityType.setSharing( sharing );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntityInstance( ou );
+        TrackedEntity duplicate = createTrackedEntityInstance( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
         trackedEntityInstanceService.addTrackedEntityInstance( original );

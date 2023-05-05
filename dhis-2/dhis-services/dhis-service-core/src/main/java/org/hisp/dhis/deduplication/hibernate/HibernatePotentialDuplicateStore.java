@@ -71,7 +71,7 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
@@ -203,7 +203,7 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveTrackedEntityAttributeValues( TrackedEntity original, TrackedEntity duplicate,
         List<String> trackedEntityAttributes )
     {
         // Collect existing teav from original for the tea list
@@ -271,21 +271,21 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void moveRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveRelationships( TrackedEntity original, TrackedEntity duplicate,
         List<String> relationships )
     {
         duplicate.getRelationshipItems()
             .stream()
             .filter( r -> relationships.contains( r.getRelationship().getUid() ) )
             .forEach( ri -> {
-                ri.setTrackedEntityInstance( original );
+                ri.setTrackedEntity( original );
 
                 getSession().update( ri );
             } );
     }
 
     @Override
-    public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveEnrollments( TrackedEntity original, TrackedEntity duplicate,
         List<String> enrollments )
     {
         List<Enrollment> enrollmentList = duplicate.getEnrollments()
@@ -310,15 +310,15 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
+    public void removeTrackedEntity( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceStore.delete( trackedEntityInstance );
+        trackedEntityInstanceStore.delete( trackedEntity );
     }
 
     @Override
     public void auditMerge( DeduplicationMergeParams params )
     {
-        TrackedEntityInstance duplicate = params.getDuplicate();
+        TrackedEntity duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
         mergeObject.getRelationships().forEach( rel -> {

@@ -48,7 +48,7 @@ import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -71,7 +71,7 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
     }
 
     public Map<String, Enrollment> get( ImportOptions importOptions,
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap, List<Event> events )
+        Map<String, Pair<TrackedEntity, Boolean>> teiMap, List<Event> events )
     {
         if ( events == null )
         {
@@ -114,18 +114,18 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
      * enrollment by Program and Tracked Entity Instance
      */
     private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
-        Map<String, Enrollment> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )
+        Map<String, Enrollment> programInstances, Map<String, Pair<TrackedEntity, Boolean>> teiMap )
     {
         for ( Event event : events )
         {
             if ( !programInstances.containsKey( event.getUid() ) )
             {
-                Pair<TrackedEntityInstance, Boolean> teiPair = teiMap.get( event.getUid() );
+                Pair<TrackedEntity, Boolean> teiPair = teiMap.get( event.getUid() );
                 Program program = getProgramByUid( event.getProgram(),
                     programSupplier.get( importOptions, events ).values() );
                 if ( teiPair != null && program != null )
                 {
-                    TrackedEntityInstance tei = teiPair.getKey();
+                    TrackedEntity tei = teiPair.getKey();
 
                     Enrollment enrollment = getByTeiAndProgram( importOptions, tei.getId(), program.getId(),
                         event );
@@ -283,8 +283,8 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
 
         if ( teiUid != null )
         {
-            TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-            trackedEntityInstance.setId( rs.getLong( "tei_id" ) );
+            TrackedEntity trackedEntity = new TrackedEntity();
+            trackedEntity.setId( rs.getLong( "tei_id" ) );
             String teiOuUid = rs.getString( "tei_ou_uid" );
             if ( teiOuUid != null )
             {
@@ -292,11 +292,11 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
                 organisationUnit.setUid( teiOuUid );
                 organisationUnit
                     .setParent( SupplierUtils.getParentHierarchy( organisationUnit, rs.getString( "tei_ou_path" ) ) );
-                trackedEntityInstance.setOrganisationUnit( organisationUnit );
+                trackedEntity.setOrganisationUnit( organisationUnit );
             }
-            trackedEntityInstance.setUid( teiUid );
+            trackedEntity.setUid( teiUid );
 
-            pi.setEntityInstance( trackedEntityInstance );
+            pi.setEntityInstance( trackedEntity );
         }
 
         return pi;

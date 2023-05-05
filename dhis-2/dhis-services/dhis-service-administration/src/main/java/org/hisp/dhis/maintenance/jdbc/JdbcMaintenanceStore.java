@@ -44,7 +44,7 @@ import org.hisp.dhis.maintenance.MaintenanceStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -59,7 +59,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     private static final Map<Class<? extends SoftDeletableObject>, SoftDeletableObject> ENTITY_MAPPER = Map.of(
         Enrollment.class, new Enrollment(),
         Event.class, new Event(),
-        TrackedEntityInstance.class, new TrackedEntityInstance(),
+        TrackedEntity.class, new TrackedEntity(),
         Relationship.class, new Relationship() );
 
     private final JdbcTemplate jdbcTemplate;
@@ -298,7 +298,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         {
             auditHardDeletedEntity( associatedEvents, Event.class );
             auditHardDeletedEntity( associatedEnrollments, Enrollment.class );
-            auditHardDeletedEntity( deletedTeiUids, TrackedEntityInstance.class );
+            auditHardDeletedEntity( deletedTeiUids, TrackedEntity.class );
         }
 
         return result;
