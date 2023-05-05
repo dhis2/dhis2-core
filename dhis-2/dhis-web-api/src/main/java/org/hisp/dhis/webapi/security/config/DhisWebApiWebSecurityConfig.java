@@ -58,7 +58,6 @@ import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
 import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
-import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -93,7 +92,7 @@ import org.springframework.web.util.UrlPathHelper;
 /**
  * The {@code DhisWebApiWebSecurityConfig} class configures mostly all
  * authentication and authorization related to the /api endpoint.
- *
+ * <p>
  * Almost all other endpoints are configured in
  * {@code DhisWebCommonsWebSecurityConfig}
  *
@@ -107,8 +106,7 @@ import org.springframework.web.util.UrlPathHelper;
 @EnableGlobalAuthentication
 public class DhisWebApiWebSecurityConfig
 {
-
-    public static final String DHIS_WEB_DASHBOARD = "/dhis-web-dashboard";
+    public static final String DHIS_WEB_DASHBOARD_URL = "/dhis-web-dashboard";
 
     private static String apiContextPath = "/api";
 
@@ -120,23 +118,8 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
-    @Bean
-    public SessionRegistryImpl sessionRegistry()
-    {
-        return new SessionRegistryImpl();
-    }
-
-    //    @Autowired
-    //    private DhisOidcProviderRepository dhisOidcProviderRepository;
-
-    @Autowired
-    private DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver;
-
     @Autowired
     private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
-    @Autowired
-    private DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient;
 
     @Autowired
     private DhisConfigurationProvider dhisConfig;
@@ -170,24 +153,6 @@ public class DhisWebApiWebSecurityConfig
     private SecurityService securityService;
 
     @Autowired
-    private ExternalAccessVoter externalAccessVoter;
-
-    //    @Autowired
-    //    private TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource;
-
-    @Autowired
-    private DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler;
-
-    @Autowired
-    private HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource;
-
-    @Autowired
-    private ConfigurationService configurationService;
-
-    @Autowired
-    private ApplicationContext applicationContext;
-
-    @Autowired
     void registerProvider( AuthenticationManagerBuilder builder )
     {
         builder.authenticationProvider( customLdapAuthenticationProvider );
@@ -196,36 +161,49 @@ public class DhisWebApiWebSecurityConfig
     }
 
     @Bean
+    public SessionRegistryImpl sessionRegistry()
+    {
+        return new SessionRegistryImpl();
+    }
+
+    @Bean
     @Order( 1 )
     @Conditional( value = OIDCLoginEnabledCondition.class )
     public SecurityFilterChain oidcSecurityFilterChain( HttpSecurity http,
-        DhisOidcProviderRepository dhisOidcProviderRepository )
+        DhisOidcProviderRepository dhisOidcProviderRepository,
+        DhisCustomAuthorizationRequestResolver dhisCustomAuthorizationRequestResolver,
+        DhisAuthorizationCodeTokenResponseClient jwtPrivateCodeTokenResponseClient )
         throws Exception
     {
         Set<String> providerIds = dhisOidcProviderRepository.getAllRegistrationId();
 
-        http.securityMatcher( "/oauth2/**" )
-            .authorizeHttpRequests( authorize -> providerIds.forEach( providerId -> authorize
+        http.csrf().disable()
+
+            .securityMatcher( "/oauth2/**" )
+            .authorizeHttpRequests( a -> providerIds.forEach( providerId -> a
                 .requestMatchers( "/oauth2/authorization/" + providerId ).permitAll()
                 .requestMatchers( "/oauth2/code/" + providerId ).permitAll() ) )
 
-            .oauth2Login( oauth2 -> oauth2
+            .oauth2Login( a -> a
                 .tokenEndpoint()
-                .accessTokenResponseClient( jwtPrivateCodeTokenResponseClient ).and()
+                .accessTokenResponseClient( jwtPrivateCodeTokenResponseClient )
+                .and()
                 .failureUrl( "/dhis-web-commons/security/login.action?oidcFailure=true" )
                 .clientRegistrationRepository( dhisOidcProviderRepository )
                 .loginProcessingUrl( "/oauth2/code/*" )
                 .authorizationEndpoint()
-                .authorizationRequestResolver( dhisCustomAuthorizationRequestResolver ) )
+                .authorizationRequestResolver( dhisCustomAuthorizationRequestResolver ) );
 
-            .csrf().disable();
+        setHttpHeaders( http );
 
         return http.build();
     }
 
     @Bean
     @Order( 2 )
-    public SecurityFilterChain apiSecurityFilterChain( HttpSecurity http )
+    public SecurityFilterChain apiSecurityFilterChain( HttpSecurity http,
+        HttpBasicWebAuthenticationDetailsSource httpBasicWebAuthenticationDetailsSource,
+        ConfigurationService configurationService )
         throws Exception
     {
         configureCspFilter( http, dhisConfig, configurationService );
@@ -234,23 +212,22 @@ public class DhisWebApiWebSecurityConfig
         configureApiTokenAuthorizationFilter( http );
         configureJWTOAuthTokenFilters( http );
 
-        http.securityContext( httpSecuritySecurityContextConfigurer -> httpSecuritySecurityContextConfigurer
-            .requireExplicitSave( true ) );
+        http.csrf().disable()
 
-        http.securityMatchers( matchers -> matchers
-            .requestMatchers( antMatcher( apiContextPath + "/**" ) ) )
-            .authorizeHttpRequests( authorize -> authorize
+            .securityContext( c -> c.requireExplicitSave( true ) );
+
+        http.securityMatchers( m -> m.requestMatchers( antMatcher( apiContextPath + "/**" ) ) )
+            .authorizeHttpRequests( a -> a
                 .requestMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
                 .requestMatchers( "/authentication/login" ).permitAll()
-                .requestMatchers( "/api/authentication/login" ).permitAll()
-                .requestMatchers( "/account/recovery" ).permitAll()
-                .requestMatchers( "/account/restore" ).permitAll()
-                .requestMatchers( "/account" ).permitAll()
-                .requestMatchers( "/staticContent/*" ).permitAll()
-                .requestMatchers( "/externalFileResources/*" ).permitAll()
-                .requestMatchers( "/icons/*/icon.svg" ).permitAll()
+                .requestMatchers( "/api/authentication/login" ).permitAll().requestMatchers( "/account/recovery" )
+                .permitAll().requestMatchers( "/account/restore" ).permitAll().requestMatchers( "/account" )
+                .permitAll().requestMatchers( "/staticContent/*" ).permitAll()
+                .requestMatchers( "/externalFileResources/*" ).permitAll().requestMatchers( "/icons/*/icon.svg" )
+                .permitAll()
 
                 .anyRequest().authenticated() )
+
             .httpBasic()
 
             .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
@@ -267,14 +244,13 @@ public class DhisWebApiWebSecurityConfig
                 }
             } );
 
-        http
-            .sessionManagement()
+        http.sessionManagement()
             .requireExplicitAuthenticationStrategy( true )
-            .sessionFixation().migrateSession()
+            .sessionFixation()
+            .migrateSession()
             .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
             .enableSessionUrlRewriting( false )
-            .maximumSessions(
-                Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+            .maximumSessions( Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
             .expiredUrl( "/dhis-web-commons-security/logout.action" );
 
         setHttpHeaders( http );
@@ -284,7 +260,8 @@ public class DhisWebApiWebSecurityConfig
 
     @Bean
     public SecurityFilterChain formSecurityFilterChain( HttpSecurity http,
-        TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource )
+        TwoFactorWebAuthenticationDetailsSource twoFactorWebAuthenticationDetailsSource,
+        DhisOidcLogoutSuccessHandler dhisOidcLogoutSuccessHandler, ApplicationContext applicationContext )
         throws Exception
     {
         String[] activeProfiles = applicationContext.getEnvironment().getActiveProfiles();
@@ -293,19 +270,18 @@ public class DhisWebApiWebSecurityConfig
         if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
         {
             http.csrf().disable()
-                .authorizeHttpRequests( authorize -> authorize
 
+                .authorizeHttpRequests( a -> a
                     .requestMatchers( "/index.html" ).permitAll()
                     .requestMatchers( "/login*" ).permitAll()
+
                     .anyRequest().authenticated() )
                 .formLogin()
                 .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
 
                 .loginPage( "/index.html" )
-                .usernameParameter( "username" )
-                .passwordParameter( "password" )
-                .loginProcessingUrl( "/login" )
-                .defaultSuccessUrl( DHIS_WEB_DASHBOARD, true )
+                .loginProcessingUrl( "/login" ).usernameParameter( "username" ).passwordParameter( "password" )
+                .defaultSuccessUrl( DHIS_WEB_DASHBOARD_URL, true )
                 .failureUrl( "/index.html?error=true" )
                 .and()
                 .logout()
@@ -313,8 +289,9 @@ public class DhisWebApiWebSecurityConfig
                 .logoutSuccessUrl( "/" )
                 .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                 .deleteCookies( "JSESSIONID" );
-
         }
+
+        setHttpHeaders( http );
 
         return http.build();
     }
@@ -322,14 +299,12 @@ public class DhisWebApiWebSecurityConfig
     private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
         ConfigurationService configurationService )
     {
-        http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
-            HeaderWriterFilter.class );
+        http.addFilterBefore( new CspFilter( dhisConfig, configurationService ), HeaderWriterFilter.class );
     }
 
     private void configureCorsFilter( HttpSecurity http )
     {
-        http
-            .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class );
+        http.addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class );
     }
 
     private void configureMobileAuthFilter( HttpSecurity http )
@@ -442,18 +417,12 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @throws Exception
+     * @throws Exception headers() can throw an exception
      */
     public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
-        http
-            .headers()
-            .defaultsDisabled()
-            .contentTypeOptions()
-            .and()
-            .xssProtection()
-            .and()
+        http.headers().defaultsDisabled().contentTypeOptions().and().xssProtection().and()
             .httpStrictTransportSecurity();
     }
 
@@ -466,8 +435,8 @@ public class DhisWebApiWebSecurityConfig
         filter.setUserDetailsChecker( new ImpersonatingUserDetailsChecker() );
         filter.setSwitchUserMatcher( new AntPathRequestMatcher( "/impersonate", "POST", true, new UrlPathHelper() ) );
         filter.setExitUserMatcher( new AntPathRequestMatcher( "/impersonateExit", "POST", true, new UrlPathHelper() ) );
-        filter.setSwitchFailureUrl( DHIS_WEB_DASHBOARD );
-        filter.setTargetUrl( DHIS_WEB_DASHBOARD );
+        filter.setSwitchFailureUrl( DHIS_WEB_DASHBOARD_URL );
+        filter.setTargetUrl( DHIS_WEB_DASHBOARD_URL );
         return filter;
     }
 }

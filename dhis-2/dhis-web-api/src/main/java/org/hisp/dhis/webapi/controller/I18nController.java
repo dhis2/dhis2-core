@@ -40,6 +40,7 @@ import org.hisp.dhis.webapi.webdomain.i18n.I18nInput;
 import org.hisp.dhis.webapi.webdomain.i18n.I18nOutput;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -66,6 +67,32 @@ public class I18nController
     {
         this.i18nManager = i18nManager;
         this.jsonMapper = jsonMapper;
+    }
+
+    @GetMapping
+    public @ResponseBody I18nOutput getI18n(
+        @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
+        HttpServletResponse response,
+        InputStream inputStream )
+        throws Exception
+    {
+        I18n i18n = i18nManager.getI18n( searchPackage );
+        I18nOutput output = new I18nOutput();
+        I18nInput input = jsonMapper.readValue( inputStream, I18nInput.class );
+
+        for ( String key : input )
+        {
+            String value = i18n.getString( key );
+
+            if ( value != null )
+            {
+                output.getTranslations().put( key, value );
+            }
+        }
+
+        response.setContentType( MediaType.APPLICATION_JSON_VALUE );
+
+        return output;
     }
 
     @PostMapping
