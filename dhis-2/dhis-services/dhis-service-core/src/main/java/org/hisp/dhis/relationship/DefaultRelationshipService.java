@@ -138,11 +138,11 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByEnrollment( pi, pagingAndSortingCriteriaAdapter );
+        return relationshipStore.getByEnrollment( enrollment, pagingAndSortingCriteriaAdapter );
     }
 
     @Override

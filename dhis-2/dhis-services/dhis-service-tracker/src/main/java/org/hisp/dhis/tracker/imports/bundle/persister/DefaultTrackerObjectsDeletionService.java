@@ -164,8 +164,8 @@ public class DefaultTrackerObjectsDeletionService
 
             List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = enrollmentTrackerConverterService
                 .to( Lists.newArrayList( daoEnrollments.stream()
-                    .filter( pi -> !pi.isDeleted() )
-                    .collect( Collectors.toList() ) ) );
+                    .filter( enrollment -> !enrollment.isDeleted() )
+                    .toList() ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments )
                 .user( bundle.getUser() )

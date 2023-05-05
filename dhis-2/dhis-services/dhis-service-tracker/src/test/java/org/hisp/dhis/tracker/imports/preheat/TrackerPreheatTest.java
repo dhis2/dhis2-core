@@ -380,9 +380,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
 
-        Enrollment pi = new Enrollment();
-        pi.setUid( "uid" );
-        preheat.putEnrollments( List.of( pi ) );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( "uid" );
+        preheat.putEnrollments( List.of( enrollment ) );
 
         assertTrue( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
     }

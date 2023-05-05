@@ -92,10 +92,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByEnrollment( Enrollment pi,
+    public List<Relationship> getByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( enrollment,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );

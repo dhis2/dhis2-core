@@ -146,9 +146,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
             ri.setTrackedEntityInstance( tei );
             break;
         case "pi":
-            Enrollment pi = new Enrollment();
-            pi.setUid( uid );
-            ri.setEnrollment( pi );
+            Enrollment enrollment = new Enrollment();
+            enrollment.setUid( uid );
+            ri.setEnrollment( enrollment );
             break;
         case "psi":
             Event event = new Event();

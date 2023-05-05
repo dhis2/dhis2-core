@@ -250,8 +250,8 @@ public class EventPersister extends AbstractTrackerPersister<org.hisp.dhis.track
     @Override
     protected String getUpdatedTrackedEntity( Event entity )
     {
-        return Optional.ofNullable( entity.getEnrollment() ).filter( pi -> pi.getEntityInstance() != null )
-            .map( pi -> pi.getEntityInstance().getUid() ).orElse( null );
+        return Optional.ofNullable( entity.getEnrollment() ).filter( e -> e.getEntityInstance() != null )
+            .map( e -> e.getEntityInstance().getUid() ).orElse( null );
     }
 
     private boolean isNewDataValue( EventDataValue eventDataValue, DataValue dv )

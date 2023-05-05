@@ -112,12 +112,12 @@ public interface RelationshipService
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 
-    default List<Relationship> getRelationshipsByEnrollment( Enrollment pi, boolean skipAccessValidation )
+    default List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment, boolean skipAccessValidation )
     {
-        return getRelationshipsByEnrollment( pi, null, skipAccessValidation );
+        return getRelationshipsByEnrollment( enrollment, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
     default List<Relationship> getRelationshipsByEvent( Event event, boolean skipAccessValidation )

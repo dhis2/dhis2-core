@@ -110,8 +110,8 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
 
     /**
      * Loop through the events and check if there is any event left without a
-     * Enrollment: for each Event without a PI, try to fetch the Program
-     * Instance by Program and Tracked Entity Instance
+     * Enrollment: for each Event without an enrollment, try to fetch the
+     * Program Instance by Program and Tracked Entity Instance
      */
     private void mapEventsToProgramInstanceByTei( ImportOptions importOptions, List<Event> events,
         Map<String, Enrollment> programInstances, Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap )

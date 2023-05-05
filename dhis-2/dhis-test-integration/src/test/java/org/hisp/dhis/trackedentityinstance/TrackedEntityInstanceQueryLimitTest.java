@@ -86,13 +86,13 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
 
     private Program program;
 
-    private Enrollment pi1;
+    private Enrollment enrollment1;
 
-    private Enrollment pi2;
+    private Enrollment enrollment2;
 
-    private Enrollment pi3;
+    private Enrollment enrollment3;
 
-    private Enrollment pi4;
+    private Enrollment enrollment4;
 
     private TrackedEntityInstance tei1;
 
@@ -138,15 +138,15 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
         trackedEntityInstanceService.addTrackedEntityInstance( tei3 );
         trackedEntityInstanceService.addTrackedEntityInstance( tei4 );
 
-        pi1 = createEnrollment( program, tei1, orgUnitA );
-        pi2 = createEnrollment( program, tei2, orgUnitA );
-        pi3 = createEnrollment( program, tei3, orgUnitA );
-        pi4 = createEnrollment( program, tei4, orgUnitA );
+        enrollment1 = createEnrollment( program, tei1, orgUnitA );
+        enrollment2 = createEnrollment( program, tei2, orgUnitA );
+        enrollment3 = createEnrollment( program, tei3, orgUnitA );
+        enrollment4 = createEnrollment( program, tei4, orgUnitA );
 
-        enrollmentService.addEnrollment( pi1 );
-        enrollmentService.addEnrollment( pi2 );
-        enrollmentService.addEnrollment( pi3 );
-        enrollmentService.addEnrollment( pi4 );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
+        enrollmentService.addEnrollment( enrollment3 );
+        enrollmentService.addEnrollment( enrollment4 );
 
         enrollmentService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
         enrollmentService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );

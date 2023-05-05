@@ -120,8 +120,8 @@ class EnrollmentSupplierTest extends DhisConvenienceTest
 
         final List<String> programUids = enrollments
             .stream()
-            .map( pi -> pi.getProgram().getUid() )
-            .collect( Collectors.toList() );
+            .map( enrollment -> enrollment.getProgram().getUid() )
+            .toList();
         for ( String programUid : programUids )
         {
             assertNull( preheat.getEnrollmentsWithoutRegistration( programUid ) );

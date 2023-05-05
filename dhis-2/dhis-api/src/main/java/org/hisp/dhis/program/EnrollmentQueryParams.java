@@ -55,7 +55,7 @@ public class EnrollmentQueryParams
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     /**
-     * Last updated for PI.
+     * Last updated for enrollment.
      */
     private Date lastUpdated;
 

@@ -159,7 +159,7 @@ class EventImportTest extends TransactionalIntegrationTest
 
     private ProgramStage programStageB;
 
-    private Enrollment pi;
+    private Enrollment enrollment;
 
     private org.hisp.dhis.dxf2.events.event.Event event;
 
@@ -252,15 +252,15 @@ class EventImportTest extends TransactionalIntegrationTest
         manager.update( programA );
         manager.update( programStageB );
         manager.update( programB );
-        pi = new Enrollment();
-        pi.setEnrollmentDate( new Date() );
-        pi.setIncidentDate( new Date() );
-        pi.setProgram( programB );
-        pi.setStatus( ProgramStatus.ACTIVE );
-        pi.setStoredBy( "test" );
-        pi.setName( "EventImportTestPI" );
-        pi.setUid( CodeGenerator.generateUid() );
-        manager.save( pi );
+        enrollment = new Enrollment();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setProgram( programB );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        enrollment.setStoredBy( "test" );
+        enrollment.setName( "EventImportTestPI" );
+        enrollment.setUid( CodeGenerator.generateUid() );
+        manager.save( enrollment );
         event = createEvent( "eventUid001" );
         createUserAndInjectSecurityContext( true );
     }
@@ -315,13 +315,13 @@ class EventImportTest extends TransactionalIntegrationTest
     void testAddEventOnProgramWithoutRegistrationAndExistingEnrollment()
         throws IOException
     {
-        Enrollment pi = new Enrollment();
-        pi.setEnrollmentDate( new Date() );
-        pi.setIncidentDate( new Date() );
-        pi.setProgram( programB );
-        pi.setStatus( ProgramStatus.ACTIVE );
-        pi.setStoredBy( "test" );
-        programInstanceService.addEnrollment( pi );
+        Enrollment dbEnrollment = new Enrollment();
+        dbEnrollment.setEnrollmentDate( new Date() );
+        dbEnrollment.setIncidentDate( new Date() );
+        dbEnrollment.setProgram( programB );
+        dbEnrollment.setStatus( ProgramStatus.ACTIVE );
+        dbEnrollment.setStoredBy( "test" );
+        programInstanceService.addEnrollment( dbEnrollment );
         InputStream is = createEventJsonInputStream( programB.getUid(), programStageB.getUid(),
             organisationUnitB.getUid(), null, dataElementB, "10" );
         ImportSummaries importSummaries = eventService.addEventsJson( is, null );
@@ -477,7 +477,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testEventDeletion()
     {
-        programInstanceService.addEnrollment( pi );
+        programInstanceService.addEnrollment( enrollment );
         ImportOptions importOptions = new ImportOptions();
         ImportSummary importSummary = eventService.addEvent( event, importOptions, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -494,7 +494,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEvent()
     {
-        programInstanceService.addEnrollment( pi );
+        programInstanceService.addEnrollment( enrollment );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -510,7 +510,7 @@ class EventImportTest extends TransactionalIntegrationTest
     @Test
     void testAddAlreadyDeletedEventInBulk()
     {
-        programInstanceService.addEnrollment( pi );
+        programInstanceService.addEnrollment( enrollment );
         ImportOptions importOptions = new ImportOptions();
         eventService.addEvent( event, importOptions, false );
         eventService.deleteEvent( event.getUid() );
@@ -729,7 +729,7 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setProgramStage( programStageB.getUid() );
         event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.setOrgUnit( organisationUnitB.getUid() );
-        event.setEnrollment( pi.getUid() );
+        event.setEnrollment( enrollment.getUid() );
         event.setEventDate( EVENT_DATE );
         event.setDeleted( false );
         return event;
@@ -747,7 +747,7 @@ class EventImportTest extends TransactionalIntegrationTest
         event.setProgramStage( ps.getUid() );
         event.setTrackedEntityInstance( trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.setOrgUnit( organisationUnit.getUid() );
-        event.setEnrollment( pi.getUid() );
+        event.setEnrollment( enrollment.getUid() );
         event.setDueDate( DUE_DATE );
         event.setDeleted( false );
         return event;

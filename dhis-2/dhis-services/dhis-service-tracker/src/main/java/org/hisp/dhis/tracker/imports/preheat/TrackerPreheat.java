@@ -541,7 +541,7 @@ public class TrackerPreheat
 
     public void putEnrollments( List<Enrollment> enrollments )
     {
-        enrollments.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
+        enrollments.forEach( e -> putEnrollment( e.getUid(), e ) );
     }
 
     public void putEnrollment( String uid, Enrollment enrollment )
@@ -752,8 +752,8 @@ public class TrackerPreheat
     public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
     {
         ProgramStage ps = this.getProgramStage( programStage );
-        Enrollment pi = this.getEnrollment( enrollmentUid );
-        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
+        Enrollment enrollment = this.getEnrollment( enrollmentUid );
+        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), enrollment.getUid() ) );
     }
 
     /**

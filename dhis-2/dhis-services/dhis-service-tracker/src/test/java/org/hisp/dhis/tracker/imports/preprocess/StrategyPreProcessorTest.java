@@ -71,7 +71,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
 
     private Event dbEvent;
 
-    private Enrollment pi;
+    private Enrollment preheatEnrollment;
 
     private TrackedEntityInstance tei;
 
@@ -107,8 +107,8 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         trackedEntity.setTrackedEntity( TEI_UID );
         newTrackedEntity = new TrackedEntity();
         newTrackedEntity.setTrackedEntity( NEW_TEI_UID );
-        pi = new Enrollment();
-        pi.setUid( ENROLLMENT_UID );
+        preheatEnrollment = new Enrollment();
+        preheatEnrollment.setUid( ENROLLMENT_UID );
         enrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
         enrollment.setEnrollment( ENROLLMENT_UID );
         newEnrollment = new org.hisp.dhis.tracker.imports.domain.Enrollment();
@@ -126,7 +126,7 @@ class StrategyPreProcessorTest extends DhisConvenienceTest
         newPayloadRelationship = new org.hisp.dhis.tracker.imports.domain.Relationship();
         newPayloadRelationship.setRelationship( NEW_RELATIONSHIP_UID );
         Mockito.when( preheat.getTrackedEntity( TEI_UID ) ).thenReturn( tei );
-        Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( pi );
+        Mockito.when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( preheatEnrollment );
         Mockito.when( preheat.getEvent( EVENT_UID ) ).thenReturn( dbEvent );
         Mockito.when( preheat.getRelationship( RELATIONSHIP_UID ) ).thenReturn( relationship );
     }

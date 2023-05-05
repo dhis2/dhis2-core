@@ -44,18 +44,18 @@ public interface EnrollmentStore
     String ID = EnrollmentStore.class.getName();
 
     /**
-     * Count all enrollments by PI query params.
+     * Count all enrollments by enrollment query params.
      *
      * @param params EnrollmentQueryParams to use
-     * @return Count of matching PIs
+     * @return Count of matching Enrollments
      */
     int countEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Get all enrollments by PI query params.
+     * Get all enrollments by enrollment query params.
      *
      * @param params EnrollmentQueryParams to use
-     * @return PIs matching params
+     * @return Enrollments matching params
      */
     List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
@@ -90,8 +90,8 @@ public interface EnrollmentStore
     List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Checks for the existence of a PI by UID, Deleted PIs are not taken into
-     * account.
+     * Checks for the existence of an enrollment by UID, Deleted Enrollments are
+     * not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -99,8 +99,8 @@ public interface EnrollmentStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the
-     * deleted PIs.
+     * Checks for the existence of an enrollment by UID. Takes into account also
+     * the deleted Enrollments.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -111,8 +111,8 @@ public interface EnrollmentStore
      * Returns UIDs of existing Enrollments (including deleted) from the
      * provided UIDs
      *
-     * @param uids PI UIDs to check
-     * @return List containing UIDs of existing PIs (including deleted)
+     * @param uids enrollment UIDs to check
+     * @return List containing UIDs of existing Enrollments (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
 
@@ -139,7 +139,7 @@ public interface EnrollmentStore
      * Return all enrollment linked to programs.
      *
      * @param programs Programs to fetch by
-     * @return List of all PIs that that are linked to programs
+     * @return List of all Enrollments that that are linked to programs
      */
     List<Enrollment> getByPrograms( List<Program> programs );
 
@@ -150,7 +150,7 @@ public interface EnrollmentStore
      * be careful if you need it for other uses.
      *
      * @param type ProgramType to fetch by
-     * @return List of all PIs that matches the wanted type
+     * @return List of all Enrollments that matches the wanted type
      */
     List<Enrollment> getByType( ProgramType type );
 

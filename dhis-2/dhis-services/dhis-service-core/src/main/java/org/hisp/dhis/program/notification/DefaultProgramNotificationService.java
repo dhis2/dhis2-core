@@ -412,7 +412,7 @@ public class DefaultProgramNotificationService
         {
             batch.programMessages.addAll(
                 enrollments.stream()
-                    .map( pi -> createProgramMessage( pi, template ) )
+                    .map( e -> createProgramMessage( e, template ) )
                     .collect( Collectors.toSet() ) );
         }
         else
@@ -551,7 +551,7 @@ public class DefaultProgramNotificationService
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-        TrackedEntityInstance tei, Enrollment pi )
+        TrackedEntityInstance tei, Enrollment enrollment )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -568,7 +568,7 @@ public class DefaultProgramNotificationService
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
             && template.getRecipientProgramAttribute() != null )
         {
-            List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
+            List<String> recipientList = enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
                 .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
                 .map( TrackedEntityAttributeValue::getPlainValue )
                 .collect( toList() );
@@ -612,13 +612,13 @@ public class DefaultProgramNotificationService
         return dhisMessage;
     }
 
-    private DhisMessage createDhisMessage( Enrollment pi, ProgramNotificationTemplate template )
+    private DhisMessage createDhisMessage( Enrollment enrollment, ProgramNotificationTemplate template )
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-        dhisMessage.message = programNotificationRenderer.render( pi, template );
+        dhisMessage.message = programNotificationRenderer.render( enrollment, template );
 
-        dhisMessage.recipients = resolveDhisMessageRecipients( template, pi, null );
+        dhisMessage.recipients = resolveDhisMessageRecipients( template, enrollment, null );
 
         return dhisMessage;
     }

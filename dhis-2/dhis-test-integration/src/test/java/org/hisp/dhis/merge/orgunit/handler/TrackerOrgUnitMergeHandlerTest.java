@@ -87,11 +87,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 
     private TrackedEntityInstance teiC;
 
-    private Enrollment piA;
+    private Enrollment enrollmentA;
 
-    private Enrollment piB;
+    private Enrollment enrollmentB;
 
-    private Enrollment piC;
+    private Enrollment enrollmentC;
 
     private Event eventA;
 
@@ -118,15 +118,15 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         teiService.addTrackedEntityInstance( teiA );
         teiService.addTrackedEntityInstance( teiB );
         teiService.addTrackedEntityInstance( teiC );
-        piA = createEnrollment( prA, teiA, ouA );
-        piB = createEnrollment( prA, teiB, ouB );
-        piC = createEnrollment( prA, teiC, ouA );
-        piService.addEnrollment( piA );
-        piService.addEnrollment( piB );
-        piService.addEnrollment( piC );
-        eventA = new Event( piA, psA, ouA );
-        eventB = new Event( piB, psA, ouB );
-        eventC = new Event( piC, psA, ouA );
+        enrollmentA = createEnrollment( prA, teiA, ouA );
+        enrollmentB = createEnrollment( prA, teiB, ouB );
+        enrollmentC = createEnrollment( prA, teiC, ouA );
+        piService.addEnrollment( enrollmentA );
+        piService.addEnrollment( enrollmentB );
+        piService.addEnrollment( enrollmentC );
+        eventA = new Event( enrollmentA, psA, ouA );
+        eventB = new Event( enrollmentB, psA, ouB );
+        eventC = new Event( enrollmentC, psA, ouA );
         eventService.addEvent( eventA );
         eventService.addEvent( eventB );
         eventService.addEvent( eventC );
