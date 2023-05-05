@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.appmanager.AndroidSettingApp;
+import org.hisp.dhis.appmanager.AndroidSettingsApp;
 import org.hisp.dhis.appmanager.AppManager;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 
@@ -59,7 +59,7 @@ public class AppsSystemAuthoritiesProvider implements SystemAuthoritiesProvider
                 authorities.add( app.getSeeAppAuthority() );
                 authorities.addAll( app.getAuthorities() );
             } );
-        authorities.add( AndroidSettingApp.AUTHORITY );
+        authorities.add( AndroidSettingsApp.AUTHORITY );
         return authorities;
     }
 }
