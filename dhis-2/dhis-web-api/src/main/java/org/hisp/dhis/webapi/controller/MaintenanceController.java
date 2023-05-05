@@ -160,8 +160,20 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedDataValues();
     }
 
+    /**
+     * @deprecated use {@link #deleteSoftDeletedEvents()} instead
+     */
+    @Deprecated( since = "2.41", forRemoval = true )
     @RequestMapping( value = "/softDeletedProgramStageInstanceRemoval", method = { RequestMethod.PUT,
         RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedEventsDeprecated()
+    {
+        maintenanceService.deleteSoftDeletedEvents();
+    }
+
+    @RequestMapping( value = "/softDeletedEventRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedEvents()
@@ -178,7 +190,19 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedRelationships();
     }
 
+    /**
+     * @deprecated use {@link #deleteSoftDeletedEnrollments()} instead
+     */
+    @Deprecated( since = "2.41", forRemoval = true )
     @RequestMapping( value = "/softDeletedProgramInstanceRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedEnrollmentsDeprecated()
+    {
+        maintenanceService.deleteSoftDeletedEnrollments();
+    }
+
+    @RequestMapping( value = "/softDeletedEnrollmentRemoval", method = { RequestMethod.PUT, RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedEnrollments()
@@ -186,11 +210,24 @@ public class MaintenanceController
         maintenanceService.deleteSoftDeletedEnrollments();
     }
 
+    /**
+     * @deprecated use {@link #deleteSoftDeletedTrackedEntities()}
+     */
+    @Deprecated( since = "2.41", forRemoval = true )
     @RequestMapping( value = "/softDeletedTrackedEntityInstanceRemoval", method = { RequestMethod.PUT,
         RequestMethod.POST } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
     @ResponseStatus( HttpStatus.NO_CONTENT )
-    public void deleteSoftDeletedTrackedEntityInstances()
+    public void deleteSoftDeletedTrackedEntityInstancesDeprecated()
+    {
+        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+    }
+
+    @RequestMapping( value = "/softDeletedTrackedEntityRemoval", method = { RequestMethod.PUT,
+        RequestMethod.POST } )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_MAINTENANCE')" )
+    @ResponseStatus( HttpStatus.NO_CONTENT )
+    public void deleteSoftDeletedTrackedEntities()
     {
         maintenanceService.deleteSoftDeletedTrackedEntityInstances();
     }
@@ -301,7 +338,9 @@ public class MaintenanceController
         @RequestParam( required = false ) boolean softDeletedRelationshipRemoval,
         @RequestParam( required = false ) boolean softDeletedEventRemoval,
         @RequestParam( required = false ) boolean softDeletedEnrollmentRemoval,
+        @Deprecated( since = "2.41", forRemoval = true ) // use softDeletedTrackedEntityRemoval instead
         @RequestParam( required = false ) boolean softDeletedTrackedEntityInstanceRemoval,
+        @RequestParam( required = false ) boolean softDeletedTrackedEntityRemoval,
         @RequestParam( required = false ) boolean sqlViewsDrop,
         @RequestParam( required = false ) boolean sqlViewsCreate,
         @RequestParam( required = false ) boolean categoryOptionComboUpdate,
@@ -359,9 +398,9 @@ public class MaintenanceController
             deleteSoftDeletedEnrollments();
         }
 
-        if ( softDeletedTrackedEntityInstanceRemoval )
+        if ( softDeletedTrackedEntityRemoval || softDeletedTrackedEntityInstanceRemoval )
         {
-            deleteSoftDeletedTrackedEntityInstances();
+            deleteSoftDeletedTrackedEntities();
         }
 
         if ( sqlViewsDrop )

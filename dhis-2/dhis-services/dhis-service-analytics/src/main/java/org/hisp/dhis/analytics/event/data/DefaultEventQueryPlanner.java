@@ -221,6 +221,7 @@ public class DefaultEventQueryPlanner
                     .removeItemProgramIndicators()
                     .withProgramIndicator( programIndicator )
                     .withProgram( programIndicator.getProgram() )
+                    .withAggregationType( fromAggregationType( programIndicator.getAggregationTypeFallback() ) )
                     .withOrgUnitField( new OrgUnitField( programIndicator.getOrgUnitField() ) )
                     .build();
 

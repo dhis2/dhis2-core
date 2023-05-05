@@ -133,7 +133,6 @@ import org.hisp.dhis.schema.descriptors.PredictorSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramDataElementDimensionItemSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorGroupSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramIndicatorSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.ProgramInstanceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramNotificationTemplateSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramRuleActionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.ProgramRuleSchemaDescriptor;
@@ -318,7 +317,6 @@ public class DefaultSchemaService
         register( new OrganisationUnitGroupSetDimensionSchemaDescriptor() );
         register( new RelationshipSchemaDescriptor() );
         register( new KeyJsonValueSchemaDescriptor() );
-        register( new ProgramInstanceSchemaDescriptor() );
         register( new ProgramStageInstanceFilterSchemaDescriptor() );
         register( new VisualizationSchemaDescriptor() );
         register( new ApiTokenSchemaDescriptor() );
