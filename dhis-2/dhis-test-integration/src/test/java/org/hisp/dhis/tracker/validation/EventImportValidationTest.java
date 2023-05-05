@@ -175,7 +175,8 @@ class EventImportValidationTest extends TrackerTest
 
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1099, TrackerErrorCode.E1104 );
+        assertHasOnlyErrors( trackerImportReport, TrackerErrorCode.E1099, TrackerErrorCode.E1104,
+            TrackerErrorCode.E1096, TrackerErrorCode.E1095 );
     }
 
     @Test

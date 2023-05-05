@@ -241,7 +241,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         trackerBundleParams.setUser( user );
         TrackerImportReport importReport = trackerImportService.importTracker( trackerBundleParams );
 
-        assertHasOnlyErrors( importReport, TrackerErrorCode.E1095 );
+        assertHasOnlyErrors( importReport, TrackerErrorCode.E1095, TrackerErrorCode.E1095 );
     }
 
     @Test
