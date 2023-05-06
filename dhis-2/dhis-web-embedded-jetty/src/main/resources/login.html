@@ -39,11 +39,11 @@
             <a href="https://www.dhis2.org"><img src="./api/staticContent/logo_front" style="border:none"></a>
         </div>
 
-        <form id="loginForm" action="/api/authentication/login" method="post">
+        <form id="loginForm" action="/login" method="post">
             <div>
                 <div id="signInLabel">Sign in</div>
-                <div><input type="text" id="j_username" name="j_username" placeholder="Username" required autofocus></div>
-                <div><input type="password" id="j_password" name="j_password" autocomplete="off" placeholder="Password" required></div>
+                <div><input type="text" id="j_username" name="username" placeholder="Username" required autofocus></div>
+                <div><input type="password" id="j_password" name="password" autocomplete="off" placeholder="Password" required></div>
             </div>
             <div id="submitDiv">
                 <input id="submit" class="button" type="submit" value="Sign in">
