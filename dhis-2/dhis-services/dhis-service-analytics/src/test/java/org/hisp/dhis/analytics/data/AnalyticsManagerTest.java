@@ -85,6 +85,8 @@ class AnalyticsManagerTest extends DhisConvenienceTest
 
     private JdbcAnalyticsManager analyticsManager;
 
+    private JdbcSubexpressionQueryGenerator subexGenerator;
+
     private static Stream<Arguments> data()
     {
         return Stream.of( arguments( "2017April", 115.75D ), arguments( "2017July", 77.5D ),

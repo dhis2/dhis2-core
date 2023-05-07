@@ -408,7 +408,7 @@ class AnalyticsServiceQueryModifiersTest
             "inabcdefghA-202201-4.0",
             "inabcdefghA-202202-5.0",
             "inabcdefghA-202203-5.0",
-            "inabcdefghA-2022Q1-14.0" );
+            "inabcdefghA-2022Q1-5.0" );
 
         result = query( "subExpression(if(#{deabcdefghA}==1,4,5))", jan, feb, mar, q1 );
 

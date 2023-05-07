@@ -116,13 +116,13 @@ import com.google.common.collect.Maps;
 public class JdbcAnalyticsManager
     implements AnalyticsManager
 {
-    private static final String DX = "dx";
+    protected static final String DX = "dx";
 
-    private static final String OU = "ou";
+    protected static final String OU = "ou";
 
-    private static final String CO = "co";
+    protected static final String CO = "co";
 
-    private static final String AO = "ao";
+    protected static final String AO = "ao";
 
     private static final String PESTARTDATE = "pestartdate";
 
@@ -136,7 +136,7 @@ public class JdbcAnalyticsManager
 
     private static final String YEAR = "year";
 
-    private static final String VALUE = "value";
+    protected static final String VALUE = "value";
 
     private static final String TEXTVALUE = "textvalue";
 
@@ -186,22 +186,7 @@ public class JdbcAnalyticsManager
                 params = queryPlanner.assignPartitionsFromQueryPeriods( params, tableType );
             }
 
-            String sql = getSelectClause( params );
-
-            sql += getFromClause( params, tableType );
-
-            // Skip the where clause here if it's already in the subquery
-            if ( !params.getAggregationType().isMinOrMaxInPeriodAggregationType() )
-            {
-                sql += getWhereClause( params, tableType );
-            }
-
-            sql += getGroupByClause( params );
-
-            if ( params.hasMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
-            {
-                sql += getMeasureCriteriaSql( params );
-            }
+            String sql = getSql( params, tableType );
 
             log.debug( sql );
 
@@ -303,6 +288,42 @@ public class JdbcAnalyticsManager
     // -------------------------------------------------------------------------
 
     /**
+     * Generates the query SQL.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param tableType the type of analytics table.
+     * @return the query SQL.
+     */
+    private String getSql( DataQueryParams params, AnalyticsTableType tableType )
+    {
+        if ( params.hasSubexpressions() )
+        {
+            return new JdbcSubexpressionQueryGenerator( this, params, tableType ).getSql();
+        }
+
+        StringBuilder builder = new StringBuilder();
+
+        builder.append( getSelectClause( params ) );
+
+        builder.append( getFromClause( params, tableType ) );
+
+        // Skip the where clause here if it's already in the subquery
+        if ( !params.getAggregationType().isMinOrMaxInPeriodAggregationType() )
+        {
+            builder.append( getWhereClause( params, tableType ) );
+        }
+
+        builder.append( getGroupByClause( params ) );
+
+        if ( params.hasMeasureCriteria() && params.isDataType( DataType.NUMERIC ) )
+        {
+            builder.append( getMeasureCriteriaSql( params ) );
+        }
+
+        return builder.toString();
+    }
+
+    /**
      * Generates the select clause of the query SQL.
      *
      * @param params the {@link DataQueryParams}.
@@ -382,6 +403,7 @@ public class JdbcAnalyticsManager
      * Generates the from clause of the query SQL.
      *
      * @param params the {@link DataQueryParams}.
+     * @param tableType the type of analytics table.
      * @return a SQL from clause.
      */
     private String getFromClause( DataQueryParams params, AnalyticsTableType tableType )
@@ -420,7 +442,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL from source clause.
      */
-    private String getFromSourceClause( DataQueryParams params )
+    protected String getFromSourceClause( DataQueryParams params )
     {
         if ( !params.isSkipPartitioning() && params.hasPartitions() && params.getPartitions().hasOne() )
         {
@@ -451,9 +473,10 @@ public class JdbcAnalyticsManager
      * Generates the where clause of the query SQL.
      *
      * @param params the {@link DataQueryParams}.
+     * @param tableType the type of analytics table.
      * @return a SQL where clause.
      */
-    private String getWhereClause( DataQueryParams params, AnalyticsTableType tableType )
+    protected String getWhereClause( DataQueryParams params, AnalyticsTableType tableType )
     {
         SqlHelper sqlHelper = new SqlHelper();
 
@@ -589,7 +612,7 @@ public class JdbcAnalyticsManager
      * @param params the {@link DataQueryParams}.
      * @return a SQL group by clause.
      */
-    private String getGroupByClause( DataQueryParams params )
+    protected String getGroupByClause( DataQueryParams params )
     {
         String sql = "";
 
@@ -607,6 +630,7 @@ public class JdbcAnalyticsManager
      * query uses a different aggregation type across organisation units.
      *
      * @param params the {@link DataQueryParams}.
+     * @param tableType the type of analytics table.
      * @return a SQL minimum or maximum value sub query.
      */
     private String getMinOrMaxValueSubquerySql( DataQueryParams params, AnalyticsTableType tableType )
@@ -902,7 +926,7 @@ public class JdbcAnalyticsManager
      * @param dimensions the collection of {@link DimensionalObject}.
      * @return a list of quoted dimension names.
      */
-    private List<String> getQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
+    protected List<String> getQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
     {
         return dimensions.stream()
             .filter( d -> !d.isFixed() )
@@ -919,7 +943,7 @@ public class JdbcAnalyticsManager
      * @param dimensions the collection of {@link DimensionalObject}.
      * @return a comma-delimited string of quoted dimension names.
      */
-    private String getCommaDelimitedQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
+    protected String getCommaDelimitedQuotedDimensionColumns( Collection<DimensionalObject> dimensions )
     {
         return join( ",", getQuotedDimensionColumns( dimensions ) );
     }

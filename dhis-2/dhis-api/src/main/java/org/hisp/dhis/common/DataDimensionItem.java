@@ -39,6 +39,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.validation.ValidationRule;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -63,6 +64,7 @@ public class DataDimensionItem
         ProgramDataElementDimensionItem.class,
         ProgramTrackedEntityAttributeDimensionItem.class,
         ExpressionDimensionItem.class,
+        SubexpressionDimensionItem.class,
         ValidationRule.class );
 
     public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>> DATA_DIM_TYPE_CLASS_MAP = Map
@@ -75,6 +77,7 @@ public class DataDimensionItem
             DataDimensionItemType.PROGRAM_DATA_ELEMENT, ProgramDataElementDimensionItem.class,
             DataDimensionItemType.PROGRAM_ATTRIBUTE, ProgramTrackedEntityAttributeDimensionItem.class,
             DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
+            DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class,
             DataDimensionItemType.VALIDATION_RULE, ValidationRule.class );
 
     private int id;
@@ -98,6 +101,8 @@ public class DataDimensionItem
     private ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
     private ExpressionDimensionItem expressionDimensionItem;
+
+    private SubexpressionDimensionItem subexpressionDimensionItem;
 
     // -------------------------------------------------------------------------
     // Constructor
@@ -174,6 +179,10 @@ public class DataDimensionItem
         {
             dimension.setExpressionDimensionItem( (ExpressionDimensionItem) object );
         }
+        else if ( SubexpressionDimensionItem.class.isAssignableFrom( object.getClass() ) )
+        {
+            dimension.setSubexpressionDimensionItem( (SubexpressionDimensionItem) object );
+        }
         else
         {
             throw new IllegalArgumentException(
@@ -218,6 +227,10 @@ public class DataDimensionItem
             return programAttribute;
         }
         else if ( expressionDimensionItem != null )
+        {
+            return expressionDimensionItem;
+        }
+        else if ( subexpressionDimensionItem != null )
         {
             return expressionDimensionItem;
         }
@@ -432,6 +445,19 @@ public class DataDimensionItem
     public void setExpressionDimensionItem( ExpressionDimensionItem expressionDimensionItem )
     {
         this.expressionDimensionItem = expressionDimensionItem;
+    }
+
+    @JsonProperty
+    @JsonSerialize( as = BaseNameableObject.class )
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public SubexpressionDimensionItem getSubexpressionDimensionItem()
+    {
+        return subexpressionDimensionItem;
+    }
+
+    public void setSubexpressionDimensionItem( SubexpressionDimensionItem subexpressionDimensionItem )
+    {
+        this.subexpressionDimensionItem = subexpressionDimensionItem;
     }
 
     /**
