@@ -29,6 +29,8 @@ package org.hisp.dhis.analytics.data;
 
 import static java.lang.String.join;
 import static java.util.stream.Collectors.joining;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AnalyticsAggregationType.fromAggregationType;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.AO;
 import static org.hisp.dhis.analytics.data.JdbcAnalyticsManager.CO;
@@ -268,10 +270,10 @@ public class JdbcSubexpressionQueryGenerator
         String fun = getLowLevelAggregateFunction( dataElement );
 
         String conditional = quote( ANALYTICS_TBL_ALIAS, DX ) + "='" + deUid + "'" +
-            ( (cocUid == null)
+            ( isEmpty( cocUid )
                 ? ""
                 : " and " + quote( ANALYTICS_TBL_ALIAS, CO ) + "='" + cocUid + "'" ) +
-            ( (aocUid == null)
+            ( isEmpty( aocUid )
                 ? ""
                 : " and " + quote( ANALYTICS_TBL_ALIAS, AO ) + "='" + aocUid + "'" );
 
@@ -287,10 +289,19 @@ public class JdbcSubexpressionQueryGenerator
     /**
      * Gets the aggregation type to be used at the lower level to aggregate data
      * within an organisation unit before subexpression evaluation.
+     * <p>
+     * For numeric data types, gets the aggregationType configured for the data
+     * element unless overridden in the expression.
+     * <p>
+     * For non-numeric data types, returns MAX unless overridden in the
+     * expression.
      */
     private String getLowLevelAggregateFunction( DataElement dataElement )
     {
-        AggregationType dataElementAggType = dataElement.getAggregationType();
+        AggregationType dataElementAggType = (dataElement.getValueType().isNumeric() ||
+            dataElement.getQueryMods() != null && dataElement.getQueryMods().getAggregationType() != null)
+            ? dataElement.getAggregationType()
+            : MAX;
 
         AnalyticsAggregationType analyticsAggType = fromAggregationType( dataElementAggType );
 
