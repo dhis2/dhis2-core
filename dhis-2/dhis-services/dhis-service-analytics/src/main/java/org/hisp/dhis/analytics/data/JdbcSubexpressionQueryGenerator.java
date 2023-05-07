@@ -300,8 +300,8 @@ public class JdbcSubexpressionQueryGenerator
     {
         AggregationType dataElementAggType = (dataElement.getValueType().isNumeric() ||
             dataElement.getQueryMods() != null && dataElement.getQueryMods().getAggregationType() != null)
-            ? dataElement.getAggregationType()
-            : MAX;
+                ? dataElement.getAggregationType()
+                : MAX;
 
         AnalyticsAggregationType analyticsAggType = fromAggregationType( dataElementAggType );
 

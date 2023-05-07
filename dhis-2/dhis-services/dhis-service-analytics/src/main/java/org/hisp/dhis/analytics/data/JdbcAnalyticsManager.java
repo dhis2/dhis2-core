@@ -51,7 +51,6 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_SEP;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.commons.collection.CollectionUtils.concat;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
-import static org.hisp.dhis.commons.util.TextUtils.removeLastOr;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Collection;
@@ -62,6 +61,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -480,27 +480,38 @@ public class JdbcAnalyticsManager
     {
         SqlHelper sqlHelper = new SqlHelper();
 
-        String sql = "";
+        StringBuilder sql = new StringBuilder();
 
-        // ---------------------------------------------------------------------
-        // Dimensions
-        // ---------------------------------------------------------------------
+        getWhereClauseDimensions( params, sqlHelper, sql );
+        getWhereClauseFilters( params, sqlHelper, sql );
+        getWhereClauseDataApproval( params, sqlHelper, sql );
+        getWhereClauseRestrictions( params, sqlHelper, sql, tableType );
 
+        return sql.toString();
+    }
+
+    /**
+     * Add where clause dimensions.
+     */
+    private void getWhereClauseDimensions( DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql )
+    {
         for ( DimensionalObject dim : params.getDimensions() )
         {
             if ( dim.hasItems() && !dim.isFixed() )
             {
                 String col = quoteAlias( dim.getDimensionName() );
 
-                sql += sqlHelper.whereAnd() + " " + col + " in ("
-                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") ";
+                sql.append( sqlHelper.whereAnd() + " " + col + " in ("
+                    + getQuotedCommaDelimitedString( getUids( dim.getItems() ) ) + ") " );
             }
         }
+    }
 
-        // ---------------------------------------------------------------------
-        // Filters
-        // ---------------------------------------------------------------------
-
+    /**
+     * Add where clause filters.
+     */
+    private void getWhereClauseFilters( DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql )
+    {
         ListMap<String, DimensionalObject> filterMap = params.getDimensionFilterMap();
 
         for ( String dimension : filterMap.keySet() )
@@ -509,79 +520,81 @@ public class JdbcAnalyticsManager
 
             if ( DimensionalObjectUtils.anyDimensionHasItems( filters ) )
             {
-                sql += sqlHelper.whereAnd() + " ( ";
+                sql.append( sqlHelper.whereAnd() + " ( " );
 
-                for ( DimensionalObject filter : filters )
-                {
-                    if ( filter.hasItems() )
-                    {
+                sql.append( filters.stream()
+                    .filter( DimensionalObject::hasItems )
+                    .map( filter -> {
                         String col = quoteAlias( filter.getDimensionName() );
+                        return col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") ";
+                    } ).collect( Collectors.joining( "or " ) ) );
 
-                        sql += col + " in (" + getQuotedCommaDelimitedString( getUids( filter.getItems() ) ) + ") or ";
-                    }
-                }
-
-                sql = removeLastOr( sql ) + ") ";
+                sql.append( ") " );
             }
         }
+    }
 
-        // ---------------------------------------------------------------------
-        // Data approval
-        // ---------------------------------------------------------------------
-
+    /**
+     * Add where clause data approval constraints.
+     */
+    private void getWhereClauseDataApproval( DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql )
+    {
         if ( params.isDataApproval() )
         {
-            sql += sqlHelper.whereAnd() + " ( ";
+            sql.append( sqlHelper.whereAnd() + " ( " );
 
-            for ( OrganisationUnit unit : params.getDataApprovalLevels().keySet() )
-            {
-                String ouCol = quoteAlias( LEVEL_PREFIX + unit.getLevel() );
-                Integer level = params.getDataApprovalLevels().get( unit );
+            sql.append( params.getDataApprovalLevels().keySet().stream()
+                .map( unit -> {
+                    String ouCol = quoteAlias( LEVEL_PREFIX + unit.getLevel() );
+                    Integer level = params.getDataApprovalLevels().get( unit );
 
-                sql += "(" + ouCol + " = '" + unit.getUid() + "' and " +
-                    quoteAlias( APPROVALLEVEL ) + " <= " + level + ") or ";
-            }
+                    return "(" + ouCol + " = '" + unit.getUid() + "' and " +
+                        quoteAlias( APPROVALLEVEL ) + " <= " + level + ")";
+                } ).collect( Collectors.joining( " or " ) ) );
 
-            sql = removeLastOr( sql ) + ") ";
+            sql.append( ") " );
         }
+    }
 
-        // ---------------------------------------------------------------------
-        // Restrictions
-        // ---------------------------------------------------------------------
-
+    /**
+     * Add where clause restrictions.
+     */
+    private void getWhereClauseRestrictions( DataQueryParams params, SqlHelper sqlHelper, StringBuilder sql,
+        AnalyticsTableType tableType )
+    {
         if ( params.isRestrictByOrgUnitOpeningClosedDate() && params.hasStartEndDateRestriction() )
         {
-            sql += sqlHelper.whereAnd() + " (" +
+            sql.append( sqlHelper.whereAnd() + " (" +
                 "(" + quoteAlias( "ouopeningdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() )
                 + "' or " + quoteAlias( "ouopeningdate" ) + " is null) and " +
                 "(" + quoteAlias( "oucloseddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() )
-                + "' or " + quoteAlias( "oucloseddate" ) + " is null)) ";
+                + "' or " + quoteAlias( "oucloseddate" ) + " is null)) " );
         }
 
         if ( params.isRestrictByCategoryOptionStartEndDate() && params.hasStartEndDateRestriction() )
         {
-            sql += sqlHelper.whereAnd() + " (" +
+            sql.append( sqlHelper.whereAnd() + " (" +
                 "(" + quoteAlias( "costartdate" ) + " <= '" + getMediumDateString( params.getStartDateRestriction() )
                 + "' or " + quoteAlias( "costartdate" ) + " is null) and " +
                 "(" + quoteAlias( "coenddate" ) + " >= '" + getMediumDateString( params.getEndDateRestriction() )
-                + "' or " + quoteAlias( "coenddate" ) + " is null)) ";
+                + "' or " + quoteAlias( "coenddate" ) + " is null)) " );
         }
 
         if ( tableType.hasPeriodDimension() && params.hasStartDate() )
         {
-            sql += sqlHelper.whereAnd() + " " +
-                quoteAlias( PESTARTDATE ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' ";
+            sql.append( sqlHelper.whereAnd() + " " +
+                quoteAlias( PESTARTDATE ) + "  >= '" + getMediumDateString( params.getStartDate() ) + "' " );
         }
 
         if ( tableType.hasPeriodDimension() && params.hasEndDate() )
         {
-            sql += sqlHelper.whereAnd() + " " +
-                quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' ";
+            sql.append( sqlHelper.whereAnd() + " " +
+                quoteAlias( PEENDDATE ) + " <= '" + getMediumDateString( params.getEndDate() ) + "' " );
         }
 
         if ( params.isTimely() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "timely" ) + " is true ";
+            sql.append( sqlHelper.whereAnd() + " " + quoteAlias( "timely" ) + " is true " );
         }
 
         // ---------------------------------------------------------------------
@@ -590,8 +603,8 @@ public class JdbcAnalyticsManager
 
         if ( !params.isSkipPartitioning() && params.hasPartitions() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" +
-                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
+            sql.append( sqlHelper.whereAnd() + " " + quoteAlias( "year" ) + " in (" +
+                TextUtils.getCommaDelimitedString( params.getPartitions().getPartitions() ) + ") " );
         }
 
         // ---------------------------------------------------------------------
@@ -600,10 +613,8 @@ public class JdbcAnalyticsManager
 
         if ( params.getAggregationType().isFirstOrLastOrLastInPeriodAggregationType() )
         {
-            sql += sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 ";
+            sql.append( sqlHelper.whereAnd() + " " + quoteAlias( "pe_rank" ) + " = 1 " );
         }
-
-        return sql;
     }
 
     /**

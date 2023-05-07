@@ -151,11 +151,11 @@ class JdbcSubexpressionQueryGeneratorTest
             +
             "from (select ax.\"pe\", " +
             "sum(case when ax.\"dx\"='deabcdefghA' then \"value\" else null end) as \"deabcdefghA\"," +
-            "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' and ax.\"ao\"='' then \"value\" else null end) as \"deabcdefghB_cuabcdefghA\","
+            "sum(case when ax.\"dx\"='deabcdefghB' and ax.\"co\"='cuabcdefghA' then \"value\" else null end) as \"deabcdefghB_cuabcdefghA\","
             +
             "sum(case when ax.\"dx\"='deabcdefghC' and ax.\"co\"='cuabcdefghB' and ax.\"ao\"='cuabcdefghC' then \"value\" else null end) as \"deabcdefghC_cuabcdefghB_cuabcdefghC\","
             +
-            "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"co\"='' and ax.\"ao\"='cuabcdefghD' then \"value\" else null end) as \"deabcdefghD__cuabcdefghD\","
+            "sum(case when ax.\"dx\"='deabcdefghD' and ax.\"ao\"='cuabcdefghD' then \"value\" else null end) as \"deabcdefghD__cuabcdefghD\","
             +
             "min(case when ax.\"dx\"='deabcdefghE' then \"value\" else null end) as \"deabcdefghEMIN\" " +
             "from analytics as ax " +
