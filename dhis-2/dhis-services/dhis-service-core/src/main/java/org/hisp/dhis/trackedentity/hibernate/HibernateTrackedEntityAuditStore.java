@@ -46,7 +46,7 @@ import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,15 +54,15 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore" )
-public class HibernateTrackedEntityInstanceAuditStore
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityAuditStore" )
+public class HibernateTrackedEntityAuditStore
     extends HibernateGenericStore<TrackedEntityInstanceAudit>
-    implements TrackedEntityInstanceAuditStore
+    implements TrackedEntityAuditStore
 {
 
     private final StatementBuilder statementBuilder;
 
-    public HibernateTrackedEntityInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateTrackedEntityAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, StatementBuilder statementBuilder )
     {
         super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false );

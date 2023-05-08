@@ -46,7 +46,7 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
     private final Date CREATED = getDate( 2022, 3, 1 );
 
     @Autowired
-    private TrackedEntityInstanceAuditStore store;
+    private TrackedEntityAuditStore store;
 
     @Test
     void testGetAuditsByParams()

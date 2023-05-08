@@ -47,7 +47,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class DefaultTrackedEntityAuditService
     implements TrackedEntityAuditService
 {
-    private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+    private final TrackedEntityAuditStore trackedEntityAuditStore;
 
     private final TrackedEntityStore trackedEntityStore;
 
@@ -64,7 +64,7 @@ public class DefaultTrackedEntityAuditService
     @Transactional
     public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
     }
 
     @Override
@@ -72,14 +72,14 @@ public class DefaultTrackedEntityAuditService
     @Transactional
     public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
     }
 
     @Override
     @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntity );
+        trackedEntityAuditStore.deleteTrackedEntityInstanceAudit( trackedEntity );
     }
 
     @Override
@@ -87,7 +87,7 @@ public class DefaultTrackedEntityAuditService
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
         TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params ).stream()
+        return trackedEntityAuditStore.getTrackedEntityInstanceAudits( params ).stream()
             .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
                 trackedEntityStore.getByUid( a.getTrackedEntity() ) ).isEmpty() )
             .collect( Collectors.toList() );
@@ -97,6 +97,6 @@ public class DefaultTrackedEntityAuditService
     @Transactional( readOnly = true )
     public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
+        return trackedEntityAuditStore.getTrackedEntityInstanceAuditsCount( params );
     }
 }

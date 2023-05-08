@@ -35,9 +35,9 @@ import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  *
  */
-public interface TrackedEntityInstanceAuditStore
+public interface TrackedEntityAuditStore
 {
-    String ID = TrackedEntityInstanceAuditStore.class.getName();
+    String ID = TrackedEntityAuditStore.class.getName();
 
     /**
      * Adds the given tracked entity instance audit.
