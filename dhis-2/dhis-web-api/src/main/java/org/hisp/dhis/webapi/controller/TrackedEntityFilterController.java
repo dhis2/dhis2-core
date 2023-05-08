@@ -25,40 +25,55 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.controller;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import java.util.List;
 
-import com.google.common.collect.Lists;
+import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.schema.descriptors.TrackedEntityFilterSchemaDescriptor;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilterService;
+import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public class TrackedEntityInstanceFilterSchemaDescriptor implements SchemaDescriptor
+@OpenApi.Tags( "tracker" )
+@Controller
+@RequestMapping( value = TrackedEntityFilterSchemaDescriptor.API_ENDPOINT )
+@ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
+public class TrackedEntityFilterController
+    extends AbstractCrudController<TrackedEntityFilter>
 {
-    public static final String SINGULAR = "trackedEntityInstanceFilter";
+    private final TrackedEntityFilterService teiFilterService;
 
-    public static final String PLURAL = "trackedEntityInstanceFilters";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
+    public TrackedEntityFilterController( TrackedEntityFilterService teiFilterService )
     {
-        Schema schema = new Schema( TrackedEntityInstanceFilter.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setImplicitPrivateAuthority( true );
-        schema.setDefaultPrivate( true );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
-
-        return schema;
+        this.teiFilterService = teiFilterService;
     }
 
+    @Override
+    public void preCreateEntity( TrackedEntityFilter teiFilter )
+    {
+        List<String> errors = teiFilterService.validate( teiFilter );
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
+    }
+
+    @Override
+    public void preUpdateEntity( TrackedEntityFilter oldTeiFilter, TrackedEntityFilter newTeiFilter )
+    {
+        List<String> errors = teiFilterService.validate( newTeiFilter );
+        if ( !errors.isEmpty() )
+        {
+            throw new IllegalQueryException( errors.toString() );
+        }
+    }
 }

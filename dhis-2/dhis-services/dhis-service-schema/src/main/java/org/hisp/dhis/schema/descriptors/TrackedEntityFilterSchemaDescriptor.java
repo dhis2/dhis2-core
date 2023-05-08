@@ -25,44 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter.hibernate;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
+import com.google.common.collect.Lists;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" )
-public class HibernateTrackedEntityInstanceFilterStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter>
-    implements TrackedEntityInstanceFilterStore
+public class TrackedEntityFilterSchemaDescriptor implements SchemaDescriptor
 {
-    public HibernateTrackedEntityInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceFilter.class, currentUserService,
-            aclService, true );
-    }
+    public static final String SINGULAR = "trackedEntityInstanceFilter";
+
+    public static final String PLURAL = "trackedEntityInstanceFilters";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public List<TrackedEntityInstanceFilter> get( Program program )
+    public Schema getSchema()
     {
-        CriteriaBuilder builder = getCriteriaBuilder();
+        Schema schema = new Schema( TrackedEntityFilter.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setDefaultPrivate( true );
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
+        return schema;
     }
+
 }

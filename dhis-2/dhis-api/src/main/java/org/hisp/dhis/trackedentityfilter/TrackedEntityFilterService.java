@@ -29,21 +29,67 @@ package org.hisp.dhis.trackedentityfilter;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public interface TrackedEntityInstanceFilterStore
-    extends IdentifiableObjectStore<TrackedEntityInstanceFilter>
+public interface TrackedEntityFilterService
 {
+    String ID = TrackedEntityFilter.class.getName();
+
     /**
-     * Gets trackedEntityInstanceFilters
+     * Adds trackedEntityFilter
+     *
+     * @param trackedEntityFilter
+     * @return id of added trackedEntityFilter
+     */
+    long add( TrackedEntityFilter trackedEntityFilter );
+
+    /**
+     * Deletes trackedEntityFilter
+     *
+     * @param trackedEntityFilter
+     */
+    void delete( TrackedEntityFilter trackedEntityFilter );
+
+    /**
+     * Updates trackedEntityFilter
+     *
+     * @param trackedEntityFilter
+     */
+    void update( TrackedEntityFilter trackedEntityFilter );
+
+    /**
+     * Gets trackedEntityInstanceFilter
+     *
+     * @param id id of trackedEntityInstanceFilter to be fetched
+     * @return trackedEntityInstanceFilter
+     */
+    TrackedEntityFilter get( long id );
+
+    /**
+     * Gets trackedEntityInstanceFilter
      *
      * @param program program of trackedEntityInstanceFilter to be fetched
+     * @return trackedEntityInstanceFilter
+     */
+    List<TrackedEntityFilter> get( Program program );
+
+    /**
+     * Gets all trackedEntityInstanceFilters
+     *
      * @return list of trackedEntityInstanceFilters
      */
-    List<TrackedEntityInstanceFilter> get( Program program );
+    List<TrackedEntityFilter> getAll();
+
+    /**
+     * Validate the trackedEntityInstanceFilter
+     *
+     * @param teiFilter
+     * @return list of errors for each validation failures
+     */
+    List<String> validate( TrackedEntityFilter teiFilter );
+
 }
