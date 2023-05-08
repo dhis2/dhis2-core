@@ -27,66 +27,53 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
-
-import org.hisp.dhis.common.AuditType;
-import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
+ *
  */
-@Data
-@Accessors( chain = true )
-public class TrackedEntityInstanceAuditQueryParams
+public interface TrackedEntityAuditStore
 {
-    private List<String> trackedEntityInstances = new ArrayList<>();
+    String ID = TrackedEntityAuditStore.class.getName();
 
-    private List<String> users = new ArrayList<>();
+    /**
+     * Adds the given tracked entity instance audit.
+     *
+     * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
+     */
+    void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit );
 
-    private List<AuditType> auditTypes = new ArrayList<>();
+    /**
+     * Adds the given {@link TrackedEntityAudit} instances.
+     *
+     * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
+     */
+    void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudit );
 
-    private Date startDate = null;
+    /**
+     * Deletes tracked entity instance audit for the given tracked entity
+     * instance.
+     *
+     * @param trackedEntity the {@link TrackedEntity}.
+     */
+    void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity );
 
-    private Date endDate = null;
+    /**
+     * Returns tracked entity instance audits matching query params
+     *
+     * @param params tracked entity instance audit query params
+     * @return a list of {@link TrackedEntityAudit}.
+     */
+    List<TrackedEntityAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
 
-    private Pager pager;
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    public boolean hasTrackedEntityInstances()
-    {
-        return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
-    }
-
-    public boolean hasUsers()
-    {
-        return users != null && !users.isEmpty();
-    }
-
-    public boolean hasAuditTypes()
-    {
-        return auditTypes != null && !auditTypes.isEmpty();
-    }
-
-    public boolean hasStartDate()
-    {
-        return startDate != null;
-    }
-
-    public boolean hasEndDate()
-    {
-        return endDate != null;
-    }
-
-    public boolean hasPaging()
-    {
-        return pager != null;
-    }
+    /**
+     * Returns count of tracked entity instance audits matching query params
+     *
+     * @param params tracked entity instance audit query params
+     * @return count of audits.
+     */
+    int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params );
 }

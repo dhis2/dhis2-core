@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -90,9 +90,9 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -142,7 +142,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected EnrollmentService programInstanceService;
 
-    protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    protected TrackedEntityAuditService trackedEntityAuditService;
 
     protected CurrentUserService currentUserService;
 
@@ -182,7 +182,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( queryParams == null )
@@ -217,24 +217,24 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
 
-        List<TrackedEntityInstanceAudit> auditable = trackedEntityInstances
+        List<TrackedEntityAudit> auditable = trackedEntityInstances
             .stream()
             .filter( Objects::nonNull )
             .filter( tei -> tei.getTrackedEntityType() != null )
             .filter( tei -> tetMap.get( tei.getTrackedEntityType() ).isAllowAuditLog() )
             .map(
-                tei -> new TrackedEntityInstanceAudit( tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH ) )
+                tei -> new TrackedEntityAudit( tei.getTrackedEntityInstance(), accessedBy, AuditType.SEARCH ) )
             .collect( Collectors.toList() );
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
         }
     }
 
     @Override
     @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    public int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
         return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );

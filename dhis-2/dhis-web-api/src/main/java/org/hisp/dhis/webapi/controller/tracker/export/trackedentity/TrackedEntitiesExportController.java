@@ -55,7 +55,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -118,7 +118,7 @@ public class TrackedEntitiesExportController
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
         TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields,
             criteria.isIncludeDeleted() );
@@ -158,7 +158,7 @@ public class TrackedEntitiesExportController
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
         TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
             criteria.isIncludeDeleted() );
 

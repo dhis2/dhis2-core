@@ -32,7 +32,7 @@ import java.util.List;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 public interface TrackedEntityService
 {
@@ -51,18 +51,18 @@ public interface TrackedEntityService
     /**
      * Fetches {@see TrackedEntity}s based on the specified parameters.
      *
-     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
-     *        with the query parameters
+     * @param queryParams a {@see TrackedEntityQueryParams} instance with the
+     *        query parameters
      * @param params a {@see TrackedEntityParams} instance containing the
      *        directives for how much data should be fetched (e.g. Enrollments,
      *        Events, Relationships)
      * @return {@see TrackedEntity}s
      */
-    List<TrackedEntity> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+    List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams queryParams,
         TrackedEntityParams params )
         throws ForbiddenException,
         NotFoundException;
 
-    int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 }

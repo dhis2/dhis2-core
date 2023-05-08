@@ -39,7 +39,7 @@ import org.junit.jupiter.api.Test;
 class TrackedEntityQueryParamsTest
 {
 
-    private TrackedEntityInstanceQueryParams params;
+    private TrackedEntityQueryParams params;
 
     private User current;
 
@@ -49,7 +49,7 @@ class TrackedEntityQueryParamsTest
         current = new User();
         current.setUid( "Kj6vYde4LHh" );
 
-        params = new TrackedEntityInstanceQueryParams();
+        params = new TrackedEntityQueryParams();
     }
 
     @Test

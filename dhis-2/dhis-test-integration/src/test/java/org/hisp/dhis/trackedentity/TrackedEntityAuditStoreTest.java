@@ -32,7 +32,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -46,18 +46,18 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
     private final Date CREATED = getDate( 2022, 3, 1 );
 
     @Autowired
-    private TrackedEntityInstanceAuditStore store;
+    private TrackedEntityAuditStore store;
 
     @Test
     void testGetAuditsByParams()
     {
-        TrackedEntityInstanceAudit teiaA = new TrackedEntityInstanceAudit( "WGW7UnVcIIb", "Access", CREATED, "userA",
+        TrackedEntityAudit teiaA = new TrackedEntityAudit( "WGW7UnVcIIb", "Access", CREATED, "userA",
             AuditType.CREATE );
-        TrackedEntityInstanceAudit teiaB = new TrackedEntityInstanceAudit( "WGW7UnVcIIb", "Access", CREATED, "userB",
+        TrackedEntityAudit teiaB = new TrackedEntityAudit( "WGW7UnVcIIb", "Access", CREATED, "userB",
             AuditType.UPDATE );
-        TrackedEntityInstanceAudit teiaC = new TrackedEntityInstanceAudit( "zIAwTY3Drrn", "Access", CREATED, "userA",
+        TrackedEntityAudit teiaC = new TrackedEntityAudit( "zIAwTY3Drrn", "Access", CREATED, "userA",
             AuditType.UPDATE );
-        TrackedEntityInstanceAudit teiaD = new TrackedEntityInstanceAudit( "zIAwTY3Drrn", "Access", CREATED, "userB",
+        TrackedEntityAudit teiaD = new TrackedEntityAudit( "zIAwTY3Drrn", "Access", CREATED, "userB",
             AuditType.DELETE );
 
         store.addTrackedEntityInstanceAudit( teiaA );
@@ -65,27 +65,27 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
         store.addTrackedEntityInstanceAudit( teiaC );
         store.addTrackedEntityInstanceAudit( teiaD );
 
-        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
+        TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) );
 
         assertContainsOnly( List.of( teiaA, teiaB ), store.getTrackedEntityInstanceAudits( params ) );
 
-        params = new TrackedEntityInstanceAuditQueryParams()
+        params = new TrackedEntityAuditQueryParams()
             .setUsers( List.of( "userA" ) );
 
         assertContainsOnly( List.of( teiaA, teiaC ), store.getTrackedEntityInstanceAudits( params ) );
 
-        params = new TrackedEntityInstanceAuditQueryParams()
+        params = new TrackedEntityAuditQueryParams()
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( List.of( teiaB, teiaC ), store.getTrackedEntityInstanceAudits( params ) );
 
-        params = new TrackedEntityInstanceAuditQueryParams()
+        params = new TrackedEntityAuditQueryParams()
             .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
 
         assertContainsOnly( List.of( teiaA, teiaD ), store.getTrackedEntityInstanceAudits( params ) );
 
-        params = new TrackedEntityInstanceAuditQueryParams()
+        params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) )
             .setUsers( List.of( "userA" ) );
 

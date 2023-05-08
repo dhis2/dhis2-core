@@ -40,13 +40,13 @@ import javax.persistence.criteria.Root;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -54,33 +54,33 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore" )
-public class HibernateTrackedEntityInstanceAuditStore
-    extends HibernateGenericStore<TrackedEntityInstanceAudit>
-    implements TrackedEntityInstanceAuditStore
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityAuditStore" )
+public class HibernateTrackedEntityAuditStore
+    extends HibernateGenericStore<TrackedEntityAudit>
+    implements TrackedEntityAuditStore
 {
 
     private final StatementBuilder statementBuilder;
 
-    public HibernateTrackedEntityInstanceAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateTrackedEntityAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, StatementBuilder statementBuilder )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceAudit.class, false );
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityAudit.class, false );
         this.statementBuilder = statementBuilder;
     }
 
     // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
+    // TrackedEntityAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
-    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    public void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit )
     {
-        getSession().save( trackedEntityInstanceAudit );
+        getSession().save( trackedEntityAudit );
     }
 
     @Override
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit )
+    public void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudit )
     {
         final String sql = "INSERT INTO trackedentityinstanceaudit (" +
             "trackedentityinstanceauditid, " +
@@ -90,7 +90,7 @@ public class HibernateTrackedEntityInstanceAuditStore
             "audittype, " +
             "comment ) VALUES ";
 
-        Function<TrackedEntityInstanceAudit, String> mapToString = audit -> {
+        Function<TrackedEntityAudit, String> mapToString = audit -> {
             StringBuilder sb = new StringBuilder();
             sb.append( "(" );
             sb.append( "nextval('trackedentityinstanceaudit_sequence'), " );
@@ -104,7 +104,7 @@ public class HibernateTrackedEntityInstanceAuditStore
             return sb.toString();
         };
 
-        final String values = trackedEntityInstanceAudit.stream().map( mapToString )
+        final String values = trackedEntityAudit.stream().map( mapToString )
             .collect( Collectors.joining( "," ) );
 
         getSession().createNativeQuery( sql + values ).executeUpdate();
@@ -118,12 +118,12 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     @Override
-    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-        TrackedEntityInstanceAuditQueryParams params )
+    public List<TrackedEntityAudit> getTrackedEntityInstanceAudits(
+        TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<TrackedEntityInstanceAudit> jpaParameters = newJpaParameters()
+        JpaQueryParameters<TrackedEntityAudit> jpaParameters = newJpaParameters()
             .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
@@ -138,7 +138,7 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     @Override
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -147,10 +147,10 @@ public class HibernateTrackedEntityInstanceAuditStore
             .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    private List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates(
-        TrackedEntityInstanceAuditQueryParams params, CriteriaBuilder builder )
+    private List<Function<Root<TrackedEntityAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates(
+        TrackedEntityAuditQueryParams params, CriteriaBuilder builder )
     {
-        List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> predicates = new ArrayList<>();
+        List<Function<Root<TrackedEntityAudit>, Predicate>> predicates = new ArrayList<>();
 
         if ( params.hasTrackedEntityInstances() )
         {

@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -85,9 +85,9 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -126,7 +126,7 @@ public class AuditController
 
     private final DataApprovalAuditService dataApprovalAuditService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityAuditService trackedEntityAuditService;
 
     private final FieldFilterService fieldFilterService;
 
@@ -468,28 +468,28 @@ public class AuditController
 
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
-        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
+        TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( tei )
             .setUsers( user )
             .setAuditTypes( auditTypes )
             .setStartDate( startDate )
             .setEndDate( endDate );
 
-        List<TrackedEntityInstanceAudit> teiAudits;
+        List<TrackedEntityAudit> teiAudits;
         Pager pager = null;
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+            int total = trackedEntityAuditService.getTrackedEntityInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
 
-            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
+            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits( params );
         }
         else
         {
-            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits(
-                new TrackedEntityInstanceAuditQueryParams()
+            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits(
+                new TrackedEntityAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )
                     .setAuditTypes( auditTypes )
@@ -507,7 +507,7 @@ public class AuditController
 
         CollectionNode trackedEntityInstanceAudits = rootNode
             .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
-        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
+        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
         return rootNode;

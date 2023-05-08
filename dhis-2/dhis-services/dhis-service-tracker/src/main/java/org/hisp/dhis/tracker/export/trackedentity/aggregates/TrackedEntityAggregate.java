@@ -58,8 +58,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.CurrentUserService;
@@ -126,7 +126,7 @@ public class TrackedEntityAggregate
      * @return a List of {@see TrackedEntity} objects
      */
     public List<TrackedEntity> find( List<Long> ids, TrackedEntityParams params,
-        TrackedEntityInstanceQueryParams queryParams )
+        TrackedEntityQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 

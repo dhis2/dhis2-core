@@ -44,15 +44,15 @@ public interface TrackedEntityStore
 {
     String ID = TrackedEntityStore.class.getName();
 
-    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params );
 
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params );
+    List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params );
 
-    List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
+    List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityQueryParams params );
 
-    int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCountForGrid( TrackedEntityQueryParams params );
 
-    int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityInstanceQueryParams params );
+    int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into

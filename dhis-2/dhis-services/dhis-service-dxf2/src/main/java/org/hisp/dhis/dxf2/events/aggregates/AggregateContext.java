@@ -33,7 +33,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 
 /**
  * @author Luciano Fiandesio
@@ -90,5 +90,5 @@ public class AggregateContext
     /**
      * The query parameters to filter teis
      */
-    TrackedEntityInstanceQueryParams queryParams;
+    TrackedEntityQueryParams queryParams;
 }

@@ -58,7 +58,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -131,7 +131,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
     void testTrackedEntityInstanceIncludeAllAttributes()
     {
         populatePrerequisites( false );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
@@ -146,7 +146,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
     {
         populatePrerequisites( true );
         injectSecurityContext( nonSuperUser );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
@@ -161,7 +161,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
     {
         populatePrerequisites( true );
         injectSecurityContext( nonSuperUser );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
@@ -176,7 +176,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
     {
         populatePrerequisites( false );
         injectSecurityContext( nonSuperUser );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programB );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
@@ -191,7 +191,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
     {
         populatePrerequisites( false );
         injectSecurityContext( nonSuperUser );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setProgram( programA );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;

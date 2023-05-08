@@ -62,7 +62,7 @@ import org.hisp.dhis.dxf2.events.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
@@ -124,7 +124,7 @@ public class TrackedEntityInstanceAggregate
      * @return a List of {@see TrackedEntity} objects
      */
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
-        TrackedEntityInstanceQueryParams queryParams )
+        TrackedEntityQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 

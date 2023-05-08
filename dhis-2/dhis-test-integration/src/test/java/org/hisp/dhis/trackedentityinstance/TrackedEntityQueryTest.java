@@ -39,7 +39,7 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateNoOrgUnitsModeAll()
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         TrackedEntityType trackedEntityTypeA = createTrackedEntityType( 'A' );
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -67,7 +67,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase
     @Test
     void testTeiQueryParamsWithoutEitherProgramOrTrackedEntityType()
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,
             () -> instanceService.validate( params ) );
@@ -77,7 +77,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase
     @Test
     void testIfUniqueFiltersArePresentInAttributesOrFilters()
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         QueryItem nonUniq1 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,
             null, false );
         QueryItem nonUniq2 = new QueryItem( new TrackedEntityAttribute(), null, ValueType.TEXT, AggregationType.NONE,

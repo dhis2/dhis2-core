@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -43,11 +43,11 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
-public class DefaultTrackedEntityInstanceAuditService
-    implements TrackedEntityInstanceAuditService
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityAuditService" )
+public class DefaultTrackedEntityAuditService
+    implements TrackedEntityAuditService
 {
-    private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
+    private final TrackedEntityAuditStore trackedEntityAuditStore;
 
     private final TrackedEntityStore trackedEntityStore;
 
@@ -56,38 +56,38 @@ public class DefaultTrackedEntityInstanceAuditService
     private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
+    // TrackedEntityAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
     @Async
     @Transactional
-    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    public void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityAudit );
     }
 
     @Override
     @Async
     @Transactional
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
+    public void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudits )
     {
-        trackedEntityInstanceAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityAudits );
     }
 
     @Override
     @Transactional
     public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntity );
+        trackedEntityAuditStore.deleteTrackedEntityInstanceAudit( trackedEntity );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-        TrackedEntityInstanceAuditQueryParams params )
+    public List<TrackedEntityAudit> getTrackedEntityInstanceAudits(
+        TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params ).stream()
+        return trackedEntityAuditStore.getTrackedEntityInstanceAudits( params ).stream()
             .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
                 trackedEntityStore.getByUid( a.getTrackedEntity() ) ).isEmpty() )
             .collect( Collectors.toList() );
@@ -95,8 +95,8 @@ public class DefaultTrackedEntityInstanceAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAuditsCount( params );
+        return trackedEntityAuditStore.getTrackedEntityInstanceAuditsCount( params );
     }
 }

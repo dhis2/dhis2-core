@@ -303,7 +303,7 @@ class TrackedEntityServiceTest
 
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
@@ -319,7 +319,7 @@ class TrackedEntityServiceTest
     {
         injectSecurityContext( superUser );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
@@ -336,7 +336,7 @@ class TrackedEntityServiceTest
         trackedEntityAttribute.setDisplayInListNoProgram( false );
         attributeService.addTrackedEntityAttribute( trackedEntityAttribute );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
 
@@ -357,7 +357,7 @@ class TrackedEntityServiceTest
         entityInstanceD1.setCreated( DateTime.now().plusDays( 2 ).toDate() );
         addEntityInstances();
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "createdAt", SortDirection.ASC ) ) );
@@ -380,7 +380,7 @@ class TrackedEntityServiceTest
 
         addEntityInstances();
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "updatedAt", SortDirection.ASC ) ) );
@@ -398,7 +398,7 @@ class TrackedEntityServiceTest
 
         addEntityInstances();
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "trackedEntity", SortDirection.DESC ) ) );
@@ -420,7 +420,7 @@ class TrackedEntityServiceTest
         entityInstanceD1.setLastUpdatedAtClient( DateTime.now().plusDays( 2 ).toDate() );
         addEntityInstances();
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "updatedAtClient", SortDirection.DESC ) ) );
@@ -442,7 +442,7 @@ class TrackedEntityServiceTest
         addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
         addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
@@ -468,7 +468,7 @@ class TrackedEntityServiceTest
         addEnrollment( entityInstanceC1, DateTime.now().minusDays( 2 ).toDate(), 'C' );
         addEnrollment( entityInstanceD1, DateTime.now().plusDays( 1 ).toDate(), 'D' );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( "inactive", SortDirection.DESC ),
@@ -486,7 +486,7 @@ class TrackedEntityServiceTest
         injectSecurityContext( superUser );
         addEntityInstances();
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityInstanceIds( params, true, true );
@@ -507,7 +507,7 @@ class TrackedEntityServiceTest
         setUpEntityAndAttributeValue( entityInstanceC1, "4-Attribute Value C1" );
         setUpEntityAndAttributeValue( entityInstanceD1, "2-Attribute Value D1" );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), SortDirection.ASC ) ) );
         params.setAttributes( List.of( new QueryItem( trackedEntityAttribute ) ) );
@@ -535,7 +535,7 @@ class TrackedEntityServiceTest
         setUpEntityAndAttributeValue( entityInstanceC1, "1-Attribute Value" );
         setUpEntityAndAttributeValue( entityInstanceD1, "1-Attribute Value" );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( trackedEntityAttribute.getUid(), SortDirection.DESC ),
@@ -562,7 +562,7 @@ class TrackedEntityServiceTest
         createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
         createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( tea.getUid(), SortDirection.DESC ) ) );
@@ -587,7 +587,7 @@ class TrackedEntityServiceTest
         createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
         createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setOrders( List.of( new OrderParam( tea.getUid(), SortDirection.ASC ) ) );
@@ -604,7 +604,7 @@ class TrackedEntityServiceTest
         entityInstanceA1.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
 
-        int counter = entityInstanceService.getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true,
+        int counter = entityInstanceService.getTrackedEntityInstanceCount( new TrackedEntityQueryParams(), true,
             true );
 
         assertEquals( 1, counter );
@@ -614,7 +614,7 @@ class TrackedEntityServiceTest
     void shouldCountZeroEntitiesWhenNonePresent()
     {
         int trackedEntitiesCounter = entityInstanceService
-            .getTrackedEntityInstanceCount( new TrackedEntityInstanceQueryParams(), true, true );
+            .getTrackedEntityInstanceCount( new TrackedEntityQueryParams(), true, true );
 
         assertEquals( 0, trackedEntitiesCounter );
     }
@@ -633,7 +633,7 @@ class TrackedEntityServiceTest
         initializeEntityInstance( entityInstanceA1 );
         initializeEntityInstance( entityInstanceB1 );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
         params.setOrders( List.of( new OrderParam( "created", SortDirection.ASC ) ) );
@@ -661,7 +661,7 @@ class TrackedEntityServiceTest
         initializeEntityInstance( entityInstanceA1 );
         initializeEntityInstance( entityInstanceB1 );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrganisationUnits( Set.of( organisationUnit ) );
         params.setTrackedEntityType( trackedEntityType );
         params.setOrders( List.of( new OrderParam( "created", SortDirection.DESC ) ) );
