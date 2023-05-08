@@ -69,7 +69,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
@@ -93,7 +93,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     private ProgramMessageService programMessageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityDataValueAuditService trackedEntityDataValueAuditService;
@@ -123,7 +123,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     private MaintenanceService maintenanceService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackedEntityTypeService trackedEntityTypeService;
@@ -202,7 +202,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
             entityInstanceWithAssociations, program );
         enrollmentWithTeiAssociation.setUid( "UID-B" );
         enrollmentWithTeiAssociation.setOrganisationUnit( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( entityInstanceWithAssociations );
+        trackedEntityService.addTrackedEntityInstance( entityInstanceWithAssociations );
         enrollmentService.addEnrollment( enrollmentWithTeiAssociation );
         enrollmentService.addEnrollment( enrollment );
         event = new Event( enrollment, stageA );
@@ -240,17 +240,17 @@ class MaintenanceServiceTest extends IntegrationTestBase
         r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
         r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
         relationshipService.addRelationship( r );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getId() ) );
+        assertNotNull( trackedEntityService.getTrackedEntityInstance( entityInstance.getId() ) );
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
-        trackedEntityInstanceService.deleteTrackedEntityInstance( entityInstance );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstance.getId() ) );
+        trackedEntityService.deleteTrackedEntityInstance( entityInstance );
+        assertNull( trackedEntityService.getTrackedEntityInstance( entityInstance.getId() ) );
         assertNull( relationshipService.getRelationship( r.getId() ) );
         assertTrue(
-            trackedEntityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
+            trackedEntityService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedTrackedEntityInstances();
         assertFalse(
-            trackedEntityInstanceService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
+            trackedEntityService.trackedEntityInstanceExistsIncludingDeleted( entityInstance.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }
 
@@ -416,9 +416,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
     @Disabled( "until we can inject dhis.conf property overrides" )
     void testAuditEntryForDeletionOfSoftDeletedTrackedEntityInstance()
     {
-        trackedEntityInstanceService.deleteTrackedEntityInstance( entityInstanceWithAssociations );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( entityInstanceWithAssociations.getId() ) );
-        assertTrue( trackedEntityInstanceService
+        trackedEntityService.deleteTrackedEntityInstance( entityInstanceWithAssociations );
+        assertNull( trackedEntityService.getTrackedEntityInstance( entityInstanceWithAssociations.getId() ) );
+        assertTrue( trackedEntityService
             .trackedEntityInstanceExistsIncludingDeleted( entityInstanceWithAssociations.getUid() ) );
         maintenanceService.deleteSoftDeletedTrackedEntityInstances();
         List<Audit> audits = auditService

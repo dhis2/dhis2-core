@@ -89,9 +89,9 @@ import org.hisp.dhis.user.User;
  * @author Abyot Asalefew Gizaw
  * @author Lars Helge Overland
  */
-public interface TrackedEntityInstanceService
+public interface TrackedEntityService
 {
-    String ID = TrackedEntityInstanceService.class.getName();
+    String ID = TrackedEntityService.class.getName();
 
     int ERROR_NONE = 0;
 

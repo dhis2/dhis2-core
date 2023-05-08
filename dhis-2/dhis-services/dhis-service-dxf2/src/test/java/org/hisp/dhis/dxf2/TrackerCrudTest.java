@@ -61,7 +61,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.DefaultTrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -95,7 +95,7 @@ class TrackerCrudTest
     private Notifier notifier;
 
     @Mock
-    private DefaultTrackedEntityInstanceService defaultTrackedEntityInstanceService;
+    private DefaultTrackedEntityService defaultTrackedEntityInstanceService;
 
     @Mock
     private EnrollmentService enrollmentService;

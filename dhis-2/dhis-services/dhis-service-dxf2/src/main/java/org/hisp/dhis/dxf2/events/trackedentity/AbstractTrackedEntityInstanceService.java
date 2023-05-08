@@ -93,6 +93,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -119,7 +120,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // Dependencies
     // -------------------------------------------------------------------------
 
-    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+    protected TrackedEntityService teiService;
 
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 

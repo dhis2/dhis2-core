@@ -40,7 +40,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +52,7 @@ class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
-    private TrackedEntityInstanceService instanceService;
+    private TrackedEntityService instanceService;
 
     @Test
     void testValidateNoOrgUnitsModeAll()

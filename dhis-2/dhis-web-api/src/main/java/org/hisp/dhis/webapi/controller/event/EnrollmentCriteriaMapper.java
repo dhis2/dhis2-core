@@ -47,7 +47,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -70,7 +70,7 @@ public class EnrollmentCriteriaMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackerAccessManager trackerAccessManager;
 
@@ -146,7 +146,7 @@ public class EnrollmentCriteriaMapper
         }
 
         TrackedEntity tei = trackedEntityInstance != null
-            ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
+            ? trackedEntityService.getTrackedEntityInstance( trackedEntityInstance )
             : null;
 
         if ( trackedEntityInstance != null && tei == null )

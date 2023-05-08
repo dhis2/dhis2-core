@@ -52,7 +52,7 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
     private static final String TEIA1 = "TEI-A1";
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityProgramOwnerService programOwnerService;

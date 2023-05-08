@@ -50,7 +50,7 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -82,7 +82,7 @@ public class EnrollmentCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     @Nonnull
     private final TrackerAccessManager trackerAccessManager;
@@ -99,7 +99,7 @@ public class EnrollmentCriteriaMapper
             criteria.getTrackedEntityType() );
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntityInstance,
             criteria.getTrackedEntity() );
         validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
 

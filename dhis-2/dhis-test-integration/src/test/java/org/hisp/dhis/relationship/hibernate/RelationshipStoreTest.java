@@ -58,7 +58,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,7 +71,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private RelationshipTypeService relationshipTypeService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -132,7 +132,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         Event event = addEvent( enrollment, programStageA );
 
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
 
         Relationship relationshipA = addTeiToEventRelationship( trackedEntityA,
             event );
@@ -150,7 +150,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     void testGetByEnrollment()
     {
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
 
         Program programA = addProgram();
 
@@ -211,8 +211,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
         trackedEntityB = createTrackedEntityInstance( organisationUnit );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityB );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityB );
 
         Relationship teiRelationship = new Relationship();
 

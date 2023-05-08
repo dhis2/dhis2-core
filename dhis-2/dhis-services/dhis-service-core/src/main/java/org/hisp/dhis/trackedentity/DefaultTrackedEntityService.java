@@ -90,9 +90,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Abyot Asalefew Gizaw
  */
 @Slf4j
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceService" )
-public class DefaultTrackedEntityInstanceService
-    implements TrackedEntityInstanceService
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityService" )
+public class DefaultTrackedEntityService
+    implements TrackedEntityService
 {
     // -------------------------------------------------------------------------
     // Dependencies
@@ -120,9 +120,9 @@ public class DefaultTrackedEntityInstanceService
 
     // TODO: FIXME luciano using @Lazy here because we have circular
     // dependencies:
-    // TrackedEntityInstanceService --> TrackerOwnershipManager -->
-    // TrackedEntityProgramOwnerService --> TrackedEntityInstanceService
-    public DefaultTrackedEntityInstanceService( TrackedEntityInstanceStore trackedEntityInstanceStore,
+    // TrackedEntityService --> TrackerOwnershipManager -->
+    // TrackedEntityProgramOwnerService --> TrackedEntityService
+    public DefaultTrackedEntityService( TrackedEntityInstanceStore trackedEntityInstanceStore,
         TrackedEntityAttributeValueService attributeValueService,
         TrackedEntityAttributeService attributeService,
         TrackedEntityTypeService trackedEntityTypeService,

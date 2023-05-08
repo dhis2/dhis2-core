@@ -89,6 +89,7 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -135,7 +136,7 @@ public class TrackedEntityInstanceController
 {
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+    private final TrackedEntityService instanceService;
 
     private final ContextUtils contextUtils;
 

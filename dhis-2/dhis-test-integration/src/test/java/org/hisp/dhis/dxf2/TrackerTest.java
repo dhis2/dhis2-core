@@ -76,7 +76,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -109,7 +109,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     private EventService eventService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     protected UserService userService;
@@ -200,7 +200,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
-        trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
+        trackedEntityService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
 
@@ -222,7 +222,7 @@ public abstract class TrackerTest extends IntegrationTestBase
                 }
             }
         }
-        trackedEntityInstanceService.addTrackedEntityInstance( entityInstance );
+        trackedEntityService.addTrackedEntityInstance( entityInstance );
         return entityInstance;
     }
 

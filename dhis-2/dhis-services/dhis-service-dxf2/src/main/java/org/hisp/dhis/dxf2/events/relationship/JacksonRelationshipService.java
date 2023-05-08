@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
@@ -76,7 +77,7 @@ public class JacksonRelationshipService
         TrackedEntityInstanceService trackedEntityInstanceService,
         EnrollmentService enrollmentService,
         EventService eventService,
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService,
+        TrackedEntityService teiDaoService,
         UserService userService,
         ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper )

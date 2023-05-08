@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -74,7 +74,7 @@ class EnrollmentCriteriaMapperTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
     private TrackerAccessManager trackerAccessManager;
@@ -129,7 +129,7 @@ class EnrollmentCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
         when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( true );
         when( trackedEntityTypeService.getTrackedEntityType( ENTITY_TYPE ) ).thenReturn( trackedEntityType );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
+        when( trackedEntityService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
             .thenReturn( trackedEntity );
 
         EnrollmentQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,

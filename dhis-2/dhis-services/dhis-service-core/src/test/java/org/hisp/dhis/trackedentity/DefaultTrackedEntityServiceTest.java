@@ -86,12 +86,12 @@ class DefaultTrackedEntityServiceTest
 
     private TrackedEntityInstanceQueryParams params;
 
-    private DefaultTrackedEntityInstanceService teiService;
+    private DefaultTrackedEntityService teiService;
 
     @BeforeEach
     void setup()
     {
-        teiService = new DefaultTrackedEntityInstanceService( trackedEntityInstanceStore, attributeValueService,
+        teiService = new DefaultTrackedEntityService( trackedEntityInstanceStore, attributeValueService,
             attributeService, trackedEntityTypeService, organisationUnitService,
             currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityInstanceAuditService,
             attributeValueAuditService );

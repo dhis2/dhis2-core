@@ -57,7 +57,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -130,7 +130,7 @@ class RelationshipSMSListenerTest
     private EnrollmentService enrollmentService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     private Enrollment enrollment;
 
@@ -142,7 +142,7 @@ class RelationshipSMSListenerTest
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            eventService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
+            eventService, relationshipService, relationshipTypeService, trackedEntityService,
             enrollmentService, identifiableObjectManager );
 
         setUpInstances();

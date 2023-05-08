@@ -70,7 +70,7 @@ class TrackedEntityServiceTest
     extends IntegrationTestBase
 {
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

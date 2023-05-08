@@ -79,7 +79,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultTrackedEntityService implements TrackedEntityService
 {
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+    private final org.hisp.dhis.trackedentity.TrackedEntityService teiService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
