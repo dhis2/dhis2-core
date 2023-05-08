@@ -163,7 +163,6 @@ import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityAttributeValueSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityDataElementDimensionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityFilterSchemaDescriptor;
-import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityProgramIndicatorDimensionSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeAttributeSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.TrackedEntityTypeSchemaDescriptor;
@@ -285,7 +284,6 @@ public class DefaultSchemaService
         register( new SqlViewSchemaDescriptor() );
         register( new TrackedEntityAttributeSchemaDescriptor() );
         register( new TrackedEntityAttributeValueSchemaDescriptor() );
-        register( new TrackedEntityInstanceSchemaDescriptor() );
         register( new TrackedEntityFilterSchemaDescriptor() );
         register( new TrackedEntityTypeSchemaDescriptor() );
         register( new TrackedEntityTypeAttributeSchemaDescriptor() );
