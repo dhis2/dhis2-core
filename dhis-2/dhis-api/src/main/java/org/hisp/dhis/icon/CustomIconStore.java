@@ -63,7 +63,7 @@ public interface CustomIconStore
     List<String> getKeywords();
 
     /**
-     * Persists an icon to the database
+     * Persists a custom icon to the database
      *
      * @param customIcon Icon to be saved
      */
