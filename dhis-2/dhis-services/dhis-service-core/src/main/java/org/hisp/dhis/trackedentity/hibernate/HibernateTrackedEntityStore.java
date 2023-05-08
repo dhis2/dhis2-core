@@ -33,19 +33,19 @@ import static org.hisp.dhis.common.IdentifiableObjectUtils.getIdentifiers;
 import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getQuotedCommaDelimitedString;
 import static org.hisp.dhis.commons.util.TextUtils.getTokens;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.CREATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.DELETED;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.INACTIVE_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.LAST_UPDATED_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.MAIN_QUERY_ALIAS;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.ORG_UNIT_NAME;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.ENROLLED_AT;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.POTENTIAL_DUPLICATE;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.PROGRAM_INSTANCE_ALIAS;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_ID;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.TRACKED_ENTITY_INSTANCE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.CREATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.DELETED;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.INACTIVE_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.LAST_UPDATED_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.MAIN_QUERY_ALIAS;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.ORG_UNIT_NAME;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.ENROLLED_AT;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.POTENTIAL_DUPLICATE;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.PROGRAM_INSTANCE_ALIAS;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_ID;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.TRACKED_ENTITY_INSTANCE_ID;
 import static org.hisp.dhis.util.DateUtils.addDays;
 import static org.hisp.dhis.util.DateUtils.getLongGmtDateString;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
@@ -92,7 +92,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -175,7 +175,7 @@ public class HibernateTrackedEntityStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
+    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params )
     {
         List<Long> teiIds = getTrackedEntityInstanceIds( params );
         List<TrackedEntity> sortedTeis = new ArrayList<>();
@@ -199,7 +199,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params )
+    public List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params )
     {
         String sql = getQuery( params, false );
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -225,7 +225,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params )
+    public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityQueryParams params )
     {
         String sql = getQuery( params, true );
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -294,7 +294,7 @@ public class HibernateTrackedEntityStore
         }
     }
 
-    private void checkMaxTeiCountReached( TrackedEntityInstanceQueryParams params, SqlRowSet rowSet )
+    private void checkMaxTeiCountReached( TrackedEntityQueryParams params, SqlRowSet rowSet )
     {
         if ( params.getMaxTeiLimit() > 0 && rowSet.last() )
         {
@@ -307,7 +307,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCountForGrid( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCountForGrid( TrackedEntityQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause
@@ -325,7 +325,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityInstanceQueryParams params )
+    public int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params )
     {
         String sql = getCountQueryWithMaxTeiLimit( params );
 
@@ -399,7 +399,7 @@ public class HibernateTrackedEntityStore
      * @param params params defining the query
      * @return SQL string
      */
-    private String getQuery( TrackedEntityInstanceQueryParams params, boolean isGridQuery )
+    private String getQuery( TrackedEntityQueryParams params, boolean isGridQuery )
     {
         if ( params.isOrQuery() && params.getAttributesAndFilters().isEmpty() )
         {
@@ -429,7 +429,7 @@ public class HibernateTrackedEntityStore
      * @param params params defining the query
      * @return a count SQL query
      */
-    private String getCountQuery( TrackedEntityInstanceQueryParams params )
+    private String getCountQuery( TrackedEntityQueryParams params )
     {
         return new StringBuilder()
             .append( getQueryCountSelect( params ) )
@@ -450,7 +450,7 @@ public class HibernateTrackedEntityStore
      * @param params params defining the query
      * @return a count SQL query
      */
-    private String getCountQueryWithMaxTeiLimit( TrackedEntityInstanceQueryParams params )
+    private String getCountQueryWithMaxTeiLimit( TrackedEntityQueryParams params )
     {
         return new StringBuilder()
             .append( getQueryCountSelect( params ) )
@@ -473,7 +473,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return an SQL projection
      */
-    private String getQuerySelect( TrackedEntityInstanceQueryParams params )
+    private String getQuerySelect( TrackedEntityQueryParams params )
     {
         LinkedHashSet<String> select = new LinkedHashSet<>(
             List.of( "SELECT TEI.uid AS " + TRACKED_ENTITY_INSTANCE_ID,
@@ -501,7 +501,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return an SQL projection
      */
-    private String getQueryCountSelect( TrackedEntityInstanceQueryParams params )
+    private String getQueryCountSelect( TrackedEntityQueryParams params )
     {
         return "SELECT count(instance) FROM ( ";
     }
@@ -514,7 +514,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return an SQL subquery
      */
-    private String getFromSubQuery( TrackedEntityInstanceQueryParams params, boolean isCountQuery, boolean isGridQuery )
+    private String getFromSubQuery( TrackedEntityQueryParams params, boolean isCountQuery, boolean isGridQuery )
     {
         SqlHelper whereAnd = new SqlHelper( true );
         StringBuilder fromSubQuery = new StringBuilder()
@@ -556,7 +556,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return a SQL projection
      */
-    private String getFromSubQuerySelect( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQuerySelect( TrackedEntityQueryParams params )
     {
         LinkedHashSet<String> columns = new LinkedHashSet<>( List.of( "TEI.trackedentityinstanceid", "TEI.uid",
             "TEI.created", "TEI.lastUpdated", "TEI.inactive", "TEI.trackedentitytypeid", "TEI.potentialduplicate",
@@ -564,7 +564,7 @@ public class HibernateTrackedEntityStore
 
         for ( OrderParam orderParam : params.getOrders() )
         {
-            Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( orderParam.getField() );
+            Optional<TrackedEntityQueryParams.OrderColumn> orderColumn = findColumn( orderParam.getField() );
 
             if ( orderColumn.isPresent() )
             {
@@ -591,7 +591,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return List of QueryItem
      */
-    private Set<QueryItem> sortableAttributesAndFilters( TrackedEntityInstanceQueryParams params )
+    private Set<QueryItem> sortableAttributesAndFilters( TrackedEntityQueryParams params )
     {
         List<String> ordersIdentifier = params.getOrders().stream()
             .map( OrderParam::getField )
@@ -609,7 +609,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return a SQL segment for the WHERE clause used in the subquery
      */
-    private String getFromSubQueryTrackedEntityConditions( SqlHelper whereAnd, TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryTrackedEntityConditions( SqlHelper whereAnd, TrackedEntityQueryParams params )
     {
         StringBuilder trackedEntity = new StringBuilder();
 
@@ -697,7 +697,7 @@ public class HibernateTrackedEntityStore
      * @return a series of 1 or more SQL INNER JOINs, or empty string if no
      *         query or attribute filters exists.
      */
-    private String getFromSubQueryJoinAttributeConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinAttributeConditions( TrackedEntityQueryParams params )
     {
         if ( !params.isOrQuery() )
         {
@@ -720,7 +720,7 @@ public class HibernateTrackedEntityStore
      *
      * @param params
      */
-    private String joinAttributeValueWithQueryParameter( TrackedEntityInstanceQueryParams params )
+    private String joinAttributeValueWithQueryParameter( TrackedEntityQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -769,7 +769,7 @@ public class HibernateTrackedEntityStore
      *
      * @param params
      */
-    private String joinAttributeValueWithoutQueryParameter( TrackedEntityInstanceQueryParams params )
+    private String joinAttributeValueWithoutQueryParameter( TrackedEntityQueryParams params )
     {
         StringBuilder attributes = new StringBuilder();
 
@@ -823,7 +823,7 @@ public class HibernateTrackedEntityStore
      * @return a SQL LEFT JOIN for attributes used for ordering, or empty string
      *         if not attributes is used in order.
      */
-    private String getFromSubQueryJoinOrderByAttributes( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinOrderByAttributes( TrackedEntityQueryParams params )
     {
         StringBuilder joinOrderAttributes = new StringBuilder();
 
@@ -858,7 +858,7 @@ public class HibernateTrackedEntityStore
      * @return a SQL INNER JOIN for program owner, or empty string if no program
      *         is specified.
      */
-    private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinProgramOwnerConditions( TrackedEntityQueryParams params )
     {
         if ( !params.hasProgram() || skipOwnershipCheck( params ) )
         {
@@ -884,7 +884,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return a SQL INNER JOIN for organisation units
      */
-    private String getFromSubQueryJoinOrgUnitConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinOrgUnitConditions( TrackedEntityQueryParams params )
     {
         StringBuilder orgUnits = new StringBuilder();
 
@@ -943,7 +943,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return a SQL INNER JOIN for enrollments
      */
-    private String getFromSubQueryJoinEnrollmentConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinEnrollmentConditions( TrackedEntityQueryParams params )
     {
         if ( params.getOrders().stream().anyMatch( p -> ENROLLED_AT.isPropertyEqualTo( p.getField() ) ) )
         {
@@ -965,8 +965,7 @@ public class HibernateTrackedEntityStore
      * @return an SQL EXISTS clause for programinstance, or empty string if not
      *         program is specified.
      */
-    private String getFromSubQueryEnrollmentConditions( SqlHelper whereAnd,
-        TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryEnrollmentConditions( SqlHelper whereAnd, TrackedEntityQueryParams params )
     {
         StringBuilder program = new StringBuilder();
 
@@ -1058,7 +1057,7 @@ public class HibernateTrackedEntityStore
      * @param params
      * @return an SQL INNER JOIN for filtering on events.
      */
-    private String getFromSubQueryEvent( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryEvent( TrackedEntityQueryParams params )
     {
         StringBuilder events = new StringBuilder();
         SqlHelper whereHlp = new SqlHelper( true );
@@ -1221,7 +1220,7 @@ public class HibernateTrackedEntityStore
      * @return a SQL with several LEFT JOINS, one for each relevant table to
      *         retrieve information from.
      */
-    private String getQueryRelatedTables( TrackedEntityInstanceQueryParams params )
+    private String getQueryRelatedTables( TrackedEntityQueryParams params )
     {
         List<QueryItem> attributes = params.getAttributes();
         StringBuilder relatedTables = new StringBuilder();
@@ -1258,7 +1257,7 @@ public class HibernateTrackedEntityStore
      * @return a SQL GROUP BY clause, or empty string if no attributes are
      *         specified.
      */
-    private String getQueryGroupBy( TrackedEntityInstanceQueryParams params )
+    private String getQueryGroupBy( TrackedEntityQueryParams params )
     {
         if ( params.getAttributes().isEmpty() )
         {
@@ -1306,7 +1305,7 @@ public class HibernateTrackedEntityStore
      * @param isGridQuery indicates whether this is used for grid query or not.
      * @return a SQL ORDER BY clause.
      */
-    private String getQueryOrderBy( boolean innerOrder, TrackedEntityInstanceQueryParams params, boolean isGridQuery )
+    private String getQueryOrderBy( boolean innerOrder, TrackedEntityQueryParams params, boolean isGridQuery )
     {
         if ( !isGridQuery || !params.getAttributes().isEmpty() )
         {
@@ -1315,7 +1314,7 @@ public class HibernateTrackedEntityStore
 
             for ( OrderParam order : params.getOrders() )
             {
-                Optional<TrackedEntityInstanceQueryParams.OrderColumn> orderColumn = findColumn( order.getField() );
+                Optional<TrackedEntityQueryParams.OrderColumn> orderColumn = findColumn( order.getField() );
 
                 if ( orderColumn.isPresent() )
                 {
@@ -1379,7 +1378,7 @@ public class HibernateTrackedEntityStore
      * @return a SQL LIMIT and OFFSET clause, or empty string if no LIMIT can be
      *         deducted.
      */
-    private String getFromSubQueryLimitAndOffset( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryLimitAndOffset( TrackedEntityQueryParams params )
     {
         StringBuilder limitOffset = new StringBuilder();
         int limit = params.getMaxTeiLimit();
@@ -1596,7 +1595,7 @@ public class HibernateTrackedEntityStore
         return StringUtils.EMPTY;
     }
 
-    private boolean skipOwnershipCheck( TrackedEntityInstanceQueryParams params )
+    private boolean skipOwnershipCheck( TrackedEntityQueryParams params )
     {
         return params.getUser() != null && params.getUser().isSuper();
     }

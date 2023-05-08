@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ class TrackedEntityAggregateUserTest extends TrackerTest
             this.persistTrackedEntityInstance();
             this.persistTrackedEntityInstance();
         } );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );

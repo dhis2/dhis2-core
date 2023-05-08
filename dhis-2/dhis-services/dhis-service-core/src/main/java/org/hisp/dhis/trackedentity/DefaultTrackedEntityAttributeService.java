@@ -201,7 +201,7 @@ public class DefaultTrackedEntityAttributeService
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required." );
         Assert.notNull( value, "tracked entity attribute value is required." );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.addAttribute(
             new QueryItem( trackedEntityAttribute, QueryOperator.EQ, value, trackedEntityAttribute.getValueType(),
                 trackedEntityAttribute.getAggregationType(), trackedEntityAttribute.getOptionSet() ) );

@@ -56,8 +56,8 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -319,7 +319,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     }
 
     @Override
-    public List<TrackedEntity> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+    public List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams queryParams,
         TrackedEntityParams params )
         throws ForbiddenException,
         NotFoundException
@@ -478,7 +478,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     }
 
     @Override
-    public int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    public int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
         return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );

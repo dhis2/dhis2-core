@@ -91,8 +91,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -182,7 +182,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
+    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( queryParams == null )
@@ -234,7 +234,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     @Override
     @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    public int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
         return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );

@@ -46,7 +46,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -160,7 +160,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
     void testConfiguredPositiveMaxTeiLimit()
     {
         systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3 );
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -179,7 +179,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
     {
         systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1 );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -195,7 +195,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
     @Test
     void testDefaultMaxTeiLimit()
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
@@ -213,7 +213,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
     {
         systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0 );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setProgram( program );
         params.setOrganisationUnits( Set.of( orgUnitA ) );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );

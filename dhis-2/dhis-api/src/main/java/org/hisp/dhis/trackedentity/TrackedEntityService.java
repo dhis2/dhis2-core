@@ -40,7 +40,7 @@ import org.hisp.dhis.user.User;
 /**
  * <p>
  * This interface is responsible for retrieving tracked entity instances (TEI).
- * The query methods accepts a TrackedEntityInstanceQueryParams object which
+ * The query methods accepts a TrackedEntityQueryParams object which
  * encapsulates all arguments.
  * </p>
  * <p/>
@@ -67,7 +67,7 @@ import org.hisp.dhis.user.User;
  *
  * <pre>
  * <code>
- * TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+ * TrackedEntityQueryParams params = new TrackedEntityQueryParams();
  *
  * params.addAttribute( new QueryItem( gender, QueryOperator.EQ, "Male", false ) );
  * params.addAttribute( new QueryItem( age, QueryOperator.LT, "5", true ) );
@@ -103,18 +103,18 @@ public interface TrackedEntityService
 
     /**
      * Returns a grid with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * TrackedEntityQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      * @return a grid.
      */
-    Grid getTrackedEntityInstancesGrid( TrackedEntityInstanceQueryParams params );
+    Grid getTrackedEntityInstancesGrid( TrackedEntityQueryParams params );
 
     /**
      * Returns a list with tracked entity instance values based on the given
-     * TrackedEntityInstanceQueryParams.
+     * TrackedEntityQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      * @param skipAccessValidation If true, access validation is skipped. Should
      *        be set to true only for internal tasks (e.g. currently used by
      *        synchronization job)
@@ -122,14 +122,14 @@ public interface TrackedEntityService
      *        skipped.
      * @return List of TEIs matching the params
      */
-    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
+    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
      * Returns a list tracked entity instance primary key ids based on the given
-     * TrackedEntityInstanceQueryParams.
+     * TrackedEntityQueryParams.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      * @param skipAccessValidation If true, access validation is skipped. Should
      *        be set to true only for internal tasks (e.g. currently used by
      *        synchronization job)
@@ -137,7 +137,7 @@ public interface TrackedEntityService
      *        skipped.
      * @return List of TEI IDs matching the params
      */
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     /**
@@ -151,38 +151,37 @@ public interface TrackedEntityService
      * @return the count of the Tracked entity instances that meet the criteria
      *         specified in params
      */
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     /**
      * Decides whether current user is authorized to perform the given query.
      * IllegalQueryException is thrown if not.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      */
-    void decideAccess( TrackedEntityInstanceQueryParams params );
+    void decideAccess( TrackedEntityQueryParams params );
 
     /**
-     * Validates scope of given TrackedEntityInstanceQueryParams. The params is
+     * Validates scope of given TrackedEntityQueryParams. The params is
      * considered valid if no exception are thrown and the method returns
      * normally.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      * @param isGridSearch specifies whether search is made for a Grid response
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validateSearchScope( TrackedEntityInstanceQueryParams params, boolean isGridSearch )
+    void validateSearchScope( TrackedEntityQueryParams params, boolean isGridSearch )
         throws IllegalQueryException;
 
     /**
-     * Validates the given TrackedEntityInstanceQueryParams. The params is
-     * considered valid if no exception are thrown and the method returns
-     * normally.
+     * Validates the given TrackedEntityQueryParams. The params is considered
+     * valid if no exception are thrown and the method returns normally.
      *
-     * @param params the TrackedEntityInstanceQueryParams.
+     * @param params the TrackedEntityQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validate( TrackedEntityInstanceQueryParams params )
+    void validate( TrackedEntityQueryParams params )
         throws IllegalQueryException;
 
     /**

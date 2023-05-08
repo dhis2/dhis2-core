@@ -63,7 +63,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Lars Helge Overland
  */
-public class TrackedEntityInstanceQueryParams
+public class TrackedEntityQueryParams
 {
     public static final String TRACKED_ENTITY_INSTANCE_ID = "instance";
 
@@ -299,7 +299,7 @@ public class TrackedEntityInstanceQueryParams
     // Constructors
     // -------------------------------------------------------------------------
 
-    public TrackedEntityInstanceQueryParams()
+    public TrackedEntityQueryParams()
     {
     }
 
@@ -310,7 +310,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Adds a query item as attribute to the parameters.
      */
-    public TrackedEntityInstanceQueryParams addAttribute( QueryItem attribute )
+    public TrackedEntityQueryParams addAttribute( QueryItem attribute )
     {
         this.attributes.add( attribute );
         return this;
@@ -319,7 +319,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Adds a query item as filter to the parameters.
      */
-    public TrackedEntityInstanceQueryParams addFilter( QueryItem filter )
+    public TrackedEntityQueryParams addFilter( QueryItem filter )
     {
         this.filters.add( filter );
         return this;
@@ -328,7 +328,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Adds an organisation unit to the parameters.
      */
-    public TrackedEntityInstanceQueryParams addOrganisationUnit( OrganisationUnit unit )
+    public TrackedEntityQueryParams addOrganisationUnit( OrganisationUnit unit )
     {
         this.organisationUnits.add( unit );
         return this;
@@ -406,7 +406,7 @@ public class TrackedEntityInstanceQueryParams
         return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
     }
 
-    public TrackedEntityInstanceQueryParams addAttributes( List<QueryItem> attrs )
+    public TrackedEntityQueryParams addAttributes( List<QueryItem> attrs )
     {
         attributes.addAll( attrs );
         return this;
@@ -421,7 +421,7 @@ public class TrackedEntityInstanceQueryParams
     /**
      * Add the given attributes to this params if they are not already present.
      */
-    public TrackedEntityInstanceQueryParams addAttributesIfNotExist( List<QueryItem> attrs )
+    public TrackedEntityQueryParams addAttributesIfNotExist( List<QueryItem> attrs )
     {
         for ( QueryItem attr : attrs )
         {
@@ -438,7 +438,7 @@ public class TrackedEntityInstanceQueryParams
      * Adds the given filters to this parameters if they are not already
      * present.
      */
-    public TrackedEntityInstanceQueryParams addFiltersIfNotExist( List<QueryItem> filtrs )
+    public TrackedEntityQueryParams addFiltersIfNotExist( List<QueryItem> filtrs )
     {
         for ( QueryItem filter : filtrs )
         {
@@ -838,7 +838,7 @@ public class TrackedEntityInstanceQueryParams
         return query;
     }
 
-    public TrackedEntityInstanceQueryParams setQuery( QueryFilter query )
+    public TrackedEntityQueryParams setQuery( QueryFilter query )
     {
         this.query = query;
         return this;
@@ -849,7 +849,7 @@ public class TrackedEntityInstanceQueryParams
         return attributes;
     }
 
-    public TrackedEntityInstanceQueryParams setAttributes( List<QueryItem> attributes )
+    public TrackedEntityQueryParams setAttributes( List<QueryItem> attributes )
     {
         this.attributes = attributes;
         return this;
@@ -860,7 +860,7 @@ public class TrackedEntityInstanceQueryParams
         return filters;
     }
 
-    public TrackedEntityInstanceQueryParams setFilters( List<QueryItem> filters )
+    public TrackedEntityQueryParams setFilters( List<QueryItem> filters )
     {
         this.filters = filters;
         return this;
@@ -871,13 +871,13 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnits;
     }
 
-    public TrackedEntityInstanceQueryParams addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public TrackedEntityQueryParams addOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits.addAll( organisationUnits );
         return this;
     }
 
-    public TrackedEntityInstanceQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
+    public TrackedEntityQueryParams setOrganisationUnits( Set<OrganisationUnit> organisationUnits )
     {
         this.organisationUnits = organisationUnits;
         return this;
@@ -888,7 +888,7 @@ public class TrackedEntityInstanceQueryParams
         return program;
     }
 
-    public TrackedEntityInstanceQueryParams setProgram( Program program )
+    public TrackedEntityQueryParams setProgram( Program program )
     {
         this.program = program;
         return this;
@@ -899,7 +899,7 @@ public class TrackedEntityInstanceQueryParams
         return programStage;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramStage( ProgramStage programStage )
+    public TrackedEntityQueryParams setProgramStage( ProgramStage programStage )
     {
         this.programStage = programStage;
         return this;
@@ -910,7 +910,7 @@ public class TrackedEntityInstanceQueryParams
         return programStatus;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramStatus( ProgramStatus programStatus )
+    public TrackedEntityQueryParams setProgramStatus( ProgramStatus programStatus )
     {
         this.programStatus = programStatus;
         return this;
@@ -921,7 +921,7 @@ public class TrackedEntityInstanceQueryParams
         return followUp;
     }
 
-    public TrackedEntityInstanceQueryParams setFollowUp( Boolean followUp )
+    public TrackedEntityQueryParams setFollowUp( Boolean followUp )
     {
         this.followUp = followUp;
         return this;
@@ -932,7 +932,7 @@ public class TrackedEntityInstanceQueryParams
         return this.potentialDuplicate;
     }
 
-    public TrackedEntityInstanceQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
+    public TrackedEntityQueryParams setPotentialDuplicate( Boolean potentialDuplicate )
     {
         this.potentialDuplicate = potentialDuplicate;
         return this;
@@ -943,7 +943,7 @@ public class TrackedEntityInstanceQueryParams
         return lastUpdatedStartDate;
     }
 
-    public TrackedEntityInstanceQueryParams setLastUpdatedStartDate( Date lastUpdatedStartDate )
+    public TrackedEntityQueryParams setLastUpdatedStartDate( Date lastUpdatedStartDate )
     {
         this.lastUpdatedStartDate = lastUpdatedStartDate;
         return this;
@@ -954,7 +954,7 @@ public class TrackedEntityInstanceQueryParams
         return lastUpdatedEndDate;
     }
 
-    public TrackedEntityInstanceQueryParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
+    public TrackedEntityQueryParams setLastUpdatedEndDate( Date lastUpdatedEndDate )
     {
         this.lastUpdatedEndDate = lastUpdatedEndDate;
         return this;
@@ -965,7 +965,7 @@ public class TrackedEntityInstanceQueryParams
         return lastUpdatedDuration;
     }
 
-    public TrackedEntityInstanceQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
+    public TrackedEntityQueryParams setLastUpdatedDuration( String lastUpdatedDuration )
     {
         this.lastUpdatedDuration = lastUpdatedDuration;
         return this;
@@ -976,7 +976,7 @@ public class TrackedEntityInstanceQueryParams
         return programEnrollmentStartDate;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramEnrollmentStartDate( Date programEnrollmentStartDate )
+    public TrackedEntityQueryParams setProgramEnrollmentStartDate( Date programEnrollmentStartDate )
     {
         this.programEnrollmentStartDate = programEnrollmentStartDate;
         return this;
@@ -988,7 +988,7 @@ public class TrackedEntityInstanceQueryParams
             : programEnrollmentEndDate;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramEnrollmentEndDate( Date programEnrollmentEndDate )
+    public TrackedEntityQueryParams setProgramEnrollmentEndDate( Date programEnrollmentEndDate )
     {
         this.programEnrollmentEndDate = programEnrollmentEndDate;
         return this;
@@ -999,7 +999,7 @@ public class TrackedEntityInstanceQueryParams
         return programIncidentStartDate;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramIncidentStartDate( Date programIncidentStartDate )
+    public TrackedEntityQueryParams setProgramIncidentStartDate( Date programIncidentStartDate )
     {
         this.programIncidentStartDate = programIncidentStartDate;
         return this;
@@ -1010,7 +1010,7 @@ public class TrackedEntityInstanceQueryParams
         return programIncidentEndDate != null ? DateUtils.addDays( programIncidentEndDate, 1 ) : programIncidentEndDate;
     }
 
-    public TrackedEntityInstanceQueryParams setProgramIncidentEndDate( Date programIncidentEndDate )
+    public TrackedEntityQueryParams setProgramIncidentEndDate( Date programIncidentEndDate )
     {
         this.programIncidentEndDate = programIncidentEndDate;
         return this;
@@ -1021,7 +1021,7 @@ public class TrackedEntityInstanceQueryParams
         return trackedEntityType;
     }
 
-    public TrackedEntityInstanceQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
+    public TrackedEntityQueryParams setTrackedEntityType( TrackedEntityType trackedEntityType )
     {
         this.trackedEntityType = trackedEntityType;
         return this;
@@ -1032,7 +1032,7 @@ public class TrackedEntityInstanceQueryParams
         return organisationUnitMode;
     }
 
-    public TrackedEntityInstanceQueryParams setOrganisationUnitMode(
+    public TrackedEntityQueryParams setOrganisationUnitMode(
         OrganisationUnitSelectionMode organisationUnitMode )
     {
         this.organisationUnitMode = organisationUnitMode;
@@ -1044,7 +1044,7 @@ public class TrackedEntityInstanceQueryParams
         return eventStatus;
     }
 
-    public TrackedEntityInstanceQueryParams setEventStatus( EventStatus eventStatus )
+    public TrackedEntityQueryParams setEventStatus( EventStatus eventStatus )
     {
         this.eventStatus = eventStatus;
         return this;
@@ -1055,7 +1055,7 @@ public class TrackedEntityInstanceQueryParams
         return eventStartDate;
     }
 
-    public TrackedEntityInstanceQueryParams setEventStartDate( Date eventStartDate )
+    public TrackedEntityQueryParams setEventStartDate( Date eventStartDate )
     {
         this.eventStartDate = eventStartDate;
         return this;
@@ -1066,7 +1066,7 @@ public class TrackedEntityInstanceQueryParams
         return eventEndDate;
     }
 
-    public TrackedEntityInstanceQueryParams setEventEndDate( Date eventEndDate )
+    public TrackedEntityQueryParams setEventEndDate( Date eventEndDate )
     {
         this.eventEndDate = eventEndDate;
         return this;
@@ -1077,7 +1077,7 @@ public class TrackedEntityInstanceQueryParams
         return skipMeta;
     }
 
-    public TrackedEntityInstanceQueryParams setSkipMeta( boolean skipMeta )
+    public TrackedEntityQueryParams setSkipMeta( boolean skipMeta )
     {
         this.skipMeta = skipMeta;
         return this;
@@ -1088,7 +1088,7 @@ public class TrackedEntityInstanceQueryParams
         return page;
     }
 
-    public TrackedEntityInstanceQueryParams setPage( Integer page )
+    public TrackedEntityQueryParams setPage( Integer page )
     {
         this.page = page;
         return this;
@@ -1099,7 +1099,7 @@ public class TrackedEntityInstanceQueryParams
         return pageSize;
     }
 
-    public TrackedEntityInstanceQueryParams setPageSize( Integer pageSize )
+    public TrackedEntityQueryParams setPageSize( Integer pageSize )
     {
         this.pageSize = pageSize;
         return this;
@@ -1110,7 +1110,7 @@ public class TrackedEntityInstanceQueryParams
         return totalPages;
     }
 
-    public TrackedEntityInstanceQueryParams setTotalPages( boolean totalPages )
+    public TrackedEntityQueryParams setTotalPages( boolean totalPages )
     {
         this.totalPages = totalPages;
         return this;
@@ -1121,7 +1121,7 @@ public class TrackedEntityInstanceQueryParams
         return skipPaging;
     }
 
-    public TrackedEntityInstanceQueryParams setSkipPaging( boolean skipPaging )
+    public TrackedEntityQueryParams setSkipPaging( boolean skipPaging )
     {
         this.skipPaging = skipPaging;
         return this;
@@ -1132,7 +1132,7 @@ public class TrackedEntityInstanceQueryParams
         return maxTeiLimit;
     }
 
-    public TrackedEntityInstanceQueryParams setMaxTeiLimit( int maxTeiLimit )
+    public TrackedEntityQueryParams setMaxTeiLimit( int maxTeiLimit )
     {
         this.maxTeiLimit = maxTeiLimit;
         return this;
@@ -1143,7 +1143,7 @@ public class TrackedEntityInstanceQueryParams
         return includeDeleted;
     }
 
-    public TrackedEntityInstanceQueryParams setIncludeDeleted( boolean includeDeleted )
+    public TrackedEntityQueryParams setIncludeDeleted( boolean includeDeleted )
     {
         this.includeDeleted = includeDeleted;
         return this;
@@ -1154,7 +1154,7 @@ public class TrackedEntityInstanceQueryParams
         return includeAllAttributes;
     }
 
-    public TrackedEntityInstanceQueryParams setIncludeAllAttributes( boolean includeAllAttributes )
+    public TrackedEntityQueryParams setIncludeAllAttributes( boolean includeAllAttributes )
     {
         this.includeAllAttributes = includeAllAttributes;
         return this;
@@ -1165,7 +1165,7 @@ public class TrackedEntityInstanceQueryParams
         return internalSearch;
     }
 
-    public TrackedEntityInstanceQueryParams setInternalSearch( boolean internalSearch )
+    public TrackedEntityQueryParams setInternalSearch( boolean internalSearch )
     {
         this.internalSearch = internalSearch;
         return this;
@@ -1176,7 +1176,7 @@ public class TrackedEntityInstanceQueryParams
         return synchronizationQuery;
     }
 
-    public TrackedEntityInstanceQueryParams setSynchronizationQuery( boolean synchronizationQuery )
+    public TrackedEntityQueryParams setSynchronizationQuery( boolean synchronizationQuery )
     {
         this.synchronizationQuery = synchronizationQuery;
         return this;
@@ -1187,7 +1187,7 @@ public class TrackedEntityInstanceQueryParams
         return skipChangedBefore;
     }
 
-    public TrackedEntityInstanceQueryParams setSkipChangedBefore( Date skipChangedBefore )
+    public TrackedEntityQueryParams setSkipChangedBefore( Date skipChangedBefore )
     {
         this.skipChangedBefore = skipChangedBefore;
         return this;
@@ -1213,7 +1213,7 @@ public class TrackedEntityInstanceQueryParams
         return trackedEntityInstanceUids;
     }
 
-    public TrackedEntityInstanceQueryParams setTrackedEntityInstanceUids( Set<String> trackedEntityInstanceUids )
+    public TrackedEntityQueryParams setTrackedEntityInstanceUids( Set<String> trackedEntityInstanceUids )
     {
         this.trackedEntityInstanceUids = trackedEntityInstanceUids;
         return this;
@@ -1229,7 +1229,7 @@ public class TrackedEntityInstanceQueryParams
      * @param assignedUsers assigned user uids
      * @return this
      */
-    public TrackedEntityInstanceQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
+    public TrackedEntityQueryParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
         Set<String> assignedUsers )
     {
         this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );

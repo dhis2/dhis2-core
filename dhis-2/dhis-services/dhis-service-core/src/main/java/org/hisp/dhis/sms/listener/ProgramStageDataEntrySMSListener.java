@@ -56,7 +56,7 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
@@ -157,10 +157,10 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         return trackedEntities.size() > 1;
     }
 
-    private TrackedEntityInstanceQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms,
+    private TrackedEntityQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms,
         Program program, Set<OrganisationUnit> ous )
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         QueryFilter queryFilter = new QueryFilter();
         queryFilter.setOperator( QueryOperator.LIKE );

@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
@@ -66,7 +66,7 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
             this.persistTrackedEntityInstance();
             this.persistTrackedEntityInstance();
         } );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
@@ -99,7 +99,7 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
             this.persistTrackedEntityInstance();
         } );
         final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityType );
         queryParams.setIncludeAllAttributes( true );

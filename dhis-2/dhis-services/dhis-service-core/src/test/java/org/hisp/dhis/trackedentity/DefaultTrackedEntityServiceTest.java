@@ -84,7 +84,7 @@ class DefaultTrackedEntityServiceTest
     @Mock
     private TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
-    private TrackedEntityInstanceQueryParams params;
+    private TrackedEntityQueryParams params;
 
     private DefaultTrackedEntityService teiService;
 
@@ -101,7 +101,7 @@ class DefaultTrackedEntityServiceTest
         user.setTeiSearchOrganisationUnits( Set.of( new OrganisationUnit( "B" ) ) );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
-        params = new TrackedEntityInstanceQueryParams();
+        params = new TrackedEntityQueryParams();
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setProgram( new Program( "Test program" ) );
         params.getProgram().setMaxTeiCountToReturn( 10 );
@@ -112,7 +112,7 @@ class DefaultTrackedEntityServiceTest
     void exceptionThrownWhenTeiLimitReached()
     {
         when( trackedEntityStore
-            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( 20 );
 
         IllegalQueryException expectedException = assertThrows(
@@ -126,7 +126,7 @@ class DefaultTrackedEntityServiceTest
     void noExceptionThrownWhenTeiLimitNotReached()
     {
         when( trackedEntityStore
-            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( 0 );
 
         teiService.validateSearchScope( params, true );
