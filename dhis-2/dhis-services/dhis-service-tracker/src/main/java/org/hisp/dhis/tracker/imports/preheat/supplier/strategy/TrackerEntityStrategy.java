@@ -47,7 +47,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 @StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityMapper.class )
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
+public class TrackerEntityStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull
     private TrackedEntityStore trackedEntityStore;
