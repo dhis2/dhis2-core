@@ -32,7 +32,7 @@ import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import java.util.Date;
 import java.util.List;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
@@ -51,13 +51,13 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetAuditsByParams()
     {
-        TrackedEntityInstanceAudit teiaA = new TrackedEntityInstanceAudit( "WGW7UnVcIIb", "Access", CREATED, "userA",
+        TrackedEntityAudit teiaA = new TrackedEntityAudit( "WGW7UnVcIIb", "Access", CREATED, "userA",
             AuditType.CREATE );
-        TrackedEntityInstanceAudit teiaB = new TrackedEntityInstanceAudit( "WGW7UnVcIIb", "Access", CREATED, "userB",
+        TrackedEntityAudit teiaB = new TrackedEntityAudit( "WGW7UnVcIIb", "Access", CREATED, "userB",
             AuditType.UPDATE );
-        TrackedEntityInstanceAudit teiaC = new TrackedEntityInstanceAudit( "zIAwTY3Drrn", "Access", CREATED, "userA",
+        TrackedEntityAudit teiaC = new TrackedEntityAudit( "zIAwTY3Drrn", "Access", CREATED, "userA",
             AuditType.UPDATE );
-        TrackedEntityInstanceAudit teiaD = new TrackedEntityInstanceAudit( "zIAwTY3Drrn", "Access", CREATED, "userB",
+        TrackedEntityAudit teiaD = new TrackedEntityAudit( "zIAwTY3Drrn", "Access", CREATED, "userB",
             AuditType.DELETE );
 
         store.addTrackedEntityInstanceAudit( teiaA );

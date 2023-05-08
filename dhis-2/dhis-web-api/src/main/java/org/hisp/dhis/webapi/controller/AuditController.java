@@ -44,7 +44,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -475,7 +475,7 @@ public class AuditController
             .setStartDate( startDate )
             .setEndDate( endDate );
 
-        List<TrackedEntityInstanceAudit> teiAudits;
+        List<TrackedEntityAudit> teiAudits;
         Pager pager = null;
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
@@ -507,7 +507,7 @@ public class AuditController
 
         CollectionNode trackedEntityInstanceAudits = rootNode
             .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
-        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityInstanceAudit.class,
+        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
         return rootNode;

@@ -38,7 +38,7 @@ import org.springframework.stereotype.Component;
  * @author Chau Thu Tran
  */
 @Component
-public class TrackedEntityInstanceDeletionHandler extends IdObjectDeletionHandler<TrackedEntity>
+public class TrackedEntityDeletionHandler extends IdObjectDeletionHandler<TrackedEntity>
 {
     @Override
     protected void registerHandler()

@@ -60,7 +60,7 @@ import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Grid;
@@ -394,9 +394,9 @@ public class DefaultTrackedEntityService
 
             if ( te != null && te.isAllowAuditLog() && accessedBy != null )
             {
-                TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit(
+                TrackedEntityAudit trackedEntityAudit = new TrackedEntityAudit(
                     entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
-                trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+                trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityAudit );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -965,9 +965,9 @@ public class DefaultTrackedEntityService
         if ( user != null && trackedEntity != null && trackedEntity.getTrackedEntityType() != null
             && trackedEntity.getTrackedEntityType().isAllowAuditLog() )
         {
-            TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit(
+            TrackedEntityAudit trackedEntityAudit = new TrackedEntityAudit(
                 trackedEntity.getUid(), user, auditType );
-            trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+            trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityAudit );
         }
     }
 }

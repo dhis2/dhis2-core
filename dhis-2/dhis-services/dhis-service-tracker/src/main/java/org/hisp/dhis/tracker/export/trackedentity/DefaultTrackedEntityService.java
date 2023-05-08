@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -462,13 +462,13 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
 
-        List<TrackedEntityInstanceAudit> auditable = trackedEntities
+        List<TrackedEntityAudit> auditable = trackedEntities
             .stream()
             .filter( Objects::nonNull )
             .filter( tei -> tei.getTrackedEntityType() != null )
             .filter( tei -> tetMap.get( tei.getTrackedEntityType().getUid() ).isAllowAuditLog() )
             .map(
-                tei -> new TrackedEntityInstanceAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
+                tei -> new TrackedEntityAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
             .collect( Collectors.toList() );
 
         if ( !auditable.isEmpty() )

@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
@@ -42,18 +42,16 @@ public interface TrackedEntityAuditStore
     /**
      * Adds the given tracked entity instance audit.
      *
-     * @param trackedEntityInstanceAudit the {@link TrackedEntityInstanceAudit}
-     *        to add.
+     * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
      */
-    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit );
 
     /**
-     * Adds the given {@link TrackedEntityInstanceAudit} instances.
+     * Adds the given {@link TrackedEntityAudit} instances.
      *
-     * @param trackedEntityInstanceAudit the list of
-     *        {@link TrackedEntityInstanceAudit}.
+     * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
      */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudit );
+    void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudit );
 
     /**
      * Deletes tracked entity instance audit for the given tracked entity
@@ -67,9 +65,9 @@ public interface TrackedEntityAuditStore
      * Returns tracked entity instance audits matching query params
      *
      * @param params tracked entity instance audit query params
-     * @return a list of {@link TrackedEntityInstanceAudit}.
+     * @return a list of {@link TrackedEntityAudit}.
      */
-    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
+    List<TrackedEntityAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
 
     /**
      * Returns count of tracked entity instance audits matching query params

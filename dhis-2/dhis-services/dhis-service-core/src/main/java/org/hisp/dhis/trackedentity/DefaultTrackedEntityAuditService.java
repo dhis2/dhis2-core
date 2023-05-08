@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -62,17 +62,17 @@ public class DefaultTrackedEntityAuditService
     @Override
     @Async
     @Transactional
-    public void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit )
+    public void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit )
     {
-        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityAudit );
     }
 
     @Override
     @Async
     @Transactional
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits )
+    public void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudits )
     {
-        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityInstanceAudits );
+        trackedEntityAuditStore.addTrackedEntityInstanceAudit( trackedEntityAudits );
     }
 
     @Override
@@ -84,7 +84,7 @@ public class DefaultTrackedEntityAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
+    public List<TrackedEntityAudit> getTrackedEntityInstanceAudits(
         TrackedEntityAuditQueryParams params )
     {
         return trackedEntityAuditStore.getTrackedEntityInstanceAudits( params ).stream()

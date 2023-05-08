@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
@@ -43,15 +43,15 @@ public interface TrackedEntityAuditService
     /**
      * Adds tracked entity instance audit
      *
-     * @param trackedEntityInstanceAudit the audit to add
+     * @param trackedEntityAudit the audit to add
      */
-    void addTrackedEntityInstanceAudit( TrackedEntityInstanceAudit trackedEntityInstanceAudit );
+    void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit );
 
     /**
      * Adds multipe tracked entity instance audit
      *
      */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityInstanceAudit> trackedEntityInstanceAudits );
+    void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudits );
 
     /**
      * Deletes tracked entity instance audit for the given tracked entity
@@ -67,7 +67,7 @@ public interface TrackedEntityAuditService
      * @param params tracked entity instance audit query params
      * @return matching TrackedEntityInstanceAudits
      */
-    List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
+    List<TrackedEntityAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
 
     /**
      * Returns count of tracked entity instance audits matching query params
