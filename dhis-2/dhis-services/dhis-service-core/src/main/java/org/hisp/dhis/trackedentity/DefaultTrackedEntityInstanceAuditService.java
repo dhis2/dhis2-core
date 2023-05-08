@@ -49,7 +49,7 @@ public class DefaultTrackedEntityInstanceAuditService
 {
     private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityStore trackedEntityStore;
 
     private final TrackerAccessManager trackerAccessManager;
 
@@ -77,9 +77,9 @@ public class DefaultTrackedEntityInstanceAuditService
 
     @Override
     @Transactional
-    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
+    public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntityInstance );
+        trackedEntityInstanceAuditStore.deleteTrackedEntityInstanceAudit( trackedEntity );
     }
 
     @Override
@@ -89,7 +89,7 @@ public class DefaultTrackedEntityInstanceAuditService
     {
         return trackedEntityInstanceAuditStore.getTrackedEntityInstanceAudits( params ).stream()
             .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
-                trackedEntityInstanceStore.getByUid( a.getTrackedEntityInstance() ) ).isEmpty() )
+                trackedEntityStore.getByUid( a.getTrackedEntity() ) ).isEmpty() )
             .collect( Collectors.toList() );
     }
 

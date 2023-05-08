@@ -49,8 +49,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -82,7 +82,7 @@ public class EnrollmentCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     @Nonnull
     private final TrackerAccessManager trackerAccessManager;
@@ -99,7 +99,7 @@ public class EnrollmentCriteriaMapper
             criteria.getTrackedEntityType() );
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
-        TrackedEntityInstance trackedEntity = applyIfNonEmpty( trackedEntityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntityInstance,
             criteria.getTrackedEntity() );
         validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
 
@@ -149,10 +149,10 @@ public class EnrollmentCriteriaMapper
         }
     }
 
-    private void validateTrackedEntityInstance( String id, TrackedEntityInstance trackedEntityInstance )
+    private void validateTrackedEntityInstance( String id, TrackedEntity trackedEntity )
         throws BadRequestException
     {
-        if ( isNotEmpty( id ) && trackedEntityInstance == null )
+        if ( isNotEmpty( id ) && trackedEntity == null )
         {
             throw new BadRequestException( "Tracked entity instance is specified but does not exist: " + id );
         }

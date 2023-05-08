@@ -45,6 +45,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -73,7 +74,7 @@ public class TrackedEntityInstanceSupportService
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+    private final TrackedEntityService instanceService;
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 

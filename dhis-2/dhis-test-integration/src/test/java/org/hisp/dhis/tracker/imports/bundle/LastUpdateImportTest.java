@@ -35,8 +35,8 @@ import java.util.Collections;
 import java.util.Date;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -45,7 +45,6 @@ import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,9 +58,9 @@ class LastUpdateImportTest extends TrackerTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
-    private TrackedEntity trackedEntity;
+    private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
 
     @Override
     protected void initTest()
@@ -87,10 +86,10 @@ class LastUpdateImportTest extends TrackerTest
             .value( "value" )
             .build();
         trackedEntity.setAttributes( Collections.singletonList( attribute ) );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
-        assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
+        assertTrue( manager.get( TrackedEntity.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
     }
 
@@ -99,7 +98,7 @@ class LastUpdateImportTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
 
@@ -107,7 +106,7 @@ class LastUpdateImportTest extends TrackerTest
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
         manager.clear();
-        assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
+        assertTrue( manager.get( TrackedEntity.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
     }
 
@@ -116,7 +115,7 @@ class LastUpdateImportTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_enrollment.json" );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         Enrollment enrollment = trackerImportParams.getEnrollments().get( 0 );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
@@ -124,7 +123,7 @@ class LastUpdateImportTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
         manager.clear();
-        assertTrue( manager.get( TrackedEntityInstance.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
+        assertTrue( manager.get( TrackedEntity.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
     }
 }

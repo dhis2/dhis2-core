@@ -70,7 +70,7 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -278,7 +278,7 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
+    public List<Enrollment> get( TrackedEntity entityInstance, Program program, ProgramStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -416,7 +416,7 @@ public class HibernateEnrollmentStore
 
     @Override
     public List<Enrollment> getByProgramAndTrackedEntityInstance(
-        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
+        List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus )
     {
         checkNotNull( programTeiPair );
 
@@ -435,7 +435,7 @@ public class HibernateEnrollmentStore
         // TODO we may have potentially thousands of events here, so, it's
         // better to
         // partition the list
-        for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
+        for ( Pair<Program, TrackedEntity> pair : programTeiPair )
         {
             predicates.add( cb.and(
                 cb.equal( enrollment.get( "program" ), pair.getLeft() ),

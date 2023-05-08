@@ -48,7 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
@@ -119,7 +119,7 @@ public class EventSearchParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private Date startDate;
 
@@ -423,14 +423,14 @@ public class EventSearchParams
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public EventSearchParams setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public EventSearchParams setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         return this;
     }
 

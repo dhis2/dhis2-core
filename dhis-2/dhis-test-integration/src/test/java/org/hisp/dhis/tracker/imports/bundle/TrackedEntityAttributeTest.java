@@ -36,8 +36,8 @@ import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -97,11 +97,11 @@ class TrackedEntityAttributeTest extends TrackerTest
             .importTracker( fromJson( "tracker/te_with_tea_data.json" ) );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 3, attributeValues.size() );
     }
 }

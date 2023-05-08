@@ -54,7 +54,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
     private UserService _userService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -62,9 +62,9 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
     @Autowired
     private ProgramService programService;
 
-    private TrackedEntityInstance entityInstanceA1;
+    private TrackedEntity entityInstanceA1;
 
-    private TrackedEntityInstance entityInstanceB1;
+    private TrackedEntity entityInstanceB1;
 
     private OrganisationUnit organisationUnitA;
 

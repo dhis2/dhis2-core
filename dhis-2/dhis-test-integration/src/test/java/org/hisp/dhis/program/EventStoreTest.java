@@ -50,8 +50,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private DbmsManager dbmsManager;
@@ -138,9 +138,9 @@ class EventStoreTest extends TransactionalIntegrationTest
 
     private Event eventD2;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
     private Program programA;
 

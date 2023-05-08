@@ -92,7 +92,7 @@ public class RelationshipTrackerConverterService
         relationshipItem
             .setEvent( from.getEvent() != null ? from.getEvent().getUid() : null );
         relationshipItem.setTrackedEntity(
-            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
+            from.getTrackedEntity() != null ? from.getTrackedEntity().getUid() : null );
         return relationshipItem;
     }
 
@@ -144,7 +144,7 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity(
+            fromItem.setTrackedEntity( preheat.getTrackedEntity(
                 fromRelationship.getFrom().getTrackedEntity() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
@@ -164,7 +164,7 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            toItem.setTrackedEntityInstance( preheat.getTrackedEntity(
+            toItem.setTrackedEntity( preheat.getTrackedEntity(
                 fromRelationship.getTo().getTrackedEntity() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )

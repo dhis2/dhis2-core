@@ -55,8 +55,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,7 +137,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntityInstance( organisationUnitA );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'I', tei, trackedEntityAttribute );
         tei.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
 

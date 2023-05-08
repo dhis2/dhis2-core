@@ -40,7 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -89,11 +89,11 @@ class TrackedEntityProgramAttributeFileResourceTest extends TrackerTest
             .importTracker( fromJson( "tracker/te_program_with_tea_fileresource_data.json" ) );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
         fileResource = fileResourceService.getFileResource( fileResource.getUid() );
         assertTrue( fileResource.isAssigned() );

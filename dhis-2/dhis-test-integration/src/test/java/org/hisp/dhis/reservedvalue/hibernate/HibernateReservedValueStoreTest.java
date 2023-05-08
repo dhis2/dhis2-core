@@ -44,10 +44,10 @@ import org.hisp.dhis.reservedvalue.ReservedValueStore;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.textpattern.TextPattern;
 import org.hisp.dhis.textpattern.TextPatternParser;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
     private OrganisationUnitStore organisationUnitStore;
 
     @Autowired
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityStore trackedEntityStore;
 
     @Autowired
     private TrackedEntityAttributeStore trackedEntityAttributeStore;
@@ -184,8 +184,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
-        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
-        trackedEntityInstanceStore.save( tei );
+        TrackedEntity tei = createTrackedEntityInstance( ou );
+        trackedEntityStore.save( tei );
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
         TextPattern textPattern = TextPatternParser.parse( key );
         textPattern.setOwnerObject( Objects.fromClass( tea.getClass() ) );
@@ -237,8 +237,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         reservedValueStore.save( rv );
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
-        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
-        trackedEntityInstanceStore.save( tei );
+        TrackedEntity tei = createTrackedEntityInstance( ou );
+        trackedEntityStore.save( tei );
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
         tea.setUid( teaUid );
         trackedEntityAttributeStore.save( tea );
@@ -255,8 +255,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         reservedValueStore.save( rv );
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
-        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
-        trackedEntityInstanceStore.save( tei );
+        TrackedEntity tei = createTrackedEntityInstance( ou );
+        trackedEntityStore.save( tei );
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
         tea.setUid( teaUid );
         trackedEntityAttributeStore.save( tea );
@@ -279,8 +279,8 @@ class HibernateReservedValueStoreTest extends SingleSetupIntegrationTestBase
         // used value
         OrganisationUnit ou = createOrganisationUnit( "OU" );
         organisationUnitStore.save( ou );
-        TrackedEntityInstance tei = createTrackedEntityInstance( ou );
-        trackedEntityInstanceStore.save( tei );
+        TrackedEntity tei = createTrackedEntityInstance( ou );
+        trackedEntityStore.save( tei );
         TrackedEntityAttribute tea = createTrackedEntityAttribute( 'Y' );
         tea.setUid( teaUid );
         trackedEntityAttributeStore.save( tea );

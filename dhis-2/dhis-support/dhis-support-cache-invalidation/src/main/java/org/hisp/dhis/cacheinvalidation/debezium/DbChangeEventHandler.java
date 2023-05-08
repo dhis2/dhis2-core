@@ -45,8 +45,8 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
@@ -213,7 +213,7 @@ public class DbChangeEventHandler extends BaseCacheEvictionService
 
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
             trackedEntityAttributeId );
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntityInstance(
             entityInstanceId );
 
         return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );

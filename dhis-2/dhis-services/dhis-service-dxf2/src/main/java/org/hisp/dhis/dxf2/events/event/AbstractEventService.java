@@ -126,8 +126,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -174,7 +174,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
 
     protected CurrentUserService currentUserService;
 
-    protected TrackedEntityInstanceService entityInstanceService;
+    protected TrackedEntityService entityInstanceService;
 
     protected TrackedEntityCommentService commentService;
 
@@ -214,7 +214,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
-    private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+    private final Set<TrackedEntity> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // CREATE

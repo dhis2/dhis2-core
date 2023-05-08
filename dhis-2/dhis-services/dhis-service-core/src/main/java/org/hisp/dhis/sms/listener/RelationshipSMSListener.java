@@ -52,9 +52,9 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,7 +75,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final EnrollmentService enrollmentService;
 
@@ -85,7 +85,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, EventService eventService,
         RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
-        TrackedEntityInstanceService trackedEntityInstanceService, EnrollmentService enrollmentService,
+        TrackedEntityService trackedEntityService, EnrollmentService enrollmentService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
@@ -94,7 +94,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.trackedEntityService = trackedEntityService;
         this.enrollmentService = enrollmentService;
     }
 
@@ -150,12 +150,12 @@ public class RelationshipSMSListener extends CompressionSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
+            TrackedEntity tei = trackedEntityService.getTrackedEntityInstance( objId.getUid() );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
             }
-            relItem.setTrackedEntityInstance( tei );
+            relItem.setTrackedEntity( tei );
             break;
 
         case PROGRAM_INSTANCE:

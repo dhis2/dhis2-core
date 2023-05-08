@@ -49,8 +49,8 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -65,9 +65,9 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
 
     private OrganisationUnit ouB;
 
-    private Enrollment piA;
+    private Enrollment enrollmentA;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
     private BulkSmsGatewayConfig bulkSmsConfig;
 
@@ -115,7 +115,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
     private OrganisationUnitService orgUnitService;
 
     @Autowired
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -144,13 +144,13 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         program.setShortName( "programAshortname" );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         programService.addProgram( program );
-        piA = new Enrollment();
-        piA.setProgram( program );
-        piA.setOrganisationUnit( ouA );
-        piA.setName( "enrollmentA" );
-        piA.setEnrollmentDate( new Date() );
-        piA.setAutoFields();
-        enrollmentService.addEnrollment( piA );
+        enrollmentA = new Enrollment();
+        enrollmentA.setProgram( program );
+        enrollmentA.setOrganisationUnit( ouA );
+        enrollmentA.setName( "enrollmentA" );
+        enrollmentA.setEnrollmentDate( new Date() );
+        enrollmentA.setAutoFields();
+        enrollmentService.addEnrollment( enrollmentA );
         Set<OrganisationUnit> ouSet = new HashSet<>();
         ouSet.add( ouA );
         Set<String> ouUids = new HashSet<>();
@@ -160,16 +160,16 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         teiService.addTrackedEntityInstance( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );
-        recipientsA.setTrackedEntityInstance( teiA );
+        recipientsA.setTrackedEntity( teiA );
         recipientsB = new ProgramMessageRecipients();
         recipientsB.setOrganisationUnit( ouA );
-        recipientsB.setTrackedEntityInstance( teiA );
+        recipientsB.setTrackedEntity( teiA );
         recipientsC = new ProgramMessageRecipients();
         recipientsC.setOrganisationUnit( ouA );
-        recipientsC.setTrackedEntityInstance( teiA );
+        recipientsC.setTrackedEntity( teiA );
         recipientsD = new ProgramMessageRecipients();
         recipientsD.setOrganisationUnit( ouA );
-        recipientsD.setTrackedEntityInstance( null );
+        recipientsD.setTrackedEntity( null );
         Set<String> phoneNumberListA = new HashSet<>();
         phoneNumberListA.add( msisdn );
         recipientsA.setPhoneNumbers( phoneNumberListA );
@@ -181,13 +181,13 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         recipientsC.setPhoneNumbers( phoneNumberListC );
         channels.add( DeliveryChannel.SMS );
         pmsgA = createProgramMessage( text, subject, recipientsA, messageStatus, channels );
-        pmsgA.setEnrollment( piA );
+        pmsgA.setEnrollment( enrollmentA );
         pmsgA.setStoreCopy( false );
         pmsgB = createProgramMessage( text, subject, recipientsB, messageStatus, channels );
-        pmsgB.setEnrollment( piA );
+        pmsgB.setEnrollment( enrollmentA );
         pmsgC = createProgramMessage( text, subject, recipientsC, messageStatus, channels );
         pmsgD = createProgramMessage( text, subject, recipientsD, messageStatus, channels );
-        pmsgD.setEnrollment( piA );
+        pmsgD.setEnrollment( enrollmentA );
         pmsgD.setStoreCopy( false );
         uidA = CodeGenerator.generateCode( 10 );
         uidB = CodeGenerator.generateCode( 10 );
@@ -197,7 +197,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         pmsgC.setUid( uidC );
         params = new ProgramMessageQueryParams();
         params.setOrganisationUnit( ouUids );
-        params.setEnrollment( piA );
+        params.setEnrollment( enrollmentA );
         params.setMessageStatus( messageStatus );
         bulkSmsConfig = new BulkSmsGatewayConfig();
         bulkSmsConfig.setDefault( true );

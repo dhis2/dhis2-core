@@ -59,9 +59,9 @@ public interface TrackedEntityInstanceAuditStore
      * Deletes tracked entity instance audit for the given tracked entity
      * instance.
      *
-     * @param trackedEntityInstance the {@link TrackedEntityInstance}.
+     * @param trackedEntity the {@link TrackedEntity}.
      */
-    void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance );
+    void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity );
 
     /**
      * Returns tracked entity instance audits matching query params

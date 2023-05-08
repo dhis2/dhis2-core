@@ -5,7 +5,7 @@
   [<!ENTITY identifiableProperties SYSTEM "classpath://org/hisp/dhis/common/identifiableProperties.hbm">]
   >
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentity.TrackedEntityInstance" table="trackedentityinstance">
+  <class name="org.hisp.dhis.trackedentity.TrackedEntity" table="trackedentityinstance">
 
     <id name="id" column="trackedentityinstanceid">
       <generator class="sequence">
@@ -61,6 +61,6 @@
       column="trackedentitytypeid" foreign-key="fk_trackedentityinstance_trackedentitytypeid" lazy="false" />
   </class>
 
-  <sql-query name="updateTeisLastUpdated">update trackedEntityInstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntityInstances</sql-query>
+  <sql-query name="updateTeisLastUpdated">update trackedentityinstance set lastUpdated = :lastUpdated WHERE uid in :trackedEntities</sql-query>
 
 </hibernate-mapping>

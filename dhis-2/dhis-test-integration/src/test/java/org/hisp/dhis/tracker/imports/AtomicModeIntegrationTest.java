@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.io.IOException;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.report.ImportReport;
 import org.hisp.dhis.tracker.imports.report.Status;
@@ -46,7 +46,7 @@ class AtomicModeIntegrationTest extends TrackerTest
     private TrackerImportService trackerImportService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Override
     public void initTest()
@@ -68,8 +68,8 @@ class AtomicModeIntegrationTest extends TrackerTest
         assertNotNull( trackerImportTeiReport );
         assertEquals( Status.OK, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
+        assertNotNull( trackedEntityService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
+        assertNull( trackedEntityService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }
 
     @Test
@@ -83,7 +83,7 @@ class AtomicModeIntegrationTest extends TrackerTest
         assertNotNull( trackerImportTeiReport );
         assertEquals( Status.ERROR, trackerImportTeiReport.getStatus() );
         assertEquals( 1, trackerImportTeiReport.getValidationReport().getErrors().size() );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
-        assertNull( trackedEntityInstanceService.getTrackedEntityInstance( "INVALIDTEIA" ) );
+        assertNull( trackedEntityService.getTrackedEntityInstance( "VALIDTEIAAA" ) );
+        assertNull( trackedEntityService.getTrackedEntityInstance( "INVALIDTEIA" ) );
     }
 }

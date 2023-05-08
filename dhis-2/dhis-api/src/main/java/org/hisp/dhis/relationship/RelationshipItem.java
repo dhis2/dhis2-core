@@ -32,7 +32,7 @@ import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -47,7 +47,7 @@ public class RelationshipItem implements EmbeddedObject
 
     private Relationship relationship;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private Enrollment enrollment;
 
@@ -84,14 +84,14 @@ public class RelationshipItem implements EmbeddedObject
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    public TrackedEntityInstance getTrackedEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

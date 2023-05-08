@@ -61,7 +61,8 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.DefaultTrackedEntityService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -94,7 +95,7 @@ class TrackerCrudTest
     private Notifier notifier;
 
     @Mock
-    private DefaultTrackedEntityInstanceService defaultTrackedEntityInstanceService;
+    private DefaultTrackedEntityService defaultTrackedEntityInstanceService;
 
     @Mock
     private EnrollmentService enrollmentService;
@@ -157,9 +158,9 @@ class TrackerCrudTest
         when( notifier.clear( any() ) ).thenReturn( notifier );
 
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid, user ) )
-            .thenReturn( new org.hisp.dhis.trackedentity.TrackedEntityInstance() );
+            .thenReturn( new TrackedEntity() );
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid ) )
-            .thenReturn( new org.hisp.dhis.trackedentity.TrackedEntityInstance() );
+            .thenReturn( new TrackedEntity() );
         when( defaultTrackedEntityInstanceService.getTrackedEntityInstancesUidsIncludingDeleted( anyList() ) )
             .thenReturn( new ArrayList<>() );
 
@@ -178,7 +179,7 @@ class TrackerCrudTest
             .thenReturn( new TrackedEntityType() );
         when( identifiableObjectManager.getObject( OrganisationUnit.class, IdScheme.UID, orgUnitUid ) )
             .thenReturn( new OrganisationUnit() );
-        when( trackerAccessManager.canWrite( any(), any( org.hisp.dhis.trackedentity.TrackedEntityInstance.class ) ) )
+        when( trackerAccessManager.canWrite( any(), any( TrackedEntity.class ) ) )
             .thenReturn( new ArrayList<>() );
 
         when( trackedEntityInstance.getOrgUnit() ).thenReturn( orgUnitUid );

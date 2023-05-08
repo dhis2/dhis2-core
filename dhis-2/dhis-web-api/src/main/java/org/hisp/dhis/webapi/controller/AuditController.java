@@ -83,9 +83,9 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
@@ -339,7 +339,7 @@ public class AuditController
         @OpenApi.Param( { UID[].class,
             TrackedEntityAttribute.class } ) @RequestParam( required = false ) List<String> tea,
         @OpenApi.Param( { UID[].class,
-            TrackedEntityInstance.class } ) @RequestParam( required = false ) List<String> tei,
+            TrackedEntity.class } ) @RequestParam( required = false ) List<String> tei,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
@@ -350,7 +350,7 @@ public class AuditController
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         List<TrackedEntityAttribute> trackedEntityAttributes = manager.loadByUid( TrackedEntityAttribute.class, tea );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.loadByUid( TrackedEntityInstance.class, tei );
+        List<TrackedEntity> trackedEntities = manager.loadByUid( TrackedEntity.class, tei );
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
@@ -358,7 +358,7 @@ public class AuditController
 
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( trackedEntityAttributes )
-            .setTrackedEntityInstances( trackedEntityInstances )
+            .setTrackedEntities( trackedEntities )
             .setAuditTypes( auditTypes );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
@@ -375,7 +375,7 @@ public class AuditController
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
                 new TrackedEntityAttributeValueAuditQueryParams()
                     .setTrackedEntityAttributes( trackedEntityAttributes )
-                    .setTrackedEntityInstances( trackedEntityInstances )
+                    .setTrackedEntities( trackedEntities )
                     .setAuditTypes( auditTypes )
                     .setPager( pager ) );
         }
@@ -449,7 +449,7 @@ public class AuditController
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
         @OpenApi.Param( { UID[].class,
-            TrackedEntityInstance.class } ) @RequestParam( required = false ) List<String> tei,
+            TrackedEntity.class } ) @RequestParam( required = false ) List<String> tei,
         @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Date startDate,

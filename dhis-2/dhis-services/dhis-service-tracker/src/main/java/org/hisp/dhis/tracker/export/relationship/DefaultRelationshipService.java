@@ -41,7 +41,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -74,7 +74,7 @@ public class DefaultRelationshipService implements RelationshipService
 
     @Override
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntityInstance tei,
+        TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
@@ -183,10 +183,10 @@ public class DefaultRelationshipService implements RelationshipService
         // for tracked entity type attributes from enrollment.entityInstance. Enrollment attributes are actually
         // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
-        if ( item.getTrackedEntityInstance() != null )
+        if ( item.getTrackedEntity() != null )
         {
-            result.setTrackedEntityInstance( trackedEntityService
-                .getTrackedEntity( item.getTrackedEntityInstance(),
+            result.setTrackedEntity( trackedEntityService
+                .getTrackedEntity( item.getTrackedEntity(),
                     TrackedEntityParams.TRUE.withIncludeRelationships( false ) ) );
         }
         else if ( item.getEnrollment() != null )

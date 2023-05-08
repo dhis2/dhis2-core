@@ -32,7 +32,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -43,20 +43,20 @@ public interface RelationshipStore
 {
     String ID = RelationshipStore.class.getName();
 
-    default List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei )
+    default List<Relationship> getByTrackedEntityInstance( TrackedEntity tei )
     {
         return getByTrackedEntityInstance( tei, null );
     }
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
+    List<Relationship> getByTrackedEntityInstance( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
-    default List<Relationship> getByEnrollment( Enrollment pi )
+    default List<Relationship> getByEnrollment( Enrollment enrollment )
     {
-        return getByEnrollment( pi, null );
+        return getByEnrollment( enrollment, null );
     }
 
-    List<Relationship> getByEnrollment( Enrollment pi,
+    List<Relationship> getByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     default List<Relationship> getByEvent( Event event )

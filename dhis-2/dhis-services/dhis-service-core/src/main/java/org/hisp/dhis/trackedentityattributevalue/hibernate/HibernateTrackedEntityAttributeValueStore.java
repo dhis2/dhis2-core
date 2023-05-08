@@ -36,8 +36,8 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -68,7 +68,7 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public int deleteByTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    public int deleteByTrackedEntityInstance( TrackedEntity entityInstance )
     {
         Query<TrackedEntityAttributeValue> query = getQuery(
             "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
@@ -77,7 +77,7 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public TrackedEntityAttributeValue get( TrackedEntityInstance entityInstance, TrackedEntityAttribute attribute )
+    public TrackedEntityAttributeValue get( TrackedEntity entityInstance, TrackedEntityAttribute attribute )
     {
         String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and attribute =:attribute";
 
@@ -89,7 +89,7 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance )
+    public List<TrackedEntityAttributeValue> get( TrackedEntity entityInstance )
     {
         String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
 
@@ -134,7 +134,7 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> get( TrackedEntityInstance entityInstance, Program program )
+    public List<TrackedEntityAttributeValue> get( TrackedEntity entityInstance, Program program )
     {
         String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and v.attribute.program =:program";
 

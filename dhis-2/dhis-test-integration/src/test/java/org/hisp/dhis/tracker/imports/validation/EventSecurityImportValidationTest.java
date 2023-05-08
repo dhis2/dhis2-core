@@ -55,8 +55,9 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -76,7 +77,7 @@ class EventSecurityImportValidationTest extends TrackerTest
 {
 
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -108,13 +109,13 @@ class EventSecurityImportValidationTest extends TrackerTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+    private TrackedEntity maleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+    private TrackedEntity maleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+    private TrackedEntity femaleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+    private TrackedEntity femaleB;
 
     private OrganisationUnit organisationUnitA;
 

@@ -35,7 +35,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -80,12 +80,12 @@ class TrackedEntityProgramAttributeEncryptionTest extends TrackerTest
             .importTracker( fromJson( "tracker/te_program_with_tea_encryption_data.json" ) );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
 
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
         // not really a great test, but we are using a random seed for salt, so
         // it changes on every run... we might want to

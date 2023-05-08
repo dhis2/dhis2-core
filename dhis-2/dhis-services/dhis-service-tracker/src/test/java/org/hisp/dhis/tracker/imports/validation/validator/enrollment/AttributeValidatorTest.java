@@ -43,8 +43,8 @@ import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -93,9 +93,7 @@ class AttributeValidatorTest
     private TrackerBundle bundle;
 
     @Mock
-    private TrackedEntityInstance trackedEntityInstance;
-
-    private final static String trackedEntity = "trackedEntity";
+    private TrackedEntity trackedEntity;
 
     private final static String trackedAttribute = "attribute";
 
@@ -144,7 +142,7 @@ class AttributeValidatorTest
         when( enrollment.getUid() ).thenReturn( uid );
         when( enrollment.getEnrollment() ).thenReturn( uid );
         when( enrollment.getTrackerType() ).thenCallRealMethod();
-        enrollment.setTrackedEntity( trackedEntity );
+        enrollment.setTrackedEntity( "trackedEntity" );
 
         bundle = TrackerBundle.builder()
             .preheat( preheat )
@@ -170,12 +168,12 @@ class AttributeValidatorTest
             new ProgramTrackedEntityAttribute( program, trackedEntityAttribute1, false, true ) ) );
 
         when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
-        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+        when( trackedEntity.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>(
-                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
-                    new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntityInstance ) ) ) );
+                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntity ),
+                    new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntity ) ) ) );
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -198,12 +196,12 @@ class AttributeValidatorTest
             new ProgramTrackedEntityAttribute( program, trackedEntityAttribute1, false, false ) ) );
 
         when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
-        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+        when( trackedEntity.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>(
-                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
-                    new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntityInstance ) ) ) );
+                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntity ),
+                    new TrackedEntityAttributeValue( trackedEntityAttribute1, trackedEntity ) ) ) );
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -226,12 +224,12 @@ class AttributeValidatorTest
             new ProgramTrackedEntityAttribute( program, trackedEntityAttributeP, false, false ) ) );
 
         when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
-        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+        when( trackedEntity.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>(
-                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ),
-                    new TrackedEntityAttributeValue( trackedEntityAttributeP, trackedEntityInstance ) ) ) );
+                Arrays.asList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntity ),
+                    new TrackedEntityAttributeValue( trackedEntityAttributeP, trackedEntity ) ) ) );
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -241,7 +239,7 @@ class AttributeValidatorTest
     @Test
     void shouldFailValidationWhenValueIsNullAndAttributeIsNotMandatoryAndAttributeNotExistsInTei()
     {
-        // given 1 attribute has null value and do not exists in Tei
+        // given 1 attribute has null value and does not exists in Tei
         Attribute attribute = Attribute.builder().attribute( MetadataIdentifier.ofUid( trackedAttribute ) )
             .valueType( ValueType.TEXT )
             .value( "value" ).build();
@@ -254,11 +252,11 @@ class AttributeValidatorTest
             new ProgramTrackedEntityAttribute( program, trackedEntityAttribute1, false, true ) ) );
 
         when( enrollment.getAttributes() ).thenReturn( Arrays.asList( attribute, attribute1 ) );
-        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+        when( trackedEntity.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
-                .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
+                .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntity ) ) ) );
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -279,11 +277,11 @@ class AttributeValidatorTest
         when( program.getProgramAttributes() ).thenReturn( Collections.emptyList() );
 
         when( enrollment.getAttributes() ).thenReturn( Collections.singletonList( attribute ) );
-        when( trackedEntityInstance.getTrackedEntityAttributeValues() )
+        when( trackedEntity.getTrackedEntityAttributeValues() )
             .thenReturn( new HashSet<>( Collections
-                .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntityInstance ) ) ) );
+                .singletonList( new TrackedEntityAttributeValue( trackedEntityAttribute, trackedEntity ) ) ) );
         when( preheat.getTrackedEntity( enrollment.getTrackedEntity() ) )
-            .thenReturn( trackedEntityInstance );
+            .thenReturn( trackedEntity );
 
         validator.validate( reporter, bundle, enrollment );
 

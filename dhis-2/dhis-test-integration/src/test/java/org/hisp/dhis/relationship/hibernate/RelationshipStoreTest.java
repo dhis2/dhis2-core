@@ -57,8 +57,8 @@ import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,7 +71,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private RelationshipTypeService relationshipTypeService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -91,9 +91,9 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Autowired
     private AttributeService attributeService;
 
-    private TrackedEntityInstance trackedEntityInstanceA;
+    private TrackedEntity trackedEntityA;
 
-    private TrackedEntityInstance trackedEntityInstanceB;
+    private TrackedEntity trackedEntityB;
 
     private RelationshipType relationshipType;
 
@@ -114,7 +114,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         Relationship teiRelationship = addTeiToTeiRelationship();
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByTrackedEntityInstance( trackedEntityInstanceA, true );
+            .getRelationshipsByTrackedEntityInstance( trackedEntityA, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( teiRelationship ) );
@@ -131,10 +131,10 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         Event event = addEvent( enrollment, programStageA );
 
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+        trackedEntityA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
 
-        Relationship relationshipA = addTeiToEventRelationship( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToEventRelationship( trackedEntityA,
             event );
 
         List<Relationship> relationshipList = relationshipService
@@ -149,14 +149,14 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByEnrollment()
     {
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
+        trackedEntityA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
 
         Program programA = addProgram();
 
         Enrollment enrollment = addEnrollment( programA );
 
-        Relationship relationshipA = addTeiToEnrollmentRelationship( trackedEntityInstanceA,
+        Relationship relationshipA = addTeiToEnrollmentRelationship( trackedEntityA,
             enrollment );
 
         List<Relationship> relationshipList = relationshipService
@@ -208,18 +208,18 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
     private Relationship addTeiToTeiRelationship()
     {
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceB = createTrackedEntityInstance( organisationUnit );
+        trackedEntityA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityB = createTrackedEntityInstance( organisationUnit );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstanceB );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntityInstance( trackedEntityB );
 
         Relationship teiRelationship = new Relationship();
 
         RelationshipItem relationshipItemFrom = new RelationshipItem();
         RelationshipItem relationshipItemTo = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( trackedEntityInstanceA );
-        relationshipItemTo.setTrackedEntityInstance( trackedEntityInstanceB );
+        relationshipItemFrom.setTrackedEntity( trackedEntityA );
+        relationshipItemTo.setTrackedEntity( trackedEntityB );
 
         teiRelationship.setRelationshipType( relationshipType );
         teiRelationship.setFrom( relationshipItemFrom );
@@ -230,11 +230,11 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return teiRelationship;
     }
 
-    private Relationship addTeiToEventRelationship( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToEventRelationship( TrackedEntity entityInstance,
         Event event )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
+        relationshipItemFrom.setTrackedEntity( entityInstance );
         RelationshipItem relationshipItemTo = new RelationshipItem();
         relationshipItemTo.setEvent( event );
 
@@ -249,11 +249,11 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         return relationshipA;
     }
 
-    private Relationship addTeiToEnrollmentRelationship( TrackedEntityInstance entityInstance,
+    private Relationship addTeiToEnrollmentRelationship( TrackedEntity entityInstance,
         Enrollment enrollment )
     {
         RelationshipItem relationshipItemFrom = new RelationshipItem();
-        relationshipItemFrom.setTrackedEntityInstance( entityInstance );
+        relationshipItemFrom.setTrackedEntity( entityInstance );
         RelationshipItem relationshipItemTo = new RelationshipItem();
         relationshipItemTo.setEnrollment( enrollment );
 

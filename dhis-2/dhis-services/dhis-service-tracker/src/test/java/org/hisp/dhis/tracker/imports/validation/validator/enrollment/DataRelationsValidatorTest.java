@@ -38,13 +38,12 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -204,7 +203,8 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( preheat.getTrackedEntity( TEI_ID ) ).thenReturn( null );
 
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .trackedEntityType( MetadataIdentifier.ofUid( ANOTHER_TEI_TYPE_ID ) )
             .build();
@@ -271,9 +271,9 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return trackedEntityType;
     }
 
-    private TrackedEntityInstance trackedEntityInstance( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntityInstance( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
     {
-        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
+        TrackedEntity tei = createTrackedEntityInstance( orgUnit );
         tei.setUid( uid );
         tei.setTrackedEntityType( type );
         return tei;

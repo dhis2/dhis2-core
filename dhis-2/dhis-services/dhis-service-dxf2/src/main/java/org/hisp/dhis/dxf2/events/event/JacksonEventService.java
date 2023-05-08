@@ -54,7 +54,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
@@ -95,7 +95,7 @@ public class JacksonEventService extends AbstractEventService
         WorkContextLoader workContextLoader, EventServiceFacade jacksonEventServiceFacade,
         ProgramService programService, EnrollmentService enrollmentService,
         EventService eventService, OrganisationUnitService organisationUnitService,
-        CurrentUserService currentUserService, TrackedEntityInstanceService entityInstanceService,
+        CurrentUserService currentUserService, TrackedEntityService entityInstanceService,
         TrackedEntityCommentService commentService, EventStore eventStore, Notifier notifier, DbmsManager dbmsManager,
         IdentifiableObjectManager manager, CategoryService categoryService, FileResourceService fileResourceService,
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,

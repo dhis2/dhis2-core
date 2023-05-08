@@ -28,7 +28,7 @@
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -40,7 +40,7 @@ import org.mapstruct.factory.Mappers;
     TrackedEntityTypeMapper.class,
     AttributeValueMapper.class
 } )
-public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntityInstance>
+public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity>
 {
     TrackedEntityInstanceMapper INSTANCE = Mappers.getMapper( TrackedEntityInstanceMapper.class );
 
@@ -58,7 +58,7 @@ public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity
     @Mapping( target = "deleted" )
     @Mapping( target = "createdByUserInfo" )
     @Mapping( target = "lastUpdatedByUserInfo" )
-    TrackedEntityInstance map( TrackedEntityInstance trackedEntityInstance );
+    TrackedEntity map( TrackedEntity trackedEntity );
 
     @Named( "organisationUnit" )
     @BeanMapping( ignoreByDefault = true )

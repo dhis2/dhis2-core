@@ -33,10 +33,9 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityInstanceMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
@@ -47,11 +46,11 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
 public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityStore trackedEntityStore;
 
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
@@ -59,12 +58,12 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
         for ( List<String> ids : splitList )
         {
             // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore.getIncludingDeleted( ids );
+            List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted( ids );
 
             // Add to preheat
             preheat.putTrackedEntities(
                 DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntityInstances ) );
+                    trackedEntities ) );
         }
     }
 }

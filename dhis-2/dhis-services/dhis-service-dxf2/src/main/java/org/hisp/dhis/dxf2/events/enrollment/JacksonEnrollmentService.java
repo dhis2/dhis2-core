@@ -53,6 +53,7 @@ import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -86,7 +87,7 @@ public class JacksonEnrollmentService extends AbstractEnrollmentService
         TrackedEntityInstanceService trackedEntityInstanceService,
         TrackerOwnershipManager trackerOwnershipAccessManager,
         RelationshipService relationshipService,
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+        TrackedEntityService teiService,
         TrackedEntityAttributeService trackedEntityAttributeService,
         TrackedEntityAttributeValueService trackedEntityAttributeValueService,
         CurrentUserService currentUserService,

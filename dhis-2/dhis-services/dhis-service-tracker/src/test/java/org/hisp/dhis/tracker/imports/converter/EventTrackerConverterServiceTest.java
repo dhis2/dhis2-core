@@ -48,7 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.DataValue;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.User;
@@ -113,7 +113,7 @@ class EventTrackerConverterServiceTest extends DhisConvenienceTest
         organisationUnit.setUid( ORGANISATION_UNIT_UID );
         program.setUid( PROGRAM_UID );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnit );
+        TrackedEntity tei = createTrackedEntityInstance( organisationUnit );
         Enrollment enrollment = createEnrollment( program, tei, organisationUnit );
         enrollment.setUid( ENROLLMENT_UID );
         event = new Event();

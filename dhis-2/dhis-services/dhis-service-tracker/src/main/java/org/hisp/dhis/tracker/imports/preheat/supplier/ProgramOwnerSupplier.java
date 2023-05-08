@@ -38,7 +38,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -60,12 +60,12 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
     @Override
     public void preheatAdd( TrackerImportParams params, TrackerPreheat preheat )
     {
-        final Map<String, TrackedEntityInstance> preheatedTrackedEntities = preheat.getTrackedEntities();
+        final Map<String, TrackedEntity> preheatedTrackedEntities = preheat.getTrackedEntities();
         final Map<String, Enrollment> preheatedEnrollments = preheat.getEnrollments();
         Set<Long> teiIds = new HashSet<>();
         for ( org.hisp.dhis.tracker.imports.domain.Enrollment en : params.getEnrollments() )
         {
-            TrackedEntityInstance tei = preheatedTrackedEntities.get( en.getTrackedEntity() );
+            TrackedEntity tei = preheatedTrackedEntities.get( en.getTrackedEntity() );
             if ( tei != null )
             {
                 teiIds.add( tei.getId() );
@@ -74,10 +74,10 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
 
         for ( Event ev : params.getEvents() )
         {
-            Enrollment pi = preheatedEnrollments.get( ev.getEnrollment() );
-            if ( pi != null && pi.getEntityInstance() != null )
+            Enrollment enrollment = preheatedEnrollments.get( ev.getEnrollment() );
+            if ( enrollment != null && enrollment.getEntityInstance() != null )
             {
-                teiIds.add( pi.getEntityInstance().getId() );
+                teiIds.add( enrollment.getEntityInstance().getId() );
             }
         }
 

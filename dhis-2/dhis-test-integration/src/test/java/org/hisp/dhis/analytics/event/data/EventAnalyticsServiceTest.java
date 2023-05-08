@@ -110,8 +110,8 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -392,7 +392,7 @@ class EventAnalyticsServiceTest
         idObjectManager.save( trackedEntityType );
 
         // Tracked Entity Instances (Registrations)
-        org.hisp.dhis.trackedentity.TrackedEntityInstance teiA = createTrackedEntityInstance( ouD );
+        TrackedEntity teiA = createTrackedEntityInstance( ouD );
         teiA.setUid( "trackEntInA" );
         teiA.setTrackedEntityType( trackedEntityType );
         idObjectManager.save( teiA );
@@ -561,7 +561,7 @@ class EventAnalyticsServiceTest
     /**
      * Adds a program ownership history entry.
      */
-    private void addProgramOwnershipHistory( Program program, TrackedEntityInstance tei, OrganisationUnit ou,
+    private void addProgramOwnershipHistory( Program program, TrackedEntity tei, OrganisationUnit ou,
         Date startDate, Date endDate )
     {
         ProgramOwnershipHistory poh = new ProgramOwnershipHistory( program, tei, ou, startDate, endDate, "admin" );

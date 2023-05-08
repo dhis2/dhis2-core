@@ -34,7 +34,7 @@ import java.io.IOException;
 import java.util.List;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -76,11 +76,11 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
     }
 
@@ -92,11 +92,11 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
         manager.clear();
         // update
@@ -105,10 +105,10 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        trackedEntityInstance = trackedEntityInstances.get( 0 );
-        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
+        trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        trackedEntity = trackedEntities.get( 0 );
+        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
     }
 
@@ -120,11 +120,11 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
         manager.clear();
         // update
@@ -133,10 +133,10 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        trackedEntityInstance = trackedEntityInstances.get( 0 );
-        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntityInstance );
+        trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        trackedEntity = trackedEntities.get( 0 );
+        attributeValues = trackedEntityAttributeValueService.getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
         manager.clear();
         // delete
@@ -145,7 +145,7 @@ class TrackedEntityProgramAttributeTest extends TrackerTest
         importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
 
-        trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 0, trackedEntityInstances.size() );
+        trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 0, trackedEntities.size() );
     }
 }

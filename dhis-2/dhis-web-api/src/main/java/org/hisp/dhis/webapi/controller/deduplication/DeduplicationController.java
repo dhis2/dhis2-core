@@ -54,8 +54,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -83,7 +83,7 @@ public class DeduplicationController
 {
     private final DeduplicationService deduplicationService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackerAccessManager trackerAccessManager;
 
@@ -178,8 +178,8 @@ public class DeduplicationController
                 "PotentialDuplicate is missing references and cannot be merged." );
         }
 
-        TrackedEntityInstance original = getTei( potentialDuplicate.getOriginal() );
-        TrackedEntityInstance duplicate = getTei( potentialDuplicate.getDuplicate() );
+        TrackedEntity original = getTei( potentialDuplicate.getOriginal() );
+        TrackedEntity duplicate = getTei( potentialDuplicate.getDuplicate() );
 
         if ( mergeObject == null )
         {
@@ -265,21 +265,21 @@ public class DeduplicationController
         }
     }
 
-    private TrackedEntityInstance getTei( String tei )
+    private TrackedEntity getTei( String tei )
         throws NotFoundException
     {
-        return Optional.ofNullable( trackedEntityInstanceService
+        return Optional.ofNullable( trackedEntityService
             .getTrackedEntityInstance( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
     }
 
-    private void canReadTei( TrackedEntityInstance trackedEntityInstance )
+    private void canReadTei( TrackedEntity trackedEntity )
         throws ForbiddenException
     {
-        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntityInstance ).isEmpty() )
+        if ( !trackerAccessManager.canRead( currentUserService.getCurrentUser(), trackedEntity ).isEmpty() )
         {
             throw new ForbiddenException(
-                "You don't have read access to '" + trackedEntityInstance.getUid() + "'." );
+                "You don't have read access to '" + trackedEntity.getUid() + "'." );
         }
     }
 }

@@ -51,9 +51,9 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
@@ -79,7 +79,7 @@ class AuditIntegrationTest extends IntegrationTestBase
     private DataElementService dataElementService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
@@ -118,14 +118,14 @@ class AuditIntegrationTest extends IntegrationTestBase
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         manager.save( ou );
         manager.save( attribute );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei );
+        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        trackedEntityService.addTrackedEntityInstance( tei );
         AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( tei.getUid() ) ).build();
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
         List<Audit> audits = auditService.getAudits( query );
         assertEquals( 1, audits.size() );
         Audit audit = audits.get( 0 );
-        assertEquals( TrackedEntityInstance.class.getName(), audit.getKlass() );
+        assertEquals( TrackedEntity.class.getName(), audit.getKlass() );
         assertEquals( tei.getUid(), audit.getUid() );
         assertEquals( tei.getUid(), audit.getAttributes().get( "uid" ) );
         assertNotNull( audit.getData() );
@@ -138,8 +138,8 @@ class AuditIntegrationTest extends IntegrationTestBase
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         manager.save( ou );
         manager.save( attribute );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei );
+        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        trackedEntityService.addTrackedEntityInstance( tei );
         TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue( 'A', tei, attribute );
         attributeValueService.addTrackedEntityAttributeValue( dataValue );
         AuditAttributes attributes = new AuditAttributes();

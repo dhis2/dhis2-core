@@ -54,8 +54,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +73,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     private EnrollmentStore enrollmentStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -113,7 +113,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
 
     private Enrollment enrollmentD;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
     private Collection<Long> orgunitIds;
 
@@ -146,7 +146,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programService.addProgram( programC );
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
         entityInstanceService.addTrackedEntityInstance( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -223,8 +223,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programNotificationStore.save( a2 );
         programNotificationStore.save( a3 );
         // TEI
-        TrackedEntityInstance teiX = createTrackedEntityInstance( organisationUnitA );
-        TrackedEntityInstance teiY = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity teiX = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity teiY = createTrackedEntityInstance( organisationUnitA );
         entityInstanceService.addTrackedEntityInstance( teiX );
         entityInstanceService.addTrackedEntityInstance( teiY );
         // Program
@@ -282,8 +282,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         enrollmentZ.setUid( "UID-Z" );
         enrollmentStore.save( enrollmentA );
         enrollmentStore.save( enrollmentZ );
-        List<Pair<Program, TrackedEntityInstance>> programTeiPair = new ArrayList<>();
-        Pair<Program, TrackedEntityInstance> pair1 = Pair.of( programA, entityInstanceA );
+        List<Pair<Program, TrackedEntity>> programTeiPair = new ArrayList<>();
+        Pair<Program, TrackedEntity> pair1 = Pair.of( programA, entityInstanceA );
         programTeiPair.add( pair1 );
         final List<Enrollment> enrollments = enrollmentStore
             .getByProgramAndTrackedEntityInstance( programTeiPair, ProgramStatus.ACTIVE );

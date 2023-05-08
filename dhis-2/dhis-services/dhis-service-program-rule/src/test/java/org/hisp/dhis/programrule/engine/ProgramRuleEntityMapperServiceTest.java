@@ -74,8 +74,8 @@ import org.hisp.dhis.rules.models.RuleEvent;
 import org.hisp.dhis.rules.models.RuleVariable;
 import org.hisp.dhis.rules.models.RuleVariableAttribute;
 import org.hisp.dhis.rules.models.RuleVariableCalculatedValue;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.util.ObjectUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -142,7 +142,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
 
     private Enrollment enrollmentB;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private Event eventA;
 
@@ -429,11 +429,11 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         organisationUnit = createOrganisationUnit( 'O' );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        trackedEntityInstance = createTrackedEntityInstance( 'I', organisationUnit, trackedEntityAttribute );
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'E', trackedEntityInstance,
+        trackedEntity = createTrackedEntityInstance( 'I', organisationUnit, trackedEntityAttribute );
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'E', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( SAMPLE_VALUE_A );
-        trackedEntityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
+        trackedEntity.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
 
         eventDataValueA = new EventDataValue();
         eventDataValueA.setDataElement( dataElement.getUid() );
@@ -445,14 +445,14 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         eventDataValueB.setValue( SAMPLE_VALUE_B );
         eventDataValueB.setAutoFields();
 
-        enrollmentB = new Enrollment( new Date(), new Date(), trackedEntityInstance, program );
-        enrollment = new Enrollment( new Date(), new Date(), trackedEntityInstance, program );
+        enrollmentB = new Enrollment( new Date(), new Date(), trackedEntity, program );
+        enrollment = new Enrollment( new Date(), new Date(), trackedEntity, program );
         enrollment.setOrganisationUnit( organisationUnit );
         enrollment.setStatus( ProgramStatus.ACTIVE );
         enrollment.setAutoFields();
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
-        enrollment.setEntityInstance( trackedEntityInstance );
+        enrollment.setEntityInstance( trackedEntity );
 
         eventA = new Event( enrollment, programStage );
         eventB = new Event( enrollment, programStage );

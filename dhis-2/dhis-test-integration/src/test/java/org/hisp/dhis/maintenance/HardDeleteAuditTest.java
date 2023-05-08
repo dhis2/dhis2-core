@@ -41,9 +41,9 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.maintenance.jdbc.JdbcMaintenanceStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
     private AuditService auditService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -75,12 +75,12 @@ class HardDeleteAuditTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', ou, attribute );
+        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
         transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
-            trackedEntityInstanceService.addTrackedEntityInstance( tei );
-            trackedEntityInstanceService.deleteTrackedEntityInstance( tei );
+            trackedEntityService.addTrackedEntityInstance( tei );
+            trackedEntityService.deleteTrackedEntityInstance( tei );
             dbmsManager.clearSession();
             return null;
         } );
@@ -100,7 +100,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
         assertEquals( 1, audits.size() );
         Audit audit = audits.get( 0 );
         assertEquals( AuditType.DELETE, audit.getAuditType() );
-        assertEquals( TrackedEntityInstance.class.getName(), audit.getKlass() );
+        assertEquals( TrackedEntity.class.getName(), audit.getKlass() );
         assertEquals( tei.getUid(), audit.getUid() );
     }
 }

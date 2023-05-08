@@ -31,7 +31,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1127;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -47,13 +47,13 @@ class UpdatableFieldsValidator
     public void validate( Reporter reporter, TrackerBundle bundle,
         org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
-        Enrollment pi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
-        Program program = pi.getProgram();
-        TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
+        Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
+        Program program = preheatEnrollment.getProgram();
+        TrackedEntity trackedEntity = preheatEnrollment.getEntityInstance();
 
         reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
             "program" );
-        reporter.addErrorIf( () -> !trackedEntityInstance.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
+        reporter.addErrorIf( () -> !trackedEntity.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
             E1127, "trackedEntity" );
     }
 

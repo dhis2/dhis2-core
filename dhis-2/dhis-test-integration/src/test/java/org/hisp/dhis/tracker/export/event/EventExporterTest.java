@@ -69,8 +69,8 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
@@ -112,7 +112,7 @@ class EventExporterTest extends TrackerTest
         .getEvents()
         .stream().map( Event::getUid ).collect( Collectors.toList() );
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     @Override
     protected void initTest()
@@ -125,7 +125,7 @@ class EventExporterTest extends TrackerTest
         orgUnit = get( OrganisationUnit.class, "h4w96yEMlzO" );
         programStage = get( ProgramStage.class, "NpsdDv6kKSO" );
         program = programStage.getProgram();
-        trackedEntityInstance = get( TrackedEntityInstance.class, "dUE514NMOlo" );
+        trackedEntity = get( TrackedEntity.class, "dUE514NMOlo" );
 
         // to test that events are only returned if the user has read access to ALL COs of an events COC
         CategoryOption categoryOption = get( CategoryOption.class, "yMj2MnmNI8L" );
@@ -153,7 +153,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setTrackedEntity( trackedEntityInstance );
+        params.setTrackedEntity( trackedEntity );
         params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
 
         List<Event> events = eventService.getEvents( params ).getEvents();
@@ -194,7 +194,7 @@ class EventExporterTest extends TrackerTest
     {
         EventSearchParams params = new EventSearchParams();
         params.setOrgUnit( orgUnit );
-        params.setTrackedEntity( trackedEntityInstance );
+        params.setTrackedEntity( trackedEntity );
         params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
 
         List<String> events = eventsFunction.apply( params );

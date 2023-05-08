@@ -31,10 +31,9 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1002;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1063;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1114;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 
@@ -42,15 +41,15 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 class ExistenceValidator
-    implements Validator<TrackedEntity>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
 {
     @Override
     public void validate( Reporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity )
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
     {
         TrackerImportStrategy importStrategy = bundle.getStrategy( trackedEntity );
 
-        TrackedEntityInstance existingTe = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+        TrackedEntity existingTe = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
         // If the tracked entity is soft-deleted no operation is allowed
         if ( existingTe != null && existingTe.isDeleted() )
