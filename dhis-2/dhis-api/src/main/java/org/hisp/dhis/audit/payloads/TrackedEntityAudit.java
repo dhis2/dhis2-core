@@ -44,7 +44,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Abyot Asalefew Gizaw abyota@gmail.com
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstanceAudit", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityInstanceAudit
+public class TrackedEntityAudit
     implements Serializable
 {
     private static final long serialVersionUID = 4260110537887403524L;
@@ -65,11 +65,11 @@ public class TrackedEntityInstanceAudit
     // Constructors
     // -------------------------------------------------------------------------
 
-    public TrackedEntityInstanceAudit()
+    public TrackedEntityAudit()
     {
     }
 
-    public TrackedEntityInstanceAudit( String trackedEntity, String accessedBy, AuditType auditType )
+    public TrackedEntityAudit( String trackedEntity, String accessedBy, AuditType auditType )
     {
         this.trackedEntity = trackedEntity;
         this.accessedBy = accessedBy;
@@ -77,7 +77,7 @@ public class TrackedEntityInstanceAudit
         this.auditType = auditType;
     }
 
-    public TrackedEntityInstanceAudit( String trackedEntity, String comment, Date created, String accessedBy,
+    public TrackedEntityAudit( String trackedEntity, String comment, Date created, String accessedBy,
         AuditType auditType )
     {
         this( trackedEntity, accessedBy, auditType );
@@ -104,7 +104,7 @@ public class TrackedEntityInstanceAudit
             return false;
         }
 
-        final TrackedEntityInstanceAudit other = (TrackedEntityInstanceAudit) obj;
+        final TrackedEntityAudit other = (TrackedEntityAudit) obj;
 
         return Objects.equals( this.trackedEntity, other.trackedEntity )
             && Objects.equals( this.comment, other.comment )
