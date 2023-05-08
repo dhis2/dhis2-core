@@ -72,7 +72,7 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -544,14 +544,14 @@ public class DefaultProgramNotificationService
         }
         else
         {
-            TrackedEntityInstance trackedEntityInstance = event.getEnrollment().getEntityInstance();
+            TrackedEntity trackedEntity = event.getEnrollment().getEntityInstance();
 
-            return resolveRecipients( template, organisationUnit, trackedEntityInstance, event.getEnrollment() );
+            return resolveRecipients( template, organisationUnit, trackedEntity, event.getEnrollment() );
         }
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-        TrackedEntityInstance tei, Enrollment enrollment )
+        TrackedEntity tei, Enrollment enrollment )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -563,7 +563,7 @@ public class DefaultProgramNotificationService
         }
         else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
-            recipients.setTrackedEntityInstance( tei );
+            recipients.setTrackedEntity( tei );
         }
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
             && template.getRecipientProgramAttribute() != null )

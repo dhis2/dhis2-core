@@ -38,14 +38,13 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.springframework.stereotype.Service;
@@ -97,7 +96,7 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEvents( trackerBundle );
 
-            TrackedEntityInstance tei = enrollment.getEntityInstance();
+            TrackedEntity tei = enrollment.getEntityInstance();
             tei.getEnrollments().remove( enrollment );
 
             enrollmentService.deleteEnrollment( enrollment );
@@ -149,7 +148,7 @@ public class DefaultTrackerObjectsDeletionService
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
-        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
+        List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities = bundle.getTrackedEntities();
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
@@ -157,7 +156,7 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
 
-            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
+            TrackedEntity daoEntityInstance = teiService
                 .getTrackedEntityInstance( uid );
 
             Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();

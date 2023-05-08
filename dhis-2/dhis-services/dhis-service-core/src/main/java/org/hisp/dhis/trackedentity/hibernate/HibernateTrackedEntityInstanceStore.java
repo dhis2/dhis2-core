@@ -91,7 +91,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnitStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -111,12 +111,12 @@ import com.google.common.collect.Lists;
 @Slf4j
 @Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
 public class HibernateTrackedEntityInstanceStore
-    extends SoftDeleteHibernateObjectStore<TrackedEntityInstance>
+    extends SoftDeleteHibernateObjectStore<TrackedEntity>
     implements TrackedEntityInstanceStore
 {
-    private final static String TEI_HQL_BY_UIDS = "from TrackedEntityInstance as tei where tei.uid in (:uids)";
+    private final static String TEI_HQL_BY_UIDS = "from TrackedEntity as tei where tei.uid in (:uids)";
 
-    private final static String TEI_HQL_BY_IDS = "from TrackedEntityInstance as tei where tei.id in (:ids)";
+    private final static String TEI_HQL_BY_IDS = "from TrackedEntity as tei where tei.id in (:ids)";
 
     private static final String OFFSET = "OFFSET";
 
@@ -158,7 +158,7 @@ public class HibernateTrackedEntityInstanceStore
         AclService aclService, StatementBuilder statementBuilder,
         OrganisationUnitStore organisationUnitStore, SystemSettingManager systemSettingManager )
     {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstance.class, currentUserService, aclService,
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntity.class, currentUserService, aclService,
             false );
 
         checkNotNull( statementBuilder );
@@ -175,18 +175,18 @@ public class HibernateTrackedEntityInstanceStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
+    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params )
     {
         List<Long> teiIds = getTrackedEntityInstanceIds( params );
-        List<TrackedEntityInstance> sortedTeis = new ArrayList<>();
+        List<TrackedEntity> sortedTeis = new ArrayList<>();
         List<List<Long>> idsPartitions = Lists.partition( Lists.newArrayList( teiIds ), 20000 );
 
         for ( List<Long> idsPartition : idsPartitions )
         {
             if ( !idsPartition.isEmpty() )
             {
-                List<TrackedEntityInstance> teis = getSession()
-                    .createQuery( TEI_HQL_BY_IDS, TrackedEntityInstance.class )
+                List<TrackedEntity> teis = getSession()
+                    .createQuery( TEI_HQL_BY_IDS, TrackedEntity.class )
                     .setParameter( "ids", idsPartition ).list();
 
                 teis.sort( comparing( tei -> idsPartition.indexOf( tei.getId() ) ) );
@@ -1478,28 +1478,28 @@ public class HibernateTrackedEntityInstanceStore
     }
 
     @Override
-    public List<TrackedEntityInstance> getIncludingDeleted( List<String> uids )
+    public List<TrackedEntity> getIncludingDeleted( List<String> uids )
     {
-        List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+        List<TrackedEntity> trackedEntities = new ArrayList<>();
         List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( uids ), 20000 );
 
         for ( List<String> uidsPartition : uidsPartitions )
         {
             if ( !uidsPartition.isEmpty() )
             {
-                trackedEntityInstances.addAll( getSession().createQuery( TEI_HQL_BY_UIDS, TrackedEntityInstance.class )
+                trackedEntities.addAll( getSession().createQuery( TEI_HQL_BY_UIDS, TrackedEntity.class )
                     .setParameter( "uids", uidsPartition ).list() );
             }
         }
 
-        return trackedEntityInstances;
+        return trackedEntities;
     }
 
     @Override
     public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs,
         Date lastSynchronized )
     {
-        final String hql = "update TrackedEntityInstance set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
+        final String hql = "update TrackedEntity set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
 
         getQuery( hql )
             .setParameter( "lastSynchronized", lastSynchronized )
@@ -1515,17 +1515,17 @@ public class HibernateTrackedEntityInstanceStore
         uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
             .forEach(
                 teis -> getSession().getNamedQuery( "updateTeisLastUpdated" )
-                    .setParameter( "trackedEntityInstances", teis )
+                    .setParameter( "trackedEntities", teis )
                     .setParameter( "lastUpdated", lastUpdated )
                     .executeUpdate() );
     }
 
     @Override
-    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    public List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 
-        List<TrackedEntityInstance> instances = new ArrayList<>();
+        List<TrackedEntity> instances = new ArrayList<>();
 
         for ( List<String> partition : uidPartitions )
         {
@@ -1543,7 +1543,7 @@ public class HibernateTrackedEntityInstanceStore
 
         List<EventContext.TrackedEntityOuInfo> instances = new ArrayList<>();
 
-        String hql = "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntityInstance tei where tei.uid in (:uids)";
+        String hql = "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntity tei where tei.uid in (:uids)";
 
         for ( List<String> partition : uidPartitions )
         {
@@ -1569,15 +1569,15 @@ public class HibernateTrackedEntityInstanceStore
 
     @Override
     protected void preProcessPredicates( CriteriaBuilder builder,
-        List<Function<Root<TrackedEntityInstance>, Predicate>> predicates )
+        List<Function<Root<TrackedEntity>, Predicate>> predicates )
     {
         predicates.add( root -> builder.equal( root.get( "deleted" ), false ) );
     }
 
     @Override
-    protected TrackedEntityInstance postProcessObject( TrackedEntityInstance trackedEntityInstance )
+    protected TrackedEntity postProcessObject( TrackedEntity trackedEntity )
     {
-        return (trackedEntityInstance == null || trackedEntityInstance.isDeleted()) ? null : trackedEntityInstance;
+        return (trackedEntity == null || trackedEntity.isDeleted()) ? null : trackedEntity;
     }
 
     private boolean isOrgUnit( QueryItem item )

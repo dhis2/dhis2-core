@@ -196,7 +196,7 @@ public class DefaultTrackedEntityAttributeService
     @Override
     @Transactional( readOnly = true )
     public String validateAttributeUniquenessWithinScope( TrackedEntityAttribute trackedEntityAttribute,
-        String value, TrackedEntityInstance trackedEntityInstance, OrganisationUnit organisationUnit )
+        String value, TrackedEntity trackedEntity, OrganisationUnit organisationUnit )
     {
         Assert.notNull( trackedEntityAttribute, "tracked entity attribute is required." );
         Assert.notNull( value, "tracked entity attribute value is required." );
@@ -216,7 +216,7 @@ public class DefaultTrackedEntityAttributeService
             .getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
 
         if ( fetchedTeiUid.isPresent()
-            && (trackedEntityInstance == null || !fetchedTeiUid.get().equals( trackedEntityInstance.getUid() )) )
+            && (trackedEntity == null || !fetchedTeiUid.get().equals( trackedEntity.getUid() )) )
         {
             return "Non-unique attribute value '" + value + "' for attribute " + trackedEntityAttribute.getUid();
         }

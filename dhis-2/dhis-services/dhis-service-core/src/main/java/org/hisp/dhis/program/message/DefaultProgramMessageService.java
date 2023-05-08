@@ -306,8 +306,8 @@ public class DefaultProgramMessageService
             violation = "Enrollment or program stage instance must be specified";
         }
 
-        if ( recipients.getTrackedEntityInstance() != null && trackedEntityInstanceService
-            .getTrackedEntityInstance( recipients.getTrackedEntityInstance().getUid() ) == null )
+        if ( recipients.getTrackedEntity() != null && trackedEntityInstanceService
+            .getTrackedEntityInstance( recipients.getTrackedEntity().getUid() ) == null )
         {
             violation = "Tracked entity does not exist";
         }

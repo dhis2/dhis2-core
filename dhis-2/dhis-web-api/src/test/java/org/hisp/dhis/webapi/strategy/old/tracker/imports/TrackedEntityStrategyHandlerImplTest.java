@@ -65,7 +65,7 @@ import org.springframework.http.MediaType;
  */
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityInstanceStrategyHandlerImplTest
+class TrackedEntityStrategyHandlerImplTest
 {
     @InjectMocks
     private TrackedEntityInstanceAsyncStrategyImpl trackedEntityInstanceAsyncStrategy;

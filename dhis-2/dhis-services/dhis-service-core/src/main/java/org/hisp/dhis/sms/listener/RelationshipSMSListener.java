@@ -52,8 +52,8 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -150,12 +150,12 @@ public class RelationshipSMSListener extends CompressionSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
+            TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
             }
-            relItem.setTrackedEntityInstance( tei );
+            relItem.setTrackedEntity( tei );
             break;
 
         case PROGRAM_INSTANCE:

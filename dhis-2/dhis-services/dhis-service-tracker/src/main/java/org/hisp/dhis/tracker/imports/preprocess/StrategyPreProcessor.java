@@ -29,11 +29,10 @@ package org.hisp.dhis.tracker.imports.preprocess;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -57,11 +56,11 @@ public class StrategyPreProcessor
 
     public void preProcessTrackedEntities( TrackerBundle bundle )
     {
-        for ( TrackedEntity tei : bundle.getTrackedEntities() )
+        for ( org.hisp.dhis.tracker.imports.domain.TrackedEntity tei : bundle.getTrackedEntities() )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            TrackedEntityInstance existingTei = bundle.getPreheat().getTrackedEntity(
+            TrackedEntity existingTei = bundle.getPreheat().getTrackedEntity(
                 tei.getTrackedEntity() );
 
             if ( importStrategy.isCreateAndUpdate() )

@@ -44,11 +44,11 @@ import com.google.common.collect.Multimap;
 public interface TrackedEntityInstanceStore
 {
     /**
-     * Get a Map of {@see TrackedEntityInstance} by Primary Keys
+     * Get a Map of {@see TrackedEntity} by Primary Keys
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a Map where key is a {@see TrackedEntityInstance} uid and the key
-     *         is the corresponding {@see TrackedEntityInstance}
+     * @return a Map where key is a {@see TrackedEntity} uid and the key is the
+     *         corresponding {@see TrackedEntity}
      */
     Map<String, TrackedEntityInstance> getTrackedEntityInstances( List<Long> ids, AggregateContext ctx );
 
@@ -57,24 +57,24 @@ public interface TrackedEntityInstanceStore
      * "left" or "right" relationship
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Relationship} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Relationship} objects
      */
     Multimap<String, Relationship> getRelationships( List<Long> ids, AggregateContext ctx );
 
     /**
      *
      * @param ids @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Attribute} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Attribute} objects
      */
     Multimap<String, Attribute> getAttributes( List<Long> ids );
 
     /**
      *
      * @param ids a list of Tracked Entity Instance Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the * key a List of {@see ProgramOwner} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key
+     *         a List of {@see ProgramOwner} objects
      */
     Multimap<String, ProgramOwner> getProgramOwners( List<Long> ids );
 

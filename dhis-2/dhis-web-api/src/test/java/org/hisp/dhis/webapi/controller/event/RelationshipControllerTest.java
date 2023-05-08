@@ -43,7 +43,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ class RelationshipControllerTest
 
     private static final String REL_ID = "REL_ID";
 
-    private TrackedEntityInstance tei = new TrackedEntityInstance();
+    private TrackedEntity tei = new TrackedEntity();
 
     private Enrollment enrollment = new Enrollment();
 

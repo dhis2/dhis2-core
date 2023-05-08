@@ -49,7 +49,7 @@ import org.hisp.dhis.sms.config.BulkSmsGatewayConfig;
 import org.hisp.dhis.sms.config.SmsConfiguration;
 import org.hisp.dhis.sms.config.SmsConfigurationManager;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +67,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
 
     private Enrollment enrollmentA;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
     private BulkSmsGatewayConfig bulkSmsConfig;
 
@@ -160,16 +160,16 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         teiService.addTrackedEntityInstance( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );
-        recipientsA.setTrackedEntityInstance( teiA );
+        recipientsA.setTrackedEntity( teiA );
         recipientsB = new ProgramMessageRecipients();
         recipientsB.setOrganisationUnit( ouA );
-        recipientsB.setTrackedEntityInstance( teiA );
+        recipientsB.setTrackedEntity( teiA );
         recipientsC = new ProgramMessageRecipients();
         recipientsC.setOrganisationUnit( ouA );
-        recipientsC.setTrackedEntityInstance( teiA );
+        recipientsC.setTrackedEntity( teiA );
         recipientsD = new ProgramMessageRecipients();
         recipientsD.setOrganisationUnit( ouA );
-        recipientsD.setTrackedEntityInstance( null );
+        recipientsD.setTrackedEntity( null );
         Set<String> phoneNumberListA = new HashSet<>();
         phoneNumberListA.add( msisdn );
         recipientsA.setPhoneNumbers( phoneNumberListA );

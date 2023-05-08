@@ -30,8 +30,8 @@ package org.hisp.dhis.trackedentityattributevalue;
 import java.util.List;
 import java.util.Map;
 
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 
 /**
@@ -69,23 +69,22 @@ public interface TrackedEntityAttributeValueService
     void deleteTrackedEntityAttributeValue( TrackedEntityAttributeValue attributeValue );
 
     /**
-     * Retrieve a {@link TrackedEntityAttributeValue} on a
-     * {@link TrackedEntityInstance} and {@link TrackedEntityAttribute}
+     * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntity}
+     * and {@link TrackedEntityAttribute}
      *
      * @param attribute {@link TrackedEntityAttribute}
      * @return TrackedEntityAttributeValue
      */
-    TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
+    TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntity instance,
         TrackedEntityAttribute attribute );
 
     /**
-     * Retrieve {@link TrackedEntityAttributeValue} of a
-     * {@link TrackedEntityInstance}
+     * Retrieve {@link TrackedEntityAttributeValue} of a {@link TrackedEntity}
      *
      * @param instance TrackedEntityAttributeValue
      * @return TrackedEntityAttributeValue list
      */
-    List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance );
+    List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntity instance );
 
     /**
      * Retrieve {@link TrackedEntityAttributeValue} of a

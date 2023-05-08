@@ -92,7 +92,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityA;
+    private TrackedEntity trackedEntityA;
 
     private OrganisationUnit orgUnitA;
 
@@ -156,9 +156,9 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         trackedEntityA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntityInstance trackedEntityB = createTrackedEntityInstance( orgUnitB );
-        TrackedEntityInstance femaleA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntityInstance femaleB = createTrackedEntityInstance( orgUnitB );
+        TrackedEntity trackedEntityB = createTrackedEntityInstance( orgUnitB );
+        TrackedEntity femaleA = createTrackedEntityInstance( orgUnitA );
+        TrackedEntity femaleB = createTrackedEntityInstance( orgUnitB );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
@@ -197,7 +197,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         // Can read tei
         assertNoErrors( trackerAccessManager.canRead( user, tei ) );
         // can write tei
@@ -213,7 +213,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         // Can Read
         assertNoErrors( trackerAccessManager.canRead( user, tei ) );
         // Can write
@@ -228,7 +228,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitB ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         // Cannot Read
         assertHasError( trackerAccessManager.canRead( user, tei ), "User has no read access to organisation unit:" );
         // Cannot write
@@ -244,7 +244,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         Enrollment enrollment = tei.getEnrollments().iterator().next();
         // Can create enrollment
         assertNoErrors( trackerAccessManager.canCreate( user, enrollment, false ) );
@@ -282,7 +282,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         Enrollment enrollment = tei.getEnrollments().iterator().next();
         enrollment.setOrganisationUnit( null );
         // Can create enrollment
@@ -305,7 +305,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitB ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
         Enrollment enrollment = tei.getEnrollments().iterator().next();
         // Cannot create enrollment if enrollmentOU falls outside capture scope
         assertHasError( trackerAccessManager.canCreate( user, enrollment, false ) );

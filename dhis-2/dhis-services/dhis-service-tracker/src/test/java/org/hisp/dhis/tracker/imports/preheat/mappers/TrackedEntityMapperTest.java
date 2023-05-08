@@ -38,13 +38,13 @@ import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.Test;
 
-class TrackedEntityInstanceMapperTest
+class TrackedEntityMapperTest
 {
     @Test
     void testIdSchemeRelatedFieldsAreMapped()
@@ -73,12 +73,12 @@ class TrackedEntityInstanceMapperTest
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
         attributeValue.setAttribute( attribute );
 
-        TrackedEntityInstance tei = new TrackedEntityInstance();
+        TrackedEntity tei = new TrackedEntity();
         tei.setTrackedEntityType( trackedEntityType );
         tei.setOrganisationUnit( orgUnit );
         tei.setTrackedEntityAttributeValues( Set.of( attributeValue ) );
 
-        TrackedEntityInstance mapped = TrackedEntityInstanceMapper.INSTANCE.map( tei );
+        TrackedEntity mapped = TrackedEntityInstanceMapper.INSTANCE.map( tei );
 
         assertEquals( "WTTYiPQDqh1", mapped.getTrackedEntityType().getUid() );
         assertEquals( "friendship", mapped.getTrackedEntityType().getName() );

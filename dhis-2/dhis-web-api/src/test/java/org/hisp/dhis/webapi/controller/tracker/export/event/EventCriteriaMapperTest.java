@@ -61,9 +61,9 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
@@ -132,7 +132,7 @@ class EventCriteriaMapperTest
 
     private OrganisationUnit ou;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private TrackedEntityAttribute tea1;
 
@@ -156,8 +156,8 @@ class EventCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
-        trackedEntityInstance = new TrackedEntityInstance();
-        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntityInstance );
+        trackedEntity = new TrackedEntity();
+        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntity );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
         TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -272,7 +272,7 @@ class EventCriteriaMapperTest
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( trackedEntityInstance, params.getTrackedEntity() );
+        assertEquals( trackedEntity, params.getTrackedEntity() );
     }
 
     @Test

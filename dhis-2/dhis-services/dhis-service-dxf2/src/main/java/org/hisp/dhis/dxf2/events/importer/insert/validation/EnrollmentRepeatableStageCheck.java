@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -55,7 +55,7 @@ public class EnrollmentRepeatableStageCheck implements Checker
         ProgramStage programStage = ctx.getProgramStage( scheme, event.getProgramStage() );
         Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        TrackedEntityInstance tei = null;
+        TrackedEntity tei = null;
 
         if ( program.isRegistration() )
         {

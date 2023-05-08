@@ -60,9 +60,9 @@ import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -114,7 +114,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
 
     private ProgramStageDataElement programStageDataElementB;
 
-    private TrackedEntityInstance trackedEntityInstanceA;
+    private TrackedEntity trackedEntityA;
 
     private Enrollment enrollmentA;
 
@@ -217,16 +217,16 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programStageService.updateProgramStage( programStageA );
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
         programService.updateProgram( programA );
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        trackedEntityInstanceA.setUid( trackedEntityUid );
-        entityInstanceService.addTrackedEntityInstance( trackedEntityInstanceA );
-        trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityInstanceA,
+        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA.setUid( trackedEntityUid );
+        entityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityA,
             "attribute-test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA );
-        trackedEntityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValueA ) );
-        entityInstanceService.updateTrackedEntityInstance( trackedEntityInstanceA );
+        trackedEntityA.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValueA ) );
+        entityInstanceService.updateTrackedEntityInstance( trackedEntityA );
         // Enrollment to be provided in message renderer
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstanceA, programA,
+        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
             enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( enrollmentUid );
         enrollmentService.updateEnrollment( enrollmentA );
@@ -325,8 +325,8 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programNotificationTemplateStore.update( programNotificationTemplate );
         NotificationMessage notificationMessage = programStageNotificationMessageRenderer.render( eventA,
             programNotificationTemplate );
-        assertEquals( "message is " + trackedEntityInstanceA.getUid(), notificationMessage.getMessage() );
-        assertEquals( "subject is " + trackedEntityInstanceA.getUid(), notificationMessage.getSubject() );
+        assertEquals( "message is " + trackedEntityA.getUid(), notificationMessage.getMessage() );
+        assertEquals( "subject is " + trackedEntityA.getUid(), notificationMessage.getSubject() );
     }
 
     @Test

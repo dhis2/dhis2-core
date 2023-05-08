@@ -46,7 +46,7 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -87,7 +87,7 @@ public class EnrollmentCriteriaMapper
      *        Program.
      * @param programEndDate the end date for enrollment in the given Program.
      * @param trackedEntityType the TrackedEntityType uid.
-     * @param trackedEntityInstance the TrackedEntityInstance uid.
+     * @param trackedEntityInstance the TrackedEntity uid.
      * @param followUp indicates follow up status in the given Program.
      * @param page the page number.
      * @param pageSize the page size.
@@ -145,7 +145,7 @@ public class EnrollmentCriteriaMapper
             throw new IllegalQueryException( "Tracked entity does not exist: " + trackedEntityType );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstance != null
+        TrackedEntity tei = trackedEntityInstance != null
             ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
             : null;
 

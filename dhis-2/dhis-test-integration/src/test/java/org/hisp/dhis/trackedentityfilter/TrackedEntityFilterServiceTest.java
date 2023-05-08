@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-class TrackedEntityInstanceFilterServiceTest extends SingleSetupIntegrationTestBase
+class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

@@ -34,7 +34,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -50,7 +50,7 @@ class RelationshipUtilsTest
 
     private static final String RELATIONSHIP_TYPE_UID = "RELATIONSHIP_TYPE_UID";
 
-    private TrackedEntityInstance teiA, teiB;
+    private TrackedEntity teiA, teiB;
 
     private Enrollment enrollmentA;
 
@@ -61,9 +61,9 @@ class RelationshipUtilsTest
     @BeforeEach
     void setup()
     {
-        teiA = new TrackedEntityInstance();
+        teiA = new TrackedEntity();
         teiA.setUid( TEIA_UID );
-        teiB = new TrackedEntityInstance();
+        teiB = new TrackedEntity();
         teiB.setUid( TEIB_UID );
         enrollmentA = new Enrollment();
         enrollmentA.setUid( PI_UID );
@@ -79,7 +79,7 @@ class RelationshipUtilsTest
         RelationshipItem itemA = new RelationshipItem();
         RelationshipItem itemB = new RelationshipItem();
         RelationshipItem itemC = new RelationshipItem();
-        itemA.setTrackedEntityInstance( teiA );
+        itemA.setTrackedEntity( teiA );
         itemB.setEnrollment( enrollmentA );
         itemC.setEvent( eventA );
         assertEquals( teiA.getUid(), RelationshipUtils.extractRelationshipItemUid( itemA ) );
@@ -155,8 +155,8 @@ class RelationshipUtilsTest
     {
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntityInstance( teiA );
-        to.setTrackedEntityInstance( teiB );
+        from.setTrackedEntity( teiA );
+        to.setTrackedEntity( teiB );
 
         return relationship( from, to );
     }
@@ -165,7 +165,7 @@ class RelationshipUtilsTest
     {
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntityInstance( teiA );
+        from.setTrackedEntity( teiA );
         to.setEnrollment( enrollmentA );
 
         return relationship( from, to );
@@ -175,7 +175,7 @@ class RelationshipUtilsTest
     {
         RelationshipItem from = new RelationshipItem();
         RelationshipItem to = new RelationshipItem();
-        from.setTrackedEntityInstance( teiA );
+        from.setTrackedEntity( teiA );
         to.setEvent( eventA );
 
         return relationship( from, to );

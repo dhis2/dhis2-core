@@ -41,8 +41,8 @@ import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -218,7 +218,7 @@ public class CacheInvalidationListener
 
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
             trackedEntityAttributeId );
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
+        TrackedEntity entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
             entityInstanceId );
 
         return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );

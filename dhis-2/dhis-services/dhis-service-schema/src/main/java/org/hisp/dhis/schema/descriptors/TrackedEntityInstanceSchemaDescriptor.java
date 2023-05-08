@@ -29,7 +29,7 @@ package org.hisp.dhis.schema.descriptors;
 
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,7 +45,7 @@ public class TrackedEntityInstanceSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( TrackedEntityInstance.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( TrackedEntity.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
 
         return schema;

@@ -62,9 +62,9 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
@@ -125,9 +125,9 @@ class EventCriteriaMapper
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntityInstance trackedEntityInstance = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
             criteria.getTrackedEntity() );
-        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             criteria.getAttributeCc(),
@@ -169,7 +169,7 @@ class EventCriteriaMapper
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntity( trackedEntityInstance )
+            .setTrackedEntity( trackedEntity )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
@@ -239,7 +239,7 @@ class EventCriteriaMapper
         }
     }
 
-    private void validateTrackedEntity( String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+    private void validateTrackedEntity( String trackedEntity, TrackedEntity trackedEntityInstance )
         throws BadRequestException
     {
         if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )

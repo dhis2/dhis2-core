@@ -161,7 +161,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
+    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -185,23 +185,23 @@ public class DefaultTrackedEntityInstanceService
             validateSearchScope( params, false );
         }
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceStore
+        List<TrackedEntity> trackedEntities = trackedEntityInstanceStore
             .getTrackedEntityInstances( params );
 
         User user = params.getUser();
-        trackedEntityInstances = trackedEntityInstances.stream()
+        trackedEntities = trackedEntities.stream()
             .filter( ( tei ) -> aclService.canDataRead( user, tei.getTrackedEntityType() ) )
             .collect( Collectors.toList() );
 
         // Avoiding NullPointerException
         String accessedBy = user != null ? user.getUsername() : currentUserService.getCurrentUsername();
 
-        for ( TrackedEntityInstance tei : trackedEntityInstances )
+        for ( TrackedEntity tei : trackedEntities )
         {
             addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
         }
 
-        return trackedEntityInstances;
+        return trackedEntities;
     }
 
     @Override
@@ -358,7 +358,7 @@ public class DefaultTrackedEntityInstanceService
                 (params.getProgram().getAccessLevel().equals( AccessLevel.PROTECTED ) ||
                     params.getProgram().getAccessLevel().equals( AccessLevel.CLOSED )) )
             {
-                TrackedEntityInstance tei = trackedEntityInstanceStore
+                TrackedEntity tei = trackedEntityInstanceStore
                     .getByUid( entity.get( TRACKED_ENTITY_INSTANCE_ID ) );
 
                 if ( !trackerOwnershipAccessManager.hasAccess( params.getUser(), tei, params.getProgram() ) )
@@ -787,7 +787,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public long addTrackedEntityInstance( TrackedEntityInstance instance )
+    public long addTrackedEntityInstance( TrackedEntity instance )
     {
         trackedEntityInstanceStore.save( instance );
 
@@ -796,7 +796,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public long createTrackedEntityInstance( TrackedEntityInstance instance,
+    public long createTrackedEntityInstance( TrackedEntity instance,
         Set<TrackedEntityAttributeValue> attributeValues )
     {
         long id = addTrackedEntityInstance( instance );
@@ -814,7 +814,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    public List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user )
     {
         if ( uids == null || uids.isEmpty() )
         {
@@ -836,14 +836,14 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstance( TrackedEntityInstance instance )
+    public void updateTrackedEntityInstance( TrackedEntity instance )
     {
         trackedEntityInstanceStore.update( instance );
     }
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstance( TrackedEntityInstance instance, User user )
+    public void updateTrackedEntityInstance( TrackedEntity instance, User user )
     {
         trackedEntityInstanceStore.update( instance, user );
     }
@@ -866,7 +866,7 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public void deleteTrackedEntityInstance( TrackedEntityInstance instance )
+    public void deleteTrackedEntityInstance( TrackedEntity instance )
     {
         attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
         trackedEntityInstanceStore.delete( instance );
@@ -874,9 +874,9 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntityInstance getTrackedEntityInstance( long id )
+    public TrackedEntity getTrackedEntityInstance( long id )
     {
-        TrackedEntityInstance tei = trackedEntityInstanceStore.get( id );
+        TrackedEntity tei = trackedEntityInstanceStore.get( id );
 
         addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
 
@@ -885,18 +885,18 @@ public class DefaultTrackedEntityInstanceService
 
     @Override
     @Transactional
-    public TrackedEntityInstance getTrackedEntityInstance( String uid )
+    public TrackedEntity getTrackedEntityInstance( String uid )
     {
-        TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
+        TrackedEntity tei = trackedEntityInstanceStore.getByUid( uid );
         addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
 
         return tei;
     }
 
     @Override
-    public TrackedEntityInstance getTrackedEntityInstance( String uid, User user )
+    public TrackedEntity getTrackedEntityInstance( String uid, User user )
     {
-        TrackedEntityInstance tei = trackedEntityInstanceStore.getByUid( uid );
+        TrackedEntity tei = trackedEntityInstanceStore.getByUid( uid );
         addTrackedEntityInstanceAudit( tei, User.username( user ), AuditType.READ );
 
         return tei;
@@ -959,14 +959,14 @@ public class DefaultTrackedEntityInstanceService
         return true;
     }
 
-    private void addTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance, String user,
+    private void addTrackedEntityInstanceAudit( TrackedEntity trackedEntity, String user,
         AuditType auditType )
     {
-        if ( user != null && trackedEntityInstance != null && trackedEntityInstance.getTrackedEntityType() != null
-            && trackedEntityInstance.getTrackedEntityType().isAllowAuditLog() )
+        if ( user != null && trackedEntity != null && trackedEntity.getTrackedEntityType() != null
+            && trackedEntity.getTrackedEntityType().isAllowAuditLog() )
         {
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit(
-                trackedEntityInstance.getUid(), user, auditType );
+                trackedEntity.getUid(), user, auditType );
             trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
     }

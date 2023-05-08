@@ -41,7 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceAuditStoreTest extends SingleSetupIntegrationTestBase
+class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
 {
     private final Date CREATED = getDate( 2022, 3, 1 );
 

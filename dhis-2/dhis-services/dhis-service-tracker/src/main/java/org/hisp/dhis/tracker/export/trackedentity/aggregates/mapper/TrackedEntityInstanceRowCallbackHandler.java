@@ -35,7 +35,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery.COLUMNS;
@@ -48,18 +48,18 @@ public class TrackedEntityInstanceRowCallbackHandler
     implements
     RowCallbackHandler
 {
-    private final Map<String, TrackedEntityInstance> items;
+    private final Map<String, TrackedEntity> items;
 
     public TrackedEntityInstanceRowCallbackHandler()
     {
         this.items = new LinkedHashMap<>();
     }
 
-    private TrackedEntityInstance getTei( ResultSet rs )
+    private TrackedEntity getTei( ResultSet rs )
         throws SQLException
     {
 
-        TrackedEntityInstance tei = new TrackedEntityInstance();
+        TrackedEntity tei = new TrackedEntity();
         tei.setUid(
             rs.getString( TrackedEntityInstanceQuery.getColumnName( COLUMNS.UID ) ) );
         TrackedEntityType trackedEntityType = new TrackedEntityType();
@@ -107,7 +107,7 @@ public class TrackedEntityInstanceRowCallbackHandler
         this.items.put( rs.getString( "tei_uid" ), getTei( rs ) );
     }
 
-    public Map<String, TrackedEntityInstance> getItems()
+    public Map<String, TrackedEntity> getItems()
     {
         return this.items;
     }

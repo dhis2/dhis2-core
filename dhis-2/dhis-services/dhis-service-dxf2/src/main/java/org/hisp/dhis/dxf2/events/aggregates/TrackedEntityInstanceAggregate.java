@@ -115,13 +115,13 @@ public class TrackedEntityInstanceAggregate
     }
 
     /**
-     * Fetches a List of {@see TrackedEntityInstance} based on the list of
-     * primary keys and search parameters
+     * Fetches a List of {@see TrackedEntity} based on the list of primary keys
+     * and search parameters
      *
-     * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param ids a List of {@see TrackedEntity} Primary Keys
      * @param params an instance of {@see TrackedEntityInstanceParams}
      *
-     * @return a List of {@see TrackedEntityInstance} objects
+     * @return a List of {@see TrackedEntity} objects
      */
     public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityInstanceParams params,
         TrackedEntityInstanceQueryParams queryParams )
@@ -162,23 +162,23 @@ public class TrackedEntityInstanceAggregate
             .build();
 
         /*
-         * Async fetch Relationships for the given TrackedEntityInstance id
-         * (only if isIncludeRelationships = true)
+         * Async fetch Relationships for the given TrackedEntity id (only if
+         * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, Relationship>> relationshipsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> trackedEntityInstanceStore.getRelationships( ids, ctx ),
             getPool() );
 
         /*
-         * Async fetch Enrollments for the given TrackedEntityInstance id (only
-         * if isIncludeEnrollments = true)
+         * Async fetch Enrollments for the given TrackedEntity id (only if
+         * isIncludeEnrollments = true)
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
             () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
 
         /*
-         * Async fetch all ProgramOwner for the given TrackedEntityInstance id
+         * Async fetch all ProgramOwner for the given TrackedEntity id
          */
         final CompletableFuture<Multimap<String, ProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityInstanceStore.getProgramOwners( ids ),
@@ -191,15 +191,14 @@ public class TrackedEntityInstanceAggregate
             () -> trackedEntityInstanceStore.getTrackedEntityInstances( ids, ctx ), getPool() );
 
         /*
-         * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
-         * id
+         * Async fetch TrackedEntity Attributes by TrackedEntity id
          */
         final CompletableFuture<Multimap<String, Attribute>> attributesAsync = supplyAsync(
             () -> trackedEntityInstanceStore.getAttributes( ids ), getPool() );
 
         /*
          * Async fetch Owned Tei mapped to the provided program attributes by
-         * TrackedEntityInstance id
+         * TrackedEntity id
          */
         final CompletableFuture<Multimap<String, String>> ownedTeiAsync = conditionalAsyncFetch(
             user.isPresent(),

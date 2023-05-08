@@ -68,8 +68,8 @@ import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -173,7 +173,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
     private OrganisationUnit lvlTwoLeftRight;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
     private DataElement dataElement;
 
@@ -257,9 +257,9 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
-        assertEquals( TrackedEntityInstance.class,
-            programMessage.getRecipients().getTrackedEntityInstance().getClass() );
-        assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
+        assertEquals( TrackedEntity.class,
+            programMessage.getRecipients().getTrackedEntity().getClass() );
+        assertEquals( tei, programMessage.getRecipients().getTrackedEntity() );
     }
 
     @Test
@@ -283,9 +283,9 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
 
         ProgramMessage programMessage = sentProgramMessages.iterator().next();
 
-        assertEquals( TrackedEntityInstance.class,
-            programMessage.getRecipients().getTrackedEntityInstance().getClass() );
-        assertEquals( tei, programMessage.getRecipients().getTrackedEntityInstance() );
+        assertEquals( TrackedEntity.class,
+            programMessage.getRecipients().getTrackedEntity().getClass() );
+        assertEquals( tei, programMessage.getRecipients().getTrackedEntity() );
     }
 
     @Test
@@ -725,7 +725,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         dataElementEmail.setValueType( ValueType.EMAIL );
 
         // Enrollment & TEI
-        tei = new TrackedEntityInstance();
+        tei = new TrackedEntity();
         tei.setAutoFields();
         tei.setOrganisationUnit( lvlTwoLeftLeft );
 

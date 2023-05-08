@@ -36,7 +36,7 @@ import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class TrackedEntityInstanceQueryParamsTest
+class TrackedEntityQueryParamsTest
 {
 
     private TrackedEntityInstanceQueryParams params;

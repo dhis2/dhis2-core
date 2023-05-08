@@ -51,7 +51,7 @@ public class TrackedEntityInstanceAudit
 
     private long id;
 
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     private String comment;
 
@@ -69,18 +69,18 @@ public class TrackedEntityInstanceAudit
     {
     }
 
-    public TrackedEntityInstanceAudit( String trackedEntityInstance, String accessedBy, AuditType auditType )
+    public TrackedEntityInstanceAudit( String trackedEntity, String accessedBy, AuditType auditType )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         this.accessedBy = accessedBy;
         this.created = new Date();
         this.auditType = auditType;
     }
 
-    public TrackedEntityInstanceAudit( String trackedEntityInstance, String comment, Date created, String accessedBy,
+    public TrackedEntityInstanceAudit( String trackedEntity, String comment, Date created, String accessedBy,
         AuditType auditType )
     {
-        this( trackedEntityInstance, accessedBy, auditType );
+        this( trackedEntity, accessedBy, auditType );
         this.comment = comment;
         this.created = created;
     }
@@ -88,7 +88,7 @@ public class TrackedEntityInstanceAudit
     @Override
     public int hashCode()
     {
-        return Objects.hash( trackedEntityInstance, comment, created, accessedBy, auditType );
+        return Objects.hash( trackedEntity, comment, created, accessedBy, auditType );
     }
 
     @Override
@@ -106,7 +106,7 @@ public class TrackedEntityInstanceAudit
 
         final TrackedEntityInstanceAudit other = (TrackedEntityInstanceAudit) obj;
 
-        return Objects.equals( this.trackedEntityInstance, other.trackedEntityInstance )
+        return Objects.equals( this.trackedEntity, other.trackedEntity )
             && Objects.equals( this.comment, other.comment )
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.accessedBy, other.accessedBy )
@@ -129,14 +129,14 @@ public class TrackedEntityInstanceAudit
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getTrackedEntityInstance()
+    public String getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public void setTrackedEntityInstance( String trackedEntityInstance )
+    public void setTrackedEntity( String trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

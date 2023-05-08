@@ -45,7 +45,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -58,7 +58,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
+class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -94,13 +94,13 @@ class TrackedEntityInstanceQueryLimitTest extends SingleSetupIntegrationTestBase
 
     private Enrollment enrollment4;
 
-    private TrackedEntityInstance tei1;
+    private TrackedEntity tei1;
 
-    private TrackedEntityInstance tei2;
+    private TrackedEntity tei2;
 
-    private TrackedEntityInstance tei3;
+    private TrackedEntity tei3;
 
-    private TrackedEntityInstance tei4;
+    private TrackedEntity tei4;
 
     private TrackedEntityType teiType;
 

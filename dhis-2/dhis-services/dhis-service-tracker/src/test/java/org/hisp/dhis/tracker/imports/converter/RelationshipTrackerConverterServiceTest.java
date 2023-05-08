@@ -40,7 +40,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -77,7 +77,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private RelationshipType teiToEvent;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
     private Enrollment enrollment;
 
@@ -132,12 +132,12 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         from.forEach( relationship -> {
             if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntity().getUid() );
                 assertEquals( ENROLLMENT, relationship.getTo().getEnrollment().getUid() );
             }
             else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntity().getUid() );
                 assertEquals( EVENT, relationship.getTo().getEvent().getUid() );
             }
             else

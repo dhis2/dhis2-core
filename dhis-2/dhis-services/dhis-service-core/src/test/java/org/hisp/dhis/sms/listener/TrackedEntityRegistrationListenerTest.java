@@ -58,8 +58,8 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -128,7 +128,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -187,7 +187,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     {
         // Mock for trackedEntityInstanceService
         when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
+        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntity );
         when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
 
         // Mock for incomingSmsService
@@ -234,11 +234,11 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
 
-        trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
-        trackedEntityInstance.setOrganisationUnit( organisationUnit );
+        trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance,
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 

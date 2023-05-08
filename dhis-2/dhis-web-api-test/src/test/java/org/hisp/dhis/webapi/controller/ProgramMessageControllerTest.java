@@ -37,7 +37,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -75,7 +75,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
         idObjectManager.save( ouA );
         Program prA = createProgram( 'A', Sets.newHashSet(), ouA );
         idObjectManager.save( prA );
-        TrackedEntityInstance teiA = createTrackedEntityInstance( 'A', ouA );
+        TrackedEntity teiA = createTrackedEntityInstance( 'A', ouA );
         teiService.addTrackedEntityInstance( teiA );
         enrollmentA = createEnrollment( prA, teiA, ouA );
         piService.addEnrollment( enrollmentA );

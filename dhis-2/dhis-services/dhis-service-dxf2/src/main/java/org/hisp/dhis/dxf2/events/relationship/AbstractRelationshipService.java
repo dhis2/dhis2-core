@@ -66,7 +66,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -109,7 +109,7 @@ public abstract class AbstractRelationshipService
 
     private HashMap<String, RelationshipType> relationshipTypeCache = new HashMap<>();
 
-    private HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
+    private HashMap<String, TrackedEntity> trackedEntityInstanceCache = new HashMap<>();
 
     private HashMap<String, Enrollment> programInstanceCache = new HashMap<>();
 
@@ -118,7 +118,7 @@ public abstract class AbstractRelationshipService
     @Override
     @Transactional( readOnly = true )
     public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntityInstance tei,
+        TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
@@ -410,13 +410,13 @@ public abstract class AbstractRelationshipService
         RelationshipItem relationshipItem,
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipInput )
     {
-        relationshipItem.setTrackedEntityInstance( null );
+        relationshipItem.setTrackedEntity( null );
         relationshipItem.setEvent( null );
         relationshipItem.setEnrollment( null );
 
         if ( relationshipConstraint.getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            relationshipItem.setTrackedEntityInstance(
+            relationshipItem.setTrackedEntity(
                 trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationshipInput ) ) );
         }
         else if ( relationshipConstraint.getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
@@ -519,10 +519,10 @@ public abstract class AbstractRelationshipService
     {
         org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem relationshipItem = new org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem();
 
-        if ( dao.getTrackedEntityInstance() != null )
+        if ( dao.getTrackedEntity() != null )
         {
             org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance tei = new org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance();
-            String uid = dao.getTrackedEntityInstance().getUid();
+            String uid = dao.getTrackedEntity().getUid();
 
             if ( uidOnly )
             {
@@ -532,7 +532,7 @@ public abstract class AbstractRelationshipService
             else
             {
                 tei = trackedEntityInstanceService
-                    .getTrackedEntityInstance( dao.getTrackedEntityInstance(), TrackedEntityInstanceParams.TRUE );
+                    .getTrackedEntityInstance( dao.getTrackedEntity(), TrackedEntityInstanceParams.TRUE );
             }
 
             relationshipItem.setTrackedEntityInstance( tei );
@@ -687,17 +687,17 @@ public abstract class AbstractRelationshipService
 
         if ( TRACKED_ENTITY_INSTANCE.equals( entity ) )
         {
-            TrackedEntityInstance tei = trackedEntityInstanceCache.get( itemUid );
+            TrackedEntity tei = trackedEntityInstanceCache.get( itemUid );
 
             if ( tei == null )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "TrackedEntityInstance '" + itemUid + "' not found." );
+                    "TrackedEntity '" + itemUid + "' not found." );
             }
             else if ( !tei.getTrackedEntityType().equals( constraint.getTrackedEntityType() ) )
             {
                 importConflicts.addConflict( relationshipUid,
-                    "TrackedEntityInstance '" + itemUid + "' has invalid TrackedEntityType." );
+                    "TrackedEntity '" + itemUid + "' has invalid TrackedEntityType." );
             }
         }
         else if ( PROGRAM_INSTANCE.equals( entity ) )
@@ -778,7 +778,7 @@ public abstract class AbstractRelationshipService
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             fromItem = new RelationshipItem();
-            fromItem.setTrackedEntityInstance(
+            fromItem.setTrackedEntity(
                 trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getFrom() ) ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
@@ -798,7 +798,7 @@ public abstract class AbstractRelationshipService
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
             toItem = new RelationshipItem();
-            toItem.setTrackedEntityInstance(
+            toItem.setTrackedEntity(
                 trackedEntityInstanceCache.get( getUidOfRelationshipItem( relationship.getTo() ) ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )

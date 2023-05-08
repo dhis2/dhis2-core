@@ -87,6 +87,7 @@ import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -205,19 +206,19 @@ public class TrackedEntityInstanceController
     {
         User user = currentUserService.getCurrentUser();
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = instanceService
+        TrackedEntity trackedEntity = instanceService
             .getTrackedEntityInstance( teiId );
 
-        List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntityInstance );
+        List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntity );
 
-        List<TrackedEntityAttributeValue> attributes = trackedEntityInstance.getTrackedEntityAttributeValues().stream()
+        List<TrackedEntityAttributeValue> attributes = trackedEntity.getTrackedEntityAttributeValues().stream()
             .filter( val -> val.getAttribute().getUid().equals( attributeId ) )
             .collect( Collectors.toList() );
 
         if ( !trackerAccessErrors.isEmpty() )
         {
             throw new WebMessageException(
-                unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+                unauthorized( "You're not authorized to access the TrackedEntity with id: " + teiId ) );
         }
 
         if ( attributes.isEmpty() )
@@ -281,17 +282,17 @@ public class TrackedEntityInstanceController
     {
         User currentUser = currentUserService.getCurrentUser();
 
-        org.hisp.dhis.trackedentity.TrackedEntityInstance tei = Optional
+        TrackedEntity tei = Optional
             .ofNullable( instanceService.getTrackedEntityInstance( teiId ) )
             .orElseThrow(
-                () -> new WebMessageException( notFound( "TrackedEntityInstance not found for ID " + teiId ) ) );
+                () -> new WebMessageException( notFound( "TrackedEntity not found for ID " + teiId ) ) );
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( currentUser, tei );
 
         if ( !trackerAccessErrors.isEmpty() )
         {
             throw new WebMessageException(
-                unauthorized( "You're not authorized to access the TrackedEntityInstance with id: " + teiId ) );
+                unauthorized( "You're not authorized to access the TrackedEntity with id: " + teiId ) );
         }
 
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();

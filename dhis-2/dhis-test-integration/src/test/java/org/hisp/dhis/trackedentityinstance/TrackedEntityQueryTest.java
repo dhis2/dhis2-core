@@ -48,7 +48,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceQueryTest extends SingleSetupIntegrationTestBase
+class TrackedEntityQueryTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired

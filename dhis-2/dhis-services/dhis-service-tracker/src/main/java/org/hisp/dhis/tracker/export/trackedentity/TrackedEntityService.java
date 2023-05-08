@@ -31,34 +31,34 @@ import java.util.List;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 
 public interface TrackedEntityService
 {
-    TrackedEntityInstance getTrackedEntity( String uid, TrackedEntityParams params )
+    TrackedEntity getTrackedEntity( String uid, TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 
-    TrackedEntityInstance getTrackedEntity( TrackedEntityInstance trackedEntity, TrackedEntityParams params )
+    TrackedEntity getTrackedEntity( TrackedEntity trackedEntity, TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 
-    TrackedEntityInstance getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
+    TrackedEntity getTrackedEntity( String uid, String programIdentifier, TrackedEntityParams params )
         throws NotFoundException,
         ForbiddenException;
 
     /**
-     * Fetches {@see TrackedEntityInstance}s based on the specified parameters.
+     * Fetches {@see TrackedEntity}s based on the specified parameters.
      *
      * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
      *        with the query parameters
      * @param params a {@see TrackedEntityParams} instance containing the
      *        directives for how much data should be fetched (e.g. Enrollments,
      *        Events, Relationships)
-     * @return {@see TrackedEntityInstance}s
+     * @return {@see TrackedEntity}s
      */
-    List<TrackedEntityInstance> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+    List<TrackedEntity> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityParams params )
         throws ForbiddenException,
         NotFoundException;

@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -57,7 +57,7 @@ public class ProgramOwnershipHistory implements Serializable
 
     private String createdBy;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
     private OrganisationUnit organisationUnit;
 
@@ -69,7 +69,7 @@ public class ProgramOwnershipHistory implements Serializable
     {
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+    public ProgramOwnershipHistory( Program program, TrackedEntity entityInstance,
         OrganisationUnit organisationUnit, Date startDate,
         String createdBy )
     {
@@ -81,7 +81,7 @@ public class ProgramOwnershipHistory implements Serializable
         this.organisationUnit = organisationUnit;
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+    public ProgramOwnershipHistory( Program program, TrackedEntity entityInstance,
         OrganisationUnit organisationUnit, Date startDate, Date endDate,
         String createdBy )
     {
@@ -147,12 +147,12 @@ public class ProgramOwnershipHistory implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getEntityInstance()
     {
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setEntityInstance( TrackedEntity entityInstance )
     {
         this.entityInstance = entityInstance;
     }

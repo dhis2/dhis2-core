@@ -30,15 +30,15 @@ package org.hisp.dhis.deduplication;
 import lombok.Builder;
 import lombok.Data;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 @Data
 @Builder
 public class DeduplicationMergeParams
 {
-    private TrackedEntityInstance original;
+    private TrackedEntity original;
 
-    private TrackedEntityInstance duplicate;
+    private TrackedEntity duplicate;
 
     private MergeObject mergeObject;
 

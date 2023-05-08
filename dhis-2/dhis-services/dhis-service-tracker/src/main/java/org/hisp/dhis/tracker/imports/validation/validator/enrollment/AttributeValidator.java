@@ -45,15 +45,14 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -85,7 +84,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
         Program program = preheat.getProgram( enrollment.getProgram() );
         checkNotNull( program, TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
+        TrackedEntity tei = bundle.getPreheat().getTrackedEntity( enrollment.getTrackedEntity() );
 
         OrganisationUnit orgUnit = preheat
             .getOrganisationUnit( getOrgUnitUidFromTei( bundle, enrollment.getTrackedEntity() ) );
@@ -195,7 +194,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
         return Optional.of( bundle )
             .map( TrackerBundle::getPreheat )
             .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityInstanceUid ) )
-            .map( TrackedEntityInstance::getTrackedEntityAttributeValues )
+            .map( TrackedEntity::getTrackedEntityAttributeValues )
             .orElse( Collections.emptySet() )
             .stream()
             .map( TrackedEntityAttributeValue::getAttribute )
@@ -206,7 +205,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
     private MetadataIdentifier getOrgUnitUidFromTei( TrackerBundle bundle, String teiUid )
     {
         return bundle.findTrackedEntityByUid( teiUid )
-            .map( TrackedEntity::getOrgUnit )
+            .map( org.hisp.dhis.tracker.imports.domain.TrackedEntity::getOrgUnit )
             .orElse( null );
     }
 }

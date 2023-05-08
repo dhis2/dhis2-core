@@ -63,17 +63,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     private final OrganisationUnitService organisationUnitService;
 
     @Override
-    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance )
+    public List<String> canRead( User user, TrackedEntity trackedEntity )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        if ( user == null || user.isSuper() || trackedEntity == null )
         {
             return errors;
         }
 
-        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+        OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
@@ -83,7 +83,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
         if ( !aclService.canDataRead( user, trackedEntityType ) )
         {
@@ -94,17 +94,17 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance )
+    public List<String> canWrite( User user, TrackedEntity trackedEntity )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        if ( user == null || user.isSuper() || trackedEntity == null )
         {
             return errors;
         }
 
-        OrganisationUnit ou = trackedEntityInstance.getOrganisationUnit();
+        OrganisationUnit ou = trackedEntity.getOrganisationUnit();
 
         if ( ou != null )
         { // ou should never be null, but needs to be checked for legacy reasons
@@ -114,7 +114,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
         }
 
-        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
@@ -125,13 +125,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+    public List<String> canRead( User user, TrackedEntity trackedEntity, Program program,
         boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        if ( user == null || user.isSuper() || trackedEntity == null )
         {
             return errors;
         }
@@ -141,14 +141,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data read access to program: " + program.getUid() );
         }
 
-        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
         if ( !aclService.canDataRead( user, trackedEntityType ) )
         {
             errors.add( "User has no data read access to tracked entity: " + trackedEntityType.getUid() );
         }
 
-        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntity, program ) )
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -157,13 +157,13 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
     }
 
     @Override
-    public List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+    public List<String> canWrite( User user, TrackedEntity trackedEntity, Program program,
         boolean skipOwnershipCheck )
     {
         List<String> errors = new ArrayList<>();
 
         // always allow if user == null (internal process) or user is superuser
-        if ( user == null || user.isSuper() || trackedEntityInstance == null )
+        if ( user == null || user.isSuper() || trackedEntity == null )
         {
             return errors;
         }
@@ -173,14 +173,14 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             errors.add( "User has no data write access to program: " + program.getUid() );
         }
 
-        TrackedEntityType trackedEntityType = trackedEntityInstance.getTrackedEntityType();
+        TrackedEntityType trackedEntityType = trackedEntity.getTrackedEntityType();
 
         if ( !aclService.canDataWrite( user, trackedEntityType ) )
         {
             errors.add( "User has no data write access to tracked entity: " + trackedEntityType.getUid() );
         }
 
-        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, program ) )
+        if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user, trackedEntity, program ) )
         {
             errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
         }
@@ -657,11 +657,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         from = relationship.getFrom();
         to = relationship.getTo();
 
-        errors.addAll( canRead( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, from.getTrackedEntity() ) );
         errors.addAll( canRead( user, from.getEnrollment(), false ) );
         errors.addAll( canRead( user, from.getEvent(), false ) );
 
-        errors.addAll( canRead( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canRead( user, to.getTrackedEntity() ) );
         errors.addAll( canRead( user, to.getEnrollment(), false ) );
         errors.addAll( canRead( user, to.getEvent(), false ) );
 
@@ -692,11 +692,11 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
         from = relationship.getFrom();
         to = relationship.getTo();
 
-        errors.addAll( canWrite( user, from.getTrackedEntityInstance() ) );
+        errors.addAll( canWrite( user, from.getTrackedEntity() ) );
         errors.addAll( canUpdate( user, from.getEnrollment(), false ) );
         errors.addAll( canUpdate( user, from.getEvent(), false ) );
 
-        errors.addAll( canWrite( user, to.getTrackedEntityInstance() ) );
+        errors.addAll( canWrite( user, to.getTrackedEntity() ) );
         errors.addAll( canUpdate( user, to.getEnrollment(), false ) );
         errors.addAll( canUpdate( user, to.getEvent(), false ) );
 

@@ -134,7 +134,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional
-    public void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
+    public void transferOwnership( TrackedEntity entityInstance, Program program, OrganisationUnit orgUnit,
         boolean skipAccessValidation, boolean createIfNotExists )
     {
         if ( entityInstance == null || program == null || orgUnit == null )
@@ -177,7 +177,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional
-    public void assignOwnership( TrackedEntityInstance entityInstance, Program program,
+    public void assignOwnership( TrackedEntity entityInstance, Program program,
         OrganisationUnit organisationUnit,
         boolean skipAccessValidation, boolean overwriteIfExists )
     {
@@ -222,7 +222,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional
-    public void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user,
+    public void grantTemporaryOwnership( TrackedEntity entityInstance, Program program, User user,
         String reason )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
@@ -247,7 +247,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional( readOnly = true )
-    public boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program )
+    public boolean hasAccess( User user, TrackedEntity entityInstance, Program program )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
         {
@@ -402,7 +402,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
      * @param user The user object against which the check has to be performed
      * @return true if the user has temporary access, false otherwise
      */
-    private boolean hasTemporaryAccess( TrackedEntityInstance entityInstance, Program program, User user )
+    private boolean hasTemporaryAccess( TrackedEntity entityInstance, Program program, User user )
     {
         if ( canSkipOwnershipCheck( user, program ) || entityInstance == null )
         {
@@ -423,7 +423,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         return tempOwnerCache
             .get( getTempOwnershipCacheKey( entityInstanceUid, program.getUid(), user.getUid() ), s -> {
-                TrackedEntityInstance entityInstance = trackedEntityInstanceService
+                TrackedEntity entityInstance = trackedEntityInstanceService
                     .getTrackedEntityInstance( entityInstanceUid );
                 if ( entityInstance == null )
                 {

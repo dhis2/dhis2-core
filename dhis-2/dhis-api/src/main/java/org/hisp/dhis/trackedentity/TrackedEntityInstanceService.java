@@ -122,7 +122,7 @@ public interface TrackedEntityInstanceService
      *        skipped.
      * @return List of TEIs matching the params
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
+    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
@@ -186,28 +186,28 @@ public interface TrackedEntityInstanceService
         throws IllegalQueryException;
 
     /**
-     * Adds an {@link TrackedEntityInstance}
+     * Adds an {@link TrackedEntity}
      *
-     * @param entityInstance The to TrackedEntityInstance add.
-     * @return A generated unique id of the added {@link TrackedEntityInstance}.
+     * @param entityInstance The to TrackedEntity add.
+     * @return A generated unique id of the added {@link TrackedEntity}.
      */
-    long addTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    long addTrackedEntityInstance( TrackedEntity entityInstance );
 
     /**
-     * Soft deletes a {@link TrackedEntityInstance}.
+     * Soft deletes a {@link TrackedEntity}.
      *
-     * @param entityInstance the TrackedEntityInstance to delete.
+     * @param entityInstance the TrackedEntity to delete.
      */
-    void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    void deleteTrackedEntityInstance( TrackedEntity entityInstance );
 
     /**
-     * Updates a {@link TrackedEntityInstance}.
+     * Updates a {@link TrackedEntity}.
      *
-     * @param entityInstance the TrackedEntityInstance to update.
+     * @param entityInstance the TrackedEntity to update.
      */
-    void updateTrackedEntityInstance( TrackedEntityInstance entityInstance );
+    void updateTrackedEntityInstance( TrackedEntity entityInstance );
 
-    void updateTrackedEntityInstance( TrackedEntityInstance instance, User user );
+    void updateTrackedEntityInstance( TrackedEntity instance, User user );
 
     /**
      * Updates a last sync timestamp on specified TrackedEntityInstances
@@ -221,12 +221,12 @@ public interface TrackedEntityInstanceService
     void updateTrackedEntityInstanceLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated );
 
     /**
-     * Returns a {@link TrackedEntityInstance}.
+     * Returns a {@link TrackedEntity}.
      *
      * @param id the id of the TrackedEntityInstanceAttribute to return.
      * @return the TrackedEntityInstanceAttribute with the given id
      */
-    TrackedEntityInstance getTrackedEntityInstance( long id );
+    TrackedEntity getTrackedEntityInstance( long id );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -235,7 +235,7 @@ public interface TrackedEntityInstanceService
      * @return the TrackedEntityInstanceAttribute with the given UID, or null if
      *         no match.
      */
-    TrackedEntityInstance getTrackedEntityInstance( String uid );
+    TrackedEntity getTrackedEntityInstance( String uid );
 
     /**
      * Returns the {@link TrackedEntityAttribute} with the given UID.
@@ -245,7 +245,7 @@ public interface TrackedEntityInstanceService
      * @return the TrackedEntityInstanceAttribute with the given UID, or null if
      *         no match.
      */
-    TrackedEntityInstance getTrackedEntityInstance( String trackedEntityInstance, User user );
+    TrackedEntity getTrackedEntityInstance( String trackedEntityInstance, User user );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted values are not taken
@@ -277,14 +277,14 @@ public interface TrackedEntityInstanceService
     /**
      * Register a new entityInstance
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param attributeValues Set of attribute values
      * @return The error code after registering entityInstance
      */
-    long createTrackedEntityInstance( TrackedEntityInstance entityInstance,
+    long createTrackedEntityInstance( TrackedEntity entityInstance,
         Set<TrackedEntityAttributeValue> attributeValues );
 
-    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+    List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 

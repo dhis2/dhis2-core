@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,7 +66,7 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    public String getTrackedEntityInstanceRecipient( TrackedEntityInstance tei, ValueType type )
+    public String getTrackedEntityInstanceRecipient( TrackedEntity tei, ValueType type )
     {
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
 
@@ -87,18 +87,18 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    protected TrackedEntityInstance getTrackedEntityInstance( ProgramMessage message )
+    protected TrackedEntity getTrackedEntityInstance( ProgramMessage message )
     {
-        if ( message.getRecipients().getTrackedEntityInstance() == null )
+        if ( message.getRecipients().getTrackedEntity() == null )
         {
             return null;
         }
 
-        String uid = message.getRecipients().getTrackedEntityInstance().getUid();
+        String uid = message.getRecipients().getTrackedEntity().getUid();
 
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
 
-        message.getRecipients().setTrackedEntityInstance( tei );
+        message.getRecipients().setTrackedEntity( tei );
 
         return tei;
     }

@@ -33,10 +33,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -65,7 +64,7 @@ class TrackerEntityInstanceStrategyTest
     @Test
     void verifyStrategyAddRightTeisToPreheat()
     {
-        final List<TrackedEntity> trackedEntities = trackedEntities();
+        final List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities = trackedEntities();
         final TrackerImportParams params = TrackerImportParams.builder().trackedEntities( trackedEntities ).build();
 
         final List<String> uids = List.of( "TEIA", "TEIB" );
@@ -73,7 +72,7 @@ class TrackerEntityInstanceStrategyTest
         List<List<String>> splitUids = new ArrayList<>();
         splitUids.add( uids );
 
-        List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstances();
+        List<TrackedEntity> trackedEntityInstances = trackedEntityInstances();
         when( trackedEntityInstanceStore.getIncludingDeleted( uids ) ).thenReturn( trackedEntityInstances );
         strategy.add( params, splitUids, preheat );
 
@@ -81,18 +80,18 @@ class TrackerEntityInstanceStrategyTest
         Mockito.verify( preheat ).putTrackedEntities( trackedEntityInstances );
     }
 
-    private List<TrackedEntity> trackedEntities()
+    private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities()
     {
         return List.of(
-            TrackedEntity.builder().trackedEntity( "TEIA" ).build(),
-            TrackedEntity.builder().trackedEntity( "TEIB" ).build() );
+            org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity( "TEIA" ).build(),
+            org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity( "TEIB" ).build() );
     }
 
-    private List<TrackedEntityInstance> trackedEntityInstances()
+    private List<TrackedEntity> trackedEntityInstances()
     {
-        TrackedEntityInstance teiA = new TrackedEntityInstance();
+        TrackedEntity teiA = new TrackedEntity();
         teiA.setUid( "TEIA" );
-        TrackedEntityInstance teiB = new TrackedEntityInstance();
+        TrackedEntity teiB = new TrackedEntity();
         teiB.setUid( "TEIB" );
         return List.of( teiA, teiB );
     }

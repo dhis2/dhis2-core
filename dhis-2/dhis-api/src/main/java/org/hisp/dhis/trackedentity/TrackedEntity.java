@@ -57,7 +57,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 @Auditable( scope = AuditScope.TRACKER )
-public class TrackedEntityInstance
+public class TrackedEntity
     extends SoftDeletableObject
 {
     private Date createdAtClient;
@@ -97,7 +97,7 @@ public class TrackedEntityInstance
     // Constructors
     // -------------------------------------------------------------------------
 
-    public TrackedEntityInstance()
+    public TrackedEntity()
     {
     }
 
@@ -325,7 +325,7 @@ public class TrackedEntityInstance
     @Override
     public String toString()
     {
-        return "TrackedEntityInstance{" +
+        return "TrackedEntity{" +
             "id=" + id +
             ", uid='" + uid + '\'' +
             ", name='" + name + '\'' +

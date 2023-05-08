@@ -44,7 +44,7 @@ import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -94,7 +94,7 @@ public class HibernateTrackedEntityInstanceAuditStore
             StringBuilder sb = new StringBuilder();
             sb.append( "(" );
             sb.append( "nextval('trackedentityinstanceaudit_sequence'), " );
-            sb.append( singleQuote( audit.getTrackedEntityInstance() ) ).append( "," );
+            sb.append( singleQuote( audit.getTrackedEntity() ) ).append( "," );
             sb.append( "now()" ).append( "," );
             sb.append( singleQuote( audit.getAccessedBy() ) ).append( "," );
             sb.append( singleQuote( audit.getAuditType().getValue() ) ).append( "," );
@@ -111,10 +111,10 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     @Override
-    public void deleteTrackedEntityInstanceAudit( TrackedEntityInstance trackedEntityInstance )
+    public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
     {
-        String hql = "delete TrackedEntityInstanceAudit where trackedEntityInstance = :trackedEntityInstance";
-        getSession().createQuery( hql ).setParameter( "trackedEntityInstance", trackedEntityInstance ).executeUpdate();
+        String hql = "delete TrackedEntityInstanceAudit where trackedEntity = :trackedEntity";
+        getSession().createQuery( hql ).setParameter( "trackedEntity", trackedEntity ).executeUpdate();
     }
 
     @Override
@@ -154,7 +154,7 @@ public class HibernateTrackedEntityInstanceAuditStore
 
         if ( params.hasTrackedEntityInstances() )
         {
-            predicates.add( root -> root.get( "trackedEntityInstance" ).in( params.getTrackedEntityInstances() ) );
+            predicates.add( root -> root.get( "trackedEntity" ).in( params.getTrackedEntityInstances() ) );
         }
 
         if ( params.hasUsers() )

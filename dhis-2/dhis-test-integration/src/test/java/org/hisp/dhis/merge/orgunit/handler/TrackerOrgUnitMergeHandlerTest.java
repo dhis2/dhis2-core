@@ -40,7 +40,7 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,11 +81,11 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 
     private OrganisationUnit ouC;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
     private Enrollment enrollmentA;
 

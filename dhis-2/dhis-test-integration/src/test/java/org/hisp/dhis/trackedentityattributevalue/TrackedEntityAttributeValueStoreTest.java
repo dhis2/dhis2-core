@@ -39,9 +39,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -78,13 +78,13 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
     private TrackedEntityAttribute atD;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
-    private TrackedEntityInstance teiD;
+    private TrackedEntity teiD;
 
     private TrackedEntityAttributeValue avA;
 
@@ -196,14 +196,14 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( List.of( atA ) )
-            .setTrackedEntityInstances( List.of( teiA ) )
+            .setTrackedEntities( List.of( teiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( List.of( auditA ),
             attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
 
         params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setTrackedEntityInstances( List.of( teiA ) )
+            .setTrackedEntities( List.of( teiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( List.of( auditA, auditB ),

@@ -49,7 +49,7 @@ import org.hisp.dhis.program.EventStore;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -90,7 +90,7 @@ public class HibernateEventStore
     }
 
     @Override
-    public List<Event> get( TrackedEntityInstance entityInstance, EventStatus status )
+    public List<Event> get( TrackedEntity entityInstance, EventStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 

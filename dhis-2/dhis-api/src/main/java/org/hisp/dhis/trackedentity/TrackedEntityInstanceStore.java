@@ -40,11 +40,11 @@ import org.hisp.dhis.user.User;
  * @author Abyot Asalefew Gizaw
  */
 public interface TrackedEntityInstanceStore
-    extends IdentifiableObjectStore<TrackedEntityInstance>
+    extends IdentifiableObjectStore<TrackedEntity>
 {
     String ID = TrackedEntityInstanceStore.class.getName();
 
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
+    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 
     List<Long> getTrackedEntityInstanceIds( TrackedEntityInstanceQueryParams params );
 
@@ -88,7 +88,7 @@ public interface TrackedEntityInstanceStore
      * @return a List containing the TrackedEntityInstances matching the given
      *         parameters list
      */
-    List<TrackedEntityInstance> getIncludingDeleted( List<String> uids );
+    List<TrackedEntity> getIncludingDeleted( List<String> uids );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
@@ -101,7 +101,7 @@ public interface TrackedEntityInstanceStore
 
     void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated );
 
-    List<TrackedEntityInstance> getTrackedEntityInstancesByUid( List<String> uids, User user );
+    List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 }

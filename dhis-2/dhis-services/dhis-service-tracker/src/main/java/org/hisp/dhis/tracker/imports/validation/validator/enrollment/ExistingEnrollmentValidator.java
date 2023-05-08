@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -85,7 +85,7 @@ class ExistingEnrollmentValidator
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+        TrackedEntity tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
 
         Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment = bundle.getEnrollments()
             .stream().filter( Objects::nonNull )
@@ -144,13 +144,13 @@ class ExistingEnrollmentValidator
         return enrollment;
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String uid )
+    private TrackedEntity getTrackedEntityInstance( TrackerBundle bundle, String uid )
     {
-        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( uid );
+        TrackedEntity tei = bundle.getPreheat().getTrackedEntity( uid );
 
         if ( tei == null && bundle.findTrackedEntityByUid( uid ).isPresent() )
         {
-            tei = new TrackedEntityInstance();
+            tei = new TrackedEntity();
             tei.setUid( uid );
 
         }

@@ -33,7 +33,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,7 +61,7 @@ public class SmsDeliveryChannelStrategy
 
         OrganisationUnit orgUnit = getOrganisationUnit( message );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( message );
+        TrackedEntity tei = getTrackedEntityInstance( message );
 
         if ( orgUnit != null )
         {
@@ -86,7 +86,7 @@ public class SmsDeliveryChannelStrategy
 
         if ( message.getDeliveryChannels().contains( DeliveryChannel.SMS ) )
         {
-            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntityInstance()
+            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntity()
                 && recipient.getPhoneNumbers().isEmpty() )
             {
                 violation = "No destination found for SMS";

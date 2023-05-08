@@ -45,6 +45,7 @@ import org.hisp.dhis.program.*;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.junit.jupiter.api.Test;
@@ -55,7 +56,7 @@ import com.google.common.collect.Lists;
 /**
  * @author Enrico Colasante
  */
-class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupIntegrationTestBase
+class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
@@ -76,9 +77,9 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstanceA;
+    private TrackedEntity trackedEntityA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstanceB;
+    private TrackedEntity trackedEntityB;
 
     private OrganisationUnit organisationUnitA;
 
@@ -99,15 +100,15 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         organisationUnitA = createOrganisationUnit( 'A' );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        trackedEntityInstanceA.setTrackedEntityType( trackedEntityType );
-        trackedEntityInstanceB = createTrackedEntityInstance( organisationUnitA );
-        trackedEntityInstanceB.setTrackedEntityType( trackedEntityType );
+        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA.setTrackedEntityType( trackedEntityType );
+        trackedEntityB = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityB.setTrackedEntityType( trackedEntityType );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
         manager.save( organisationUnitA );
-        manager.save( trackedEntityInstanceA );
-        manager.save( trackedEntityInstanceB );
+        manager.save( trackedEntityA );
+        manager.save( trackedEntityB );
         manager.save( programA );
         programStageA1 = createProgramStage( '1', programA );
         programStageA2 = createProgramStage( '2', programA );
@@ -115,7 +116,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         manager.save( programStageA2 );
         programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
         manager.update( programA );
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA,
             programA, null, null, organisationUnitA );
         eventA = new Event( enrollmentA, programStageA1 );
         eventA.setDueDate( null );
@@ -133,9 +134,9 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     void testUpdateTeiWithUniDirectionalRelationshipTeiToTei()
     {
         TrackedEntityInstance trackedEntityInstanceFrom = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceA.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityA.getUid() );
         TrackedEntityInstance trackedEntityInstanceTo = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceB.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityB.getUid() );
         RelationshipType personToPersonRelationshipType = createPersonToPersonRelationshipType( 'A', programA,
             trackedEntityType, false );
         relationshipTypeService.addRelationshipType( personToPersonRelationshipType );
@@ -152,7 +153,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         assertEquals( ImportStatus.SUCCESS, importSummaryTo.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummaryTo.getRelationships().getStatus() );
         assertEquals(
-            "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '"
+            "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntity '"
                 + trackedEntityInstanceTo.getTrackedEntityInstance() + "' is not the owner of the relationship",
             importSummaryTo.getRelationships().getImportSummaries().get( 0 ).getDescription() );
     }
@@ -161,9 +162,9 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     void testUpdateTeiWithBidirectionalRelationshipTeiToTei()
     {
         TrackedEntityInstance trackedEntityInstanceFrom = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceA.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityA.getUid() );
         TrackedEntityInstance trackedEntityInstanceTo = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceB.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityB.getUid() );
         RelationshipType personToPersonRelationshipType = createPersonToPersonRelationshipType( 'A', programA,
             trackedEntityType, true );
         relationshipTypeService.addRelationshipType( personToPersonRelationshipType );
@@ -185,7 +186,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     void testUpdateTeiWithUniDirectionalRelationshipEventToTei()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceA.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityA.getUid() );
         RelationshipType malariaCaseLinkedToPersonRelationshipType = createMalariaCaseLinkedToPersonRelationshipType(
             'A', programA, trackedEntityType );
         malariaCaseLinkedToPersonRelationshipType.setBidirectional( false );
@@ -198,7 +199,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
         assertEquals( ImportStatus.ERROR, importSummary.getRelationships().getStatus() );
         assertEquals(
-            "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntityInstance '"
+            "Can't update relationship '" + relationship.getRelationship() + "': TrackedEntity '"
                 + trackedEntityInstance.getTrackedEntityInstance() + "' is not the owner of the relationship",
             importSummary.getRelationships().getImportSummaries().get( 0 ).getDescription() );
     }
@@ -207,7 +208,7 @@ class HandleRelationshipsTrackedEntityInstanceServiceTest extends SingleSetupInt
     void testUpdateTeiWithBidirectionalRelationshipEventToTei()
     {
         TrackedEntityInstance trackedEntityInstance = trackedEntityInstanceService
-            .getTrackedEntityInstance( this.trackedEntityInstanceA.getUid() );
+            .getTrackedEntityInstance( this.trackedEntityA.getUid() );
         RelationshipType relationshipType = createMalariaCaseLinkedToPersonRelationshipType( 'A', programA,
             trackedEntityType );
         relationshipTypeService.addRelationshipType( relationshipType );

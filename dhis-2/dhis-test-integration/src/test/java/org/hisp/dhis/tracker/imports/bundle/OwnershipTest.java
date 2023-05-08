@@ -45,7 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -99,10 +99,10 @@ class OwnershipTest extends TrackerTest
     {
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
 
-        List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
+        List<TrackedEntity> teis = manager.getAll( TrackedEntity.class );
 
         assertEquals( 1, teis.size() );
-        TrackedEntityInstance tei = teis.get( 0 );
+        TrackedEntity tei = teis.get( 0 );
         assertNotNull( tei.getProgramOwners() );
         Set<TrackedEntityProgramOwner> tepos = tei.getProgramOwners();
         assertEquals( 1, tepos.size() );
@@ -131,9 +131,9 @@ class OwnershipTest extends TrackerTest
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser );
         assertNoErrors( importReport );
 
-        List<TrackedEntityInstance> teis = manager.getAll( TrackedEntityInstance.class );
+        List<TrackedEntity> teis = manager.getAll( TrackedEntity.class );
         assertEquals( 1, teis.size() );
-        TrackedEntityInstance tei = teis.get( 0 );
+        TrackedEntity tei = teis.get( 0 );
         assertNotNull( tei.getCreatedAtClient() );
         assertNotNull( tei.getLastUpdatedAtClient() );
         assertEquals( DateUtils.fromInstant( teiParams.getTrackedEntities().get( 0 ).getCreatedAtClient() ),
@@ -242,7 +242,7 @@ class OwnershipTest extends TrackerTest
         ImportReport updatedReport = trackerImportService.importTracker( enrollmentParams );
         assertNoErrors( updatedReport );
         assertEquals( 1, updatedReport.getStats().getDeleted() );
-        TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
+        TrackedEntity tei = manager.get( TrackedEntity.class, "IOR1AXXl24H" );
         OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
         Program pgm = manager.get( Program.class, "BFcipDERJnf" );
         trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );
@@ -258,7 +258,7 @@ class OwnershipTest extends TrackerTest
         throws IOException
     {
         // Change ownership
-        TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
+        TrackedEntity tei = manager.get( TrackedEntity.class, "IOR1AXXl24H" );
         OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
         Program pgm = manager.get( Program.class, "BFcipDERJnf" );
         TrackerImportParams enrollmentParams = fromJson( "tracker/ownership_enrollment.json", nonSuperUser.getUid() );
@@ -274,7 +274,7 @@ class OwnershipTest extends TrackerTest
         throws IOException
     {
         // Change ownership
-        TrackedEntityInstance tei = manager.get( TrackedEntityInstance.class, "IOR1AXXl24H" );
+        TrackedEntity tei = manager.get( TrackedEntity.class, "IOR1AXXl24H" );
         OrganisationUnit ou = manager.get( OrganisationUnit.class, "B1nCbRV3qtP" );
         Program pgm = manager.get( Program.class, "BFcipDERJnf" );
         trackerOwnershipManager.transferOwnership( tei, pgm, ou, true, false );

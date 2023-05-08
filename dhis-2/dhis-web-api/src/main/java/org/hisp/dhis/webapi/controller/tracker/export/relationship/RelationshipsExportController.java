@@ -52,7 +52,7 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -113,14 +113,14 @@ public class RelationshipsExportController
     void setupMaps()
     {
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
-            .put( TrackedEntityInstance.class, trackedEntityInstanceService::getTrackedEntityInstance )
+            .put( TrackedEntity.class, trackedEntityInstanceService::getTrackedEntityInstance )
             .put( Enrollment.class, enrollmentService::getEnrollment )
             .put( Event.class, eventService::getEvent )
             .build();
 
         relationshipRetrievers = ImmutableMap
             .<Class<?>, CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>>> builder()
-            .put( TrackedEntityInstance.class, getRelationshipsByTrackedEntity() )
+            .put( TrackedEntity.class, getRelationshipsByTrackedEntity() )
             .put( Enrollment.class, getRelationshipsByEnrollment() )
             .put( Event.class, getRelationshipsByEvent() )
             .build();
@@ -129,7 +129,7 @@ public class RelationshipsExportController
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByTrackedEntity()
     {
         return ( o, criteria ) -> relationshipService
-            .getRelationshipsByTrackedEntityInstance( (TrackedEntityInstance) o, criteria );
+            .getRelationshipsByTrackedEntityInstance( (TrackedEntity) o, criteria );
     }
 
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByEnrollment()

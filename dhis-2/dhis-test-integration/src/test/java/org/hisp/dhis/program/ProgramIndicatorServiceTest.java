@@ -56,9 +56,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
@@ -242,9 +242,9 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementI );
         programStageDataElementService.addProgramStageDataElement( stageDataElementJ );
         // ---------------------------------------------------------------------
-        // TrackedEntityInstance & Enrollment
+        // TrackedEntity & Enrollment
         // ---------------------------------------------------------------------
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
+        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnit );
         entityInstanceService.addTrackedEntityInstance( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );

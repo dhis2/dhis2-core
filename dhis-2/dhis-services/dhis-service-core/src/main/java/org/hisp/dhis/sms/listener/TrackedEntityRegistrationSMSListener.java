@@ -52,8 +52,8 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -125,22 +125,22 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
             throw new SMSParserException( SMSCommand.NO_OU_FOR_PROGRAM );
         }
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityTypeService
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setOrganisationUnit( orgUnit );
+        trackedEntity.setTrackedEntityType( trackedEntityTypeService
             .getTrackedEntityByName( smsCommand.getProgram().getTrackedEntityType().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         smsCommand.getCodes().stream().filter( code -> parsedMessage.containsKey( code.getCode() ) ).forEach( code -> {
             TrackedEntityAttributeValue trackedEntityAttributeValue = this
-                .createTrackedEntityAttributeValue( parsedMessage, code, trackedEntityInstance );
+                .createTrackedEntityAttributeValue( parsedMessage, code, trackedEntity );
             patientAttributeValues.add( trackedEntityAttributeValue );
         } );
 
         long trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
-            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
+            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntity,
                 patientAttributeValues );
         }
         else
@@ -148,7 +148,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
             sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
+        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
 
         enrollmentService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 
@@ -166,14 +166,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
-        SMSCode code, TrackedEntityInstance trackedEntityInstance )
+        SMSCode code, TrackedEntity trackedEntity )
     {
         String value = parsedMessage.get( code.getCode() );
         TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValue.setEntityInstance( trackedEntity );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
     }

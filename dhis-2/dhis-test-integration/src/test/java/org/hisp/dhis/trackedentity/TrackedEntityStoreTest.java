@@ -64,7 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Lars Helge Overland
  */
-class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
+class TrackedEntityStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
@@ -88,17 +88,17 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
     @Autowired
     private ProgramService programService;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
-    private TrackedEntityInstance teiD;
+    private TrackedEntity teiD;
 
-    private TrackedEntityInstance teiE;
+    private TrackedEntity teiE;
 
-    private TrackedEntityInstance teiF;
+    private TrackedEntity teiF;
 
     private TrackedEntityAttribute atA;
 
@@ -218,7 +218,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+        List<TrackedEntity> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
         // Filter by attribute with EQ
         params = new TrackedEntityInstanceQueryParams()
@@ -317,7 +317,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
         enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+        List<TrackedEntity> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
 
         // Filter by attribute with STARTS
@@ -354,7 +354,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
         enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
-        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+        List<TrackedEntity> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 6, teis.size() );
 
         // Filter by attribute with ENDS
@@ -398,7 +398,7 @@ class TrackedEntityInstanceStoreTest extends TransactionalIntegrationTest
         TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
         params.setOrders(
             List.of( new OrderParam( TrackedEntityInstanceQueryParams.CREATED_ID, SortDirection.ASC ) ) );
-        List<TrackedEntityInstance> teis = teiStore.getTrackedEntityInstances( params );
+        List<TrackedEntity> teis = teiStore.getTrackedEntityInstances( params );
         assertEquals( 2, teis.size() );
         assertEquals( teiA.getUid(), teis.get( 0 ).getUid() );
         assertEquals( teiB.getUid(), teis.get( 1 ).getUid() );

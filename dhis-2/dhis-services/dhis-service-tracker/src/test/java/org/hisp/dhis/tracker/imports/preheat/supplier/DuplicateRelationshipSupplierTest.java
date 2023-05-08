@@ -38,7 +38,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
@@ -87,7 +87,7 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
 
     private RelationshipType bidirectionalRelationshipType;
 
-    private TrackedEntityInstance teiA, teiB, teiC;
+    private TrackedEntity teiA, teiB, teiC;
 
     private TrackerPreheat preheat;
 

@@ -36,7 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EnrollmentQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EnrollmentQuery.COLUMNS;
@@ -70,7 +70,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
             .resolveGeometry( rs.getBytes( EnrollmentQuery.getColumnName( COLUMNS.GEOMETRY ) ) )
             .ifPresent( enrollment::setGeometry );
 
-        TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+        TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setUid( rs.getString( EnrollmentQuery.getColumnName( COLUMNS.TEI_UID ) ) );
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType

@@ -33,7 +33,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Abyot Asalefew
@@ -78,16 +78,15 @@ public interface EnrollmentStore
     List<Enrollment> get( Program program, ProgramStatus status );
 
     /**
-     * Retrieve enrollments on a TrackedEntityInstance with a status by a
-     * program
+     * Retrieve enrollments on a TrackedEntity with a status by a program
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return Enrollment list
      */
-    List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
+    List<Enrollment> get( TrackedEntity entityInstance, Program program, ProgramStatus status );
 
     /**
      * Checks for the existence of an enrollment by UID, Deleted enrollments are
@@ -163,7 +162,7 @@ public interface EnrollmentStore
 
     /**
      * Executes a query to fetch all {@see Enrollment} matching the
-     * Program/TrackedEntityInstance list.
+     * Program/TrackedEntity list.
      *
      * Resulting SQL query:
      *
@@ -178,11 +177,10 @@ public interface EnrollmentStore
      * </pre>
      *
      * @param programTeiPair a List of Pair, where the left side is a
-     *        {@see Program} and the right side is a
-     *        {@see TrackedEntityInstance}
+     *        {@see Program} and the right side is a {@see TrackedEntity}
      * @param programStatus filter on the status of all the Program
      * @return a List of {@see Enrollment}
      */
     List<Enrollment> getByProgramAndTrackedEntityInstance(
-        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
+        List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus );
 }

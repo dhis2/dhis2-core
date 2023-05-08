@@ -40,9 +40,9 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -74,13 +74,13 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
 
     private TrackedEntityAttribute attributeC;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
-    private TrackedEntityInstance entityInstanceC;
+    private TrackedEntity entityInstanceC;
 
-    private TrackedEntityInstance entityInstanceD;
+    private TrackedEntity entityInstanceD;
 
     private TrackedEntityAttributeValue attributeValueA;
 

@@ -34,7 +34,7 @@ import java.util.Set;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -51,7 +51,7 @@ public class ProgramMessageRecipients
 {
     private static final long serialVersionUID = 1141462154959329242L;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private OrganisationUnit organisationUnit;
 
@@ -73,10 +73,10 @@ public class ProgramMessageRecipients
         this.emailAddresses = emailAddresses;
     }
 
-    public ProgramMessageRecipients( TrackedEntityInstance trackedEntityInstance,
+    public ProgramMessageRecipients( TrackedEntity trackedEntity,
         OrganisationUnit organisationUnit, Set<String> phoneNumbers, Set<String> emailAddresses )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         this.organisationUnit = organisationUnit;
         this.phoneNumbers = phoneNumbers;
         this.emailAddresses = emailAddresses;
@@ -86,9 +86,9 @@ public class ProgramMessageRecipients
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean hasTrackedEntityInstance()
+    public boolean hasTrackedEntity()
     {
-        return trackedEntityInstance != null;
+        return trackedEntity != null;
     }
 
     public boolean hasOrganisationUnit()
@@ -100,17 +100,17 @@ public class ProgramMessageRecipients
     // Setters and getters
     // -------------------------------------------------------------------------
 
-    @JsonProperty( value = "trackedEntityInstance" )
+    @JsonProperty( value = "trackedEntity" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "trackedEntityInstance" )
-    public TrackedEntityInstance getTrackedEntityInstance()
+    @JacksonXmlProperty( localName = "trackedEntity" )
+    public TrackedEntity getTrackedEntity()
     {
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    public void setTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.trackedEntityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty( value = "organisationUnit" )

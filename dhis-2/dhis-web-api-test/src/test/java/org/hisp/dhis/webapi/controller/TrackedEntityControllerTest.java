@@ -48,7 +48,7 @@ import org.springframework.http.MediaType;
  *
  * @author Jan Bernitt
  */
-class TrackedEntityInstanceControllerTest extends DhisControllerConvenienceTest
+class TrackedEntityControllerTest extends DhisControllerConvenienceTest
 {
 
     private String ouId;

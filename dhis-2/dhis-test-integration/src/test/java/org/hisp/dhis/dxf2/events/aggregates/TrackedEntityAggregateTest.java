@@ -68,6 +68,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.user.User;
@@ -82,7 +83,7 @@ import com.google.common.collect.Sets;
 /**
  * @author Luciano Fiandesio
  */
-class TrackedEntityInstanceAggregateTest extends TrackerTest
+class TrackedEntityAggregateTest extends TrackerTest
 {
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -148,8 +149,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     {
         final String[] teiUid = new String[2];
         doInTransaction( () -> {
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t2 = this.persistTrackedEntityInstance();
             teiUid[0] = t1.getUid();
             teiUid[1] = t2.getUid();
         } );
@@ -603,8 +604,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
         final String[] teiUid = new String[2];
         doInTransaction( () -> {
             injectSecurityContext( superUser );
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t2 = this.persistTrackedEntityInstance();
             this.persistRelationship( t1, t2 );
             teiUid[0] = t1.getUid();
             teiUid[1] = t2.getUid();
@@ -629,8 +630,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     {
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this.persistTrackedEntityInstanceWithEnrollment();
+            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t2 = this.persistTrackedEntityInstanceWithEnrollment();
             Enrollment pi = t2.getEnrollments().iterator().next();
             this.persistRelationship( t1, pi );
             relationshipItemsUid[0] = t1.getUid();
@@ -668,12 +669,12 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     {
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t1 = this.persistTrackedEntityInstance();
-            org.hisp.dhis.trackedentity.TrackedEntityInstance t2 = this
+            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t2 = this
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
             sessionFactory.getCurrentSession().flush();
             sessionFactory.getCurrentSession().clear();
-            t2 = manager.getByUid( org.hisp.dhis.trackedentity.TrackedEntityInstance.class,
+            t2 = manager.getByUid( TrackedEntity.class,
                 Collections.singletonList( t2.getUid() ) ).get( 0 );
             Enrollment pi = t2.getEnrollments().iterator().next();
             final Event psi = pi.getEvents().iterator().next();
@@ -712,8 +713,8 @@ class TrackedEntityInstanceAggregateTest extends TrackerTest
     void testTrackedEntityInstanceProgramOwners()
     {
         doInTransaction( () -> {
-            final org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance = persistTrackedEntityInstance();
-            programOwnerService.createOrUpdateTrackedEntityProgramOwner( trackedEntityInstance, programA,
+            final TrackedEntity trackedEntity = persistTrackedEntityInstance();
+            programOwnerService.createOrUpdateTrackedEntityProgramOwner( trackedEntity, programA,
                 organisationUnitA );
         } );
         TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();

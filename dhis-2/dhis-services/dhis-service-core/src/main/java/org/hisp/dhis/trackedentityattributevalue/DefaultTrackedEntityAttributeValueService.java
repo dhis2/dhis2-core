@@ -43,8 +43,8 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
@@ -94,7 +94,7 @@ public class DefaultTrackedEntityAttributeValueService
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntityInstance instance,
+    public TrackedEntityAttributeValue getTrackedEntityAttributeValue( TrackedEntity instance,
         TrackedEntityAttribute attribute )
     {
         return attributeValueStore.get( instance, attribute );
@@ -102,7 +102,7 @@ public class DefaultTrackedEntityAttributeValueService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntityInstance instance )
+    public List<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( TrackedEntity instance )
     {
         return attributeValueStore.get( instance );
     }

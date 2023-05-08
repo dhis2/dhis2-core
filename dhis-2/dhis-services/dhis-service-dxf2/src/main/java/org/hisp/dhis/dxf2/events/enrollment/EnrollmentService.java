@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -92,7 +92,7 @@ public interface EnrollmentService
 
     ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
         ImportOptions importOptions,
-        TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+        TrackedEntity trackedEntity, boolean clearSession );
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -112,7 +112,7 @@ public interface EnrollmentService
 
     ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
         ImportOptions importOptions,
-        TrackedEntityInstance daoTrackedEntityInstance );
+        TrackedEntity daoTrackedEntity );
 
     ImportSummaries updateEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
         ImportOptions importOptions,

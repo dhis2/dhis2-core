@@ -37,6 +37,7 @@ import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.user.User;
 
@@ -58,8 +59,8 @@ public interface TrackedEntityInstanceService
         throws IOException;
 
     /**
-     * Fetches a List of {@see TrackedEntityInstance} based on the specified
-     * parameters. This methods beh
+     * Fetches a List of {@see TrackedEntity} based on the specified parameters.
+     * This methods beh
      *
      * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
      *        with the query parameters
@@ -69,7 +70,7 @@ public interface TrackedEntityInstanceService
      * @param skipAccessValidation whether access validation should be ignored
      * @param skipSearchScopeValidation whether search scope validation should
      *        be ignored
-     * @return a List of {@see TrackedEntityInstance}
+     * @return a List of {@see TrackedEntity}
      */
     List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
@@ -81,12 +82,12 @@ public interface TrackedEntityInstanceService
 
     TrackedEntityInstance getTrackedEntityInstance( String uid, TrackedEntityInstanceParams params );
 
-    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance );
+    TrackedEntityInstance getTrackedEntityInstance( TrackedEntity entityInstance );
 
-    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+    TrackedEntityInstance getTrackedEntityInstance( TrackedEntity entityInstance,
         TrackedEntityInstanceParams params );
 
-    TrackedEntityInstance getTrackedEntityInstance( org.hisp.dhis.trackedentity.TrackedEntityInstance entityInstance,
+    TrackedEntityInstance getTrackedEntityInstance( TrackedEntity entityInstance,
         TrackedEntityInstanceParams params, User user );
 
     // -------------------------------------------------------------------------
