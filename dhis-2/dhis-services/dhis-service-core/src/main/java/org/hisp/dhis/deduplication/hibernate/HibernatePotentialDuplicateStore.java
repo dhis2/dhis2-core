@@ -288,15 +288,15 @@ public class HibernatePotentialDuplicateStore
     public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
         List<String> enrollments )
     {
-        List<Enrollment> pis = duplicate.getEnrollments()
+        List<Enrollment> enrollmentList = duplicate.getEnrollments()
             .stream()
             .filter( e -> !e.isDeleted() )
             .filter( e -> enrollments.contains( e.getUid() ) )
             .collect( Collectors.toList() );
 
-        pis.forEach( duplicate.getEnrollments()::remove );
+        enrollmentList.forEach( duplicate.getEnrollments()::remove );
 
-        pis.forEach( e -> {
+        enrollmentList.forEach( e -> {
             e.setEntityInstance( original );
             e.setLastUpdatedBy( currentUserService.getCurrentUser() );
             e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );

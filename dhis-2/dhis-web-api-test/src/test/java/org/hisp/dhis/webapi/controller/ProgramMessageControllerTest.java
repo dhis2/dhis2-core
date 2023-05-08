@@ -66,7 +66,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private Enrollment piA;
+    private Enrollment enrollmentA;
 
     @BeforeEach
     void setUp()
@@ -77,21 +77,22 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
         idObjectManager.save( prA );
         TrackedEntityInstance teiA = createTrackedEntityInstance( 'A', ouA );
         teiService.addTrackedEntityInstance( teiA );
-        piA = createEnrollment( prA, teiA, ouA );
-        piService.addEnrollment( piA );
+        enrollmentA = createEnrollment( prA, teiA, ouA );
+        piService.addEnrollment( enrollmentA );
     }
 
     @Test
     void testGetProgramMessages()
     {
-        assertTrue( GET( "/messages?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
+        assertTrue( GET( "/messages?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK ).isArray() );
     }
 
     @Test
     void testGetScheduledSentMessage()
     {
         assertTrue(
-            GET( "/messages/scheduled/sent?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
+            GET( "/messages/scheduled/sent?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK )
+                .isArray() );
     }
 
     @Test

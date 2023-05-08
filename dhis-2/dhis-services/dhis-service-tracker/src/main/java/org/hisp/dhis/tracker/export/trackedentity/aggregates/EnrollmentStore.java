@@ -58,7 +58,7 @@ public interface EnrollmentStore
     Multimap<String, TrackedEntityComment> getNotes( List<Long> ids );
 
     /**
-     * Fetches all the relationships having the Enrollment id specified in the
+     * Fetches all the relationships having the enrollment id specified in the
      * arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys

@@ -79,7 +79,7 @@ public class EnrollmentCriteriaMapper
      *
      * @param ou the set of organisation unit identifiers.
      * @param ouMode the OrganisationUnitSelectionMode.
-     * @param lastUpdated the last updated for PI.
+     * @param lastUpdated the last updated for enrollment.
      * @param lastUpdatedDuration the last updated duration filter.
      * @param programUid the Program identifier.
      * @param programStatus the ProgramStatus in the given program.

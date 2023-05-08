@@ -690,7 +690,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         // ensure that EnrollmentAggregate is called and attaches the enrollments attributes (program attributes)
         List<Enrollment> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getEnrollments() );
         Optional<Enrollment> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
+            .filter( enrollment -> enrollment.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         assertContainsOnly( Set.of( "C" ),
             attributeNames( enrollmentA.get().getEntityInstance().getTrackedEntityAttributeValues() ) );
     }
@@ -734,7 +734,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         // ensure that EventAggregate is called and attaches the events with notes
         List<Enrollment> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getEnrollments() );
         Optional<Enrollment> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
+            .filter( enrollment -> enrollment.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         Set<Event> events = enrollmentA.get().getEvents();
         assertContainsOnly( Set.of( eventA ), events );
         assertContainsOnly( Set.of( note1 ), events.stream().findFirst().get().getComments() );
@@ -759,7 +759,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             uids( trackedEntities.get( 0 ).getEnrollments() ) );
         List<Enrollment> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getEnrollments() );
         Optional<Enrollment> enrollmentA = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
+            .filter( enrollment -> enrollment.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         assertIsEmpty( enrollmentA.get().getEvents() );
     }
 
@@ -809,7 +809,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         List<Enrollment> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getEnrollments() );
         Optional<Enrollment> enrollmentOpt = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( enrollmentA.getUid() ) ).findFirst();
+            .filter( enrollment -> enrollment.getUid().equals( enrollmentA.getUid() ) ).findFirst();
         assertTrue( enrollmentOpt.isPresent() );
         Enrollment enrollment = enrollmentOpt.get();
         assertAll(
@@ -849,7 +849,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
 
         List<Enrollment> enrollments = new ArrayList<>( trackedEntities.get( 0 ).getEnrollments() );
         Optional<Enrollment> enrollmentOpt = enrollments.stream()
-            .filter( pi -> pi.getUid().equals( enrollmentA.getUid() ) ).findFirst();
+            .filter( enrollment -> enrollment.getUid().equals( enrollmentA.getUid() ) ).findFirst();
         assertTrue( enrollmentOpt.isPresent() );
         Enrollment enrollment = enrollmentOpt.get();
         Optional<Event> eventOpt = enrollment.getEvents().stream().findFirst();

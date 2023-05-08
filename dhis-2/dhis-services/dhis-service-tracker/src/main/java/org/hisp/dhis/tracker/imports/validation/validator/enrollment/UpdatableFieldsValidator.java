@@ -47,9 +47,9 @@ class UpdatableFieldsValidator
     public void validate( Reporter reporter, TrackerBundle bundle,
         org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
     {
-        Enrollment pi = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
-        Program program = pi.getProgram();
-        TrackedEntityInstance trackedEntityInstance = pi.getEntityInstance();
+        Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
+        Program program = preheatEnrollment.getProgram();
+        TrackedEntityInstance trackedEntityInstance = preheatEnrollment.getEntityInstance();
 
         reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
             "program" );

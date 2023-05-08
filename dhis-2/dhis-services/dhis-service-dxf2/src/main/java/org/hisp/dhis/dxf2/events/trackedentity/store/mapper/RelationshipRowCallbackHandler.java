@@ -142,9 +142,9 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship>
             break;
         case "pi":
 
-            Enrollment pi = new Enrollment();
-            pi.setEnrollment( uid );
-            ri.setEnrollment( pi );
+            Enrollment enrollment = new Enrollment();
+            enrollment.setEnrollment( uid );
+            ri.setEnrollment( enrollment );
             break;
         case "psi":
 

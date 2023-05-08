@@ -45,7 +45,7 @@ public interface RelationshipService
         throws ForbiddenException,
         NotFoundException;
 
-    List<Relationship> getRelationshipsByEnrollment( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter criteria )
         throws ForbiddenException,
         NotFoundException;

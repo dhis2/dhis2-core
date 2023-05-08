@@ -147,7 +147,7 @@ public class DeduplicationHelper
             .collect( Collectors.toSet() );
 
         String duplicateEnrollment = duplicate.getEnrollments().stream()
-            .filter( pi -> mergeObject.getEnrollments().contains( pi.getUid() ) )
+            .filter( enrollment -> mergeObject.getEnrollments().contains( enrollment.getUid() ) )
             .map( Enrollment::getProgram )
             .map( IdentifiableObject::getUid )
             .filter( programUidOfExistingEnrollments::contains )

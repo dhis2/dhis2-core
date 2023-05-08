@@ -113,8 +113,8 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( @Nonnull List<String> uids );
 
     /**
-     * Checks for the existence of a PI by UID. Deleted values are not taken
-     * into account.
+     * Checks for the existence of an enrollment by UID. Deleted values are not
+     * taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -122,8 +122,8 @@ public interface EnrollmentService
     boolean enrollmentExists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the
-     * deleted values.
+     * Checks for the existence of an enrollment by UID. Takes into account also
+     * the deleted values.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -144,7 +144,7 @@ public interface EnrollmentService
      * EnrollmentQueryParams.
      *
      * @param params the EnrollmentQueryParams.
-     * @return List of PIs matching the params
+     * @return List of enrollments matching the params
      */
     List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
@@ -153,7 +153,7 @@ public interface EnrollmentService
      * EnrollmentQueryParams.
      *
      * @param params the EnrollmentQueryParams.
-     * @return Number of PIs matching the params
+     * @return Number of enrollments matching the params
      */
     int countEnrollments( EnrollmentQueryParams params );
 

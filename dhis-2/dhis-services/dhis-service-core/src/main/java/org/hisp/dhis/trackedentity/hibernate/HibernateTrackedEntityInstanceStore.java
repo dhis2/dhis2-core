@@ -526,14 +526,14 @@ public class HibernateTrackedEntityInstanceStore
             .append( getFromSubQueryJoinAttributeConditions( params ) )
             .append( getFromSubQueryJoinProgramOwnerConditions( params ) )
             .append( getFromSubQueryJoinOrgUnitConditions( params ) )
-            .append( getFromSubQueryJoinProgramInstanceConditions( params ) )
+            .append( getFromSubQueryJoinEnrollmentConditions( params ) )
 
             // LEFT JOIN attributes we need to sort on.
             .append( getFromSubQueryJoinOrderByAttributes( params ) )
 
             // WHERE
             .append( getFromSubQueryTrackedEntityConditions( whereAnd, params ) )
-            .append( getFromSubQueryProgramInstanceConditions( whereAnd, params ) );
+            .append( getFromSubQueryEnrollmentConditions( whereAnd, params ) );
 
         if ( !isCountQuery )
         {
@@ -943,7 +943,7 @@ public class HibernateTrackedEntityInstanceStore
      * @param params
      * @return a SQL INNER JOIN for enrollments
      */
-    private String getFromSubQueryJoinProgramInstanceConditions( TrackedEntityInstanceQueryParams params )
+    private String getFromSubQueryJoinEnrollmentConditions( TrackedEntityInstanceQueryParams params )
     {
         if ( params.getOrders().stream().anyMatch( p -> ENROLLED_AT.isPropertyEqualTo( p.getField() ) ) )
         {
@@ -965,7 +965,7 @@ public class HibernateTrackedEntityInstanceStore
      * @return an SQL EXISTS clause for programinstance, or empty string if not
      *         program is specified.
      */
-    private String getFromSubQueryProgramInstanceConditions( SqlHelper whereAnd,
+    private String getFromSubQueryEnrollmentConditions( SqlHelper whereAnd,
         TrackedEntityInstanceQueryParams params )
     {
         StringBuilder program = new StringBuilder();
