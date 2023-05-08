@@ -41,7 +41,6 @@ import org.hisp.dhis.security.MappedRedirectStrategy;
 import org.hisp.dhis.security.authtentication.CustomAuthFailureHandler;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
-import org.hisp.dhis.security.oidc.OIDCLoginEnabledCondition;
 import org.hisp.dhis.security.spring2fa.TwoFactorAuthenticationProvider;
 import org.hisp.dhis.security.spring2fa.TwoFactorWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.vote.ActionAccessVoter;
@@ -57,7 +56,6 @@ import org.hisp.dhis.webapi.security.vote.SimpleAccessVoter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.annotation.Order;
@@ -137,7 +135,6 @@ public class DhisWebCommonsWebSecurityConfig
 
     @Bean
     @Order( 100 )
-    @Conditional( value = OIDCLoginEnabledCondition.class )
     public SecurityFilterChain formSecurityFilterChain( HttpSecurity http )
         throws Exception
     {

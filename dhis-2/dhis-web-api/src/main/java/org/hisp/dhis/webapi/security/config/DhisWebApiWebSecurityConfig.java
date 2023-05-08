@@ -57,7 +57,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
 import org.hisp.dhis.webapi.security.apikey.Dhis2ApiTokenFilter;
@@ -244,7 +243,7 @@ public class DhisWebApiWebSecurityConfig
             .httpBasic()
 
             .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-            .authenticationEntryPoint( strutsLessFormLoginBasicAuthenticationEntryPoint() )
+            .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() )
 
             .addObjectPostProcessor( new ObjectPostProcessor<BasicAuthenticationFilter>()
             {
@@ -291,6 +290,7 @@ public class DhisWebApiWebSecurityConfig
                     .anyRequest().authenticated() )
 
                 .formLogin()
+
                 .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
 
                 .loginPage( "/index.html" )
@@ -405,26 +405,6 @@ public class DhisWebApiWebSecurityConfig
     public FormLoginBasicAuthenticationEntryPoint formLoginBasicAuthenticationEntryPoint()
     {
         return new FormLoginBasicAuthenticationEntryPoint( "/dhis-web-commons/security/login.action" );
-    }
-
-    @Bean
-    public FormLoginBasicAuthenticationEntryPoint strutsLessFormLoginBasicAuthenticationEntryPoint()
-    {
-        return new FormLoginBasicAuthenticationEntryPoint( "/" );
-    }
-
-    /**
-     * HTTP Basic entrypoint for the /api server when running in embedded Jetty
-     * mode. We don't want to redirect into the web pages, since they are not
-     * running.
-     *
-     * @return EmbeddedJettyBasicAuthenticationEntryPoint entryPoint to use in
-     *         http config.
-     */
-    @Bean
-    public EmbeddedJettyBasicAuthenticationEntryPoint embeddedJettyBasicAuthenticationEntryPoint()
-    {
-        return new EmbeddedJettyBasicAuthenticationEntryPoint( "DHIS2_API" );
     }
 
     /**
