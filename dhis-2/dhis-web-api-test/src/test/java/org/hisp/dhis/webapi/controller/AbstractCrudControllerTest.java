@@ -766,6 +766,13 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
     }
 
+    @Test
+    void testDeleteDashboard()
+    {
+        POST( "/metadata", Body( "dashboard/create_dashboard.json" ) ).content( HttpStatus.OK );
+        assertWebMessage( "OK", 200, "OK", null, DELETE( "/dashboards/f1OijtLnf8a" ).content( HttpStatus.OK ) );
+    }
+
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
     {
         JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId, userId ).content()

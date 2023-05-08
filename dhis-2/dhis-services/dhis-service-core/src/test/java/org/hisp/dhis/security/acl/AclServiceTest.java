@@ -1229,7 +1229,7 @@ class AclServiceTest extends TransactionalIntegrationTest
         categoryOption.getSharing().setOwner( userA );
         manager.save( categoryOption );
 
-        assertTrue( aclService.canDataRead( userA, categoryOption ) );
+        assertFalse( aclService.canDataRead( userA, categoryOption ) );
     }
 
     @Test
