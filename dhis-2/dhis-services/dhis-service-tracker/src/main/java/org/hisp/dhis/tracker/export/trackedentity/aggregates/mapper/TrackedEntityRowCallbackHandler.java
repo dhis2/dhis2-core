@@ -44,13 +44,13 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceRowCallbackHandler
+public class TrackedEntityRowCallbackHandler
     implements
     RowCallbackHandler
 {
     private final Map<String, TrackedEntity> items;
 
-    public TrackedEntityInstanceRowCallbackHandler()
+    public TrackedEntityRowCallbackHandler()
     {
         this.items = new LinkedHashMap<>();
     }
