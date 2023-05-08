@@ -114,7 +114,7 @@ public class DefaultTrackedEntityService
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityAuditService trackedEntityAuditService;
 
     private final TrackedEntityAttributeValueAuditService attributeValueAuditService;
 
@@ -129,7 +129,7 @@ public class DefaultTrackedEntityService
         OrganisationUnitService organisationUnitService,
         CurrentUserService currentUserService, AclService aclService,
         @Lazy TrackerOwnershipManager trackerOwnershipAccessManager,
-        @Lazy TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+        @Lazy TrackedEntityAuditService trackedEntityAuditService,
         @Lazy TrackedEntityAttributeValueAuditService attributeValueAuditService )
     {
         checkNotNull( trackedEntityStore );
@@ -140,7 +140,7 @@ public class DefaultTrackedEntityService
         checkNotNull( currentUserService );
         checkNotNull( aclService );
         checkNotNull( trackerOwnershipAccessManager );
-        checkNotNull( trackedEntityInstanceAuditService );
+        checkNotNull( trackedEntityAuditService );
         checkNotNull( attributeValueAuditService );
 
         this.trackedEntityStore = trackedEntityStore;
@@ -151,7 +151,7 @@ public class DefaultTrackedEntityService
         this.currentUserService = currentUserService;
         this.aclService = aclService;
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.trackedEntityAuditService = trackedEntityAuditService;
         this.attributeValueAuditService = attributeValueAuditService;
     }
 
@@ -396,7 +396,7 @@ public class DefaultTrackedEntityService
             {
                 TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit(
                     entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
-                trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+                trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -967,7 +967,7 @@ public class DefaultTrackedEntityService
         {
             TrackedEntityInstanceAudit trackedEntityInstanceAudit = new TrackedEntityInstanceAudit(
                 trackedEntity.getUid(), user, auditType );
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
+            trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityInstanceAudit );
         }
     }
 }

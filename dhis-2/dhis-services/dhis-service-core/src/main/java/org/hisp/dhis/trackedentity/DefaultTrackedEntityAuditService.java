@@ -43,9 +43,9 @@ import org.springframework.transaction.annotation.Transactional;
  *
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService" )
-public class DefaultTrackedEntityInstanceAuditService
-    implements TrackedEntityInstanceAuditService
+@Service( "org.hisp.dhis.trackedentity.TrackedEntityAuditService" )
+public class DefaultTrackedEntityAuditService
+    implements TrackedEntityAuditService
 {
     private final TrackedEntityInstanceAuditStore trackedEntityInstanceAuditStore;
 
@@ -56,7 +56,7 @@ public class DefaultTrackedEntityInstanceAuditService
     private final CurrentUserService currentUserService;
 
     // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
+    // TrackedEntityAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override

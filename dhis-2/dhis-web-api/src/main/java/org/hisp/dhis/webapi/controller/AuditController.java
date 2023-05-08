@@ -86,8 +86,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -126,7 +126,7 @@ public class AuditController
 
     private final DataApprovalAuditService dataApprovalAuditService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityAuditService trackedEntityAuditService;
 
     private final FieldFilterService fieldFilterService;
 
@@ -480,15 +480,15 @@ public class AuditController
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            int total = trackedEntityInstanceAuditService.getTrackedEntityInstanceAuditsCount( params );
+            int total = trackedEntityAuditService.getTrackedEntityInstanceAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
 
-            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits( params );
+            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits( params );
         }
         else
         {
-            teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits(
+            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits(
                 new TrackedEntityAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )

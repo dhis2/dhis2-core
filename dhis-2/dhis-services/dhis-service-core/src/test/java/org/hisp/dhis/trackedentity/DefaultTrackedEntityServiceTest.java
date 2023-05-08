@@ -79,7 +79,7 @@ class DefaultTrackedEntityServiceTest
     private TrackerOwnershipManager trackerOwnershipAccessManager;
 
     @Mock
-    private TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private TrackedEntityAuditService trackedEntityAuditService;
 
     @Mock
     private TrackedEntityAttributeValueAuditService attributeValueAuditService;
@@ -93,7 +93,7 @@ class DefaultTrackedEntityServiceTest
     {
         teiService = new DefaultTrackedEntityService( trackedEntityStore, attributeValueService,
             attributeService, trackedEntityTypeService, organisationUnitService,
-            currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityInstanceAuditService,
+            currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityAuditService,
             attributeValueAuditService );
 
         User user = new User();

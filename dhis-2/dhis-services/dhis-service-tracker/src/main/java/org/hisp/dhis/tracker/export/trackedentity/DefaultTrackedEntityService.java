@@ -55,7 +55,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -85,7 +85,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityAuditService trackedEntityAuditService;
 
     private final CurrentUserService currentUserService;
 
@@ -473,7 +473,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
         }
     }
 

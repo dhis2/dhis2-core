@@ -90,7 +90,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -142,7 +142,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     protected EnrollmentService programInstanceService;
 
-    protected TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    protected TrackedEntityAuditService trackedEntityAuditService;
 
     protected CurrentUserService currentUserService;
 
@@ -228,7 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
         }
     }
 

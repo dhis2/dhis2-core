@@ -70,7 +70,7 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     // -------------------------------------------------------------------------
-    // TrackedEntityInstanceAuditService implementation
+    // TrackedEntityAuditService implementation
     // -------------------------------------------------------------------------
 
     @Override
