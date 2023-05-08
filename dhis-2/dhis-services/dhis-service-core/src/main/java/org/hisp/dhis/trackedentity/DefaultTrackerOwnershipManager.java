@@ -84,7 +84,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final DhisConfigurationProvider config;
 
@@ -93,7 +93,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         ProgramTempOwnershipAuditService programTempOwnershipAuditService,
         ProgramTempOwnerService programTempOwnerService,
         ProgramOwnershipHistoryService programOwnershipHistoryService,
-        TrackedEntityInstanceService trackedEntityInstanceService,
+        TrackedEntityService trackedEntityService,
         OrganisationUnitService organisationUnitService, DhisConfigurationProvider config, Environment env )
     {
         checkNotNull( currentUserService );
@@ -112,7 +112,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         this.programOwnershipHistoryService = programOwnershipHistoryService;
         this.programTempOwnerService = programTempOwnerService;
         this.organisationUnitService = organisationUnitService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.trackedEntityService = trackedEntityService;
         this.config = config;
         this.ownerCache = cacheProvider.createProgramOwnerCache();
         this.tempOwnerCache = cacheProvider.createProgramTempOwnerCache();
@@ -423,7 +423,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
         return tempOwnerCache
             .get( getTempOwnershipCacheKey( entityInstanceUid, program.getUid(), user.getUid() ), s -> {
-                TrackedEntity entityInstance = trackedEntityInstanceService
+                TrackedEntity entityInstance = trackedEntityService
                     .getTrackedEntityInstance( entityInstanceUid );
                 if ( entityInstance == null )
                 {

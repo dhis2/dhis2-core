@@ -61,7 +61,7 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -77,7 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EnrollmentSMSListener extends CompressionSMSListener
 {
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
     private final EnrollmentService enrollmentService;
 
@@ -93,7 +93,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
         EventService eventService,
-        TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityService teiService,
         EnrollmentService enrollmentService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,

@@ -71,7 +71,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     private TrackedEntityDataValueAuditStore auditStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;

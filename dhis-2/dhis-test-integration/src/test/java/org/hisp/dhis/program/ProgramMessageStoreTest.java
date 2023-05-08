@@ -48,7 +48,7 @@ import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -120,7 +120,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private OrganisationUnitService orgUnitService;
 
     @Autowired
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Autowired
     private ProgramService programService;
@@ -129,7 +129,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private EventStore eventStore;

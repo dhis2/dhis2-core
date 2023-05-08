@@ -36,7 +36,7 @@ import java.util.Date;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -58,7 +58,7 @@ class LastUpdateImportTest extends TrackerTest
     private IdentifiableObjectManager manager;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity;
 
@@ -86,7 +86,7 @@ class LastUpdateImportTest extends TrackerTest
             .value( "value" )
             .build();
         trackedEntity.setAttributes( Collections.singletonList( attribute ) );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
         assertTrue( manager.get( TrackedEntity.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
@@ -98,7 +98,7 @@ class LastUpdateImportTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
 
@@ -115,7 +115,7 @@ class LastUpdateImportTest extends TrackerTest
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_enrollment.json" );
-        Date lastUpdateBefore = trackedEntityInstanceService
+        Date lastUpdateBefore = trackedEntityService
             .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
         Enrollment enrollment = trackerImportParams.getEnrollments().get( 0 );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );

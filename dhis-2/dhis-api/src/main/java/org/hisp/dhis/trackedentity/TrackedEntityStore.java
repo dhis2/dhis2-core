@@ -39,10 +39,10 @@ import org.hisp.dhis.user.User;
 /**
  * @author Abyot Asalefew Gizaw
  */
-public interface TrackedEntityInstanceStore
+public interface TrackedEntityStore
     extends IdentifiableObjectStore<TrackedEntity>
 {
-    String ID = TrackedEntityInstanceStore.class.getName();
+    String ID = TrackedEntityStore.class.getName();
 
     List<TrackedEntity> getTrackedEntityInstances( TrackedEntityInstanceQueryParams params );
 

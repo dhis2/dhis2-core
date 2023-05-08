@@ -55,7 +55,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -83,7 +83,7 @@ public class DeduplicationController
 {
     private final DeduplicationService deduplicationService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackerAccessManager trackerAccessManager;
 
@@ -268,7 +268,7 @@ public class DeduplicationController
     private TrackedEntity getTei( String tei )
         throws NotFoundException
     {
-        return Optional.ofNullable( trackedEntityInstanceService
+        return Optional.ofNullable( trackedEntityService
             .getTrackedEntityInstance( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
     }

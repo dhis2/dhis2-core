@@ -43,7 +43,7 @@ import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -79,7 +79,7 @@ public class PostCacheEventPublisher
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     @Qualifier( "cacheInvalidationServerId" )

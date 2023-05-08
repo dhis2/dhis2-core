@@ -39,7 +39,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
@@ -61,7 +61,7 @@ public class DefaultTrackerObjectsDeletionService
 {
     private final EnrollmentService enrollmentService;
 
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
     private final EventService eventService;
 

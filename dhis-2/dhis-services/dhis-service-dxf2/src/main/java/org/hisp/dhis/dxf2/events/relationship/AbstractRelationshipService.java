@@ -67,6 +67,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -99,7 +100,7 @@ public abstract class AbstractRelationshipService
 
     protected EventService eventService;
 
-    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    protected TrackedEntityService teiDaoService;
 
     protected UserService userService;
 

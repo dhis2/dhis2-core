@@ -47,7 +47,7 @@ import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -68,7 +68,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramService programService;
@@ -133,10 +133,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         tei3.setTrackedEntityType( teiType );
         tei4.setTrackedEntityType( teiType );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( tei1 );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei2 );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei3 );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei4 );
+        trackedEntityService.addTrackedEntityInstance( tei1 );
+        trackedEntityService.addTrackedEntityInstance( tei2 );
+        trackedEntityService.addTrackedEntityInstance( tei3 );
+        trackedEntityService.addTrackedEntityInstance( tei4 );
 
         enrollment1 = createEnrollment( program, tei1, orgUnitA );
         enrollment2 = createEnrollment( program, tei2, orgUnitA );
@@ -167,7 +167,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
             false, false );
 
         assertNotNull( teis );
@@ -186,7 +186,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
@@ -202,7 +202,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
@@ -220,7 +220,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityInstanceService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );

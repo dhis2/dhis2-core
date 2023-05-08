@@ -65,7 +65,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -97,7 +97,7 @@ class EventCriteriaMapper
 
     private final AclService aclService;
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService entityInstanceService;
 
     private final TrackedEntityAttributeService attributeService;
 

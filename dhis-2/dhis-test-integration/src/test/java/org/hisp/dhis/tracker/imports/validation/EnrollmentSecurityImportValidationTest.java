@@ -46,7 +46,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
 class EnrollmentSecurityImportValidationTest extends TrackerTest
 {
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;

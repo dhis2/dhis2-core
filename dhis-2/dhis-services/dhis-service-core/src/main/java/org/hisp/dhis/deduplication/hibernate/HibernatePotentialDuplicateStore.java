@@ -72,7 +72,7 @@ import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
@@ -88,7 +88,7 @@ public class HibernatePotentialDuplicateStore
 {
     private final AuditManager auditManager;
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityStore trackedEntityStore;
 
     private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
@@ -96,13 +96,13 @@ public class HibernatePotentialDuplicateStore
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager,
+        TrackedEntityStore trackedEntityStore, AuditManager auditManager,
         TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
         DhisConfigurationProvider config )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.trackedEntityStore = trackedEntityStore;
         this.auditManager = auditManager;
         this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
         this.config = config;
@@ -312,7 +312,7 @@ public class HibernatePotentialDuplicateStore
     @Override
     public void removeTrackedEntity( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceStore.delete( trackedEntity );
+        trackedEntityStore.delete( trackedEntity );
     }
 
     @Override

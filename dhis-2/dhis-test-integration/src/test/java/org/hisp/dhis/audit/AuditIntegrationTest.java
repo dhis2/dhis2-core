@@ -53,7 +53,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.Disabled;
@@ -79,7 +79,7 @@ class AuditIntegrationTest extends IntegrationTestBase
     private DataElementService dataElementService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackedEntityAttributeValueService attributeValueService;
@@ -119,7 +119,7 @@ class AuditIntegrationTest extends IntegrationTestBase
         manager.save( ou );
         manager.save( attribute );
         TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei );
+        trackedEntityService.addTrackedEntityInstance( tei );
         AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( tei.getUid() ) ).build();
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
         List<Audit> audits = auditService.getAudits( query );
@@ -139,7 +139,7 @@ class AuditIntegrationTest extends IntegrationTestBase
         manager.save( ou );
         manager.save( attribute );
         TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
-        trackedEntityInstanceService.addTrackedEntityInstance( tei );
+        trackedEntityService.addTrackedEntityInstance( tei );
         TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue( 'A', tei, attribute );
         attributeValueService.addTrackedEntityAttributeValue( dataValue );
         AuditAttributes attributes = new AuditAttributes();

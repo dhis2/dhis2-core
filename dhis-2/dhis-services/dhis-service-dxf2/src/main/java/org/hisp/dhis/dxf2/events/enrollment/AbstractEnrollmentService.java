@@ -105,6 +105,7 @@ import org.hisp.dhis.system.util.GeoUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -149,7 +150,7 @@ public abstract class AbstractEnrollmentService
 
     protected RelationshipService relationshipService;
 
-    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+    protected TrackedEntityService teiService;
 
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 

@@ -51,7 +51,7 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEve
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -75,7 +75,7 @@ public class DefaultEnrollmentService
 
     private final CurrentUserService currentUserService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -451,7 +451,7 @@ public class DefaultEnrollmentService
         // -----------------------------------------------------------------
 
         updateEnrollment( enrollment );
-        trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntity );
+        trackedEntityService.updateTrackedEntityInstance( trackedEntity );
 
         return enrollment;
     }

@@ -80,6 +80,7 @@ import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -104,7 +105,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    private TrackedEntityService teiDaoService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;

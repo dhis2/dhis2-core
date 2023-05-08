@@ -53,7 +53,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -84,7 +84,7 @@ public class RelationshipsExportController
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
     @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     @Nonnull
     private final EnrollmentService enrollmentService;
@@ -113,7 +113,7 @@ public class RelationshipsExportController
     void setupMaps()
     {
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
-            .put( TrackedEntity.class, trackedEntityInstanceService::getTrackedEntityInstance )
+            .put( TrackedEntity.class, trackedEntityService::getTrackedEntityInstance )
             .put( Enrollment.class, enrollmentService::getEnrollment )
             .put( Event.class, eventService::getEvent )
             .build();

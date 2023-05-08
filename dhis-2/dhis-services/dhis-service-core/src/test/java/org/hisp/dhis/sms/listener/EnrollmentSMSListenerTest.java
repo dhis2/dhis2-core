@@ -73,7 +73,7 @@ import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -130,7 +130,7 @@ class EnrollmentSMSListenerTest
     // Needed for this test
 
     @Mock
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Mock
     private EnrollmentService enrollmentService;
