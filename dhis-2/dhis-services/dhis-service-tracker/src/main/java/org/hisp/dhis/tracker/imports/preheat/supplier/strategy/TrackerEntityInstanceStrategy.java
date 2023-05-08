@@ -37,7 +37,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityInstanceMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityMapper.class )
 public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull

@@ -40,9 +40,9 @@ import org.mapstruct.factory.Mappers;
     TrackedEntityTypeMapper.class,
     AttributeValueMapper.class
 } )
-public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity>
+public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity>
 {
-    TrackedEntityInstanceMapper INSTANCE = Mappers.getMapper( TrackedEntityInstanceMapper.class );
+    TrackedEntityMapper INSTANCE = Mappers.getMapper( TrackedEntityMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
     @Mapping( target = "id" )
