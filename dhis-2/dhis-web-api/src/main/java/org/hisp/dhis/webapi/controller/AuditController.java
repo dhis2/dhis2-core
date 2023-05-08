@@ -85,8 +85,8 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityDataValueAuditQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
@@ -468,7 +468,7 @@ public class AuditController
 
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
-        TrackedEntityInstanceAuditQueryParams params = new TrackedEntityInstanceAuditQueryParams()
+        TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( tei )
             .setUsers( user )
             .setAuditTypes( auditTypes )
@@ -489,7 +489,7 @@ public class AuditController
         else
         {
             teiAudits = trackedEntityInstanceAuditService.getTrackedEntityInstanceAudits(
-                new TrackedEntityInstanceAuditQueryParams()
+                new TrackedEntityAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )
                     .setAuditTypes( auditTypes )

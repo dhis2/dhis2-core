@@ -42,7 +42,7 @@ import org.hisp.dhis.common.Pager;
  */
 @Data
 @Accessors( chain = true )
-public class TrackedEntityInstanceAuditQueryParams
+public class TrackedEntityAuditQueryParams
 {
     private List<String> trackedEntityInstances = new ArrayList<>();
 

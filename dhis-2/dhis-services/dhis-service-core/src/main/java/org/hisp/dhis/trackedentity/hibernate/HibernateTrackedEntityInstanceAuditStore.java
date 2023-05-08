@@ -45,7 +45,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditStore;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -119,7 +119,7 @@ public class HibernateTrackedEntityInstanceAuditStore
 
     @Override
     public List<TrackedEntityInstanceAudit> getTrackedEntityInstanceAudits(
-        TrackedEntityInstanceAuditQueryParams params )
+        TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -138,7 +138,7 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     @Override
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityInstanceAuditQueryParams params )
+    public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
@@ -148,7 +148,7 @@ public class HibernateTrackedEntityInstanceAuditStore
     }
 
     private List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates(
-        TrackedEntityInstanceAuditQueryParams params, CriteriaBuilder builder )
+        TrackedEntityAuditQueryParams params, CriteriaBuilder builder )
     {
         List<Function<Root<TrackedEntityInstanceAudit>, Predicate>> predicates = new ArrayList<>();
 
