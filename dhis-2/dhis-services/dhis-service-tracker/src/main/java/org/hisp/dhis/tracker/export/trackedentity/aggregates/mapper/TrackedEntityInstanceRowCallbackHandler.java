@@ -37,8 +37,8 @@ import java.util.Map;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery.COLUMNS;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery.COLUMNS;
 import org.springframework.jdbc.core.RowCallbackHandler;
 
 /**
@@ -61,40 +61,40 @@ public class TrackedEntityInstanceRowCallbackHandler
 
         TrackedEntity tei = new TrackedEntity();
         tei.setUid(
-            rs.getString( TrackedEntityInstanceQuery.getColumnName( COLUMNS.UID ) ) );
+            rs.getString( TrackedEntityQuery.getColumnName( COLUMNS.UID ) ) );
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid(
-            rs.getString( TrackedEntityInstanceQuery.getColumnName( COLUMNS.TYPE_UID ) ) );
+            rs.getString( TrackedEntityQuery.getColumnName( COLUMNS.TYPE_UID ) ) );
         tei.setTrackedEntityType( trackedEntityType );
 
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setUid( rs
-            .getString( TrackedEntityInstanceQuery.getColumnName( COLUMNS.ORGUNIT_UID ) ) );
+            .getString( TrackedEntityQuery.getColumnName( COLUMNS.ORGUNIT_UID ) ) );
         tei.setOrganisationUnit( orgUnit );
 
         tei.setCreated(
-            rs.getTimestamp( TrackedEntityInstanceQuery.getColumnName( COLUMNS.CREATED ) ) );
+            rs.getTimestamp( TrackedEntityQuery.getColumnName( COLUMNS.CREATED ) ) );
         tei.setCreatedAtClient( rs.getTimestamp(
-            TrackedEntityInstanceQuery.getColumnName( COLUMNS.CREATEDCLIENT ) ) );
+            TrackedEntityQuery.getColumnName( COLUMNS.CREATEDCLIENT ) ) );
         setUserInfoSnapshot( rs,
-            TrackedEntityInstanceQuery.getColumnName( COLUMNS.CREATED_BY ),
+            TrackedEntityQuery.getColumnName( COLUMNS.CREATED_BY ),
             tei::setCreatedByUserInfo );
         tei.setLastUpdated(
-            rs.getTimestamp( TrackedEntityInstanceQuery.getColumnName( COLUMNS.UPDATED ) ) );
+            rs.getTimestamp( TrackedEntityQuery.getColumnName( COLUMNS.UPDATED ) ) );
         tei.setLastUpdatedAtClient( rs.getTimestamp(
-            TrackedEntityInstanceQuery.getColumnName( COLUMNS.UPDATEDCLIENT ) ) );
+            TrackedEntityQuery.getColumnName( COLUMNS.UPDATEDCLIENT ) ) );
         setUserInfoSnapshot( rs,
-            TrackedEntityInstanceQuery.getColumnName( COLUMNS.LAST_UPDATED_BY ),
+            TrackedEntityQuery.getColumnName( COLUMNS.LAST_UPDATED_BY ),
             tei::setLastUpdatedByUserInfo );
         tei.setInactive(
-            rs.getBoolean( TrackedEntityInstanceQuery.getColumnName( COLUMNS.INACTIVE ) ) );
+            rs.getBoolean( TrackedEntityQuery.getColumnName( COLUMNS.INACTIVE ) ) );
         tei.setDeleted(
-            rs.getBoolean( TrackedEntityInstanceQuery.getColumnName( COLUMNS.DELETED ) ) );
+            rs.getBoolean( TrackedEntityQuery.getColumnName( COLUMNS.DELETED ) ) );
         tei.setPotentialDuplicate( rs.getBoolean(
-            TrackedEntityInstanceQuery.getColumnName( COLUMNS.POTENTIALDUPLICATE ) ) );
+            TrackedEntityQuery.getColumnName( COLUMNS.POTENTIALDUPLICATE ) ) );
         MapperGeoUtils
             .resolveGeometry(
-                rs.getBytes( TrackedEntityInstanceQuery.getColumnName( COLUMNS.GEOMETRY ) ) )
+                rs.getBytes( TrackedEntityQuery.getColumnName( COLUMNS.GEOMETRY ) ) )
             .ifPresent( tei::setGeometry );
 
         return tei;

@@ -41,7 +41,7 @@ import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwner
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityInstanceRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -58,7 +58,7 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityStore extends AbstractStore implements TrackedEntityStore
 {
-    private static final String GET_TEIS_SQL = TrackedEntityInstanceQuery.getQuery();
+    private static final String GET_TEIS_SQL = TrackedEntityQuery.getQuery();
 
     private static final String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
 
