@@ -34,7 +34,7 @@ import java.util.List;
 
 import org.hisp.dhis.random.BeanRandomizer;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.Test;
@@ -54,7 +54,7 @@ class TrackerEntityInstanceStrategyTest
     private TrackerEntityInstanceStrategy strategy;
 
     @Mock
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityStore trackedEntityStore;
 
     @Mock
     private TrackerPreheat preheat;
@@ -73,10 +73,10 @@ class TrackerEntityInstanceStrategyTest
         splitUids.add( uids );
 
         List<TrackedEntity> trackedEntityInstances = trackedEntityInstances();
-        when( trackedEntityInstanceStore.getIncludingDeleted( uids ) ).thenReturn( trackedEntityInstances );
+        when( trackedEntityStore.getIncludingDeleted( uids ) ).thenReturn( trackedEntityInstances );
         strategy.add( params, splitUids, preheat );
 
-        Mockito.verify( trackedEntityInstanceStore ).getIncludingDeleted( uids );
+        Mockito.verify( trackedEntityStore ).getIncludingDeleted( uids );
         Mockito.verify( preheat ).putTrackedEntities( trackedEntityInstances );
     }
 

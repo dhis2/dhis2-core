@@ -93,7 +93,7 @@ import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -109,10 +109,10 @@ import com.google.common.collect.Lists;
  * @author Abyot Asalefew Gizaw
  */
 @Slf4j
-@Repository( "org.hisp.dhis.trackedentity.TrackedEntityInstanceStore" )
-public class HibernateTrackedEntityInstanceStore
+@Repository( "org.hisp.dhis.trackedentity.TrackedEntityStore" )
+public class HibernateTrackedEntityStore
     extends SoftDeleteHibernateObjectStore<TrackedEntity>
-    implements TrackedEntityInstanceStore
+    implements TrackedEntityStore
 {
     private final static String TEI_HQL_BY_UIDS = "from TrackedEntity as tei where tei.uid in (:uids)";
 
@@ -153,7 +153,7 @@ public class HibernateTrackedEntityInstanceStore
     private final SystemSettingManager systemSettingManager;
 
     // TODO too many arguments in constructor. This needs to be refactored.
-    public HibernateTrackedEntityInstanceStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+    public HibernateTrackedEntityStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder,
         OrganisationUnitStore organisationUnitStore, SystemSettingManager systemSettingManager )

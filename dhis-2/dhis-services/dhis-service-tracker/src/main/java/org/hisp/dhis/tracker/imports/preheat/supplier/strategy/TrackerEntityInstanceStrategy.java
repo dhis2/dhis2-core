@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityInstanceMapper;
@@ -50,7 +50,7 @@ import org.springframework.stereotype.Component;
 public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityStore trackedEntityStore;
 
     @Override
     public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
@@ -58,7 +58,7 @@ public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
         for ( List<String> ids : splitList )
         {
             // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntity> trackedEntities = trackedEntityInstanceStore.getIncludingDeleted( ids );
+            List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted( ids );
 
             // Add to preheat
             preheat.putTrackedEntities(

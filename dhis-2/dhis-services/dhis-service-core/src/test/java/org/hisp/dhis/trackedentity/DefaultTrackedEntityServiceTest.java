@@ -55,7 +55,7 @@ class DefaultTrackedEntityServiceTest
 {
 
     @Mock
-    private TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private TrackedEntityStore trackedEntityStore;
 
     @Mock
     private TrackedEntityAttributeValueService attributeValueService;
@@ -91,7 +91,7 @@ class DefaultTrackedEntityServiceTest
     @BeforeEach
     void setup()
     {
-        teiService = new DefaultTrackedEntityService( trackedEntityInstanceStore, attributeValueService,
+        teiService = new DefaultTrackedEntityService( trackedEntityStore, attributeValueService,
             attributeService, trackedEntityTypeService, organisationUnitService,
             currentUserService, aclService, trackerOwnershipAccessManager, trackedEntityInstanceAuditService,
             attributeValueAuditService );
@@ -111,7 +111,7 @@ class DefaultTrackedEntityServiceTest
     @Test
     void exceptionThrownWhenTeiLimitReached()
     {
-        when( trackedEntityInstanceStore
+        when( trackedEntityStore
             .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
                 .thenReturn( 20 );
 
@@ -125,7 +125,7 @@ class DefaultTrackedEntityServiceTest
     @Test
     void noExceptionThrownWhenTeiLimitNotReached()
     {
-        when( trackedEntityInstanceStore
+        when( trackedEntityStore
             .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityInstanceQueryParams.class ) ) )
                 .thenReturn( 0 );
 

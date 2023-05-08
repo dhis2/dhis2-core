@@ -68,7 +68,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private TrackedEntityInstanceStore teiStore;
+    private TrackedEntityStore teiStore;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
