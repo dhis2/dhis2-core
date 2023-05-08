@@ -25,40 +25,17 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.programstagefilter;
 
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
-import org.hisp.dhis.security.Authority;
-import org.hisp.dhis.security.AuthorityType;
-
-import com.google.common.collect.Lists;
+import java.util.List;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public class ProgramStageInstanceFilterSchemaDescriptor implements SchemaDescriptor
+public interface EventFilterService
 {
-    public static final String SINGULAR = "eventFilter";
+    String ID = EventFilter.class.getName();
 
-    public static final String PLURAL = "eventFilters";
-
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( ProgramStageInstanceFilter.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-        schema.setDefaultPrivate( true );
-        schema.setImplicitPrivateAuthority( true );
-
-        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
-        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
-
-        return schema;
-    }
-
+    List<String> validate( EventFilter eventFilter );
 }

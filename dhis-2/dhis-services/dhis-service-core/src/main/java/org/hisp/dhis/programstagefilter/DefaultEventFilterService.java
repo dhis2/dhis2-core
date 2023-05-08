@@ -47,9 +47,9 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Ameen Mohamed <ameen@dhis2.org>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService" )
+@Service( "org.hisp.dhis.programstagefilter.EventFilterService" )
 @Transactional( readOnly = true )
-public class DefaultProgramStageInstanceFilterService implements ProgramStageInstanceFilterService
+public class DefaultEventFilterService implements EventFilterService
 {
     private final ProgramService programService;
 
@@ -57,40 +57,36 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
 
     private final OrganisationUnitService organisationUnitService;
 
-    // -------------------------------------------------------------------------
-    // ProgramStageInstanceFilterService implementation
-    // -------------------------------------------------------------------------
-
     @Override
-    public List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter )
+    public List<String> validate( EventFilter eventFilter )
     {
         List<String> errors = new ArrayList<>();
 
-        if ( programStageInstanceFilter.getProgram() == null )
+        if ( eventFilter.getProgram() == null )
         {
             errors.add( "Program should be specified for event filters." );
         }
         else
         {
-            Program pr = programService.getProgram( programStageInstanceFilter.getProgram() );
+            Program pr = programService.getProgram( eventFilter.getProgram() );
 
             if ( pr == null )
             {
-                errors.add( "Program is specified but does not exist: " + programStageInstanceFilter.getProgram() );
+                errors.add( "Program is specified but does not exist: " + eventFilter.getProgram() );
             }
         }
 
-        if ( programStageInstanceFilter.getProgramStage() != null )
+        if ( eventFilter.getProgramStage() != null )
         {
-            ProgramStage ps = programStageService.getProgramStage( programStageInstanceFilter.getProgramStage() );
+            ProgramStage ps = programStageService.getProgramStage( eventFilter.getProgramStage() );
             if ( ps == null )
             {
                 errors.add(
-                    "Program stage is specified but does not exist: " + programStageInstanceFilter.getProgramStage() );
+                    "Program stage is specified but does not exist: " + eventFilter.getProgramStage() );
             }
         }
 
-        EventQueryCriteria eventQC = programStageInstanceFilter.getEventQueryCriteria();
+        EventQueryCriteria eventQC = eventFilter.getEventQueryCriteria();
         if ( eventQC != null )
         {
             if ( eventQC.getOrganisationUnit() != null )
@@ -115,7 +111,7 @@ public class DefaultProgramStageInstanceFilterService implements ProgramStageIns
             }
 
             if ( eventQC.getDisplayColumnOrder() != null && eventQC.getDisplayColumnOrder().size() > 0
-                && (new HashSet<String>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder()
+                && (new HashSet<>( eventQC.getDisplayColumnOrder() )).size() < eventQC.getDisplayColumnOrder()
                     .size() )
             {
                 errors.add( "Event query criteria can not have duplicate column ordering fields" );

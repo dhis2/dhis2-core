@@ -25,17 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.programstagefilter;
+package org.hisp.dhis.programstagefilter.hibernate;
 
 import java.util.List;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.programstagefilter.EventFilter;
+import org.hisp.dhis.programstagefilter.EventFilterStore;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Ameen Mohamed <ameen@dhis2.org>
  *
  */
-public interface ProgramStageInstanceFilterService
+@Repository( "org.hisp.dhis.programstagefilter.EventFilterStore" )
+public class HibernateEventFilterStore
+    extends HibernateIdentifiableObjectStore<EventFilter>
+    implements EventFilterStore
 {
-    String ID = ProgramStageInstanceFilter.class.getName();
+    public HibernateEventFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, EventFilter.class, currentUserService,
+            aclService, false );
+    }
 
-    List<String> validate( ProgramStageInstanceFilter programStageInstanceFilter );
+    @Override
+    public List<EventFilter> getByProgram( String program )
+    {
+        String hql = "from EventFilter psif where psif.program =:program";
+        return getQuery( hql ).setParameter( "program", program ).getResultList();
+    }
+
 }

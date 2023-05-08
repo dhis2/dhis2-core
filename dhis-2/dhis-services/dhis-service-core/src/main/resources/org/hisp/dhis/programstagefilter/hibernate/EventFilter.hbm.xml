@@ -5,7 +5,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter" table="programstageinstancefilter">
+  <class name="org.hisp.dhis.programstagefilter.EventFilter" table="programstageinstancefilter">
 
     <cache usage="read-write" />
 
