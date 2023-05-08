@@ -31,6 +31,7 @@ import static java.util.stream.Collectors.joining;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.apache.commons.lang3.time.DateUtils.addYears;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
+import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LATITUDE;
 import static org.hisp.dhis.analytics.event.EventAnalyticsService.ITEM_LONGITUDE;
 import static org.hisp.dhis.analytics.event.data.OrgUnitTableJoiner.joinOrgUnitTables;
@@ -65,6 +66,7 @@ import org.apache.commons.math3.util.Precision;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.Rectangle;
+import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.ProgramIndicatorSubqueryBuilder;
 import org.hisp.dhis.analytics.event.EventAnalyticsManager;
@@ -86,7 +88,6 @@ import org.hisp.dhis.commons.util.ExpressionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicatorService;
 import org.postgresql.util.PSQLException;
@@ -365,8 +366,7 @@ public class JdbcEventAnalyticsManager
     {
         String sql = " from ";
 
-        if ( params.isAggregateData() && params.hasValueDimension()
-            && params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
+        if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
             sql += getFirstOrLastValueSubquerySql( params );
         }
@@ -412,8 +412,11 @@ public class JdbcEventAnalyticsManager
         // Periods
         // ---------------------------------------------------------------------
 
-        sql += hlp.whereAnd() + " "
-            + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
+        if ( !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
+        {
+            sql += hlp.whereAnd() + " "
+                + timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
+        }
 
         // ---------------------------------------------------------------------
         // Organisation units
@@ -558,14 +561,14 @@ public class JdbcEventAnalyticsManager
         // ---------------------------------------------------------------------
 
         if ( !params.isSkipPartitioning() && params.hasPartitions() && !params.hasNonDefaultBoundaries()
-            && !params.hasTimeField() )
+            && !params.hasTimeField() && !params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
         {
             sql += hlp.whereAnd() + " " + quoteAlias( "yearly" ) + OPEN_IN +
                 TextUtils.getQuotedCommaDelimitedString( params.getPartitions().getPartitions() ) + ") ";
         }
 
         // ---------------------------------------------------------------------
-        // Period rank restriction to get last value only
+        // Period rank restriction to get first or last value only
         // ---------------------------------------------------------------------
 
         if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
@@ -611,40 +614,50 @@ public class JdbcEventAnalyticsManager
 
     /**
      * Generates a sub query which provides a view of the data where each row is
-     * ranked by the execution date, latest first. The events are partitioned by
-     * org unit and attribute option combo. A column {@code pe_rank} defines the
-     * rank. Only data for the last 10 years relative to the period end date is
-     * included.
+     * ranked by the execution date, ascending or descending. The events are
+     * partitioned by org unit and attribute option combo. A column
+     * {@code pe_rank} defines the rank. Only data for the last 10 years
+     * relative to the period end date is included.
      *
      * @param params the {@link EventQueryParams}.
      */
     private String getFirstOrLastValueSubquerySql( EventQueryParams params )
     {
-        Assert.isTrue( params.hasValueDimension(), "Last value aggregation type query must have value dimension" );
+        Assert.isTrue( params.hasValueDimension() || params.hasProgramIndicatorDimension(),
+            "Last value aggregation type query must have value dimension or a program indicator" );
 
-        Date latest = params.getLatestEndDate();
-        Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
-        List<String> columns = getFirstOrLastValueSubqueryQuotedColumns( params );
+        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
+        String createdCol = quoteAlias( TimeField.CREATED.getField() );
         String partitionByClause = getFirstOrLastValuePartitionByClause( params );
         String order = params.getAggregationTypeFallback().isFirstPeriodAggregationType() ? "asc" : "desc";
-        String timeCol = quoteAlias( params.getTimeFieldAsFieldFallback() );
-        String valueItem = quoteAlias( params.getValue().getDimensionItem() );
 
-        String sql = "(select ";
+        String columns;
+        String timeTest;
+        String nullTest;
 
-        for ( String col : columns )
+        if ( params.hasProgramIndicatorDimension() )
         {
-            sql += col + ",";
+            columns = "*," + getProgramIndicatorSql( params ) + " as value";
+            timeTest = timeFieldSqlRenderer.renderPeriodTimeFieldSql( params );
+            nullTest = "";
+        }
+        else
+        {
+            String valueItem = quoteAlias( params.getValue().getDimensionItem() );
+            columns = quote( "psi" ) + "," + valueItem + "," + getFirstOrLastValueSubqueryQuotedColumns( params );
+
+            Date latest = params.getLatestEndDate();
+            Date earliest = addYears( latest, LAST_VALUE_YEARS_OFFSET );
+            timeTest = timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
+                "and " + timeCol + " <= '" + getMediumDateString( latest ) + "'";
+
+            nullTest = " and " + valueItem + " is not null";
         }
 
-        sql += "row_number() over (" + partitionByClause + " " +
-            "order by " + timeCol + " " + order + ") as pe_rank " +
+        return "(select " + columns + ",row_number() over (" + partitionByClause + " " +
+            "order by " + timeCol + " " + order + ", " + createdCol + " " + order + ") as pe_rank " +
             "from " + params.getTableName() + " as " + ANALYTICS_TBL_ALIAS + " " +
-            "where " + timeCol + " >= '" + getMediumDateString( earliest ) + "' " +
-            "and " + timeCol + " <= '" + getMediumDateString( latest ) + "' " +
-            "and " + valueItem + " is not null)";
-
-        return sql;
+            "where " + timeTest + nullTest + ")";
     }
 
     /**
@@ -701,39 +714,25 @@ public class JdbcEventAnalyticsManager
     }
 
     /**
-     * Returns quoted names of columns for the {@link AggregationType#LAST} sub
-     * query. The period dimension is replaced by the name of the single period
-     * in the given query.
+     * Returns quoted names of columns for the {@link AggregationType#FIRST} or
+     * {@link AggregationType#LAST} sub query (not for program indicators).
      *
      * @param params the {@link EventQueryParams}.
      */
-    private List<String> getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
+    private String getFirstOrLastValueSubqueryQuotedColumns( EventQueryParams params )
     {
-        Period period = params.getLatestPeriod();
+        return params.getDimensionsAndFilters().stream()
+            .map( dim -> quote( dim.getDimensionName() ) )
+            .collect( joining( "," ) );
+    }
 
-        String valueItem = params.getValue().getDimensionItem();
-
-        List<String> cols = Lists.newArrayList( "psi", "yearly", valueItem );
-
-        cols = cols.stream().map( col -> quote( col ) ).collect( Collectors.toList() );
-
-        for ( DimensionalObject dim : params.getDimensionsAndFilters() )
-        {
-            if ( DimensionType.PERIOD == dim.getDimensionType() && period != null )
-            {
-                String alias = quote( dim.getDimensionName() );
-                String col = "cast('" + period.getDimensionItem() + "' as text) as " + alias;
-
-                cols.remove( alias ); // Remove column if already present
-                cols.add( col );
-            }
-            else
-            {
-                cols.add( quote( dim.getDimensionName() ) );
-            }
-        }
-
-        return cols;
+    /**
+     * Returns the program indicator SQL from the query parameters.
+     */
+    private String getProgramIndicatorSql( EventQueryParams params )
+    {
+        return programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getExpression(), NUMERIC,
+            params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
     }
 
     @Override
