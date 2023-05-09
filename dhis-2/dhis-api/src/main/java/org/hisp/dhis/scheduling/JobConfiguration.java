@@ -132,8 +132,8 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
     private boolean inMemoryJob = false;
 
     /**
-     * Optional UID of the user that executes the job.
-     * (The user's authentication is set in the security context for the execution scope)
+     * Optional UID of the user that executes the job. (The user's
+     * authentication is set in the security context for the execution scope)
      */
     private String executedBy;
 
@@ -464,6 +464,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
     /**
      * Kept for backwards compatibility
+     *
      * @see #getExecutedBy()
      */
     @JacksonXmlProperty

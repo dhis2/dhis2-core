@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.scheduling;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.isNullOrEmpty;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
@@ -42,13 +41,7 @@ import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.system.notification.Notifier;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Service;
@@ -90,6 +83,7 @@ public class DefaultSchedulingManager extends AbstractSchedulingManager
     private final TaskScheduler jobScheduler;
 
     private final AsyncTaskExecutor taskExecutor;
+
     public DefaultSchedulingManager( SchedulingManagerSupport support )
     {
         super( support );

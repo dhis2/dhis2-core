@@ -66,6 +66,7 @@ import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.parameters.AnalyticsJobParameters;
 import org.hisp.dhis.scheduling.parameters.ContinuousAnalyticsJobParameters;
 import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.AuthenticationService;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -112,9 +113,9 @@ class SchedulingManagerTest
         when( cacheProvider.createCompletedJobsInfoCache() ).thenReturn( new TestCache<>() );
 
         schedulingManager = new DefaultSchedulingManager( new SchedulingManagerSupport(
-            mock( UserService.class), new DefaultJobService( applicationContext ),
+            mock( UserService.class ), mock( AuthenticationService.class ), new DefaultJobService( applicationContext ),
             jobConfigurationService, mock( MessageService.class ), mock( LeaderManager.class ), mock( Notifier.class ),
-            mock( EventHookPublisher.class ), cacheProvider, mock( AsyncTaskExecutor.class ), taskScheduler) );
+            mock( EventHookPublisher.class ), cacheProvider, mock( AsyncTaskExecutor.class ), taskScheduler ) );
     }
 
     @TestFactory

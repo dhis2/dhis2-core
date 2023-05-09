@@ -27,19 +27,14 @@
  */
 package org.hisp.dhis.scheduling;
 
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.eventhook.EventUtils;
-import org.hisp.dhis.scheduling.JobProgress.Process;
-import org.hisp.dhis.system.util.Clock;
-import org.slf4j.MDC;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.context.TransientSecurityContext;
+import static java.util.Collections.emptyList;
+import static java.util.Collections.unmodifiableCollection;
+import static java.util.Collections.unmodifiableSet;
+import static java.util.Comparator.comparing;
+import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
+import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
+import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
 
-import javax.annotation.PostConstruct;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Deque;
@@ -52,13 +47,17 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static java.util.Collections.emptyList;
-import static java.util.Collections.unmodifiableCollection;
-import static java.util.Collections.unmodifiableSet;
-import static java.util.Comparator.comparing;
-import static org.hisp.dhis.scheduling.JobStatus.COMPLETED;
-import static org.hisp.dhis.scheduling.JobStatus.DISABLED;
-import static org.hisp.dhis.scheduling.JobStatus.RUNNING;
+import javax.annotation.PostConstruct;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.commons.util.DebugUtils;
+import org.hisp.dhis.eventhook.EventUtils;
+import org.hisp.dhis.scheduling.JobProgress.Process;
+import org.hisp.dhis.system.util.Clock;
+import org.slf4j.MDC;
 
 /**
  * Base for synchronous or asynchronous {@link SchedulingManager} implementation
@@ -302,9 +301,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             // run the actual job
             support.getEventHookPublisher().publishEvent( EventUtils.schedulerStart( configuration ) );
 
-            switchToUserContext( configuration );
+            support.getAuthenticationService().obtainAuthentication( configuration.getExecutedBy() );
             support.getJobService().getJob( type ).execute( configuration, progress );
-            clearUserContext();
+            support.getAuthenticationService().clearAuthentication();
 
             Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
@@ -334,10 +333,10 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         }
         catch ( Exception ex )
         {
-            clearUserContext();
             progress.failedProcess( ex );
-            whenRunThrewException( configuration, ex, progress );
+            support.getAuthenticationService().clearAuthentication();
 
+            whenRunThrewException( configuration, ex, progress );
             support.getEventHookPublisher().publishEvent( EventUtils.schedulerFailed( configuration ) );
             return false;
         }
@@ -430,25 +429,5 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         cluster.keys().forEach( key -> all.add( JobType.valueOf( key ) ) );
         all.addAll( local.keySet() );
         return unmodifiableSet( all );
-    }
-
-    private SecurityContext createSecurityContext( JobConfiguration configuration )
-    {
-        return null;
-    }
-
-    private void switchToUserContext( JobConfiguration configuration )
-    {
-        if ( configuration.getExecutedBy() != null) {
-            // TODO new AuthentificationService
-        } else
-        {
-            clearUserContext();
-        }
-    }
-
-    private static void clearUserContext()
-    {
-        SecurityContextHolder.clearContext();
     }
 }

@@ -25,48 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling;
+package org.hisp.dhis.user;
 
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import javax.annotation.CheckForNull;
 
-import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.AsyncTaskExecutor;
-import org.hisp.dhis.eventhook.EventHookPublisher;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.AuthenticationService;
-import org.hisp.dhis.user.UserService;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.TaskScheduler;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.feedback.NotFoundException;
 
-@Component
-@Getter
-@RequiredArgsConstructor
-public class SchedulingManagerSupport
+/**
+ * Service that handles user authentication related actions. For example,
+ * switching the thread context in such a way that the thread effectively
+ * executing as a certain user.
+ *
+ * @author Jan Bernitt
+ */
+public interface AuthenticationService
 {
-    private final UserService userService;
+    /**
+     * Internally "login" as the provided user in the current thread without
+     * providing credentials of some sort.
+     * <p>
+     * A.k.a. "becoming" a certain user
+     * <p>
+     * When user parameter is undefined the current thread is unlinked from any
+     * user.
+     *
+     * @param userId as this user, maybe {@code null} to unlink the current
+     *        thread from a user
+     * @throws NotFoundException when no user with the provided ID exists
+     */
+    void obtainAuthentication( @CheckForNull String userId )
+        throws NotFoundException;
 
-    private final AuthenticationService authenticationService;
-
-    private final JobService jobService;
-
-    private final JobConfigurationService jobConfigurationService;
-
-    private final MessageService messageService;
-
-    private final LeaderManager leaderManager;
-
-    private final Notifier notifier;
-
-    private final EventHookPublisher eventHookPublisher;
-
-    private final CacheProvider cacheProvider;
-
-    private final AsyncTaskExecutor taskExecutor;
-
-    @Qualifier( "taskScheduler" )
-    private final TaskScheduler jobScheduler;
+    /**
+     * "Logout" or clear the current thread context.
+     * <p>
+     * A.k.a. unbecoming a any specific user.
+     */
+    void clearAuthentication();
 }
