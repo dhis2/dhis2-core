@@ -36,7 +36,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.UserInfoSnapshot;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
@@ -132,7 +132,7 @@ public class DefaultDeduplicationService
         merge( deduplicationMergeParams );
     }
 
-    private String getAutoMergeConflictErrors( TrackedEntityInstance original, TrackedEntityInstance duplicate )
+    private String getAutoMergeConflictErrors( TrackedEntity original, TrackedEntity duplicate )
     {
         if ( !original.getTrackedEntityType().equals( duplicate.getTrackedEntityType() ) )
         {
@@ -165,8 +165,8 @@ public class DefaultDeduplicationService
     private void merge( DeduplicationMergeParams params )
         throws PotentialDuplicateForbiddenException
     {
-        TrackedEntityInstance original = params.getOriginal();
-        TrackedEntityInstance duplicate = params.getDuplicate();
+        TrackedEntity original = params.getOriginal();
+        TrackedEntity duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
         String accessError = deduplicationHelper.getUserAccessErrors( original, duplicate, mergeObject );
@@ -207,7 +207,7 @@ public class DefaultDeduplicationService
     }
 
     private void updateTeiAndPotentialDuplicate( DeduplicationMergeParams deduplicationMergeParams,
-        TrackedEntityInstance original )
+        TrackedEntity original )
     {
         updateOriginalTei( original );
         updatePotentialDuplicateStatus( deduplicationMergeParams.getPotentialDuplicate() );
@@ -220,7 +220,7 @@ public class DefaultDeduplicationService
         potentialDuplicateStore.update( potentialDuplicate );
     }
 
-    private void updateOriginalTei( TrackedEntityInstance original )
+    private void updateOriginalTei( TrackedEntity original )
     {
         original.setLastUpdated( new Date() );
         original.setLastUpdatedBy( currentUserService.getCurrentUser() );

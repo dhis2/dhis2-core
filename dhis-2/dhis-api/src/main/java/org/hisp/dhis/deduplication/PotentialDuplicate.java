@@ -40,14 +40,14 @@ public class PotentialDuplicate
     extends BaseIdentifiableObject
 {
     /**
-     * original represents the UID of a TrackedEntityInstance. original is
-     * required. original is a potential duplicate of duplicate.
+     * original represents the UID of a TrackedEntity. original is required.
+     * original is a potential duplicate of duplicate.
      */
     private String original;
 
     /**
-     * duplicate represents the UID of a TrackedEntityInstance. duplicate is
-     * required. duplicate is a potential duplicate of original.
+     * duplicate represents the UID of a TrackedEntity. duplicate is required.
+     * duplicate is a potential duplicate of original.
      */
     private String duplicate;
 

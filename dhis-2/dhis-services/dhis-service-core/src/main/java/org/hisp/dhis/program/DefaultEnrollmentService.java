@@ -50,8 +50,8 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentCompletionNotif
 import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEvent;
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -75,7 +75,7 @@ public class DefaultEnrollmentService
 
     private final CurrentUserService currentUserService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -361,7 +361,7 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
+    public List<Enrollment> getEnrollments( TrackedEntity entityInstance, Program program,
         ProgramStatus status )
     {
         return enrollmentStore.get( entityInstance, program, status );
@@ -370,12 +370,12 @@ public class DefaultEnrollmentService
     @Nonnull
     @Override
     @Transactional
-    public Enrollment prepareEnrollment( TrackedEntityInstance trackedEntityInstance, Program program,
+    public Enrollment prepareEnrollment( TrackedEntity trackedEntity, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit,
         String uid )
     {
         if ( program.getTrackedEntityType() != null
-            && !program.getTrackedEntityType().equals( trackedEntityInstance.getTrackedEntityType() ) )
+            && !program.getTrackedEntityType().equals( trackedEntity.getTrackedEntityType() ) )
         {
             throw new IllegalQueryException(
                 "Tracked entity instance must have same tracked entity as program: " + program.getUid() );
@@ -384,7 +384,7 @@ public class DefaultEnrollmentService
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( CodeGenerator.isValidUid( uid ) ? uid : CodeGenerator.generateUid() );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.enrollTrackedEntityInstance( trackedEntityInstance, program );
+        enrollment.enrollTrackedEntityInstance( trackedEntity, program );
 
         if ( enrollmentDate != null )
         {
@@ -411,23 +411,23 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntityInstance, program, enrollmentDate,
+        return enrollTrackedEntityInstance( trackedEntity, program, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
         // Add enrollment
         // ---------------------------------------------------------------------
 
-        Enrollment enrollment = prepareEnrollment( trackedEntityInstance, program, ProgramStatus.ACTIVE,
+        Enrollment enrollment = prepareEnrollment( trackedEntity, program, ProgramStatus.ACTIVE,
             enrollmentDate,
             incidentDate, organisationUnit, uid );
         addEnrollment( enrollment );
@@ -436,7 +436,7 @@ public class DefaultEnrollmentService
         // Add program owner and overwrite if already exists.
         // ---------------------------------------------------------------------
 
-        trackerOwnershipAccessManager.assignOwnership( trackedEntityInstance, program, organisationUnit, true, true );
+        trackerOwnershipAccessManager.assignOwnership( trackedEntity, program, organisationUnit, true, true );
 
         // -----------------------------------------------------------------
         // Send enrollment notifications (if any)
@@ -451,7 +451,7 @@ public class DefaultEnrollmentService
         // -----------------------------------------------------------------
 
         updateEnrollment( enrollment );
-        trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntityInstance );
+        trackedEntityService.updateTrackedEntity( trackedEntity );
 
         return enrollment;
     }
@@ -518,7 +518,7 @@ public class DefaultEnrollmentService
     {
         Program program = enrollment.getProgram();
 
-        TrackedEntityInstance tei = enrollment.getEntityInstance();
+        TrackedEntity tei = enrollment.getEntityInstance();
 
         if ( getEnrollments( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {

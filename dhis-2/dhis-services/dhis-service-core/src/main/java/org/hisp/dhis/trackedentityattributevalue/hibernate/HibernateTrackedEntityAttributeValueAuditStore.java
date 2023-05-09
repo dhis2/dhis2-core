@@ -38,7 +38,7 @@ import javax.persistence.criteria.Root;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
@@ -118,7 +118,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     }
 
     @Override
-    public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance entityInstance )
+    public void deleteTrackedEntityAttributeValueAudits( TrackedEntity entityInstance )
     {
         Session session = sessionFactory.getCurrentSession();
         Query<?> query = session.createQuery(
@@ -137,9 +137,9 @@ public class HibernateTrackedEntityAttributeValueAuditStore
             predicates.add( root.get( "attribute" ).in( params.getTrackedEntityAttributes() ) );
         }
 
-        if ( !params.getTrackedEntityInstances().isEmpty() )
+        if ( !params.getTrackedEntities().isEmpty() )
         {
-            predicates.add( root.get( "entityInstance" ).in( params.getTrackedEntityInstances() ) );
+            predicates.add( root.get( "entityInstance" ).in( params.getTrackedEntities() ) );
         }
 
         if ( !params.getAuditTypes().isEmpty() )

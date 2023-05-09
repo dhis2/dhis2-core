@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -78,7 +78,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -135,9 +135,9 @@ class EventServiceTest extends TransactionalIntegrationTest
 
     private Event eventD2;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
     private Program programA;
 
@@ -151,9 +151,9 @@ class EventServiceTest extends TransactionalIntegrationTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         attribute.setValueType( ValueType.PHONE_NUMBER );
         attributeService.addTrackedEntityAttribute( attribute );
@@ -162,7 +162,7 @@ class EventServiceTest extends TransactionalIntegrationTest
         attributeValue.setValue( "123456789" );
         attributeValueService.addTrackedEntityAttributeValue( attributeValue );
         entityInstanceA.getTrackedEntityAttributeValues().add( attributeValue );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         /**
          * Program A
          */

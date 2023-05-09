@@ -6,7 +6,7 @@
   >
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter" table="trackedentityinstancefilter">
+  <class name="org.hisp.dhis.trackedentityfilter.TrackedEntityFilter" table="trackedentityinstancefilter">
 
     <cache usage="read-write" />
 

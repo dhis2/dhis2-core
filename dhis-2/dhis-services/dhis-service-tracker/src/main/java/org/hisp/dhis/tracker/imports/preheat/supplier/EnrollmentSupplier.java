@@ -74,9 +74,9 @@ public class EnrollmentSupplier extends AbstractPreheatSupplier
                 enrollmentStore.getByPrograms( programsWithoutRegistration ) );
 
             enrollments
-                .forEach( pi -> {
-                    preheat.putEnrollment( pi.getUid(), pi );
-                    preheat.putEnrollmentsWithoutRegistration( pi.getProgram().getUid(), pi );
+                .forEach( e -> {
+                    preheat.putEnrollment( e.getUid(), e );
+                    preheat.putEnrollmentsWithoutRegistration( e.getProgram().getUid(), e );
                 } );
         }
     }

@@ -55,7 +55,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -178,7 +178,7 @@ class TrackedEntityCriteriaMapperTest extends DhisWebSpringTest
         criteria.setIncludeDeleted( true );
         criteria.setIncludeAllAttributes( true );
         criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", SortDirection.ASC ) ) );
-        final TrackedEntityInstanceQueryParams queryParams = trackedEntityCriteriaMapper.map( criteria );
+        final TrackedEntityQueryParams queryParams = trackedEntityCriteriaMapper.map( criteria );
         assertThat( queryParams.getQuery().getFilter(), is( "query-test" ) );
         assertThat( queryParams.getQuery().getOperator(), is( QueryOperator.EQ ) );
         assertThat( queryParams.getProgram(), is( programA ) );

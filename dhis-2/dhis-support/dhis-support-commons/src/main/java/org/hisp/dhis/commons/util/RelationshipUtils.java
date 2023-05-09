@@ -75,7 +75,7 @@ public class RelationshipUtils
      */
     public static String extractRelationshipItemUid( RelationshipItem relationshipItem )
     {
-        IdentifiableObject identifiableObject = ObjectUtils.firstNonNull( relationshipItem.getTrackedEntityInstance(),
+        IdentifiableObject identifiableObject = ObjectUtils.firstNonNull( relationshipItem.getTrackedEntity(),
             relationshipItem.getEnrollment(),
             relationshipItem.getEvent() );
 
@@ -87,7 +87,7 @@ public class RelationshipUtils
         if ( Objects.nonNull( relationshipItem ) )
         {
             return RelationshipKey.RelationshipItemKey.builder()
-                .trackedEntity( getUidOrEmptyString( relationshipItem.getTrackedEntityInstance() ) )
+                .trackedEntity( getUidOrEmptyString( relationshipItem.getTrackedEntity() ) )
                 .enrollment( getUidOrEmptyString( relationshipItem.getEnrollment() ) )
                 .event( getUidOrEmptyString( relationshipItem.getEvent() ) )
                 .build();

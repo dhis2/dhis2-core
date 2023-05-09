@@ -72,7 +72,7 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateMapper;
 import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
@@ -412,7 +412,7 @@ public class DefaultProgramNotificationService
         {
             batch.programMessages.addAll(
                 enrollments.stream()
-                    .map( pi -> createProgramMessage( pi, template ) )
+                    .map( e -> createProgramMessage( e, template ) )
                     .collect( Collectors.toSet() ) );
         }
         else
@@ -544,14 +544,14 @@ public class DefaultProgramNotificationService
         }
         else
         {
-            TrackedEntityInstance trackedEntityInstance = event.getEnrollment().getEntityInstance();
+            TrackedEntity trackedEntity = event.getEnrollment().getEntityInstance();
 
-            return resolveRecipients( template, organisationUnit, trackedEntityInstance, event.getEnrollment() );
+            return resolveRecipients( template, organisationUnit, trackedEntity, event.getEnrollment() );
         }
     }
 
     private ProgramMessageRecipients resolveRecipients( ProgramNotificationTemplate template, OrganisationUnit ou,
-        TrackedEntityInstance tei, Enrollment pi )
+        TrackedEntity tei, Enrollment enrollment )
     {
         ProgramMessageRecipients recipients = new ProgramMessageRecipients();
 
@@ -563,12 +563,12 @@ public class DefaultProgramNotificationService
         }
         else if ( recipientType == ProgramNotificationRecipient.TRACKED_ENTITY_INSTANCE )
         {
-            recipients.setTrackedEntityInstance( tei );
+            recipients.setTrackedEntity( tei );
         }
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
             && template.getRecipientProgramAttribute() != null )
         {
-            List<String> recipientList = pi.getEntityInstance().getTrackedEntityAttributeValues().stream()
+            List<String> recipientList = enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
                 .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
                 .map( TrackedEntityAttributeValue::getPlainValue )
                 .collect( toList() );
@@ -612,13 +612,13 @@ public class DefaultProgramNotificationService
         return dhisMessage;
     }
 
-    private DhisMessage createDhisMessage( Enrollment pi, ProgramNotificationTemplate template )
+    private DhisMessage createDhisMessage( Enrollment enrollment, ProgramNotificationTemplate template )
     {
         DhisMessage dhisMessage = new DhisMessage();
 
-        dhisMessage.message = programNotificationRenderer.render( pi, template );
+        dhisMessage.message = programNotificationRenderer.render( enrollment, template );
 
-        dhisMessage.recipients = resolveDhisMessageRecipients( template, pi, null );
+        dhisMessage.recipients = resolveDhisMessageRecipients( template, enrollment, null );
 
         return dhisMessage;
     }

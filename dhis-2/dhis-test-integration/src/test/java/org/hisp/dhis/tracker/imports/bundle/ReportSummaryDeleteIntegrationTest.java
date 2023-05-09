@@ -36,7 +36,7 @@ import java.io.IOException;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -91,7 +91,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
         assertNoErrors( importReport );
         assertDeletedObjects( 9, importReport.getPersistenceReport(), TrackerType.TRACKED_ENTITY );
         // remaining
-        assertEquals( 4, manager.getAll( TrackedEntityInstance.class ).size() );
+        assertEquals( 4, manager.getAll( TrackedEntity.class ).size() );
         assertEquals( 4, manager.getAll( Enrollment.class ).size() );
     }
 

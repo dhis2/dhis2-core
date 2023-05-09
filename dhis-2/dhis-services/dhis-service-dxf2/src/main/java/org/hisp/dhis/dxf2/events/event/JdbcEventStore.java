@@ -1138,9 +1138,9 @@ public class JdbcEventStore implements EventStore
 
         fromBuilder.append( dataElementAndFiltersSql );
 
-        if ( params.getTrackedEntityInstance() != null )
+        if ( params.getTrackedEntity() != null )
         {
-            mapSqlParameterSource.addValue( "trackedentityinstanceid", params.getTrackedEntityInstance().getId() );
+            mapSqlParameterSource.addValue( "trackedentityinstanceid", params.getTrackedEntity().getId() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " tei.trackedentityinstanceid= " )

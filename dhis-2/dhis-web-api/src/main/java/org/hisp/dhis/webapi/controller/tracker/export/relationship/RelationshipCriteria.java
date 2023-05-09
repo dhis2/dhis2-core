@@ -35,7 +35,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 @NoArgsConstructor
@@ -83,7 +83,7 @@ class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
         {
             this.identifier = this.trackedEntity;
             this.identifierName = "trackedEntity";
-            this.identifierClass = TrackedEntityInstance.class;
+            this.identifierClass = TrackedEntity.class;
             count++;
         }
         if ( !StringUtils.isBlank( this.enrollment ) )

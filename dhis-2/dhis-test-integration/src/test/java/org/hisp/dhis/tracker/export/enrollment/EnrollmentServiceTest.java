@@ -59,8 +59,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
@@ -98,7 +98,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     private Event eventA;
 
-    private TrackedEntityInstance trackedEntityA;
+    private TrackedEntity trackedEntityA;
 
     private TrackedEntityType trackedEntityTypeA;
 
@@ -135,11 +135,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        TrackedEntityInstance trackedEntityB = createTrackedEntityInstance( orgUnitB );
+        TrackedEntity trackedEntityB = createTrackedEntityInstance( orgUnitB );
         trackedEntityB.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityB, false );
 
-        TrackedEntityInstance trackedEntityC = createTrackedEntityInstance( orgUnitC );
+        TrackedEntity trackedEntityC = createTrackedEntityInstance( orgUnitC );
         trackedEntityC.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityC, false );
 
@@ -186,7 +186,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         relationshipA.setUid( CodeGenerator.generateUid() );
         relationshipA.setRelationshipType( relationshipTypeA );
         RelationshipItem from = new RelationshipItem();
-        from.setTrackedEntityInstance( trackedEntityA );
+        from.setTrackedEntity( trackedEntityA );
         from.setRelationship( relationshipA );
         relationshipA.setFrom( from );
         RelationshipItem to = new RelationshipItem();
@@ -384,7 +384,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
-        params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
+        params.setTrackedEntityUid( trackedEntityA.getUid() );
         params.setUser( user );
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
@@ -405,7 +405,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
-        params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
+        params.setTrackedEntityUid( trackedEntityA.getUid() );
         params.setUser( user );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,

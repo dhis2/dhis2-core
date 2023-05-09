@@ -50,9 +50,9 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -101,7 +101,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
 
         if ( enrollment.getEntityInstance() != null )
         {
-            TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+            TrackedEntity trackedEntity = new TrackedEntity();
             trackedEntity.setUid( enrollment.getEntityInstance().getUid() );
             result.setEntityInstance( trackedEntity );
         }

@@ -45,13 +45,12 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.user.User;
@@ -133,7 +132,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackedEntity()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -155,7 +155,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackedEntityWithNoEnrollmentsUsingDeleteStrategy()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -176,7 +177,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyCaptureScopeIsCheckedForTrackedEntityCreation()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -198,7 +200,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifySearchScopeIsCheckedForTrackedEntityUpdate()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -220,7 +223,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyCaptureScopeIsCheckedForTrackedEntityDeletion()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -241,7 +245,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackedEntityWithDeletedEnrollmentsUsingDeleteStrategy()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -262,7 +267,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackedEntityUsingDeleteStrategyAndUserWithCascadeAuthority()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -284,7 +290,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackedEntityUsingDeleteStrategyAndUserWithoutCascadeAuthority()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -304,7 +311,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackedEntityWithUserNotInOrgUnitCaptureScopeHierarchy()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -326,7 +334,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackedEntityUpdateWithUserNotInOrgUnitSearchHierarchy()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( TEI_ID )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -348,7 +357,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackedEntityAndUserWithoutWriteAccess()
     {
-        TrackedEntity trackedEntity = TrackedEntity.builder()
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = org.hisp.dhis.tracker.imports.domain.TrackedEntity
+            .builder()
             .trackedEntity( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntityType( MetadataIdentifier.ofUid( TEI_TYPE_ID ) )
@@ -367,37 +377,37 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertHasError( reporter, trackedEntity, E1001 );
     }
 
-    private TrackedEntityInstance getTEIWithNoEnrollments()
+    private TrackedEntity getTEIWithNoEnrollments()
     {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setEnrollments( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet() );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    private TrackedEntityInstance getTEIWithDeleteEnrollments()
+    private TrackedEntity getTEIWithDeleteEnrollments()
     {
         Enrollment enrollment = new Enrollment();
         enrollment.setDeleted( true );
 
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setEnrollments( Sets.newHashSet( enrollment ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet( enrollment ) );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    private TrackedEntityInstance getTEIWithEnrollments()
+    private TrackedEntity getTEIWithEnrollments()
     {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setEnrollments( Sets.newHashSet( new Enrollment() ) );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet( new Enrollment() ) );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
     private User deleteTeiAuthorisedUser()

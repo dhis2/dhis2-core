@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
@@ -64,7 +64,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -76,8 +76,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Maps query parameters from {@link TrackedEntitiesExportController} stored in
- * {@link TrackedEntityCriteria} to {@link TrackedEntityInstanceQueryParams}
- * which is used to fetch tracked entities from the DB.
+ * {@link TrackedEntityCriteria} to {@link TrackedEntityQueryParams} which is
+ * used to fetch tracked entities from the DB.
  *
  * @author Luciano Fiandesio
  */
@@ -104,7 +104,7 @@ public class TrackedEntityCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams map( TrackedEntityCriteria criteria )
+    public TrackedEntityQueryParams map( TrackedEntityCriteria criteria )
         throws BadRequestException,
         ForbiddenException
     {
@@ -142,7 +142,7 @@ public class TrackedEntityCriteriaMapper
 
         Set<String> trackedEntities = parseUids( criteria.getTrackedEntity() );
 
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( programStage )
@@ -162,7 +162,7 @@ public class TrackedEntityCriteriaMapper
             .setEventStartDate( criteria.getEventOccurredAfter() )
             .setEventEndDate( criteria.getEventOccurredBefore() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
-            .setTrackedEntityInstanceUids( trackedEntities )
+            .setTrackedEntityUids( trackedEntities )
             .setAttributes( attributeItems )
             .setFilters( filters )
             .setSkipMeta( criteria.isSkipMeta() )

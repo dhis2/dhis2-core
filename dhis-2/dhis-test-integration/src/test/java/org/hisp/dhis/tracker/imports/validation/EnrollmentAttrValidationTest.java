@@ -33,7 +33,7 @@ import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 
 import java.io.IOException;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
@@ -47,7 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EnrollmentAttrValidationTest extends TrackerTest
 {
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;

@@ -57,7 +57,7 @@ class EnrollmentControllerTest extends DhisControllerConvenienceTest
     @Test
     void testPostEnrollmentJson_ValidationError()
     {
-        assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntityInstance does not exist.",
+        assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntity does not exist.",
             POST( "/enrollments/", "{}" ).content( HttpStatus.CONFLICT ) );
     }
 

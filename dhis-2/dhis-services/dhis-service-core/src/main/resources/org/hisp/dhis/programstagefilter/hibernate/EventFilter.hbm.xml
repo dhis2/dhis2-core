@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+  "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+  "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd"
+  >
+
+<hibernate-mapping>
+  <class name="org.hisp.dhis.programstagefilter.EventFilter" table="programstageinstancefilter">
+
+    <cache usage="read-write" />
+
+    <id name="id" column="programstageinstancefilterid">
+      <generator class="native" />
+    </id>
+    
+    <property name="uid" column="uid" unique="true" length="11" not-null="true" />
+    <property name="created" type="timestamp" not-null="true" />
+    <property name="lastUpdated" type="timestamp" not-null="true"/>
+    <many-to-one name="lastUpdatedBy" class="org.hisp.dhis.user.User" column="lastupdatedby" foreign-key="fk_lastupdateby_userid" />
+
+    <property name="name" column="name" not-null="true" length="230" />
+
+    <property name="description" />
+    
+    <property name="program" column="program" length="11" not-null="true" />
+   
+    <property name="programStage" column="programstage" length="11" />
+      
+    <property name="eventQueryCriteria" column="eventquerycriteria" type="jbEventQueryCriteria" />
+
+    <many-to-one name="createdBy" class="org.hisp.dhis.user.User" column="userid" foreign-key="fk_programstageinstancefilter_userid" />
+
+    <!-- Sharing -->
+    <property name="sharing" type="jsbObjectSharing"/>
+
+    <property name="translations" type="jblTranslations"/>
+
+    
+  </class>
+
+</hibernate-mapping>

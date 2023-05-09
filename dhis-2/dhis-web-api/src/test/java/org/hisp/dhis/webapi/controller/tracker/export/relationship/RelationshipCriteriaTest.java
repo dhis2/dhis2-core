@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.Test;
 
 class RelationshipCriteriaTest
@@ -91,7 +91,7 @@ class RelationshipCriteriaTest
         RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
-        assertEquals( TrackedEntityInstance.class, criteria.getIdentifierClass() );
+        assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
     }
 
     @Test
@@ -102,7 +102,7 @@ class RelationshipCriteriaTest
         RelationshipCriteria criteria = new RelationshipCriteria();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
-        assertEquals( TrackedEntityInstance.class, criteria.getIdentifierClass() );
+        assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
     }
 
     @Test

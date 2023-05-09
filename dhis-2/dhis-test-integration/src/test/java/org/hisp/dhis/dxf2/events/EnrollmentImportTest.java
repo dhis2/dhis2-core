@@ -48,7 +48,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -73,7 +73,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private OrganisationUnit organisationUnitA;
 
@@ -95,9 +95,9 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        trackedEntityInstance = createTrackedEntityInstance( organisationUnitA );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
-        manager.save( trackedEntityInstance );
+        trackedEntity = createTrackedEntityInstance( organisationUnitA );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
+        manager.save( trackedEntity );
 
         program = createProgram( 'A', new HashSet<>(), organisationUnitA );
         program.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -110,7 +110,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
         enrollment.setStatus( ProgramStatus.ACTIVE );
         enrollment.setStoredBy( "test" );
         enrollment.setName( "test" );
-        enrollment.enrollTrackedEntityInstance( trackedEntityInstance, program );
+        enrollment.enrollTrackedEntityInstance( trackedEntity, program );
         manager.save( enrollment );
 
         user = createAndAddAdminUser( AUTHORITY_ALL );
@@ -123,7 +123,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
 
         org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
             program.getUid(),
-            trackedEntityInstance.getUid() );
+            trackedEntity.getUid() );
         enrollment.setEnrollment( enrollmentUid );
 
         ImportSummaries importSummaries = enrollmentService.addEnrollments( List.of( enrollment ),
@@ -144,7 +144,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     {
         org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
             program.getUid(),
-            trackedEntityInstance.getUid() );
+            trackedEntity.getUid() );
         enrollment.setEnrollment( this.enrollment.getUid() );
 
         ImportSummaries importSummaries = enrollmentService.updateEnrollments( List.of( enrollment ),

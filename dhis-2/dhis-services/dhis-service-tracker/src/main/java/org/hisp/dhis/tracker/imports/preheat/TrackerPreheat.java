@@ -65,8 +65,8 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipKey;
 import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -224,7 +224,7 @@ public class TrackerPreheat
      * confirming existence for updates, and used for object merging.
      */
     @Getter
-    private final Map<String, TrackedEntityInstance> trackedEntities = new HashMap<>();
+    private final Map<String, TrackedEntity> trackedEntities = new HashMap<>();
 
     /**
      * Internal map of all preheated enrollments, mainly used for confirming
@@ -518,20 +518,20 @@ public class TrackerPreheat
         return this.put( idSchemes.getCategoryOptionComboIdScheme(), categoryOptionCombo );
     }
 
-    public TrackedEntityInstance getTrackedEntity( String uid )
+    public TrackedEntity getTrackedEntity( String uid )
     {
         return trackedEntities.get( uid );
     }
 
-    public void putTrackedEntities( List<TrackedEntityInstance> trackedEntityInstances )
+    public void putTrackedEntities( List<TrackedEntity> trackedEntities )
     {
 
-        trackedEntityInstances.forEach( te -> putTrackedEntity( te.getUid(), te ) );
+        trackedEntities.forEach( te -> putTrackedEntity( te.getUid(), te ) );
     }
 
-    private void putTrackedEntity( String uid, TrackedEntityInstance trackedEntityInstance )
+    private void putTrackedEntity( String uid, TrackedEntity trackedEntity )
     {
-        trackedEntities.put( uid, trackedEntityInstance );
+        trackedEntities.put( uid, trackedEntity );
     }
 
     public Enrollment getEnrollment( String uid )
@@ -541,7 +541,7 @@ public class TrackerPreheat
 
     public void putEnrollments( List<Enrollment> enrollments )
     {
-        enrollments.forEach( pi -> putEnrollment( pi.getUid(), pi ) );
+        enrollments.forEach( e -> putEnrollment( e.getUid(), e ) );
     }
 
     public void putEnrollment( String uid, Enrollment enrollment )
@@ -648,7 +648,7 @@ public class TrackerPreheat
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
     {
-        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(), tepo ) );
+        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityId(), tepo.getProgramId(), tepo ) );
 
     }
 
@@ -752,8 +752,8 @@ public class TrackerPreheat
     public boolean hasProgramStageWithEvents( MetadataIdentifier programStage, String enrollmentUid )
     {
         ProgramStage ps = this.getProgramStage( programStage );
-        Enrollment pi = this.getEnrollment( enrollmentUid );
-        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), pi.getUid() ) );
+        Enrollment enrollment = this.getEnrollment( enrollmentUid );
+        return this.programStageWithEvents.contains( Pair.of( ps.getUid(), enrollment.getUid() ) );
     }
 
     /**

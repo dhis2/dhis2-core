@@ -43,8 +43,8 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.encryption.EncryptionStatus;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -144,7 +144,7 @@ public abstract class AttributeValidator
         TrackerPreheat preheat, TrackerDto dto,
         String value,
         TrackedEntityAttribute trackedEntityAttribute,
-        TrackedEntityInstance trackedEntityInstance,
+        TrackedEntity trackedEntity,
         OrganisationUnit organisationUnit )
     {
         checkNotNull( trackedEntityAttribute, TRACKED_ENTITY_ATTRIBUTE_CANT_BE_NULL );
@@ -161,8 +161,8 @@ public abstract class AttributeValidator
 
             boolean isTheSameTea = uniqueAttributeValue.getAttribute().isEqualTo( trackedEntityAttribute );
             boolean hasTheSameValue = Objects.equals( uniqueAttributeValue.getValue(), value );
-            boolean isNotSameTei = trackedEntityInstance == null
-                || !Objects.equals( trackedEntityInstance.getUid(),
+            boolean isNotSameTei = trackedEntity == null
+                || !Objects.equals( trackedEntity.getUid(),
                     uniqueAttributeValue.getTeiUid() );
 
             if ( isTeaUniqueInOrgUnitScope

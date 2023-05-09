@@ -95,7 +95,7 @@ class TrackedEntityAttributeServiceTest
     @Mock
     private OrganisationUnitService organisationUnitService;
 
-    private TrackedEntityInstance teiPassedInPayload;
+    private TrackedEntity teiPassedInPayload;
 
     private final String identicalTeiUid = "TeiUid12345";
 
@@ -114,7 +114,7 @@ class TrackedEntityAttributeServiceTest
 
         orgUnit = new OrganisationUnit( "orgUnitA" );
 
-        teiPassedInPayload = new TrackedEntityInstance();
+        teiPassedInPayload = new TrackedEntity();
         teiPassedInPayload.setUid( identicalTeiUid );
         teiPassedInPayload.setOrganisationUnit( orgUnit );
 
@@ -136,7 +136,7 @@ class TrackedEntityAttributeServiceTest
     void identicalTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityUidWithUniqueAttributeValue( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( Optional.of( identicalTeiUid ) );
 
         String teaValue = "Firstname";
@@ -150,7 +150,7 @@ class TrackedEntityAttributeServiceTest
     void differentTeiWithTheSameUniqueAttributeExistsInSystem()
     {
         when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityUidWithUniqueAttributeValue( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( Optional.of( differentTeiUid ) );
 
         String teaValue = "Firstname";
@@ -164,7 +164,7 @@ class TrackedEntityAttributeServiceTest
     void attributeIsUniqueWithinTheSystem()
     {
         when( trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( any( TrackedEntityInstanceQueryParams.class ) ) )
+            .getTrackedEntityUidWithUniqueAttributeValue( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( Optional.empty() );
 
         String teaValue = "Firstname";

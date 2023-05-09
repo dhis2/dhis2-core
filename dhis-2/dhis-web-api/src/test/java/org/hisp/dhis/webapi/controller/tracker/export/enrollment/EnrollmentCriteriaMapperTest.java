@@ -44,8 +44,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -91,7 +91,7 @@ class EnrollmentCriteriaMapperTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
     private TrackerAccessManager trackerAccessManager;
@@ -135,10 +135,10 @@ class EnrollmentCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( TRACKED_ENTITY_UID );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( TRACKED_ENTITY_UID ) )
-            .thenReturn( trackedEntityInstance );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_UID );
+        when( trackedEntityService.getTrackedEntity( TRACKED_ENTITY_UID ) )
+            .thenReturn( trackedEntity );
     }
 
     @Test
@@ -153,7 +153,7 @@ class EnrollmentCriteriaMapperTest
         verifyNoInteractions( programService );
         verifyNoInteractions( organisationUnitService );
         verifyNoInteractions( trackedEntityTypeService );
-        verifyNoInteractions( trackedEntityInstanceService );
+        verifyNoInteractions( trackedEntityService );
     }
 
     @Test
@@ -255,7 +255,7 @@ class EnrollmentCriteriaMapperTest
 
         EnrollmentQueryParams params = mapper.map( criteria );
 
-        assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityInstanceUid() );
+        assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityUid() );
     }
 
     @Test

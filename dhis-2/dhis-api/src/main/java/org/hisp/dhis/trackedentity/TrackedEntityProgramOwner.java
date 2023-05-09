@@ -48,7 +48,7 @@ public class TrackedEntityProgramOwner implements Serializable
 {
     private int id;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
     private Program program;
 
@@ -69,10 +69,10 @@ public class TrackedEntityProgramOwner implements Serializable
         this.createdBy = "internal";
     }
 
-    public TrackedEntityProgramOwner( TrackedEntityInstance trackedEntityInstance, Program program,
+    public TrackedEntityProgramOwner( TrackedEntity trackedEntity, Program program,
         OrganisationUnit organisationUnit )
     {
-        this.entityInstance = trackedEntityInstance;
+        this.entityInstance = trackedEntity;
         this.program = program;
         this.organisationUnit = organisationUnit;
         this.createdBy = "internal";
@@ -170,14 +170,14 @@ public class TrackedEntityProgramOwner implements Serializable
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getEntityInstance()
     {
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setEntityInstance( TrackedEntity trackedEntity )
     {
-        this.entityInstance = trackedEntityInstance;
+        this.entityInstance = trackedEntity;
     }
 
     @JsonProperty

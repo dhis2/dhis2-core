@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -50,7 +50,7 @@ public class TrackedEntityInstanceCheck implements Checker
     public ImportSummary check( ImmutableEvent event, WorkContext ctx )
     {
         Program program = ctx.getProgramsMap().get( event.getProgram() );
-        final Optional<TrackedEntityInstance> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
+        final Optional<TrackedEntity> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
 
         if ( program.isRegistration() && !trackedEntityInstance.isPresent() )
         {

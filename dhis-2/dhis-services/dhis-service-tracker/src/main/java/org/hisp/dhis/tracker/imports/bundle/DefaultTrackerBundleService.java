@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerType;
@@ -72,7 +72,7 @@ public class DefaultTrackerBundleService
 
     private final TrackerObjectDeletionService deletionService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
@@ -132,7 +132,7 @@ public class DefaultTrackerBundleService
     private void updateTeisLastUpdated( TrackerBundle bundle )
     {
         Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
-            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
+            teis -> trackedEntityService.updateTrackedEntityLastUpdated( teis, new Date() ) );
     }
 
     @Override

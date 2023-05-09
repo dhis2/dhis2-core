@@ -52,7 +52,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -74,7 +74,7 @@ public class DefaultProgramMessageService
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ProgramService programService;
 
@@ -306,8 +306,8 @@ public class DefaultProgramMessageService
             violation = "Enrollment or program stage instance must be specified";
         }
 
-        if ( recipients.getTrackedEntityInstance() != null && trackedEntityInstanceService
-            .getTrackedEntityInstance( recipients.getTrackedEntityInstance().getUid() ) == null )
+        if ( recipients.getTrackedEntity() != null && trackedEntityService
+            .getTrackedEntity( recipients.getTrackedEntity().getUid() ) == null )
         {
             violation = "Tracked entity does not exist";
         }

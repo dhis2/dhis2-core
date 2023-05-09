@@ -43,14 +43,14 @@ import org.hisp.dhis.user.User;
  */
 public interface TrackerAccessManager
 {
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance );
+    List<String> canRead( User user, TrackedEntity trackedEntity );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance );
+    List<String> canWrite( User user, TrackedEntity trackedEntity );
 
-    List<String> canRead( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+    List<String> canRead( User user, TrackedEntity trackedEntity, Program program,
         boolean skipOwnershipCheck );
 
-    List<String> canWrite( User user, TrackedEntityInstance trackedEntityInstance, Program program,
+    List<String> canWrite( User user, TrackedEntity trackedEntity, Program program,
         boolean skipOwnershipCheck );
 
     List<String> canRead( User user, Enrollment enrollment, boolean skipOwnershipCheck );

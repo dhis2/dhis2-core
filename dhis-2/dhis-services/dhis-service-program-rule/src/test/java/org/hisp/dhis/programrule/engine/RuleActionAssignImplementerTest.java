@@ -42,7 +42,7 @@ import org.junit.jupiter.api.Test;
 
 class RuleActionAssignImplementerTest extends DhisConvenienceTest
 {
-    public static final String PI_UI = "pi-uid";
+    public static final String ENROLLMENT_UID = "enrollment-uid";
 
     private Enrollment enrollment;
 
@@ -54,7 +54,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     public void initTest()
     {
         enrollment = new Enrollment();
-        enrollment.setUid( PI_UI );
+        enrollment.setUid( ENROLLMENT_UID );
 
         inMemoryMap = new RuleVariableInMemoryMap();
         assignValueImplementer = new RuleActionAssignValueImplementer( inMemoryMap );
@@ -66,7 +66,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field" ) );
     }
 
     @Test
@@ -75,7 +75,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "field123" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field123" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field123" ) );
     }
 
     @Test
@@ -84,7 +84,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "name-field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name-field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name-field" ) );
     }
 
     @Test
@@ -93,7 +93,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "name field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name field" ) );
     }
 
     @Test
@@ -102,7 +102,7 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "name.field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name.field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name.field" ) );
     }
 
     @Test
@@ -111,6 +111,6 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
             RuleActionAssign.create( "content", "action-data", "first name field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "first name field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "first name field" ) );
     }
 }
