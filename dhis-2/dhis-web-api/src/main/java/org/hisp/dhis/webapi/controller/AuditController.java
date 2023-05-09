@@ -469,7 +469,7 @@ public class AuditController
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
-            .setTrackedEntityInstances( tei )
+            .setTrackedEntities( tei )
             .setUsers( user )
             .setAuditTypes( auditTypes )
             .setStartDate( startDate )
@@ -490,7 +490,7 @@ public class AuditController
         {
             teiAudits = trackedEntityAuditService.getTrackedEntityAudits(
                 new TrackedEntityAuditQueryParams()
-                    .setTrackedEntityInstances( tei )
+                    .setTrackedEntities( tei )
                     .setUsers( user )
                     .setAuditTypes( auditTypes )
                     .setStartDate( startDate )

@@ -152,9 +152,9 @@ public class HibernateTrackedEntityAuditStore
     {
         List<Function<Root<TrackedEntityAudit>, Predicate>> predicates = new ArrayList<>();
 
-        if ( params.hasTrackedEntityInstances() )
+        if ( params.hasTrackedEntities() )
         {
-            predicates.add( root -> root.get( "trackedEntity" ).in( params.getTrackedEntityInstances() ) );
+            predicates.add( root -> root.get( "trackedEntity" ).in( params.getTrackedEntities() ) );
         }
 
         if ( params.hasUsers() )

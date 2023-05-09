@@ -137,7 +137,7 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
      */
-    private String trackedEntityInstance;
+    private String trackedEntity;
 
     /**
      * Selection mode for user assignment of events.
@@ -215,16 +215,16 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
         return assignedUsers;
     }
 
-    public boolean hasTrackedEntityInstance()
+    public boolean hasTrackedEntity()
     {
-        return StringUtils.isNotEmpty( this.trackedEntityInstance );
+        return StringUtils.isNotEmpty( this.trackedEntity );
     }
 
     public Set<String> getTrackedEntityInstances()
     {
-        if ( hasTrackedEntityInstance() )
+        if ( hasTrackedEntity() )
         {
-            return TextUtils.splitToSet( trackedEntityInstance, TextUtils.SEMICOLON );
+            return TextUtils.splitToSet( trackedEntity, TextUtils.SEMICOLON );
         }
         return new HashSet<>();
     }

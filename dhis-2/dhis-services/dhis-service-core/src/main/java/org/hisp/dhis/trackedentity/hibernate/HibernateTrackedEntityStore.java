@@ -630,7 +630,7 @@ public class HibernateTrackedEntityStore
                 .append( ") " );
         }
 
-        if ( params.hasTrackedEntityInstances() )
+        if ( params.hasTrackedEntities() )
         {
             trackedEntity
                 .append( whereAnd.whereAnd() )

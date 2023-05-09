@@ -66,7 +66,7 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
         store.addTrackedEntityInstanceAudit( teiaD );
 
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
-            .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) );
+            .setTrackedEntities( List.of( "WGW7UnVcIIb" ) );
 
         assertContainsOnly( List.of( teiaA, teiaB ), store.getTrackedEntityAudits( params ) );
 
@@ -86,7 +86,7 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
         assertContainsOnly( List.of( teiaA, teiaD ), store.getTrackedEntityAudits( params ) );
 
         params = new TrackedEntityAuditQueryParams()
-            .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) )
+            .setTrackedEntities( List.of( "WGW7UnVcIIb" ) )
             .setUsers( List.of( "userA" ) );
 
         assertContainsOnly( List.of( teiaA ), store.getTrackedEntityAudits( params ) );

@@ -158,7 +158,7 @@ public class HibernateEnrollmentStore
             hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
         }
 
-        if ( params.hasTrackedEntityInstance() )
+        if ( params.hasTrackedEntity() )
         {
             hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityUid() + "'";
         }

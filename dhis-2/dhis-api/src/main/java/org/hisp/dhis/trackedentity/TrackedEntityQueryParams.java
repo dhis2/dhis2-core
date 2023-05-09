@@ -401,7 +401,7 @@ public class TrackedEntityQueryParams
         }
     }
 
-    public boolean hasTrackedEntityInstances()
+    public boolean hasTrackedEntities()
     {
         return CollectionUtils.isNotEmpty( this.trackedEntityUids );
     }
