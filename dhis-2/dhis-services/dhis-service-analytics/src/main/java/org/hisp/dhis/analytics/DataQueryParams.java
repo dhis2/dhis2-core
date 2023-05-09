@@ -109,6 +109,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.system.util.MathUtils;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
@@ -1202,6 +1203,16 @@ public class DataQueryParams
     {
         List<DimensionalObject> dims = new ArrayList<>( dimensions );
         dims.remove( new BaseDimensionalObject( DimensionalObject.PERIOD_DIM_ID ) );
+        return List.copyOf( dims );
+    }
+
+    /**
+     * Returns all dimensions except any organisation unit dimension.
+     */
+    public List<DimensionalObject> getNonOrgUnitDimensions()
+    {
+        List<DimensionalObject> dims = new ArrayList<>( dimensions );
+        dims.remove( new BaseDimensionalObject( ORGUNIT_DIM_ID ) );
         return List.copyOf( dims );
     }
 
@@ -2787,6 +2798,32 @@ public class DataQueryParams
         return ImmutableList
             .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.EXPRESSION_DIMENSION_ITEM,
                 getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns all subexpression dimension items part of the data dimension.
+     */
+    public List<DimensionalItemObject> getSubexpressions()
+    {
+        return ImmutableList
+            .copyOf( AnalyticsUtils.getByDataDimensionItemType( DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM,
+                getDimensionOptions( DATA_X_DIM_ID ) ) );
+    }
+
+    /**
+     * Returns the first (or only) subexpression dimension item.
+     */
+    public SubexpressionDimensionItem getSubexpression()
+    {
+        return (SubexpressionDimensionItem) getSubexpressions().get( 0 );
+    }
+
+    /**
+     * Indicates whether subexpressions are present.
+     */
+    public boolean hasSubexpressions()
+    {
+        return !getSubexpressions().isEmpty();
     }
 
     /**
