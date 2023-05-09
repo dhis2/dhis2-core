@@ -97,7 +97,7 @@ class UpdatableFieldsValidatorTest
         when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
             .thenReturn( TrackerImportStrategy.UPDATE );
 
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntity() );
         when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( getEnrollment() );
         when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
 
@@ -151,7 +151,7 @@ class UpdatableFieldsValidatorTest
             .build();
     }
 
-    private TrackedEntity trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid( TRACKED_ENTITY_TYPE_ID );
@@ -170,7 +170,7 @@ class UpdatableFieldsValidatorTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( ENROLLMENT_ID );
         enrollment.setProgram( program );
-        enrollment.setTrackedEntity( trackedEntityInstance() );
+        enrollment.setTrackedEntity( trackedEntity() );
         return enrollment;
     }
 

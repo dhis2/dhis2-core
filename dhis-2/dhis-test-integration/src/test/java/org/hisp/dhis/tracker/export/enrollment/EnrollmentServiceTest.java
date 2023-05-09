@@ -197,7 +197,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
         manager.save( relationshipA, false );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntity( trackedEntityA, programA, new Date(),
             new Date(),
             orgUnitA );
         eventA = new Event();
@@ -209,7 +209,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         enrollmentA.setRelationshipItems( Set.of( from, to ) );
         manager.save( enrollmentA, false );
 
-        enrollmentB = programInstanceService.enrollTrackedEntityInstance( trackedEntityB, programA, new Date(),
+        enrollmentB = programInstanceService.enrollTrackedEntity( trackedEntityB, programA, new Date(),
             new Date(),
             orgUnitB );
 

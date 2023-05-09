@@ -212,7 +212,7 @@ class DeduplicationServiceTest
     }
 
     @Test
-    void shouldNotBeAutoMergeableDeletedTrackedEntityInstance()
+    void shouldNotBeAutoMergeableDeletedTrackedEntity()
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {

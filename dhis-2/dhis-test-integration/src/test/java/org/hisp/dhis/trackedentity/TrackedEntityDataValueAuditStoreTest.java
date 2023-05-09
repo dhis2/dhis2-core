@@ -165,7 +165,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         TrackedEntity teiA = createTrackedEntityInstance( ouA );
         entityInstanceService.addTrackedEntity( teiA );
 
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance(
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity(
             teiA, pA, new Date(), new Date(), ouA );
 
         dvA = new EventDataValue( deA.getUid(), "A", USER_SNAP_A );

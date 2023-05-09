@@ -195,7 +195,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testSaveTrackedEntityInstance()
+    void testSaveTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntity( entityInstanceB1 );
@@ -204,7 +204,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testDeleteTrackedEntityInstance()
+    void testDeleteTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntity( entityInstanceB1 );
@@ -243,7 +243,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testUpdateTrackedEntityInstance()
+    void testUpdateTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         assertNotNull( entityInstanceService.getTrackedEntity( idA ) );
@@ -273,7 +273,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testStoredByColumnForTrackedEntityInstance()
+    void testStoredByColumnForTrackedEntity()
     {
         entityInstanceA1.setStoredBy( "test" );
         entityInstanceService.addTrackedEntity( entityInstanceA1 );

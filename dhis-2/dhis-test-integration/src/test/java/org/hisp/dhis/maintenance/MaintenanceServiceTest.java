@@ -414,7 +414,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     @Test
     @Disabled( "until we can inject dhis.conf property overrides" )
-    void testAuditEntryForDeletionOfSoftDeletedTrackedEntityInstance()
+    void testAuditEntryForDeletionOfSoftDeletedTrackedEntity()
     {
         trackedEntityService.deleteTrackedEntity( entityInstanceWithAssociations );
         assertNull( trackedEntityService.getTrackedEntity( entityInstanceWithAssociations.getId() ) );

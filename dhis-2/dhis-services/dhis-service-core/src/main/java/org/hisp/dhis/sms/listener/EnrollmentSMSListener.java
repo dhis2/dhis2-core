@@ -186,7 +186,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         else
         {
-            enrollment = enrollmentService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
+            enrollment = enrollmentService.enrollTrackedEntity( tei, program, enrollmentDate, incidentDate,
                 orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )

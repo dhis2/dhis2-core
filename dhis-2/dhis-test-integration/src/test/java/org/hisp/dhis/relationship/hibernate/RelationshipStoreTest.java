@@ -109,7 +109,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByTrackedEntityInstance()
+    void testGetByTrackedEntity()
     {
         Relationship teiRelationship = addTeiToTeiRelationship();
 

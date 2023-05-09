@@ -81,7 +81,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     private ProgramService programService;
 
     @Test
-    void shouldDeleteTrackedEntityInstance()
+    void shouldDeleteTrackedEntity()
     {
         TrackedEntityAttribute trackedEntityAttribute = createTrackedEntityAttribute( 'A' );
         trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttribute );

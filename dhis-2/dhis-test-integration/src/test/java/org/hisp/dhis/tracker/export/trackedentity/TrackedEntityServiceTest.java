@@ -253,7 +253,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA, new Date(),
             new Date(), orgUnitA );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -274,7 +274,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         enrollmentA.setFollowup( true );
         manager.save( enrollmentA, false );
 
-        enrollmentB = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programB, new Date(),
+        enrollmentB = enrollmentService.enrollTrackedEntity( trackedEntityA, programB, new Date(),
             new Date(), orgUnitA );
         eventB = new Event();
         eventB.setEnrollment( enrollmentB );

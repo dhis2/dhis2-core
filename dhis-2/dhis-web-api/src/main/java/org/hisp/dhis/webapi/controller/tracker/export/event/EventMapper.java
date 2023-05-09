@@ -50,7 +50,7 @@ public interface EventMapper extends ViewMapper<Event, org.hisp.dhis.webapi.cont
     @Mapping( target = "program", source = "enrollment.program.uid" )
     @Mapping( target = "programStage", source = "programStage.uid" )
     @Mapping( target = "enrollment", source = "enrollment.uid" )
-    @Mapping( target = "trackedEntity", source = "enrollment.entityInstance.uid" )
+    @Mapping( target = "trackedEntity", source = "enrollment.trackedEntity.uid" )
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
     @Mapping( target = "occurredAt", source = "executionDate" )

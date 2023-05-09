@@ -411,16 +411,16 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntity, program, enrollmentDate,
+        return enrollTrackedEntity( trackedEntity, program, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------

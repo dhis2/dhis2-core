@@ -143,10 +143,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         enrollmentService.addEnrollment( enrollment3 );
         enrollmentService.addEnrollment( enrollment4 );
 
-        enrollmentService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei1, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei2, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei3, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei4, program, new Date(), new Date(), orgUnitA );
 
         userService.addUser( user );
     }

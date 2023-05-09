@@ -168,7 +168,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );

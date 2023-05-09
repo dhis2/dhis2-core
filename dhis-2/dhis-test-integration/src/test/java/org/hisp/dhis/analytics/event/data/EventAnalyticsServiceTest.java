@@ -403,12 +403,12 @@ class EventAnalyticsServiceTest
         attributeValueService.addTrackedEntityAttributeValue( atv );
 
         // Enrollments (Enrollments)
-        Enrollment piA = enrollmentService.enrollTrackedEntityInstance( teiA, programA, jan1, jan1, ouE );
+        Enrollment piA = enrollmentService.enrollTrackedEntity( teiA, programA, jan1, jan1, ouE );
         piA.setEnrollmentDate( jan1 );
         piA.setIncidentDate( jan1 );
         enrollmentService.addEnrollment( piA );
 
-        Enrollment piB = enrollmentService.enrollTrackedEntityInstance( teiA, programB, jan1, jan1, ouE );
+        Enrollment piB = enrollmentService.enrollTrackedEntity( teiA, programB, jan1, jan1, ouE );
         piB.setEnrollmentDate( jan1 );
         piB.setIncidentDate( jan1 );
         enrollmentService.addEnrollment( piB );

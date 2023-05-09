@@ -147,7 +147,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
         manager.save( program, false );
 
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntity( teiA, program, new Date(), new Date(),
             orgUnit );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -155,7 +155,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         eventA.setOrganisationUnit( orgUnit );
         manager.save( eventA, false );
 
-        Enrollment enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(),
+        Enrollment enrollmentB = enrollmentService.enrollTrackedEntity( teiB, program, new Date(),
             new Date(),
             orgUnit );
         inaccessiblePsi = new Event();

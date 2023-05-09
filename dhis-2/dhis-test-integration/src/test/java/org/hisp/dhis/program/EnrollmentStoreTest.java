@@ -271,7 +271,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramAndTrackedEntityInstance()
+    void testGetByProgramAndTrackedEntity()
     {
         // Create a second enrollment with identical Program and TEI as
         // enrollmentA.

@@ -141,7 +141,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventById()
     {
-        Event event = event( enrollment( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
 
         JsonEvent json = GET( "/tracker/events/{id}", event.getUid() )
             .content( HttpStatus.OK ).as( JsonEvent.class );
@@ -152,7 +152,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithFields()
     {
-        Event event = event( enrollment( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
 
         JsonEvent jsonEvent = GET( "/tracker/events/{id}?fields=orgUnit,status", event.getUid() )
             .content( HttpStatus.OK ).as( JsonEvent.class );
@@ -165,7 +165,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithNotes()
     {
-        Event event = event( enrollment( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
         event.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         manager.update( event );
 
@@ -181,7 +181,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithDataValues()
     {
-        Event event = event( enrollment( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
         event.getEventDataValues().add( dv );
         manager.update( event );
 
@@ -200,7 +200,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithFieldsRelationships()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship relationship = relationship( from, to );
 
@@ -228,7 +228,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdRelationshipsNoAccessToRelationshipType()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         relationship( relationshipTypeNotAccessible(), from, to );
         this.switchContextToUser( user );
@@ -243,7 +243,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdRelationshipsNoAccessToRelationshipItemTo()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntity to = trackedEntityInstance( type );
+        TrackedEntity to = trackedEntity( type );
         Event from = event( enrollment( to ) );
         relationship( from, to );
         this.switchContextToUser( user );
@@ -257,7 +257,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdRelationshipsNoAccessToBothRelationshipItems()
     {
-        TrackedEntity to = trackedEntityInstanceNotInSearchScope();
+        TrackedEntity to = trackedEntityNotInSearchScope();
         Event from = event( enrollment( to ) );
         relationship( from, to );
         this.switchContextToUser( user );
@@ -271,7 +271,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdRelationshipsNoAccessToRelationshipItemFrom()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntity from = trackedEntityInstance( type );
+        TrackedEntity from = trackedEntity( type );
         Event to = event( enrollment( from ) );
         relationship( from, to );
         this.switchContextToUser( user );
@@ -286,7 +286,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues()
     {
 
-        TrackedEntity tei = trackedEntityInstance();
+        TrackedEntity tei = trackedEntity();
         Enrollment enrollment = enrollment( tei );
         Event programStageInstance = event( enrollment );
         programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
@@ -351,33 +351,33 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         return type;
     }
 
-    private TrackedEntity trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit );
+        TrackedEntity tei = trackedEntity( orgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstanceNotInSearchScope()
+    private TrackedEntity trackedEntityNotInSearchScope()
     {
-        TrackedEntity tei = trackedEntityInstance( anotherOrgUnit );
+        TrackedEntity tei = trackedEntity( anotherOrgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( TrackedEntityType trackedEntityType )
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntity tei = trackedEntity( orgUnit, trackedEntityType );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit )
     {
-        return trackedEntityInstance( orgUnit, trackedEntityType );
+        return trackedEntity( orgUnit, trackedEntityType );
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
     {
         TrackedEntity tei = createTrackedEntityInstance( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );

@@ -226,7 +226,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         trackedEntityA.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValueA ) );
         entityInstanceService.updateTrackedEntity( trackedEntityA );
         // Enrollment to be provided in message renderer
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA,
             enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( enrollmentUid );
         enrollmentService.updateEnrollment( enrollmentA );

@@ -629,15 +629,15 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( "UID-P1" );
         enrollmentService.updateEnrollment( enrollmentA );
-        Enrollment enrollmentE = enrollmentService.enrollTrackedEntityInstance( entityInstanceE,
+        Enrollment enrollmentE = enrollmentService.enrollTrackedEntity( entityInstanceE,
             programB, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentE.setUid( "UID-P2" );
         enrollmentService.updateEnrollment( enrollmentE );
-        Enrollment enrollmentS = enrollmentService.enrollTrackedEntityInstance( entityInstanceS,
+        Enrollment enrollmentS = enrollmentService.enrollTrackedEntity( entityInstanceS,
             programS, enrollmentDate, incidentDate, organisationUnitB );
         enrollmentS.setUid( "UID-PS" );
         enrollmentService.updateEnrollment( enrollmentS );
