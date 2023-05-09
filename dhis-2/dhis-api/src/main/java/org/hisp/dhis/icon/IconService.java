@@ -46,7 +46,7 @@ public interface IconService
      * @param contextApiPath the api path of the context
      * @return a collection of data about all the icons in the system
      */
-    Collection<BaseIcon> getIcons( String contextApiPath );
+    Collection<Icon> getIcons( String contextApiPath );
 
     /**
      * Gets info about the icons in the system tagged with all the keywords in a
@@ -56,7 +56,7 @@ public interface IconService
      * @param contextApiPath the api path of the context
      * @return a collection of matching icons
      */
-    Collection<BaseIcon> getIcons( Collection<String> keywords, String contextApiPath );
+    Collection<Icon> getIcons( Collection<String> keywords, String contextApiPath );
 
     /**
      * Gets the icon associated to a key, if it exists
@@ -67,7 +67,7 @@ public interface IconService
      * @throws NotFoundException if no icon exists in the database with the
      *         provided key
      */
-    BaseIcon getIcon( String key, String contextApiPath )
+    Icon getIcon( String key, String contextApiPath )
         throws NotFoundException;
 
     /**
@@ -89,7 +89,7 @@ public interface IconService
      *         key
      */
     Optional<Resource> getIconResource( String key )
-        throws BadRequestException;
+        throws NotFoundException;
 
     /**
      * Gets a set of all unique keywords assigned to icons

@@ -54,7 +54,6 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -92,7 +91,7 @@ class IconTest extends TrackerTest
     {
         Map<String, StandardIcon> standardIconMap = getAllStandardIcons();
 
-        Assertions.assertEquals( standardIconMap.size() + 1, iconService.getIcons( "contextPath" ).size(),
+        assertEquals( standardIconMap.size() + 1, iconService.getIcons( "contextPath" ).size(),
             String.format( "Expected to find %d icons, but found %d instead", standardIconMap.size() + 1,
                 iconService.getIcons( "contextPath" ).size() ) );
     }
@@ -103,19 +102,19 @@ class IconTest extends TrackerTest
     {
         String standardIconKey = getAllStandardIcons().keySet().stream().findAny().orElse( null );
 
-        BaseIcon baseIcon = iconService.getIcon( standardIconKey, "contextPath" );
+        Icon icon = iconService.getIcon( standardIconKey, "contextPath" );
 
-        assertEquals( standardIconKey, baseIcon.getKey() );
+        assertEquals( standardIconKey, icon.getKey() );
     }
 
     @Test
     void shouldGetAllKeywordsWhenRequested()
     {
         List<String> keywordList = getAllStandardIcons().values().stream()
-            .map( BaseIcon::getKeywords )
+            .map( Icon::getKeywords )
             .flatMap( List::stream ).toList();
 
-        Assertions.assertEquals( keywordList.size() + keywords.size(), iconService.getKeywords().size(),
+        assertEquals( keywordList.size() + keywords.size(), iconService.getKeywords().size(),
             String.format( "Expected to find %d icons, but found %d instead", keywordList.size() + 1,
                 iconService.getIcons( "contextPath" ).size() ) );
     }
@@ -161,7 +160,7 @@ class IconTest extends TrackerTest
 
     @Test
     void shouldGetIconDataWhenKeyBelongsToStandardIcon()
-        throws BadRequestException,
+        throws NotFoundException,
         IOException
     {
         String standardIconKey = getAllStandardIcons().keySet().stream().findAny().orElse( null );
@@ -217,8 +216,8 @@ class IconTest extends TrackerTest
 
     private Map<String, StandardIcon> getAllStandardIcons()
     {
-        return Arrays.stream( Icon.values() )
-            .map( Icon::getVariants )
+        return Arrays.stream( StandardIcon.Icon.values() )
+            .map( StandardIcon.Icon::getVariants )
             .flatMap( Collection::stream )
             .collect( Collectors.toMap( StandardIcon::getKey, Function.identity() ) );
     }

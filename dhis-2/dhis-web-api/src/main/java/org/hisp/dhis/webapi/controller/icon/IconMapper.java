@@ -29,14 +29,21 @@ package org.hisp.dhis.webapi.controller.icon;
 
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
+import java.util.Optional;
+
 import lombok.AllArgsConstructor;
 
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.BaseIcon;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconDto;
+import org.hisp.dhis.icon.StandardIcon;
+import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
+import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -47,23 +54,41 @@ public class IconMapper
 
     private CurrentUserService currentUserService;
 
-    public IconDto from( BaseIcon baseIcon )
-    {
-        return new IconDto( baseIcon.getKey(), baseIcon.getDescription(), baseIcon.getKeywords(),
-            baseIcon.getFileResourceUid(), baseIcon.getUserUid(), baseIcon.getReference() );
+    private ContextService contextService;
+
+    public IconDto from( Icon icon) {
+        if (icon instanceof CustomIcon ci) {
+            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(),
+                    ci.getFileResource().getUid(), ci.getCreatedBy().getUid(), getCustomIconReference(ci.getFileResource().getUid()));
+        } else {
+            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(), getStandardIconReference(icon.getKey()));
+        }
     }
 
     public CustomIcon to( IconDto iconDto )
         throws BadRequestException
     {
-        FileResource fileResource = fileResourceService.getFileResource( iconDto.getFileResourceUid(), CUSTOM_ICON );
-        if ( fileResource == null )
+        Optional<FileResource> fileResource = fileResourceService.getFileResource( iconDto.getFileResourceUid(),
+            CUSTOM_ICON );
+        if ( fileResource.isEmpty() )
         {
             throw new BadRequestException(
                 String.format( "File resource with uid %s does not exist", iconDto.getFileResourceUid() ) );
         }
 
         return new CustomIcon( iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords(),
-            fileResource, currentUserService.getCurrentUser() );
+            fileResource.get(), currentUserService.getCurrentUser() );
+    }
+
+    private String getCustomIconReference( String fileResourceUid )
+    {
+        return String.format( "%s%s/%s/data", contextService.getApiPath(), FileResourceSchemaDescriptor.API_ENDPOINT,
+            fileResourceUid );
+    }
+
+    private String getStandardIconReference( String key )
+    {
+        return String.format( "%s%s/%s/icon.%s", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key,
+            StandardIcon.Icon.SUFFIX );
     }
 }

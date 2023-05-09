@@ -36,7 +36,6 @@ import org.hibernate.SessionFactory;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
 @Repository( "org.hisp.dhis.icon.CustomIconStore" )
 @RequiredArgsConstructor
@@ -65,7 +64,6 @@ public class HibernateCustomIconStore
     }
 
     @Override
-    @Transactional( readOnly = true )
     public List<CustomIcon> getAllIcons()
     {
         return sessionFactory.getCurrentSession().createNativeQuery( "select * from customicon", CustomIcon.class )
@@ -73,7 +71,6 @@ public class HibernateCustomIconStore
     }
 
     @Override
-    @Transactional( readOnly = true )
     public CustomIcon getIconByKey( String key )
     {
         return sessionFactory.getCurrentSession()

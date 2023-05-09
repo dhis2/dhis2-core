@@ -105,12 +105,12 @@ public class HibernateFileResourceStore
     }
 
     @Override
-    public FileResource findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain )
+    public Optional<FileResource> findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain )
     {
         return getSession()
             .createNativeQuery( "select * from fileresource where uid = :uid and domain = :domain", FileResource.class )
             .setParameter( "uid", uid ).setParameter( "domain", domain.name() )
-            .getResultList().stream().findFirst().orElse( null );
+            .getResultList().stream().findFirst();
     }
 
     @Override

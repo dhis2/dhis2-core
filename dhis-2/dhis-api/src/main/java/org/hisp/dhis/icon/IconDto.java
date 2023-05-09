@@ -29,55 +29,41 @@ package org.hisp.dhis.icon;
 
 import java.util.List;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-import org.hisp.dhis.fileresource.FileResource;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 @NoArgsConstructor
+@AllArgsConstructor
 @Getter
-public abstract class BaseIcon
+public class IconDto
 {
 
-    @Setter
+    @JsonProperty
     private String key;
 
-    @Setter
+    @JsonProperty
     private String description;
 
-    @Setter
+    @JsonProperty
     private List<String> keywords;
 
-    @Setter
+    @JsonProperty
     private String fileResourceUid;
 
-    @Setter
+    @JsonProperty
     private String userUid;
 
-    String reference;
+    @JsonProperty( "href" )
+    private String reference;
 
-    protected BaseIcon( String key, String description, List<String> keywords )
+    public IconDto( String key, String description, List<String> keywords, String reference )
     {
         this.key = key;
         this.description = description;
         this.keywords = keywords;
+        this.reference = reference;
     }
-
-    protected BaseIcon( String key, String description, List<String> keywords, FileResource fileResource,
-        String userUid )
-    {
-        if ( fileResource == null )
-        {
-            throw new IllegalArgumentException( "File resource cannot be null." );
-        }
-
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-        this.fileResourceUid = fileResource.getUid();
-        this.userUid = userUid;
-    }
-
-    public abstract void setReference( String contextApiPath, String endpoint, String uid );
 }

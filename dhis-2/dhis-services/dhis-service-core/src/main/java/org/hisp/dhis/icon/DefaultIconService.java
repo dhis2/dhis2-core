@@ -28,7 +28,6 @@
 package org.hisp.dhis.icon;
 
 import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
-import static org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor.API_ENDPOINT;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -46,8 +45,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
-import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -69,50 +66,36 @@ public class DefaultIconService
 
     private final FileResourceService fileResourceService;
 
-    private final CurrentUserService currentUserService;
-
-    private final Map<String, StandardIcon> standardIcons = Arrays.stream( Icon.values() )
-        .map( Icon::getVariants )
+    private final Map<String, StandardIcon> standardIcons = Arrays.stream( StandardIcon.Icon.values() )
+        .map( StandardIcon.Icon::getVariants )
         .flatMap( Collection::stream )
         .collect( Collectors.toMap( StandardIcon::getKey, Function.identity() ) );
 
     @Override
-    public Collection<BaseIcon> getIcons( String contextApiPath )
+    @Transactional( readOnly = true )
+    public Collection<Icon> getIcons( String contextApiPath )
     {
-        List<StandardIcon> standardIconList = updateStandardIconReference( standardIcons, contextApiPath );
-        List<CustomIcon> customIconList = updateCustomIconReference( customIconStore.getAllIcons().stream()
-            .map( ci -> CustomIcon.of( ci, currentUserService.getCurrentUser(), contextApiPath, API_ENDPOINT ) )
-            .toList(), contextApiPath );
-
-        return Stream.concat( standardIconList.stream(), customIconList.stream() ).toList();
+        return Stream.concat( standardIcons.values().stream(), customIconStore.getAllIcons().stream() ).toList();
     }
 
     @Override
-    public Collection<BaseIcon> getIcons( Collection<String> keywords, String contextApiPath )
+    @Transactional( readOnly = true )
+    public Collection<Icon> getIcons( Collection<String> keywords, String contextApiPath )
     {
-        List<StandardIcon> standardIconList = updateStandardIconReference( standardIcons, contextApiPath );
-        List<CustomIcon> customIconList = updateCustomIconReference(
-            customIconStore.getIconsByKeywords( keywords ).stream()
-                .map( ci -> CustomIcon.of( ci, currentUserService.getCurrentUser(), contextApiPath, API_ENDPOINT ) )
-                .toList(),
-            contextApiPath );
-
-        return Stream.concat( standardIconList.stream()
+        return Stream.concat( standardIcons.values().stream()
             .filter( icon -> new HashSet<>( icon.getKeywords() ).containsAll( keywords ) ).toList().stream(),
-            customIconList.stream() )
+            customIconStore.getIconsByKeywords( keywords ).stream() )
             .toList();
     }
 
     @Override
-    public BaseIcon getIcon( String key, String contextApiPath )
+    @Transactional( readOnly = true )
+    public Icon getIcon( String key, String contextApiPath )
         throws NotFoundException
     {
         if ( standardIcons.containsKey( key ) )
         {
-            StandardIcon standardIcon = standardIcons.get( key );
-            standardIcon.setReference( contextApiPath, IconSchemaDescriptor.API_ENDPOINT, standardIcon.getKey() );
-
-            return standardIcon;
+            return standardIcons.get( key );
         }
         else
         {
@@ -122,11 +105,12 @@ public class DefaultIconService
                 throw new NotFoundException( String.format( "Icon not found: %s", key ) );
             }
 
-            return CustomIcon.of( customIcon, currentUserService.getCurrentUser(), contextApiPath, API_ENDPOINT );
+            return customIcon;
         }
     }
 
     @Override
+    @Transactional( readOnly = true )
     public CustomIcon getCustomIcon( String key )
         throws NotFoundException
     {
@@ -141,25 +125,28 @@ public class DefaultIconService
 
     @Override
     public Optional<Resource> getIconResource( String key )
-        throws BadRequestException
+        throws NotFoundException
     {
         if ( standardIcons.containsKey( key ) )
         {
-            return Optional.of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, Icon.SUFFIX ) ) );
+            return Optional
+                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, StandardIcon.Icon.SUFFIX ) ) );
         }
 
-        throw new BadRequestException( String.format( "Icon with key %s is not a standard icon.", key ) );
+        throw new NotFoundException( String.format( "No standard icon found with key %s:", key ) );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<String> getKeywords()
     {
         return Stream.concat( standardIcons.values().stream()
-            .map( BaseIcon::getKeywords )
+            .map( Icon::getKeywords )
             .flatMap( List::stream ), customIconStore.getKeywords().stream() ).toList();
     }
 
     @Override
+    @Transactional( readOnly = true )
     public boolean iconExists( String key )
     {
         return standardIcons.get( key ) != null || customIconStore.getIconByKey( key ) != null;
@@ -243,7 +230,7 @@ public class DefaultIconService
             throw new BadRequestException( "File resource id not specified." );
         }
 
-        if ( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) == null )
+        if ( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ).isEmpty() )
         {
             throw new NotFoundException( String.format( "File resource %s does not exist", fileResource.getUid() ) );
         }
@@ -255,21 +242,5 @@ public class DefaultIconService
     {
         validateIconKeyNotNullOrEmpty( key );
         return getCustomIcon( key );
-    }
-
-    private List<StandardIcon> updateStandardIconReference( Map<String, StandardIcon> icons, String contextApiPath )
-    {
-        return icons.values().stream().map( icon -> {
-            icon.setReference( contextApiPath, IconSchemaDescriptor.API_ENDPOINT, icon.getKey() );
-            return icon;
-        } ).toList();
-    }
-
-    private List<CustomIcon> updateCustomIconReference( List<CustomIcon> icons, String contextApiPath )
-    {
-        return icons.stream().map( icon -> {
-            icon.setReference( contextApiPath, API_ENDPOINT, icon.getFileResourceUid() );
-            return icon;
-        } ).toList();
     }
 }

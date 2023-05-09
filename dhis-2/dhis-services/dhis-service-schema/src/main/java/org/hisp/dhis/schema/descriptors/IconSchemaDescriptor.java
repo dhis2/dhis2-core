@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.schema.descriptors;
 
-import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconDto;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaDescriptor;
 
@@ -45,7 +45,7 @@ public class IconSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( Icon.class, SINGULAR, PLURAL );
+        Schema schema = new Schema( IconDto.class, SINGULAR, PLURAL );
         schema.setRelativeApiEndpoint( API_ENDPOINT );
 
         return schema;

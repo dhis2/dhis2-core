@@ -48,8 +48,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.BaseIcon;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconDto;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -95,7 +96,7 @@ public class IconController
         throws WebMessageException,
         NotFoundException
     {
-        BaseIcon icon = iconService.getIcon( iconKey, contextService.getApiPath() );
+        Icon icon = iconService.getIcon( iconKey, contextService.getApiPath() );
 
         if ( icon == null )
         {
@@ -110,7 +111,7 @@ public class IconController
     public void getIconData( HttpServletResponse response, @PathVariable String iconKey )
         throws WebMessageException,
         IOException,
-        BadRequestException
+        NotFoundException
     {
         Optional<Resource> icon = iconService.getIconResource( iconKey );
 
@@ -129,7 +130,7 @@ public class IconController
     @GetMapping
     public @ResponseBody List<IconDto> getAllIcons( @RequestParam( required = false ) Collection<String> keywords )
     {
-        Collection<BaseIcon> icons;
+        Collection<Icon> icons;
 
         if ( keywords == null )
         {

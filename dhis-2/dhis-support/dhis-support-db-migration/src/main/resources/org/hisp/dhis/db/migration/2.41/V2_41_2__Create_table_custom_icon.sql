@@ -3,7 +3,6 @@ CREATE TABLE IF NOT EXISTS customicon (
     "key" varchar(100) NOT NULL,
     fileresourceid int8 NOT NULL,
     description text NULL,
-    keywords text NULL,
     created TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
     createdby bigint NOT NULL,
     CONSTRAINT customicon_pkey PRIMARY KEY (customiconid),

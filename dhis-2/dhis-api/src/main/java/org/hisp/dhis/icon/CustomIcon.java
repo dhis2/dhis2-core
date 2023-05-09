@@ -41,9 +41,15 @@ import org.hisp.dhis.user.User;
 @Getter
 @Setter
 @NoArgsConstructor
-public class CustomIcon extends BaseIcon
+public class CustomIcon implements Icon
 {
     private long id;
+
+    private String key;
+
+    private String description;
+
+    private List<String> keywords;
 
     private FileResource fileResource;
 
@@ -53,22 +59,10 @@ public class CustomIcon extends BaseIcon
         @Nonnull FileResource fileResource,
         User user )
     {
-        super( key, description, keywords, fileResource, user.getUid() );
+        this.key = key;
+        this.description = description;
+        this.keywords = keywords;
         this.fileResource = fileResource;
         this.createdBy = user;
-    }
-
-    public static CustomIcon of( CustomIcon customIcon, User user, String contextApiPath, String endpoint )
-    {
-        CustomIcon icon = new CustomIcon( customIcon.getKey(), customIcon.getDescription(), customIcon.getKeywords(),
-            customIcon.getFileResource(), user );
-        icon.setReference( contextApiPath, endpoint, customIcon.getFileResource().getUid() );
-        return icon;
-    }
-
-    @Override
-    public void setReference( String contextApiPath, String endpoint, String fileResourceUid )
-    {
-        this.reference = String.format( "%s%s/%s/data", contextApiPath, endpoint, fileResourceUid );
     }
 }

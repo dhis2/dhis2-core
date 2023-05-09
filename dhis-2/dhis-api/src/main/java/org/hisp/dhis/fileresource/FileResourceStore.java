@@ -55,7 +55,7 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
      * @return the file resource with the given uid and domain or null if no
      *         such file resource exists
      */
-    FileResource findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain );
+    Optional<FileResource> findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain );
 
     /**
      * Returns the organisation unit UID(s) with an image that links to the

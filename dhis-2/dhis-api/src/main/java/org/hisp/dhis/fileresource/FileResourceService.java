@@ -53,7 +53,7 @@ public interface FileResourceService
      * @param domain file resource domain to lookup
      * @return the {@link FileResource} associated with the given uid and domain
      */
-    FileResource getFileResource( String uid, FileResourceDomain domain );
+    Optional<FileResource> getFileResource( String uid, FileResourceDomain domain );
 
     List<FileResource> getFileResources( @Nonnull List<String> uids );
 

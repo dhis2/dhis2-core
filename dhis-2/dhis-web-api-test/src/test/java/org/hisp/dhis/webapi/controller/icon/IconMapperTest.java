@@ -33,14 +33,17 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.BaseIcon;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.Icon;
+import org.hisp.dhis.icon.IconDto;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -56,6 +59,9 @@ class IconMapperTest
 
     @Mock
     private CurrentUserService currentUserService;
+
+    @Mock
+    private ContextService contextService;
 
     private static final String KEY = "icon key";
 
@@ -75,7 +81,7 @@ class IconMapperTest
         when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         fileResource.setUid( "file resource uid" );
-        iconMapper = new IconMapper( fileResourceService, currentUserService );
+        iconMapper = new IconMapper( fileResourceService, currentUserService, contextService );
     }
 
     @Test
@@ -84,15 +90,16 @@ class IconMapperTest
     {
         IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
             currentUserService.getCurrentUser().getUid(), "reference" );
-        when( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) ).thenReturn( fileResource );
+        when( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) )
+            .thenReturn( Optional.of( fileResource ) );
 
         CustomIcon customIcon = iconMapper.to( iconDto );
 
         assertEquals( KEY, customIcon.getKey() );
         assertEquals( DESCRIPTION, customIcon.getDescription() );
         assertEquals( KEYWORDS, customIcon.getKeywords() );
-        assertEquals( fileResource.getUid(), customIcon.getFileResourceUid() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), customIcon.getUserUid() );
+        assertEquals( fileResource.getUid(), customIcon.getFileResource().getUid() );
+        assertEquals( currentUserService.getCurrentUser().getUid(), customIcon.getCreatedBy().getUid() );
     }
 
     @Test
@@ -107,12 +114,12 @@ class IconMapperTest
     }
 
     @Test
-    void shouldReturnIconDtoFromBaseIcon()
+    void shouldReturnIconDtoFromIcon()
     {
-        BaseIcon baseIcon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource,
+        Icon icon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource,
             currentUserService.getCurrentUser() );
 
-        IconDto iconDto = iconMapper.from( baseIcon );
+        IconDto iconDto = iconMapper.from( icon );
 
         assertEquals( KEY, iconDto.getKey() );
         assertEquals( DESCRIPTION, iconDto.getDescription() );

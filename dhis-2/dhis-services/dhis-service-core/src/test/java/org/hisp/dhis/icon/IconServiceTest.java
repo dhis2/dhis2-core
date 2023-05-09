@@ -38,6 +38,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -75,7 +76,8 @@ class IconServiceTest
         FileResource fileResource = new FileResource();
         fileResource.setUid( fileResourceUid );
         when( customIconStore.getIconByKey( uniqueKey ) ).thenReturn( null );
-        when( fileResourceService.getFileResource( fileResourceUid, CUSTOM_ICON ) ).thenReturn( new FileResource() );
+        when( fileResourceService.getFileResource( fileResourceUid, CUSTOM_ICON ) )
+            .thenReturn( Optional.of( new FileResource() ) );
 
         iconService
             .addCustomIcon(
@@ -105,7 +107,8 @@ class IconServiceTest
         FileResource fileResource = new FileResource();
         fileResource.setUid( fileResourceUid );
         when( customIconStore.getIconByKey( iconKey ) ).thenReturn( null );
-        when( fileResourceService.getFileResource( anyString(), any( FileResourceDomain.class ) ) ).thenReturn( null );
+        when( fileResourceService.getFileResource( anyString(), any( FileResourceDomain.class ) ) )
+            .thenReturn( Optional.empty() );
 
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.addCustomIcon(
@@ -133,16 +136,16 @@ class IconServiceTest
     }
 
     @Test
-    void shouldFailWhenCreatingCustomIconWithNoFileResourceId()
+    void shouldFailWhenSavingCustomIconWithNoFileResourceId()
     {
         String iconKey = "key";
         List<String> keywords = List.of( "keyword1" );
         User user = new User();
+        CustomIcon customIcon = new CustomIcon( iconKey, "description", keywords, null, user );
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> iconService.addCustomIcon( customIcon ) );
 
-        Exception exception = assertThrows( IllegalArgumentException.class,
-            () -> new CustomIcon( iconKey, "description", keywords, null, user ) );
-
-        String expectedMessage = "File resource cannot be null.";
+        String expectedMessage = "File resource id not specified.";
         assertEquals( expectedMessage, exception.getMessage() );
     }
 
