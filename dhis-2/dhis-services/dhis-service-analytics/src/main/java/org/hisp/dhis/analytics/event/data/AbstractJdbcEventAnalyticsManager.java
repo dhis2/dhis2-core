@@ -992,7 +992,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 addGridDoubleTypeValue( (Double) value, grid, header, params );
             }
-            else if ( value instanceof BigDecimal)
+            else if ( value instanceof BigDecimal )
             {
                 Optional<QueryItem> queryItem = params.getItems()
                         .stream()
@@ -1001,9 +1001,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
                 if ( queryItem.isPresent() )
                 {
-                    grid.addValue( AnalyticsUtils.getRoundedValue( params,
-                            ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
-                            ((BigDecimal) value).doubleValue() ) );
+                    grid.addValue( AnalyticsUtils.getRoundedValue( params, ((ProgramIndicator) queryItem.get().getItem()).getDecimals(), ((BigDecimal) value).doubleValue() ) );
                 }
                 else
                 {
