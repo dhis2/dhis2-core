@@ -30,7 +30,6 @@ package org.hisp.dhis.predictor;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
-import static org.hisp.dhis.expression.PreprocessorExpression.PREPROCESSOR_SEPARATOR;
 
 import java.util.List;
 import java.util.Map;
@@ -158,7 +157,7 @@ public class PredictionPreprocessor
         }
 
         // Return the complete description
-        return prefixDescription + PREPROCESSOR_SEPARATOR + mainDescription;
+        return prefixDescription + mainDescription;
     }
 
     /**
