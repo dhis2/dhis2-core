@@ -109,7 +109,7 @@ public class EnrollmentQueryParams
     /**
      * Tracked entity instance.
      */
-    private String trackedEntityInstanceUid;
+    private String trackedEntityUid;
 
     /**
      * Page number.
@@ -254,7 +254,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasTrackedEntityInstance()
     {
-        return StringUtils.isNotEmpty( this.trackedEntityInstanceUid );
+        return StringUtils.isNotEmpty( this.trackedEntityUid );
     }
 
     /**

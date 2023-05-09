@@ -161,7 +161,7 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params,
+    public List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -185,8 +185,7 @@ public class DefaultTrackedEntityService
             validateSearchScope( params, false );
         }
 
-        List<TrackedEntity> trackedEntities = trackedEntityStore
-            .getTrackedEntityInstances( params );
+        List<TrackedEntity> trackedEntities = trackedEntityStore.getTrackedEntities( params );
 
         User user = params.getUser();
         trackedEntities = trackedEntities.stream()
@@ -206,7 +205,7 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params,
+    public List<Long> getTrackedEntityIds( TrackedEntityQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation )
     {
         if ( params.isOrQuery() && !params.hasAttributes() && !params.hasProgram() )
@@ -233,7 +232,7 @@ public class DefaultTrackedEntityService
             validateSearchScope( params, false );
         }
 
-        return trackedEntityStore.getTrackedEntityInstanceIds( params );
+        return trackedEntityStore.getTrackedEntityIds( params );
     }
 
     /**
@@ -267,7 +266,7 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
+    public int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
         decideAccess( params );
@@ -284,14 +283,14 @@ public class DefaultTrackedEntityService
 
         // using countForGrid here to leverage the better performant rewritten
         // sql query
-        return trackedEntityStore.getTrackedEntityInstanceCountForGrid( params );
+        return trackedEntityStore.getTrackedEntityCountForGrid( params );
     }
 
     // TODO lower index on attribute value?
 
     @Override
     @Transactional( readOnly = true )
-    public Grid getTrackedEntityInstancesGrid( TrackedEntityQueryParams params )
+    public Grid getTrackedEntitiesGrid( TrackedEntityQueryParams params )
     {
         decideAccess( params );
         validate( params );
@@ -329,7 +328,7 @@ public class DefaultTrackedEntityService
             grid.addHeader( new GridHeader( item.getItem().getUid(), item.getItem().getName() ) );
         }
 
-        List<Map<String, String>> entities = trackedEntityStore.getTrackedEntityInstancesGrid( params );
+        List<Map<String, String>> entities = trackedEntityStore.getTrackedEntitiesGrid( params );
 
         // ---------------------------------------------------------------------
         // Grid rows
@@ -413,7 +412,7 @@ public class DefaultTrackedEntityService
 
             if ( params.isTotalPages() )
             {
-                count = trackedEntityStore.getTrackedEntityInstanceCountForGrid( params );
+                count = trackedEntityStore.getTrackedEntityCountForGrid( params );
             }
 
             Pager pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
@@ -746,7 +745,7 @@ public class DefaultTrackedEntityService
         if ( maxTeiLimit > 0 )
         {
             int instanceCount = trackedEntityStore
-                .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( params );
+                .getTrackedEntityCountForGridWithMaxTeiLimit( params );
 
             if ( instanceCount > maxTeiLimit )
             {
@@ -787,40 +786,40 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional
-    public long addTrackedEntityInstance( TrackedEntity instance )
+    public long addTrackedEntity( TrackedEntity trackedEntity )
     {
-        trackedEntityStore.save( instance );
+        trackedEntityStore.save( trackedEntity );
 
-        return instance.getId();
+        return trackedEntity.getId();
     }
 
     @Override
     @Transactional
-    public long createTrackedEntityInstance( TrackedEntity instance,
+    public long createTrackedEntity( TrackedEntity trackedEntity,
         Set<TrackedEntityAttributeValue> attributeValues )
     {
-        long id = addTrackedEntityInstance( instance );
+        long id = addTrackedEntity( trackedEntity );
 
         for ( TrackedEntityAttributeValue pav : attributeValues )
         {
             attributeValueService.addTrackedEntityAttributeValue( pav );
-            instance.getTrackedEntityAttributeValues().add( pav );
+            trackedEntity.getTrackedEntityAttributeValues().add( pav );
         }
 
-        updateTrackedEntityInstance( instance ); // Update associations
+        updateTrackedEntity( trackedEntity ); // Update associations
 
         return id;
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    public List<TrackedEntity> getTrackedEntitiesByUid( List<String> uids, User user )
     {
         if ( uids == null || uids.isEmpty() )
         {
             return Collections.emptyList();
         }
-        return trackedEntityStore.getTrackedEntityInstancesByUid( uids, user );
+        return trackedEntityStore.getTrackedEntityByUid( uids, user );
     }
 
     @Override
@@ -836,45 +835,45 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstance( TrackedEntity instance )
+    public void updateTrackedEntity( TrackedEntity trackedEntity )
     {
-        trackedEntityStore.update( instance );
+        trackedEntityStore.update( trackedEntity );
     }
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstance( TrackedEntity instance, User user )
+    public void updateTrackedEntity( TrackedEntity trackedEntity, User user )
     {
-        trackedEntityStore.update( instance, user );
+        trackedEntityStore.update( trackedEntity, user );
     }
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs,
+    public void updateTrackedEntitySyncTimestamp( List<String> trackedEntityUIDs,
         Date lastSynchronized )
     {
-        trackedEntityStore.updateTrackedEntityInstancesSyncTimestamp( trackedEntityInstanceUIDs,
+        trackedEntityStore.updateTrackedEntitySyncTimestamp( trackedEntityUIDs,
             lastSynchronized );
     }
 
     @Override
     @Transactional
-    public void updateTrackedEntityInstanceLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    public void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated )
     {
-        trackedEntityStore.updateTrackedEntityInstancesLastUpdated( trackedEntityInstanceUIDs, lastUpdated );
+        trackedEntityStore.updateTrackedEntityLastUpdated( trackedEntityUIDs, lastUpdated );
     }
 
     @Override
     @Transactional
-    public void deleteTrackedEntityInstance( TrackedEntity instance )
+    public void deleteTrackedEntity( TrackedEntity trackedEntity )
     {
-        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( instance );
-        trackedEntityStore.delete( instance );
+        attributeValueAuditService.deleteTrackedEntityAttributeValueAudits( trackedEntity );
+        trackedEntityStore.delete( trackedEntity );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntity getTrackedEntityInstance( long id )
+    public TrackedEntity getTrackedEntity( long id )
     {
         TrackedEntity tei = trackedEntityStore.get( id );
 
@@ -885,7 +884,7 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional
-    public TrackedEntity getTrackedEntityInstance( String uid )
+    public TrackedEntity getTrackedEntity( String uid )
     {
         TrackedEntity tei = trackedEntityStore.getByUid( uid );
         addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
@@ -894,7 +893,7 @@ public class DefaultTrackedEntityService
     }
 
     @Override
-    public TrackedEntity getTrackedEntityInstance( String uid, User user )
+    public TrackedEntity getTrackedEntity( String uid, User user )
     {
         TrackedEntity tei = trackedEntityStore.getByUid( uid );
         addTrackedEntityInstanceAudit( tei, User.username( user ), AuditType.READ );
@@ -904,20 +903,20 @@ public class DefaultTrackedEntityService
 
     @Override
     @Transactional( readOnly = true )
-    public boolean trackedEntityInstanceExists( String uid )
+    public boolean trackedEntityExists( String uid )
     {
         return trackedEntityStore.exists( uid );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public boolean trackedEntityInstanceExistsIncludingDeleted( String uid )
+    public boolean trackedEntityExistsIncludingDeleted( String uid )
     {
         return trackedEntityStore.existsIncludingDeleted( uid );
     }
 
     @Override
-    public List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids )
+    public List<String> getTrackedEntitiesUidsIncludingDeleted( List<String> uids )
     {
         return trackedEntityStore.getUidsIncludingDeleted( uids );
     }

@@ -66,7 +66,7 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    public String getTrackedEntityInstanceRecipient( TrackedEntity tei, ValueType type )
+    public String getTrackedEntityRecipient( TrackedEntity tei, ValueType type )
     {
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
 
@@ -87,7 +87,7 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    protected TrackedEntity getTrackedEntityInstance( ProgramMessage message )
+    protected TrackedEntity getTrackedEntity( ProgramMessage message )
     {
         if ( message.getRecipients().getTrackedEntity() == null )
         {
@@ -96,7 +96,7 @@ public abstract class DeliveryChannelStrategy
 
         String uid = message.getRecipients().getTrackedEntity().getUid();
 
-        TrackedEntity tei = trackedEntityService.getTrackedEntityInstance( uid );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( uid );
 
         message.getRecipients().setTrackedEntity( tei );
 

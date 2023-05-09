@@ -175,9 +175,9 @@ public class HibernateTrackedEntityStore
     // -------------------------------------------------------------------------
 
     @Override
-    public List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params )
+    public List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams params )
     {
-        List<Long> teiIds = getTrackedEntityInstanceIds( params );
+        List<Long> teiIds = getTrackedEntityIds( params );
         List<TrackedEntity> sortedTeis = new ArrayList<>();
         List<List<Long>> idsPartitions = Lists.partition( Lists.newArrayList( teiIds ), 20000 );
 
@@ -199,7 +199,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params )
+    public List<Long> getTrackedEntityIds( TrackedEntityQueryParams params )
     {
         String sql = getQuery( params, false );
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -225,7 +225,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityQueryParams params )
+    public List<Map<String, String>> getTrackedEntitiesGrid( TrackedEntityQueryParams params )
     {
         String sql = getQuery( params, true );
         log.debug( "Tracked entity instance query SQL: " + sql );
@@ -307,7 +307,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCountForGrid( TrackedEntityQueryParams params )
+    public int getTrackedEntityCountForGrid( TrackedEntityQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause
@@ -325,7 +325,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params )
+    public int getTrackedEntityCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params )
     {
         String sql = getCountQueryWithMaxTeiLimit( params );
 
@@ -635,7 +635,7 @@ public class HibernateTrackedEntityStore
             trackedEntity
                 .append( whereAnd.whereAnd() )
                 .append( "TEI.uid IN (" )
-                .append( encodeAndQuote( params.getTrackedEntityInstanceUids() ) )
+                .append( encodeAndQuote( params.getTrackedEntityUids() ) )
                 .append( ") " );
         }
 
@@ -1495,21 +1495,21 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs,
+    public void updateTrackedEntitySyncTimestamp( List<String> trackedEntityUIDs,
         Date lastSynchronized )
     {
         final String hql = "update TrackedEntity set lastSynchronized = :lastSynchronized WHERE uid in :trackedEntityInstances";
 
         getQuery( hql )
             .setParameter( "lastSynchronized", lastSynchronized )
-            .setParameter( "trackedEntityInstances", trackedEntityInstanceUIDs )
+            .setParameter( "trackedEntityInstances", trackedEntityUIDs )
             .executeUpdate();
     }
 
     @Override
-    public void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated )
+    public void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated )
     {
-        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityInstanceUIDs ), 20000 );
+        List<List<String>> uidsPartitions = Lists.partition( Lists.newArrayList( trackedEntityUIDs ), 20000 );
 
         uidsPartitions.stream().filter( teis -> !teis.isEmpty() )
             .forEach(
@@ -1520,7 +1520,7 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user )
+    public List<TrackedEntity> getTrackedEntityByUid( List<String> uids, User user )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 

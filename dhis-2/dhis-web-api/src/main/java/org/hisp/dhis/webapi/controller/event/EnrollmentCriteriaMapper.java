@@ -146,7 +146,7 @@ public class EnrollmentCriteriaMapper
         }
 
         TrackedEntity tei = trackedEntityInstance != null
-            ? trackedEntityService.getTrackedEntityInstance( trackedEntityInstance )
+            ? trackedEntityService.getTrackedEntity( trackedEntityInstance )
             : null;
 
         if ( trackedEntityInstance != null && tei == null )
@@ -162,7 +162,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstanceUid(
+        params.setTrackedEntityUid(
             Optional.ofNullable( tei ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );

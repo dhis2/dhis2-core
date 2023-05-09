@@ -133,10 +133,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         tei3.setTrackedEntityType( teiType );
         tei4.setTrackedEntityType( teiType );
 
-        trackedEntityService.addTrackedEntityInstance( tei1 );
-        trackedEntityService.addTrackedEntityInstance( tei2 );
-        trackedEntityService.addTrackedEntityInstance( tei3 );
-        trackedEntityService.addTrackedEntityInstance( tei4 );
+        trackedEntityService.addTrackedEntity( tei1 );
+        trackedEntityService.addTrackedEntity( tei2 );
+        trackedEntityService.addTrackedEntity( tei3 );
+        trackedEntityService.addTrackedEntity( tei4 );
 
         enrollment1 = createEnrollment( program, tei1, orgUnitA );
         enrollment2 = createEnrollment( program, tei2, orgUnitA );
@@ -167,7 +167,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
             false, false );
 
         assertNotNull( teis );
@@ -186,7 +186,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
@@ -202,7 +202,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
@@ -220,7 +220,7 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         params.setUserWithAssignedUsers( null, user, null );
         params.setSkipPaging( true );
 
-        List<Long> teis = trackedEntityService.getTrackedEntityInstanceIds( params,
+        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
             false, false );
 
         assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );

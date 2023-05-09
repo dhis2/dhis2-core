@@ -864,7 +864,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService
-                    .updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
+                    .updateTrackedEntity( event.getEnrollment().getEntityInstance() );
             }
 
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,

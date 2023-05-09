@@ -125,7 +125,7 @@ class EventCriteriaMapper
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( entityInstanceService::getTrackedEntity,
             criteria.getTrackedEntity() );
         validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 

@@ -76,7 +76,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
         Program prA = createProgram( 'A', Sets.newHashSet(), ouA );
         idObjectManager.save( prA );
         TrackedEntity teiA = createTrackedEntityInstance( 'A', ouA );
-        teiService.addTrackedEntityInstance( teiA );
+        teiService.addTrackedEntity( teiA );
         enrollmentA = createEnrollment( prA, teiA, ouA );
         piService.addEnrollment( enrollmentA );
     }

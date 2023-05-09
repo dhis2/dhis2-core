@@ -111,7 +111,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
     {
         Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-        List<TrackedEntity> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
+        List<TrackedEntity> teis = getTrackedEntityByPhoneNumber( sms, smsCommand, ous );
 
         if ( !validate( teis, ous, sms ) )
         {
@@ -137,7 +137,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         register( enrollments, keyValue, smsCommand, sms, ous );
     }
 
-    private List<TrackedEntity> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command,
+    private List<TrackedEntity> getTrackedEntityByPhoneNumber( IncomingSms sms, SMSCommand command,
         Set<OrganisationUnit> ous )
     {
         List<TrackedEntityAttribute> attributes = trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
@@ -147,7 +147,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
 
         attributes.parallelStream().map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
             .forEach(
-                param -> teis.addAll( trackedEntityService.getTrackedEntityInstances( param, false, true ) ) );
+                param -> teis.addAll( trackedEntityService.getTrackedEntities( param, false, true ) ) );
 
         return teis;
     }

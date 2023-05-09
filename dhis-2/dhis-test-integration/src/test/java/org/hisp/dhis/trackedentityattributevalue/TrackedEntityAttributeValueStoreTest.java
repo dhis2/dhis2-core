@@ -103,10 +103,10 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         teiB = createTrackedEntityInstance( organisationUnit );
         teiC = createTrackedEntityInstance( organisationUnit );
         teiD = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( teiA );
-        entityInstanceService.addTrackedEntityInstance( teiB );
-        entityInstanceService.addTrackedEntityInstance( teiC );
-        entityInstanceService.addTrackedEntityInstance( teiD );
+        entityInstanceService.addTrackedEntity( teiA );
+        entityInstanceService.addTrackedEntity( teiB );
+        entityInstanceService.addTrackedEntity( teiC );
+        entityInstanceService.addTrackedEntity( teiD );
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
         atC = createTrackedEntityAttribute( 'C' );

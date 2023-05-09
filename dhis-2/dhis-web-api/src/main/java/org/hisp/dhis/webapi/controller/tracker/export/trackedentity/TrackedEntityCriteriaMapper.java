@@ -162,7 +162,7 @@ public class TrackedEntityCriteriaMapper
             .setEventStartDate( criteria.getEventOccurredAfter() )
             .setEventEndDate( criteria.getEventOccurredBefore() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
-            .setTrackedEntityInstanceUids( trackedEntities )
+            .setTrackedEntityUids( trackedEntities )
             .setAttributes( attributeItems )
             .setFilters( filters )
             .setSkipMeta( criteria.isSkipMeta() )

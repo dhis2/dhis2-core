@@ -44,15 +44,15 @@ public interface TrackedEntityStore
 {
     String ID = TrackedEntityStore.class.getName();
 
-    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params );
+    List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams params );
 
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params );
+    List<Long> getTrackedEntityIds( TrackedEntityQueryParams params );
 
-    List<Map<String, String>> getTrackedEntityInstancesGrid( TrackedEntityQueryParams params );
+    List<Map<String, String>> getTrackedEntitiesGrid( TrackedEntityQueryParams params );
 
-    int getTrackedEntityInstanceCountForGrid( TrackedEntityQueryParams params );
+    int getTrackedEntityCountForGrid( TrackedEntityQueryParams params );
 
-    int getTrackedEntityInstanceCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params );
+    int getTrackedEntityCountForGridWithMaxTeiLimit( TrackedEntityQueryParams params );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted TEIs are not taken into
@@ -73,8 +73,8 @@ public interface TrackedEntityStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing TrackedEntityInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing TrackedEntity(including deleted) from the
+     * provided UIDs
      *
      * @param uids TEI UIDs to check
      * @return List containing UIDs of existing TEIs (including deleted)
@@ -82,26 +82,26 @@ public interface TrackedEntityStore
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Fetches TrackedEntityInstances matching the given list of UIDs
+     * Fetches TrackedEntity matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the TrackedEntityInstances matching the given
-     *         parameters list
+     * @return a List containing the TrackedEntity matching the given parameters
+     *         list
      */
     List<TrackedEntity> getIncludingDeleted( List<String> uids );
 
     /**
      * Set lastSynchronized timestamp to provided timestamp for provided TEIs
      *
-     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where
-     *        the lastSynchronized flag should be updated
+     * @param trackedEntityUIDs UIDs of Tracked entity instances where the
+     *        lastSynchronized flag should be updated
      * @param lastSynchronized The date of last successful sync
      */
-    void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+    void updateTrackedEntitySyncTimestamp( List<String> trackedEntityUIDs, Date lastSynchronized );
 
-    void updateTrackedEntityInstancesLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated );
+    void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated );
 
-    List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user );
+    List<TrackedEntity> getTrackedEntityByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 }

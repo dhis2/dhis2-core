@@ -209,7 +209,7 @@ public class TrackedEntityInstanceController
         User user = currentUserService.getCurrentUser();
 
         TrackedEntity trackedEntity = instanceService
-            .getTrackedEntityInstance( teiId );
+            .getTrackedEntity( teiId );
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntity );
 
@@ -285,7 +285,7 @@ public class TrackedEntityInstanceController
         User currentUser = currentUserService.getCurrentUser();
 
         TrackedEntity tei = Optional
-            .ofNullable( instanceService.getTrackedEntityInstance( teiId ) )
+            .ofNullable( instanceService.getTrackedEntity( teiId ) )
             .orElseThrow(
                 () -> new WebMessageException( notFound( "TrackedEntity not found for ID " + teiId ) ) );
 
@@ -548,7 +548,7 @@ public class TrackedEntityInstanceController
         criteria.setIncludeAllAttributes( false );
         final TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
-        return instanceService.getTrackedEntityInstancesGrid( queryParams );
+        return instanceService.getTrackedEntitiesGrid( queryParams );
     }
 
     private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )

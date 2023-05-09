@@ -68,27 +68,27 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) );
 
-        assertContainsOnly( List.of( teiaA, teiaB ), store.getTrackedEntityInstanceAudits( params ) );
+        assertContainsOnly( List.of( teiaA, teiaB ), store.getTrackedEntityAudits( params ) );
 
         params = new TrackedEntityAuditQueryParams()
             .setUsers( List.of( "userA" ) );
 
-        assertContainsOnly( List.of( teiaA, teiaC ), store.getTrackedEntityInstanceAudits( params ) );
+        assertContainsOnly( List.of( teiaA, teiaC ), store.getTrackedEntityAudits( params ) );
 
         params = new TrackedEntityAuditQueryParams()
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
-        assertContainsOnly( List.of( teiaB, teiaC ), store.getTrackedEntityInstanceAudits( params ) );
+        assertContainsOnly( List.of( teiaB, teiaC ), store.getTrackedEntityAudits( params ) );
 
         params = new TrackedEntityAuditQueryParams()
             .setAuditTypes( List.of( AuditType.CREATE, AuditType.DELETE ) );
 
-        assertContainsOnly( List.of( teiaA, teiaD ), store.getTrackedEntityInstanceAudits( params ) );
+        assertContainsOnly( List.of( teiaA, teiaD ), store.getTrackedEntityAudits( params ) );
 
         params = new TrackedEntityAuditQueryParams()
             .setTrackedEntityInstances( List.of( "WGW7UnVcIIb" ) )
             .setUsers( List.of( "userA" ) );
 
-        assertContainsOnly( List.of( teiaA ), store.getTrackedEntityInstanceAudits( params ) );
+        assertContainsOnly( List.of( teiaA ), store.getTrackedEntityAudits( params ) );
     }
 }

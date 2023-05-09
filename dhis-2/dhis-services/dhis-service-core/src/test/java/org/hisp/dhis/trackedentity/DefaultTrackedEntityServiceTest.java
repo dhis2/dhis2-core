@@ -105,14 +105,14 @@ class DefaultTrackedEntityServiceTest
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setProgram( new Program( "Test program" ) );
         params.getProgram().setMaxTeiCountToReturn( 10 );
-        params.setTrackedEntityInstanceUids( Set.of( "1" ) );
+        params.setTrackedEntityUids( Set.of( "1" ) );
     }
 
     @Test
     void exceptionThrownWhenTeiLimitReached()
     {
         when( trackedEntityStore
-            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
+            .getTrackedEntityCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( 20 );
 
         IllegalQueryException expectedException = assertThrows(
@@ -126,7 +126,7 @@ class DefaultTrackedEntityServiceTest
     void noExceptionThrownWhenTeiLimitNotReached()
     {
         when( trackedEntityStore
-            .getTrackedEntityInstanceCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
+            .getTrackedEntityCountForGridWithMaxTeiLimit( any( TrackedEntityQueryParams.class ) ) )
                 .thenReturn( 0 );
 
         teiService.validateSearchScope( params, true );

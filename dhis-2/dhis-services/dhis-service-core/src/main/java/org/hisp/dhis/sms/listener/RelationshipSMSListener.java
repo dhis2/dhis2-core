@@ -150,7 +150,7 @@ public class RelationshipSMSListener extends CompressionSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntity tei = trackedEntityService.getTrackedEntityInstance( objId.getUid() );
+            TrackedEntity tei = trackedEntityService.getTrackedEntity( objId.getUid() );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );

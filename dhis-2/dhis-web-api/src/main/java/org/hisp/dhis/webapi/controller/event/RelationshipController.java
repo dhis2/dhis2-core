@@ -108,7 +108,7 @@ public class RelationshipController
         if ( relationshipCriteria.getTei() != null )
         {
             return Optional.ofNullable( trackedEntityService
-                .getTrackedEntityInstance( relationshipCriteria.getTei() ) )
+                .getTrackedEntity( relationshipCriteria.getTei() ) )
                 .map( tei -> relationshipService.getRelationshipsByTrackedEntityInstance( tei,
                     relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(

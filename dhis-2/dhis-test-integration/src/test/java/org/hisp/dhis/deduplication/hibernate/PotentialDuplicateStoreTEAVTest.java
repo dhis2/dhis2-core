@@ -91,9 +91,9 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
         original = createTrackedEntityInstance( ou );
         duplicate = createTrackedEntityInstance( ou );
         control = createTrackedEntityInstance( ou );
-        trackedEntityService.addTrackedEntityInstance( original );
-        trackedEntityService.addTrackedEntityInstance( duplicate );
-        trackedEntityService.addTrackedEntityInstance( control );
+        trackedEntityService.addTrackedEntity( original );
+        trackedEntityService.addTrackedEntity( duplicate );
+        trackedEntityService.addTrackedEntity( control );
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
         trackedEntityAttributeC = createTrackedEntityAttribute( 'C' );
@@ -136,9 +136,9 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // queries.
             dbmsManager.clearSession();
             TrackedEntity _original = trackedEntityService
-                .getTrackedEntityInstance( original.getUid() );
+                .getTrackedEntity( original.getUid() );
             TrackedEntity _duplicate = trackedEntityService
-                .getTrackedEntityInstance( duplicate.getUid() );
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
@@ -153,7 +153,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntity _control = trackedEntityService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;
@@ -173,9 +173,9 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // queries.
             dbmsManager.clearSession();
             TrackedEntity _original = trackedEntityService
-                .getTrackedEntityInstance( original.getUid() );
+                .getTrackedEntity( original.getUid() );
             TrackedEntity _duplicate = trackedEntityService
-                .getTrackedEntityInstance( duplicate.getUid() );
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
@@ -190,7 +190,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntity _control = trackedEntityService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;
@@ -210,9 +210,9 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // queries.
             dbmsManager.clearSession();
             TrackedEntity _original = trackedEntityService
-                .getTrackedEntityInstance( original.getUid() );
+                .getTrackedEntity( original.getUid() );
             TrackedEntity _duplicate = trackedEntityService
-                .getTrackedEntityInstance( duplicate.getUid() );
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 4, _original.getTrackedEntityAttributeValues().size() );
@@ -227,7 +227,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntity _control = trackedEntityService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;

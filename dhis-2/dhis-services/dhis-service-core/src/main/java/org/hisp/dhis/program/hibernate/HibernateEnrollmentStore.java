@@ -160,7 +160,7 @@ public class HibernateEnrollmentStore
 
         if ( params.hasTrackedEntityInstance() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstanceUid() + "'";
+            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityUid() + "'";
         }
 
         if ( params.hasTrackedEntityType() )

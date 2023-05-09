@@ -307,7 +307,7 @@ public class DefaultProgramMessageService
         }
 
         if ( recipients.getTrackedEntity() != null && trackedEntityService
-            .getTrackedEntityInstance( recipients.getTrackedEntity().getUid() ) == null )
+            .getTrackedEntity( recipients.getTrackedEntity().getUid() ) == null )
         {
             violation = "Tracked entity does not exist";
         }

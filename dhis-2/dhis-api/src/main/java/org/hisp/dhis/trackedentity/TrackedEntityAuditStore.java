@@ -67,7 +67,7 @@ public interface TrackedEntityAuditStore
      * @param params tracked entity instance audit query params
      * @return a list of {@link TrackedEntityAudit}.
      */
-    List<TrackedEntityAudit> getTrackedEntityInstanceAudits( TrackedEntityAuditQueryParams params );
+    List<TrackedEntityAudit> getTrackedEntityAudits( TrackedEntityAuditQueryParams params );
 
     /**
      * Returns count of tracked entity instance audits matching query params
@@ -75,5 +75,5 @@ public interface TrackedEntityAuditStore
      * @param params tracked entity instance audit query params
      * @return count of audits.
      */
-    int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params );
+    int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params );
 }

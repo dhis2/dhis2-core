@@ -135,9 +135,9 @@ class DeduplicationMvcTest
         when( trackerAccessManager.canRead( any( User.class ), any( TrackedEntity.class ) ) )
             .thenReturn( Collections.emptyList() );
         when( currentUserService.getCurrentUser() ).thenReturn( new User() );
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
-        when( trackedEntityService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityService.getTrackedEntity( teiB ) )
             .thenReturn( trackedEntityB );
 
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
@@ -155,7 +155,7 @@ class DeduplicationMvcTest
         when( trackerAccessManager.canRead( any( User.class ), any( TrackedEntity.class ) ) )
             .thenReturn( List.of( "error" ) );
         when( currentUserService.getCurrentUser() ).thenReturn( new User() );
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
 
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( teiA, teiB );
@@ -259,9 +259,9 @@ class DeduplicationMvcTest
     void shouldAutoMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk()
         throws Exception
     {
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
-        when( trackedEntityService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityService.getTrackedEntity( teiB ) )
             .thenReturn( trackedEntityB );
 
         String uid = "uid";
@@ -281,9 +281,9 @@ class DeduplicationMvcTest
     void shouldManualMergePotentialDuplicateWhenUserHasAccessAndMergeIsOk()
         throws Exception
     {
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
-        when( trackedEntityService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityService.getTrackedEntity( teiB ) )
             .thenReturn( trackedEntityB );
 
         String uid = "uid";
@@ -303,9 +303,9 @@ class DeduplicationMvcTest
     void shouldThrowForbiddenExceptionWhenAutoMergingIsForbidden()
         throws Exception
     {
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
-        when( trackedEntityService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityService.getTrackedEntity( teiB ) )
             .thenReturn( trackedEntityB );
 
         String uid = "uid";
@@ -328,9 +328,9 @@ class DeduplicationMvcTest
     void shouldThrowConflictExceptionWhenAutoMergeHasConflicts()
         throws Exception
     {
-        when( trackedEntityService.getTrackedEntityInstance( teiA ) )
+        when( trackedEntityService.getTrackedEntity( teiA ) )
             .thenReturn( trackedEntityA );
-        when( trackedEntityService.getTrackedEntityInstance( teiB ) )
+        when( trackedEntityService.getTrackedEntity( teiB ) )
             .thenReturn( trackedEntityB );
 
         String uid = "uid";

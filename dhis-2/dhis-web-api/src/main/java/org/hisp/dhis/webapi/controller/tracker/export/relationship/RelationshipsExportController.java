@@ -113,7 +113,7 @@ public class RelationshipsExportController
     void setupMaps()
     {
         objectRetrievers = ImmutableMap.<Class<?>, Function<String, ?>> builder()
-            .put( TrackedEntity.class, trackedEntityService::getTrackedEntityInstance )
+            .put( TrackedEntity.class, trackedEntityService::getTrackedEntity )
             .put( Enrollment.class, enrollmentService::getEnrollment )
             .put( Event.class, eventService::getEvent )
             .build();

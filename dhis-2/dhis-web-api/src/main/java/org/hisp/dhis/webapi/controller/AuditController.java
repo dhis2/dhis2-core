@@ -480,15 +480,15 @@ public class AuditController
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
         {
-            int total = trackedEntityAuditService.getTrackedEntityInstanceAuditsCount( params );
+            int total = trackedEntityAuditService.getTrackedEntityAuditsCount( params );
 
             pager = new Pager( page, total, pageSize );
 
-            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits( params );
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params );
         }
         else
         {
-            teiAudits = trackedEntityAuditService.getTrackedEntityInstanceAudits(
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits(
                 new TrackedEntityAuditQueryParams()
                     .setTrackedEntityInstances( tei )
                     .setUsers( user )

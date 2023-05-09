@@ -111,7 +111,7 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
     }
 
     @Override
-    public Map<String, TrackedEntity> getTrackedEntityInstances( List<Long> ids, Context ctx )
+    public Map<String, TrackedEntity> getTrackedEntities( List<Long> ids, Context ctx )
     {
         List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 

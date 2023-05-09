@@ -184,7 +184,7 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
 
-        TrackedEntity tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
+        TrackedEntity tei = entityInstanceService.getTrackedEntity( trackedEntityInstance );
 
         if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {

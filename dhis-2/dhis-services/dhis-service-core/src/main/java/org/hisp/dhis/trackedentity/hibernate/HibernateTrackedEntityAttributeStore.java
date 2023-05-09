@@ -103,7 +103,7 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
+    public Optional<String> getTrackedEntityUidWithUniqueAttributeValue(
         TrackedEntityQueryParams params )
     {
         // ---------------------------------------------------------------------
