@@ -143,7 +143,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void testDeleteCurrentUser()
+    void testShouldDeleteTokensWhenUserIsDeleted()
     {
         preCreateInjectAdminUser();
 
