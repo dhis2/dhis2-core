@@ -44,6 +44,7 @@ import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.validation.ValidationRule;
 
 /**
@@ -61,6 +62,7 @@ public class DataDimensionItem {
           ProgramDataElementDimensionItem.class,
           ProgramTrackedEntityAttributeDimensionItem.class,
           ExpressionDimensionItem.class,
+          SubexpressionDimensionItem.class,
           ValidationRule.class);
 
   public static final Map<DataDimensionItemType, Class<? extends DimensionalItemObject>>
@@ -75,6 +77,7 @@ public class DataDimensionItem {
               DataDimensionItemType.PROGRAM_ATTRIBUTE,
                   ProgramTrackedEntityAttributeDimensionItem.class,
               DataDimensionItemType.EXPRESSION_DIMENSION_ITEM, ExpressionDimensionItem.class,
+              DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM, SubexpressionDimensionItem.class,
               DataDimensionItemType.VALIDATION_RULE, ValidationRule.class);
 
   private int id;
@@ -98,6 +101,8 @@ public class DataDimensionItem {
   private ProgramTrackedEntityAttributeDimensionItem programAttribute;
 
   private ExpressionDimensionItem expressionDimensionItem;
+
+  private SubexpressionDimensionItem subexpressionDimensionItem;
 
   // -------------------------------------------------------------------------
   // Constructor
@@ -193,6 +198,8 @@ public class DataDimensionItem {
       return programAttribute;
     } else if (expressionDimensionItem != null) {
       return expressionDimensionItem;
+    } else if (subexpressionDimensionItem != null) {
+      return subexpressionDimensionItem;
     }
 
     return null;
@@ -217,6 +224,8 @@ public class DataDimensionItem {
       return DataDimensionItemType.PROGRAM_ATTRIBUTE;
     } else if (expressionDimensionItem != null) {
       return DataDimensionItemType.EXPRESSION_DIMENSION_ITEM;
+    } else if (subexpressionDimensionItem != null) {
+      return DataDimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
     }
 
     return null;
@@ -364,6 +373,17 @@ public class DataDimensionItem {
 
   public void setExpressionDimensionItem(ExpressionDimensionItem expressionDimensionItem) {
     this.expressionDimensionItem = expressionDimensionItem;
+  }
+
+  @JsonProperty
+  @JsonSerialize(as = BaseNameableObject.class)
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public SubexpressionDimensionItem getSubexpressionDimensionItem() {
+    return subexpressionDimensionItem;
+  }
+
+  public void setSubexpressionDimensionItem(SubexpressionDimensionItem subexpressionDimensionItem) {
+    this.subexpressionDimensionItem = subexpressionDimensionItem;
   }
 
   /**

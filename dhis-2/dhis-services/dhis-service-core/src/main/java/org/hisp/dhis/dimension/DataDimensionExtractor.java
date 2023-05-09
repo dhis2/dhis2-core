@@ -56,6 +56,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -107,6 +108,10 @@ public class DataDimensionExtractor {
 
         case INDICATOR:
           atomicIds.putValue(Indicator.class, id.getId0());
+          break;
+
+        case SUBEXPRESSION_DIMENSION_ITEM:
+          atomicIds.putValues(getAtomicIds(id.getSubexItemIds()));
           break;
 
         case REPORTING_RATE:
@@ -312,6 +317,13 @@ public class DataDimensionExtractor {
                   attributeOptionCombo);
           dimensionalItemObject.setQueryMods(id.getQueryMods());
         }
+        break;
+
+      case SUBEXPRESSION_DIMENSION_ITEM:
+        Map<DimensionalItemId, DimensionalItemObject> map =
+            getItemObjectMap(id.getSubexItemIds(), atomicObjects);
+        dimensionalItemObject =
+            new SubexpressionDimensionItem(id.getSubexSql(), map.values(), id.getQueryMods());
         break;
 
       case REPORTING_RATE:

@@ -45,6 +45,20 @@ import org.hisp.dhis.parser.expression.ExpressionItem;
 public class FunctionAggregationType implements ExpressionItem {
   @Override
   public Object evaluate(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitWithAggregationType(ctx, visitor);
+  }
+
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    return visitWithAggregationType(ctx, visitor);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Visits the expression fragment with aggregation type applied */
+  private Object visitWithAggregationType(ExprContext ctx, CommonExpressionVisitor visitor) {
     AggregationType aggregationType = parseAggregationType(ctx.aggregationType.getText());
 
     QueryModifiers queryMods =
@@ -53,6 +67,7 @@ public class FunctionAggregationType implements ExpressionItem {
     return visitor.visitWithQueryMods(ctx.expr(0), queryMods);
   }
 
+  /** Parses the aggregation type */
   private AggregationType parseAggregationType(String text) {
     try {
       return AggregationType.valueOf(text);

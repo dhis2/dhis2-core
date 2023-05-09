@@ -67,9 +67,6 @@ public class QueryModifiers {
   /** The maximum date (end of any period) for querying this object. */
   @JsonProperty private final Date maxDate;
 
-  /** The sub-expression used to query the analytics value column. */
-  @JsonProperty private final String subExpression;
-
   /** The value type of the sub-expression (can be different from the value type of the object). */
   @JsonProperty private final ValueType valueType;
 
