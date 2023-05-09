@@ -54,12 +54,12 @@ class PredictorExpressionTest
     @Test
     void testPredictorExpression()
     {
-        String expression = "forEach ?de in :DEG:G1234567890 --> #{?de.A1234567890}";
+        String expression = "forEach\t?de\nin\r:DEG:G1234567890 -->\t #{?de.A1234567890}";
         PredictorExpression pe = new PredictorExpression( expression );
 
         assertFalse( pe.isSimple() );
         assertEquals( expression, pe.getExpression() );
-        assertEquals( "forEach ?de in :DEG:G1234567890", pe.getPrefix() );
+        assertEquals( "forEach\t?de\nin\r:DEG:G1234567890 -->\t ", pe.getPrefix() );
         assertEquals( "#{?de.A1234567890}", pe.getMain() );
         assertEquals( "?de", pe.getVariable() );
         assertEquals( ":DEG:G1234567890", pe.getTaggedDegUid() );
@@ -72,11 +72,11 @@ class PredictorExpressionTest
         // bad expression
 
         assertEquals(
-            "Couldn't find preprocessor termination ' --> ' in 'forEach ?de in :DEG:G1234567890 #{?de.A1234567890}'",
-            testError( "forEach ?de in :DEG:G1234567890 #{?de.A1234567890}" ) );
+            "Couldn't find preprocessor termination '-->' in 'forEach ?de in :DEG:G1234567890 1 + #{?de.A1234567890}'",
+            testError( "forEach ?de in :DEG:G1234567890 1 + #{?de.A1234567890}" ) );
 
         assertEquals(
-            "Predictor preprocessor expression should have four parts: 'forEach ?de :DEG:G1234567890 --> #{?de.A1234567890}'",
+            "Predictor expression with preprocessing should have six parts: 'forEach ?de :DEG:G1234567890 --> #{?de.A1234567890}'",
             testError( "forEach ?de :DEG:G1234567890 --> #{?de.A1234567890}" ) );
 
         // bad forEach

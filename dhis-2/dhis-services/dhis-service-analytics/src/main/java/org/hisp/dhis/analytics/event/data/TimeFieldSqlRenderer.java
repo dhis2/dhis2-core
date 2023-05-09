@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.ArrayList;
@@ -72,6 +73,11 @@ public abstract class TimeFieldSqlRenderer
         else // Periods condition only for pivot table (aggregated).
         {
             sql.append( getAggregatedConditionForPeriods( params ) );
+        }
+
+        if ( isEmpty( sql ) )
+        {
+            return sql.toString();
         }
 
         return "(" + sql + ")";

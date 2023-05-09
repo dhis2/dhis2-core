@@ -28,8 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.AUTHORITY;
-import static org.hisp.dhis.appmanager.AndroidSettingApp.NAMESPACE;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.AUTHORITY;
+import static org.hisp.dhis.appmanager.AndroidSettingsApp.NAMESPACE;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -41,12 +41,12 @@ import org.junit.jupiter.api.Test;
 
 /**
  * This tests verifies the protection of the
- * {@link org.hisp.dhis.appmanager.AndroidSettingApp#NAMESPACE} in the
+ * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#NAMESPACE} in the
  * {@link DatastoreService} that is installed on startup.
  *
  * @author Jan Bernitt
  */
-class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenienceTest
+class DatastoreControllerAndroidSettingsAppTest extends DhisControllerConvenienceTest
 {
 
     @BeforeEach
@@ -87,14 +87,14 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
 
     /**
      * Only user with
-     * {@link org.hisp.dhis.appmanager.AndroidSettingApp#AUTHORITY} can delete
+     * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#AUTHORITY} can delete
      * the NS.
      */
     @Test
     void testDeleteNamespace()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE ) );
@@ -102,14 +102,14 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
 
     /**
      * Only user with
-     * {@link org.hisp.dhis.appmanager.AndroidSettingApp#AUTHORITY} can add to
+     * {@link org.hisp.dhis.appmanager.AndroidSettingsApp#AUTHORITY} can add to
      * the NS.
      */
     @Test
     void testAddKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.CREATED, POST( "/dataStore/" + NAMESPACE + "/new-key", "[]" ) );
@@ -119,7 +119,7 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
     void testUpdateKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, PUT( "/dataStore/" + NAMESPACE + "/key", "[]" ) );
@@ -129,7 +129,7 @@ class DatastoreControllerAndroidSettingAppTest extends DhisControllerConvenience
     void testDeleteKeyJsonValue()
     {
         switchToNewUser( "not-an-android-manager" );
-        assertEquals( "Namespace 'ANDROID_SETTING_APP' is protected, access denied",
+        assertEquals( "Namespace 'ANDROID_SETTINGS_APP' is protected, access denied",
             DELETE( "/dataStore/" + NAMESPACE + "/key" ).error( HttpStatus.FORBIDDEN ).getMessage() );
         switchToNewUser( "andriod-manager", AUTHORITY );
         assertStatus( HttpStatus.OK, DELETE( "/dataStore/" + NAMESPACE + "/key" ) );

@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.validation.validator.relationship;
 
 import static org.hisp.dhis.relationship.RelationshipEntity.TRACKED_ENTITY_INSTANCE;
 import static org.hisp.dhis.tracker.validation.ValidationCode.E4000;
-import static org.hisp.dhis.tracker.validation.ValidationCode.E4001;
 import static org.hisp.dhis.tracker.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
@@ -42,7 +41,6 @@ import org.hisp.dhis.tracker.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.domain.Relationship;
 import org.hisp.dhis.tracker.domain.RelationshipItem;
 import org.hisp.dhis.tracker.validation.Reporter;
-import org.hisp.dhis.tracker.validation.ValidationCode;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,84 +96,6 @@ class LinkValidatorTest
 
         assertHasError( reporter, relationship, E4000,
             "Relationship: `" + relationship.getRelationship() + "` cannot link to itself" );
-    }
-
-    @Test
-    void shouldFailWhenToHasMultipleEntities()
-    {
-        String relationshipUid = "nBx6auGDUHG";
-        String relTypeUid = CodeGenerator.generateUid();
-        Relationship relationship = Relationship.builder()
-            .relationship( relationshipUid )
-            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
-            .from( trackedEntityRelationshipItem() )
-            .to( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .enrollment( enrollment() )
-                .build() )
-            .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, E4001,
-            "Relationship item `to` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
-    }
-
-    @Test
-    void shouldFailWhenFromHasMultipleEntities()
-    {
-        String relationshipUid = "nBx6auGDUHG";
-        String relTypeUid = CodeGenerator.generateUid();
-        Relationship relationship = Relationship.builder()
-            .relationship( relationshipUid )
-            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
-            .from( RelationshipItem.builder()
-                .trackedEntity( trackedEntity() )
-                .enrollment( enrollment() )
-                .build() )
-            .to( trackedEntityRelationshipItem() )
-            .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship item `from` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
-    }
-
-    @Test
-    void shouldFailWhenToHasNoEntities()
-    {
-        String relationshipUid = "nBx6auGDUHG";
-        String relTypeUid = CodeGenerator.generateUid();
-        Relationship relationship = Relationship.builder()
-            .relationship( relationshipUid )
-            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
-            .from( trackedEntityRelationshipItem() )
-            .to( RelationshipItem.builder().build() )
-            .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship item `to` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
-    }
-
-    @Test
-    void shouldFailWhenFromHasNoEntities()
-    {
-        String relationshipUid = "nBx6auGDUHG";
-        String relTypeUid = CodeGenerator.generateUid();
-        Relationship relationship = Relationship.builder()
-            .relationship( relationshipUid )
-            .relationshipType( MetadataIdentifier.ofUid( relTypeUid ) )
-            .from( RelationshipItem.builder().build() )
-            .to( trackedEntityRelationshipItem() )
-            .build();
-
-        validator.validate( reporter, bundle, relationship );
-
-        assertHasError( reporter, relationship, ValidationCode.E4001,
-            "Relationship item `from` for relationship `nBx6auGDUHG` is invalid: an item must link exactly one of trackedEntity, enrollment, event." );
     }
 
     private RelationshipType createRelTypeConstraint()

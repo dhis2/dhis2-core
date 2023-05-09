@@ -121,6 +121,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
@@ -153,6 +154,7 @@ public class DefaultDimensionService
     // --------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalItemObject> getCanReadDimensionItems( String uid )
     {
         DimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
@@ -170,6 +172,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<T> getCanReadObjects( List<T> objects )
     {
         User user = currentUserService.getCurrentUser();
@@ -178,6 +181,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<T> getCanReadObjects( User user, List<T> objects )
     {
         List<T> list = new ArrayList<>( objects );
@@ -188,6 +192,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionType getDimensionType( String uid )
     {
         Category cat = idObjectManager.get( Category.class, uid );
@@ -249,6 +254,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalObject> getAllDimensions()
     {
         Collection<Category> dcs = idObjectManager.getDataDimensions( Category.class );
@@ -269,6 +275,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalObject> getDimensionConstraints()
     {
         Collection<CategoryOptionGroupSet> cogs = idObjectManager.getDataDimensions( CategoryOptionGroupSet.class );
@@ -283,6 +290,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void mergeAnalyticalObject( BaseAnalyticalObject object )
     {
         if ( object != null )
@@ -305,6 +313,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void mergeEventAnalyticalObject( EventAnalyticalObject object )
     {
         if ( object != null )
@@ -333,6 +342,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
     {
         BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
@@ -353,12 +363,14 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
         return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
     {
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
@@ -400,6 +412,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
     {
         Collection<DimensionalItemObject> items = getDataDimensionalItemObjectMap( Sets.newHashSet( itemId ) ).values();
@@ -408,6 +421,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
@@ -420,6 +434,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
