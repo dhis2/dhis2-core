@@ -85,7 +85,7 @@ public interface IconService
      *
      * @param key key of the icon
      * @return the icon resource
-     * @throws BadRequestException if no standard icon exists with the provided
+     * @throws NotFoundException if no standard icon exists with the provided
      *         key
      */
     Optional<Resource> getIconResource( String key )

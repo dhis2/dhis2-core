@@ -34,6 +34,10 @@ import java.util.List;
 
 import lombok.Getter;
 
+/**
+ * This class represents icons that are pre-installed with the application and
+ * are not possible to modify.
+ */
 @Getter
 public class StandardIcon implements Icon
 {

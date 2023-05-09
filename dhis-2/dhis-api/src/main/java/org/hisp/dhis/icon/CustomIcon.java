@@ -38,6 +38,10 @@ import lombok.Setter;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
 
+/**
+ * This class represents icons that are uploaded by users and are possible to
+ * modify and delete later on.
+ */
 @Getter
 @Setter
 @NoArgsConstructor
