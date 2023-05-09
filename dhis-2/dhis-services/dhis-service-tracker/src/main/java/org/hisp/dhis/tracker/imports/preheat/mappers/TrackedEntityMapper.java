@@ -25,29 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.factory.Mappers;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
-public class TrackedEntityInstanceSchemaDescriptor implements SchemaDescriptor
+@Mapper( uses = {
+    DebugMapper.class,
+    TrackedEntityTypeMapper.class,
+    AttributeValueMapper.class
+} )
+public interface TrackedEntityMapper extends PreheatMapper<TrackedEntity>
 {
-    public static final String SINGULAR = "trackedEntityInstance";
+    TrackedEntityMapper INSTANCE = Mappers.getMapper( TrackedEntityMapper.class );
 
-    public static final String PLURAL = "trackedEntityInstances";
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "user" )
+    @Mapping( target = "organisationUnit", qualifiedByName = "organisationUnit" )
+    @Mapping( target = "trackedEntityType" )
+    @Mapping( target = "inactive" )
+    @Mapping( target = "enrollments" )
+    @Mapping( target = "created" )
+    @Mapping( target = "trackedEntityAttributeValues" )
+    @Mapping( target = "deleted" )
+    @Mapping( target = "createdByUserInfo" )
+    @Mapping( target = "lastUpdatedByUserInfo" )
+    TrackedEntity map( TrackedEntity trackedEntity );
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
-
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( TrackedEntity.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
-
-        return schema;
-    }
+    @Named( "organisationUnit" )
+    @BeanMapping( ignoreByDefault = true )
+    @Mapping( target = "id" )
+    @Mapping( target = "uid" )
+    @Mapping( target = "code" )
+    @Mapping( target = "name" )
+    @Mapping( target = "attributeValues" )
+    @Mapping( target = "user" )
+    OrganisationUnit map( OrganisationUnit organisationUnit );
 }

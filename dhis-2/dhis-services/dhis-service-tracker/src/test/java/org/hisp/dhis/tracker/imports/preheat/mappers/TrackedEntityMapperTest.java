@@ -78,7 +78,7 @@ class TrackedEntityMapperTest
         tei.setOrganisationUnit( orgUnit );
         tei.setTrackedEntityAttributeValues( Set.of( attributeValue ) );
 
-        TrackedEntity mapped = TrackedEntityInstanceMapper.INSTANCE.map( tei );
+        TrackedEntity mapped = TrackedEntityMapper.INSTANCE.map( tei );
 
         assertEquals( "WTTYiPQDqh1", mapped.getTrackedEntityType().getUid() );
         assertEquals( "friendship", mapped.getTrackedEntityType().getName() );

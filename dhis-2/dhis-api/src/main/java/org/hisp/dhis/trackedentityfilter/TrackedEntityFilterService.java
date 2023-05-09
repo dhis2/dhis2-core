@@ -35,31 +35,31 @@ import org.hisp.dhis.program.Program;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-public interface TrackedEntityInstanceFilterService
+public interface TrackedEntityFilterService
 {
-    String ID = TrackedEntityInstanceFilter.class.getName();
+    String ID = TrackedEntityFilter.class.getName();
 
     /**
-     * Adds trackedEntityInstanceFilter
+     * Adds trackedEntityFilter
      *
-     * @param trackedEntityInstanceFilter
-     * @return id of added trackedEntityInstanceFilter
+     * @param trackedEntityFilter
+     * @return id of added trackedEntityFilter
      */
-    long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    long add( TrackedEntityFilter trackedEntityFilter );
 
     /**
-     * Deletes trackedEntityInstanceFilter
+     * Deletes trackedEntityFilter
      *
-     * @param trackedEntityInstanceFilter
+     * @param trackedEntityFilter
      */
-    void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    void delete( TrackedEntityFilter trackedEntityFilter );
 
     /**
-     * Updates trackedEntityInstanceFilter
+     * Updates trackedEntityFilter
      *
-     * @param trackedEntityInstanceFilter
+     * @param trackedEntityFilter
      */
-    void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter );
+    void update( TrackedEntityFilter trackedEntityFilter );
 
     /**
      * Gets trackedEntityInstanceFilter
@@ -67,7 +67,7 @@ public interface TrackedEntityInstanceFilterService
      * @param id id of trackedEntityInstanceFilter to be fetched
      * @return trackedEntityInstanceFilter
      */
-    TrackedEntityInstanceFilter get( long id );
+    TrackedEntityFilter get( long id );
 
     /**
      * Gets trackedEntityInstanceFilter
@@ -75,14 +75,14 @@ public interface TrackedEntityInstanceFilterService
      * @param program program of trackedEntityInstanceFilter to be fetched
      * @return trackedEntityInstanceFilter
      */
-    List<TrackedEntityInstanceFilter> get( Program program );
+    List<TrackedEntityFilter> get( Program program );
 
     /**
      * Gets all trackedEntityInstanceFilters
      *
      * @return list of trackedEntityInstanceFilters
      */
-    List<TrackedEntityInstanceFilter> getAll();
+    List<TrackedEntityFilter> getAll();
 
     /**
      * Validate the trackedEntityInstanceFilter
@@ -90,6 +90,6 @@ public interface TrackedEntityInstanceFilterService
      * @param teiFilter
      * @return list of errors for each validation failures
      */
-    List<String> validate( TrackedEntityInstanceFilter teiFilter );
+    List<String> validate( TrackedEntityFilter teiFilter );
 
 }

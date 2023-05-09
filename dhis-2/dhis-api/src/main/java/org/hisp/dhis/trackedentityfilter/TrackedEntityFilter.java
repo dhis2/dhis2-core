@@ -51,8 +51,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
-@JacksonXmlRootElement( localName = "trackedEntityInstanceFilter", namespace = DxfNamespaces.DXF_2_0 )
-public class TrackedEntityInstanceFilter
+@JacksonXmlRootElement( localName = "trackedEntityFilter", namespace = DxfNamespaces.DXF_2_0 )
+public class TrackedEntityFilter
     extends BaseIdentifiableObject
     implements MetadataObject
 {
@@ -90,7 +90,7 @@ public class TrackedEntityInstanceFilter
     // Constructors
     // -------------------------------------------------------------------------
 
-    public TrackedEntityInstanceFilter()
+    public TrackedEntityFilter()
     {
 
     }

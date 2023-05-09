@@ -25,48 +25,45 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.mappers;
+package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
+import java.util.List;
+
+import javax.annotation.Nonnull;
+
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.mapstruct.BeanMapping;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.Named;
-import org.mapstruct.factory.Mappers;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
+import org.hisp.dhis.tracker.imports.TrackerImportParams;
+import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
+import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityMapper;
+import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
+import org.springframework.stereotype.Component;
 
-@Mapper( uses = {
-    DebugMapper.class,
-    TrackedEntityTypeMapper.class,
-    AttributeValueMapper.class
-} )
-public interface TrackedEntityInstanceMapper extends PreheatMapper<TrackedEntity>
+/**
+ * @author Luciano Fiandesio
+ */
+@RequiredArgsConstructor
+@Component
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityMapper.class )
+public class TrackerEntityStrategy implements ClassBasedSupplierStrategy
 {
-    TrackedEntityInstanceMapper INSTANCE = Mappers.getMapper( TrackedEntityInstanceMapper.class );
+    @Nonnull
+    private TrackedEntityStore trackedEntityStore;
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "user" )
-    @Mapping( target = "organisationUnit", qualifiedByName = "organisationUnit" )
-    @Mapping( target = "trackedEntityType" )
-    @Mapping( target = "inactive" )
-    @Mapping( target = "enrollments" )
-    @Mapping( target = "created" )
-    @Mapping( target = "trackedEntityAttributeValues" )
-    @Mapping( target = "deleted" )
-    @Mapping( target = "createdByUserInfo" )
-    @Mapping( target = "lastUpdatedByUserInfo" )
-    TrackedEntity map( TrackedEntity trackedEntity );
+    @Override
+    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    {
+        for ( List<String> ids : splitList )
+        {
+            // Fetch all Tracked Entity Instance present in the payload
+            List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted( ids );
 
-    @Named( "organisationUnit" )
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "uid" )
-    @Mapping( target = "code" )
-    @Mapping( target = "name" )
-    @Mapping( target = "attributeValues" )
-    @Mapping( target = "user" )
-    OrganisationUnit map( OrganisationUnit organisationUnit );
+            // Add to preheat
+            preheat.putTrackedEntities(
+                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
+                    trackedEntities ) );
+        }
+    }
 }

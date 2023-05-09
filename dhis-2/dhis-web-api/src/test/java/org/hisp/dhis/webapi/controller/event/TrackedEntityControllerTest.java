@@ -40,7 +40,6 @@ import java.io.IOException;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -88,7 +87,7 @@ class TrackedEntityControllerTest
     @Mock
     private TrackedEntity trackedEntity;
 
-    private final static String ENDPOINT = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT;
+    private final static String ENDPOINT = TrackedEntityInstanceController.RESOURCE_PATH;
 
     @BeforeEach
     public void setUp()
