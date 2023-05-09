@@ -216,11 +216,11 @@ public interface EnrollmentService
      * @param uid UID to use for new instance
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
-     * Enroll a TrackedEntity into a program. Must be run inside a transaction.
+     * Enroll a tracked entity into a program. Must be run inside a transaction.
      *
      * @param trackedEntity TrackedEntity
      * @param program Program
@@ -229,7 +229,7 @@ public interface EnrollmentService
      * @param orgunit Organisation Unit
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate,
         OrganisationUnit orgunit );
 

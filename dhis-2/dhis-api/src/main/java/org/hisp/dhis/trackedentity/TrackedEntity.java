@@ -124,13 +124,13 @@ public class TrackedEntity
     public void addAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         trackedEntityAttributeValues.add( attributeValue );
-        attributeValue.setEntityInstance( this );
+        attributeValue.setTrackedEntity( this );
     }
 
     public void removeAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         trackedEntityAttributeValues.remove( attributeValue );
-        attributeValue.setEntityInstance( null );
+        attributeValue.setTrackedEntity( null );
     }
 
     // -------------------------------------------------------------------------

@@ -96,7 +96,7 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEvents( trackerBundle );
 
-            TrackedEntity tei = enrollment.getEntityInstance();
+            TrackedEntity tei = enrollment.getTrackedEntity();
             tei.getEnrollments().remove( enrollment );
 
             enrollmentService.deleteEnrollment( enrollment );
@@ -130,7 +130,7 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntity( event.getEnrollment().getEntityInstance() );
+                teiService.updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
 
                 enrollment.getEvents().remove( event );
                 enrollmentService.updateEnrollment( enrollment );

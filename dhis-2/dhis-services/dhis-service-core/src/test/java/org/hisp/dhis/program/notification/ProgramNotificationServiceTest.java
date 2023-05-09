@@ -740,7 +740,7 @@ class ProgramNotificationServiceTest extends DhisConvenienceTest
         enrollment.setAutoFields();
         enrollment.setProgram( programA );
         enrollment.setOrganisationUnit( lvlTwoLeftLeft );
-        enrollment.setEntityInstance( tei );
+        enrollment.setTrackedEntity( tei );
 
         Event event = new Event();
         event.setAutoFields();

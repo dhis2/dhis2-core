@@ -246,7 +246,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicator );
         programService.updateProgram( program );
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
         enrollmentService.addEnrollment( enrollment );
         Event stageInstanceA = eventService.createEvent( enrollment,

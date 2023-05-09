@@ -219,10 +219,10 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
         teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance( femaleA );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( uniqueId );
-        enrollmentService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        enrollmentService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
+        enrollmentService.enrollTrackedEntity( maleA, programA, null, null, organisationUnitA );
+        enrollmentService.enrollTrackedEntity( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
             null, organisationUnitA );
-        enrollmentService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
+        enrollmentService.enrollTrackedEntity( dateConflictsMaleA, programA,
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 

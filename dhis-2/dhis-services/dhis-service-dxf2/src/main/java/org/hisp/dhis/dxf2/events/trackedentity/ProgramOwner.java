@@ -56,7 +56,7 @@ public class ProgramOwner
     {
         this.ownerOrgUnit = programOwner.getOrganisationUnit().getUid();
         this.program = programOwner.getProgram().getUid();
-        this.trackedEntityInstance = programOwner.getEntityInstance().getUid();
+        this.trackedEntityInstance = programOwner.getTrackedEntity().getUid();
     }
 
     @JsonProperty

@@ -108,10 +108,10 @@ class EnrollmentSupplierTest extends AbstractSupplierTest<Enrollment>
         assertThat( enrollment, is( notNullValue() ) );
         assertThat( enrollment.getId(), is( 100L ) );
         assertThat( enrollment.getUid(), is( "abcded" ) );
-        assertThat( enrollment.getEntityInstance(), is( notNullValue() ) );
-        assertThat( enrollment.getEntityInstance().getUid(), is( "efghil" ) );
-        assertThat( enrollment.getEntityInstance().getOrganisationUnit(), is( notNullValue() ) );
-        assertThat( enrollment.getEntityInstance().getOrganisationUnit().getUid(), is( "ouabcde" ) );
+        assertThat( enrollment.getTrackedEntity(), is( notNullValue() ) );
+        assertThat( enrollment.getTrackedEntity().getUid(), is( "efghil" ) );
+        assertThat( enrollment.getTrackedEntity().getOrganisationUnit(), is( notNullValue() ) );
+        assertThat( enrollment.getTrackedEntity().getOrganisationUnit().getUid(), is( "ouabcde" ) );
         assertThat( enrollment.getProgram(), is( notNullValue() ) );
         assertThat( enrollment.getProgram().getUid(), is( "prabcde" ) );
     }

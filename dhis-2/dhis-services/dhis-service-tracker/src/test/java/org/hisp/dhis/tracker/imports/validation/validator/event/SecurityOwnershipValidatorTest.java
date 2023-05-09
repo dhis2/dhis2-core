@@ -503,7 +503,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( enrollmentUid );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.setEntityInstance( getTEIWithNoEnrollments() );
+        enrollment.setTrackedEntity( getTEIWithNoEnrollments() );
         enrollment.setProgram( program );
         enrollment.setStatus( ProgramStatus.ACTIVE );
         return enrollment;

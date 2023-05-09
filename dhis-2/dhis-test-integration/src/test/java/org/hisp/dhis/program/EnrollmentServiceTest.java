@@ -238,11 +238,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     void testGetEnrollmentsByEntityInstanceProgramStatus()
     {
         enrollmentService.addEnrollment( enrollmentA );
-        Enrollment enrollment1 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment1 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment1.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment1 );
-        Enrollment enrollment2 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment2 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment2.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment2 );
@@ -272,9 +272,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testEnrollTrackedEntityInstance()
+    void testEnrollTrackedEntity()
     {
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstanceA, programB,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstanceA, programB,
             enrollmentDate, incidentDate, organisationUnitA );
         assertNotNull( enrollmentService.getEnrollment( enrollment.getId() ) );
     }

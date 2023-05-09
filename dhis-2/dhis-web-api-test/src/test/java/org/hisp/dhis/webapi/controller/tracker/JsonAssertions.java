@@ -116,7 +116,7 @@ public class JsonAssertions
         JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );
         assertEquals( expected.getUid(), jsonEnrollment.getEnrollment(), "enrollment UID" );
-        assertEquals( expected.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
+        assertEquals( expected.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
         assertEquals( expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID" );
         assertEquals( expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID" );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty(), "events should be empty" );

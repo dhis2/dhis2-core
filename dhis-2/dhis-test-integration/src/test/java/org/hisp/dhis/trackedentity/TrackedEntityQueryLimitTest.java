@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityinstance;
+package org.hisp.dhis.trackedentity;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,11 +45,6 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.Test;
@@ -148,10 +143,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         enrollmentService.addEnrollment( enrollment3 );
         enrollmentService.addEnrollment( enrollment4 );
 
-        enrollmentService.enrollTrackedEntityInstance( tei1, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei2, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei3, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntityInstance( tei4, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei1, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei2, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei3, program, new Date(), new Date(), orgUnitA );
+        enrollmentService.enrollTrackedEntity( tei4, program, new Date(), new Date(), orgUnitA );
 
         userService.addUser( user );
     }

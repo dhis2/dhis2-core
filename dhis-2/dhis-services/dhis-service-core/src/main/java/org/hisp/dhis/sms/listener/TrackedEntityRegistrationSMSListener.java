@@ -150,7 +150,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
         TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityInstanceId );
 
-        enrollmentService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+        enrollmentService.enrollTrackedEntity( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 
         sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + tei.getUid() ),
             senderPhoneNumber, INFO );
@@ -173,7 +173,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntity );
+        trackedEntityAttributeValue.setTrackedEntity( trackedEntity );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
     }

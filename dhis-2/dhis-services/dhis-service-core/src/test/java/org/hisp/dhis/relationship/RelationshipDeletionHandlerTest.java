@@ -91,7 +91,7 @@ class RelationshipDeletionHandlerTest
     }
 
     @Test
-    void deleteTrackedEntityInstance()
+    void deleteTrackedEntity()
     {
         when( relationshipService.getRelationshipsByTrackedEntityInstance( any(), anyBoolean() ) )
             .thenReturn( singletonList( new Relationship() ) );

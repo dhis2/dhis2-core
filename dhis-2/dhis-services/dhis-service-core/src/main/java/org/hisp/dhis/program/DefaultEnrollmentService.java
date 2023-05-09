@@ -411,16 +411,16 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntity, program, enrollmentDate,
+        return enrollTrackedEntity( trackedEntity, program, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
@@ -518,7 +518,7 @@ public class DefaultEnrollmentService
     {
         Program program = enrollment.getProgram();
 
-        TrackedEntity tei = enrollment.getEntityInstance();
+        TrackedEntity tei = enrollment.getTrackedEntity();
 
         if ( getEnrollments( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {

@@ -387,7 +387,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
                         .orElseGet( () -> new TrackedEntityAttributeValue()
                             .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                            .setEntityInstance( trackedEntity ) )
+                            .setTrackedEntity( trackedEntity ) )
                         .setStoredBy( attribute.getStoredBy() )
                         .setValue( attribute.getValue() );
 
@@ -490,7 +490,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         {
             TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getValue(), userName, auditType );
-            valueAudit.setEntityInstance( trackedEntity );
+            valueAudit.setTrackedEntity( trackedEntity );
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
     }

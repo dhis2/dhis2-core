@@ -118,12 +118,12 @@ public class HibernateTrackedEntityAttributeValueAuditStore
     }
 
     @Override
-    public void deleteTrackedEntityAttributeValueAudits( TrackedEntity entityInstance )
+    public void deleteTrackedEntityAttributeValueAudits( TrackedEntity trackedEntity )
     {
         Session session = sessionFactory.getCurrentSession();
         Query<?> query = session.createQuery(
-            "delete TrackedEntityAttributeValueAudit where entityInstance = :entityInstance" );
-        query.setParameter( "entityInstance", entityInstance );
+            "delete TrackedEntityAttributeValueAudit where trackedEntity = :trackedEntity" );
+        query.setParameter( "trackedEntity", trackedEntity );
         query.executeUpdate();
     }
 
@@ -139,7 +139,7 @@ public class HibernateTrackedEntityAttributeValueAuditStore
 
         if ( !params.getTrackedEntities().isEmpty() )
         {
-            predicates.add( root.get( "entityInstance" ).in( params.getTrackedEntities() ) );
+            predicates.add( root.get( "trackedEntity" ).in( params.getTrackedEntities() ) );
         }
 
         if ( !params.getAuditTypes().isEmpty() )

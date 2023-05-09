@@ -214,8 +214,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiE, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         List<TrackedEntity> teis = teiStore.getTrackedEntities( params );
@@ -314,8 +314,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         List<TrackedEntity> teis = teiStore.getTrackedEntities( params );
         assertEquals( 6, teis.size() );
@@ -351,8 +351,8 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiD, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiE, "Male" ) );
         attributeValueService.addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atA, teiF, "Female" ) );
-        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
-        enrollmentService.enrollTrackedEntityInstance( teiE, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiE, prA, new Date(), new Date(), ouB );
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         List<TrackedEntity> teis = teiStore.getTrackedEntities( params );
         assertEquals( 6, teis.size() );
@@ -393,7 +393,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         teiB.setCreated( today );
         teiStore.save( teiA );
         teiStore.save( teiB );
-        enrollmentService.enrollTrackedEntityInstance( teiB, prA, new Date(), new Date(), ouB );
+        enrollmentService.enrollTrackedEntity( teiB, prA, new Date(), new Date(), ouB );
         // Get all
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setOrders(
@@ -449,7 +449,7 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         teiStore.save( teiA );
         attributeValueService
             .addTrackedEntityAttributeValue( new TrackedEntityAttributeValue( atC, teiA, ouC.getUid() ) );
-        enrollmentService.enrollTrackedEntityInstance( teiA, prA, new Date(), new Date(), ouA );
+        enrollmentService.enrollTrackedEntity( teiA, prA, new Date(), new Date(), ouA );
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setTrackedEntityType( trackedEntityTypeA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );

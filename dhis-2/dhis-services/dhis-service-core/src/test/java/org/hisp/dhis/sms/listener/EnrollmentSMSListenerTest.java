@@ -210,7 +210,7 @@ class EnrollmentSMSListenerTest
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( enrollmentService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
+        when( enrollmentService.enrollTrackedEntity( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( enrollment );
         when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 

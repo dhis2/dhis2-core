@@ -75,7 +75,7 @@ public class ProgramStageNotificationMessageRenderer
         .put( ProgramStageTemplateVariable.PROGRAM_STAGE_ID, event -> event.getProgramStage().getUid() )
         .put( ProgramStageTemplateVariable.ENROLLMENT_ID, event -> event.getEnrollment().getUid() )
         .put( ProgramStageTemplateVariable.TRACKED_ENTITY_ID,
-            event -> event.getEnrollment().getEntityInstance().getUid() )
+            event -> event.getEnrollment().getTrackedEntity().getUid() )
         .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
@@ -105,7 +105,7 @@ public class ProgramStageNotificationMessageRenderer
             return Maps.newHashMap();
         }
 
-        return entity.getEnrollment().getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return entity.getEnrollment().getTrackedEntity().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect( Collectors.toMap( av -> av.getAttribute().getUid(),
                 ProgramStageNotificationMessageRenderer::filterValue ) );

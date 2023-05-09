@@ -211,7 +211,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityById()
     {
-        TrackedEntity tei = trackedEntityInstance();
+        TrackedEntity tei = trackedEntity();
         this.switchContextToUser( user );
 
         JsonTrackedEntity json = GET( "/tracker/trackedEntities/{id}", tei.getUid() )
@@ -233,7 +233,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFields()
     {
-        TrackedEntity tei = trackedEntityInstance();
+        TrackedEntity tei = trackedEntity();
         this.switchContextToUser( user );
 
         JsonTrackedEntity json = GET(
@@ -248,10 +248,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithAttributesReturnsTrackedEntityTypeAttributesOnly()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
+        TrackedEntity trackedEntity = trackedEntity();
         trackedEntity.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, trackedEntity, "12" ), attributeValue( tea2, trackedEntity, "24" ) ) );
-        enrollmentService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
+        enrollmentService.enrollTrackedEntity( trackedEntity, program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonAttribute> attributes = GET( "/tracker/trackedEntities/{id}?fields=attributes[attribute,value]",
             trackedEntity.getUid() )
@@ -267,10 +267,10 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithAttributesReturnsAllAttributes()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
+        TrackedEntity trackedEntity = trackedEntity();
         trackedEntity.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, trackedEntity, "12" ), attributeValue( tea2, trackedEntity, "24" ) ) );
-        enrollmentService.enrollTrackedEntityInstance( trackedEntity, program, new Date(), new Date(), orgUnit );
+        enrollmentService.enrollTrackedEntity( trackedEntity, program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonAttribute> attributes = GET(
             "/tracker/trackedEntities/{id}?program={id}&fields=attributes[attribute,value]", trackedEntity.getUid(),
@@ -284,8 +284,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFieldsRelationships()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntity();
         Relationship r = relationship( from, to );
         this.switchContextToUser( user );
 
@@ -301,8 +301,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipType()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntity();
         relationship( relationshipTypeNotAccessible(), fromTrackedEntity( from ), toTrackedEntity( to ) );
         this.switchContextToUser( user );
 
@@ -316,8 +316,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipItemTo()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstanceNotInSearchScope();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntityNotInSearchScope();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -331,8 +331,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToBothRelationshipItems()
     {
-        TrackedEntity from = trackedEntityInstanceNotInSearchScope();
-        TrackedEntity to = trackedEntityInstanceNotInSearchScope();
+        TrackedEntity from = trackedEntityNotInSearchScope();
+        TrackedEntity to = trackedEntityNotInSearchScope();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -344,8 +344,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getTrackedEntityByIdWithFieldsRelationshipsNoAccessToRelationshipItemFrom()
     {
-        TrackedEntity from = trackedEntityInstanceNotInSearchScope();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntityNotInSearchScope();
+        TrackedEntity to = trackedEntity();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -358,8 +358,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     void getTrackedEntityByIdyWithFieldsRelationshipsNoAccessToTrackedEntityType()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntity from = trackedEntityInstance( type );
-        TrackedEntity to = trackedEntityInstance( type );
+        TrackedEntity from = trackedEntity( type );
+        TrackedEntity to = trackedEntity( type );
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -421,8 +421,8 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void shouldGetEnrollmentWhenFieldsHasEnrollments()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( trackedEntity,
+        TrackedEntity trackedEntity = trackedEntity();
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( trackedEntity,
             program, new Date(), new Date(), orgUnit );
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
@@ -439,9 +439,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void shouldGetNoEventRelationshipsWhenEventsHasNoRelationshipsAndFieldsIncludeAll()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
+        TrackedEntity trackedEntity = trackedEntity();
 
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( trackedEntity,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( trackedEntity,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( enrollment );
@@ -465,9 +465,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void shouldGetEventRelationshipsWhenEventHasRelationshipsAndFieldsIncludeEventRelationships()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
+        TrackedEntity trackedEntity = trackedEntity();
 
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( trackedEntity,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( trackedEntity,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( enrollment );
@@ -496,9 +496,9 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void shouldGetNoEventRelationshipsWhenEventHasRelationshipsAndFieldsExcludeEventRelationships()
     {
-        TrackedEntity trackedEntity = trackedEntityInstance();
+        TrackedEntity trackedEntity = trackedEntity();
 
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( trackedEntity,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( trackedEntity,
             program, new Date(), new Date(), orgUnit );
 
         Event event = eventWithDataValue( enrollment );
@@ -554,7 +554,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertHasMember( jsonEnrollment, "enrollment" );
 
         assertEquals( enrollment.getUid(), jsonEnrollment.getEnrollment() );
-        assertEquals( enrollment.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity() );
+        assertEquals( enrollment.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity() );
         assertEquals( program.getUid(), jsonEnrollment.getProgram() );
         assertEquals( "ACTIVE", jsonEnrollment.getStatus() );
         assertEquals( orgUnit.getUid(), jsonEnrollment.getOrgUnit() );
@@ -629,33 +629,33 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         return type;
     }
 
-    private TrackedEntity trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit );
+        TrackedEntity tei = trackedEntity( orgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstanceNotInSearchScope()
+    private TrackedEntity trackedEntityNotInSearchScope()
     {
-        TrackedEntity tei = trackedEntityInstance( anotherOrgUnit );
+        TrackedEntity tei = trackedEntity( anotherOrgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( TrackedEntityType trackedEntityType )
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntity tei = trackedEntity( orgUnit, trackedEntityType );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit )
     {
-        return trackedEntityInstance( orgUnit, trackedEntityType );
+        return trackedEntity( orgUnit, trackedEntityType );
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
     {
         TrackedEntity tei = createTrackedEntityInstance( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );

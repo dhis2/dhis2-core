@@ -124,7 +124,7 @@ class DefaultProgramRuleService
             .flatMap( enrollment -> programRuleEngine.evaluateEnrollmentAndEvents(
                 enrollment,
                 getEventsFromEnrollment( enrollment.getUid(), bundle, preheat ),
-                getAttributes( enrollment.getUid(), enrollment.getEntityInstance().getUid(), bundle, preheat ) )
+                getAttributes( enrollment.getUid(), enrollment.getTrackedEntity().getUid(), bundle, preheat ) )
                 .stream() )
             .collect( Collectors.toList() );
     }

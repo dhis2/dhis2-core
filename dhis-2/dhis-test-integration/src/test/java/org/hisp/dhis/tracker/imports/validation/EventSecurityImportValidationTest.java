@@ -208,7 +208,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         Date dateMar20 = getDate( testYear, 3, 20 );
         Date dateApr10 = getDate( testYear, 4, 10 );
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( maleA, programA,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( maleA, programA,
             dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
         enrollmentService.addEnrollment( enrollment );
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),

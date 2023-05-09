@@ -195,7 +195,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testSaveTrackedEntityInstance()
+    void testSaveTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntity( entityInstanceB1 );
@@ -204,7 +204,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testDeleteTrackedEntityInstance()
+    void testDeleteTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         long idB = entityInstanceService.addTrackedEntity( entityInstanceB1 );
@@ -243,7 +243,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testUpdateTrackedEntityInstance()
+    void testUpdateTrackedEntity()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         assertNotNull( entityInstanceService.getTrackedEntity( idA ) );
@@ -273,7 +273,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testStoredByColumnForTrackedEntityInstance()
+    void testStoredByColumnForTrackedEntity()
     {
         entityInstanceA1.setStoredBy( "test" );
         entityInstanceService.addTrackedEntity( entityInstanceA1 );
@@ -298,7 +298,7 @@ class TrackedEntityServiceTest
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
 
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( entityInstanceA1 );
+        trackedEntityAttributeValue.setTrackedEntity( entityInstanceA1 );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
@@ -686,7 +686,7 @@ class TrackedEntityServiceTest
     {
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntity );
+        trackedEntityAttributeValue.setTrackedEntity( trackedEntity );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
         return trackedEntityAttributeValue;
@@ -732,7 +732,7 @@ class TrackedEntityServiceTest
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( entityInstance );
+        trackedEntityAttributeValue.setTrackedEntity( entityInstance );
         trackedEntityAttributeValue.setValue( attributeValue );
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
     }
@@ -751,7 +751,7 @@ class TrackedEntityServiceTest
         TrackedEntityAttributeValue trackedEntityAttributeValueA1 = new TrackedEntityAttributeValue();
 
         trackedEntityAttributeValueA1.setAttribute( attribute );
-        trackedEntityAttributeValueA1.setEntityInstance( trackedEntity );
+        trackedEntityAttributeValueA1.setTrackedEntity( trackedEntity );
         trackedEntityAttributeValueA1.setValue( value );
 
         attributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA1 );
