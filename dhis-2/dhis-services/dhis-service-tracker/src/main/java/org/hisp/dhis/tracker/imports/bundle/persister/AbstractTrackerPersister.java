@@ -49,8 +49,8 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.reservedvalue.ReservedValueService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditService;
@@ -340,7 +340,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     protected void handleTrackedEntityAttributeValues( Session session, TrackerPreheat preheat,
-        List<Attribute> payloadAttributes, TrackedEntityInstance trackedEntityInstance )
+        List<Attribute> payloadAttributes, TrackedEntity trackedEntity )
     {
         if ( payloadAttributes.isEmpty() )
         {
@@ -348,7 +348,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         }
 
         TrackerIdSchemeParams idSchemes = preheat.getIdSchemes();
-        Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById = trackedEntityInstance
+        Map<MetadataIdentifier, TrackedEntityAttributeValue> attributeValueById = trackedEntity
             .getTrackedEntityAttributeValues()
             .stream()
             .collect( Collectors.toMap( teav -> idSchemes.toMetadataIdentifier( teav.getAttribute() ),
@@ -375,7 +375,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
 
                 if ( isDelete )
                 {
-                    delete( session, preheat, trackedEntityAttributeValue, trackedEntityInstance );
+                    delete( session, preheat, trackedEntityAttributeValue, trackedEntity );
                 }
                 else
                 {
@@ -387,11 +387,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
                     trackedEntityAttributeValue = Optional.ofNullable( trackedEntityAttributeValue )
                         .orElseGet( () -> new TrackedEntityAttributeValue()
                             .setAttribute( getTrackedEntityAttributeFromPreheat( preheat, attribute.getAttribute() ) )
-                            .setEntityInstance( trackedEntityInstance ) )
+                            .setEntityInstance( trackedEntity ) )
                         .setStoredBy( attribute.getStoredBy() )
                         .setValue( attribute.getValue() );
 
-                    saveOrUpdate( session, preheat, isNew, trackedEntityInstance, trackedEntityAttributeValue,
+                    saveOrUpdate( session, preheat, isNew, trackedEntity, trackedEntityAttributeValue,
                         isUpdated );
                 }
 
@@ -400,11 +400,11 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     private void delete( Session session, TrackerPreheat preheat,
-        TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntityInstance trackedEntityInstance )
+        TrackedEntityAttributeValue trackedEntityAttributeValue, TrackedEntity trackedEntity )
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
-            unassignFileResource( session, preheat, trackedEntityInstance.getUid(),
+            unassignFileResource( session, preheat, trackedEntity.getUid(),
                 trackedEntityAttributeValue.getValue() );
         }
 
@@ -413,17 +413,17 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         logTrackedEntityAttributeValueHistory(
             preheat.getUsername(),
             trackedEntityAttributeValue,
-            trackedEntityInstance,
+            trackedEntity,
             AuditType.DELETE );
     }
 
     private void saveOrUpdate( Session session, TrackerPreheat preheat, boolean isNew,
-        TrackedEntityInstance trackedEntityInstance, TrackedEntityAttributeValue trackedEntityAttributeValue,
+        TrackedEntity trackedEntity, TrackedEntityAttributeValue trackedEntityAttributeValue,
         boolean isUpdated )
     {
         if ( isFileResource( trackedEntityAttributeValue ) )
         {
-            assignFileResource( session, preheat, trackedEntityInstance.getUid(),
+            assignFileResource( session, preheat, trackedEntity.getUid(),
                 trackedEntityAttributeValue.getValue() );
         }
 
@@ -434,7 +434,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
             session.persist( trackedEntityAttributeValue );
             // In case it's a newly created attribute we'll add it back to TEI,
             // so it can end up in preheat
-            trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+            trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
             auditType = AuditType.CREATE;
         }
         else
@@ -450,7 +450,7 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
         logTrackedEntityAttributeValueHistory(
             preheat.getUsername(),
             trackedEntityAttributeValue,
-            trackedEntityInstance,
+            trackedEntity,
             auditType );
     }
 
@@ -481,16 +481,16 @@ public abstract class AbstractTrackerPersister<T extends TrackerDto, V extends B
     }
 
     private void logTrackedEntityAttributeValueHistory( String userName,
-        TrackedEntityAttributeValue attributeValue, TrackedEntityInstance trackedEntityInstance, AuditType auditType )
+        TrackedEntityAttributeValue attributeValue, TrackedEntity trackedEntity, AuditType auditType )
     {
-        boolean allowAuditLog = trackedEntityInstance.getTrackedEntityType().isAllowAuditLog();
+        boolean allowAuditLog = trackedEntity.getTrackedEntityType().isAllowAuditLog();
 
         // create log entry only for updated, created and deleted attributes
         if ( allowAuditLog && auditType != null )
         {
             TrackedEntityAttributeValueAudit valueAudit = new TrackedEntityAttributeValueAudit(
                 attributeValue, attributeValue.getValue(), userName, auditType );
-            valueAudit.setEntityInstance( trackedEntityInstance );
+            valueAudit.setEntityInstance( trackedEntity );
             trackedEntityAttributeValueAuditService.addTrackedEntityAttributeValueAudit( valueAudit );
         }
     }

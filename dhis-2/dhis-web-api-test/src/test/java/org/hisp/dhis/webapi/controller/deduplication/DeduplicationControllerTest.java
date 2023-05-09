@@ -34,7 +34,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.deduplication.DeduplicationStatus;
 import org.hisp.dhis.deduplication.PotentialDuplicate;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,9 +56,9 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private ObjectMapper objectMapper;
 
-    private TrackedEntityInstance origin;
+    private TrackedEntity origin;
 
-    private TrackedEntityInstance duplicate;
+    private TrackedEntity duplicate;
 
     @BeforeEach
     public void setUp()

@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -57,7 +57,7 @@ public class ProgramTempOwnershipAudit implements Serializable
 
     private String accessedBy;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -67,7 +67,7 @@ public class ProgramTempOwnershipAudit implements Serializable
     {
     }
 
-    public ProgramTempOwnershipAudit( Program program, TrackedEntityInstance entityInstance, String reason,
+    public ProgramTempOwnershipAudit( Program program, TrackedEntity entityInstance, String reason,
         String accessedBy )
     {
         this.program = program;
@@ -128,12 +128,12 @@ public class ProgramTempOwnershipAudit implements Serializable
         this.program = program;
     }
 
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getEntityInstance()
     {
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setEntityInstance( TrackedEntity entityInstance )
     {
         this.entityInstance = entityInstance;
     }

@@ -43,7 +43,7 @@ import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.locationtech.jts.geom.Geometry;
 
@@ -81,7 +81,7 @@ public class Enrollment
     private UserInfoSnapshot lastUpdatedByUserInfo;
 
     @AuditAttribute
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
     @AuditAttribute
     private Program program;
@@ -110,7 +110,7 @@ public class Enrollment
     {
     }
 
-    public Enrollment( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
+    public Enrollment( Date enrollmentDate, Date incidentDate, TrackedEntity entityInstance,
         Program program )
     {
         this.enrollmentDate = enrollmentDate;
@@ -119,7 +119,7 @@ public class Enrollment
         this.program = program;
     }
 
-    public Enrollment( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit )
+    public Enrollment( Program program, TrackedEntity entityInstance, OrganisationUnit organisationUnit )
     {
         this.program = program;
         this.entityInstance = entityInstance;
@@ -150,7 +150,7 @@ public class Enrollment
      * @param entityInstance the entity instance to enroll.
      * @param program the program to enroll the entity instance to.
      */
-    public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
+    public void enrollTrackedEntityInstance( TrackedEntity entityInstance, Program program )
     {
         setEntityInstance( entityInstance );
         entityInstance.getEnrollments().add( this );
@@ -312,12 +312,12 @@ public class Enrollment
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getEntityInstance()
     {
         return entityInstance;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setEntityInstance( TrackedEntity entityInstance )
     {
         this.entityInstance = entityInstance;
     }

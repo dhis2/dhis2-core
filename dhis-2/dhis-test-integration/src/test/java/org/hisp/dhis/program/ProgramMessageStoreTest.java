@@ -47,8 +47,8 @@ import org.hisp.dhis.program.message.ProgramMessageRecipients;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.message.ProgramMessageStore;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,9 +67,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
 
     private Enrollment enrollmentA;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
     private ProgramMessageStatus messageStatus = ProgramMessageStatus.SENT;
 
@@ -120,7 +120,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private OrganisationUnitService orgUnitService;
 
     @Autowired
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Autowired
     private ProgramService programService;
@@ -129,7 +129,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private EventStore eventStore;
@@ -154,9 +154,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         programA.setProgramStages( programStages );
         programService.updateProgram( programA );
         entityInstanceA = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntityInstance( ouA );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -175,16 +175,16 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         ouUids.add( ouA.getUid() );
         // ouSet.add( ouB );
         teiA = createTrackedEntityInstance( ouA );
-        teiService.addTrackedEntityInstance( teiA );
+        teiService.addTrackedEntity( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );
-        recipientsA.setTrackedEntityInstance( teiA );
+        recipientsA.setTrackedEntity( teiA );
         recipientsB = new ProgramMessageRecipients();
         recipientsB.setOrganisationUnit( ouA );
-        recipientsB.setTrackedEntityInstance( teiA );
+        recipientsB.setTrackedEntity( teiA );
         recipientsC = new ProgramMessageRecipients();
         recipientsC.setOrganisationUnit( ouA );
-        recipientsC.setTrackedEntityInstance( teiA );
+        recipientsC.setTrackedEntity( teiA );
         Set<String> phoneNumberListA = new HashSet<>();
         phoneNumberListA.add( msisdn );
         recipientsA.setPhoneNumbers( phoneNumberListA );

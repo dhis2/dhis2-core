@@ -33,7 +33,7 @@ import java.util.List;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Abyot Asalefew
@@ -44,18 +44,18 @@ public interface EnrollmentStore
     String ID = EnrollmentStore.class.getName();
 
     /**
-     * Count all enrollments by PI query params.
+     * Count all enrollments by enrollment query params.
      *
      * @param params EnrollmentQueryParams to use
-     * @return Count of matching PIs
+     * @return Count of matching enrollments
      */
     int countEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Get all enrollments by PI query params.
+     * Get all enrollments by enrollment query params.
      *
      * @param params EnrollmentQueryParams to use
-     * @return PIs matching params
+     * @return Enrollments matching params
      */
     List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
@@ -78,20 +78,19 @@ public interface EnrollmentStore
     List<Enrollment> get( Program program, ProgramStatus status );
 
     /**
-     * Retrieve enrollments on a TrackedEntityInstance with a status by a
-     * program
+     * Retrieve enrollments on a TrackedEntity with a status by a program
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return Enrollment list
      */
-    List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status );
+    List<Enrollment> get( TrackedEntity entityInstance, Program program, ProgramStatus status );
 
     /**
-     * Checks for the existence of a PI by UID, Deleted PIs are not taken into
-     * account.
+     * Checks for the existence of an enrollment by UID, Deleted enrollments are
+     * not taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -99,8 +98,8 @@ public interface EnrollmentStore
     boolean exists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the
-     * deleted PIs.
+     * Checks for the existence of an enrollment by UID. Takes into account also
+     * the deleted enrollments.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -108,30 +107,30 @@ public interface EnrollmentStore
     boolean existsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing Enrollments (including deleted) from the
+     * Returns UIDs of existing enrollments (including deleted) from the
      * provided UIDs
      *
-     * @param uids PI UIDs to check
-     * @return List containing UIDs of existing PIs (including deleted)
+     * @param uids enrollment UIDs to check
+     * @return List containing UIDs of existing enrollments (including deleted)
      */
     List<String> getUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Fetches Enrollments matching the given list of UIDs
+     * Fetches enrollments matching the given list of UIDs
      *
      * @param uids a List of UID
-     * @return a List containing the Enrollments matching the given parameters
+     * @return a List containing the enrollments matching the given parameters
      *         list
      */
     List<Enrollment> getIncludingDeleted( List<String> uids );
 
     /**
-     * Get all Enrollments which have notifications with the given
+     * Get all enrollments which have notifications with the given
      * ProgramNotificationTemplate scheduled on the given date.
      *
      * @param template the template.
      * @param notificationDate the Date for which the notification is scheduled.
-     * @return a list of Enrollment.
+     * @return a list of enrollments.
      */
     List<Enrollment> getWithScheduledNotifications( ProgramNotificationTemplate template, Date notificationDate );
 
@@ -139,7 +138,7 @@ public interface EnrollmentStore
      * Return all enrollment linked to programs.
      *
      * @param programs Programs to fetch by
-     * @return List of all PIs that that are linked to programs
+     * @return List of all enrollments that are linked to programs
      */
     List<Enrollment> getByPrograms( List<Program> programs );
 
@@ -150,20 +149,20 @@ public interface EnrollmentStore
      * be careful if you need it for other uses.
      *
      * @param type ProgramType to fetch by
-     * @return List of all PIs that matches the wanted type
+     * @return List of all enrollments that matches the wanted type
      */
     List<Enrollment> getByType( ProgramType type );
 
     /**
      * Hard deletes a {@link Enrollment}.
      *
-     * @param enrollment the Enrollment to delete.
+     * @param enrollment the enrollment to delete.
      */
     void hardDelete( Enrollment enrollment );
 
     /**
      * Executes a query to fetch all {@see Enrollment} matching the
-     * Program/TrackedEntityInstance list.
+     * Program/TrackedEntity list.
      *
      * Resulting SQL query:
      *
@@ -178,11 +177,10 @@ public interface EnrollmentStore
      * </pre>
      *
      * @param programTeiPair a List of Pair, where the left side is a
-     *        {@see Program} and the right side is a
-     *        {@see TrackedEntityInstance}
+     *        {@see Program} and the right side is a {@see TrackedEntity}
      * @param programStatus filter on the status of all the Program
      * @return a List of {@see Enrollment}
      */
     List<Enrollment> getByProgramAndTrackedEntityInstance(
-        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus );
+        List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus );
 }

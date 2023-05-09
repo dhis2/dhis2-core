@@ -46,8 +46,8 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -70,7 +70,7 @@ public class EnrollmentCriteriaMapper
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackerAccessManager trackerAccessManager;
 
@@ -79,7 +79,7 @@ public class EnrollmentCriteriaMapper
      *
      * @param ou the set of organisation unit identifiers.
      * @param ouMode the OrganisationUnitSelectionMode.
-     * @param lastUpdated the last updated for PI.
+     * @param lastUpdated the last updated for enrollment.
      * @param lastUpdatedDuration the last updated duration filter.
      * @param programUid the Program identifier.
      * @param programStatus the ProgramStatus in the given program.
@@ -87,7 +87,7 @@ public class EnrollmentCriteriaMapper
      *        Program.
      * @param programEndDate the end date for enrollment in the given Program.
      * @param trackedEntityType the TrackedEntityType uid.
-     * @param trackedEntityInstance the TrackedEntityInstance uid.
+     * @param trackedEntityInstance the TrackedEntity uid.
      * @param followUp indicates follow up status in the given Program.
      * @param page the page number.
      * @param pageSize the page size.
@@ -145,8 +145,8 @@ public class EnrollmentCriteriaMapper
             throw new IllegalQueryException( "Tracked entity does not exist: " + trackedEntityType );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstance != null
-            ? trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance )
+        TrackedEntity tei = trackedEntityInstance != null
+            ? trackedEntityService.getTrackedEntity( trackedEntityInstance )
             : null;
 
         if ( trackedEntityInstance != null && tei == null )
@@ -162,7 +162,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityInstanceUid(
+        params.setTrackedEntityUid(
             Optional.ofNullable( tei ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );

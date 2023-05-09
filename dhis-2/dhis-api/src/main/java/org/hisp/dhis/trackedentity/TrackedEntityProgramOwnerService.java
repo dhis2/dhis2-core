@@ -150,7 +150,7 @@ public interface TrackedEntityProgramOwnerService
      * @param program
      * @param ou
      */
-    void createOrUpdateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+    void createOrUpdateTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program,
         OrganisationUnit ou );
 
     /**
@@ -161,7 +161,7 @@ public interface TrackedEntityProgramOwnerService
      * @param program
      * @param ou
      */
-    void updateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou );
+    void updateTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program, OrganisationUnit ou );
 
     /**
      * Create a new program owner ou for a tracked entity instance. If an owner
@@ -171,6 +171,6 @@ public interface TrackedEntityProgramOwnerService
      * @param program
      * @param ou
      */
-    void createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program, OrganisationUnit ou );
+    void createTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program, OrganisationUnit ou );
 
 }

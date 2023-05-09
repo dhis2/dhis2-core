@@ -46,7 +46,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -77,7 +77,7 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
     {
         // Data preparation
         Program program = createProgram( 'P' );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
         event.setProgramStage( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setTrackedEntityInstance( tei.getUid() );
@@ -89,8 +89,8 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
         Map<String, Enrollment> programInstanceMap = new HashMap<>();
         Enrollment enrollment = new Enrollment();
         programInstanceMap.put( event.getUid(), enrollment );
-        Pair<TrackedEntityInstance, Boolean> teiPair = Pair.of( tei, true );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        Pair<TrackedEntity, Boolean> teiPair = Pair.of( tei, true );
+        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
         when( workContext.getProgramsMap() ).thenReturn( programMap );
@@ -109,7 +109,7 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
     {
         // Data preparation
         Program program = createProgram( 'P' );
-        TrackedEntityInstance tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
         event.setProgramStage( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setTrackedEntityInstance( tei.getUid() );
@@ -121,8 +121,8 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
         Map<String, Enrollment> programInstanceMap = new HashMap<>();
         Enrollment enrollment = new Enrollment();
         programInstanceMap.put( event.getUid(), enrollment );
-        Pair<TrackedEntityInstance, Boolean> teiPair = Pair.of( tei, true );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        Pair<TrackedEntity, Boolean> teiPair = Pair.of( tei, true );
+        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), teiPair );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
         when( workContext.getProgramsMap() ).thenReturn( programMap );

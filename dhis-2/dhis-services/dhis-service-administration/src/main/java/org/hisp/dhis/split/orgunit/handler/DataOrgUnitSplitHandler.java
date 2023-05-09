@@ -67,7 +67,7 @@ public class DataOrgUnitSplitHandler
         migrate( request, "Enrollment", PARAM_ORG_UNIT );
         migrate( request, "ProgramOwnershipHistory", PARAM_ORG_UNIT );
         migrate( request, "TrackedEntityProgramOwner", PARAM_ORG_UNIT );
-        migrate( request, "TrackedEntityInstance", PARAM_ORG_UNIT );
+        migrate( request, "TrackedEntity", PARAM_ORG_UNIT );
     }
 
     private void migrate( OrgUnitSplitRequest request, String entity, String property )

@@ -83,10 +83,10 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -104,7 +104,7 @@ import com.google.common.collect.Sets;
 class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityAttributeService entityAttributeService;
@@ -223,14 +223,14 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
+        entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
         entityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstance );
+        entityInstanceService.updateTrackedEntity( entityInstance );
         Program program = createProgram( 'A', null, Sets.newHashSet( entityAttribute ),
             Sets.newHashSet( orgUnitA, orgUnitA ), null );
         program.setUid( PROGRAM_UID );

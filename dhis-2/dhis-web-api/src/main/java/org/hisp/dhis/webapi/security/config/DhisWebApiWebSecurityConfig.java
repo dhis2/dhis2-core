@@ -56,7 +56,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -481,19 +480,6 @@ public class DhisWebApiWebSecurityConfig
             return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
-        /**
-         * HTTP Basic entrypoint for the /api server when running in embedded
-         * Jetty mode. We don't want to redirect into the web pages, since they
-         * are not running.
-         *
-         * @return EmbeddedJettyBasicAuthenticationEntryPoint entryPoint to use
-         *         in http config.
-         */
-        @Bean
-        public EmbeddedJettyBasicAuthenticationEntryPoint embeddedJettyBasicAuthenticationEntryPoint()
-        {
-            return new EmbeddedJettyBasicAuthenticationEntryPoint( "DHIS2_API" );
-        }
     }
 
     /**

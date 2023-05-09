@@ -35,8 +35,8 @@ import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -63,7 +63,7 @@ public class TrackedEntityAttributeValue
     private TrackedEntityAttribute attribute;
 
     @AuditAttribute
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity entityInstance;
 
     private Date created;
 
@@ -100,13 +100,13 @@ public class TrackedEntityAttributeValue
         setAutoFields();
     }
 
-    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntityInstance entityInstance )
+    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity entityInstance )
     {
         setAttribute( attribute );
         setEntityInstance( entityInstance );
     }
 
-    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntityInstance entityInstance,
+    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity entityInstance,
         String value )
     {
         setAttribute( attribute );
@@ -361,12 +361,12 @@ public class TrackedEntityAttributeValue
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getEntityInstance()
     {
         return entityInstance;
     }
 
-    public TrackedEntityAttributeValue setEntityInstance( TrackedEntityInstance entityInstance )
+    public TrackedEntityAttributeValue setEntityInstance( TrackedEntity entityInstance )
     {
         this.entityInstance = entityInstance;
         return this;

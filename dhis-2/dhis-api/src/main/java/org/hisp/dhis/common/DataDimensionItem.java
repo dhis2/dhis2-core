@@ -433,4 +433,65 @@ public class DataDimensionItem
     {
         this.expressionDimensionItem = expressionDimensionItem;
     }
+
+    /**
+     * Indicates whether this item has an indicator.
+     *
+     * @return
+     */
+    public boolean hasIndicator()
+    {
+        return indicator != null;
+    }
+
+    /**
+     * Indicates whether this item has a data element.
+     *
+     * @return
+     */
+    public boolean hasDataElement()
+    {
+        return dataElement != null;
+    }
+
+    /**
+     * Indicates whether this item has a data element operand.
+     *
+     * @return
+     */
+    public boolean hasDataElementOperand()
+    {
+        return dataElementOperand != null;
+    }
+
+    /**
+     * Indicates whether this item has a reporting rate.
+     *
+     * @return
+     */
+    public boolean hasReportingRate()
+    {
+        return reportingRate != null;
+    }
+
+    /**
+     * Indicates whether this item has a program indicator.
+     *
+     * @return
+     */
+    public boolean hasProgramIndicator()
+    {
+        return programIndicator != null;
+    }
+
+    /**
+     * Indicates whether this item has a program tracked entity attribute
+     * dimension item.
+     *
+     * @return
+     */
+    public boolean hasProgramTrackedEntityAttributeDimensionItem()
+    {
+        return programAttribute != null;
+    }
 }

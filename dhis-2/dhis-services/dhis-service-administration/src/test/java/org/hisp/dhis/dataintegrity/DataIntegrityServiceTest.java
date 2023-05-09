@@ -551,19 +551,19 @@ class DataIntegrityServiceTest
         assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.LAST );
-        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+        assertEquals( AggregationType.LAST, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.FIRST );
-        assertEquals( AggregationType.SUM, programIndicator.getAggregationTypeFallback() );
+        assertEquals( AggregationType.FIRST, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.LAST_IN_PERIOD_AVERAGE_ORG_UNIT );
         assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.FIRST_AVERAGE_ORG_UNIT );
-        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+        assertEquals( AggregationType.FIRST_AVERAGE_ORG_UNIT, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( AggregationType.LAST_AVERAGE_ORG_UNIT );
-        assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );
+        assertEquals( AggregationType.LAST_AVERAGE_ORG_UNIT, programIndicator.getAggregationTypeFallback() );
 
         programIndicator.setAggregationType( null );
         assertEquals( AggregationType.AVERAGE, programIndicator.getAggregationTypeFallback() );

@@ -38,14 +38,13 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
 import org.hisp.dhis.tracker.imports.converter.EventTrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.report.Entity;
 import org.hisp.dhis.tracker.imports.report.TrackerTypeReport;
 import org.springframework.stereotype.Service;
@@ -62,7 +61,7 @@ public class DefaultTrackerObjectsDeletionService
 {
     private final EnrollmentService enrollmentService;
 
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
     private final EventService eventService;
 
@@ -97,11 +96,11 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEvents( trackerBundle );
 
-            TrackedEntityInstance tei = enrollment.getEntityInstance();
+            TrackedEntity tei = enrollment.getEntityInstance();
             tei.getEnrollments().remove( enrollment );
 
             enrollmentService.deleteEnrollment( enrollment );
-            teiService.updateTrackedEntityInstance( tei );
+            teiService.updateTrackedEntity( tei );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );
@@ -131,7 +130,7 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
+                teiService.updateTrackedEntity( event.getEnrollment().getEntityInstance() );
 
                 enrollment.getEvents().remove( event );
                 enrollmentService.updateEnrollment( enrollment );
@@ -149,7 +148,7 @@ public class DefaultTrackerObjectsDeletionService
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
-        List<TrackedEntity> trackedEntities = bundle.getTrackedEntities();
+        List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> trackedEntities = bundle.getTrackedEntities();
 
         for ( int idx = 0; idx < trackedEntities.size(); idx++ )
         {
@@ -157,15 +156,15 @@ public class DefaultTrackerObjectsDeletionService
 
             Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
 
-            org.hisp.dhis.trackedentity.TrackedEntityInstance daoEntityInstance = teiService
-                .getTrackedEntityInstance( uid );
+            TrackedEntity daoEntityInstance = teiService
+                .getTrackedEntity( uid );
 
             Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
             List<org.hisp.dhis.tracker.imports.domain.Enrollment> enrollments = enrollmentTrackerConverterService
                 .to( Lists.newArrayList( daoEnrollments.stream()
-                    .filter( pi -> !pi.isDeleted() )
-                    .collect( Collectors.toList() ) ) );
+                    .filter( enrollment -> !enrollment.isDeleted() )
+                    .toList() ) );
 
             TrackerBundle trackerBundle = TrackerBundle.builder().enrollments( enrollments )
                 .user( bundle.getUser() )
@@ -173,7 +172,7 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEnrollments( trackerBundle );
 
-            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+            teiService.deleteTrackedEntity( daoEntityInstance );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );

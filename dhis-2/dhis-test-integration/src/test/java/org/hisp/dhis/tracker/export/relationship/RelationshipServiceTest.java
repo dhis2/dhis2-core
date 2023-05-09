@@ -53,7 +53,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -76,11 +76,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance inaccessibleTei;
+    private TrackedEntity inaccessibleTei;
 
     private Event eventA;
 
@@ -267,12 +267,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
             relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, TrackedEntityInstance to )
+    private Relationship relationship( TrackedEntity from, TrackedEntity to )
     {
         return relationship( from, to, teiToTeiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, TrackedEntityInstance to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, TrackedEntity to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -287,12 +287,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Enrollment to )
+    private Relationship relationship( TrackedEntity from, Enrollment to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Enrollment to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, Enrollment to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -307,12 +307,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Event to )
+    private Relationship relationship( TrackedEntity from, Event to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Event to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, Event to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -345,10 +345,10 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         manager.save( relationship );
     }
 
-    private RelationshipItem item( TrackedEntityInstance from )
+    private RelationshipItem item( TrackedEntity from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setTrackedEntityInstance( from );
+        relationshipItem.setTrackedEntity( from );
         return relationshipItem;
     }
 

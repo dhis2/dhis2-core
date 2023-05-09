@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -85,23 +85,23 @@ class ExistingEnrollmentValidator
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+        TrackedEntity tei = getTrackedEntity( bundle, enrollment.getTrackedEntity() );
 
         Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment = bundle.getEnrollments()
             .stream().filter( Objects::nonNull )
-            .filter( pi -> pi.getProgram().isEqualTo( program ) )
-            .filter( pi -> pi.getTrackedEntity().equals( tei.getUid() )
-                && !pi.getEnrollment().equals( enrollment.getEnrollment() ) )
-            .filter( pi -> EnrollmentStatus.ACTIVE == pi.getStatus() || EnrollmentStatus.COMPLETED == pi.getStatus() )
+            .filter( e -> e.getProgram().isEqualTo( program ) )
+            .filter( e -> e.getTrackedEntity().equals( tei.getUid() )
+                && !e.getEnrollment().equals( enrollment.getEnrollment() ) )
+            .filter( e -> EnrollmentStatus.ACTIVE == e.getStatus() || EnrollmentStatus.COMPLETED == e.getStatus() )
             .collect( Collectors.toSet() );
 
         Set<org.hisp.dhis.tracker.imports.domain.Enrollment> dbEnrollment = bundle.getPreheat()
             .getTrackedEntityToEnrollmentMap().getOrDefault( enrollment.getTrackedEntity(), new ArrayList<>() )
             .stream()
             .filter( Objects::nonNull )
-            .filter( pi -> pi.getProgram().getUid().equals( program.getUid() )
-                && !pi.getUid().equals( enrollment.getEnrollment() ) )
-            .filter( pi -> ProgramStatus.ACTIVE == pi.getStatus() || ProgramStatus.COMPLETED == pi.getStatus() )
+            .filter( e -> e.getProgram().getUid().equals( program.getUid() )
+                && !e.getUid().equals( enrollment.getEnrollment() ) )
+            .filter( e -> ProgramStatus.ACTIVE == e.getStatus() || ProgramStatus.COMPLETED == e.getStatus() )
             .distinct().map( this::getEnrollmentFromDbEnrollment )
             .collect( Collectors.toSet() );
 
@@ -144,13 +144,13 @@ class ExistingEnrollmentValidator
         return enrollment;
     }
 
-    private TrackedEntityInstance getTrackedEntityInstance( TrackerBundle bundle, String uid )
+    private TrackedEntity getTrackedEntity( TrackerBundle bundle, String uid )
     {
-        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( uid );
+        TrackedEntity tei = bundle.getPreheat().getTrackedEntity( uid );
 
         if ( tei == null && bundle.findTrackedEntityByUid( uid ).isPresent() )
         {
-            tei = new TrackedEntityInstance();
+            tei = new TrackedEntity();
             tei.setUid( uid );
 
         }

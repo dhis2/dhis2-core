@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -56,7 +57,6 @@ import org.mapstruct.Mapping;
 interface RelationshipItemMapper
     extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Override
     RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
 
@@ -70,7 +70,7 @@ interface RelationshipItemMapper
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    RelationshipItem.TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
+    RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity );
 
     @Mapping( target = "enrollment", source = "uid" )
     @Mapping( target = "createdAt", source = "created" )

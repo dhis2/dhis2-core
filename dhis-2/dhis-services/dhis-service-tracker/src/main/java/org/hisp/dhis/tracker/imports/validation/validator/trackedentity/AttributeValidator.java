@@ -45,8 +45,8 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -54,7 +54,6 @@ import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -67,7 +66,7 @@ import org.springframework.stereotype.Component;
  */
 @Component( "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.AttributeValidator" )
 class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.validator.AttributeValidator
-    implements Validator<TrackedEntity>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
 {
     public AttributeValidator( TrackedAttributeValidationService teAttrService,
         DhisConfigurationProvider dhisConfigurationProvider )
@@ -76,12 +75,13 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
     }
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
     {
         TrackedEntityType trackedEntityType = bundle.getPreheat()
             .getTrackedEntityType( trackedEntity.getTrackedEntityType() );
 
-        TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+        TrackedEntity tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
         OrganisationUnit organisationUnit = bundle.getPreheat()
             .getOrganisationUnit( trackedEntity.getOrgUnit() );
 
@@ -90,7 +90,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
     }
 
     private void validateMandatoryAttributes( Reporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity,
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
         if ( trackedEntityType != null )
@@ -114,7 +114,8 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
     }
 
     protected void validateAttributes( Reporter reporter,
-        TrackerBundle bundle, TrackedEntity trackedEntity, TrackedEntityInstance tei, OrganisationUnit orgUnit,
+        TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity, TrackedEntity tei,
+        OrganisationUnit orgUnit,
         TrackedEntityType trackedEntityType )
     {
         checkNotNull( trackedEntity, TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL );
@@ -167,7 +168,7 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
     }
 
     protected void validateFileNotAlreadyAssigned( Reporter reporter, TrackerBundle bundle,
-        TrackedEntity te,
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity te,
         Attribute attr, Map<MetadataIdentifier, TrackedEntityAttributeValue> valueMap )
     {
         checkNotNull( attr, ATTRIBUTE_CANT_BE_NULL );

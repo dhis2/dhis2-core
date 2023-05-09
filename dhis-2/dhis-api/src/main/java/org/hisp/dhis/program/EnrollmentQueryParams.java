@@ -55,7 +55,7 @@ public class EnrollmentQueryParams
     public static final int DEFAULT_PAGE_SIZE = 50;
 
     /**
-     * Last updated for PI.
+     * Last updated for enrollment.
      */
     private Date lastUpdated;
 
@@ -109,7 +109,7 @@ public class EnrollmentQueryParams
     /**
      * Tracked entity instance.
      */
-    private String trackedEntityInstanceUid;
+    private String trackedEntityUid;
 
     /**
      * Page number.
@@ -252,9 +252,9 @@ public class EnrollmentQueryParams
     /**
      * Indicates whether this params specifies a tracked entity instance.
      */
-    public boolean hasTrackedEntityInstance()
+    public boolean hasTrackedEntity()
     {
-        return StringUtils.isNotEmpty( this.trackedEntityInstanceUid );
+        return StringUtils.isNotEmpty( this.trackedEntityUid );
     }
 
     /**

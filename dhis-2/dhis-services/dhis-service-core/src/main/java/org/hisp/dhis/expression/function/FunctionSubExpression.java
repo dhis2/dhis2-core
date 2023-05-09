@@ -147,7 +147,7 @@ public class FunctionSubExpression
      */
     private ExpressionState getSubExpressionState( CommonExpressionVisitor visitor )
     {
-        return visitor.getState().builder().inSubexpression( true ).build();
+        return visitor.getState().toBuilder().inSubexpression( true ).build();
     }
 
     /**

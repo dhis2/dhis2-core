@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event.mapper;
 
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 
 import java.util.ArrayList;
 import java.util.Collections;

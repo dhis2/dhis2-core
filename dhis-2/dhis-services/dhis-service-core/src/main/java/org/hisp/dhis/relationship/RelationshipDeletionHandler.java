@@ -37,7 +37,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.hisp.dhis.system.deletion.DeletionVeto;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -54,13 +54,13 @@ public class RelationshipDeletionHandler extends DeletionHandler
     @Override
     protected void register()
     {
-        whenDeleting( TrackedEntityInstance.class, this::deleteTrackedEntityInstance );
+        whenDeleting( TrackedEntity.class, this::deleteTrackedEntityInstance );
         whenDeleting( Event.class, this::deleteEvent );
         whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
-    private void deleteTrackedEntityInstance( TrackedEntityInstance entityInstance )
+    private void deleteTrackedEntityInstance( TrackedEntity entityInstance )
     {
         Collection<Relationship> relationships = relationshipService
             .getRelationshipsByTrackedEntityInstance( entityInstance, false );

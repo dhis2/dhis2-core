@@ -56,6 +56,7 @@ import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
@@ -90,13 +91,13 @@ class RegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+    private TrackedEntity maleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+    private TrackedEntity maleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+    private TrackedEntity femaleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+    private TrackedEntity femaleB;
 
     private TrackedEntityInstance trackedEntityInstanceMaleA;
 

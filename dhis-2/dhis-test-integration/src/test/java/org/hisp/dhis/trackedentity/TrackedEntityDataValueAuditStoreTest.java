@@ -71,7 +71,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     private TrackedEntityDataValueAuditStore auditStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -162,10 +162,10 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
 
-        TrackedEntityInstance teiA = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( teiA );
+        TrackedEntity teiA = createTrackedEntityInstance( ouA );
+        entityInstanceService.addTrackedEntity( teiA );
 
-        Enrollment piA = enrollmentService.enrollTrackedEntityInstance(
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance(
             teiA, pA, new Date(), new Date(), ouA );
 
         dvA = new EventDataValue( deA.getUid(), "A", USER_SNAP_A );
@@ -174,11 +174,11 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dvD = new EventDataValue( deB.getUid(), "D", USER_SNAP_A );
         dvE = new EventDataValue( deB.getUid(), "E", USER_SNAP_A );
 
-        eventA = createEvent( piA, psA, ouA, Set.of( dvA, dvB ) );
-        eventB = createEvent( piA, psB, ouB, Set.of( dvC, dvD ) );
-        eventC = createEvent( piA, psA, ouC, Set.of( dvA, dvB ) );
-        eventD = createEvent( piA, psB, ouD, Set.of( dvC, dvD ) );
-        eventE = createEvent( piA, psA, ouE, Set.of( dvA, dvE ) );
+        eventA = createEvent( enrollmentA, psA, ouA, Set.of( dvA, dvB ) );
+        eventB = createEvent( enrollmentA, psB, ouB, Set.of( dvC, dvD ) );
+        eventC = createEvent( enrollmentA, psA, ouC, Set.of( dvA, dvB ) );
+        eventD = createEvent( enrollmentA, psB, ouD, Set.of( dvC, dvD ) );
+        eventE = createEvent( enrollmentA, psA, ouE, Set.of( dvA, dvE ) );
         eventService.addEvent( eventA );
         eventService.addEvent( eventB );
         eventService.addEvent( eventC );

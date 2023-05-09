@@ -39,12 +39,11 @@ import java.util.Optional;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -92,7 +91,7 @@ class MetaValidatorTest
         Enrollment enrollment = validEnrollment();
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
 
         validator.validate( reporter, bundle, enrollment );
@@ -104,7 +103,8 @@ class MetaValidatorTest
     void verifyEnrollmentValidationSuccessWhenTeiIsInPayload()
     {
         Enrollment enrollment = validEnrollment();
-        when( bundle.findTrackedEntityByUid( TRACKED_ENTITY_UID ) ).thenReturn( Optional.of( new TrackedEntity() ) );
+        when( bundle.findTrackedEntityByUid( TRACKED_ENTITY_UID ) )
+            .thenReturn( Optional.of( new org.hisp.dhis.tracker.imports.domain.TrackedEntity() ) );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
@@ -119,7 +119,7 @@ class MetaValidatorTest
     {
         Enrollment enrollment = validEnrollment();
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_UID ) ) ).thenReturn( new Program() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -145,7 +145,7 @@ class MetaValidatorTest
         Enrollment enrollment = validEnrollment();
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_UID ) ) )
             .thenReturn( new OrganisationUnit() );
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntityInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_UID ) ).thenReturn( new TrackedEntity() );
 
         validator.validate( reporter, bundle, enrollment );
 

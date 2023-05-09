@@ -77,7 +77,7 @@ public class TrackerOrgUnitMergeHandler
             "set tpo.organisationUnit = :target " +
             "where tpo.organisationUnit.id in (:sources)", request );
 
-        migrate( "update TrackedEntityInstance tei " +
+        migrate( "update TrackedEntity tei " +
             "set tei.organisationUnit = :target " +
             "where tei.organisationUnit.id in (:sources)", request );
     }

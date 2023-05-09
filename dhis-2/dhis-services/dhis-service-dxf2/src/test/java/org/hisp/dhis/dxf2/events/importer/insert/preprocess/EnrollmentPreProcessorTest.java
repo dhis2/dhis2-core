@@ -50,7 +50,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -111,7 +111,7 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest
         //
         // Tracked Entity Instance
         //
-        TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( CodeGenerator.generateUid() );
@@ -132,8 +132,8 @@ class EnrollmentPreProcessorTest extends BasePreProcessTest
         //
         // Tracked Entity Instance
         //
-        TrackedEntityInstance tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
-        Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = new HashMap<>();
+        TrackedEntity tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
+        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
 

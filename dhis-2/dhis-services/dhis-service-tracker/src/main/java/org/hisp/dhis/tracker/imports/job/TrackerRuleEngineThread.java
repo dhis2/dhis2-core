@@ -91,13 +91,13 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
         {
             for ( Map.Entry<String, List<RuleEffect>> entry : enrollmentRuleEffects.entrySet() )
             {
-                Enrollment pi = sideEffectDataBundle.getEnrollment();
-                pi.setProgram( sideEffectDataBundle.getProgram() );
+                Enrollment enrollment = sideEffectDataBundle.getEnrollment();
+                enrollment.setProgram( sideEffectDataBundle.getProgram() );
 
                 entry.getValue()
                     .stream()
                     .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
-                    .forEach( effect -> ruleActionImplementer.implement( effect, pi ) );
+                    .forEach( effect -> ruleActionImplementer.implement( effect, enrollment ) );
             }
 
             for ( Map.Entry<String, List<RuleEffect>> entry : eventRuleEffects.entrySet() )

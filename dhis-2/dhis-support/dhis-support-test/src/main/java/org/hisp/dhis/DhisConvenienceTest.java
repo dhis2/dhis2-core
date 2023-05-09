@@ -175,13 +175,13 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
@@ -1683,7 +1683,7 @@ public abstract class DhisConvenienceTest
         return program;
     }
 
-    public static Enrollment createEnrollment( Program program, TrackedEntityInstance tei,
+    public static Enrollment createEnrollment( Program program, TrackedEntity tei,
         OrganisationUnit organisationUnit )
     {
         Enrollment enrollment = new Enrollment( program, tei, organisationUnit );
@@ -1979,15 +1979,15 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
+    public static Relationship createTeiToTeiRelationship( TrackedEntity from, TrackedEntity to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
-        riTo.setTrackedEntityInstance( to );
+        riFrom.setTrackedEntity( from );
+        riTo.setTrackedEntity( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );
@@ -2000,14 +2000,14 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToEnrollmentRelationship( TrackedEntityInstance from, Enrollment to,
+    public static Relationship createTeiToEnrollmentRelationship( TrackedEntity from, Enrollment to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
+        riFrom.setTrackedEntity( from );
         riTo.setEnrollment( to );
 
         relationship.setRelationshipType( relationshipType );
@@ -2021,7 +2021,7 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToEventRelationship( TrackedEntityInstance from,
+    public static Relationship createTeiToEventRelationship( TrackedEntity from,
         Event to,
         RelationshipType relationshipType )
     {
@@ -2029,7 +2029,7 @@ public abstract class DhisConvenienceTest
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
+        riFrom.setTrackedEntity( from );
         riTo.setEvent( to );
 
         relationship.setRelationshipType( relationshipType );
@@ -2120,15 +2120,15 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    public static TrackedEntityFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
     {
-        TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
-        trackedEntityInstanceFilter.setAutoFields();
-        trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
-        trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
-        trackedEntityInstanceFilter.setProgram( program );
-        trackedEntityInstanceFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
-        return trackedEntityInstanceFilter;
+        TrackedEntityFilter trackedEntityFilter = new TrackedEntityFilter();
+        trackedEntityFilter.setAutoFields();
+        trackedEntityFilter.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
+        trackedEntityFilter.setProgram( program );
+        trackedEntityFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
+        return trackedEntityFilter;
     }
 
     public static TrackedEntityType createTrackedEntityType( char uniqueChar )
@@ -2141,19 +2141,19 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
+    public static TrackedEntity createTrackedEntityInstance( OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        TrackedEntity entityInstance = new TrackedEntity();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
         return entityInstance;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar,
+    public static TrackedEntity createTrackedEntityInstance( char uniqueChar,
         OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        TrackedEntity entityInstance = new TrackedEntity();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
         entityInstance.setUid( BASE_TEI_UID + uniqueChar );
@@ -2161,10 +2161,10 @@ public abstract class DhisConvenienceTest
         return entityInstance;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
+    public static TrackedEntity createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
+        TrackedEntity entityInstance = new TrackedEntity();
         entityInstance.setAutoFields();
         entityInstance.setOrganisationUnit( organisationUnit );
 
@@ -2178,7 +2178,7 @@ public abstract class DhisConvenienceTest
     }
 
     public static TrackedEntityAttributeValue createTrackedEntityAttributeValue( char uniqueChar,
-        TrackedEntityInstance entityInstance,
+        TrackedEntity entityInstance,
         TrackedEntityAttribute attribute )
     {
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();

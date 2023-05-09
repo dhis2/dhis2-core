@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -130,7 +130,7 @@ public class WorkContextLoader
         final Map<String, Event> persistedProgramStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
-        final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
+        final Map<String, Pair<TrackedEntity, Boolean>> teiMap = trackedEntityInstanceSupplier
             .get( localImportOptions, events );
 
         final Map<String, OrganisationUnit> orgUniMap = organisationUnitSupplier.get( localImportOptions, events );
