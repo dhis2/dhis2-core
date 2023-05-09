@@ -215,14 +215,14 @@ public class TrackedEntityInstanceCriteria extends PagingAndSortingCriteriaAdapt
         return assignedUsers;
     }
 
-    public boolean hasTrackedEntityInstance()
+    public boolean hasTrackedEntity()
     {
         return StringUtils.isNotEmpty( this.trackedEntityInstance );
     }
 
     public Set<String> getTrackedEntityInstances()
     {
-        if ( hasTrackedEntityInstance() )
+        if ( hasTrackedEntity() )
         {
             return TextUtils.splitToSet( trackedEntityInstance, TextUtils.SEMICOLON );
         }

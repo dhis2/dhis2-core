@@ -200,7 +200,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     {
         TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
-        trackedEntityService.addTrackedEntityInstance( entityInstance );
+        trackedEntityService.addTrackedEntity( entityInstance );
         return entityInstance;
     }
 
@@ -222,7 +222,7 @@ public abstract class TrackerTest extends IntegrationTestBase
                 }
             }
         }
-        trackedEntityService.addTrackedEntityInstance( entityInstance );
+        trackedEntityService.addTrackedEntity( entityInstance );
         return entityInstance;
     }
 

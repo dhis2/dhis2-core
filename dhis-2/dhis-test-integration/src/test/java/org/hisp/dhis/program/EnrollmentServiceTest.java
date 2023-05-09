@@ -124,9 +124,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );

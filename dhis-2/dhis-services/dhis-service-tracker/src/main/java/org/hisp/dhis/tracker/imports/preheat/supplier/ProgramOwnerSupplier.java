@@ -85,7 +85,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
             .getTrackedEntityProgramOwnerOrgUnits( teiIds );
 
         tepos = tepos.stream().map(
-            tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(),
+            tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityId(), tepo.getProgramId(),
                 OrganisationUnitMapper.INSTANCE.map( tepo.getOrganisationUnit() ) ) )
             .collect( Collectors.toList() );
 

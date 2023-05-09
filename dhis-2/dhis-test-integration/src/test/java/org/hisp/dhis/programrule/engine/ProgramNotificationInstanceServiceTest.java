@@ -111,7 +111,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         program = createProgram( 'P' );
         programService.addProgram( program );
         trackedEntity = createTrackedEntityInstance( 'T', organisationUnit );
-        trackedEntityService.addTrackedEntityInstance( trackedEntity );
+        trackedEntityService.addTrackedEntity( trackedEntity );
         programRule = createProgramRule( 'R', program );
         programRule.setCondition( "true" );
         manager.save( programRule );

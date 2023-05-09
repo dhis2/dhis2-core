@@ -118,7 +118,7 @@ class EventRequestToSearchParamsMapperTest
 
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
-        when( entityInstanceService.getTrackedEntityInstance( any() ) ).thenReturn( tei );
+        when( entityInstanceService.getTrackedEntity( any() ) ).thenReturn( tei );
         when( dataElementService.getDataElement( any() ) ).thenReturn( de );
     }
 

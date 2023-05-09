@@ -137,7 +137,7 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
         // Check further for explicit uid in param
-        queryParams.getTrackedEntityInstanceUids().addAll( trackedEntityInstances.stream().limit( 2 )
+        queryParams.getTrackedEntityUids().addAll( trackedEntityInstances.stream().limit( 2 )
             .map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toSet() ) );
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
@@ -155,14 +155,14 @@ class TrackedEntityAggregateTest extends TrackerTest
             teiUid[1] = t2.getUid();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
-        queryParams.getTrackedEntityInstanceUids().add( teiUid[0] );
+        queryParams.getTrackedEntityUids().add( teiUid[0] );
         TrackedEntityInstanceParams params = TrackedEntityInstanceParams.FALSE;
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( trackedEntityInstances, hasSize( 1 ) );
         assertThat( trackedEntityInstances.get( 0 ).getTrackedEntityInstance(), is( teiUid[0] ) );
         // Query 2 tei uid explicitly
-        queryParams.getTrackedEntityInstanceUids().add( teiUid[1] );
+        queryParams.getTrackedEntityUids().add( teiUid[1] );
         final List<TrackedEntityInstance> multiTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         assertThat( multiTrackedEntityInstances, hasSize( 2 ) );

@@ -87,7 +87,7 @@ class LastUpdateImportTest extends TrackerTest
             .build();
         trackedEntity.setAttributes( Collections.singletonList( attribute ) );
         Date lastUpdateBefore = trackedEntityService
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
+            .getTrackedEntity( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
         assertTrue( manager.get( TrackedEntity.class, trackedEntity.getTrackedEntity() ).getLastUpdated()
             .getTime() > lastUpdateBefore.getTime() );
@@ -99,7 +99,7 @@ class LastUpdateImportTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/event_with_data_values.json" );
         Date lastUpdateBefore = trackedEntityService
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
+            .getTrackedEntity( trackedEntity.getTrackedEntity() ).getLastUpdated();
         assertNoErrors( trackerImportService.importTracker( trackerImportParams ) );
 
         trackerImportParams = fromJson( "tracker/event_with_updated_data_values.json" );
@@ -116,7 +116,7 @@ class LastUpdateImportTest extends TrackerTest
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/single_enrollment.json" );
         Date lastUpdateBefore = trackedEntityService
-            .getTrackedEntityInstance( trackedEntity.getTrackedEntity() ).getLastUpdated();
+            .getTrackedEntity( trackedEntity.getTrackedEntity() ).getLastUpdated();
         Enrollment enrollment = trackerImportParams.getEnrollments().get( 0 );
         enrollment.setStatus( EnrollmentStatus.COMPLETED );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.UPDATE );

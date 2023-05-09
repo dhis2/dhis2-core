@@ -129,7 +129,7 @@ class EnrollmentCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
         when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( true );
         when( trackedEntityTypeService.getTrackedEntityType( ENTITY_TYPE ) ).thenReturn( trackedEntityType );
-        when( trackedEntityService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
+        when( trackedEntityService.getTrackedEntity( ENTITY_INSTANCE ) )
             .thenReturn( trackedEntity );
 
         EnrollmentQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,

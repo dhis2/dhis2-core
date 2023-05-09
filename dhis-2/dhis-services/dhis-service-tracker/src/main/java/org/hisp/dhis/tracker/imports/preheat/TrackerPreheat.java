@@ -648,7 +648,7 @@ public class TrackerPreheat
 
     public void addProgramOwners( List<TrackedEntityProgramOwnerOrgUnit> tepos )
     {
-        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(), tepo ) );
+        tepos.forEach( tepo -> addProgramOwner( tepo.getTrackedEntityId(), tepo.getProgramId(), tepo ) );
 
     }
 

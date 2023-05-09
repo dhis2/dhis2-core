@@ -118,13 +118,13 @@ public class HibernateTrackedEntityAuditStore
     }
 
     @Override
-    public List<TrackedEntityAudit> getTrackedEntityInstanceAudits(
+    public List<TrackedEntityAudit> getTrackedEntityAudits(
         TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         JpaQueryParameters<TrackedEntityAudit> jpaParameters = newJpaParameters()
-            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .addPredicates( getTrackedEntityAuditPredicates( params, builder ) )
             .addOrder( root -> builder.desc( root.get( "created" ) ) );
 
         if ( params.hasPaging() )
@@ -138,23 +138,23 @@ public class HibernateTrackedEntityAuditStore
     }
 
     @Override
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
+    public int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getCount( builder, newJpaParameters()
-            .addPredicates( getTrackedEntityInstanceAuditPredicates( params, builder ) )
+            .addPredicates( getTrackedEntityAuditPredicates( params, builder ) )
             .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
     }
 
-    private List<Function<Root<TrackedEntityAudit>, Predicate>> getTrackedEntityInstanceAuditPredicates(
+    private List<Function<Root<TrackedEntityAudit>, Predicate>> getTrackedEntityAuditPredicates(
         TrackedEntityAuditQueryParams params, CriteriaBuilder builder )
     {
         List<Function<Root<TrackedEntityAudit>, Predicate>> predicates = new ArrayList<>();
 
-        if ( params.hasTrackedEntityInstances() )
+        if ( params.hasTrackedEntities() )
         {
-            predicates.add( root -> root.get( "trackedEntity" ).in( params.getTrackedEntityInstances() ) );
+            predicates.add( root -> root.get( "trackedEntity" ).in( params.getTrackedEntities() ) );
         }
 
         if ( params.hasUsers() )

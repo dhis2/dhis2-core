@@ -45,17 +45,17 @@ public interface TrackedEntityStore
     /**
      * Get a Map of {@see TrackedEntity} by Primary Keys
      *
-     * @param ids a list of Tracked Entity Instance Primary Keys
+     * @param ids a list of Tracked Entity Primary Keys
      * @return a Map where key is a {@see TrackedEntity} uid and the key is the
      *         corresponding {@see TrackedEntity}
      */
-    Map<String, TrackedEntity> getTrackedEntityInstances( List<Long> ids, Context ctx );
+    Map<String, TrackedEntity> getTrackedEntities( List<Long> ids, Context ctx );
 
     /**
      * Fetches all the relationships having the TEI id specified in the arg as
      * "left" or "right" relationship
      *
-     * @param ids a list of Tracked Entity Instance Primary Keys
+     * @param ids a list of Tracked Entity Primary Keys
      * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
      *         List of {@see Relationship} objects
      */
@@ -63,7 +63,7 @@ public interface TrackedEntityStore
 
     /**
      *
-     * @param ids @param ids a list of Tracked Entity Instance Primary Keys
+     * @param ids @param ids a list of Tracked Entity Primary Keys
      * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
      *         List of {@see Attribute} objects
      */
@@ -71,7 +71,7 @@ public interface TrackedEntityStore
 
     /**
      *
-     * @param ids a list of Tracked Entity Instance Primary Keys
+     * @param ids a list of Tracked Entity Primary Keys
      * @return a MultiMap where key is a {@see TrackedEntity} uid and the * key
      *         a List of {@see ProgramOwner} objects
      */
@@ -80,7 +80,7 @@ public interface TrackedEntityStore
     /**
      * For each tei, get the list of programs for which the user has ownership.
      *
-     * @param ids a list of Tracked Entinty Instance primary keys
+     * @param ids a list of Tracked Entity primary keys
      * @param ctx aggregate context
      * @return Tei uids mapped to a list of program uids to which user has
      *         ownership

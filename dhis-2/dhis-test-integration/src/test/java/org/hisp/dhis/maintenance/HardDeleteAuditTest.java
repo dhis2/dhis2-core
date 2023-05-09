@@ -79,8 +79,8 @@ class HardDeleteAuditTest extends IntegrationTestBase
         transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
-            trackedEntityService.addTrackedEntityInstance( tei );
-            trackedEntityService.deleteTrackedEntityInstance( tei );
+            trackedEntityService.addTrackedEntity( tei );
+            trackedEntityService.deleteTrackedEntity( tei );
             dbmsManager.clearSession();
             return null;
         } );

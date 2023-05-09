@@ -145,9 +145,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -225,8 +225,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         // TEI
         TrackedEntity teiX = createTrackedEntityInstance( organisationUnitA );
         TrackedEntity teiY = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( teiX );
-        entityInstanceService.addTrackedEntityInstance( teiY );
+        entityInstanceService.addTrackedEntity( teiX );
+        entityInstanceService.addTrackedEntity( teiY );
         // Program
         programA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
         programService.updateProgram( programA );

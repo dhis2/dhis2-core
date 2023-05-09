@@ -44,7 +44,7 @@ import org.hisp.dhis.common.Pager;
 @Accessors( chain = true )
 public class TrackedEntityAuditQueryParams
 {
-    private List<String> trackedEntityInstances = new ArrayList<>();
+    private List<String> trackedEntities = new ArrayList<>();
 
     private List<String> users = new ArrayList<>();
 
@@ -60,9 +60,9 @@ public class TrackedEntityAuditQueryParams
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean hasTrackedEntityInstances()
+    public boolean hasTrackedEntities()
     {
-        return trackedEntityInstances != null && !trackedEntityInstances.isEmpty();
+        return trackedEntities != null && !trackedEntities.isEmpty();
     }
 
     public boolean hasUsers()

@@ -99,7 +99,7 @@ public class EnrollmentCriteriaMapper
             criteria.getTrackedEntityType() );
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
             criteria.getTrackedEntity() );
         validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
 
@@ -116,7 +116,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramStartDate( criteria.getEnrolledAfter() );
         params.setProgramEndDate( criteria.getEnrolledBefore() );
         params.setTrackedEntityType( trackedEntityType );
-        params.setTrackedEntityInstanceUid(
+        params.setTrackedEntityUid(
             Optional.ofNullable( trackedEntity ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.addOrganisationUnits( orgUnits );
         params.setOrganisationUnitMode( criteria.getOuMode() );

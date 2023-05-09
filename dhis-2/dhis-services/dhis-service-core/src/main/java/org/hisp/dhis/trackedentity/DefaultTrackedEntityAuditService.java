@@ -84,10 +84,10 @@ public class DefaultTrackedEntityAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityAudit> getTrackedEntityInstanceAudits(
+    public List<TrackedEntityAudit> getTrackedEntityAudits(
         TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityAuditStore.getTrackedEntityInstanceAudits( params ).stream()
+        return trackedEntityAuditStore.getTrackedEntityAudits( params ).stream()
             .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
                 trackedEntityStore.getByUid( a.getTrackedEntity() ) ).isEmpty() )
             .collect( Collectors.toList() );
@@ -95,8 +95,8 @@ public class DefaultTrackedEntityAuditService
 
     @Override
     @Transactional( readOnly = true )
-    public int getTrackedEntityInstanceAuditsCount( TrackedEntityAuditQueryParams params )
+    public int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params )
     {
-        return trackedEntityAuditStore.getTrackedEntityInstanceAuditsCount( params );
+        return trackedEntityAuditStore.getTrackedEntityAuditsCount( params );
     }
 }

@@ -756,7 +756,7 @@ public abstract class AbstractEnrollmentService
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityInstanceUid( entityInstance.getUid() );
+        params.setTrackedEntityUid( entityInstance.getUid() );
 
         // When imported enrollment has status CANCELLED, it is safe to import
         // it, otherwise do additional checks
@@ -1022,7 +1022,7 @@ public abstract class AbstractEnrollmentService
         programInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( importOptions.getUser() ) );
 
         enrollmentService.updateEnrollment( programInstance, importOptions.getUser() );
-        teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), importOptions.getUser() );
+        teiService.updateTrackedEntity( programInstance.getEntityInstance(), importOptions.getUser() );
 
         saveTrackedEntityComment( programInstance, enrollment, importOptions.getUser() );
 
@@ -1115,7 +1115,7 @@ public abstract class AbstractEnrollmentService
             }
 
             enrollmentService.deleteEnrollment( programInstance );
-            teiService.updateTrackedEntityInstance( programInstance.getEntityInstance() );
+            teiService.updateTrackedEntity( programInstance.getEntityInstance() );
 
             importSummary.setReference( uid );
             importSummary.setStatus( ImportStatus.SUCCESS );
@@ -1164,7 +1164,7 @@ public abstract class AbstractEnrollmentService
     {
         Enrollment enrollment = enrollmentService.getEnrollment( uid );
         enrollmentService.cancelEnrollmentStatus( enrollment );
-        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
+        teiService.updateTrackedEntity( enrollment.getEntityInstance() );
     }
 
     @Override
@@ -1172,7 +1172,7 @@ public abstract class AbstractEnrollmentService
     {
         Enrollment enrollment = enrollmentService.getEnrollment( uid );
         enrollmentService.completeEnrollmentStatus( enrollment );
-        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
+        teiService.updateTrackedEntity( enrollment.getEntityInstance() );
     }
 
     @Override
@@ -1180,7 +1180,7 @@ public abstract class AbstractEnrollmentService
     {
         Enrollment enrollment = enrollmentService.getEnrollment( uid );
         enrollmentService.incompleteEnrollmentStatus( enrollment );
-        teiService.updateTrackedEntityInstance( enrollment.getEntityInstance() );
+        teiService.updateTrackedEntity( enrollment.getEntityInstance() );
     }
 
     // -------------------------------------------------------------------------
@@ -1477,7 +1477,7 @@ public abstract class AbstractEnrollmentService
         ImportOptions importOptions )
     {
         TrackedEntity trackedEntity = teiService
-            .getTrackedEntityInstance( enrollment.getTrackedEntityInstance() );
+            .getTrackedEntity( enrollment.getTrackedEntityInstance() );
         Map<String, Attribute> attributeValueMap = Maps.newHashMap();
 
         for ( Attribute attribute : enrollment.getAttributes() )
@@ -1529,7 +1529,7 @@ public abstract class AbstractEnrollmentService
 
     private TrackedEntity getTrackedEntityInstance( String teiUID, User user )
     {
-        TrackedEntity entityInstance = teiService.getTrackedEntityInstance( teiUID,
+        TrackedEntity entityInstance = teiService.getTrackedEntity( teiUID,
             user );
 
         if ( entityInstance == null )
@@ -1592,7 +1592,7 @@ public abstract class AbstractEnrollmentService
                 programInstance.getComments().add( comment );
 
                 enrollmentService.updateEnrollment( programInstance, user );
-                teiService.updateTrackedEntityInstance( programInstance.getEntityInstance(), user );
+                teiService.updateTrackedEntity( programInstance.getEntityInstance(), user );
             }
         }
     }

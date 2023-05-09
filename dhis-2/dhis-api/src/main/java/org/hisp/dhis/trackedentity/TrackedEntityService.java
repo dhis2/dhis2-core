@@ -39,9 +39,9 @@ import org.hisp.dhis.user.User;
 
 /**
  * <p>
- * This interface is responsible for retrieving tracked entity instances (TEI).
- * The query methods accepts a TrackedEntityQueryParams object which
- * encapsulates all arguments.
+ * This interface is responsible for retrieving tracked entities (TEI). The
+ * query methods accepts a TrackedEntityQueryParams object which encapsulates
+ * all arguments.
  * </p>
  * <p/>
  * <p>
@@ -53,7 +53,7 @@ import org.hisp.dhis.user.User;
  * </p>
  * <p/>
  * <ul>
- * <li>0: Tracked entity instance UID</li>
+ * <li>0: Tracked entity UID</li>
  * <li>1: Created time stamp</li>
  * <li>2: Last updated time stamp</li>
  * <li>3: Organisation unit UID</li>
@@ -74,7 +74,7 @@ import org.hisp.dhis.user.User;
  * params.addFilter( new QueryItem( weight, QueryOperator.GT, "2500", true ) );
  * params.addOrganistionUnit( unit );
  *
- * Grid instances = teiService.getTrackedEntityInstancesGrid( params );
+ * Grid instances = teiService.getTrackedEntityGrid( params );
  *
  * for ( List&lt;Object&gt; row : instances.getRows() )
  * {
@@ -102,16 +102,16 @@ public interface TrackedEntityService
     String SEPARATOR = "_";
 
     /**
-     * Returns a grid with tracked entity instance values based on the given
+     * Returns a grid with tracked entity values based on the given
      * TrackedEntityQueryParams.
      *
      * @param params the TrackedEntityQueryParams.
      * @return a grid.
      */
-    Grid getTrackedEntityInstancesGrid( TrackedEntityQueryParams params );
+    Grid getTrackedEntitiesGrid( TrackedEntityQueryParams params );
 
     /**
-     * Returns a list with tracked entity instance values based on the given
+     * Returns a list with tracked entity values based on the given
      * TrackedEntityQueryParams.
      *
      * @param params the TrackedEntityQueryParams.
@@ -122,11 +122,11 @@ public interface TrackedEntityService
      *        skipped.
      * @return List of TEIs matching the params
      */
-    List<TrackedEntity> getTrackedEntityInstances( TrackedEntityQueryParams params,
+    List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams params,
         boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
     /**
-     * Returns a list tracked entity instance primary key ids based on the given
+     * Returns a list tracked entity primary key ids based on the given
      * TrackedEntityQueryParams.
      *
      * @param params the TrackedEntityQueryParams.
@@ -137,21 +137,21 @@ public interface TrackedEntityService
      *        skipped.
      * @return List of TEI IDs matching the params
      */
-    List<Long> getTrackedEntityInstanceIds( TrackedEntityQueryParams params, boolean skipAccessValidation,
+    List<Long> getTrackedEntityIds( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     /**
-     * Return the count of the Tracked entity instances that meet the criteria
-     * specified in params
+     * Return the count of the Tracked entity that meet the criteria specified
+     * in params
      *
      * @param params Parameteres that specify searching criteria
      * @param skipAccessValidation If true, the access validation is skipped
      * @param skipSearchScopeValidation If true, the search scope validation is
      *        skipped
-     * @return the count of the Tracked entity instances that meet the criteria
+     * @return the count of the tracked entities that meet the criteria
      *         specified in params
      */
-    int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
+    int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     /**
@@ -187,64 +187,62 @@ public interface TrackedEntityService
     /**
      * Adds an {@link TrackedEntity}
      *
-     * @param entityInstance The to TrackedEntity add.
+     * @param trackedEntity The to TrackedEntity add.
      * @return A generated unique id of the added {@link TrackedEntity}.
      */
-    long addTrackedEntityInstance( TrackedEntity entityInstance );
+    long addTrackedEntity( TrackedEntity trackedEntity );
 
     /**
      * Soft deletes a {@link TrackedEntity}.
      *
-     * @param entityInstance the TrackedEntity to delete.
+     * @param trackedEntity the TrackedEntity to delete.
      */
-    void deleteTrackedEntityInstance( TrackedEntity entityInstance );
+    void deleteTrackedEntity( TrackedEntity trackedEntity );
 
     /**
      * Updates a {@link TrackedEntity}.
      *
-     * @param entityInstance the TrackedEntity to update.
+     * @param trackedEntity the TrackedEntity to update.
      */
-    void updateTrackedEntityInstance( TrackedEntity entityInstance );
+    void updateTrackedEntity( TrackedEntity trackedEntity );
 
-    void updateTrackedEntityInstance( TrackedEntity instance, User user );
+    void updateTrackedEntity( TrackedEntity trackedEntity, User user );
 
     /**
-     * Updates a last sync timestamp on specified TrackedEntityInstances
+     * Updates a last sync timestamp on specified TrackedEntity
      *
-     * @param trackedEntityInstanceUIDs UIDs of Tracked entity instances where
-     *        the lastSynchronized flag should be updated
+     * @param trackedEntityUIDs UIDs of tracked entities where the
+     *        lastSynchronized flag should be updated
      * @param lastSynchronized The date of last successful sync
      */
-    void updateTrackedEntityInstancesSyncTimestamp( List<String> trackedEntityInstanceUIDs, Date lastSynchronized );
+    void updateTrackedEntitySyncTimestamp( List<String> trackedEntityUIDs, Date lastSynchronized );
 
-    void updateTrackedEntityInstanceLastUpdated( Set<String> trackedEntityInstanceUIDs, Date lastUpdated );
+    void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated );
 
     /**
      * Returns a {@link TrackedEntity}.
      *
-     * @param id the id of the TrackedEntityInstanceAttribute to return.
-     * @return the TrackedEntityInstanceAttribute with the given id
+     * @param id the id of the TrackedEntity to return.
+     * @return the TrackedEntity with the given id
      */
-    TrackedEntity getTrackedEntityInstance( long id );
+    TrackedEntity getTrackedEntity( long id );
 
     /**
-     * Returns the {@link TrackedEntityAttribute} with the given UID.
+     * Returns the {@link TrackedEntity} with the given UID.
      *
      * @param uid the UID.
-     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
-     *         no match.
+     * @return the TrackedEntity with the given UID, or null if no match.
      */
-    TrackedEntity getTrackedEntityInstance( String uid );
+    TrackedEntity getTrackedEntity( String uid );
 
     /**
-     * Returns the {@link TrackedEntityAttribute} with the given UID.
+     * Returns the {@link TrackedEntity} with the given UID.
      *
      * @param uid the UID.
      * @param user User
-     * @return the TrackedEntityInstanceAttribute with the given UID, or null if
-     *         no match.
+     * @return the TrackedEntity with the given UID, or null if no match.
      */
-    TrackedEntity getTrackedEntityInstance( String trackedEntityInstance, User user );
+    TrackedEntity getTrackedEntity( String uid, User user );
 
     /**
      * Checks for the existence of a TEI by UID. Deleted values are not taken
@@ -253,7 +251,7 @@ public interface TrackedEntityService
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
-    boolean trackedEntityInstanceExists( String uid );
+    boolean trackedEntityExists( String uid );
 
     /**
      * Checks for the existence of a TEI by UID. Takes into account also the
@@ -262,28 +260,27 @@ public interface TrackedEntityService
      * @param uid PSI UID to check for
      * @return true/false depending on result
      */
-    boolean trackedEntityInstanceExistsIncludingDeleted( String uid );
+    boolean trackedEntityExistsIncludingDeleted( String uid );
 
     /**
-     * Returns UIDs of existing TrackedEntityInstances (including deleted) from
-     * the provided UIDs
+     * Returns UIDs of existing tracked entities (including deleted) from the
+     * provided UIDs
      *
      * @param uids TEI UIDs to check
      * @return Set containing UIDs of existing TEIs (including deleted)
      */
-    List<String> getTrackedEntityInstancesUidsIncludingDeleted( List<String> uids );
+    List<String> getTrackedEntitiesUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Register a new entityInstance
+     * Register a new trackedEntity
      *
-     * @param entityInstance TrackedEntity
+     * @param trackedEntity TrackedEntity
      * @param attributeValues Set of attribute values
-     * @return The error code after registering entityInstance
+     * @return The error code after registering trackedEntity
      */
-    long createTrackedEntityInstance( TrackedEntity entityInstance,
-        Set<TrackedEntityAttributeValue> attributeValues );
+    long createTrackedEntity( TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues );
 
-    List<TrackedEntity> getTrackedEntityInstancesByUid( List<String> uids, User user );
+    List<TrackedEntity> getTrackedEntitiesByUid( List<String> uids, User user );
 
     List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 

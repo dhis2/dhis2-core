@@ -186,8 +186,8 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     void testTeiRegistration()
     {
         // Mock for trackedEntityService
-        when( trackedEntityService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntity );
+        when( trackedEntityService.createTrackedEntity( any(), any() ) ).thenReturn( 1L );
+        when( trackedEntityService.getTrackedEntity( anyLong() ) ).thenReturn( trackedEntity );
         when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
 
         // Mock for incomingSmsService

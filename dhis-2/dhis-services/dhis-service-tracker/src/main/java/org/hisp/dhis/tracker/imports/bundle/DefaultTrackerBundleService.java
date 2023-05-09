@@ -132,7 +132,7 @@ public class DefaultTrackerBundleService
     private void updateTeisLastUpdated( TrackerBundle bundle )
     {
         Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
-            teis -> trackedEntityService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
+            teis -> trackedEntityService.updateTrackedEntityLastUpdated( teis, new Date() ) );
     }
 
     @Override

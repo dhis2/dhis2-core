@@ -105,7 +105,7 @@ public class EventServiceContextBuilder
                 programsByUid.get( programUid ) ).stream() )
             .collect( Collectors.toMap(
                 trackedEntityProgramOwnerIds -> Pair.of(
-                    trackedEntityProgramOwnerIds.getTrackedEntityInstanceId(),
+                    trackedEntityProgramOwnerIds.getTrackedEntityId(),
                     trackedEntityProgramOwnerIds.getProgramId() ),
                 TrackedEntityProgramOwnerIds::getOrgUnitUid ) );
 

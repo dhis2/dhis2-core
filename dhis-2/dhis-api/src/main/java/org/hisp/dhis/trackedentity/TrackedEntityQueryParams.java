@@ -194,7 +194,7 @@ public class TrackedEntityQueryParams
     /**
      * Set of tei uids to explicitly select.
      */
-    private Set<String> trackedEntityInstanceUids = new HashSet<>();
+    private Set<String> trackedEntityUids = new HashSet<>();
 
     /**
      * ProgramStage to be used in conjunction with eventstatus.
@@ -401,9 +401,9 @@ public class TrackedEntityQueryParams
         }
     }
 
-    public boolean hasTrackedEntityInstances()
+    public boolean hasTrackedEntities()
     {
-        return CollectionUtils.isNotEmpty( this.trackedEntityInstanceUids );
+        return CollectionUtils.isNotEmpty( this.trackedEntityUids );
     }
 
     public TrackedEntityQueryParams addAttributes( List<QueryItem> attrs )
@@ -1208,14 +1208,14 @@ public class TrackedEntityQueryParams
         this.orders = orders;
     }
 
-    public Set<String> getTrackedEntityInstanceUids()
+    public Set<String> getTrackedEntityUids()
     {
-        return trackedEntityInstanceUids;
+        return trackedEntityUids;
     }
 
-    public TrackedEntityQueryParams setTrackedEntityInstanceUids( Set<String> trackedEntityInstanceUids )
+    public TrackedEntityQueryParams setTrackedEntityUids( Set<String> trackedEntityUids )
     {
-        this.trackedEntityInstanceUids = trackedEntityInstanceUids;
+        this.trackedEntityUids = trackedEntityUids;
         return this;
     }
 

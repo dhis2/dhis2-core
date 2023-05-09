@@ -596,13 +596,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
         programService.updateProgram( programA );
         TrackedEntity entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         TrackedEntity entityInstanceS = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceS );
+        entityInstanceService.addTrackedEntity( entityInstanceS );
         TrackedEntity entityInstanceE = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceE );
+        entityInstanceService.addTrackedEntity( entityInstanceE );
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
@@ -615,13 +615,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
             entityInstanceE, "zubair@dhis2.org" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.updateTrackedEntity( entityInstanceB );
         entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
+        entityInstanceService.updateTrackedEntity( entityInstanceS );
         entityInstanceE.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueEmail ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceE );
+        entityInstanceService.updateTrackedEntity( entityInstanceE );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );

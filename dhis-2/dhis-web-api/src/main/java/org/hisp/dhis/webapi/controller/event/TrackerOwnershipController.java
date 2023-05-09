@@ -93,7 +93,7 @@ public class TrackerOwnershipController
         @RequestParam String ou )
     {
         trackerOwnershipAccessManager.transferOwnership(
-            trackedEntityService.getTrackedEntityInstance( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
             programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
         return ok( "Ownership transferred" );
     }
@@ -104,7 +104,7 @@ public class TrackerOwnershipController
         @RequestParam String program )
     {
         trackerOwnershipAccessManager.grantTemporaryOwnership(
-            trackedEntityService.getTrackedEntityInstance( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
             programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
         return ok( "Temporary Ownership granted" );
