@@ -157,7 +157,7 @@ class EventCriteriaMapperTest
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
         trackedEntity = new TrackedEntity();
-        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( trackedEntity );
+        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( trackedEntity );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
         TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -280,7 +280,7 @@ class EventCriteriaMapperTest
     {
         EventCriteria criteria = new EventCriteria();
         criteria.setTrackedEntity( "teiuid" );
-        when( entityInstanceService.getTrackedEntityInstance( "teiuid" ) ).thenReturn( null );
+        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );

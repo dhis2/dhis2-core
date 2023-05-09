@@ -132,7 +132,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         Event event = addEvent( enrollment, programStageA );
 
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Relationship relationshipA = addTeiToEventRelationship( trackedEntityA,
             event );
@@ -150,7 +150,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     void testGetByEnrollment()
     {
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Program programA = addProgram();
 
@@ -211,8 +211,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         trackedEntityA = createTrackedEntityInstance( organisationUnit );
         trackedEntityB = createTrackedEntityInstance( organisationUnit );
 
-        trackedEntityService.addTrackedEntityInstance( trackedEntityA );
-        trackedEntityService.addTrackedEntityInstance( trackedEntityB );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
+        trackedEntityService.addTrackedEntity( trackedEntityB );
 
         Relationship teiRelationship = new Relationship();
 

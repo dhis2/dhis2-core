@@ -508,7 +508,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         trackedEntityInstanceService.deleteTrackedEntityInstance( maleA.getUid() );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
-        boolean existsDeleted = teiDaoService.trackedEntityInstanceExistsIncludingDeleted( maleA.getUid() );
+        boolean existsDeleted = teiDaoService.trackedEntityExistsIncludingDeleted( maleA.getUid() );
         assertTrue( existsDeleted );
     }
 
@@ -586,7 +586,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         uids.add( teiMaleA.getTrackedEntityInstance() );
         uids.add( teiMaleB.getTrackedEntityInstance() );
         uids.add( teiFemaleA.getTrackedEntityInstance() );
-        List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
+        List<String> fetchedUids = teiDaoService.getTrackedEntitiesUidsIncludingDeleted( uids );
         assertContainsOnly( new HashSet<>( uids ), new HashSet<>( fetchedUids ) );
     }
 

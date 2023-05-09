@@ -142,12 +142,12 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
 
         TrackedEntity entityInstance;
-        boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
+        boolean teiExists = teiService.trackedEntityExists( teiUid.getUid() );
 
         if ( teiExists )
         {
             log.info( String.format( "Given TEI [%s] exists. Updating...", teiUid ) );
-            entityInstance = teiService.getTrackedEntityInstance( teiUid.getUid() );
+            entityInstance = teiService.getTrackedEntity( teiUid.getUid() );
         }
         else
         {
@@ -164,14 +164,14 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         {
             updateAttributeValues( attributeValues, entityInstance.getTrackedEntityAttributeValues() );
             entityInstance.setTrackedEntityAttributeValues( attributeValues );
-            teiService.updateTrackedEntityInstance( entityInstance );
+            teiService.updateTrackedEntity( entityInstance );
         }
         else
         {
-            teiService.createTrackedEntityInstance( entityInstance, attributeValues );
+            teiService.createTrackedEntity( entityInstance, attributeValues );
         }
 
-        TrackedEntity tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
+        TrackedEntity tei = teiService.getTrackedEntity( teiUid.getUid() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely

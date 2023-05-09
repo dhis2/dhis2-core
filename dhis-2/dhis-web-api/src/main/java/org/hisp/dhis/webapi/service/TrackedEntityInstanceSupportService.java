@@ -103,7 +103,7 @@ public class TrackedEntityInstanceSupportService
             }
 
             List<String> errors = trackerAccessManager.canRead( user,
-                instanceService.getTrackedEntityInstance( trackedEntityInstance.getTrackedEntityInstance() ), program,
+                instanceService.getTrackedEntity( trackedEntityInstance.getTrackedEntityInstance() ), program,
                 false );
 
             if ( !errors.isEmpty() )

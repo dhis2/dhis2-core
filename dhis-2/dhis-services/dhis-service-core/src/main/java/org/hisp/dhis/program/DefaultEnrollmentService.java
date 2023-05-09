@@ -451,7 +451,7 @@ public class DefaultEnrollmentService
         // -----------------------------------------------------------------
 
         updateEnrollment( enrollment );
-        trackedEntityService.updateTrackedEntityInstance( trackedEntity );
+        trackedEntityService.updateTrackedEntity( trackedEntity );
 
         return enrollment;
     }

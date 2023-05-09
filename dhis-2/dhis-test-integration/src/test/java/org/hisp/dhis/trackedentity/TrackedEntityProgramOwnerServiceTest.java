@@ -78,8 +78,8 @@ class TrackedEntityProgramOwnerServiceTest extends SingleSetupIntegrationTestBas
         entityInstanceA1.setUid( TEIA1 );
         TrackedEntity entityInstanceB1 = createTrackedEntityInstance( organisationUnitA );
         entityInstanceB1.setUid( TEIB1 );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        entityInstanceService.addTrackedEntity( entityInstanceA1 );
+        entityInstanceService.addTrackedEntity( entityInstanceB1 );
         Program programA = createProgram( 'A' );
         programA.setUid( PA );
         programService.addProgram( programA );

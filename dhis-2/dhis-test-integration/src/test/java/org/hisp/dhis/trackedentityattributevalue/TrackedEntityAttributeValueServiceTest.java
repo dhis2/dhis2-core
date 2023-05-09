@@ -97,10 +97,10 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
         entityInstanceB = createTrackedEntityInstance( organisationUnit );
         entityInstanceC = createTrackedEntityInstance( organisationUnit );
         entityInstanceD = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceC );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceD );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceC );
+        entityInstanceService.addTrackedEntity( entityInstanceD );
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeB = createTrackedEntityAttribute( 'B' );
         attributeC = createTrackedEntityAttribute( 'C' );

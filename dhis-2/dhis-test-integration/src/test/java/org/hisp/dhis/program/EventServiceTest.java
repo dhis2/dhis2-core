@@ -151,9 +151,9 @@ class EventServiceTest extends TransactionalIntegrationTest
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
         entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         attribute.setValueType( ValueType.PHONE_NUMBER );
         attributeService.addTrackedEntityAttribute( attribute );
@@ -162,7 +162,7 @@ class EventServiceTest extends TransactionalIntegrationTest
         attributeValue.setValue( "123456789" );
         attributeValueService.addTrackedEntityAttributeValue( attributeValue );
         entityInstanceA.getTrackedEntityAttributeValues().add( attributeValue );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         /**
          * Program A
          */

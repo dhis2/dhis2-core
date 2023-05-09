@@ -81,7 +81,6 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "programStage", // body request does not include mandatory field programId
         "programStageWorkingList", // same reason as programStage
         "dataElement", // non-postgres SQL in deletion handler
-        "trackedEntityInstance", // conflict (no details)
         "predictor", // NPE in preheat when creating objects
         "aggregateDataExchange" // required JSONB objects not working
     );

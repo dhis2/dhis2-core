@@ -25,25 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter;
+package org.hisp.dhis.trackedentityfilter.hibernate;
 
 import java.util.List;
 
-import org.hisp.dhis.common.IdentifiableObjectStore;
+import javax.persistence.criteria.CriteriaBuilder;
+
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilterStore;
+import org.hisp.dhis.user.CurrentUserService;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
- *
  */
-public interface TrackedEntityInstanceFilterStore
-    extends IdentifiableObjectStore<TrackedEntityInstanceFilter>
+@Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityFilterStore" )
+public class HibernateTrackedEntityFilterStore
+    extends HibernateIdentifiableObjectStore<TrackedEntityFilter>
+    implements TrackedEntityFilterStore
 {
-    /**
-     * Gets trackedEntityInstanceFilters
-     *
-     * @param program program of trackedEntityInstanceFilter to be fetched
-     * @return list of trackedEntityInstanceFilters
-     */
-    List<TrackedEntityInstanceFilter> get( Program program );
+    public HibernateTrackedEntityFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
+        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
+    {
+        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityFilter.class, currentUserService,
+            aclService, true );
+    }
+
+    @Override
+    public List<TrackedEntityFilter> get( Program program )
+    {
+        CriteriaBuilder builder = getCriteriaBuilder();
+
+        return getList( builder, newJpaParameters()
+            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
+    }
 }

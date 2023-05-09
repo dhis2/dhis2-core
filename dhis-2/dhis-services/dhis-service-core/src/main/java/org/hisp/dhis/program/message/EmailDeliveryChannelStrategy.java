@@ -61,7 +61,7 @@ public class EmailDeliveryChannelStrategy
 
         OrganisationUnit orgUnit = getOrganisationUnit( message );
 
-        TrackedEntity tei = getTrackedEntityInstance( message );
+        TrackedEntity tei = getTrackedEntity( message );
 
         if ( orgUnit != null )
         {
@@ -71,7 +71,7 @@ public class EmailDeliveryChannelStrategy
         if ( tei != null )
         {
             message.getRecipients().getEmailAddresses()
-                .add( getTrackedEntityInstanceRecipient( tei, ValueType.EMAIL ) );
+                .add( getTrackedEntityRecipient( tei, ValueType.EMAIL ) );
         }
 
         return message;

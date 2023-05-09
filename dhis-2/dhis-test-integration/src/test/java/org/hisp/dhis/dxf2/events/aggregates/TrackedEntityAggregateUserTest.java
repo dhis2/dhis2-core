@@ -91,7 +91,7 @@ class TrackedEntityAggregateUserTest extends TrackerTest
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
         // Check further for explicit uid in param
-        queryParams.getTrackedEntityInstanceUids().addAll( trackedEntityInstances.stream().limit( 2 )
+        queryParams.getTrackedEntityUids().addAll( trackedEntityInstances.stream().limit( 2 )
             .map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toSet() ) );
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );

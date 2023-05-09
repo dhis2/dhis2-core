@@ -269,7 +269,7 @@ public class DeduplicationController
         throws NotFoundException
     {
         return Optional.ofNullable( trackedEntityService
-            .getTrackedEntityInstance( tei ) )
+            .getTrackedEntity( tei ) )
             .orElseThrow( () -> new NotFoundException( "No tracked entity instance found with id '" + tei + "'." ) );
     }
 

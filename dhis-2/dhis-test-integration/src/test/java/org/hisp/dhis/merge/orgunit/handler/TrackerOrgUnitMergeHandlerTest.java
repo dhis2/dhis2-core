@@ -115,9 +115,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         teiA = createTrackedEntityInstance( 'A', ouA );
         teiB = createTrackedEntityInstance( 'B', ouB );
         teiC = createTrackedEntityInstance( 'C', ouC );
-        teiService.addTrackedEntityInstance( teiA );
-        teiService.addTrackedEntityInstance( teiB );
-        teiService.addTrackedEntityInstance( teiC );
+        teiService.addTrackedEntity( teiA );
+        teiService.addTrackedEntity( teiB );
+        teiService.addTrackedEntity( teiC );
         enrollmentA = createEnrollment( prA, teiA, ouA );
         enrollmentB = createEnrollment( prA, teiB, ouB );
         enrollmentC = createEnrollment( prA, teiC, ouA );

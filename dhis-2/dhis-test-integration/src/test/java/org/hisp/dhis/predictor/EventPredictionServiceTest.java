@@ -246,13 +246,13 @@ class EventPredictionServiceTest extends IntegrationTestBase
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
         TrackedEntity entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
         entityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstance );
+        entityInstanceService.updateTrackedEntity( entityInstance );
         Program program = createProgram( 'A', null, Sets.newHashSet( entityAttribute ), orgUnitASet, null );
         program.setUid( PROGRAM_UID );
         programService.addProgram( program );

@@ -154,9 +154,9 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         programA.setProgramStages( programStages );
         programService.updateProgram( programA );
         entityInstanceA = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
         TrackedEntity entityInstanceB = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -175,7 +175,7 @@ class ProgramMessageStoreTest extends TransactionalIntegrationTest
         ouUids.add( ouA.getUid() );
         // ouSet.add( ouB );
         teiA = createTrackedEntityInstance( ouA );
-        teiService.addTrackedEntityInstance( teiA );
+        teiService.addTrackedEntity( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );
         recipientsA.setTrackedEntity( teiA );

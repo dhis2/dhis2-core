@@ -384,7 +384,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
-        params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
+        params.setTrackedEntityUid( trackedEntityA.getUid() );
         params.setUser( user );
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
@@ -405,7 +405,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
-        params.setTrackedEntityInstanceUid( trackedEntityA.getUid() );
+        params.setTrackedEntityUid( trackedEntityA.getUid() );
         params.setUser( user );
 
         IllegalQueryException exception = assertThrows( IllegalQueryException.class,

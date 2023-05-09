@@ -53,58 +53,58 @@ import org.springframework.util.CollectionUtils;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterService" )
-public class DefaultTrackedEntityInstanceFilterService
-    implements TrackedEntityInstanceFilterService
+@Service( "org.hisp.dhis.trackedentityfilter.TrackedEntityFilterService" )
+public class DefaultTrackedEntityFilterService
+    implements TrackedEntityFilterService
 {
-    private final TrackedEntityInstanceFilterStore trackedEntityInstanceFilterStore;
+    private final TrackedEntityFilterStore trackedEntityFilterStore;
 
     private final ProgramService programService;
 
     private final TrackedEntityAttributeService teaService;
 
     // -------------------------------------------------------------------------
-    // TrackedEntityInstanceFilterService implementation
+    // TrackedEntityFilterService implementation
     // -------------------------------------------------------------------------
 
     @Override
     @Transactional
-    public long add( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public long add( TrackedEntityFilter trackedEntityFilter )
     {
-        trackedEntityInstanceFilterStore.save( trackedEntityInstanceFilter );
-        return trackedEntityInstanceFilter.getId();
+        trackedEntityFilterStore.save( trackedEntityFilter );
+        return trackedEntityFilter.getId();
     }
 
     @Override
     @Transactional
-    public void delete( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public void delete( TrackedEntityFilter trackedEntityFilter )
     {
-        trackedEntityInstanceFilterStore.delete( trackedEntityInstanceFilter );
+        trackedEntityFilterStore.delete( trackedEntityFilter );
     }
 
     @Override
     @Transactional
-    public void update( TrackedEntityInstanceFilter trackedEntityInstanceFilter )
+    public void update( TrackedEntityFilter trackedEntityFilter )
     {
-        trackedEntityInstanceFilterStore.update( trackedEntityInstanceFilter );
+        trackedEntityFilterStore.update( trackedEntityFilter );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public TrackedEntityInstanceFilter get( long id )
+    public TrackedEntityFilter get( long id )
     {
-        return trackedEntityInstanceFilterStore.get( id );
+        return trackedEntityFilterStore.get( id );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstanceFilter> getAll()
+    public List<TrackedEntityFilter> getAll()
     {
-        return trackedEntityInstanceFilterStore.getAll();
+        return trackedEntityFilterStore.getAll();
     }
 
     @Override
-    public List<String> validate( TrackedEntityInstanceFilter teiFilter )
+    public List<String> validate( TrackedEntityFilter teiFilter )
     {
         List<String> errors = new ArrayList<>();
 
@@ -219,8 +219,8 @@ public class DefaultTrackedEntityInstanceFilterService
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityInstanceFilter> get( Program program )
+    public List<TrackedEntityFilter> get( Program program )
     {
-        return trackedEntityInstanceFilterStore.get( program );
+        return trackedEntityFilterStore.get( program );
     }
 }

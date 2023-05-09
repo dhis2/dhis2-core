@@ -218,7 +218,7 @@ public class CacheInvalidationListener
 
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
             trackedEntityAttributeId );
-        TrackedEntity entityInstance = trackedEntityService.getTrackedEntityInstance(
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(
             entityInstanceId );
 
         return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );

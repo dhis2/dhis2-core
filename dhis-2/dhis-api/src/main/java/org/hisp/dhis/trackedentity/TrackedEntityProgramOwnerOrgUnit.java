@@ -36,7 +36,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 @RequiredArgsConstructor
 public class TrackedEntityProgramOwnerOrgUnit
 {
-    private final String trackedEntityInstanceId;
+    private final String trackedEntityId;
 
     private final String programId;
 

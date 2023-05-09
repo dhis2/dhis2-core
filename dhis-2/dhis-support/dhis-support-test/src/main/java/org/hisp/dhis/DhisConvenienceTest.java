@@ -181,7 +181,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
@@ -2120,15 +2120,15 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    public static TrackedEntityFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
     {
-        TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
-        trackedEntityInstanceFilter.setAutoFields();
-        trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
-        trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
-        trackedEntityInstanceFilter.setProgram( program );
-        trackedEntityInstanceFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
-        return trackedEntityInstanceFilter;
+        TrackedEntityFilter trackedEntityFilter = new TrackedEntityFilter();
+        trackedEntityFilter.setAutoFields();
+        trackedEntityFilter.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
+        trackedEntityFilter.setProgram( program );
+        trackedEntityFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
+        return trackedEntityFilter;
     }
 
     public static TrackedEntityType createTrackedEntityType( char uniqueChar )

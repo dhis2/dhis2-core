@@ -213,7 +213,7 @@ public class DefaultTrackedEntityAttributeService
         }
 
         Optional<String> fetchedTeiUid = trackedEntityAttributeStore
-            .getTrackedEntityInstanceUidWithUniqueAttributeValue( params );
+            .getTrackedEntityUidWithUniqueAttributeValue( params );
 
         if ( fetchedTeiUid.isPresent()
             && (trackedEntity == null || !fetchedTeiUid.get().equals( trackedEntity.getUid() )) )

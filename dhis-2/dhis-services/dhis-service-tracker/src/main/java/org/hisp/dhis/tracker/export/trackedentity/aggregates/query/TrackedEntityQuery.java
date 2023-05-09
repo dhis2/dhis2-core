@@ -34,7 +34,7 @@ import com.google.common.collect.ImmutableMap;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityInstanceQuery
+public class TrackedEntityQuery
 {
     public enum COLUMNS
     {

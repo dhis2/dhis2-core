@@ -104,7 +104,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         throws NotFoundException,
         ForbiddenException
     {
-        TrackedEntity daoTrackedEntity = teiService.getTrackedEntityInstance( uid );
+        TrackedEntity daoTrackedEntity = teiService.getTrackedEntity( uid );
         if ( daoTrackedEntity == null )
         {
             throw new NotFoundException( TrackedEntity.class, uid );
@@ -329,7 +329,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             return Collections.emptyList();
         }
 
-        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, false, false );
+        final List<Long> ids = teiService.getTrackedEntityIds( queryParams, false, false );
 
         if ( ids.isEmpty() )
         {
@@ -481,6 +481,6 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     public int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
+        return teiService.getTrackedEntityCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 }

@@ -414,22 +414,21 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
             } );
     }
 
-    private boolean hasTemporaryAccessWithUid( String entityInstanceUid, Program program, User user )
+    private boolean hasTemporaryAccessWithUid( String trackedEntityUid, Program program, User user )
     {
-        if ( canSkipOwnershipCheck( user, program ) || entityInstanceUid == null )
+        if ( canSkipOwnershipCheck( user, program ) || trackedEntityUid == null )
         {
             return true;
         }
 
         return tempOwnerCache
-            .get( getTempOwnershipCacheKey( entityInstanceUid, program.getUid(), user.getUid() ), s -> {
-                TrackedEntity entityInstance = trackedEntityService
-                    .getTrackedEntityInstance( entityInstanceUid );
-                if ( entityInstance == null )
+            .get( getTempOwnershipCacheKey( trackedEntityUid, program.getUid(), user.getUid() ), s -> {
+                TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( trackedEntityUid );
+                if ( trackedEntity == null )
                 {
                     return true;
                 }
-                return (programTempOwnerService.getValidTempOwnerRecordCount( program, entityInstance, user ) > 0);
+                return (programTempOwnerService.getValidTempOwnerRecordCount( program, trackedEntity, user ) > 0);
             } );
     }
 
@@ -471,8 +470,8 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Returns key used to store and retrieve cached records for ownership
      *
-     * @param trackedEntityInstance
-     * @param program
+     * @param teiUid
+     * @param programUid
      * @return a String representing a record of ownership
      */
     private String getTempOwnershipCacheKey( String teiUid, String programUid, String userUid )

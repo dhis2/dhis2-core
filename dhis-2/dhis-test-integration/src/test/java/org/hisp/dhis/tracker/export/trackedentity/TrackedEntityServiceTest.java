@@ -427,7 +427,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
         queryParams.setIncludeAllAttributes( true );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
 
         final List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities( queryParams,
             TrackedEntityParams.FALSE );
@@ -677,7 +677,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
         queryParams.setIncludeAllAttributes( true );
         TrackedEntityParams params = new TrackedEntityParams( false,
             TrackedEntityEnrollmentParams.TRUE, false, false, false );
@@ -703,7 +703,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
         queryParams.setIncludeAllAttributes( true );
 
         List<TrackedEntity> trackedEntities = trackedEntityService.getTrackedEntities( queryParams,
@@ -721,7 +721,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
         queryParams.setIncludeAllAttributes( true );
         TrackedEntityParams params = new TrackedEntityParams( false,
             TrackedEntityEnrollmentParams.TRUE, true, false, false );
@@ -886,7 +886,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     {
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
         TrackedEntityParams params = new TrackedEntityParams( true,
             TrackedEntityEnrollmentParams.FALSE, false, false, false );
 
@@ -909,7 +909,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     {
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
 
         TrackedEntityParams params = new TrackedEntityParams( true,
             TrackedEntityEnrollmentParams.FALSE, false, false, false );
@@ -933,7 +933,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
     {
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Set.of( orgUnitA ) );
-        queryParams.setTrackedEntityInstanceUids( Set.of( trackedEntityA.getUid() ) );
+        queryParams.setTrackedEntityUids( Set.of( trackedEntityA.getUid() ) );
         TrackedEntityParams params = new TrackedEntityParams( true,
             TrackedEntityEnrollmentParams.TRUE, false, false, false );
 

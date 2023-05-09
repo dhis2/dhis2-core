@@ -25,44 +25,25 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentityfilter.hibernate;
+package org.hisp.dhis.trackedentityfilter;
 
 import java.util.List;
 
-import javax.persistence.criteria.CriteriaBuilder;
-
-import org.hibernate.SessionFactory;
-import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
+import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Repository;
 
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilterStore" )
-public class HibernateTrackedEntityInstanceFilterStore
-    extends HibernateIdentifiableObjectStore<TrackedEntityInstanceFilter>
-    implements TrackedEntityInstanceFilterStore
+public interface TrackedEntityFilterStore
+    extends IdentifiableObjectStore<TrackedEntityFilter>
 {
-    public HibernateTrackedEntityInstanceFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityInstanceFilter.class, currentUserService,
-            aclService, true );
-    }
-
-    @Override
-    public List<TrackedEntityInstanceFilter> get( Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
-    }
+    /**
+     * Gets trackedEntityInstanceFilters
+     *
+     * @param program program of trackedEntityInstanceFilter to be fetched
+     * @return list of trackedEntityInstanceFilters
+     */
+    List<TrackedEntityFilter> get( Program program );
 }

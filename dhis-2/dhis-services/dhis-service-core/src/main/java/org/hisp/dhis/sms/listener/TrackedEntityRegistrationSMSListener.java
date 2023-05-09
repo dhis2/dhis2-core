@@ -140,7 +140,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
         long trackedEntityInstanceId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
-            trackedEntityInstanceId = trackedEntityService.createTrackedEntityInstance( trackedEntity,
+            trackedEntityInstanceId = trackedEntityService.createTrackedEntity( trackedEntity,
                 patientAttributeValues );
         }
         else
@@ -148,7 +148,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
             sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
         }
 
-        TrackedEntity tei = trackedEntityService.getTrackedEntityInstance( trackedEntityInstanceId );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityInstanceId );
 
         enrollmentService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 

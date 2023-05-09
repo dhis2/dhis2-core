@@ -100,7 +100,7 @@ public class DefaultTrackerObjectsDeletionService
             tei.getEnrollments().remove( enrollment );
 
             enrollmentService.deleteEnrollment( enrollment );
-            teiService.updateTrackedEntityInstance( tei );
+            teiService.updateTrackedEntity( tei );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );
@@ -130,7 +130,7 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
+                teiService.updateTrackedEntity( event.getEnrollment().getEntityInstance() );
 
                 enrollment.getEvents().remove( event );
                 enrollmentService.updateEnrollment( enrollment );
@@ -157,7 +157,7 @@ public class DefaultTrackerObjectsDeletionService
             Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
 
             TrackedEntity daoEntityInstance = teiService
-                .getTrackedEntityInstance( uid );
+                .getTrackedEntity( uid );
 
             Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
@@ -172,7 +172,7 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEnrollments( trackerBundle );
 
-            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+            teiService.deleteTrackedEntity( daoEntityInstance );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );
