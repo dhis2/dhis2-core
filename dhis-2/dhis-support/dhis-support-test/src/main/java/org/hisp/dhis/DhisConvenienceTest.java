@@ -32,6 +32,7 @@ import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.is;
+import static org.hisp.dhis.common.DataDimensionType.DISAGGREGATION;
 import static org.hisp.dhis.visualization.VisualizationType.PIVOT_TABLE;
 
 import java.io.File;
@@ -39,6 +40,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -531,6 +533,23 @@ public abstract class DhisConvenienceTest
     }
 
     /**
+     * Creates a {@see CategoryCombo} with name, uid, and categories.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categories categories for this combo
+     * @return {@see CategoryCombo}
+     */
+    public static CategoryCombo createCategoryCombo( String name, String uid, Category... categories )
+    {
+        CategoryCombo categoryCombo = new CategoryCombo( name, DISAGGREGATION, Arrays.asList( categories ) );
+        categoryCombo.setAutoFields();
+        categoryCombo.setUid( uid );
+
+        return categoryCombo;
+    }
+
+    /**
      * @param categoryComboUniqueIdentifier A unique character to identify the
      *        category combo.
      * @param categoryOptionUniqueIdentifiers Unique characters to identify the
@@ -618,6 +637,26 @@ public abstract class DhisConvenienceTest
         }
 
         return category;
+    }
+
+    /**
+     * Creates a {@see CategoryOptionCombo} with name, uid, and options.
+     *
+     * @param name desired name
+     * @param uid desired uid
+     * @param categoryCombo category combination for this option combo
+     * @param categoryOptions category options for this option combo
+     * @return {@see CategoryOptionCombo}
+     */
+    public static CategoryOptionCombo createCategoryOptionCombo( String name, String uid, CategoryCombo categoryCombo,
+        CategoryOption... categoryOptions )
+    {
+        CategoryOptionCombo categoryOptionCombo = createCategoryOptionCombo( categoryCombo, categoryOptions );
+        categoryOptionCombo.setName( name );
+        categoryOptionCombo.setShortName( name );
+        categoryOptionCombo.setUid( uid );
+
+        return categoryOptionCombo;
     }
 
     public static CategoryOption createCategoryOption( char uniqueIdentifier )
