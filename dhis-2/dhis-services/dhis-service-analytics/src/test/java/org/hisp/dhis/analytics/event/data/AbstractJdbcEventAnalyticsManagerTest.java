@@ -57,6 +57,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -687,7 +688,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         throws SQLException
     {
         // Given
-        BigDecimal bigDecimalObject = new BigDecimal( "123.00000000" );
+        BigDecimal bigDecimalObject = new BigDecimal( "123.40000000" );
         int index = 1;
 
         RowSetMetaDataImpl metaData = new RowSetMetaDataImpl();
@@ -712,7 +713,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
         eventSubject.addGridValue( grid, header, index, sqlRowSet, queryParams );
 
         // Then
-        String expected = bigDecimalObject.stripTrailingZeros().toPlainString();
+        String expected = bigDecimalObject.setScale( 2, RoundingMode.CEILING ).stripTrailingZeros().toPlainString();
         assertEquals( grid.getColumn( 0 ).get( 0 ), expected, "Should contain value " + expected );
     }
 
