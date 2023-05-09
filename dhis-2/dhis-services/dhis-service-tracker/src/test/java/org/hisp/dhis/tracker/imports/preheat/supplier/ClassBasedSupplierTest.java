@@ -42,7 +42,7 @@ import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.ClassBasedSupplierStrategy;
 import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.GenericStrategy;
-import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.TrackerEntityInstanceStrategy;
+import org.hisp.dhis.tracker.imports.preheat.supplier.strategy.TrackerEntityStrategy;
 import org.hisp.dhis.tracker.imports.util.Constant;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +72,7 @@ class ClassBasedSupplierTest
     private TrackerImportParams trackerImportParams;
 
     @Mock
-    private TrackerEntityInstanceStrategy trackerEntityInstanceStrategy;
+    private TrackerEntityStrategy trackerEntityStrategy;
 
     @Mock
     private HashMap<String, String> strategiesMap;
@@ -112,7 +112,7 @@ class ClassBasedSupplierTest
             .thenReturn( "classbasedstrategy" );
 
         when( applicationContext.getBean( anyString(), eq( ClassBasedSupplierStrategy.class ) ) )
-            .thenReturn( trackerEntityInstanceStrategy );
+            .thenReturn( trackerEntityStrategy );
 
         classBasedSupplier.preheatAdd( trackerImportParams, new TrackerPreheat() );
 

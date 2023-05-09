@@ -113,7 +113,7 @@ public class HibernateTrackedEntityAuditStore
     @Override
     public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
     {
-        String hql = "delete TrackedEntityInstanceAudit where trackedEntity = :trackedEntity";
+        String hql = "delete TrackedEntityAudit where trackedEntity = :trackedEntity";
         getSession().createQuery( hql ).setParameter( "trackedEntity", trackedEntity ).executeUpdate();
     }
 

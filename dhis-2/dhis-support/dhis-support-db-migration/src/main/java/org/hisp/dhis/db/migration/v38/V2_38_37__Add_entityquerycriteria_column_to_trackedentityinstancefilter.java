@@ -40,7 +40,7 @@ import org.flywaydb.core.api.migration.Context;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentityfilter.FilterPeriod;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.postgresql.util.PGobject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,13 +85,13 @@ public class V2_38_37__Add_entityquerycriteria_column_to_trackedentityinstancefi
         log.info(
             "Fetching existing  entries for trackedentityinstancefilterid,followup,enrollmentstatus and enrollmentcreatedperiod with query: {}",
             FETCH_EXISTING_CRITERIA );
-        List<TrackedEntityInstanceFilter> existingFiltersMap = new ArrayList<>();
+        List<TrackedEntityFilter> existingFiltersMap = new ArrayList<>();
         try ( Statement statement = context.getConnection().createStatement();
             ResultSet rs = statement.executeQuery( FETCH_EXISTING_CRITERIA ) )
         {
             while ( rs.next() )
             {
-                TrackedEntityInstanceFilter filter = new TrackedEntityInstanceFilter();
+                TrackedEntityFilter filter = new TrackedEntityFilter();
                 filter.setId( rs.getLong( 1 ) );
                 filter.setEnrollmentStatus(
                     rs.getString( 2 ) == null ? null : ProgramStatus.valueOf( rs.getString( 2 ) ) );
@@ -111,7 +111,7 @@ public class V2_38_37__Add_entityquerycriteria_column_to_trackedentityinstancefi
         try ( PreparedStatement ps = context.getConnection().prepareStatement( UPDATE_EQC_PREPARED_SQL ) )
         {
             int count = 0;
-            for ( TrackedEntityInstanceFilter teif : existingFiltersMap )
+            for ( TrackedEntityFilter teif : existingFiltersMap )
             {
                 PGobject jsonObject = new PGobject();
                 jsonObject.setType( "json" );

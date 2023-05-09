@@ -25,45 +25,40 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
+package org.hisp.dhis.schema.descriptors;
 
-import java.util.List;
+import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.schema.SchemaDescriptor;
+import org.hisp.dhis.security.Authority;
+import org.hisp.dhis.security.AuthorityType;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 
-import javax.annotation.Nonnull;
-
-import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityStore;
-import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.TrackedEntityInstanceMapper;
-import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
-import org.springframework.stereotype.Component;
+import com.google.common.collect.Lists;
 
 /**
- * @author Luciano Fiandesio
+ * @author Abyot Asalefew Gizaw <abyota@gmail.com>
+ *
  */
-@RequiredArgsConstructor
-@Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityInstanceMapper.class )
-public class TrackerEntityInstanceStrategy implements ClassBasedSupplierStrategy
+public class TrackedEntityFilterSchemaDescriptor implements SchemaDescriptor
 {
-    @Nonnull
-    private TrackedEntityStore trackedEntityStore;
+    public static final String SINGULAR = "trackedEntityInstanceFilter";
+
+    public static final String PLURAL = "trackedEntityInstanceFilters";
+
+    public static final String API_ENDPOINT = "/" + PLURAL;
 
     @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
+    public Schema getSchema()
     {
-        for ( List<String> ids : splitList )
-        {
-            // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted( ids );
+        Schema schema = new Schema( TrackedEntityFilter.class, SINGULAR, PLURAL );
+        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        schema.setImplicitPrivateAuthority( true );
+        schema.setDefaultPrivate( true );
 
-            // Add to preheat
-            preheat.putTrackedEntities(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntities ) );
-        }
+        schema.add( new Authority( AuthorityType.CREATE, Lists.newArrayList( "F_PROGRAMSTAGE_ADD" ) ) );
+        schema.add( new Authority( AuthorityType.DELETE, Lists.newArrayList( "F_PROGRAMSTAGE_DELETE" ) ) );
+
+        return schema;
     }
+
 }

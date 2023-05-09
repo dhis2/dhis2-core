@@ -32,7 +32,7 @@ org.hisp.dhis.legend.LegendSet
 org.hisp.dhis.indicator.Indicator
 org.hisp.dhis.indicator.IndicatorType
 org.hisp.dhis.dataelement.DataElementGroupSet
-org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter
+org.hisp.dhis.trackedentityfilter.TrackedEntityFilter
 org.hisp.dhis.color.Color
 org.hisp.dhis.organisationunit.OrganisationUnitGroupSet
 org.hisp.dhis.user.sharing.UserGroupAccess

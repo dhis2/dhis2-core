@@ -48,10 +48,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
  * @author Luciano Fiandesio
  */
 @ExtendWith( MockitoExtension.class )
-class TrackerEntityInstanceStrategyTest
+class TrackerEntityStrategyTest
 {
     @InjectMocks
-    private TrackerEntityInstanceStrategy strategy;
+    private TrackerEntityStrategy strategy;
 
     @Mock
     private TrackedEntityStore trackedEntityStore;
