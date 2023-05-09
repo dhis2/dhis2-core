@@ -995,13 +995,15 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( value instanceof BigDecimal )
             {
                 Optional<QueryItem> queryItem = params.getItems()
-                        .stream()
-                        .filter( item -> item.isProgramIndicator() && header.getName().equals( item.getItemName() ) )
-                        .findFirst();
+                    .stream()
+                    .filter( item -> item.isProgramIndicator() && header.getName().equals( item.getItemName() ) )
+                    .findFirst();
 
                 if ( queryItem.isPresent() )
                 {
-                    grid.addValue( AnalyticsUtils.getRoundedValue( params, ((ProgramIndicator) queryItem.get().getItem()).getDecimals(), ((BigDecimal) value).doubleValue() ) );
+                    grid.addValue( AnalyticsUtils.getRoundedValue( params,
+                        ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                        ((BigDecimal) value).doubleValue() ) );
                 }
                 else
                 {
