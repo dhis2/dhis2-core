@@ -48,6 +48,24 @@ public class FunctionAggregationType
     @Override
     public Object evaluate( ExprContext ctx, CommonExpressionVisitor visitor )
     {
+        return visitWithAggregationType( ctx, visitor );
+    }
+
+    @Override
+    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
+        return visitWithAggregationType( ctx, visitor );
+    }
+
+    // -------------------------------------------------------------------------
+    // Supportive methods
+    // -------------------------------------------------------------------------
+
+    /**
+     * Visits the expression fragment with aggregation type applied
+     */
+    private Object visitWithAggregationType( ExprContext ctx, CommonExpressionVisitor visitor )
+    {
         AggregationType aggregationType = parseAggregationType( ctx.aggregationType.getText() );
 
         QueryModifiers queryMods = visitor.getState().getQueryModsBuilder().aggregationType( aggregationType ).build();
@@ -55,6 +73,9 @@ public class FunctionAggregationType
         return visitor.visitWithQueryMods( ctx.expr( 0 ), queryMods );
     }
 
+    /**
+     * Parses the aggregation type
+     */
     private AggregationType parseAggregationType( String text )
     {
         try
