@@ -1053,7 +1053,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
             {
                 // toPlainString method prevents scientific notation (3E+2)
                 grid.addValue(
-                    ((BigDecimal) value).stripTrailingZeros().setScale( 2, RoundingMode.CEILING ).toPlainString() );
+                    ((BigDecimal) value).setScale( 2, RoundingMode.CEILING ).stripTrailingZeros().toPlainString() );
             }
             else
             {
