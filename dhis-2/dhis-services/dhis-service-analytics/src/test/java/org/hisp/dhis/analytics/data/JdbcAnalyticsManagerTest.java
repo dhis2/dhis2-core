@@ -89,6 +89,8 @@ class JdbcAnalyticsManagerTest
 
     private JdbcAnalyticsManager subject;
 
+    private JdbcSubexpressionQueryGenerator subexGenerator;
+
     @Mock
     private ExecutionPlanStore executionPlanStore;
 
