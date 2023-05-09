@@ -25,25 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.user;
 
-import java.util.List;
-
-import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.user.User;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
+import lombok.RequiredArgsConstructor;
+import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Svanaes
  */
-public interface ApiTokenStore
-    extends IdentifiableObjectStore<ApiToken>
+@Component
+@RequiredArgsConstructor
+public class ApiTokenDeletionHandler extends DeletionHandler
 {
-    @CheckForNull ApiToken getByKey( @Nonnull String key, @Nonnull User currentUser );
+    private final ApiTokenService apiTokenService;
 
-    @CheckForNull ApiToken getByKey( @Nonnull String key );
+    @Override
+    protected void register()
+    {
+        whenDeleting( User.class, this::deleteUser );
+    }
 
-    @Nonnull List<ApiToken> getAllOwning( @Nonnull User currentUser );
+    private void deleteUser( User user )
+    {
+        apiTokenService.getAllOwning( user ).forEach( apiTokenService::delete );
+    }
 }

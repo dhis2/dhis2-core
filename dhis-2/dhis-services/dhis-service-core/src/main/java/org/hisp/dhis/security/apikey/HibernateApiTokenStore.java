@@ -29,6 +29,8 @@ package org.hisp.dhis.security.apikey;
 
 import java.util.List;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.persistence.criteria.CriteriaBuilder;
 
 import org.hibernate.SessionFactory;
@@ -55,16 +57,17 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     }
 
     @Override
-    public List<ApiToken> getAllOwning( User currentUser )
+    @Nonnull public List<ApiToken> getAllOwning( @Nonnull User currentUser )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "currentUser" ), currentUser ) )
+            .addPredicate( root -> builder.equal( root.get( "createdBy" ), currentUser ) )
             .addOrder( root -> builder.asc( root.get( "created" ) ) ) );
     }
 
     @Override
-    public ApiToken getByKey( String key, User currentUser )
+    @CheckForNull
+    public ApiToken getByKey( @Nonnull String key, @Nonnull User currentUser )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         return getSingleResult( builder,
@@ -74,7 +77,7 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     }
 
     @Override
-    public ApiToken getByKey( String key )
+    @CheckForNull public ApiToken getByKey( @Nonnull String key )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         return getSingleResult( builder,

@@ -43,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.google.common.base.Preconditions;
 import com.google.common.hash.Hashing;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
@@ -62,25 +64,28 @@ public class ApiTokenServiceImpl implements ApiTokenService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<ApiToken> getAll()
     {
         return this.apiTokenStore.getAll();
     }
 
     @Override
-    public List<ApiToken> getAllOwning( User currentUser )
+    @Transactional( readOnly = true )
+    public List<ApiToken> getAllOwning( User user )
     {
-        return apiTokenStore.getAllOwning( currentUser );
+        return apiTokenStore.getAllOwning( user );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key, User currentUser )
+    public ApiToken getWithKey( String key, User user )
     {
-        return apiTokenStore.getByKey( key, currentUser );
+        return apiTokenStore.getByKey( key, user );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public ApiToken getWithKey( String key )
     {
         return apiTokenStore.getByKey( key );
@@ -88,7 +93,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional
-    public void save( ApiToken apiToken )
+    public void save( @Nonnull ApiToken apiToken )
     {
         throw new IllegalArgumentException(
             "Tokens can not be saved, all tokens must be created with the createToken() method." );
@@ -97,7 +102,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional
-    public void update( ApiToken apiToken )
+    public void update( @Nonnull ApiToken apiToken )
     {
         checkNotNull( apiToken, "Token can not be null" );
         Preconditions.checkArgument( StringUtils.isNotEmpty( apiToken.getKey() ), "Token key can not be null" );
@@ -113,7 +118,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional
-    public void delete( ApiToken apiToken )
+    public void delete( @Nonnull ApiToken apiToken )
     {
         apiTokenStore.delete( apiToken );
         // Invalidate cache here or let cache expire ?
