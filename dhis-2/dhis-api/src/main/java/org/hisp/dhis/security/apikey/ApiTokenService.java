@@ -29,9 +29,9 @@ package org.hisp.dhis.security.apikey;
 
 import java.util.List;
 
-import org.hisp.dhis.user.User;
-
 import javax.annotation.Nonnull;
+
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

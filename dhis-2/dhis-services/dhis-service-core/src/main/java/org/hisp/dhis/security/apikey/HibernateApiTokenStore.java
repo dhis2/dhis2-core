@@ -57,7 +57,8 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     }
 
     @Override
-    @Nonnull public List<ApiToken> getAllOwning( @Nonnull User currentUser )
+    @Nonnull
+    public List<ApiToken> getAllOwning( @Nonnull User currentUser )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         return getList( builder, newJpaParameters()
@@ -77,7 +78,8 @@ public class HibernateApiTokenStore extends HibernateIdentifiableObjectStore<Api
     }
 
     @Override
-    @CheckForNull public ApiToken getByKey( @Nonnull String key )
+    @CheckForNull
+    public ApiToken getByKey( @Nonnull String key )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
         return getSingleResult( builder,

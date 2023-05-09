@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
 import org.springframework.stereotype.Component;

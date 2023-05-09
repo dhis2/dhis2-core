@@ -121,7 +121,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         preCreateInjectAdminUser();
 
         final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = createAndSaveToken();
+        createAndSaveToken();
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
         User user = userService.getUserByUsername( currentUserDetails.getUsername() );
         List<ApiToken> allOwning = apiTokenService.getAllOwning( user );
@@ -138,7 +138,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         final ApiToken apiToken0 = createAndSaveToken();
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
         User user = userService.getUserByUsername( currentUserDetails.getUsername() );
-        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey(), user);
+        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey(), user );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
     }
 
@@ -150,12 +150,11 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         User userB = createUserWithAuth( "userB" );
         injectSecurityContext( userB );
         String apiTokenCreator = CurrentUserUtil.getCurrentUsername();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = createAndSaveToken();
+        createAndSaveToken();
+        createAndSaveToken();
 
         User adminUser = userService.getUserByUsername( "admin_test" );
-        injectSecurityContext(adminUser);
-        String admin = CurrentUserUtil.getCurrentUsername();
+        injectSecurityContext( adminUser );
 
         User user = userService.getUserByUsername( apiTokenCreator );
         userService.deleteUser( user );
