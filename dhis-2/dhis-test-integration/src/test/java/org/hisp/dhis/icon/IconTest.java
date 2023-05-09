@@ -174,10 +174,10 @@ class IconTest extends TrackerTest
     @Test
     void shouldFailWhenGettingIconDataOfNonStandardIcon()
     {
-        Exception exception = assertThrows( BadRequestException.class,
+        Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.getIconResource( "madeUpIconKey" ) );
 
-        String expectedMessage = "Icon with key madeUpIconKey is not a standard icon.";
+        String expectedMessage = "No standard icon found with key madeUpIconKey.";
         assertEquals( expectedMessage, exception.getMessage() );
     }
 
