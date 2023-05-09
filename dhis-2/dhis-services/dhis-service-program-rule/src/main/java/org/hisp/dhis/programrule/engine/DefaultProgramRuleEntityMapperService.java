@@ -265,9 +265,9 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
         List<RuleAttributeValue> ruleAttributeValues;
 
-        if ( enrollment.getEntityInstance() != null )
+        if ( enrollment.getTrackedEntity() != null )
         {
-            ruleAttributeValues = enrollment.getEntityInstance().getTrackedEntityAttributeValues()
+            ruleAttributeValues = enrollment.getTrackedEntity().getTrackedEntityAttributeValues()
                 .stream()
                 .filter( Objects::nonNull )
                 .map( attr -> RuleAttributeValue.create( attr.getAttribute().getUid(),

@@ -554,7 +554,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         assertHasMember( jsonEnrollment, "enrollment" );
 
         assertEquals( enrollment.getUid(), jsonEnrollment.getEnrollment() );
-        assertEquals( enrollment.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity() );
+        assertEquals( enrollment.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity() );
         assertEquals( program.getUid(), jsonEnrollment.getProgram() );
         assertEquals( "ACTIVE", jsonEnrollment.getStatus() );
         assertEquals( orgUnit.getUid(), jsonEnrollment.getOrgUnit() );

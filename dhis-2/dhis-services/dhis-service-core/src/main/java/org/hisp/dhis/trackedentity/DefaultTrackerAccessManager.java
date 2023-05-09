@@ -215,7 +215,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -269,7 +269,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -305,7 +305,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -353,7 +353,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck
-                && !ownershipAccessManager.hasAccess( user, enrollment.getEntityInstance(), program ) )
+                && !ownershipAccessManager.hasAccess( user, enrollment.getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -413,7 +413,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getEntityInstance(), program ) )
+                event.getEnrollment().getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -490,7 +490,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getEntityInstance(), program ) )
+                event.getEnrollment().getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -556,7 +556,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getEntityInstance(), program ) )
+                event.getEnrollment().getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }
@@ -622,7 +622,7 @@ public class DefaultTrackerAccessManager implements TrackerAccessManager
             }
 
             if ( !skipOwnershipCheck && !ownershipAccessManager.hasAccess( user,
-                event.getEnrollment().getEntityInstance(), program ) )
+                event.getEnrollment().getTrackedEntity(), program ) )
             {
                 errors.add( TrackerOwnershipManager.OWNERSHIP_ACCESS_DENIED );
             }

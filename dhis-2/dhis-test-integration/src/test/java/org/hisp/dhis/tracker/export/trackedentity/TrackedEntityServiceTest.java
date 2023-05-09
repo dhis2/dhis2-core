@@ -460,7 +460,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         assertAll(
             () -> assertEquals( 2, trackedEntities.get( 0 ).getProgramOwners().size() ),
             () -> assertContainsOnly( Set.of( trackedEntityA.getUid() ),
-                trackedEntities.get( 0 ).getProgramOwners().stream().map( po -> po.getEntityInstance().getUid() )
+                trackedEntities.get( 0 ).getProgramOwners().stream().map( po -> po.getTrackedEntity().getUid() )
                     .collect( Collectors.toSet() ) ),
             () -> assertContainsOnly( Set.of( orgUnitA.getUid(), orgUnitB.getUid() ),
                 trackedEntities.get( 0 ).getProgramOwners().stream().map( po -> po.getOrganisationUnit().getUid() )
@@ -692,7 +692,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         Optional<Enrollment> enrollmentA = enrollments.stream()
             .filter( enrollment -> enrollment.getUid().equals( this.enrollmentA.getUid() ) ).findFirst();
         assertContainsOnly( Set.of( "C" ),
-            attributeNames( enrollmentA.get().getEntityInstance().getTrackedEntityAttributeValues() ) );
+            attributeNames( enrollmentA.get().getTrackedEntity().getTrackedEntityAttributeValues() ) );
     }
 
     @Test
@@ -814,9 +814,9 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         Enrollment enrollment = enrollmentOpt.get();
         assertAll(
             () -> assertEquals( enrollmentA.getId(), enrollment.getId() ),
-            () -> assertEquals( trackedEntityA.getUid(), enrollment.getEntityInstance().getUid() ),
+            () -> assertEquals( trackedEntityA.getUid(), enrollment.getTrackedEntity().getUid() ),
             () -> assertEquals( trackedEntityA.getTrackedEntityType().getUid(),
-                enrollment.getEntityInstance().getTrackedEntityType().getUid() ),
+                enrollment.getTrackedEntity().getTrackedEntityType().getUid() ),
             () -> assertEquals( orgUnitA.getUid(), enrollment.getOrganisationUnit().getUid() ),
             () -> assertEquals( orgUnitA.getName(), enrollment.getOrganisationUnit().getName() ),
             () -> assertEquals( programA.getUid(), enrollment.getProgram().getUid() ),
@@ -864,7 +864,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             () -> assertEquals( enrollmentA.getUid(), event.getEnrollment().getUid() ),
             () -> assertEquals( programA.getUid(), event.getEnrollment().getProgram().getUid() ),
             () -> assertEquals( ProgramStatus.ACTIVE, event.getEnrollment().getStatus() ),
-            () -> assertEquals( trackedEntityA.getUid(), event.getEnrollment().getEntityInstance().getUid() ),
+            () -> assertEquals( trackedEntityA.getUid(), event.getEnrollment().getTrackedEntity().getUid() ),
             () -> assertEquals( eventA.getProgramStage().getUid(), event.getProgramStage().getUid() ),
             () -> assertEquals( defaultCategoryOptionCombo.getUid(), event.getAttributeOptionCombo().getUid() ),
             () -> assertFalse( event.isDeleted() ),

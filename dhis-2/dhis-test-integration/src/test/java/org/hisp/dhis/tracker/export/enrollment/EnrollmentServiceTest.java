@@ -155,7 +155,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.save( trackedEntityAttributeA, false );
         TrackedEntityAttributeValue trackedEntityAttributeValueA = new TrackedEntityAttributeValue();
         trackedEntityAttributeValueA.setAttribute( trackedEntityAttributeA );
-        trackedEntityAttributeValueA.setEntityInstance( trackedEntityA );
+        trackedEntityAttributeValueA.setTrackedEntity( trackedEntityA );
         trackedEntityAttributeValueA.setValue( "12" );
         trackedEntityA.setTrackedEntityAttributeValues( Set.of( trackedEntityAttributeValueA ) );
         manager.update( trackedEntityA );
@@ -422,7 +422,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     private static List<String> attributeUids( Enrollment enrollment )
     {
-        return enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
             .map( v -> v.getAttribute().getUid() )
             .collect( Collectors.toList() );
     }

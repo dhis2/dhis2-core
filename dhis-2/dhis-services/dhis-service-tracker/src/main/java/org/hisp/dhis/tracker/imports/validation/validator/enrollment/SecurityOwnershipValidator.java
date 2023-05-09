@@ -225,7 +225,7 @@ class SecurityOwnershipValidator
         if ( program.isRegistration() )
         {
             String trackedEntity = bundle.getStrategy( enrollment ).isDelete()
-                ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() ).getEntityInstance().getUid()
+                ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() ).getTrackedEntity().getUid()
                 : enrollment.getTrackedEntity();
 
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );

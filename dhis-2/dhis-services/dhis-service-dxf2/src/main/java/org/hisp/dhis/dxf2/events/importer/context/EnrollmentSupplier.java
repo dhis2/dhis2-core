@@ -296,7 +296,7 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
             }
             trackedEntity.setUid( teiUid );
 
-            pi.setEntityInstance( trackedEntity );
+            pi.setTrackedEntity( trackedEntity );
         }
 
         return pi;

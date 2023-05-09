@@ -140,7 +140,7 @@ class SecurityOwnershipValidator
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntity entityInstance = preheatEvent.getEnrollment().getEntityInstance();
+            TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
             validateUpdateAndDeleteEvent( reporter, bundle, event, preheatEvent,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
@@ -222,7 +222,7 @@ class SecurityOwnershipValidator
         }
         else
         {
-            return enrollment.getEntityInstance().getUid();
+            return enrollment.getTrackedEntity().getUid();
         }
     }
 

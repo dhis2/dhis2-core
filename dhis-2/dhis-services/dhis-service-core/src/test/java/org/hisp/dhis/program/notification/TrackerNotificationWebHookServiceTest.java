@@ -149,7 +149,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         enrollment.setOrganisationUnit( organisationUnitA );
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
-        enrollment.setEntityInstance( tei );
+        enrollment.setTrackedEntity( tei );
 
         event = new Event();
         event.setAutoFields();

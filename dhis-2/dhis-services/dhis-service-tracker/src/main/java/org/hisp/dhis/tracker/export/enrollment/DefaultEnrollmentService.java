@@ -99,11 +99,11 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         Enrollment result = new Enrollment();
         result.setUid( enrollment.getUid() );
 
-        if ( enrollment.getEntityInstance() != null )
+        if ( enrollment.getTrackedEntity() != null )
         {
             TrackedEntity trackedEntity = new TrackedEntity();
-            trackedEntity.setUid( enrollment.getEntityInstance().getUid() );
-            result.setEntityInstance( trackedEntity );
+            trackedEntity.setUid( enrollment.getTrackedEntity().getUid() );
+            result.setTrackedEntity( trackedEntity );
         }
         result.setOrganisationUnit( enrollment.getOrganisationUnit() );
         result.setGeometry( enrollment.getGeometry() );
@@ -133,7 +133,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         }
         if ( params.isIncludeAttributes() )
         {
-            result.getEntityInstance()
+            result.getTrackedEntity()
                 .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( user, enrollment ) );
         }
 
@@ -180,7 +180,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             .getAllUserReadableTrackedEntityAttributes( user, List.of( enrollment.getProgram() ), null );
         Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
-        for ( TrackedEntityAttributeValue trackedEntityAttributeValue : enrollment.getEntityInstance()
+        for ( TrackedEntityAttributeValue trackedEntityAttributeValue : enrollment.getTrackedEntity()
             .getTrackedEntityAttributeValues() )
         {
             if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
@@ -270,7 +270,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         for ( Enrollment enrollment : enrollments )
         {
             if ( enrollment != null && trackerOwnershipAccessManager
-                .hasAccess( user, enrollment.getEntityInstance(), enrollment.getProgram() ) )
+                .hasAccess( user, enrollment.getTrackedEntity(), enrollment.getProgram() ) )
             {
                 enrollmentList.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
             }

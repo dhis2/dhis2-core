@@ -518,7 +518,7 @@ public class DefaultEnrollmentService
     {
         Program program = enrollment.getProgram();
 
-        TrackedEntity tei = enrollment.getEntityInstance();
+        TrackedEntity tei = enrollment.getTrackedEntity();
 
         if ( getEnrollments( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {

@@ -343,7 +343,7 @@ class DeduplicationServiceTest
         TrackedEntity trackedEntity )
     {
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-        attributeValue.setEntityInstance( trackedEntity );
+        attributeValue.setTrackedEntity( trackedEntity );
         TrackedEntityAttribute trackedEntityAttribute = new TrackedEntityAttribute();
         trackedEntityAttribute.setUid( uid );
         trackedEntityAttribute.setName( name );

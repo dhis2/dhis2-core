@@ -170,7 +170,7 @@ class UpdatableFieldsValidatorTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( ENROLLMENT_ID );
         enrollment.setProgram( program );
-        enrollment.setEntityInstance( trackedEntityInstance() );
+        enrollment.setTrackedEntity( trackedEntityInstance() );
         return enrollment;
     }
 

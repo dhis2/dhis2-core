@@ -135,7 +135,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
         trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( tea );
-        trackedEntityAttributeValue.setEntityInstance( tei );
+        trackedEntityAttributeValue.setTrackedEntity( tei );
         trackedEntityAttributeValue.setStoredBy( "user" );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
         tei.setTrackedEntityAttributeValues( Set.of( trackedEntityAttributeValue ) );
@@ -219,7 +219,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
 
         JsonRelationshipItem.JsonEnrollment enrollment = jsonRelationship.getFrom().getEnrollment();
         assertEquals( relationship.getFrom().getEnrollment().getUid(), enrollment.getEnrollment() );
-        assertEquals( relationship.getFrom().getEnrollment().getEntityInstance().getUid(),
+        assertEquals( relationship.getFrom().getEnrollment().getTrackedEntity().getUid(),
             enrollment.getTrackedEntity() );
 
         JsonRelationshipItem.JsonTrackedEntity trackedEntity = jsonRelationship.getTo().getTrackedEntity();

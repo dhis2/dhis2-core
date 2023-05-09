@@ -107,14 +107,14 @@ class OwnershipTest extends TrackerTest
         Set<TrackedEntityProgramOwner> tepos = tei.getProgramOwners();
         assertEquals( 1, tepos.size() );
         TrackedEntityProgramOwner tepo = tepos.iterator().next();
-        assertNotNull( tepo.getEntityInstance() );
+        assertNotNull( tepo.getTrackedEntity() );
         assertNotNull( tepo.getProgram() );
         assertNotNull( tepo.getOrganisationUnit() );
         assertTrue(
             enrollmentParams.getEnrollments().get( 0 ).getProgram().isEqualTo( tepo.getProgram() ) );
         assertTrue( enrollmentParams.getEnrollments().get( 0 ).getOrgUnit().isEqualTo( tepo.getOrganisationUnit() ) );
         assertEquals( enrollmentParams.getEnrollments().get( 0 ).getTrackedEntity(),
-            tepo.getEntityInstance().getUid() );
+            tepo.getTrackedEntity().getUid() );
     }
 
     @Test

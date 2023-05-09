@@ -123,7 +123,7 @@ public class EnrollmentAggregate
                 }
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes() )
                 {
-                    enrollment.getEntityInstance()
+                    enrollment.getTrackedEntity()
                         .setTrackedEntityAttributeValues(
                             new LinkedHashSet<>( attributes.get( enrollment.getUid() ) ) );
                 }

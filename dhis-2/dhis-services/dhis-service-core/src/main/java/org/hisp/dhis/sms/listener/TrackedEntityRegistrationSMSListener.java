@@ -173,7 +173,7 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntity );
+        trackedEntityAttributeValue.setTrackedEntity( trackedEntity );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
     }

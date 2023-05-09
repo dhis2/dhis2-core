@@ -153,7 +153,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntity entityInstance;
+    private TrackedEntity trackedEntity;
 
     private TrackedEntity entityInstanceB;
 
@@ -181,9 +181,9 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programService.updateProgram( program );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        entityInstance = createTrackedEntityInstance( organisationUnit );
-        entityInstance.setTrackedEntityType( trackedEntityType );
-        entityInstanceService.addTrackedEntity( entityInstance );
+        trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
+        entityInstanceService.addTrackedEntity( trackedEntity );
         entityInstanceB = createTrackedEntityInstance( organisationUnit );
         entityInstanceB.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntity( entityInstanceB );
@@ -195,7 +195,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         enrollmentDate = testDate2.toDate();
-        enrollment = new Enrollment( enrollmentDate, incidenDate, entityInstance, program );
+        enrollment = new Enrollment( enrollmentDate, incidenDate, trackedEntity, program );
         enrollment.setUid( "UID-A" );
         enrollment.setOrganisationUnit( organisationUnit );
         enrollmentWithTeiAssociation = new Enrollment( enrollmentDate, incidenDate,
@@ -227,30 +227,30 @@ class MaintenanceServiceTest extends IntegrationTestBase
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         rType.getFromConstraint().setProgram( program );
         rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+        rType.getFromConstraint().setTrackedEntityType( trackedEntity.getTrackedEntityType() );
         relationshipTypeService.addRelationshipType( rType );
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntity( entityInstance );
+        rItem2.setTrackedEntity( trackedEntity );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
         r.setKey( RelationshipUtils.generateRelationshipKey( r ) );
         r.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( r ) );
         relationshipService.addRelationship( r );
-        assertNotNull( trackedEntityService.getTrackedEntity( entityInstance.getId() ) );
+        assertNotNull( trackedEntityService.getTrackedEntity( trackedEntity.getId() ) );
         assertNotNull( relationshipService.getRelationship( r.getId() ) );
-        trackedEntityService.deleteTrackedEntity( entityInstance );
-        assertNull( trackedEntityService.getTrackedEntity( entityInstance.getId() ) );
+        trackedEntityService.deleteTrackedEntity( trackedEntity );
+        assertNull( trackedEntityService.getTrackedEntity( trackedEntity.getId() ) );
         assertNull( relationshipService.getRelationship( r.getId() ) );
         assertTrue(
-            trackedEntityService.trackedEntityExistsIncludingDeleted( entityInstance.getUid() ) );
+            trackedEntityService.trackedEntityExistsIncludingDeleted( trackedEntity.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
         maintenanceService.deleteSoftDeletedTrackedEntityInstances();
         assertFalse(
-            trackedEntityService.trackedEntityExistsIncludingDeleted( entityInstance.getUid() ) );
+            trackedEntityService.trackedEntityExistsIncludingDeleted( trackedEntity.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
     }
 
@@ -261,7 +261,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
         programMessageRecipients.setPhoneNumbers( Sets.newHashSet( "testphone" ) );
         programMessageRecipients.setOrganisationUnit( organisationUnit );
-        programMessageRecipients.setTrackedEntity( entityInstance );
+        programMessageRecipients.setTrackedEntity( trackedEntity );
         ProgramMessage message = ProgramMessage.builder().subject( "subject" ).text( "text" )
             .recipients( programMessageRecipients ).deliveryChannels( Sets.newHashSet( DeliveryChannel.EMAIL ) )
             .enrollment( enrollment ).build();
@@ -348,7 +348,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         rType.getFromConstraint().setProgram( program );
         rType.getFromConstraint().setProgramStage( program.getProgramStageByStage( 1 ) );
         rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+        rType.getFromConstraint().setTrackedEntityType( trackedEntity.getTrackedEntityType() );
         relationshipTypeService.addRelationshipType( rType );
         Event eventA = new Event( enrollment,
             program.getProgramStageByStage( 1 ) );
@@ -359,7 +359,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEvent( eventA );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntity( entityInstance );
+        rItem2.setTrackedEntity( trackedEntity );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
@@ -387,13 +387,13 @@ class MaintenanceServiceTest extends IntegrationTestBase
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
         rType.getFromConstraint().setProgram( program );
         rType.getToConstraint().setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
-        rType.getFromConstraint().setTrackedEntityType( entityInstance.getTrackedEntityType() );
+        rType.getFromConstraint().setTrackedEntityType( trackedEntity.getTrackedEntityType() );
         relationshipTypeService.addRelationshipType( rType );
         Relationship r = new Relationship();
         RelationshipItem rItem1 = new RelationshipItem();
         rItem1.setEnrollment( enrollment );
         RelationshipItem rItem2 = new RelationshipItem();
-        rItem2.setTrackedEntity( entityInstance );
+        rItem2.setTrackedEntity( trackedEntity );
         r.setFrom( rItem1 );
         r.setTo( rItem2 );
         r.setRelationshipType( rType );
@@ -437,7 +437,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     @Test
     void testDeleteSoftDeletedRelationship()
     {
-        Relationship relationship = createTeiToTeiRelationship( entityInstance, entityInstanceB, relationshipType );
+        Relationship relationship = createTeiToTeiRelationship( trackedEntity, entityInstanceB, relationshipType );
         relationshipService.addRelationship( relationship );
         assertNotNull( relationshipService.getRelationship( relationship.getUid() ) );
 

@@ -313,7 +313,7 @@ public class JdbcEventStore implements EventStore
                 Enrollment enrollment = new Enrollment();
                 enrollment.setUid( resultSet.getString( "pi_uid" ) );
                 enrollment.setProgram( program );
-                enrollment.setEntityInstance( tei );
+                enrollment.setTrackedEntity( tei );
                 OrganisationUnit ou = new OrganisationUnit();
                 ou.setUid( resultSet.getString( "ou_uid" ) );
                 ou.setName( resultSet.getString( "ou_name" ) );

@@ -202,7 +202,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         enrollment.setProgram( programA );
         enrollment.setIncidentDate( new Date() );
         enrollment.setEnrollmentDate( new Date() );
-        enrollment.setEntityInstance( maleA );
+        enrollment.setTrackedEntity( maleA );
         enrollment.getSharing().addUserAccess( userAccess1 );
         maleA.getEnrollments().add( enrollment );
         manager.save( enrollment, false );
