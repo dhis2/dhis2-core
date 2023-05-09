@@ -61,6 +61,7 @@ import static org.hisp.dhis.commons.util.TextUtils.getCommaDelimitedString;
 import static org.hisp.dhis.system.util.MathUtils.getRounded;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1051,7 +1052,8 @@ public abstract class AbstractJdbcEventAnalyticsManager
             else if ( value instanceof BigDecimal )
             {
                 // toPlainString method prevents scientific notation (3E+2)
-                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+                grid.addValue(
+                    ((BigDecimal) value).stripTrailingZeros().setScale( 2, RoundingMode.CEILING ).toPlainString() );
             }
             else
             {
