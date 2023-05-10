@@ -177,7 +177,7 @@ class IconTest extends TrackerTest
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.getIconResource( "madeUpIconKey" ) );
 
-        String expectedMessage = "No standard icon found with key madeUpIconKey.";
+        String expectedMessage = "No default icon found with key madeUpIconKey.";
         assertEquals( expectedMessage, exception.getMessage() );
     }
 

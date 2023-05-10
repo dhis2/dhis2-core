@@ -102,7 +102,7 @@ class IconServiceTest
     @Test
     void shouldFailWhenSavingCustomIconWithNonExistentFileResourceId()
     {
-        String iconKey = "standard key";
+        String iconKey = "default key";
         String fileResourceUid = "12345";
         FileResource fileResource = new FileResource();
         fileResource.setUid( fileResourceUid );

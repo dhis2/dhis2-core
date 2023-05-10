@@ -133,7 +133,7 @@ public class DefaultIconService
                 .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icon.SUFFIX ) ) );
         }
 
-        throw new NotFoundException( String.format( "No standard icon found with key %s.", key ) );
+        throw new NotFoundException( String.format( "No default icon found with key %s.", key ) );
     }
 
     @Override
