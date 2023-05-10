@@ -53,7 +53,7 @@ public class DefaultAuthenticationService implements AuthenticationService
         CurrentUserDetails user = userService.createUserDetails( userId );
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         context.setAuthentication(
-            new UsernamePasswordAuthenticationToken( user.getUsername(), null, user.getAuthorities() ) );
+            new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() ) );
         SecurityContextHolder.setContext( context );
     }
 
