@@ -92,8 +92,8 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testAddGet()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityInstanceFilter( 'B', programB );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityFilter( 'B', programB );
         long idA = trackedEntityFilterService.add( trackedEntityFilterA );
         long idB = trackedEntityFilterService.add( trackedEntityFilterB );
         assertEquals( idA, trackedEntityFilterA.getId() );
@@ -105,7 +105,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testDefaultPrivateAccess()
     {
-        long idA = trackedEntityFilterService.add( createTrackedEntityInstanceFilter( 'A', programA ) );
+        long idA = trackedEntityFilterService.add( createTrackedEntityFilter( 'A', programA ) );
         TrackedEntityFilter trackedEntityFilterA = trackedEntityFilterService.get( idA );
         assertEquals( trackedEntityFilterA.getPublicAccess(), AccessStringHelper.DEFAULT );
     }
@@ -113,8 +113,8 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetAll()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityInstanceFilter( 'B', programB );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityFilter( 'B', programB );
         trackedEntityFilterService.add( trackedEntityFilterA );
         trackedEntityFilterService.add( trackedEntityFilterB );
         List<TrackedEntityFilter> trackedEntityFilters = trackedEntityFilterService.getAll();
@@ -126,7 +126,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateProgramInTeiFilter()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         assertEquals( 0, trackedEntityFilterService.validate( trackedEntityFilterA ).size() );
         trackedEntityFilterA.setProgram( createProgram( 'z' ) );
         List<String> errors = trackedEntityFilterService.validate( trackedEntityFilterA );
@@ -142,7 +142,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateAssignedUsersInTeiFilter()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         trackedEntityFilterA.getEntityQueryCriteria().setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
         List<String> errors = trackedEntityFilterService.validate( trackedEntityFilterA );
         assertEquals( 1, errors.size() );
@@ -157,7 +157,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateOrganisationUnitsSelectedModeInTeiFilter()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         trackedEntityFilterA.getEntityQueryCriteria().setOuMode( OrganisationUnitSelectionMode.SELECTED );
         List<String> errors = trackedEntityFilterService.validate( trackedEntityFilterA );
         assertEquals( 1, errors.size() );
@@ -185,7 +185,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateOrderParamsInTeiFilter()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         trackedEntityFilterA.getEntityQueryCriteria().setOrder( "aaa:asc,created:desc" );
         List<String> errors = trackedEntityFilterService.validate( trackedEntityFilterA );
         assertEquals( 1, errors.size() );
@@ -196,7 +196,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateDateFilterPeriods()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         DateFilterPeriod incorrectDateFilterPeriod = new DateFilterPeriod();
         incorrectDateFilterPeriod.setType( DatePeriodType.ABSOLUTE );
 
@@ -254,7 +254,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateAttributeInTeiAttributeValueFilter()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         TrackedEntityAttribute attributeA = createTrackedEntityAttribute( 'A' );
         TrackedEntityAttribute attributeB = createTrackedEntityAttribute( 'B' );
         trackedEntityAttributeService.addTrackedEntityAttribute( attributeA );
@@ -286,9 +286,9 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testGetByProgram()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityInstanceFilter( 'B', programB );
-        TrackedEntityFilter trackedEntityFilterC = createTrackedEntityInstanceFilter( 'C', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityFilter( 'B', programB );
+        TrackedEntityFilter trackedEntityFilterC = createTrackedEntityFilter( 'C', programA );
         trackedEntityFilterService.add( trackedEntityFilterA );
         trackedEntityFilterService.add( trackedEntityFilterB );
         trackedEntityFilterService.add( trackedEntityFilterC );
@@ -303,7 +303,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testUpdate()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         long idA = trackedEntityFilterService.add( trackedEntityFilterA );
         trackedEntityFilterA.setProgram( programB );
         trackedEntityFilterService.update( trackedEntityFilterA );
@@ -319,8 +319,8 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     @Test
     void testDelete()
     {
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
-        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityInstanceFilter( 'B', programB );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterB = createTrackedEntityFilter( 'B', programB );
         long idA = trackedEntityFilterService.add( trackedEntityFilterA );
         long idB = trackedEntityFilterService.add( trackedEntityFilterB );
         List<TrackedEntityFilter> trackedEntityFilters = trackedEntityFilterService.getAll();
@@ -334,7 +334,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     void testSaveWithoutAuthority()
     {
         createUserAndInjectSecurityContext( false );
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         long idA = trackedEntityFilterService.add( trackedEntityFilterA );
         assertNotNull( trackedEntityFilterService.get( idA ) );
     }
@@ -343,7 +343,7 @@ class TrackedEntityFilterServiceTest extends SingleSetupIntegrationTestBase
     void testSaveWithAuthority()
     {
         createUserAndInjectSecurityContext( false, "F_PROGRAMSTAGE_ADD" );
-        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityInstanceFilter( 'A', programA );
+        TrackedEntityFilter trackedEntityFilterA = createTrackedEntityFilter( 'A', programA );
         long idA = trackedEntityFilterService.add( trackedEntityFilterA );
         assertNotNull( trackedEntityFilterService.get( idA ) );
     }

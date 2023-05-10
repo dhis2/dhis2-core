@@ -144,9 +144,9 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programService.addProgram( programB );
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceA );
-        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
@@ -223,8 +223,8 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programNotificationStore.save( a2 );
         programNotificationStore.save( a3 );
         // TEI
-        TrackedEntity teiX = createTrackedEntityInstance( organisationUnitA );
-        TrackedEntity teiY = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity teiX = createTrackedEntity( organisationUnitA );
+        TrackedEntity teiY = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( teiX );
         entityInstanceService.addTrackedEntity( teiY );
         // Program
@@ -271,7 +271,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramAndTrackedEntityInstance()
+    void testGetByProgramAndTrackedEntity()
     {
         // Create a second enrollment with identical Program and TEI as
         // enrollmentA.
@@ -286,7 +286,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         Pair<Program, TrackedEntity> pair1 = Pair.of( programA, entityInstanceA );
         programTeiPair.add( pair1 );
         final List<Enrollment> enrollments = enrollmentStore
-            .getByProgramAndTrackedEntityInstance( programTeiPair, ProgramStatus.ACTIVE );
+            .getByProgramAndTrackedEntity( programTeiPair, ProgramStatus.ACTIVE );
         assertEquals( 2, enrollments.size() );
         assertThat( enrollments, containsInAnyOrder( Matchers.hasProperty( "uid", is( "UID-Z" ) ),
             Matchers.hasProperty( "uid", is( "UID-A" ) ) ) );

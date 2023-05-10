@@ -110,11 +110,11 @@ class DuplicateRelationshipSupplierTest extends DhisConvenienceTest
 
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
 
-        teiA = createTrackedEntityInstance( organisationUnit );
+        teiA = createTrackedEntity( organisationUnit );
         teiA.setUid( TEIA_UID );
-        teiB = createTrackedEntityInstance( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
         teiB.setUid( TEIB_UID );
-        teiC = createTrackedEntityInstance( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
         teiC.setUid( TEIC_UID );
 
         relationshipA = org.hisp.dhis.tracker.imports.domain.Relationship.builder()

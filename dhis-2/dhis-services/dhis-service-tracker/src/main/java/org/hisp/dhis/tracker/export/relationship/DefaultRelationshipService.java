@@ -73,15 +73,15 @@ public class DefaultRelationshipService implements RelationshipService
     private final EventService eventService;
 
     @Override
-    public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntity tei,
+    public List<Relationship> getRelationshipsByTrackedEntity(
+        TrackedEntity trackedEntity,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
     {
 
         List<Relationship> relationships = relationshipStore
-            .getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter )
+            .getByTrackedEntity( trackedEntity, pagingAndSortingCriteriaAdapter )
             .stream()
             .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
             .collect( Collectors.toList() );
@@ -180,7 +180,7 @@ public class DefaultRelationshipService implements RelationshipService
         RelationshipItem result = new RelationshipItem();
 
         // the call to the individual services is to detach and apply some logic like filtering out attribute values
-        // for tracked entity type attributes from enrollment.entityInstance. Enrollment attributes are actually
+        // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are actually
         // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
         if ( item.getTrackedEntity() != null )

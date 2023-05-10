@@ -223,7 +223,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-        TrackedEntity entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
+        TrackedEntity entityInstance = createTrackedEntity( 'A', orgUnitA, entityAttribute );
         entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
@@ -246,7 +246,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicator );
         programService.updateProgram( program );
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
         enrollmentService.addEnrollment( enrollment );
         Event stageInstanceA = eventService.createEvent( enrollment,

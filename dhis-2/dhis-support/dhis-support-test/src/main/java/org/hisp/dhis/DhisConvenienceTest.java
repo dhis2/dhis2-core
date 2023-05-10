@@ -1690,7 +1690,7 @@ public abstract class DhisConvenienceTest
         enrollment.setAutoFields();
 
         enrollment.setProgram( program );
-        enrollment.setEntityInstance( tei );
+        enrollment.setTrackedEntity( tei );
         enrollment.setOrganisationUnit( organisationUnit );
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
@@ -2120,7 +2120,7 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static TrackedEntityFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    public static TrackedEntityFilter createTrackedEntityFilter( char uniqueChar, Program program )
     {
         TrackedEntityFilter trackedEntityFilter = new TrackedEntityFilter();
         trackedEntityFilter.setAutoFields();
@@ -2141,40 +2141,40 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( OrganisationUnit organisationUnit )
+    public static TrackedEntity createTrackedEntity( OrganisationUnit organisationUnit )
     {
-        TrackedEntity entityInstance = new TrackedEntity();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( char uniqueChar,
+    public static TrackedEntity createTrackedEntity( char uniqueChar,
         OrganisationUnit organisationUnit )
     {
-        TrackedEntity entityInstance = new TrackedEntity();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
-        entityInstance.setUid( BASE_TEI_UID + uniqueChar );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
+        trackedEntity.setUid( BASE_TEI_UID + uniqueChar );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
+    public static TrackedEntity createTrackedEntity( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
-        TrackedEntity entityInstance = new TrackedEntity();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
         attributeValue.setAttribute( attribute );
-        attributeValue.setEntityInstance( entityInstance );
+        attributeValue.setTrackedEntity( trackedEntity );
         attributeValue.setValue( "Attribute" + uniqueChar );
-        entityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+        trackedEntity.getTrackedEntityAttributeValues().add( attributeValue );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
     public static TrackedEntityAttributeValue createTrackedEntityAttributeValue( char uniqueChar,
@@ -2182,7 +2182,7 @@ public abstract class DhisConvenienceTest
         TrackedEntityAttribute attribute )
     {
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-        attributeValue.setEntityInstance( entityInstance );
+        attributeValue.setTrackedEntity( entityInstance );
         attributeValue.setAttribute( attribute );
         attributeValue.setValue( "Attribute" + uniqueChar );
 

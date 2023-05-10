@@ -141,7 +141,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.getSharing().addUserAccess( userAccess1 );
         manager.save( trackedEntityType, false );
-        TrackedEntity maleA = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity maleA = createTrackedEntity( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
         maleA.getSharing().addUserAccess( userAccess1 );
         maleA.setCreatedBy( currentUser );
@@ -202,7 +202,7 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         enrollment.setProgram( programA );
         enrollment.setIncidentDate( new Date() );
         enrollment.setEnrollmentDate( new Date() );
-        enrollment.setEntityInstance( maleA );
+        enrollment.setTrackedEntity( maleA );
         enrollment.getSharing().addUserAccess( userAccess1 );
         maleA.getEnrollments().add( enrollment );
         manager.save( enrollment, false );

@@ -151,10 +151,10 @@ public class DefaultTrackerBundleService
         }
 
         Map<TrackerType, TrackerTypeReport> reportMap = Map.of(
-            TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ),
+            TrackerType.RELATIONSHIP, deletionService.deleteRelationships( bundle ),
             TrackerType.EVENT, deletionService.deleteEvents( bundle ),
             TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ),
-            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntityInstances( bundle ) );
+            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntity( bundle ) );
 
         return new PersistenceReport( reportMap );
     }

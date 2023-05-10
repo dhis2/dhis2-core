@@ -122,10 +122,10 @@ class TrackedEntityAggregateTest extends TrackerTest
     void testFetchTrackedEntityInstances()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -149,8 +149,8 @@ class TrackedEntityAggregateTest extends TrackerTest
     {
         final String[] teiUid = new String[2];
         doInTransaction( () -> {
-            TrackedEntity t1 = this.persistTrackedEntityInstance();
-            TrackedEntity t2 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntity();
+            TrackedEntity t2 = this.persistTrackedEntity();
             teiUid[0] = t1.getUid();
             teiUid[1] = t2.getUid();
         } );
@@ -176,10 +176,10 @@ class TrackedEntityAggregateTest extends TrackerTest
     void testFetchTrackedEntityInstancesWithSingleQuoteInAttributeSearchInput()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -196,10 +196,10 @@ class TrackedEntityAggregateTest extends TrackerTest
     void testFetchTrackedEntityInstancesWithLastUpdatedParameter()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -604,8 +604,8 @@ class TrackedEntityAggregateTest extends TrackerTest
         final String[] teiUid = new String[2];
         doInTransaction( () -> {
             injectSecurityContext( superUser );
-            TrackedEntity t1 = this.persistTrackedEntityInstance();
-            TrackedEntity t2 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntity();
+            TrackedEntity t2 = this.persistTrackedEntity();
             this.persistRelationship( t1, t2 );
             teiUid[0] = t1.getUid();
             teiUid[1] = t2.getUid();
@@ -630,7 +630,7 @@ class TrackedEntityAggregateTest extends TrackerTest
     {
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
-            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntity();
             TrackedEntity t2 = this.persistTrackedEntityInstanceWithEnrollment();
             Enrollment pi = t2.getEnrollments().iterator().next();
             this.persistRelationship( t1, pi );
@@ -669,7 +669,7 @@ class TrackedEntityAggregateTest extends TrackerTest
     {
         final String[] relationshipItemsUid = new String[2];
         doInTransaction( () -> {
-            TrackedEntity t1 = this.persistTrackedEntityInstance();
+            TrackedEntity t1 = this.persistTrackedEntity();
             TrackedEntity t2 = this
                 .persistTrackedEntityInstanceWithEnrollmentAndEvents();
             sessionFactory.getCurrentSession().flush();
@@ -713,7 +713,7 @@ class TrackedEntityAggregateTest extends TrackerTest
     void testTrackedEntityInstanceProgramOwners()
     {
         doInTransaction( () -> {
-            final TrackedEntity trackedEntity = persistTrackedEntityInstance();
+            final TrackedEntity trackedEntity = persistTrackedEntity();
             programOwnerService.createOrUpdateTrackedEntityProgramOwner( trackedEntity, programA,
                 organisationUnitA );
         } );

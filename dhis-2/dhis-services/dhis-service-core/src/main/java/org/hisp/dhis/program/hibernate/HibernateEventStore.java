@@ -90,14 +90,14 @@ public class HibernateEventStore
     }
 
     @Override
-    public List<Event> get( TrackedEntity entityInstance, EventStatus status )
+    public List<Event> get( TrackedEntity trackedEntity, EventStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( "status" ), status ) )
             .addPredicate(
-                root -> builder.equal( root.join( "enrollment" ).get( "entityInstance" ), entityInstance ) ) );
+                root -> builder.equal( root.join( "enrollment" ).get( "trackedEntity" ), trackedEntity ) ) );
     }
 
     @Override

@@ -51,7 +51,7 @@ public class TrackedEntityAttributeValueAudit
 
     private TrackedEntityAttribute attribute;
 
-    private TrackedEntity entityInstance;
+    private TrackedEntity trackedEntity;
 
     private Date created;
 
@@ -77,7 +77,7 @@ public class TrackedEntityAttributeValueAudit
         String modifiedBy, AuditType auditType )
     {
         this.attribute = trackedEntityAttributeValue.getAttribute();
-        this.entityInstance = trackedEntityAttributeValue.getEntityInstance();
+        this.trackedEntity = trackedEntityAttributeValue.getTrackedEntity();
 
         this.created = new Date();
         this.value = value;
@@ -88,7 +88,7 @@ public class TrackedEntityAttributeValueAudit
     @Override
     public int hashCode()
     {
-        return Objects.hash( attribute, entityInstance, created, getValue(), modifiedBy, auditType );
+        return Objects.hash( attribute, trackedEntity, created, getValue(), modifiedBy, auditType );
     }
 
     @Override
@@ -107,7 +107,7 @@ public class TrackedEntityAttributeValueAudit
         final TrackedEntityAttributeValueAudit other = (TrackedEntityAttributeValueAudit) obj;
 
         return Objects.equals( this.attribute, other.attribute )
-            && Objects.equals( this.entityInstance, other.entityInstance )
+            && Objects.equals( this.trackedEntity, other.trackedEntity )
             && Objects.equals( this.created, other.created )
             && Objects.equals( this.getValue(), other.getValue() )
             && Objects.equals( this.modifiedBy, other.modifiedBy )
@@ -158,14 +158,14 @@ public class TrackedEntityAttributeValueAudit
 
     @JsonProperty( "trackedEntityInstance" )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntity entityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

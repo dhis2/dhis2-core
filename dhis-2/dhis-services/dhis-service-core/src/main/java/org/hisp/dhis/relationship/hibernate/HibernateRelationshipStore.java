@@ -82,10 +82,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByTrackedEntityInstance( TrackedEntity tei,
+    public List<Relationship> getByTrackedEntity( TrackedEntity trackedEntity,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( trackedEntity,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );

@@ -79,13 +79,12 @@ public interface MaintenanceService
     int deleteSoftDeletedEnrollments();
 
     /**
-     * Permanently deletes tracked entity instances which have been soft
-     * deleted, i.e. tracked entity instances where the deleted property is
-     * true.
+     * Permanently deletes tracked entities which have been soft deleted, i.e.
+     * tracked entities where the deleted property is true.
      *
-     * @return the number of deleted tracked entity instances.
+     * @return the number of deleted tracked entities
      */
-    int deleteSoftDeletedTrackedEntityInstances();
+    int deleteSoftDeletedTrackedEntities();
 
     /**
      * Deletes periods which are not associated with any other table.

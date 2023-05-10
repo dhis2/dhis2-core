@@ -58,7 +58,7 @@ public interface CustomIconStore
     /**
      * Returns a list with all the custom icon keywords
      *
-     * @return a list will all the custom icon keywords
+     * @return a list with all the custom icon keywords
      */
     List<String> getKeywords();
 

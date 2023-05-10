@@ -62,7 +62,7 @@ public class ProgramNotificationMessageRenderer
         .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_CODE, e -> e.getOrganisationUnit().getCode() )
         .put( ProgramTemplateVariable.PROGRAM_ID, e -> e.getProgram().getUid() )
         .put( ProgramTemplateVariable.ENROLLMENT_ID, Enrollment::getUid )
-        .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, e -> e.getEntityInstance().getUid() )
+        .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, e -> e.getTrackedEntity().getUid() )
         .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
@@ -87,7 +87,7 @@ public class ProgramNotificationMessageRenderer
             return Maps.newHashMap();
         }
 
-        return entity.getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect(
                 Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue ) );

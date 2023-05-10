@@ -63,7 +63,7 @@ public class ProgramTempOwner implements Serializable
 
     private User user;
 
-    private TrackedEntity entityInstance;
+    private TrackedEntity trackedEntity;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -73,20 +73,20 @@ public class ProgramTempOwner implements Serializable
     {
     }
 
-    public ProgramTempOwner( Program program, TrackedEntity entityInstance, String reason,
+    public ProgramTempOwner( Program program, TrackedEntity trackedEntity, String reason,
         User user, int hoursToExpire )
     {
         this.program = program;
         this.reason = reason;
         this.user = user;
         this.validTill = addHoursToJavaUtilDate( new Date(), hoursToExpire );
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( program, entityInstance, reason, validTill, user );
+        return Objects.hash( program, trackedEntity, reason, validTill, user );
     }
 
     @Override
@@ -106,7 +106,7 @@ public class ProgramTempOwner implements Serializable
 
         return Objects.equals( this.program, other.program )
             && Objects.equals( this.reason, other.reason ) && Objects.equals( this.validTill, other.validTill )
-            && Objects.equals( this.user, other.user ) && Objects.equals( this.entityInstance, other.entityInstance );
+            && Objects.equals( this.user, other.user ) && Objects.equals( this.trackedEntity, other.trackedEntity );
     }
 
     // -------------------------------------------------------------------------
@@ -133,14 +133,14 @@ public class ProgramTempOwner implements Serializable
         this.program = program;
     }
 
-    public TrackedEntity getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntity entityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

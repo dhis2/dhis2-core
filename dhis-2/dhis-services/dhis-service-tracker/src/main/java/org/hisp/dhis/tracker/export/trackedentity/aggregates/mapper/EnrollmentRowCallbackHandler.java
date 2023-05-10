@@ -76,7 +76,7 @@ public class EnrollmentRowCallbackHandler extends AbstractMapper<Enrollment>
         trackedEntityType
             .setUid( rs.getString( EnrollmentQuery.getColumnName( COLUMNS.TEI_TYPE_UID ) ) );
         trackedEntity.setTrackedEntityType( trackedEntityType );
-        enrollment.setEntityInstance( trackedEntity );
+        enrollment.setTrackedEntity( trackedEntity );
 
         OrganisationUnit orgUnit = new OrganisationUnit();
         orgUnit.setUid( rs.getString( EnrollmentQuery.getColumnName( COLUMNS.ORGUNIT_UID ) ) );

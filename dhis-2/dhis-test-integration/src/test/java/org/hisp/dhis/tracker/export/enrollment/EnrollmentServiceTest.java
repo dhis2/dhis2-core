@@ -131,15 +131,15 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setOwner( user );
         manager.save( trackedEntityTypeA, false );
 
-        trackedEntityA = createTrackedEntityInstance( orgUnitA );
+        trackedEntityA = createTrackedEntity( orgUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        TrackedEntity trackedEntityB = createTrackedEntityInstance( orgUnitB );
+        TrackedEntity trackedEntityB = createTrackedEntity( orgUnitB );
         trackedEntityB.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityB, false );
 
-        TrackedEntity trackedEntityC = createTrackedEntityInstance( orgUnitC );
+        TrackedEntity trackedEntityC = createTrackedEntity( orgUnitC );
         trackedEntityC.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityC, false );
 
@@ -155,7 +155,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.save( trackedEntityAttributeA, false );
         TrackedEntityAttributeValue trackedEntityAttributeValueA = new TrackedEntityAttributeValue();
         trackedEntityAttributeValueA.setAttribute( trackedEntityAttributeA );
-        trackedEntityAttributeValueA.setEntityInstance( trackedEntityA );
+        trackedEntityAttributeValueA.setTrackedEntity( trackedEntityA );
         trackedEntityAttributeValueA.setValue( "12" );
         trackedEntityA.setTrackedEntityAttributeValues( Set.of( trackedEntityAttributeValueA ) );
         manager.update( trackedEntityA );
@@ -197,7 +197,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         relationshipA.setInvertedKey( RelationshipUtils.generateRelationshipInvertedKey( relationshipA ) );
         manager.save( relationshipA, false );
 
-        enrollmentA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA, new Date(),
+        enrollmentA = programInstanceService.enrollTrackedEntity( trackedEntityA, programA, new Date(),
             new Date(),
             orgUnitA );
         eventA = new Event();
@@ -209,7 +209,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         enrollmentA.setRelationshipItems( Set.of( from, to ) );
         manager.save( enrollmentA, false );
 
-        enrollmentB = programInstanceService.enrollTrackedEntityInstance( trackedEntityB, programA, new Date(),
+        enrollmentB = programInstanceService.enrollTrackedEntity( trackedEntityB, programA, new Date(),
             new Date(),
             orgUnitB );
 
@@ -422,7 +422,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     private static List<String> attributeUids( Enrollment enrollment )
     {
-        return enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
             .map( v -> v.getAttribute().getUid() )
             .collect( Collectors.toList() );
     }

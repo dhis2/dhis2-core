@@ -160,12 +160,12 @@ public class HibernateEnrollmentStore
 
         if ( params.hasTrackedEntity() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityUid() + "'";
+            hql += hlp.whereAnd() + "pi.trackedEntity.uid = '" + params.getTrackedEntityUid() + "'";
         }
 
         if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '"
+            hql += hlp.whereAnd() + "pi.trackedEntity.trackedEntityType.uid = '"
                 + params.getTrackedEntityType().getUid() + "'";
         }
 
@@ -278,12 +278,12 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> get( TrackedEntity entityInstance, Program program, ProgramStatus status )
+    public List<Enrollment> get( TrackedEntity trackedEntity, Program program, ProgramStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "trackedEntity" ), trackedEntity ) )
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
@@ -415,7 +415,7 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> getByProgramAndTrackedEntityInstance(
+    public List<Enrollment> getByProgramAndTrackedEntity(
         List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus )
     {
         checkNotNull( programTeiPair );
@@ -439,7 +439,7 @@ public class HibernateEnrollmentStore
         {
             predicates.add( cb.and(
                 cb.equal( enrollment.get( "program" ), pair.getLeft() ),
-                cb.equal( enrollment.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( enrollment.get( "trackedEntity" ), pair.getRight() ),
                 cb.equal( enrollment.get( STATUS ), programStatus ) ) );
         }
 

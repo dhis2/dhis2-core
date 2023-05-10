@@ -40,39 +40,38 @@ public interface TrackedEntityAuditStore
     String ID = TrackedEntityAuditStore.class.getName();
 
     /**
-     * Adds the given tracked entity instance audit.
+     * Adds the given tracked entity audit.
      *
      * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
      */
-    void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit );
+    void addTrackedEntityAudit( TrackedEntityAudit trackedEntityAudit );
 
     /**
-     * Adds the given {@link TrackedEntityAudit} instances.
+     * Adds the given {@link TrackedEntityAudit}s.
      *
      * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
      */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudit );
+    void addTrackedEntityAudit( List<TrackedEntityAudit> trackedEntityAudit );
 
     /**
-     * Deletes tracked entity instance audit for the given tracked entity
-     * instance.
+     * Deletes tracked entity audit for the given tracked entity.
      *
      * @param trackedEntity the {@link TrackedEntity}.
      */
-    void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity );
+    void deleteTrackedEntityAudit( TrackedEntity trackedEntity );
 
     /**
-     * Returns tracked entity instance audits matching query params
+     * Returns tracked entity audits matching query params
      *
-     * @param params tracked entity instance audit query params
+     * @param params tracked entity audit query params
      * @return a list of {@link TrackedEntityAudit}.
      */
     List<TrackedEntityAudit> getTrackedEntityAudits( TrackedEntityAuditQueryParams params );
 
     /**
-     * Returns count of tracked entity instance audits matching query params
+     * Returns count of tracked entity audits matching query params
      *
-     * @param params tracked entity instance audit query params
+     * @param params tracked entity audit query params
      * @return count of audits.
      */
     int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params );

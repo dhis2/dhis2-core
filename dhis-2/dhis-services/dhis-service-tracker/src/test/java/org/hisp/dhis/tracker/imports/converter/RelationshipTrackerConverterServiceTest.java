@@ -101,7 +101,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         teiToEvent = createTeiToEventRelationshipType( 'B', program, teiType, false );
         teiToEvent.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
 
-        tei = createTrackedEntityInstance( organisationUnit );
+        tei = createTrackedEntity( organisationUnit );
         tei.setTrackedEntityType( teiType );
         tei.setUid( TEI );
         enrollment = createEnrollment( program, tei, organisationUnit );

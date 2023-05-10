@@ -75,7 +75,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        TrackedEntity tei = createTrackedEntity( 'A', ou, attribute );
         transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
@@ -89,7 +89,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
         List<Audit> audits = auditService.getAudits( query );
         assertEquals( 2, audits.size() );
         transactionTemplate.execute( status -> {
-            jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+            jdbcMaintenanceStore.deleteSoftDeletedTrackedEntities();
             dbmsManager.clearSession();
             return null;
         } );

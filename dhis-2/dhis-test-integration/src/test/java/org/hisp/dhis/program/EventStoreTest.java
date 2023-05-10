@@ -151,9 +151,9 @@ class EventStoreTest extends TransactionalIntegrationTest
         organisationUnitB = createOrganisationUnit( 'B' );
         idObjectManager.save( organisationUnitA );
         idObjectManager.save( organisationUnitB );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceA );
-        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        entityInstanceB = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceB );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programService.addProgram( programA );

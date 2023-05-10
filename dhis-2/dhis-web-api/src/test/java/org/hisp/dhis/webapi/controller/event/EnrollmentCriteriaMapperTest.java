@@ -88,7 +88,7 @@ class EnrollmentCriteriaMapperTest
 
     private static final String ENTITY_TYPE = "entityType";
 
-    private static final String ENTITY_INSTANCE = "entityInstance";
+    private static final String TRACKED_ENTITY = "trackedEntity";
 
     private Program program;
 
@@ -116,7 +116,7 @@ class EnrollmentCriteriaMapperTest
         trackedEntityType.setUid( ENTITY_TYPE );
 
         trackedEntity = new TrackedEntity();
-        trackedEntity.setUid( ENTITY_INSTANCE );
+        trackedEntity.setUid( TRACKED_ENTITY );
     }
 
     @Test
@@ -129,11 +129,11 @@ class EnrollmentCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
         when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( true );
         when( trackedEntityTypeService.getTrackedEntityType( ENTITY_TYPE ) ).thenReturn( trackedEntityType );
-        when( trackedEntityService.getTrackedEntity( ENTITY_INSTANCE ) )
+        when( trackedEntityService.getTrackedEntity( TRACKED_ENTITY ) )
             .thenReturn( trackedEntity );
 
         EnrollmentQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
-            ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, ENTITY_INSTANCE, false, 1, 1, false, false, false, null );
+            ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, TRACKED_ENTITY, false, 1, 1, false, false, false, null );
 
         assertNotEmpty( params.getOrganisationUnits() );
         assertEquals( ORG_UNIT1, params.getOrganisationUnits().iterator().next().getUid() );

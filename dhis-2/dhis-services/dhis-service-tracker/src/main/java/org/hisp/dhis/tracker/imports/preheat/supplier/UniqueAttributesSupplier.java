@@ -242,9 +242,9 @@ public class UniqueAttributesSupplier extends AbstractPreheatSupplier
 
         return uniqueAttributeAlreadyPresentInDB
             .stream()
-            .map( av -> new UniqueAttributeValue( av.getEntityInstance().getUid(),
+            .map( av -> new UniqueAttributeValue( av.getTrackedEntity().getUid(),
                 idSchemes.toMetadataIdentifier( av.getAttribute() ),
-                av.getValue(), idSchemes.toMetadataIdentifier( av.getEntityInstance().getOrganisationUnit() ) ) )
+                av.getValue(), idSchemes.toMetadataIdentifier( av.getTrackedEntity().getOrganisationUnit() ) ) )
             .collect( toList() );
     }
 
