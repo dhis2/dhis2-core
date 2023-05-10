@@ -56,13 +56,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class PredictorJobParameters implements JobParameters
 {
     /**
-     * Today plus n days
+     * Today plus n days (n can be negative)
      */
     @JsonProperty
     private int relativeStart;
 
     /**
-     * Today plus n days
+     * Today plus n days (n can be negative)
      */
     @JsonProperty
     private int relativeEnd;
