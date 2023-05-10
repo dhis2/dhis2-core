@@ -82,7 +82,7 @@ public class HibernateCustomIconStore
     public List<CustomIcon> getIconsByKeywords( Collection<String> keywords )
     {
         return sessionFactory.getCurrentSession().createNativeQuery(
-            "select c.* from customicon c join keywords k on k.customiconid = c.customiconid where k.keyword in (:keywords) group by c.customiconid having count (distinct k.keyword ) = :numKeywords ",
+            "select c.* from customicon c join customiconkeywords k on k.customiconid = c.customiconid where k.keyword in (:keywords) group by c.customiconid having count (distinct k.keyword ) = :numKeywords ",
             CustomIcon.class ).setParameter( "keywords", keywords )
             .setParameter( "numKeywords", (long) keywords.size() ).getResultList();
     }
@@ -90,7 +90,7 @@ public class HibernateCustomIconStore
     @Override
     public List<String> getKeywords()
     {
-        return sessionFactory.getCurrentSession().createNativeQuery( "select distinct keyword from keywords" )
+        return sessionFactory.getCurrentSession().createNativeQuery( "select distinct keyword from customiconkeywords" )
             .getResultList();
     }
 }
