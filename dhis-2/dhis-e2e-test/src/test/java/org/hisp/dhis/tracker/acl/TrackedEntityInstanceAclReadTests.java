@@ -217,7 +217,7 @@ public class TrackedEntityInstanceAclReadTests
         JsonObject json = response.getBody();
 
         json.getAsJsonArray( "trackedEntityInstances" ).iterator()
-            .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
+            .forEachRemaining( ( teiJson ) -> assertTrackedEntity( user, teiJson.getAsJsonObject() ) );
 
     }
 
@@ -256,12 +256,12 @@ public class TrackedEntityInstanceAclReadTests
     /* Helper methods */
 
     /**
-     * Asserts that the trackedEntityInstance follows the expectations.
+     * Asserts that the trackedEntity follows the expectations.
      *
      * @param user the user(username) we are testing as
-     * @param tei the trackedEntityInstance we are testing
+     * @param tei the trackedEntity we are testing
      */
-    private void assertTrackedEntityInstance( User user, JsonObject tei )
+    private void assertTrackedEntity( User user, JsonObject tei )
     {
         String trackedEntityType = tei.get( "trackedEntityType" ).getAsString();
         List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( "orgUnit" ).getAsString() );

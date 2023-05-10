@@ -95,7 +95,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
 
-        trackedEntity = createTrackedEntityInstance( organisationUnitA );
+        trackedEntity = createTrackedEntity( organisationUnitA );
         trackedEntity.setTrackedEntityType( trackedEntityType );
         manager.save( trackedEntity );
 
@@ -110,7 +110,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
         enrollment.setStatus( ProgramStatus.ACTIVE );
         enrollment.setStoredBy( "test" );
         enrollment.setName( "test" );
-        enrollment.enrollTrackedEntityInstance( trackedEntity, program );
+        enrollment.enrollTrackedEntity( trackedEntity, program );
         manager.save( enrollment );
 
         user = createAndAddAdminUser( AUTHORITY_ALL );

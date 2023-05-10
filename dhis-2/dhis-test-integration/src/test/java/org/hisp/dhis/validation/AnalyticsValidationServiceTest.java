@@ -223,7 +223,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-        TrackedEntity entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
+        TrackedEntity entityInstance = createTrackedEntity( 'A', orgUnitA, entityAttribute );
         entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );

@@ -384,7 +384,7 @@ public class DefaultEnrollmentService
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( CodeGenerator.isValidUid( uid ) ? uid : CodeGenerator.generateUid() );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.enrollTrackedEntityInstance( trackedEntity, program );
+        enrollment.enrollTrackedEntity( trackedEntity, program );
 
         if ( enrollmentDate != null )
         {

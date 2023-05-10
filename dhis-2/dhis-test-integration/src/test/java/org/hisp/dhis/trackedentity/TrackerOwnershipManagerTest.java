@@ -88,8 +88,8 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
+        entityInstanceA1 = createTrackedEntity( organisationUnitA );
+        entityInstanceB1 = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceA1 );
         entityInstanceService.addTrackedEntity( entityInstanceB1 );
         programA = createProgram( 'A' );

@@ -473,7 +473,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityAudit( auditable );
         }
     }
 

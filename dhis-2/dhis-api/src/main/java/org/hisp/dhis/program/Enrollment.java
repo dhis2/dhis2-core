@@ -144,16 +144,16 @@ public class Enrollment
     // -------------------------------------------------------------------------
 
     /**
-     * Updated the bi-directional associations between this Enrollment and the
-     * given entity instance and program.
+     * Updated the bidirectional associations between this Enrollment and the
+     * given tracked entity and program.
      *
-     * @param entityInstance the entity instance to enroll.
-     * @param program the program to enroll the entity instance to.
+     * @param trackedEntity the tracked entity to enroll
+     * @param program the program to enroll the tracked entity in
      */
-    public void enrollTrackedEntityInstance( TrackedEntity entityInstance, Program program )
+    public void enrollTrackedEntity( TrackedEntity trackedEntity, Program program )
     {
-        setTrackedEntity( entityInstance );
-        entityInstance.getEnrollments().add( this );
+        setTrackedEntity( trackedEntity );
+        trackedEntity.getEnrollments().add( this );
 
         setProgram( program );
     }

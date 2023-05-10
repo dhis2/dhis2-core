@@ -102,9 +102,9 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         manager.save( organisationUnit );
 
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
+        teiA = createTrackedEntity( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
 
         teiA.setTrackedEntityType( trackedEntityType );
         teiB.setTrackedEntityType( trackedEntityType );

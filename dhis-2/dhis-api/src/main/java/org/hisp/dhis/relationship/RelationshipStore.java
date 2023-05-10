@@ -43,12 +43,12 @@ public interface RelationshipStore
 {
     String ID = RelationshipStore.class.getName();
 
-    default List<Relationship> getByTrackedEntityInstance( TrackedEntity tei )
+    default List<Relationship> getByTrackedEntity( TrackedEntity trackedEntity )
     {
-        return getByTrackedEntityInstance( tei, null );
+        return getByTrackedEntity( trackedEntity, null );
     }
 
-    List<Relationship> getByTrackedEntityInstance( TrackedEntity tei,
+    List<Relationship> getByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter );
 
     default List<Relationship> getByEnrollment( Enrollment enrollment )

@@ -114,7 +114,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
         Relationship teiRelationship = addTeiToTeiRelationship();
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByTrackedEntityInstance( trackedEntityA, true );
+            .getRelationshipsByTrackedEntity( trackedEntityA, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( teiRelationship ) );
@@ -131,7 +131,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         Event event = addEvent( enrollment, programStageA );
 
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityA = createTrackedEntity( organisationUnit );
         trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Relationship relationshipA = addTeiToEventRelationship( trackedEntityA,
@@ -149,7 +149,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByEnrollment()
     {
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
+        trackedEntityA = createTrackedEntity( organisationUnit );
         trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Program programA = addProgram();
@@ -208,8 +208,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
     private Relationship addTeiToTeiRelationship()
     {
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityB = createTrackedEntityInstance( organisationUnit );
+        trackedEntityA = createTrackedEntity( organisationUnit );
+        trackedEntityB = createTrackedEntity( organisationUnit );
 
         trackedEntityService.addTrackedEntity( trackedEntityA );
         trackedEntityService.addTrackedEntity( trackedEntityB );

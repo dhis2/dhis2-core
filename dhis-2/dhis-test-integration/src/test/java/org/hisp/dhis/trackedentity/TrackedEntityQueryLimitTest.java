@@ -119,10 +119,10 @@ class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
         program = createProgram( 'P' );
         programService.addProgram( program );
 
-        tei1 = createTrackedEntityInstance( orgUnitA );
-        tei2 = createTrackedEntityInstance( orgUnitA );
-        tei3 = createTrackedEntityInstance( orgUnitA );
-        tei4 = createTrackedEntityInstance( orgUnitA );
+        tei1 = createTrackedEntity( orgUnitA );
+        tei2 = createTrackedEntity( orgUnitA );
+        tei3 = createTrackedEntity( orgUnitA );
+        tei4 = createTrackedEntity( orgUnitA );
         tei1.setTrackedEntityType( teiType );
         tei2.setTrackedEntityType( teiType );
         tei3.setTrackedEntityType( teiType );

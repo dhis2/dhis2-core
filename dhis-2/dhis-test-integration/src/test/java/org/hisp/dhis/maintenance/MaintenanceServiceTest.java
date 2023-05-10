@@ -181,13 +181,13 @@ class MaintenanceServiceTest extends IntegrationTestBase
         programService.updateProgram( program );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity = createTrackedEntity( organisationUnit );
         trackedEntity.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntity( trackedEntity );
-        entityInstanceB = createTrackedEntityInstance( organisationUnit );
+        entityInstanceB = createTrackedEntity( organisationUnit );
         entityInstanceB.setTrackedEntityType( trackedEntityType );
         entityInstanceService.addTrackedEntity( entityInstanceB );
-        entityInstanceWithAssociations = createTrackedEntityInstance( 'T', organisationUnit );
+        entityInstanceWithAssociations = createTrackedEntity( 'T', organisationUnit );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -221,7 +221,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedTrackedEntityInstanceLinkedToARelationshipItem()
+    void testDeleteSoftDeletedTrackedEntityLinkedToARelationshipItem()
     {
         RelationshipType rType = createRelationshipType( 'A' );
         rType.getFromConstraint().setRelationshipEntity( RelationshipEntity.PROGRAM_INSTANCE );
@@ -248,7 +248,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertTrue(
             trackedEntityService.trackedEntityExistsIncludingDeleted( trackedEntity.getUid() ) );
         assertTrue( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
-        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntities();
         assertFalse(
             trackedEntityService.trackedEntityExistsIncludingDeleted( trackedEntity.getUid() ) );
         assertFalse( relationshipService.relationshipExistsIncludingDeleted( r.getUid() ) );
@@ -298,7 +298,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
     }
 
     @Test
-    void testDeleteSoftDeletedTrackedEntityInstanceAProgramMessage()
+    void testDeleteSoftDeletedTrackedEntityAProgramMessage()
     {
         ProgramMessageRecipients programMessageRecipients = new ProgramMessageRecipients();
         programMessageRecipients.setEmailAddresses( Sets.newHashSet( "testemail" ) );
@@ -314,7 +314,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         entityInstanceService.deleteTrackedEntity( entityInstanceB );
         assertNull( entityInstanceService.getTrackedEntity( idA ) );
         assertTrue( entityInstanceService.trackedEntityExistsIncludingDeleted( entityInstanceB.getUid() ) );
-        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntities();
         assertFalse( entityInstanceService.trackedEntityExistsIncludingDeleted( entityInstanceB.getUid() ) );
     }
 
@@ -420,7 +420,7 @@ class MaintenanceServiceTest extends IntegrationTestBase
         assertNull( trackedEntityService.getTrackedEntity( entityInstanceWithAssociations.getId() ) );
         assertTrue( trackedEntityService
             .trackedEntityExistsIncludingDeleted( entityInstanceWithAssociations.getUid() ) );
-        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntities();
         List<Audit> audits = auditService
             .getAudits( AuditQuery.builder().auditType( Sets.newHashSet( AuditType.DELETE ) )
                 .auditScope( Sets.newHashSet( AuditScope.TRACKER ) ).build() );

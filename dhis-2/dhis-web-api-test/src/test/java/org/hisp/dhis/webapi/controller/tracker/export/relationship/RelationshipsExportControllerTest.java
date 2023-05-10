@@ -658,7 +658,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
 
     private TrackedEntity trackedEntity( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
     {
-        TrackedEntity tei = createTrackedEntityInstance( orgUnit );
+        TrackedEntity tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         tei.getSharing().setOwner( owner );

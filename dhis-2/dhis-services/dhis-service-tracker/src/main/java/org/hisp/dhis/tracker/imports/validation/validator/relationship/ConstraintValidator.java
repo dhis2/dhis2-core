@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4012;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.enrollmentExist;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.eventExist;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityInstanceExist;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityExists;
 import static org.hisp.dhis.tracker.imports.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Optional;
@@ -71,7 +71,7 @@ public class ConstraintValidator implements Validator<Relationship>
         switch ( constraint.getRelationshipEntity() )
         {
         case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityInstanceRelationship( reporter, bundle, relationship, item, relSide, constraint );
+            validateTrackedEntityRelationship( reporter, bundle, relationship, item, relSide, constraint );
             break;
         case PROGRAM_INSTANCE:
             validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
@@ -84,7 +84,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private void validateTrackedEntityInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+    private void validateTrackedEntityRelationship( Reporter reporter, TrackerBundle bundle,
         Relationship relationship, RelationshipItem item, String relSide, RelationshipConstraint constraint )
     {
         if ( item.getTrackedEntity() == null )
@@ -92,13 +92,13 @@ public class ConstraintValidator implements Validator<Relationship>
             reporter.addError( relationship, ValidationCode.E4010, relSide,
                 TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
         }
-        else if ( !trackedEntityInstanceExist( bundle, item.getTrackedEntity() ) )
+        else if ( !trackedEntityExists( bundle, item.getTrackedEntity() ) )
         {
             reporter.addError( relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity() );
         }
         else
         {
-            validateTrackedEntityInstanceType( item, reporter, relationship, relSide, bundle, constraint );
+            validateTrackedEntityType( item, reporter, relationship, relSide, bundle, constraint );
         }
     }
 
@@ -130,7 +130,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private void validateTrackedEntityInstanceType( RelationshipItem item, Reporter reporter, Relationship relationship,
+    private void validateTrackedEntityType( RelationshipItem item, Reporter reporter, Relationship relationship,
         String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
     {
         getRelationshipTypeUidFromTrackedEntity( bundle, item.getTrackedEntity() )

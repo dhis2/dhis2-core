@@ -40,10 +40,10 @@ public interface TrackedEntityFilterStore
     extends IdentifiableObjectStore<TrackedEntityFilter>
 {
     /**
-     * Gets trackedEntityInstanceFilters
+     * Gets trackedEntityFilters
      *
-     * @param program program of trackedEntityInstanceFilter to be fetched
-     * @return list of trackedEntityInstanceFilters
+     * @param program program of trackedEntityFilter to be fetched
+     * @return list of trackedEntityFilters
      */
     List<TrackedEntityFilter> get( Program program );
 }

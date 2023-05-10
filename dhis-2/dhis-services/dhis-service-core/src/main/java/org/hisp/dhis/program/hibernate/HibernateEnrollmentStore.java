@@ -415,7 +415,7 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> getByProgramAndTrackedEntityInstance(
+    public List<Enrollment> getByProgramAndTrackedEntity(
         List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus )
     {
         checkNotNull( programTeiPair );
