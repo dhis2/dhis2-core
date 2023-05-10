@@ -65,7 +65,7 @@ public class LoginConfigController {
     APPLICATION_RIGHT_FOOTER("applicationRightSideFooter"),
     FLAG_IMAGE("countryFlag"),
     UI_LOCALE("uiLocale"),
-    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front"),
+    CUSTOM_LOGIN_PAGE_LOGO("loginPageLogo", "/api/staticContent/logo_front.png"),
     CUSTOM_TOP_MENU_LOGO("topMenuLogo", "/external-static/logo_banner.png"),
     STYLE("style"),
     SELF_REGISTRATION_NO_RECAPTCHA("selfRegistrationNoRecaptcha");
@@ -116,7 +116,7 @@ public class LoginConfigController {
 
     builder.topMenuLogo(
         manager.getBoolSetting(SettingKey.valueOf(KEYS.CUSTOM_TOP_MENU_LOGO.name()))
-            ? KEYS.CUSTOM_LOGIN_PAGE_LOGO.defaultValue
+            ? KEYS.CUSTOM_TOP_MENU_LOGO.defaultValue
             : null);
 
     builder.style(manager.getStringSetting(SettingKey.valueOf(KEYS.STYLE.name())));
