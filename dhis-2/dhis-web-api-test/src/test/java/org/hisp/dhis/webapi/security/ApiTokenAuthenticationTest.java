@@ -90,8 +90,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         ApiToken token = new ApiToken();
         token.setOwner( "M5zQapPyTZI" );
-        token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        token = apiTokenService.initToken( token );
+        token = apiTokenService.initToken( token, ApiTokenType.PERSONAL_ACCESS_TOKEN );
         apiTokenStore.save( token );
         final String key = token.getKey();
         final String hashedKey = apiTokenService.hashKey( key );

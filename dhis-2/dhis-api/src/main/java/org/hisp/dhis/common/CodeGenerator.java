@@ -67,11 +67,13 @@ public class CodeGenerator
      */
     public static String generateUid()
     {
-        return generateCode( CODESIZE );
+        return generateNonSecureCode( CODESIZE );
     }
 
     /**
-     * Generates a pseudo random string with alphanumeric characters.
+     * Generates a pseudo random string with alphanumeric characters. Uses a
+     * {@link ThreadLocalRandom} instance and is considered non-secure and
+     * should not be used for security purposes.
      *
      * @param codeSize the number of characters in the code.
      * @return the code.
@@ -79,34 +81,22 @@ public class CodeGenerator
     public static String generateCode( int codeSize )
     {
         ThreadLocalRandom r = ThreadLocalRandom.current();
-
-        char[] randomChars = new char[codeSize];
-
-        // First char should be a letter
-        randomChars[0] = letters.charAt( r.nextInt( letters.length() ) );
-
-        for ( int i = 1; i < codeSize; ++i )
-        {
-            randomChars[i] = ALLOWED_CHARS.charAt( r.nextInt( NUMBER_OF_CODEPOINTS ) );
-        }
-
-        return new String( randomChars );
+        return generateRandomCode( codeSize, r );
     }
 
     /**
-     * Generates a random token encoded in Base64
+     * Generates a pseudo random string with alphanumeric characters. Uses a
+     * {@link SecureRandom} instance and is slower than
+     * {@link #generateCode(int)}, this should only be used when security is
+     * required.
      *
-     * @param lengthInBytes length in bytes of the token
-     * @return a Base64 encoded string of the token
+     * @param codeSize the number of characters in the code.
+     * @return the code.
      */
-    public static String getRandomNonSecureToken( int lengthInBytes )
+    public static String generateSecureCode( int codeSize )
     {
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        byte[] tokenBytes = new byte[lengthInBytes];
-        random.nextBytes( tokenBytes );
-
-        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-        return encoder.encodeToString( tokenBytes );
+        SecureRandom r = new SecureRandom();
+        return generateRandomCode( codeSize, r );
     }
 
     /**
@@ -123,6 +113,28 @@ public class CodeGenerator
 
         Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
         return encoder.encodeToString( tokenBytes );
+    }
+
+    /**
+     * Generates a pseudo random string with alphanumeric characters.
+     *
+     * @param codeSize the number of characters in the code.
+     * @param r the random number generator to use.
+     * @return the code.
+     */
+    private static String generateRandomCode( int codeSize, java.util.Random r )
+    {
+        char[] randomChars = new char[codeSize];
+
+        // First char should be a letter
+        randomChars[0] = letters.charAt( r.nextInt( letters.length() ) );
+
+        for ( int i = 1; i < codeSize; ++i )
+        {
+            randomChars[i] = ALLOWED_CHARS.charAt( r.nextInt( NUMBER_OF_CODEPOINTS ) );
+        }
+
+        return new String( randomChars );
     }
 
     /**

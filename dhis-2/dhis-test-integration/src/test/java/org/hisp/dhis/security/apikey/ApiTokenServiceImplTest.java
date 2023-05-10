@@ -77,8 +77,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     public ApiToken createAndSaveToken()
     {
         final ApiToken token = new ApiToken();
-        token.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        final ApiToken object = apiTokenService.initToken( token );
+        final ApiToken object = apiTokenService.initToken( token, ApiTokenType.PERSONAL_ACCESS_TOKEN );
         apiTokenStore.save( object );
         return token;
     }

@@ -38,15 +38,19 @@ public class ApiTokenSchemaDescriptor implements SchemaDescriptor
 {
     public static final String SINGULAR = "apiToken";
 
-    public static final String PLURAL = "apiToken";
+    public static final String PLURAL1 = "apiToken";
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    public static final String PLURAL2 = "apiTokens";
+
+    public static final String API_ENDPOINT1 = "/" + PLURAL1;
+
+    public static final String API_ENDPOINT2 = "/" + PLURAL2;
 
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL2 );
+        schema.setRelativeApiEndpoint( API_ENDPOINT2 );
         schema.setDataShareable( false );
         schema.setDefaultPrivate( true );
         schema.setDataReadShareable( false );

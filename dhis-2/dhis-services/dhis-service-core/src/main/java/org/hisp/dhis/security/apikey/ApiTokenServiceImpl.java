@@ -28,7 +28,6 @@
 package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.CodeGenerator.getRandomSecureToken;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -36,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.zip.CRC32;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -120,33 +120,40 @@ public class ApiTokenServiceImpl implements ApiTokenService
     }
 
     @Override
-    public ApiToken initToken( ApiToken token )
+    public ApiToken initToken( ApiToken token, ApiTokenType type )
     {
         Preconditions.checkNotNull( token );
-        Preconditions.checkNotNull( token.getType() );
+        Preconditions.checkNotNull( type );
 
         token.setVersion( 1 );
+        token.setType( type );
+
+        token.getTranslations().clear();
 
         if ( token.getExpire() == null )
         {
             token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
         }
 
-        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
-        Preconditions.checkArgument( randomSecureToken.length() == 32,
-            "Could not create new token, please try again." + randomSecureToken.length() );
+        String randomSecureToken = CodeGenerator.generateSecureCode( 32 );
+        long checksumLong = getChecksum( randomSecureToken );
 
-        byte[] bytes = randomSecureToken.getBytes();
-        CRC32 crc = new CRC32();
-        crc.update( bytes, 0, bytes.length );
-        long checksumLong = crc.getValue();
+        String finalToken = String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong );
 
-        token.setKey( String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong ) );
+        token.setKey( finalToken );
 
         Preconditions.checkArgument( token.getKey().length() == 48,
             "Could not create new token, please try again." );
 
         return token;
+    }
+
+    private static long getChecksum( String randomSecureToken )
+    {
+        byte[] bytes = randomSecureToken.getBytes();
+        CRC32 crc = new CRC32();
+        crc.update( bytes, 0, bytes.length );
+        return crc.getValue();
     }
 
     public String hashKey( String key )

@@ -30,9 +30,11 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -45,9 +47,11 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.hibernate.exception.CreateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
@@ -68,7 +72,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags( { "user", "login" } )
 @Controller
-@RequestMapping( value = ApiTokenSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = { ApiTokenSchemaDescriptor.API_ENDPOINT1, ApiTokenSchemaDescriptor.API_ENDPOINT2 } )
 @RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ApiTokenController extends AbstractCrudController<ApiToken>
@@ -105,50 +109,40 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
-        throws IOException
+        throws ForbiddenException,
+        IOException
     {
-        final ApiToken apiToken = deserializeJsonEntity( request );
-
+        ApiToken apiToken = deserializeJsonEntity( request );
         User user = currentUserService.getCurrentUser();
+
         if ( !aclService.canCreate( user, getEntityClass() ) )
         {
-            throw new CreateAccessDeniedException( "You don't have the proper permissions to create this object." );
+            throw new ForbiddenException( "You don't have the proper permissions to create this object." );
         }
 
-        apiToken.getTranslations().clear();
+        validateTokenAttributes( apiToken );
 
-        // Validate input values is ok
-        validateBeforeCreate( apiToken );
+        apiTokenService.initToken( apiToken, ApiTokenType.PERSONAL_ACCESS_TOKEN );
 
-        // We only make personal access tokens for now
-        apiToken.setType( ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        // Generate key and set default values
-        apiTokenService.initToken( apiToken );
+        // Hash the plaintext token key and overwrite value in the entity with the hash.
+        final String plaintextKey = apiToken.getKey();
+        apiToken.setKey( apiTokenService.hashKey( plaintextKey ) );
 
-        // Save raw key to send in response
-        final String rawKey = apiToken.getKey();
-
-        // Hash the raw token key and overwrite value in the entity to persist
-        final String hashedKey = apiTokenService.hashKey( apiToken.getKey() );
-        apiToken.setKey( hashedKey );
-
-        // Continue POST import as usual
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL ).setUser( user ).setImportStrategy( ImportStrategy.CREATE )
+            .setImportReportMode( ImportReportMode.FULL )
+            .setUser( user )
+            .setImportStrategy( ImportStrategy.CREATE )
             .addObject( apiToken );
 
-        final ObjectReport objectReport = importService.importMetadata( params ).getFirstObjectReport();
-        final String uid = objectReport.getUid();
+        ObjectReport report = importService.importMetadata( params ).getFirstObjectReport();
+        WebMessage webMessage = objectReport( report );
 
-        WebMessage webMessage = objectReport( objectReport );
         if ( webMessage.getStatus() == Status.OK )
         {
+            String uid = report.getUid();
             webMessage.setHttpStatus( HttpStatus.CREATED );
             webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
-
-            // Set our custom web response object that includes the new
-            // generated key.
-            webMessage.setResponse( new ApiTokenCreationResponse( objectReport, rawKey ) );
+            webMessage.setResponse( new ApiTokenCreationResponse( report, plaintextKey ) );
         }
         else
         {
@@ -161,27 +155,28 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     @Override
     protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
     {
-        newToken.setKey( oldToken.getKey() );
-        validateApiKeyAttributes( newToken );
+        preModify( oldToken, newToken );
     }
 
     @Override
     protected void preUpdateEntity( ApiToken oldToken, ApiToken newToken )
     {
+        preModify( oldToken, newToken );
+    }
+
+    private void preModify( ApiToken oldToken, ApiToken newToken )
+    {
         newToken.setKey( oldToken.getKey() );
-        validateApiKeyAttributes( newToken );
+        validateTokenAttributes( newToken );
     }
 
-    protected void validateBeforeCreate( ApiToken token )
+    private void validateTokenAttributes( ApiToken token )
     {
-        validateApiKeyAttributes( token );
-    }
+        List<ErrorReport> errorReports = new ArrayList<>();
 
-    private void validateApiKeyAttributes( ApiToken token )
-    {
         if ( token.getIpAllowedList() != null )
         {
-            token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );
+            token.getIpAllowedList().getAllowedIps().forEach( ip -> validateIp( ip, errorReports::add ) );
         }
         if ( token.getMethodAllowedList() != null )
         {
@@ -201,12 +196,16 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         }
     }
 
-    private void validateIp( String ip )
+    private void validateIp( String ip, Consumer<ErrorReport> reportConsumer )
     {
         InetAddressValidator validator = new InetAddressValidator();
         if ( !validator.isValid( ip ) )
         {
-            throw new IllegalArgumentException( "Not a valid ip address, value=" + ip );
+            reportConsumer.accept(
+                new ErrorReport( ApiToken.class, ErrorCode.E4027, ip, "uid" )
+                    .setErrorProperty( "ipAllowedList" ) );
+
+            //            throw new BadRequestException( "Not a valid ip address, value=" + ip );
         }
     }
 

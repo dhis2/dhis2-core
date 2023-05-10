@@ -52,7 +52,7 @@ public interface ApiTokenService
 
     ApiToken getWithUid( String uid );
 
-    ApiToken initToken( ApiToken entity );
+    ApiToken initToken( ApiToken entity, ApiTokenType type );
 
     String hashKey( String key );
 }
