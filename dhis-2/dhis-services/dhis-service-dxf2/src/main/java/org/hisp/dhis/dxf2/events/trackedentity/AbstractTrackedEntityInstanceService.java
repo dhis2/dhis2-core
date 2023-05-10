@@ -1608,7 +1608,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         trackedEntityInstance
             .setLastUpdatedAtClient( DateUtils.getIso8601NoTz( daoTrackedEntity.getLastUpdatedAtClient() ) );
         trackedEntityInstance
-            .setInactive( Optional.ofNullable( daoTrackedEntity.isInactive() ).orElse( false ) );
+            .setInactive( Optional.ofNullable( daoTrackedEntity.getInactive() ).orElse( false ) );
         trackedEntityInstance.setGeometry( daoTrackedEntity.getGeometry() );
         trackedEntityInstance.setDeleted( daoTrackedEntity.isDeleted() );
         trackedEntityInstance.setPotentialDuplicate( daoTrackedEntity.isPotentialDuplicate() );

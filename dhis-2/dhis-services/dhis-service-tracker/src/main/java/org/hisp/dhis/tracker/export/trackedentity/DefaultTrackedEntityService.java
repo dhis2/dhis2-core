@@ -202,7 +202,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         result.setCreatedAtClient( trackedEntity.getCreatedAtClient() );
         result.setLastUpdated( trackedEntity.getLastUpdated() );
         result.setLastUpdatedAtClient( trackedEntity.getLastUpdatedAtClient() );
-        result.setInactive( trackedEntity.isInactive() );
+        result.setInactive( trackedEntity.getInactive() );
         result.setGeometry( trackedEntity.getGeometry() );
         result.setDeleted( trackedEntity.isDeleted() );
         result.setPotentialDuplicate( trackedEntity.isPotentialDuplicate() );

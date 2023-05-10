@@ -29,6 +29,9 @@ package org.hisp.dhis.relationship;
 
 import java.io.Serializable;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -39,6 +42,8 @@ import org.hisp.dhis.common.SoftDeletableObject;
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
+@Getter
+@Setter
 @Auditable( scope = AuditScope.TRACKER )
 public class Relationship
     extends SoftDeletableObject
@@ -79,92 +84,6 @@ public class Relationship
 
     public Relationship()
     {
-    }
-
-    /**
-     * @return the relationshipType
-     */
-    public RelationshipType getRelationshipType()
-    {
-        return relationshipType;
-    }
-
-    /**
-     * @param relationshipType the relationshipType to set
-     */
-    public void setRelationshipType( RelationshipType relationshipType )
-    {
-        this.relationshipType = relationshipType;
-    }
-
-    public ObjectStyle getStyle()
-    {
-        return style;
-    }
-
-    public void setStyle( ObjectStyle style )
-    {
-        this.style = style;
-    }
-
-    public String getFormName()
-    {
-        return formName;
-    }
-
-    public void setFormName( String formName )
-    {
-        this.formName = formName;
-    }
-
-    public String getDescription()
-    {
-        return description;
-    }
-
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
-
-    public RelationshipItem getFrom()
-    {
-        return from;
-    }
-
-    public void setFrom( RelationshipItem from )
-    {
-        this.from = from;
-    }
-
-    public RelationshipItem getTo()
-    {
-        return to;
-    }
-
-    public void setTo( RelationshipItem to )
-    {
-        this.to = to;
-    }
-
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    public String getInvertedKey()
-    {
-        return invertedKey;
-    }
-
-    public void setInvertedKey( String invertedKey )
-    {
-        this.invertedKey = invertedKey;
     }
 
     @Override

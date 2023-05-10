@@ -33,6 +33,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -50,6 +53,8 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Abyot Asalefew
  */
+@Getter
+@Setter
 @Auditable( scope = AuditScope.TRACKER )
 public class Event
     extends SoftDeletableObject
@@ -102,10 +107,6 @@ public class Event
 
     private User assignedUser;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
     public Event()
     {
     }
@@ -116,8 +117,7 @@ public class Event
         this.programStage = programStage;
     }
 
-    public Event( Enrollment enrollment, ProgramStage programStage,
-        OrganisationUnit organisationUnit )
+    public Event( Enrollment enrollment, ProgramStage programStage, OrganisationUnit organisationUnit )
     {
         this( enrollment, programStage );
         this.organisationUnit = organisationUnit;
@@ -136,221 +136,9 @@ public class Event
         lastUpdatedAtClient = lastUpdated;
     }
 
-    public Date getCreatedAtClient()
-    {
-        return createdAtClient;
-    }
-
-    public void setCreatedAtClient( Date createdAtClient )
-    {
-        this.createdAtClient = createdAtClient;
-    }
-
-    public Date getLastUpdatedAtClient()
-    {
-        return lastUpdatedAtClient;
-    }
-
-    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
-    {
-        this.lastUpdatedAtClient = lastUpdatedAtClient;
-    }
-
-    public Enrollment getEnrollment()
-    {
-        return enrollment;
-    }
-
-    public void setEnrollment( Enrollment enrollment )
-    {
-        this.enrollment = enrollment;
-    }
-
-    public ProgramStage getProgramStage()
-    {
-        return programStage;
-    }
-
-    public void setProgramStage( ProgramStage programStage )
-    {
-        this.programStage = programStage;
-    }
-
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    public UserInfoSnapshot getCreatedByUserInfo()
-    {
-        return createdByUserInfo;
-    }
-
-    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
-    {
-        this.createdByUserInfo = createdByUserInfo;
-    }
-
-    public UserInfoSnapshot getLastUpdatedByUserInfo()
-    {
-        return lastUpdatedByUserInfo;
-    }
-
-    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
-    {
-        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-    }
-
-    public String getCompletedBy()
-    {
-        return completedBy;
-    }
-
-    public void setCompletedBy( String completedBy )
-    {
-        this.completedBy = completedBy;
-    }
-
-    public Date getDueDate()
-    {
-        return dueDate;
-    }
-
-    public void setDueDate( Date dueDate )
-    {
-        this.dueDate = dueDate;
-    }
-
-    public Date getExecutionDate()
-    {
-        return executionDate;
-    }
-
-    public void setExecutionDate( Date executionDate )
-    {
-        this.executionDate = executionDate;
-    }
-
     public boolean isCompleted()
     {
         return status == EventStatus.COMPLETED;
-    }
-
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public Event setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-        return this;
-    }
-
-    public CategoryOptionCombo getAttributeOptionCombo()
-    {
-        return attributeOptionCombo;
-    }
-
-    public void setAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo )
-    {
-        this.attributeOptionCombo = attributeOptionCombo;
-    }
-
-    public Date getCompletedDate()
-    {
-        return completedDate;
-    }
-
-    public void setCompletedDate( Date completedDate )
-    {
-        this.completedDate = completedDate;
-    }
-
-    public List<MessageConversation> getMessageConversations()
-    {
-        return messageConversations;
-    }
-
-    public void setMessageConversations( List<MessageConversation> messageConversations )
-    {
-        this.messageConversations = messageConversations;
-    }
-
-    public List<TrackedEntityComment> getComments()
-    {
-        return comments;
-    }
-
-    public void setComments( List<TrackedEntityComment> comments )
-    {
-        this.comments = comments;
-    }
-
-    public Set<EventDataValue> getEventDataValues()
-    {
-        return eventDataValues;
-    }
-
-    public void setEventDataValues( Set<EventDataValue> eventDataValues )
-    {
-        this.eventDataValues = eventDataValues;
-    }
-
-    public EventStatus getStatus()
-    {
-        return status;
-    }
-
-    public Event setStatus( EventStatus status )
-    {
-        this.status = status;
-        return this;
-    }
-
-    public Date getLastSynchronized()
-    {
-        return lastSynchronized;
-    }
-
-    public void setLastSynchronized( Date lastSynchronized )
-    {
-        this.lastSynchronized = lastSynchronized;
-    }
-
-    public Set<RelationshipItem> getRelationshipItems()
-    {
-        return relationshipItems;
-    }
-
-    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
-    {
-        this.relationshipItems = relationshipItems;
-    }
-
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    public User getAssignedUser()
-    {
-        return assignedUser;
-    }
-
-    public void setAssignedUser( User assignedUser )
-    {
-        this.assignedUser = assignedUser;
     }
 
     public boolean isCreatableInSearchScope()

@@ -32,6 +32,9 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -46,6 +49,8 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Abyot Asalefew Gizaw
  */
+@Getter
+@Setter
 @Auditable( scope = AuditScope.TRACKER )
 public class TrackedEntity
     extends SoftDeletableObject
@@ -70,6 +75,7 @@ public class TrackedEntity
     @AuditAttribute
     private TrackedEntityType trackedEntityType;
 
+    @Getter( )
     @AuditAttribute
     private Boolean inactive = false;
 
@@ -82,10 +88,6 @@ public class TrackedEntity
     private UserInfoSnapshot createdByUserInfo;
 
     private UserInfoSnapshot lastUpdatedByUserInfo;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
 
     public TrackedEntity()
     {
@@ -107,10 +109,6 @@ public class TrackedEntity
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
     public void addAttributeValue( TrackedEntityAttributeValue attributeValue )
     {
         trackedEntityAttributeValues.add( attributeValue );
@@ -121,156 +119,6 @@ public class TrackedEntity
     {
         trackedEntityAttributeValues.remove( attributeValue );
         attributeValue.setTrackedEntity( null );
-    }
-
-    public boolean isPotentialDuplicate()
-    {
-        return potentialDuplicate;
-    }
-
-    public void setPotentialDuplicate( boolean potentialDuplicate )
-    {
-        this.potentialDuplicate = potentialDuplicate;
-    }
-
-    public Date getCreatedAtClient()
-    {
-        return createdAtClient;
-    }
-
-    public void setCreatedAtClient( Date createdAtClient )
-    {
-        this.createdAtClient = createdAtClient;
-    }
-
-    public Date getLastUpdatedAtClient()
-    {
-        return lastUpdatedAtClient;
-    }
-
-    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
-    {
-        this.lastUpdatedAtClient = lastUpdatedAtClient;
-    }
-
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
-    public Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues()
-    {
-        return trackedEntityAttributeValues;
-    }
-
-    public void setTrackedEntityAttributeValues( Set<TrackedEntityAttributeValue> trackedEntityAttributeValues )
-    {
-        this.trackedEntityAttributeValues = trackedEntityAttributeValues;
-    }
-
-    public Set<Enrollment> getEnrollments()
-    {
-        return enrollments;
-    }
-
-    public void setEnrollments( Set<Enrollment> enrollments )
-    {
-        this.enrollments = enrollments;
-    }
-
-    public Set<TrackedEntityProgramOwner> getProgramOwners()
-    {
-        return programOwners;
-    }
-
-    public void setProgramOwners( Set<TrackedEntityProgramOwner> programOwners )
-    {
-        this.programOwners = programOwners;
-    }
-
-    public TrackedEntityType getTrackedEntityType()
-    {
-        return trackedEntityType;
-    }
-
-    public void setTrackedEntityType( TrackedEntityType trackedEntityType )
-    {
-        this.trackedEntityType = trackedEntityType;
-    }
-
-    public Boolean isInactive()
-    {
-        return inactive;
-    }
-
-    public void setInactive( Boolean inactive )
-    {
-        this.inactive = inactive;
-    }
-
-    public Date getLastSynchronized()
-    {
-        return lastSynchronized;
-    }
-
-    public void setLastSynchronized( Date lastSynchronized )
-    {
-        this.lastSynchronized = lastSynchronized;
-    }
-
-    public Set<RelationshipItem> getRelationshipItems()
-    {
-        return relationshipItems;
-    }
-
-    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
-    {
-        this.relationshipItems = relationshipItems;
-    }
-
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    public UserInfoSnapshot getCreatedByUserInfo()
-    {
-        return createdByUserInfo;
-    }
-
-    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
-    {
-        this.createdByUserInfo = createdByUserInfo;
-    }
-
-    public UserInfoSnapshot getLastUpdatedByUserInfo()
-    {
-        return lastUpdatedByUserInfo;
-    }
-
-    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
-    {
-        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
     @Override

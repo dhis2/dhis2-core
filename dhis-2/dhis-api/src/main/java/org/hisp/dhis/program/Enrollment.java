@@ -34,6 +34,9 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
@@ -48,6 +51,8 @@ import org.locationtech.jts.geom.Geometry;
 /**
  * @author Abyot Asalefew
  */
+@Getter
+@Setter
 @Auditable( scope = AuditScope.TRACKER )
 public class Enrollment
     extends SoftDeletableObject
@@ -93,10 +98,6 @@ public class Enrollment
 
     private String storedBy;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
     public Enrollment()
     {
     }
@@ -130,10 +131,6 @@ public class Enrollment
         lastUpdatedAtClient = lastUpdated;
     }
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
     /**
      * Updated the bidirectional associations between this Enrollment and the
      * given tracked entity and program.
@@ -153,10 +150,6 @@ public class Enrollment
     {
         return this.status == ProgramStatus.COMPLETED;
     }
-
-    // -------------------------------------------------------------------------
-    // equals and hashCode
-    // -------------------------------------------------------------------------
 
     @Override
     public int hashCode()
@@ -184,201 +177,6 @@ public class Enrollment
             && Objects.equals( enrollmentDate, other.enrollmentDate )
             && Objects.equals( trackedEntity, other.trackedEntity )
             && Objects.equals( program, other.program );
-    }
-
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    public Date getCreatedAtClient()
-    {
-        return createdAtClient;
-    }
-
-    public void setCreatedAtClient( Date createdAtClient )
-    {
-        this.createdAtClient = createdAtClient;
-    }
-
-    public Date getLastUpdatedAtClient()
-    {
-        return lastUpdatedAtClient;
-    }
-
-    public void setLastUpdatedAtClient( Date lastUpdatedAtClient )
-    {
-        this.lastUpdatedAtClient = lastUpdatedAtClient;
-    }
-
-    public OrganisationUnit getOrganisationUnit()
-    {
-        return organisationUnit;
-    }
-
-    public Enrollment setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-        return this;
-    }
-
-    public Date getIncidentDate()
-    {
-        return incidentDate;
-    }
-
-    public void setIncidentDate( Date incidentDate )
-    {
-        this.incidentDate = incidentDate;
-    }
-
-    public Date getEnrollmentDate()
-    {
-        return enrollmentDate;
-    }
-
-    public void setEnrollmentDate( Date enrollmentDate )
-    {
-        this.enrollmentDate = enrollmentDate;
-    }
-
-    public Date getEndDate()
-    {
-        return endDate;
-    }
-
-    public void setEndDate( Date endDate )
-    {
-        this.endDate = endDate;
-    }
-
-    public UserInfoSnapshot getCreatedByUserInfo()
-    {
-        return createdByUserInfo;
-    }
-
-    public void setCreatedByUserInfo( UserInfoSnapshot createdByUserInfo )
-    {
-        this.createdByUserInfo = createdByUserInfo;
-    }
-
-    public UserInfoSnapshot getLastUpdatedByUserInfo()
-    {
-        return lastUpdatedByUserInfo;
-    }
-
-    public void setLastUpdatedByUserInfo( UserInfoSnapshot lastUpdatedByUserInfo )
-    {
-        this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
-    }
-
-    public ProgramStatus getStatus()
-    {
-        return status;
-    }
-
-    public void setStatus( ProgramStatus status )
-    {
-        this.status = status;
-    }
-
-    public TrackedEntity getTrackedEntity()
-    {
-        return trackedEntity;
-    }
-
-    public void setTrackedEntity( TrackedEntity trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
-    public Program getProgram()
-    {
-        return program;
-    }
-
-    public void setProgram( Program program )
-    {
-        this.program = program;
-    }
-
-    public Set<Event> getEvents()
-    {
-        return events;
-    }
-
-    public void setEvents( Set<Event> events )
-    {
-        this.events = events;
-    }
-
-    public Boolean getFollowup()
-    {
-        return followup;
-    }
-
-    public void setFollowup( Boolean followup )
-    {
-        this.followup = followup;
-    }
-
-    public List<MessageConversation> getMessageConversations()
-    {
-        return messageConversations;
-    }
-
-    public void setMessageConversations( List<MessageConversation> messageConversations )
-    {
-        this.messageConversations = messageConversations;
-    }
-
-    public List<TrackedEntityComment> getComments()
-    {
-        return comments;
-    }
-
-    public void setComments( List<TrackedEntityComment> comments )
-    {
-        this.comments = comments;
-    }
-
-    public String getCompletedBy()
-    {
-        return completedBy;
-    }
-
-    public void setCompletedBy( String completedBy )
-    {
-        this.completedBy = completedBy;
-    }
-
-    public Geometry getGeometry()
-    {
-        return geometry;
-    }
-
-    public void setGeometry( Geometry geometry )
-    {
-        this.geometry = geometry;
-    }
-
-    public String getStoredBy()
-    {
-        return storedBy;
-    }
-
-    public void setStoredBy( String storedBy )
-    {
-        this.storedBy = storedBy;
-    }
-
-    public Set<RelationshipItem> getRelationshipItems()
-    {
-        return relationshipItems;
-    }
-
-    public void setRelationshipItems( Set<RelationshipItem> relationshipItems )
-    {
-        this.relationshipItems = relationshipItems;
     }
 
     @Override

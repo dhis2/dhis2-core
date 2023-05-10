@@ -782,7 +782,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             () -> assertEquals( trackedEntityA.getUid(), trackedEntity.getUid() ),
             () -> assertEquals( trackedEntity.getTrackedEntityType().getUid(), trackedEntityTypeA.getUid() ),
             () -> assertEquals( orgUnitA.getUid(), trackedEntity.getOrganisationUnit().getUid() ),
-            () -> assertFalse( trackedEntity.isInactive() ),
+            () -> assertFalse( trackedEntity.getInactive() ),
             () -> assertFalse( trackedEntity.isDeleted() ),
             () -> checkDate( currentTime, trackedEntity.getCreated() ),
             () -> checkDate( currentTime, trackedEntity.getCreatedAtClient() ),
