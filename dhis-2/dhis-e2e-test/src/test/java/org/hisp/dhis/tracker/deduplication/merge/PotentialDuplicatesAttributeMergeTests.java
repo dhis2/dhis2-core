@@ -37,7 +37,7 @@ import org.hisp.dhis.actions.AuditActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +48,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesAttributeMergeTests
-    extends PotentialDuplicatesApiTest
+    extends PotentialDuplicatesApiTestDeprecated
 {
     private final String program = Constants.TRACKER_PROGRAM_ID;
 

@@ -35,7 +35,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,7 +45,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesMergeTests
-    extends PotentialDuplicatesApiTest
+    extends PotentialDuplicatesApiTestDeprecated
 {
     @BeforeEach
     public void beforeEach()

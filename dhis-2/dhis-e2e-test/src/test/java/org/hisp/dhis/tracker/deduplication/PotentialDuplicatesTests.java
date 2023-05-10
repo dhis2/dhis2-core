@@ -47,7 +47,7 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
+public class PotentialDuplicatesTests extends PotentialDuplicatesApiTestDeprecated
 {
     @BeforeEach
     public void beforeEach()

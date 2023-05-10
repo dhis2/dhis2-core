@@ -43,7 +43,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
@@ -60,7 +60,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RuleEngineTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     private String trackerProgramId = "U5HE4IRrZ7S";
 

@@ -36,7 +36,10 @@ import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @deprecated this is a base test class for "old" (deprecated) tracker which
+ *             will be removed with "old" tracker
  */
+@Deprecated( since = "2.41" )
 public class RelationshipActions
     extends RestApiActions
 {

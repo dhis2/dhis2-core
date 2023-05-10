@@ -38,7 +38,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesRelationshipTests
-    extends PotentialDuplicatesApiTest
+    extends PotentialDuplicatesApiTestDeprecated
 {
     @BeforeEach
     public void beforeEach()

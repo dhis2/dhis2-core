@@ -40,7 +40,7 @@ import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.actions.metadata.TrackedEntityAttributeActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -52,7 +52,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EnrollmentAttributeTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     TrackedEntityAttributeActions teaAttributeActions;
 

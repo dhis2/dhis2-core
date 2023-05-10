@@ -16,10 +16,10 @@ Assuming you have DHIS2 running locally on port `8080` run
 
 ```sh
 mvn test \
-    -Dinstance.url=http://localhost:8080/api
-    -Dtest.cleanup=true
-    -Duser.default.username=admin
-    -Duser.default.password=district
+    -Dinstance.url=http://localhost:8080/api \
+    -Dtest.cleanup=true \
+    -Duser.default.username=admin \
+    -Duser.default.password=district \
     -Dtest.track_called_endpoints=true
 ```
 

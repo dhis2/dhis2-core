@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.OrgUnitActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -48,7 +48,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportValidationTests
-    extends TrackerApiTest
+    extends DeprecatedTrackerApiTest
 {
     private static String ouId = Constants.ORG_UNIT_IDS[0];
 

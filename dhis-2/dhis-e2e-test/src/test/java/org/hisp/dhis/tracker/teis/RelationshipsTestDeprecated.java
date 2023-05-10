@@ -44,11 +44,11 @@ import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.TrackedEntityInstancesAction;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,14 +61,14 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class RelationshipsTest
-    extends TrackerApiTest
+public class RelationshipsTestDeprecated
+    extends DeprecatedTrackerApiTest
 {
     private static List<String> teis;
 
     private static List<String> events;
 
-    private TEIActions trackedEntityInstanceActions;
+    private TrackedEntityInstancesAction trackedEntityInstanceActions;
 
     private MetadataActions metadataActions;
 
@@ -99,7 +99,7 @@ public class RelationshipsTest
         throws Exception
     {
         relationshipActions = new RelationshipActions();
-        trackedEntityInstanceActions = new TEIActions();
+        trackedEntityInstanceActions = new TrackedEntityInstancesAction();
         metadataActions = new MetadataActions();
         eventActions = new EventActions();
 

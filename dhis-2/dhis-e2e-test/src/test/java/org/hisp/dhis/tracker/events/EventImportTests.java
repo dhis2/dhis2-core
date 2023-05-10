@@ -47,7 +47,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.ImportSummary;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -61,7 +61,7 @@ import io.restassured.http.ContentType;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportTests
-    extends TrackerApiTest
+    extends DeprecatedTrackerApiTest
 {
     List<String> createdEvents = new ArrayList<>();
 

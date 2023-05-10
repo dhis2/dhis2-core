@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.*;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,7 +45,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventNotesTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     @BeforeEach
     public void beforeAll()

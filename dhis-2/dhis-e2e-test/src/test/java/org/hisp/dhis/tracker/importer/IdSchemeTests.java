@@ -39,7 +39,7 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
@@ -59,7 +59,7 @@ import io.restassured.path.json.JsonPath;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class IdSchemeTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     private final static String METADATA_FILE_PATH = "src/test/resources/tracker/idSchemesMetadata.json";
 

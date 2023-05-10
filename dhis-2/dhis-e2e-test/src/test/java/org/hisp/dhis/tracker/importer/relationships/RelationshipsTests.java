@@ -48,14 +48,14 @@ import org.hisp.dhis.actions.IdGenerator;
 import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.actions.metadata.RelationshipTypeActions;
 import org.hisp.dhis.actions.tracker.RelationshipActions;
-import org.hisp.dhis.actions.tracker.TEIActions;
+import org.hisp.dhis.actions.tracker.TrackedEntityInstancesAction;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -72,7 +72,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class RelationshipsTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     private static final String relationshipType = "TV9oB9LT3sh";
 
@@ -86,7 +86,7 @@ public class RelationshipsTests
 
     private RelationshipTypeActions relationshipTypeActions;
 
-    private TEIActions teiActions;
+    private TrackedEntityInstancesAction trackedEntityInstancesAction;
 
     private RelationshipActions relationshipActions;
 
@@ -132,7 +132,7 @@ public class RelationshipsTests
     public void beforeAll()
         throws Exception
     {
-        teiActions = new TEIActions();
+        trackedEntityInstancesAction = new TrackedEntityInstancesAction();
         metadataActions = new MetadataActions();
         relationshipTypeActions = new RelationshipTypeActions();
         relationshipActions = new RelationshipActions();
@@ -211,7 +211,7 @@ public class RelationshipsTests
             .body( "to.trackedEntity.trackedEntity", notNullValue() );
 
         response.extractImportedTeis().forEach( tei -> {
-            teiActions.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
+            trackedEntityInstancesAction.get( tei, new QueryParamsBuilder().add( "fields=relationships" ) )
                 .validate().statusCode( 200 )
                 .body( "relationships.relationship", contains( createdRelationships.get( 0 ) ) );
         } );

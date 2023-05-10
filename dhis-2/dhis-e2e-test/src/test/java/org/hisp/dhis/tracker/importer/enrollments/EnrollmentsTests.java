@@ -48,7 +48,7 @@ import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EnrollmentDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
@@ -67,7 +67,7 @@ import com.google.gson.JsonObject;
  */
 public class EnrollmentsTests
     extends
-    TrackerNtiApiTest
+    TrackerApiTest
 {
     private static final String OU_ID = Constants.ORG_UNIT_IDS[0];
 

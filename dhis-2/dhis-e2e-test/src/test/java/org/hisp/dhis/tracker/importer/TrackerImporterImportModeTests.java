@@ -33,7 +33,7 @@ import java.io.File;
 
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +41,7 @@ import org.junit.jupiter.api.Test;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackerImporterImportModeTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     @BeforeAll
     public void beforeAll()

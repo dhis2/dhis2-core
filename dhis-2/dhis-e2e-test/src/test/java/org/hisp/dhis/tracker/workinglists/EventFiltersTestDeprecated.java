@@ -25,18 +25,46 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.actions.tracker;
+package org.hisp.dhis.tracker.workinglists;
+
+import java.io.File;
 
 import org.hisp.dhis.actions.RestApiActions;
+import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.ResponseValidationHelper;
+import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TEIActions
-    extends RestApiActions
+public class EventFiltersTestDeprecated
+    extends DeprecatedTrackerApiTest
 {
-    public TEIActions()
+    private RestApiActions eventFiltersActions;
+
+    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
+
+    @BeforeAll
+    public void beforeAll()
     {
-        super( "/trackedEntityInstances" );
+        eventFiltersActions = new RestApiActions( "/eventFilters" );
+
+        loginActions.loginAsSuperUser();
+    }
+
+    @Test
+    public void eventFilterCanBeSaved()
+        throws Exception
+    {
+        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
+
+        ApiResponse response = eventFiltersActions.post( body );
+
+        ResponseValidationHelper.validateObjectCreation( response );
     }
 }

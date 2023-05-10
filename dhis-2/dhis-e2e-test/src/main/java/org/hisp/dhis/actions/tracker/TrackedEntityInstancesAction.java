@@ -25,46 +25,21 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.workinglists;
-
-import java.io.File;
+package org.hisp.dhis.actions.tracker;
 
 import org.hisp.dhis.actions.RestApiActions;
-import org.hisp.dhis.dto.ApiResponse;
-import org.hisp.dhis.helpers.ResponseValidationHelper;
-import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-
-import com.google.gson.JsonObject;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
+ * @deprecated this is a base test class for "old" (deprecated) tracker which
+ *             will be removed with "old" tracker
  */
-public class EventFiltersTest
-    extends TrackerApiTest
+@Deprecated( since = "2.41" )
+public class TrackedEntityInstancesAction
+    extends RestApiActions
 {
-    private RestApiActions eventFiltersActions;
-
-    private String pathToFile = "src/test/resources/tracker/workinglists/eventFilters.json";
-
-    @BeforeAll
-    public void beforeAll()
+    public TrackedEntityInstancesAction()
     {
-        eventFiltersActions = new RestApiActions( "/eventFilters" );
-
-        loginActions.loginAsSuperUser();
-    }
-
-    @Test
-    public void eventFilterCanBeSaved()
-        throws Exception
-    {
-        JsonObject body = new FileReaderUtils().readJsonAndGenerateData( new File( pathToFile ) );
-
-        ApiResponse response = eventFiltersActions.post( body );
-
-        ResponseValidationHelper.validateObjectCreation( response );
+        super( "/trackedEntityInstances" );
     }
 }

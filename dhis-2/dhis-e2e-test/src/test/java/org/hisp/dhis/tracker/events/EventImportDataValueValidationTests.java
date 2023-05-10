@@ -42,7 +42,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventImportDataValueValidationTests
-    extends TrackerApiTest
+    extends DeprecatedTrackerApiTest
 {
     private static String OU_ID = Constants.ORG_UNIT_IDS[0];
 

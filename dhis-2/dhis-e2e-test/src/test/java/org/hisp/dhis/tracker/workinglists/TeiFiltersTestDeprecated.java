@@ -36,7 +36,7 @@ import java.io.IOException;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -45,8 +45,8 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TeiFiltersTest
-    extends TrackerApiTest
+public class TeiFiltersTestDeprecated
+    extends DeprecatedTrackerApiTest
 {
     private RestApiActions workingListActions;
 

@@ -41,7 +41,7 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -51,8 +51,8 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TEIimportTest
-    extends TrackerApiTest
+public class TEIimportTestDeprecated
+    extends DeprecatedTrackerApiTest
 {
     JsonObject object;
 
@@ -69,7 +69,7 @@ public class TEIimportTest
         object = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/teis/teisWithEventsAndEnrollments.json" ) )
             .get( JsonObject.class );
-        teiActions.post( object ).validate().statusCode( 200 );
+        trackedEntityInstancesAction.post( object ).validate().statusCode( 200 );
     }
 
     @Test
@@ -92,7 +92,8 @@ public class TEIimportTest
         tei2enrollment.addProperty( "status", "COMPLETED" );
 
         // act
-        ApiResponse response = teiActions.post( object, new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
+        ApiResponse response = trackedEntityInstancesAction.post( object,
+            new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
 
         // assert
         String eventId = response.validate()
@@ -135,7 +136,7 @@ public class TEIimportTest
     @Test
     void getTeiByPotentialDuplicateParamNull()
     {
-        ApiResponse response = teiActions.get( teiParamsBuilder() );
+        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder() );
 
         response.validate().statusCode( 200 )
             .body( "trackedEntityInstances", iterableWithSize( 2 ) );
@@ -151,7 +152,7 @@ public class TEIimportTest
     @Test
     void getTeiByPotentialDuplicateParamFalse()
     {
-        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
+        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
 
         response.validate().statusCode( 200 )
             .body( "trackedEntityInstances", iterableWithSize( 1 ) )
@@ -163,7 +164,7 @@ public class TEIimportTest
     @Test
     void getTeiByPotentialDuplicateParamTrue()
     {
-        ApiResponse response = teiActions.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
+        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
 
         response.validate().statusCode( 200 )
             .body( "trackedEntityInstances", iterableWithSize( 1 ) )

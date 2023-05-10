@@ -49,7 +49,7 @@ import org.hisp.dhis.dto.Sharing;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -64,7 +64,7 @@ import com.google.gson.JsonObject;
  * @author Stian Sandvold
  */
 public class TrackedEntityInstanceAclReadTests
-    extends TrackerApiTest
+    extends DeprecatedTrackerApiTest
 {
     private static final String _DATAREAD = "..r.*";
 
@@ -89,7 +89,7 @@ public class TrackedEntityInstanceAclReadTests
         metadataActions.importAndValidateMetadata( new File( "src/test/resources/tracker/acl/metadata.json" ) );
 
         // Import test data
-        teiActions.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
+        trackedEntityInstancesAction.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
 
         // Set up all users for testing
         users.add( new User( "User A", "O2PajOxjJSa", "UauosA!123" ) );
@@ -208,7 +208,7 @@ public class TrackedEntityInstanceAclReadTests
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "filter=pyNnf3UaOOg:NE:zz", "trackedEntityType=YDzXLdCvV4h", "ouMode=ACCESSIBLE",
             "fields=*" );
-        ApiResponse response = teiActions.get( "/", queryParamsBuilder );
+        ApiResponse response = trackedEntityInstancesAction.get( "/", queryParamsBuilder );
 
         response.validate().statusCode( 200 );
 
@@ -231,7 +231,7 @@ public class TrackedEntityInstanceAclReadTests
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder();
         queryParamsBuilder.addAll( "trackedEntityInstance=VROP0n2v145", "fields=enrollments[events[dueDate]]" );
 
-        ApiResponse response = teiActions.get( "/", queryParamsBuilder );
+        ApiResponse response = trackedEntityInstancesAction.get( "/", queryParamsBuilder );
 
         response.validate().statusCode( 200 );
         response.validate().body( "trackedEntityInstances", Matchers.not( Matchers.emptyArray() ) );

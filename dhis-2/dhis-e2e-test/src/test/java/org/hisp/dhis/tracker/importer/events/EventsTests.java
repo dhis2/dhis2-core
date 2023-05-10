@@ -44,13 +44,14 @@ import joptsimple.internal.Strings;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.ProgramStageActions;
+import org.hisp.dhis.actions.tracker.EventActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
-import org.hisp.dhis.tracker.TrackerNtiApiTest;
+import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.EventDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assumptions;
@@ -68,13 +69,15 @@ import io.restassured.http.ContentType;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class EventsTests
-    extends TrackerNtiApiTest
+    extends TrackerApiTest
 {
     private static final String OU_ID_0 = Constants.ORG_UNIT_IDS[0];
 
     private static final String OU_ID = Constants.ORG_UNIT_IDS[1];
 
     private static final String OU_ID_2 = Constants.ORG_UNIT_IDS[2];
+
+    private EventActions eventActions;
 
     private static Stream<Arguments> provideEventFilesTestArguments()
     {
@@ -87,6 +90,7 @@ public class EventsTests
     public void beforeAll()
     {
         loginActions.loginAsSuperUser();
+        eventActions = new EventActions();
     }
 
     @Test
@@ -215,6 +219,13 @@ public class EventsTests
             .add( "orgUnit", OU_ID_2 )
             .add( "program", programId );
 
+        // TODO(tracker) eventActions.get() is testing old tracker at /events
+        // this test class should only test new tracker. The call should therefore be replaced with
+        // trackerActions.getEvents( builder )
+        // Right now this leads to this error
+        // dhis-e2e-test-test-1   | JSON path events doesn't match.
+        // dhis-e2e-test-test-1   | Expected: a collection with size a value equal to or greater than <1>
+        //     dhis-e2e-test-test-1   |   Actual: null
         eventActions.get( builder.build() )
             .validate().statusCode( 200 )
             .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )

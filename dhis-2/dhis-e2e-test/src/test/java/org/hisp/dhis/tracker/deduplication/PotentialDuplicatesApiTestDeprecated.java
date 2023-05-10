@@ -33,7 +33,7 @@ import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
 import org.hisp.dhis.actions.tracker.importer.TrackerActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
-import org.hisp.dhis.tracker.TrackerApiTest;
+import org.hisp.dhis.tracker.DeprecatedTrackerApiTest;
 import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
@@ -44,8 +44,8 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesApiTest
-    extends TrackerApiTest
+public class PotentialDuplicatesApiTestDeprecated
+    extends DeprecatedTrackerApiTest
 {
     protected static final String TRACKER_PROGRAM_ID = Constants.TRACKER_PROGRAM_ID;
 

@@ -53,7 +53,7 @@ import org.junit.jupiter.params.provider.MethodSource;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class TrackedEntityAttributeValueGenerationTests
-    extends TrackerApiTest
+    extends DeprecatedTrackerApiTest
 {
     private RestApiActions trackedEntityAttributeActions;
 
