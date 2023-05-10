@@ -54,7 +54,6 @@ import org.hisp.dhis.icon.IconDto;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
-import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -87,8 +86,6 @@ public class IconController
 
     private final FileResourceService fileResourceService;
 
-    private final ContextService contextService;
-
     private final IconMapper iconMapper;
 
     @GetMapping( "/{iconKey}" )
@@ -96,7 +93,7 @@ public class IconController
         throws WebMessageException,
         NotFoundException
     {
-        Icon icon = iconService.getIcon( iconKey, contextService.getApiPath() );
+        Icon icon = iconService.getIcon( iconKey );
 
         if ( icon == null )
         {
@@ -134,11 +131,11 @@ public class IconController
 
         if ( keywords == null )
         {
-            icons = iconService.getIcons( contextService.getApiPath() );
+            icons = iconService.getIcons();
         }
         else
         {
-            icons = iconService.getIcons( keywords, contextService.getApiPath() );
+            icons = iconService.getIcons( keywords );
         }
 
         return icons.stream().map( iconMapper::from ).toList();

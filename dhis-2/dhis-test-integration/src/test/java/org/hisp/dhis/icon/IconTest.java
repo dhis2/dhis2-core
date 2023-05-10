@@ -91,9 +91,9 @@ class IconTest extends TrackerTest
     {
         Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-        assertEquals( defaultIconMap.size() + 1, iconService.getIcons( "contextPath" ).size(),
+        assertEquals( defaultIconMap.size() + 1, iconService.getIcons().size(),
             String.format( "Expected to find %d icons, but found %d instead", defaultIconMap.size() + 1,
-                iconService.getIcons( "contextPath" ).size() ) );
+                iconService.getIcons().size() ) );
     }
 
     @Test
@@ -102,7 +102,7 @@ class IconTest extends TrackerTest
     {
         String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse( null );
 
-        Icon icon = iconService.getIcon( defaultIconKey, "contextPath" );
+        Icon icon = iconService.getIcon( defaultIconKey );
 
         assertEquals( defaultIconKey, icon.getKey() );
     }
@@ -116,7 +116,7 @@ class IconTest extends TrackerTest
 
         assertEquals( keywordList.size() + keywords.size(), iconService.getKeywords().size(),
             String.format( "Expected to find %d icons, but found %d instead", keywordList.size() + 1,
-                iconService.getIcons( "contextPath" ).size() ) );
+                iconService.getIcons().size() ) );
     }
 
     @Test
@@ -146,16 +146,16 @@ class IconTest extends TrackerTest
         iconService.addCustomIcon( new CustomIcon( "iconKeyD", "description", List.of( keyword ), fileResourceD,
             currentUserService.getCurrentUser() ) );
 
-        assertEquals( 1, iconService.getIcons( List.of( "k4", "k5", "k6" ), "contextPath" ).size(),
+        assertEquals( 1, iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size(),
             "Expected one icon containing the keys k4, k5 and k6, but found "
-                + iconService.getIcons( List.of( "k4", "k5", "k6" ), "contextPath" ).size() );
-        assertEquals( 1, iconService.getIcons( List.of( "k6", "k7" ), "contextPath" ).size(),
+                + iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size() );
+        assertEquals( 1, iconService.getIcons( List.of( "k6", "k7" ) ).size(),
             "Expected one icon containing the keys k6 and k7, but found "
-                + iconService.getIcons( List.of( "k6", "k7" ), "contextPath" ).size() );
-        assertEquals( 2, iconService.getIcons( List.of( "k6" ), "contextPath" ).size(),
+                + iconService.getIcons( List.of( "k6", "k7" ) ).size() );
+        assertEquals( 2, iconService.getIcons( List.of( "k6" ) ).size(),
             "Expected two icons containing the key k6, but found "
-                + iconService.getIcons( List.of( "k6" ), "contextPath" ).size() );
-        assertGreaterOrEqual( 2, iconService.getIcons( List.of( keyword ), "contextPath" ).size() );
+                + iconService.getIcons( List.of( "k6" ) ).size() );
+        assertGreaterOrEqual( 2, iconService.getIcons( List.of( keyword ) ).size() );
     }
 
     @Test
@@ -216,8 +216,8 @@ class IconTest extends TrackerTest
 
     private Map<String, DefaultIcon> getAllDefaultIcons()
     {
-        return Arrays.stream( DefaultIcon.Icon.values() )
-            .map( DefaultIcon.Icon::getVariants )
+        return Arrays.stream( DefaultIcon.Icons.values() )
+            .map( DefaultIcon.Icons::getVariants )
             .flatMap( Collection::stream )
             .collect( Collectors.toMap( DefaultIcon::getKey, Function.identity() ) );
     }

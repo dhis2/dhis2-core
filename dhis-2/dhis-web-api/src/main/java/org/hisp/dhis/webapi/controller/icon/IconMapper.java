@@ -89,6 +89,6 @@ public class IconMapper
     private String getDefaultIconReference( String key )
     {
         return String.format( "%s%s/%s/icon.%s", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key,
-            DefaultIcon.Icon.SUFFIX );
+            DefaultIcon.Icons.SUFFIX );
     }
 }

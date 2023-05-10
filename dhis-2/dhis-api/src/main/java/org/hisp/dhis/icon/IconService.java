@@ -43,31 +43,28 @@ public interface IconService
     /**
      * Gets data about all the icons in the system
      *
-     * @param contextApiPath the api path of the context
      * @return a collection of data about all the icons in the system
      */
-    Collection<Icon> getIcons( String contextApiPath );
+    Collection<Icon> getIcons();
 
     /**
      * Gets info about the icons in the system tagged with all the keywords in a
      * collection
      *
      * @param keywords collection of keywords
-     * @param contextApiPath the api path of the context
      * @return a collection of matching icons
      */
-    Collection<Icon> getIcons( Collection<String> keywords, String contextApiPath );
+    Collection<Icon> getIcons( Collection<String> keywords );
 
     /**
      * Gets the icon associated to a key, if it exists
      *
      * @param key key of the icon to find
-     * @param contextApiPath the api path of the context
      * @return icon associated to the key, if found
      * @throws NotFoundException if no icon exists in the database with the
      *         provided key
      */
-    Icon getIcon( String key, String contextApiPath )
+    Icon getIcon( String key )
         throws NotFoundException;
 
     /**

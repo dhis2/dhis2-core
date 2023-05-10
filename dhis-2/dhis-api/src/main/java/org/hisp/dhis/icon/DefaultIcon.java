@@ -54,7 +54,7 @@ public class DefaultIcon implements Icon
         this.keywords = keywords;
     }
 
-    public enum Icon
+    public enum Icons
     {
         _2G( "2g", "", Collections.emptyList() ),
         _3G( "3g", "", Collections.emptyList() ),
@@ -413,26 +413,20 @@ public class DefaultIcon implements Icon
 
         public static final String SUFFIX = "svg";
 
-        private final DefaultIcon defaultIcon;
+        @Getter
+        private final String key;
 
-        Icon( String key, String description, List<String> keywords )
-        {
-            this.defaultIcon = new DefaultIcon( key, description, keywords );
-        }
+        @Getter
+        private final String description;
 
-        public String getKey()
-        {
-            return defaultIcon.getKey();
-        }
+        @Getter
+        private final List<String> keywords;
 
-        public String getDescription()
+        Icons( String key, String description, List<String> keywords )
         {
-            return defaultIcon.getDescription();
-        }
-
-        public List<String> getKeywords()
-        {
-            return defaultIcon.getKeywords();
+            this.key = key;
+            this.description = description;
+            this.keywords = keywords;
         }
 
         public Collection<DefaultIcon> getVariants()

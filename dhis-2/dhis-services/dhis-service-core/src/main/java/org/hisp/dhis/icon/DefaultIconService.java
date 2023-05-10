@@ -66,21 +66,21 @@ public class DefaultIconService
 
     private final FileResourceService fileResourceService;
 
-    private final Map<String, DefaultIcon> defaultIcons = Arrays.stream( DefaultIcon.Icon.values() )
-        .map( DefaultIcon.Icon::getVariants )
+    private final Map<String, DefaultIcon> defaultIcons = Arrays.stream( DefaultIcon.Icons.values() )
+        .map( DefaultIcon.Icons::getVariants )
         .flatMap( Collection::stream )
         .collect( Collectors.toMap( DefaultIcon::getKey, Function.identity() ) );
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Icon> getIcons( String contextApiPath )
+    public Collection<Icon> getIcons()
     {
         return Stream.concat( defaultIcons.values().stream(), customIconStore.getAllIcons().stream() ).toList();
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Icon> getIcons( Collection<String> keywords, String contextApiPath )
+    public Collection<Icon> getIcons( Collection<String> keywords )
     {
         return Stream.concat( defaultIcons.values().stream()
             .filter( icon -> new HashSet<>( icon.getKeywords() ).containsAll( keywords ) ).toList().stream(),
@@ -90,7 +90,7 @@ public class DefaultIconService
 
     @Override
     @Transactional( readOnly = true )
-    public Icon getIcon( String key, String contextApiPath )
+    public Icon getIcon( String key )
         throws NotFoundException
     {
         if ( defaultIcons.containsKey( key ) )
@@ -130,7 +130,7 @@ public class DefaultIconService
         if ( defaultIcons.containsKey( key ) )
         {
             return Optional
-                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icon.SUFFIX ) ) );
+                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icons.SUFFIX ) ) );
         }
 
         throw new NotFoundException( String.format( "No default icon found with key %s.", key ) );
