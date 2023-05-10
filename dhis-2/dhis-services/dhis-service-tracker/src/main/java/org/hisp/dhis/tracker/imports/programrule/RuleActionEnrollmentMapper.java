@@ -36,15 +36,15 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleActionError;
-import org.hisp.dhis.rules.models.RuleActionErrorOnCompletion;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleActionShowError;
-import org.hisp.dhis.rules.models.RuleActionShowWarning;
-import org.hisp.dhis.rules.models.RuleActionWarningOnCompletion;
-import org.hisp.dhis.rules.models.RuleEffects;
+import org.dhis2.ruleengine.models.RuleAction;
+import org.dhis2.ruleengine.models.RuleAction.Assign;
+import org.dhis2.ruleengine.models.RuleAction.ErrorOnCompletion;
+import org.dhis2.ruleengine.models.RuleAction.RuleActionError;
+import org.dhis2.ruleengine.models.RuleAction.SetMandatory;
+import org.dhis2.ruleengine.models.RuleAction.ShowError;
+import org.dhis2.ruleengine.models.RuleAction.ShowWarning;
+import org.dhis2.ruleengine.models.RuleAction.WarningOnCompletion;
+import org.dhis2.ruleengine.models.RuleEffects;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
@@ -90,8 +90,8 @@ class RuleActionEnrollmentMapper
         return ruleEffects
             .getRuleEffects()
             .stream()
-            .map( effect -> buildEnrollmentRuleActionExecutor( effect.ruleId(), effect.data(),
-                effect.ruleAction(), attributes ) )
+            .map( effect -> buildEnrollmentRuleActionExecutor( effect.getRuleId(), effect.getData(),
+                effect.getRuleAction(), attributes ) )
             .filter( Objects::nonNull )
             .collect( Collectors.toList() );
     }
@@ -100,39 +100,39 @@ class RuleActionEnrollmentMapper
         RuleAction ruleAction,
         List<Attribute> attributes )
     {
-        if ( ruleAction instanceof RuleActionAssign )
+        if ( ruleAction instanceof Assign )
         {
-            RuleActionAssign action = (RuleActionAssign) ruleAction;
-            return new AssignAttributeExecutor( systemSettingManager, ruleId, data, action.field(), attributes );
+            Assign action = (Assign) ruleAction;
+            return new AssignAttributeExecutor( systemSettingManager, ruleId, data, action.getField(), attributes );
         }
-        if ( ruleAction instanceof RuleActionSetMandatoryField )
+        if ( ruleAction instanceof SetMandatory )
         {
-            RuleActionSetMandatoryField action = (RuleActionSetMandatoryField) ruleAction;
-            return new SetMandatoryFieldExecutor( ruleId, action.field() );
+            SetMandatory action = (SetMandatory) ruleAction;
+            return new SetMandatoryFieldExecutor( ruleId, action.getField() );
         }
-        if ( ruleAction instanceof RuleActionShowError )
+        if ( ruleAction instanceof ShowError )
         {
-            RuleActionShowError action = (RuleActionShowError) ruleAction;
+            ShowError action = (ShowError) ruleAction;
             return new ShowErrorExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.getField(), action.getContent() ) );
         }
-        if ( ruleAction instanceof RuleActionShowWarning )
+        if ( ruleAction instanceof ShowWarning )
         {
-            RuleActionShowWarning action = (RuleActionShowWarning) ruleAction;
+            ShowWarning action = (ShowWarning) ruleAction;
             return new ShowWarningExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.getField(), action.getContent() ) );
         }
-        if ( ruleAction instanceof RuleActionErrorOnCompletion )
+        if ( ruleAction instanceof ErrorOnCompletion )
         {
-            RuleActionErrorOnCompletion action = (RuleActionErrorOnCompletion) ruleAction;
+            ErrorOnCompletion action = (ErrorOnCompletion) ruleAction;
             return new ShowErrorOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.getField(), action.getContent() ) );
         }
-        if ( ruleAction instanceof RuleActionWarningOnCompletion )
+        if ( ruleAction instanceof WarningOnCompletion )
         {
-            RuleActionWarningOnCompletion action = (RuleActionWarningOnCompletion) ruleAction;
+            WarningOnCompletion action = (WarningOnCompletion) ruleAction;
             return new ShowWarningOnCompleteExecutor(
-                new ValidationRuleAction( ruleId, data, action.field(), action.content() ) );
+                new ValidationRuleAction( ruleId, data, action.getField(), action.getContent() ) );
         }
         if ( ruleAction instanceof RuleActionError )
         {

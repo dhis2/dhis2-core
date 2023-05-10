@@ -36,7 +36,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * DHIS2 equivalent to rule engine
- * {@link org.hisp.dhis.rules.models.RuleActionAssign}
+ * {@link org.dhis2.ruleengine.models.RuleActionAssign}
  *
  * @author Zubair Asghar
  */

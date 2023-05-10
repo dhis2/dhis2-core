@@ -32,6 +32,8 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -45,9 +47,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.template.snapshot.NotificationTemplateService;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,7 +84,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction instanceof RuleActionScheduleMessage;
+        return ruleAction instanceof RuleAction.ScheduleMessage;
     }
 
     @Override
@@ -103,7 +102,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         String key = generateKey( template, enrollment );
 
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+        String date = StringUtils.unwrap( ruleEffect.getData(), '\'' );
 
         if ( !isDateValid( date ) )
         {
@@ -154,7 +153,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
         ProgramNotificationTemplate template = result.getTemplate();
         String key = generateKey( template, event.getEnrollment() );
 
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+        String date = StringUtils.unwrap( ruleEffect.getData(), '\'' );
 
         if ( !isDateValid( date ) )
         {
@@ -189,14 +188,14 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     private void handleSingleEvent( RuleEffect ruleEffect, Event event )
     {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.getRuleAction() );
 
         if ( template == null )
         {
             return;
         }
 
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
+        String date = StringUtils.unwrap( ruleEffect.getData(), '\'' );
 
         if ( !isDateValid( date ) )
         {

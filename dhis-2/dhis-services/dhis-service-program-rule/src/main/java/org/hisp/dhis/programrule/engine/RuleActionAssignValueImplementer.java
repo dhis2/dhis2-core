@@ -35,11 +35,11 @@ import java.util.regex.Pattern;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
+import org.dhis2.ruleengine.models.RuleAction.Assign;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,7 +67,7 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction instanceof RuleActionAssign;
+        return ruleAction instanceof Assign;
     }
 
     @Override
@@ -93,11 +93,11 @@ public class RuleActionAssignValueImplementer implements RuleActionImplementer
             return;
         }
 
-        String value = ruleEffect.data();
+        String value = ruleEffect.getData();
 
-        RuleActionAssign assign = (RuleActionAssign) ruleEffect.ruleAction();
+        Assign assign = (Assign) ruleEffect.getRuleAction();
 
-        String variable = assign.field();
+        String variable = assign.getField();
 
         Matcher matcher = PATTERN.matcher( variable );
 

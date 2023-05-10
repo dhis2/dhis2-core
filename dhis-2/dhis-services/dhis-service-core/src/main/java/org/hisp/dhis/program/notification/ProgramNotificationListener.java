@@ -55,7 +55,7 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onEnrollment( ProgramEnrollmentNotificationEvent event )
     {
-        programNotificationService.sendEnrollmentNotifications( event.getEnrollment() );
+        programNotificationService.sendEnrollmentNotifications( event.getEnrollmentId() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

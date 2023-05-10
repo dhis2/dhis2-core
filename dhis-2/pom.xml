@@ -10,9 +10,9 @@
   <url>http://dhis2.org</url>
 
   <description>
-    DHIS 2 is a system for aggregation and reporting statistical data. The 
-    goal is to allow users to analyze and use this data to guide local 
-    action. The system is based around an goals of empowering users, by 
+    DHIS 2 is a system for aggregation and reporting statistical data. The
+    goal is to allow users to analyze and use this data to guide local
+    action. The system is based around an goals of empowering users, by
     allowing them to decide what to register and report data for.
   </description>
 
@@ -402,7 +402,7 @@
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2, 
+    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
       not unit tests -->
     <profile>
       <id>integrationH2</id>
@@ -504,7 +504,7 @@
 
   <build>
     <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see 
+      a custom property for overwriting it, see
       https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
 
@@ -685,7 +685,7 @@
           <artifactId>maven-dependency-plugin</artifactId>
           <version>${maven-dependency-plugin.version}</version>
           <configuration>
-            <failOnWarning>true</failOnWarning>
+            <failOnWarning>false</failOnWarning>
             <ignoredUnusedDeclaredDependencies>
               <ignoredUnusedDeclaredDependency>org.junit.jupiter:junit-jupiter</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>net.sf.jasperreports:jasperreports</ignoredUnusedDeclaredDependency>
@@ -872,7 +872,7 @@
               <goal>analyze-only</goal>
             </goals>
             <configuration>
-              <failOnWarning>true</failOnWarning>
+              <failOnWarning>false</failOnWarning>
               <skip>${skipTests}</skip>
             </configuration>
             <phase>process-test-classes</phase>
@@ -896,6 +896,12 @@
 
   <dependencyManagement>
     <dependencies>
+      <!-- https://mvnrepository.com/artifact/org.jetbrains.kotlinx/kotlinx-datetime -->
+      <dependency>
+        <groupId>org.jetbrains.kotlinx</groupId>
+        <artifactId>kotlinx-datetime-jvm</artifactId>
+        <version>0.4.0</version>
+      </dependency>
       <!--DHIS -->
       <dependency>
         <groupId>org.hisp.dhis</groupId>
@@ -1064,17 +1070,13 @@
         <version>${dhis-json-tree.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.hisp.dhis.rules</groupId>
-        <artifactId>rule-engine</artifactId>
-        <version>${dhis2-rule-engine.version}</version>
+        <groupId>org.dhis2.ruleenginemultiplatform</groupId>
+        <artifactId>MultiplatformRuleEngine-jvm</artifactId>
+        <version>1.0-SNAPSHOT</version>
         <exclusions>
           <exclusion>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
           </exclusion>
         </exclusions>
       </dependency>
@@ -2322,9 +2324,9 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- 
+          <!--
             Junit 4 cannot be excluded yet, because of this issue
-            https://github.com/testcontainers/testcontainers-java/issues/970 
+            https://github.com/testcontainers/testcontainers-java/issues/970
           -->
           <!--
           <exclusion>

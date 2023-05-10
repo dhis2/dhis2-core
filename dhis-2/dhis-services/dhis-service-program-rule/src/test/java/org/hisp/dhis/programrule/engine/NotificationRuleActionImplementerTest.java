@@ -41,8 +41,9 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 
-import javax.annotation.Nonnull;
-
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.AttributeType;
+import org.dhis2.ruleengine.models.RuleAction;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -57,10 +58,6 @@ import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleActionSetMandatoryField;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -108,7 +105,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private RuleAction ruleActionSendMessage;
 
-    private RuleAction setMandatoryFieldFalse;
+    private RuleAction.SetMandatory setMandatoryFieldFalse;
 
     private Enrollment enrollment;
 
@@ -286,26 +283,11 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         template = new ProgramNotificationTemplate();
         template.setUid( NOTIFICATION_UID );
 
-        ruleActionSendMessage = new RuleActionSendMessage()
-        {
-            @Nonnull
-            @Override
-            public String notification()
-            {
-                return NOTIFICATION_UID;
-            }
+        ruleActionSendMessage = new RuleAction.SendMessage( NOTIFICATION_UID, "" );
 
-            @Nonnull
-            @Override
-            public String data()
-            {
-                return null;
-            }
-        };
+        ruleEffectWithActionSendMessage = new RuleEffect( "", ruleActionSendMessage, "" );
 
-        ruleEffectWithActionSendMessage = RuleEffect.create( "", ruleActionSendMessage );
-
-        setMandatoryFieldFalse = RuleActionSetMandatoryField.create( MANDATORY_FIELD );
+        setMandatoryFieldFalse = new RuleAction.SetMandatory( AttributeType.UNKNOWN, MANDATORY_FIELD, "" );
 
         OrganisationUnit organisationUnitA = createOrganisationUnit( 'A' );
 

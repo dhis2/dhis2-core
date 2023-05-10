@@ -29,10 +29,10 @@ package org.hisp.dhis.programrule.engine;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.rules.models.RuleActionAssign;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -63,8 +63,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex1()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "field", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field" ) );
     }
@@ -72,8 +72,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex2()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field123" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "field123", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field123" ) );
     }
@@ -81,8 +81,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex3()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name-field" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "name-field", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name-field" ) );
     }
@@ -90,8 +90,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex4()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name field" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "name field", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name field" ) );
     }
@@ -99,8 +99,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex5()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name.field" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "name.field", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name.field" ) );
     }
@@ -108,8 +108,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @Test
     void testRuleActionAssignRegex6()
     {
-        assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "first name field" ), "field-data" ), enrollment );
+        assignValueImplementer.implement( new RuleEffect( "ruleId1",
+            new RuleAction.Assign( "first name field", "action-data", "content" ), "field-data" ), enrollment );
 
         assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "first name field" ) );
     }

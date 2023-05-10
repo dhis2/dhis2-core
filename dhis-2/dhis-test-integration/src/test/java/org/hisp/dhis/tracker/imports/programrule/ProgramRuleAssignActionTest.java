@@ -136,7 +136,7 @@ class ProgramRuleAssignActionTest extends TrackerTest
     private void assignProgramRule()
     {
         ProgramRule programRule = createProgramRule( 'F', program, null,
-            "d2:daysBetween('2019-01-28', d2:lastEventDate('ProgramRuleVariableA')) < 5" );
+            "d2:daysBetween('2019-01-28', d2:lastEventDate(#{ProgramRuleVariableA})) < 5" );
         programRuleService.addProgramRule( programRule );
         ProgramRuleAction programRuleAction = createProgramRuleAction( programRule, ASSIGN, dataElement1,
             "#{ProgramRuleVariableA}" );

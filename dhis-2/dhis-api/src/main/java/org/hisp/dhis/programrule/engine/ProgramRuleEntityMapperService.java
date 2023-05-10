@@ -31,12 +31,15 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.dhis2.ruleengine.DataItem;
+import org.dhis2.ruleengine.models.Rule;
+import org.dhis2.ruleengine.models.RuleEnrollment;
+import org.dhis2.ruleengine.models.RuleEvent;
+import org.dhis2.ruleengine.models.RuleVariable;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
-import org.hisp.dhis.rules.DataItem;
-import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**

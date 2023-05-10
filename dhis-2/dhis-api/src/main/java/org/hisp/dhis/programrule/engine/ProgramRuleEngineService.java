@@ -29,8 +29,8 @@ package org.hisp.dhis.programrule.engine;
 
 import java.util.List;
 
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleValidationResult;
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleValidationResult;
 
 /**
  * Created by zubair@dhis2.org on 23.10.17.

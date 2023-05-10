@@ -35,6 +35,12 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.dhis2.ruleengine.DataItem;
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.RuleEngine;
+import org.dhis2.ruleengine.RuleEngineContext;
+import org.dhis2.ruleengine.RuleEngineIntent;
+import org.dhis2.ruleengine.models.*;
 import org.hisp.dhis.commons.collection.ListUtils;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.constant.ConstantService;
@@ -45,11 +51,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
-import org.hisp.dhis.rules.DataItem;
-import org.hisp.dhis.rules.RuleEngine;
-import org.hisp.dhis.rules.RuleEngineContext;
-import org.hisp.dhis.rules.RuleEngineIntent;
-import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 
 /**
@@ -141,7 +142,11 @@ public class ProgramRuleEngine
         {
             RuleEngine ruleEngine = getRuleEngine( program, enrollment,
                 trackedEntityAttributeValues, ruleEvents, rules );
-            return ruleEngine.evaluate().call();
+            if ( ruleEngine == null )
+            {
+                return Collections.emptyList();
+            }
+            return ruleEngine.evaluate();
         }
         catch ( Exception e )
         {
@@ -157,18 +162,7 @@ public class ProgramRuleEngine
     {
         RuleEnrollment ruleEnrollment = getRuleEnrollment( enrollment, trackedEntityAttributeValues );
 
-        RuleEngine.Builder builder = getRuleEngineContext( program,
-            programRules )
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER )
-                .events( ruleEvents );
-
-        if ( ruleEnrollment != null )
-        {
-            builder.enrollment( ruleEnrollment );
-        }
-
-        return builder.build();
+        return new RuleEngine( getRuleEngineContext( program, programRules ), ruleEvents, ruleEnrollment );
     }
 
     public List<ProgramRule> getProgramRules( Program program, List<ProgramStage> programStage )
@@ -200,13 +194,7 @@ public class ProgramRuleEngine
      */
     public RuleValidationResult getDescription( String condition, Program program )
     {
-        if ( program == null )
-        {
-            log.error( ERROR );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
-        }
-
-        return loadRuleEngineForDescription( program ).evaluate( condition );
+        return loadRuleEngineForDescription( program ).getExpressionDescription( condition, true );
     }
 
     /**
@@ -219,21 +207,17 @@ public class ProgramRuleEngine
      */
     public RuleValidationResult getDataExpressionDescription( String dataExpression, Program program )
     {
-        if ( program == null )
-        {
-            log.error( ERROR );
-            return RuleValidationResult.builder().isValid( false ).errorMessage( ERROR ).build();
-        }
 
-        return loadRuleEngineForDescription( program ).evaluateDataFieldExpression( dataExpression );
+        return loadRuleEngineForDescription( program ).getExpressionDescription( dataExpression, false );
     }
 
     private RuleEngine loadRuleEngineForDescription( Program program )
     {
-        List<ProgramRuleVariable> programRuleVariables = programRuleVariableService.getProgramRuleVariable( program );
+        List<ProgramRuleVariable> programRuleVariables = program == null ? List.of()
+            : programRuleVariableService.getProgramRuleVariable( program );
 
-        return ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
-            RuleEngineIntent.DESCRIPTION ).build();
+        return new RuleEngine( ruleEngineBuilder( ListUtils.newList(), programRuleVariables,
+            RuleEngineIntent.DESCRIPTION ), List.of(), null );
     }
 
     private RuleEngineContext getRuleEngineContext( Program program, List<ProgramRule> programRules )
@@ -247,15 +231,16 @@ public class ProgramRuleEngine
 
         Map<String, List<String>> supplementaryData = supplementaryDataProvider.getSupplementaryData( programRules );
 
-        return RuleEngineContext.builder()
-            .supplementaryData( supplementaryData )
-            .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
-            .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-            .constantsValue( constantMap )
-            .build();
+        return new RuleEngineContext(
+            RuleEngineIntent.EVALUATION,
+            programRuleEntityMapperService.toMappedProgramRules( programRules ),
+            programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ),
+            supplementaryData,
+            constantMap,
+            Map.of() );
     }
 
-    private RuleEngine.Builder ruleEngineBuilder( List<ProgramRule> programRules,
+    private RuleEngineContext ruleEngineBuilder( List<ProgramRule> programRules,
         List<ProgramRuleVariable> programRuleVariables, RuleEngineIntent intent )
     {
         Map<String, String> constantMap = constantService.getConstantMap().entrySet()
@@ -268,25 +253,20 @@ public class ProgramRuleEngine
         {
             Map<String, DataItem> itemStore = programRuleEntityMapperService.getItemStore( programRuleVariables );
 
-            return RuleEngineContext.builder()
-                .supplementaryData( supplementaryData )
-                .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
-                .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-                .constantsValue( constantMap ).ruleEngineItent( intent ).itemStore( itemStore )
-                .build()
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER );
+            return new RuleEngineContext( intent,
+                programRuleEntityMapperService.toMappedProgramRules( programRules ),
+                programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ),
+                supplementaryData,
+                constantMap,
+                itemStore );
         }
         else
         {
-            return RuleEngineContext.builder()
-                .supplementaryData( supplementaryData )
-                .rules( programRuleEntityMapperService.toMappedProgramRules( programRules ) )
-                .ruleVariables( programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ) )
-                .constantsValue( constantMap ).ruleEngineItent( intent )
-                .build()
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER );
+            return new RuleEngineContext( intent,
+                programRuleEntityMapperService.toMappedProgramRules( programRules ),
+                programRuleEntityMapperService.toMappedProgramRuleVariables( programRuleVariables ),
+                supplementaryData,
+                constantMap, null );
         }
     }
 
@@ -309,15 +289,9 @@ public class ProgramRuleEngine
 
     private List<RuleEffect> getRuleEngineEvaluation( RuleEngine ruleEngine, Enrollment enrollment,
         Event event, List<TrackedEntityAttributeValue> trackedEntityAttributeValues )
-        throws Exception
     {
-        if ( event == null )
-        {
-            return ruleEngine.evaluate( getRuleEnrollment( enrollment, trackedEntityAttributeValues ) ).call();
-        }
-        else
-        {
-            return ruleEngine.evaluate( getRuleEvent( event ) ).call();
-        }
+        return ruleEngine.evaluate( getRuleEvent( event ),
+            getRuleEnrollment( enrollment, trackedEntityAttributeValues ),
+            ruleEngine.getRuleEngineContext().getRules() );
     }
 }

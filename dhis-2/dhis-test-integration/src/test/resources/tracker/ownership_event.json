@@ -29,7 +29,7 @@
   "validationMode": "FULL",
   "skipPatternValidation": false,
   "skipSideEffects": false,
-  "skipRuleEngine": false,
+  "skipRuleEngine": true,
   "trackedEntities": [],
   "enrollments": [],
   "events": [

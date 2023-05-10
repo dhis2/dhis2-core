@@ -194,9 +194,10 @@
         </dependency>
 
         <!-- Test -->
+
         <dependency>
-            <groupId>org.hisp.dhis.rules</groupId>
-            <artifactId>rule-engine</artifactId>
+            <groupId>org.dhis2.ruleenginemultiplatform</groupId>
+            <artifactId>MultiplatformRuleEngine-jvm</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

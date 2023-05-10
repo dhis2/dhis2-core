@@ -91,8 +91,8 @@
       <artifactId>joda-time</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.hisp.dhis.rules</groupId>
-      <artifactId>rule-engine</artifactId>
+      <groupId>org.dhis2.ruleenginemultiplatform</groupId>
+      <artifactId>MultiplatformRuleEngine-jvm</artifactId>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>

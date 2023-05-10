@@ -46,6 +46,9 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
+import org.dhis2.ruleengine.models.RuleValidationResult;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -61,10 +64,6 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleService;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -170,7 +169,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( Enrollment.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( new RuleEffect( "", new RuleAction.SendMessage( NOTIFICATION_UID, DATA ), DATA ) );
 
         when( enrollmentService.getEnrollment( anyLong() ) ).thenReturn( enrollment );
         when( programRuleEngine.evaluate( any(), any(), any() ) ).thenReturn( effects );
@@ -184,12 +183,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         assertEquals( 1, ruleEffects.size() );
 
-        RuleAction action = ruleEffects.get( 0 ).ruleAction();
-        if ( action instanceof RuleActionSendMessage )
+        RuleAction action = ruleEffects.get( 0 ).getRuleAction();
+        if ( action instanceof RuleAction.SendMessage )
         {
-            RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) action;
+            RuleAction.SendMessage ruleActionSendMessage = (RuleAction.SendMessage) action;
 
-            assertEquals( NOTIFICATION_UID, ruleActionSendMessage.notification() );
+            assertEquals( NOTIFICATION_UID, ruleActionSendMessage.getNotification() );
         }
 
         verify( programRuleEngine, times( 1 ) ).evaluate( argumentCaptor.capture(), any(), any() );
@@ -199,7 +198,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), argumentCaptor.capture() );
 
         assertEquals( 1, this.ruleEffects.size() );
-        assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+        assertTrue( this.ruleEffects.get( 0 ).getRuleAction() instanceof RuleAction.SendMessage );
     }
 
     @Test
@@ -211,7 +210,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( Event.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( new RuleEffect( "", new RuleAction.SendMessage( NOTIFICATION_UID, DATA ), DATA ) );
 
         when( eventService.getEvent( anyString() ) ).thenReturn( event );
         when( enrollmentService.getEnrollment( anyLong() ) ).thenReturn( enrollment );
@@ -229,11 +228,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
             .evaluate( enrollment, event, enrollment.getEvents(),
                 List.of( programRuleA ) );
 
-        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
+        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).getRuleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( Event.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
-        assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+        assertTrue( this.ruleEffects.get( 0 ).getRuleAction() instanceof RuleAction.SendMessage );
     }
 
     @Test
@@ -245,7 +244,7 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
         } ).when( ruleActionSendMessage ).implement( any(), any( Event.class ) );
 
         List<RuleEffect> effects = new ArrayList<>();
-        effects.add( RuleEffect.create( "", RuleActionSendMessage.create( NOTIFICATION_UID, DATA ) ) );
+        effects.add( new RuleEffect( "", new RuleAction.SendMessage( NOTIFICATION_UID, DATA ), DATA ) );
         Program program = createProgram( 'A' );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         ProgramStage programStage = createProgramStage( 'A', program );
@@ -270,11 +269,11 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
 
         verify( enrollmentService, never() ).getEnrollment( any() );
 
-        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).ruleAction() );
+        verify( ruleActionSendMessage ).accept( ruleEffects.get( 0 ).getRuleAction() );
         verify( ruleActionSendMessage ).implement( any( RuleEffect.class ), any( Event.class ) );
 
         assertEquals( 1, this.ruleEffects.size() );
-        assertTrue( this.ruleEffects.get( 0 ).ruleAction() instanceof RuleActionSendMessage );
+        assertTrue( this.ruleEffects.get( 0 ).getRuleAction() instanceof RuleAction.SendMessage );
     }
 
     @Test
@@ -297,12 +296,12 @@ class ProgramRuleEngineServiceTest extends DhisConvenienceTest
     @Test
     void testGetDescription()
     {
-        RuleValidationResult result = RuleValidationResult.builder().isValid( true ).build();
+        RuleValidationResult.Valid result = new RuleValidationResult.Valid( "description" );
         when( programRuleService.getProgramRule( anyString() ) ).thenReturn( programRuleA );
         when( programRuleEngine.getDescription( programRuleA.getCondition(), program ) ).thenReturn( result );
 
         assertNotNull( result );
-        assertTrue( result.isValid() );
+        assertEquals( "description", result.getDescription() );
     }
 
     // -------------------------------------------------------------------------

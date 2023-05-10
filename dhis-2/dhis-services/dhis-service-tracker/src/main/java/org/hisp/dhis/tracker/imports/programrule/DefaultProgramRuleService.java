@@ -39,11 +39,11 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
+import org.dhis2.ruleengine.models.RuleEffects;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
-import org.hisp.dhis.rules.models.RuleEffects;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;

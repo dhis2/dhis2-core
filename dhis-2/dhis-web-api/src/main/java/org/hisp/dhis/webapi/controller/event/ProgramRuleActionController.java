@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.event;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import org.dhis2.ruleengine.models.RuleValidationResult;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.DescriptiveWebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
@@ -38,7 +39,6 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngineService;
-import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.hisp.dhis.schema.descriptors.ProgramRuleActionSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.springframework.http.HttpStatus;
@@ -77,25 +77,24 @@ public class ProgramRuleActionController
 
         RuleValidationResult result = programRuleEngineService.getDataExpressionDescription( condition, programId );
 
-        if ( result.isValid() )
+        if ( result instanceof RuleValidationResult.Valid )
         {
+            RuleValidationResult.Valid valid = (RuleValidationResult.Valid) result;
             return new DescriptiveWebMessage( Status.OK, HttpStatus.OK )
-                .setDescription( result.getDescription() )
+                .setDescription( valid.getDescription() )
                 .setMessage( i18n.getString( ProgramIndicator.VALID ) );
         }
-
         String description = null;
-
-        if ( result.getErrorMessage() != null )
+        RuleValidationResult.Error error = (RuleValidationResult.Error) result;
+        if ( error.getErrorMessage() != null )
         {
-            description = result.getErrorMessage();
+            description = error.getErrorMessage();
         }
-        else if ( result.getException() != null )
+        else if ( error.getException() != null )
         {
-            description = result.getException().getMessage();
+            description = error.getException().getMessage();
         }
-
-        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.CONFLICT )
+        return new DescriptiveWebMessage( Status.ERROR, HttpStatus.OK )
             .setDescription( description )
             .setMessage( i18n.getString( ProgramIndicator.EXPRESSION_NOT_VALID ) );
     }

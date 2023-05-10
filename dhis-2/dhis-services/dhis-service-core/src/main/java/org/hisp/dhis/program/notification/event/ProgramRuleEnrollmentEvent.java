@@ -35,9 +35,9 @@ import org.springframework.context.ApplicationEvent;
  */
 public class ProgramRuleEnrollmentEvent extends ApplicationEvent
 {
-    private long template;
+    private final long template;
 
-    private Enrollment enrollment;
+    private final Enrollment enrollment;
 
     public ProgramRuleEnrollmentEvent( Object source, long template, Enrollment enrollment )
     {

@@ -34,6 +34,10 @@ import java.util.Date;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
+import org.dhis2.ruleengine.models.RuleAction.ScheduleMessage;
+import org.dhis2.ruleengine.models.RuleAction.SendMessage;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
@@ -43,10 +47,6 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -86,15 +86,15 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
     {
         String uid = "";
 
-        if ( action instanceof RuleActionSendMessage )
+        if ( action instanceof SendMessage )
         {
-            RuleActionSendMessage sendMessage = (RuleActionSendMessage) action;
-            uid = sendMessage.notification();
+            SendMessage sendMessage = (SendMessage) action;
+            uid = sendMessage.getNotification();
         }
-        else if ( action instanceof RuleActionScheduleMessage )
+        else if ( action instanceof ScheduleMessage )
         {
-            RuleActionScheduleMessage scheduleMessage = (RuleActionScheduleMessage) action;
-            uid = scheduleMessage.notification();
+            ScheduleMessage scheduleMessage = (ScheduleMessage) action;
+            uid = scheduleMessage.getNotification();
         }
 
         return programNotificationTemplateService.getByUid( uid );
@@ -111,7 +111,7 @@ abstract class NotificationRuleActionImplementer implements RuleActionImplemente
         checkNotNull( ruleEffect, "Rule Effect cannot be null" );
         checkNotNull( enrollment, "Enrollment cannot be null" );
 
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.getRuleAction() );
 
         if ( template == null )
         {

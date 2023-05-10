@@ -29,6 +29,8 @@ package org.hisp.dhis.programrule.engine;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleAction;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
@@ -37,12 +39,10 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
-import org.hisp.dhis.program.notification.*;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
+import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
 import org.hisp.dhis.program.notification.event.ProgramRuleStageEvent;
-import org.hisp.dhis.rules.models.RuleAction;
-import org.hisp.dhis.rules.models.RuleActionSendMessage;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,7 +81,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
     @Override
     public boolean accept( RuleAction ruleAction )
     {
-        return ruleAction instanceof RuleActionSendMessage;
+        return ruleAction instanceof RuleAction.SendMessage;
     }
 
     @Override
@@ -150,7 +150,7 @@ public class RuleActionSendMessageImplementer extends NotificationRuleActionImpl
 
     private void handleSingleEvent( RuleEffect ruleEffect, Event event )
     {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
+        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.getRuleAction() );
 
         if ( template == null )
         {

@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.converter;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.rules.models.RuleEffect;
+import org.dhis2.ruleengine.RuleEffect;
 import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 
 /**

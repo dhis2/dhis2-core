@@ -30,10 +30,10 @@ package org.hisp.dhis.tracker.imports.job;
 import java.util.List;
 import java.util.Map;
 
+import org.dhis2.ruleengine.RuleEffect;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.engine.RuleActionImplementer;
-import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.security.SecurityContextRunnable;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.tracker.imports.converter.TrackerSideEffectConverterService;
@@ -96,7 +96,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
                 entry.getValue()
                     .stream()
-                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .filter( effect -> ruleActionImplementer.accept( effect.getRuleAction() ) )
                     .forEach( effect -> ruleActionImplementer.implement( effect, enrollment ) );
             }
 
@@ -107,7 +107,7 @@ public class TrackerRuleEngineThread extends SecurityContextRunnable
 
                 entry.getValue()
                     .stream()
-                    .filter( effect -> ruleActionImplementer.accept( effect.ruleAction() ) )
+                    .filter( effect -> ruleActionImplementer.accept( effect.getRuleAction() ) )
                     .forEach( effect -> ruleActionImplementer.implement( effect, event ) );
             }
         }

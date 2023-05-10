@@ -34,6 +34,8 @@ import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
+import org.dhis2.ruleengine.RuleEffect;
+import org.dhis2.ruleengine.models.RuleValidationResult;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -42,8 +44,6 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.programrule.ProgramRule;
-import org.hisp.dhis.rules.models.RuleEffect;
-import org.hisp.dhis.rules.models.RuleValidationResult;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -104,7 +104,7 @@ public class DefaultProgramRuleEngineService
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.getRuleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, enrollment );
@@ -175,7 +175,7 @@ public class DefaultProgramRuleEngineService
 
         for ( RuleEffect effect : ruleEffects )
         {
-            ruleActionImplementers.stream().filter( i -> i.accept( effect.ruleAction() ) ).forEach( i -> {
+            ruleActionImplementers.stream().filter( i -> i.accept( effect.getRuleAction() ) ).forEach( i -> {
                 log.debug( String.format( "Invoking action implementer: %s", i.getClass().getSimpleName() ) );
 
                 i.implement( effect, event );
