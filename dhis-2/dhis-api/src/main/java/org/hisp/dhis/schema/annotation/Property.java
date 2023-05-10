@@ -32,6 +32,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.hisp.dhis.schema.PropertyType;
+
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
@@ -39,7 +41,7 @@ import java.lang.annotation.Target;
 @Retention( RetentionPolicy.RUNTIME )
 public @interface Property
 {
-    org.hisp.dhis.schema.PropertyType value() default org.hisp.dhis.schema.PropertyType.TEXT;
+    org.hisp.dhis.schema.PropertyType value() default PropertyType.DEFAULT;
 
     Value required() default Value.DEFAULT;
 
