@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.hisp.dhis.jsontree.*;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonWebLocale;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -87,10 +88,10 @@ class LocaleControllerTest extends DhisControllerConvenienceTest
         assertEquals( "en", userEnglishLocale );
 
         JsonArray response = GET( "/locales/ui" ).content();
-        JsonObject firstElement = response.getObject( 0 );
-        assertEquals( "ar", firstElement.getString( "locale" ).string() );
-        assertEquals( "العربية", firstElement.getString( "name" ).string() );
-        assertEquals( "Arabic", firstElement.getString( "displayName" ).string() );
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "ar", firstElement.getLocale() );
+        assertEquals( "العربية", firstElement.getName() );
+        assertEquals( "Arabic", firstElement.getDisplayName() );
     }
 
     @Test
@@ -98,16 +99,40 @@ class LocaleControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr" );
         JsonArray response = GET( "/locales/ui" ).content();
-        JsonObject firstElement = response.getObject( 0 );
-        assertEquals( "en", firstElement.getString( "locale" ).string() );
-        assertEquals( "English", firstElement.getString( "name" ).string() );
-        assertEquals( "anglais", firstElement.getString( "displayName" ).string() );
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "en", firstElement.getLocale() );
+        assertEquals( "English", firstElement.getName() );
+        assertEquals( "anglais", firstElement.getDisplayName() );
     }
 
     @Test
     void testGetDbLocales()
     {
+        POST( "/locales/dbLocales?country=IE&language=en" );
         JsonArray response = GET( "/locales/db" ).content();
-        assertEquals( 38, response.size() );
+        assertEquals( 1, response.size() );
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "en_IE", firstElement.getLocale() );
+        assertEquals( "English (Ireland)", firstElement.getName() );
+        assertEquals( "English (Ireland)", firstElement.getDisplayName() );
+    }
+
+    @Test
+    void testGetDbLocalesAfterUserLanguageChange()
+    {
+        POST( "/locales/dbLocales?country=IE&language=en" );
+        JsonArray response = GET( "/locales/db" ).content();
+        assertEquals( 1, response.size() );
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "en_IE", firstElement.getLocale() );
+        assertEquals( "English (Ireland)", firstElement.getName() );
+        assertEquals( "English (Ireland)", firstElement.getDisplayName() );
+
+        POST( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr" );
+        JsonArray response2 = GET( "/locales/db" ).content();
+        JsonWebLocale dbLocaleElement = response2.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "en_IE", dbLocaleElement.getLocale() );
+        assertEquals( "English (Ireland)", dbLocaleElement.getName() );
+        assertEquals( "anglais (Irlande)", dbLocaleElement.getDisplayName() );
     }
 }
