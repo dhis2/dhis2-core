@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import org.hisp.dhis.jsontree.*;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -68,5 +70,44 @@ class LocaleControllerTest extends DhisControllerConvenienceTest
         assertStatus( HttpStatus.CREATED, POST( "/locales/dbLocales?language=en&country=GB" ) );
         assertWebMessage( "Conflict", 409, "ERROR", "Locale code existed.",
             POST( "/locales/dbLocales?language=en&country=GB" ).content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testGetUiLocales()
+    {
+        JsonArray response = GET( "/locales/ui" ).content();
+        assertEquals( 38, response.size() );
+    }
+
+    @Test
+    void testGetUiLocalesInUserLanguage()
+    {
+        String userEnglishLocale = GET( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID )
+            .content( "text/plain; charset=UTF-8" );
+        assertEquals( "en", userEnglishLocale );
+
+        JsonArray response = GET( "/locales/ui" ).content();
+        JsonObject firstElement = response.getObject( 0 );
+        assertEquals( "ar", firstElement.getString( "locale" ).string() );
+        assertEquals( "العربية", firstElement.getString( "name" ).string() );
+        assertEquals( "Arabic", firstElement.getString( "displayName" ).string() );
+    }
+
+    @Test
+    void testGetUiLocaleAfterUserLanguageChange()
+    {
+        POST( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID + "&value=fr" );
+        JsonArray response = GET( "/locales/ui" ).content();
+        JsonObject firstElement = response.getObject( 0 );
+        assertEquals( "en", firstElement.getString( "locale" ).string() );
+        assertEquals( "English", firstElement.getString( "name" ).string() );
+        assertEquals( "anglais", firstElement.getString( "displayName" ).string() );
+    }
+
+    @Test
+    void testGetDbLocales()
+    {
+        JsonArray response = GET( "/locales/db" ).content();
+        assertEquals( 38, response.size() );
     }
 }
