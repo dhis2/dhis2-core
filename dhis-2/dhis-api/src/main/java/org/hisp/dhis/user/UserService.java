@@ -466,6 +466,10 @@ public interface UserService
     List<User> getUsersWithAuthority( String authority );
 
     /**
+     * Use this method instead of {@link #createUserDetails(User)} if no
+     * {@link User} instance is available or if the one available is not fully
+     * loaded or connected to a session.
+     *
      * @see #createUserDetails(User)
      * @param userUid UID of the {@link CurrentUserDetails} to create
      * @return the implementation object

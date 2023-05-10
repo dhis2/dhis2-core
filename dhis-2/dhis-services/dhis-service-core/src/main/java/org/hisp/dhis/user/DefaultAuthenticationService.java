@@ -27,13 +27,10 @@
  */
 package org.hisp.dhis.user;
 
-import java.util.Collection;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.NotFoundException;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -53,70 +50,16 @@ public class DefaultAuthenticationService implements AuthenticationService
             clearAuthentication();
             return;
         }
-        SecurityContextHolder.setContext( createSecurityContext( userId ) );
+        CurrentUserDetails user = userService.createUserDetails( userId );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(
+            new UsernamePasswordAuthenticationToken( user.getUsername(), null, user.getAuthorities() ) );
+        SecurityContextHolder.setContext( context );
     }
 
     @Override
     public void clearAuthentication()
     {
         SecurityContextHolder.clearContext();
-    }
-
-    private SecurityContext createSecurityContext( String userId )
-        throws NotFoundException
-    {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( new CurrentUserDetailsAuthentication( userService.createUserDetails( userId ) ) );
-        return context;
-    }
-
-    @RequiredArgsConstructor
-    private static class CurrentUserDetailsAuthentication implements Authentication
-    {
-
-        private final CurrentUserDetails user;
-
-        @Override
-        public Collection<? extends GrantedAuthority> getAuthorities()
-        {
-            return user.getAuthorities();
-        }
-
-        @Override
-        public Object getCredentials()
-        {
-            return null;
-        }
-
-        @Override
-        public Object getDetails()
-        {
-            return user;
-        }
-
-        @Override
-        public Object getPrincipal()
-        {
-            return user;
-        }
-
-        @Override
-        public boolean isAuthenticated()
-        {
-            return true;
-        }
-
-        @Override
-        public void setAuthenticated( boolean isAuthenticated )
-            throws IllegalArgumentException
-        {
-            throw new UnsupportedOperationException( "Cannot be changed" );
-        }
-
-        @Override
-        public String getName()
-        {
-            return user.getUsername();
-        }
     }
 }
