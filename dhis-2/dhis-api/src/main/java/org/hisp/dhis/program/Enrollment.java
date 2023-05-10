@@ -37,8 +37,6 @@ import java.util.Set;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -47,17 +45,10 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew
  */
 @Auditable( scope = AuditScope.TRACKER )
-@JacksonXmlRootElement( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
 public class Enrollment
     extends SoftDeletableObject
 {
@@ -199,8 +190,6 @@ public class Enrollment
     // Getters and setters
     // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCreatedAtClient()
     {
         return createdAtClient;
@@ -211,8 +200,6 @@ public class Enrollment
         this.createdAtClient = createdAtClient;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastUpdatedAtClient()
     {
         return lastUpdatedAtClient;
@@ -223,9 +210,6 @@ public class Enrollment
         this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
@@ -237,8 +221,6 @@ public class Enrollment
         return this;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getIncidentDate()
     {
         return incidentDate;
@@ -249,8 +231,6 @@ public class Enrollment
         this.incidentDate = incidentDate;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getEnrollmentDate()
     {
         return enrollmentDate;
@@ -261,8 +241,6 @@ public class Enrollment
         this.enrollmentDate = enrollmentDate;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getEndDate()
     {
         return endDate;
@@ -273,8 +251,6 @@ public class Enrollment
         this.endDate = endDate;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UserInfoSnapshot getCreatedByUserInfo()
     {
         return createdByUserInfo;
@@ -285,8 +261,6 @@ public class Enrollment
         this.createdByUserInfo = createdByUserInfo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UserInfoSnapshot getLastUpdatedByUserInfo()
     {
         return lastUpdatedByUserInfo;
@@ -297,8 +271,6 @@ public class Enrollment
         this.lastUpdatedByUserInfo = lastUpdatedByUserInfo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ProgramStatus getStatus()
     {
         return status;
@@ -309,9 +281,6 @@ public class Enrollment
         this.status = status;
     }
 
-    @JsonProperty( "trackedEntityInstance" )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntity getTrackedEntity()
     {
         return trackedEntity;
@@ -322,9 +291,6 @@ public class Enrollment
         this.trackedEntity = trackedEntity;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Program getProgram()
     {
         return program;
@@ -335,9 +301,6 @@ public class Enrollment
         this.program = program;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "events", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
     public Set<Event> getEvents()
     {
         return events;
@@ -348,8 +311,6 @@ public class Enrollment
         this.events = events;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Boolean getFollowup()
     {
         return followup;
@@ -360,9 +321,6 @@ public class Enrollment
         this.followup = followup;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "messageConversations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "messageConversation", namespace = DxfNamespaces.DXF_2_0 )
     public List<MessageConversation> getMessageConversations()
     {
         return messageConversations;
@@ -373,9 +331,6 @@ public class Enrollment
         this.messageConversations = messageConversations;
     }
 
-    @JsonProperty( "trackedEntityComments" )
-    @JacksonXmlElementWrapper( localName = "trackedEntityComments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityComment", namespace = DxfNamespaces.DXF_2_0 )
     public List<TrackedEntityComment> getComments()
     {
         return comments;
@@ -386,8 +341,6 @@ public class Enrollment
         this.comments = comments;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getCompletedBy()
     {
         return completedBy;
@@ -398,8 +351,6 @@ public class Enrollment
         this.completedBy = completedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
     {
         return geometry;
@@ -410,8 +361,6 @@ public class Enrollment
         this.geometry = geometry;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
@@ -422,9 +371,6 @@ public class Enrollment
         this.storedBy = storedBy;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
     public Set<RelationshipItem> getRelationshipItems()
     {
         return relationshipItems;

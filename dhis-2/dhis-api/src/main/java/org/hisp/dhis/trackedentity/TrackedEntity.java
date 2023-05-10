@@ -35,8 +35,6 @@ import java.util.Set;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
@@ -45,17 +43,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.locationtech.jts.geom.Geometry;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Abyot Asalefew Gizaw
  */
-@JacksonXmlRootElement( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
 @Auditable( scope = AuditScope.TRACKER )
 public class TrackedEntity
     extends SoftDeletableObject
@@ -133,12 +123,6 @@ public class TrackedEntity
         attributeValue.setTrackedEntity( null );
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public boolean isPotentialDuplicate()
     {
         return potentialDuplicate;
@@ -149,8 +133,6 @@ public class TrackedEntity
         this.potentialDuplicate = potentialDuplicate;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getCreatedAtClient()
     {
         return createdAtClient;
@@ -161,8 +143,6 @@ public class TrackedEntity
         this.createdAtClient = createdAtClient;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Date getLastUpdatedAtClient()
     {
         return lastUpdatedAtClient;
@@ -173,8 +153,6 @@ public class TrackedEntity
         this.lastUpdatedAtClient = lastUpdatedAtClient;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getStoredBy()
     {
         return storedBy;
@@ -185,9 +163,6 @@ public class TrackedEntity
         this.storedBy = storedBy;
     }
 
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public OrganisationUnit getOrganisationUnit()
     {
         return organisationUnit;
@@ -198,9 +173,6 @@ public class TrackedEntity
         this.organisationUnit = organisationUnit;
     }
 
-    @JsonProperty( "trackedEntityAttributeValues" )
-    @JacksonXmlElementWrapper( localName = "trackedEntityAttributeValues", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityAttributeValue", namespace = DxfNamespaces.DXF_2_0 )
     public Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues()
     {
         return trackedEntityAttributeValues;
@@ -211,9 +183,6 @@ public class TrackedEntity
         this.trackedEntityAttributeValues = trackedEntityAttributeValues;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
     public Set<Enrollment> getEnrollments()
     {
         return enrollments;
@@ -224,9 +193,6 @@ public class TrackedEntity
         this.enrollments = enrollments;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "programOwners", namespace = DxfNamespaces.DXF_2_0 )
     public Set<TrackedEntityProgramOwner> getProgramOwners()
     {
         return programOwners;
@@ -237,9 +203,6 @@ public class TrackedEntity
         this.programOwners = programOwners;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "trackedEntityType", namespace = DxfNamespaces.DXF_2_0 )
     public TrackedEntityType getTrackedEntityType()
     {
         return trackedEntityType;
@@ -250,8 +213,6 @@ public class TrackedEntity
         this.trackedEntityType = trackedEntityType;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "inactive", namespace = DxfNamespaces.DXF_2_0 )
     public Boolean isInactive()
     {
         return inactive;
@@ -262,7 +223,6 @@ public class TrackedEntity
         this.inactive = inactive;
     }
 
-    @JsonIgnore
     public Date getLastSynchronized()
     {
         return lastSynchronized;
@@ -273,9 +233,6 @@ public class TrackedEntity
         this.lastSynchronized = lastSynchronized;
     }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "relationshipItems", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "relationshipItem", namespace = DxfNamespaces.DXF_2_0 )
     public Set<RelationshipItem> getRelationshipItems()
     {
         return relationshipItems;
@@ -286,8 +243,6 @@ public class TrackedEntity
         this.relationshipItems = relationshipItems;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Geometry getGeometry()
     {
         return geometry;
@@ -298,8 +253,6 @@ public class TrackedEntity
         this.geometry = geometry;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UserInfoSnapshot getCreatedByUserInfo()
     {
         return createdByUserInfo;
@@ -310,8 +263,6 @@ public class TrackedEntity
         this.createdByUserInfo = createdByUserInfo;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public UserInfoSnapshot getLastUpdatedByUserInfo()
     {
         return lastUpdatedByUserInfo;

@@ -27,16 +27,10 @@
  */
 package org.hisp.dhis.relationship;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
  * @author Stian Sandvold
@@ -68,9 +62,6 @@ public class RelationshipItem implements EmbeddedObject
         this.id = id;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     public Relationship getRelationship()
     {
         return relationship;
@@ -81,9 +72,6 @@ public class RelationshipItem implements EmbeddedObject
         this.relationship = relationship;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     public TrackedEntity getTrackedEntity()
     {
         return trackedEntity;
@@ -94,9 +82,6 @@ public class RelationshipItem implements EmbeddedObject
         this.trackedEntity = trackedEntity;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     public Enrollment getEnrollment()
     {
         return enrollment;
@@ -107,9 +92,6 @@ public class RelationshipItem implements EmbeddedObject
         this.enrollment = enrollment;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @JsonSerialize( as = BaseIdentifiableObject.class )
     public Event getEvent()
     {
         return event;

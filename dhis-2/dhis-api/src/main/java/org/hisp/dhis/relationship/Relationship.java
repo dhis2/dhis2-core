@@ -32,22 +32,13 @@ import java.io.Serializable;
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
 import org.hisp.dhis.audit.Auditable;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.SoftDeletableObject;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
  * @author Abyot Asalefew
  * @author Stian Sandvold
  */
-@JacksonXmlRootElement( localName = "relationship", namespace = DxfNamespaces.DXF_2_0 )
 @Auditable( scope = AuditScope.TRACKER )
 public class Relationship
     extends SoftDeletableObject
@@ -86,24 +77,13 @@ public class Relationship
      */
     private String invertedKey;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
     public Relationship()
     {
     }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
-
     /**
      * @return the relationshipType
      */
-    @JsonProperty
-    @JsonSerialize( as = BaseIdentifiableObject.class )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RelationshipType getRelationshipType()
     {
         return relationshipType;
@@ -117,8 +97,6 @@ public class Relationship
         this.relationshipType = relationshipType;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public ObjectStyle getStyle()
     {
         return style;
@@ -129,8 +107,6 @@ public class Relationship
         this.style = style;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getFormName()
     {
         return formName;
@@ -141,8 +117,6 @@ public class Relationship
         this.formName = formName;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public String getDescription()
     {
         return description;
@@ -153,8 +127,6 @@ public class Relationship
         this.description = description;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RelationshipItem getFrom()
     {
         return from;
@@ -165,8 +137,6 @@ public class Relationship
         this.from = from;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public RelationshipItem getTo()
     {
         return to;
@@ -177,7 +147,6 @@ public class Relationship
         this.to = to;
     }
 
-    @JsonIgnore
     public String getKey()
     {
         return key;
@@ -188,7 +157,6 @@ public class Relationship
         this.key = key;
     }
 
-    @JsonIgnore
     public String getInvertedKey()
     {
         return invertedKey;
