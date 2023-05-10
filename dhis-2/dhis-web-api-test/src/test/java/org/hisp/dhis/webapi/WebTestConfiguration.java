@@ -265,6 +265,8 @@ public class WebTestConfiguration
                 Authentication auth = SecurityContextHolder.getContext().getAuthentication();
                 try
                 {
+                    // executing will set and clear the SecurityContext
+                    // so it is restored afterward to what it was before
                     return execute( configuration );
                 }
                 finally

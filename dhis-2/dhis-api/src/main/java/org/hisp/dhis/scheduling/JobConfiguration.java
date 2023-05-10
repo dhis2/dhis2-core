@@ -474,7 +474,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         return executedBy;
     }
 
-    @JacksonXmlProperty
+    @JsonProperty
     public String getExecutedBy()
     {
         return executedBy;

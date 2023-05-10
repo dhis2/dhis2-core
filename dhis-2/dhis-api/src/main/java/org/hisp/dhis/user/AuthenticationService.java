@@ -42,12 +42,13 @@ public interface AuthenticationService
 {
     /**
      * Internally "login" as the provided user in the current thread without
-     * providing credentials of some sort.
+     * providing credentials of some sort. The created context authority will
+     * not have credentials.
      * <p>
      * A.k.a. "becoming" a certain user
      * <p>
-     * When user parameter is undefined the current thread is unlinked from any
-     * user.
+     * When user ID parameter is undefined the current thread is unlinked from
+     * any user.
      *
      * @param userId as this user, maybe {@code null} to unlink the current
      *        thread from a user
