@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Chau Thu Tran
@@ -463,6 +464,14 @@ public interface UserService
      * authority.
      */
     List<User> getUsersWithAuthority( String authority );
+
+    /**
+     * @see #createUserDetails(User)
+     * @param userUid UID of the {@link CurrentUserDetails} to create
+     * @return the implementation object
+     */
+    CurrentUserDetails createUserDetails( String userUid )
+        throws NotFoundException;
 
     /**
      * It creates a CurrentUserDetailsImpl object from a User object. It also

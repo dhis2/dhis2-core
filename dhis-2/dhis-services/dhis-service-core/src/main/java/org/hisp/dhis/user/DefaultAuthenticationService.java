@@ -53,12 +53,7 @@ public class DefaultAuthenticationService implements AuthenticationService
             clearAuthentication();
             return;
         }
-        User user = userService.getUser( userId );
-        if ( user == null )
-        {
-            throw new NotFoundException( User.class, userId );
-        }
-        SecurityContextHolder.setContext( createSecurityContext( user ) );
+        SecurityContextHolder.setContext( createSecurityContext( userId ) );
     }
 
     @Override
@@ -67,10 +62,11 @@ public class DefaultAuthenticationService implements AuthenticationService
         SecurityContextHolder.clearContext();
     }
 
-    private SecurityContext createSecurityContext( User user )
+    private SecurityContext createSecurityContext( String userId )
+        throws NotFoundException
     {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication( new CurrentUserDetailsAuthentication( userService.createUserDetails( user ) ) );
+        context.setAuthentication( new CurrentUserDetailsAuthentication( userService.createUserDetails( userId ) ) );
         return context;
     }
 

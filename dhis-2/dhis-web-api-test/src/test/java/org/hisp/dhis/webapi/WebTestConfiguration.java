@@ -75,6 +75,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -259,7 +262,17 @@ public class WebTestConfiguration
         {
             if ( enabled )
             {
-                return execute( configuration );
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                try
+                {
+                    return execute( configuration );
+                }
+                finally
+                {
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication( auth );
+                    SecurityContextHolder.setContext( context );
+                }
             }
             return !isRunning;
         }

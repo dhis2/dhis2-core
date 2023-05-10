@@ -301,9 +301,15 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             // run the actual job
             support.getEventHookPublisher().publishEvent( EventUtils.schedulerStart( configuration ) );
 
-            support.getAuthenticationService().obtainAuthentication( configuration.getExecutedBy() );
-            support.getJobService().getJob( type ).execute( configuration, progress );
-            support.getAuthenticationService().clearAuthentication();
+            try
+            {
+                support.getAuthenticationService().obtainAuthentication( configuration.getExecutedBy() );
+                support.getJobService().getJob( type ).execute( configuration, progress );
+            }
+            finally
+            {
+                support.getAuthenticationService().clearAuthentication();
+            }
 
             Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
@@ -334,8 +340,6 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         catch ( Exception ex )
         {
             progress.failedProcess( ex );
-            support.getAuthenticationService().clearAuthentication();
-
             whenRunThrewException( configuration, ex, progress );
             support.getEventHookPublisher().publishEvent( EventUtils.schedulerFailed( configuration ) );
             return false;
