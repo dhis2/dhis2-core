@@ -43,7 +43,7 @@ import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 public class JsonAssertions
 {
@@ -86,11 +86,11 @@ public class JsonAssertions
 
         assertEquals( expected.getStatus().toString(), jsonEvent.getStatus(), "event status" );
         assertEquals( expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID" );
-        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
+        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID" );
         assertFalse( jsonEvent.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
-    public static void assertTrackedEntityWithinRelationshipItem( TrackedEntityInstance expected,
+    public static void assertTrackedEntityWithinRelationshipItem( TrackedEntity expected,
         JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonTrackedEntity jsonTEI = actual.getTrackedEntity();
@@ -116,7 +116,7 @@ public class JsonAssertions
         JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );
         assertEquals( expected.getUid(), jsonEnrollment.getEnrollment(), "enrollment UID" );
-        assertEquals( expected.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
+        assertEquals( expected.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
         assertEquals( expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID" );
         assertEquals( expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID" );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty(), "events should be empty" );

@@ -32,7 +32,7 @@ import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramTempOwner;
 import org.hisp.dhis.program.ProgramTempOwnerStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -63,7 +63,7 @@ public class HibernateProgramTempOwnerStore
     }
 
     @Override
-    public int getValidTempOwnerCount( Program program, TrackedEntityInstance entityInstance, User user )
+    public int getValidTempOwnerCount( Program program, TrackedEntity entityInstance, User user )
     {
         final String sql = "select count(1) from programtempowner "
             + "where programid = ? and trackedentityinstanceid=? and userid=? "

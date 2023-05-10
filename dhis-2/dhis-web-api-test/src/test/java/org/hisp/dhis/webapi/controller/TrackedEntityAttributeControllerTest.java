@@ -43,8 +43,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.web.HttpStatus;
@@ -63,7 +63,7 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 
     private Program program;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
     private Enrollment enrollment;
 
@@ -142,7 +142,7 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         program.getProgramAttributes().add( pteaB );
         manager.update( program );
 
-        tei = createTrackedEntityInstance( orgUnit );
+        tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 

@@ -71,21 +71,20 @@ public interface MaintenanceService
     int deleteSoftDeletedRelationships();
 
     /**
-     * Permanently deletes program instances which have been soft deleted, i.e.
-     * program instances where the deleted property is true.
+     * Permanently deletes Enrollments which have been soft deleted, i.e.
+     * Enrollments where the deleted property is true.
      *
-     * @return the number of deleted program instances.
+     * @return the number of deleted Enrollments.
      */
-    int deleteSoftDeletedProgramInstances();
+    int deleteSoftDeletedEnrollments();
 
     /**
-     * Permanently deletes tracked entity instances which have been soft
-     * deleted, i.e. tracked entity instances where the deleted property is
-     * true.
+     * Permanently deletes tracked entities which have been soft deleted, i.e.
+     * tracked entities where the deleted property is true.
      *
-     * @return the number of deleted tracked entity instances.
+     * @return the number of deleted tracked entities
      */
-    int deleteSoftDeletedTrackedEntityInstances();
+    int deleteSoftDeletedTrackedEntities();
 
     /**
      * Deletes periods which are not associated with any other table.

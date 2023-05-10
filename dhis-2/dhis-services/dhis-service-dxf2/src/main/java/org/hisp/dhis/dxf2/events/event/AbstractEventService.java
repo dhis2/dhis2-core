@@ -126,8 +126,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -174,7 +174,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
 
     protected CurrentUserService currentUserService;
 
-    protected TrackedEntityInstanceService entityInstanceService;
+    protected TrackedEntityService entityInstanceService;
 
     protected TrackedEntityCommentService commentService;
 
@@ -214,7 +214,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
-    private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+    private final Set<TrackedEntity> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // CREATE
@@ -580,9 +580,9 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
         org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( programStageInstance.getUid() );
 
-        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
-            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
+            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
         event.setFollowup( programStageInstance.getEnrollment().getFollowup() );
@@ -640,10 +640,10 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
         }
-        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
             event
-                .setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
+                .setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
         Collection<EventDataValue> dataValues;
@@ -864,7 +864,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService
-                    .updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
+                    .updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
             }
 
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,
@@ -1122,17 +1122,17 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             {
                 if ( !bulkUpdate )
                 {
-                    if ( event.getEnrollment().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
-                        manager.update( event.getEnrollment().getEntityInstance(), user );
+                        manager.update( event.getEnrollment().getTrackedEntity(), user );
                     }
                 }
                 else
                 {
-                    if ( event.getEnrollment().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
                         trackedEntityInstancesToUpdate
-                            .add( event.getEnrollment().getEntityInstance() );
+                            .add( event.getEnrollment().getTrackedEntity() );
                     }
                 }
             }

@@ -70,10 +70,10 @@ import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -130,7 +130,7 @@ class EnrollmentSMSListenerTest
     // Needed for this test
 
     @Mock
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Mock
     private EnrollmentService enrollmentService;
@@ -183,7 +183,7 @@ class EnrollmentSMSListenerTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private CategoryOptionCombo categoryOptionCombo;
 
@@ -210,7 +210,7 @@ class EnrollmentSMSListenerTest
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( enrollmentService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
+        when( enrollmentService.enrollTrackedEntity( any(), any(), any(), any(), any(), any() ) )
             .thenReturn( enrollment );
         when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 
@@ -365,11 +365,11 @@ class EnrollmentSMSListenerTest
         event = new Event();
         event.setAutoFields();
 
-        trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
-        trackedEntityInstance.setOrganisationUnit( organisationUnit );
+        trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance,
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
@@ -392,7 +392,7 @@ class EnrollmentSMSListenerTest
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setTrackerProgram( program.getUid() );
         subm.setTrackedEntityType( trackedEntityType.getUid() );
-        subm.setTrackedEntityInstance( trackedEntityInstance.getUid() );
+        subm.setTrackedEntityInstance( trackedEntity.getUid() );
         subm.setEnrollment( enrollment.getUid() );
         subm.setEnrollmentDate( new Date() );
         subm.setIncidentDate( new Date() );

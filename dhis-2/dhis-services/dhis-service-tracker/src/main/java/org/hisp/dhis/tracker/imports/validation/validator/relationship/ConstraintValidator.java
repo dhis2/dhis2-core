@@ -30,21 +30,20 @@ package org.hisp.dhis.tracker.imports.validation.validator.relationship;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E4012;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.enrollmentExist;
 import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.eventExist;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityInstanceExist;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityExists;
 import static org.hisp.dhis.tracker.imports.validation.validator.relationship.ValidationUtils.relationshipItemValueType;
 
 import java.util.Optional;
 
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
 import org.hisp.dhis.tracker.imports.domain.RelationshipItem;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.Validator;
@@ -72,10 +71,10 @@ public class ConstraintValidator implements Validator<Relationship>
         switch ( constraint.getRelationshipEntity() )
         {
         case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityInstanceRelationship( reporter, bundle, relationship, item, relSide, constraint );
+            validateTrackedEntityRelationship( reporter, bundle, relationship, item, relSide, constraint );
             break;
         case PROGRAM_INSTANCE:
-            validateProgramInstanceRelationship( reporter, bundle, relationship, item, relSide );
+            validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
             break;
         case PROGRAM_STAGE_INSTANCE:
             validateEventRelationship( reporter, bundle, relationship, item, relSide );
@@ -85,7 +84,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private void validateTrackedEntityInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+    private void validateTrackedEntityRelationship( Reporter reporter, TrackerBundle bundle,
         Relationship relationship, RelationshipItem item, String relSide, RelationshipConstraint constraint )
     {
         if ( item.getTrackedEntity() == null )
@@ -93,17 +92,17 @@ public class ConstraintValidator implements Validator<Relationship>
             reporter.addError( relationship, ValidationCode.E4010, relSide,
                 TrackerType.TRACKED_ENTITY.getName(), relationshipItemValueType( item ).getName() );
         }
-        else if ( !trackedEntityInstanceExist( bundle, item.getTrackedEntity() ) )
+        else if ( !trackedEntityExists( bundle, item.getTrackedEntity() ) )
         {
             reporter.addError( relationship, E4012, TrackerType.TRACKED_ENTITY.getName(), item.getTrackedEntity() );
         }
         else
         {
-            validateTrackedEntityInstanceType( item, reporter, relationship, relSide, bundle, constraint );
+            validateTrackedEntityType( item, reporter, relationship, relSide, bundle, constraint );
         }
     }
 
-    private void validateProgramInstanceRelationship( Reporter reporter, TrackerBundle bundle,
+    private void validateEnrollmentRelationship( Reporter reporter, TrackerBundle bundle,
         Relationship relationship, RelationshipItem item, String relSide )
     {
         if ( item.getEnrollment() == null )
@@ -131,7 +130,7 @@ public class ConstraintValidator implements Validator<Relationship>
         }
     }
 
-    private void validateTrackedEntityInstanceType( RelationshipItem item, Reporter reporter, Relationship relationship,
+    private void validateTrackedEntityType( RelationshipItem item, Reporter reporter, Relationship relationship,
         String relSide, TrackerBundle bundle, RelationshipConstraint constraint )
     {
         getRelationshipTypeUidFromTrackedEntity( bundle, item.getTrackedEntity() )
@@ -152,7 +151,7 @@ public class ConstraintValidator implements Validator<Relationship>
 
     private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntity( TrackerBundle bundle, String uid )
     {
-        final TrackedEntityInstance trackedEntity = bundle.getPreheat().getTrackedEntity( uid );
+        final TrackedEntity trackedEntity = bundle.getPreheat().getTrackedEntity( uid );
 
         return trackedEntity != null
             ? Optional
@@ -162,8 +161,9 @@ public class ConstraintValidator implements Validator<Relationship>
 
     private Optional<MetadataIdentifier> getTrackedEntityTypeFromTrackedEntityRef( TrackerBundle bundle, String uid )
     {
-        final Optional<TrackedEntity> payloadTei = bundle.findTrackedEntityByUid( uid );
-        return payloadTei.map( TrackedEntity::getTrackedEntityType );
+        final Optional<org.hisp.dhis.tracker.imports.domain.TrackedEntity> payloadTei = bundle
+            .findTrackedEntityByUid( uid );
+        return payloadTei.map( org.hisp.dhis.tracker.imports.domain.TrackedEntity::getTrackedEntityType );
     }
 
     @Override

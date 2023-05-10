@@ -32,7 +32,7 @@ import java.sql.SQLException;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 
 /**
@@ -69,9 +69,9 @@ public class ProgramOwnerRowCallbackHandler
         program.setUid( rs.getString( "prguid" ) );
         programOwner.setProgram( program );
 
-        TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+        TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setUid( rs.getString( "key" ) );
-        programOwner.setEntityInstance( trackedEntity );
+        programOwner.setTrackedEntity( trackedEntity );
 
         return programOwner;
     }

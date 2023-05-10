@@ -43,11 +43,11 @@ public interface EnrollmentStore
 {
     /**
      *
-     * @param ids a list of {@see TrackedEntityInstance} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Enrollment} objects
+     * @param ids a list of {@see TrackedEntity} Primary Keys
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Enrollment} objects
      */
-    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids, Context ctx );
+    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds( List<Long> ids, Context ctx );
 
     /**
      *
@@ -58,8 +58,8 @@ public interface EnrollmentStore
     Multimap<String, TrackedEntityComment> getNotes( List<Long> ids );
 
     /**
-     * Fetches all the relationships having the Program Instance id specified in
-     * the arg as "left" or "right" relationship
+     * Fetches all the relationships having the enrollment id specified in the
+     * arg as "left" or "right" relationship
      *
      * @param ids a list of {@see Enrollment} Primary Keys
      * @return a MultiMap where key is a {@see Enrollment} uid and the key a

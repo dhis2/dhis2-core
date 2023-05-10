@@ -29,6 +29,9 @@ package org.hisp.dhis.security.apikey;
 
 import java.util.List;
 
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.user.User;
 
@@ -38,9 +41,12 @@ import org.hisp.dhis.user.User;
 public interface ApiTokenStore
     extends IdentifiableObjectStore<ApiToken>
 {
-    ApiToken getByKey( String key, User currentUser );
+    @CheckForNull
+    ApiToken getByKey( @Nonnull String key, @Nonnull User currentUser );
 
-    ApiToken getByKey( String key );
+    @CheckForNull
+    ApiToken getByKey( @Nonnull String key );
 
-    List<ApiToken> getAllOwning( User currentUser );
+    @Nonnull
+    List<ApiToken> getAllOwning( @Nonnull User currentUser );
 }

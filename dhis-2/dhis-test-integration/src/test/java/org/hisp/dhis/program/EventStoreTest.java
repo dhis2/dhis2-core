@@ -50,8 +50,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,7 +81,7 @@ class EventStoreTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private DbmsManager dbmsManager;
@@ -138,9 +138,9 @@ class EventStoreTest extends TransactionalIntegrationTest
 
     private Event eventD2;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
     private Program programA;
 
@@ -151,10 +151,10 @@ class EventStoreTest extends TransactionalIntegrationTest
         organisationUnitB = createOrganisationUnit( 'B' );
         idObjectManager.save( organisationUnitA );
         idObjectManager.save( organisationUnitB );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programService.addProgram( programA );
         stageA = new ProgramStage( "A", programA );
@@ -196,7 +196,7 @@ class EventStoreTest extends TransactionalIntegrationTest
         programB.getProgramStages().addAll( programStages );
         programService.updateProgram( programB );
         /**
-         * Program Instance and Program Stage Instance
+         * Enrollment and Program Stage Instance
          */
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();

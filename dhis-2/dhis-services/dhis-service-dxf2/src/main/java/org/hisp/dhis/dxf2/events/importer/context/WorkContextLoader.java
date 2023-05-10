@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +56,7 @@ public class WorkContextLoader
 
     private final TrackedEntityInstanceSupplier trackedEntityInstanceSupplier;
 
-    private final ProgramInstanceSupplier programInstanceSupplier;
+    private final EnrollmentSupplier enrollmentSupplier;
 
     private final ProgramStageInstanceSupplier programStageInstanceSupplier;
 
@@ -81,7 +81,7 @@ public class WorkContextLoader
         ProgramSupplier programSupplier,
         OrganisationUnitSupplier organisationUnitSupplier,
         TrackedEntityInstanceSupplier trackedEntityInstanceSupplier,
-        ProgramInstanceSupplier programInstanceSupplier,
+        EnrollmentSupplier enrollmentSupplier,
         ProgramStageInstanceSupplier programStageInstanceSupplier,
         CategoryOptionComboSupplier categoryOptionComboSupplier,
         DataElementSupplier dataElementSupplier,
@@ -96,7 +96,7 @@ public class WorkContextLoader
         this.programSupplier = programSupplier;
         this.organisationUnitSupplier = organisationUnitSupplier;
         this.trackedEntityInstanceSupplier = trackedEntityInstanceSupplier;
-        this.programInstanceSupplier = programInstanceSupplier;
+        this.enrollmentSupplier = enrollmentSupplier;
         this.programStageInstanceSupplier = programStageInstanceSupplier;
         this.categoryOptionComboSupplier = categoryOptionComboSupplier;
         this.dataElementSupplier = dataElementSupplier;
@@ -130,7 +130,7 @@ public class WorkContextLoader
         final Map<String, Event> persistedProgramStageInstanceMap = programStageInstanceSupplier
             .get( localImportOptions, events );
 
-        final Map<String, Pair<TrackedEntityInstance, Boolean>> teiMap = trackedEntityInstanceSupplier
+        final Map<String, Pair<TrackedEntity, Boolean>> teiMap = trackedEntityInstanceSupplier
             .get( localImportOptions, events );
 
         final Map<String, OrganisationUnit> orgUniMap = organisationUnitSupplier.get( localImportOptions, events );
@@ -142,7 +142,7 @@ public class WorkContextLoader
             .persistedProgramStageInstanceMap( persistedProgramStageInstanceMap )
             .organisationUnitMap( orgUniMap )
             .trackedEntityInstanceMap( teiMap )
-            .programInstanceMap( programInstanceSupplier.get( localImportOptions, teiMap, events ) )
+            .programInstanceMap( enrollmentSupplier.get( localImportOptions, teiMap, events ) )
             .categoryOptionComboMap( categoryOptionComboSupplier.get( localImportOptions, events ) )
             .dataElementMap( dataElementSupplier.get( localImportOptions, events ) )
             .notesMap( noteSupplier.get( localImportOptions, events ) )

@@ -49,7 +49,7 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.system.util.CodecUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RequestCallback;
@@ -83,7 +83,7 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
             return SynchronizationResult.failure( msg );
         }
 
-        TrackedEntityInstanceQueryParams params = initializeQueryParams();
+        TrackedEntityQueryParams params = initializeQueryParams();
 
         progress.startingStage( "Counting TEIs to synchronise" );
         PagedDataSynchronisationContext context = progress.runStage(
@@ -110,7 +110,7 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
         return SynchronizationResult.failure( msg );
     }
 
-    private PagedDataSynchronisationContext createContext( TrackedEntityInstanceQueryParams queryParams,
+    private PagedDataSynchronisationContext createContext( TrackedEntityQueryParams queryParams,
         final int pageSize )
     {
         final Date skipChangedBefore = settings.getDateSetting( SKIP_SYNCHRONIZATION_FOR_DATA_CHANGED_BEFORE );
@@ -128,16 +128,16 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
         return new PagedDataSynchronisationContext( skipChangedBefore, objectsToSynchronize, instance, pageSize );
     }
 
-    private TrackedEntityInstanceQueryParams initializeQueryParams()
+    private TrackedEntityQueryParams initializeQueryParams()
     {
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setIncludeDeleted( true );
         queryParams.setSynchronizationQuery( true );
 
         return queryParams;
     }
 
-    private boolean runSyncWithPaging( TrackedEntityInstanceQueryParams queryParams,
+    private boolean runSyncWithPaging( TrackedEntityQueryParams queryParams,
         PagedDataSynchronisationContext context, JobProgress progress )
     {
         String msg = context.getObjectsToSynchronize() + " TEIs to sync were found.\n";
@@ -155,7 +155,7 @@ public class TrackerSynchronization implements DataSynchronizationWithPaging
         return !progress.isSkipCurrentStage();
     }
 
-    private void synchronizePage( TrackedEntityInstanceQueryParams queryParams,
+    private void synchronizePage( TrackedEntityQueryParams queryParams,
         PagedDataSynchronisationContext context )
     {
         List<TrackedEntityInstance> dtoTeis = teiService.getTrackedEntityInstances( queryParams,

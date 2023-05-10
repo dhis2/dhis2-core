@@ -78,15 +78,15 @@ public class EnrollmentPersister
 
     @Override
     protected void updateAttributes( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment programInstance )
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment enrollmentToPersist )
     {
         handleTrackedEntityAttributeValues( session, preheat, enrollment.getAttributes(),
-            preheat.getTrackedEntity( programInstance.getEntityInstance().getUid() ) );
+            preheat.getTrackedEntity( enrollmentToPersist.getTrackedEntity().getUid() ) );
     }
 
     @Override
     protected void updateDataValues( Session session, TrackerPreheat preheat,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment programInstance )
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment, Enrollment enrollmentToPersist )
     {
         // DO NOTHING - TEI HAVE NO DATA VALUES
     }
@@ -110,7 +110,7 @@ public class EnrollmentPersister
     protected void updatePreheat( TrackerPreheat preheat, Enrollment enrollment )
     {
         preheat.putEnrollments( Collections.singletonList( enrollment ) );
-        preheat.addProgramOwner( enrollment.getEntityInstance().getUid(), enrollment.getProgram().getUid(),
+        preheat.addProgramOwner( enrollment.getTrackedEntity().getUid(), enrollment.getProgram().getUid(),
             enrollment.getOrganisationUnit() );
     }
 
@@ -153,11 +153,11 @@ public class EnrollmentPersister
     {
         if ( isNew( preheat, entity.getUid() ) )
         {
-            if ( preheat.getProgramOwner().get( entity.getEntityInstance().getUid() ) == null
-                || preheat.getProgramOwner().get( entity.getEntityInstance().getUid() )
+            if ( preheat.getProgramOwner().get( entity.getTrackedEntity().getUid() ) == null
+                || preheat.getProgramOwner().get( entity.getTrackedEntity().getUid() )
                     .get( entity.getProgram().getUid() ) == null )
             {
-                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entity.getEntityInstance(),
+                trackedEntityProgramOwnerService.createTrackedEntityProgramOwner( entity.getTrackedEntity(),
                     entity.getProgram(), entity.getOrganisationUnit() );
             }
         }
@@ -166,6 +166,6 @@ public class EnrollmentPersister
     @Override
     protected String getUpdatedTrackedEntity( Enrollment entity )
     {
-        return entity.getEntityInstance().getUid();
+        return entity.getTrackedEntity().getUid();
     }
 }

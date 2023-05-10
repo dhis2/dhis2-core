@@ -101,7 +101,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.system.util.SqlUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -303,7 +303,7 @@ public class JdbcEventStore implements EventStore
                     event.setUid( eventUid );
                 }
 
-                TrackedEntityInstance tei = new TrackedEntityInstance();
+                TrackedEntity tei = new TrackedEntity();
                 tei.setUid( resultSet.getString( "tei_uid" ) );
                 event.setStatus( EventStatus.valueOf( resultSet.getString( EVENT_STATUS ) ) );
                 ProgramType programType = ProgramType.fromValue( resultSet.getString( "p_type" ) );
@@ -313,7 +313,7 @@ public class JdbcEventStore implements EventStore
                 Enrollment enrollment = new Enrollment();
                 enrollment.setUid( resultSet.getString( "pi_uid" ) );
                 enrollment.setProgram( program );
-                enrollment.setEntityInstance( tei );
+                enrollment.setTrackedEntity( tei );
                 OrganisationUnit ou = new OrganisationUnit();
                 ou.setUid( resultSet.getString( "ou_uid" ) );
                 ou.setName( resultSet.getString( "ou_name" ) );
@@ -1039,9 +1039,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.lastupdated > psi.lastsynchronized " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             fromBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );
@@ -1314,9 +1314,9 @@ public class JdbcEventStore implements EventStore
                 .append( " psi.deleted is false " );
         }
 
-        if ( !CollectionUtils.isEmpty( params.getProgramInstances() ) )
+        if ( !CollectionUtils.isEmpty( params.getEnrollments() ) )
         {
-            mapSqlParameterSource.addValue( "programinstance_uid", params.getProgramInstances() );
+            mapSqlParameterSource.addValue( "programinstance_uid", params.getEnrollments() );
 
             sqlBuilder.append( hlp.whereAnd() )
                 .append( " (pi.uid in (:programinstance_uid)) " );

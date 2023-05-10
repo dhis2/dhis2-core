@@ -38,7 +38,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -129,20 +129,20 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    public List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter );
+        return relationshipStore.getByTrackedEntity( tei, pagingAndSortingCriteriaAdapter );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByProgramInstance( pi, pagingAndSortingCriteriaAdapter );
+        return relationshipStore.getByEnrollment( enrollment, pagingAndSortingCriteriaAdapter );
     }
 
     @Override

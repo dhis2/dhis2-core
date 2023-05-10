@@ -40,11 +40,10 @@ import org.hisp.dhis.audit.Auditable;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.SoftDeletableObject;
-import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.message.MessageConversation;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.locationtech.jts.geom.Geometry;
 
@@ -82,7 +81,7 @@ public class Enrollment
     private UserInfoSnapshot lastUpdatedByUserInfo;
 
     @AuditAttribute
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity trackedEntity;
 
     @AuditAttribute
     private Program program;
@@ -111,19 +110,19 @@ public class Enrollment
     {
     }
 
-    public Enrollment( Date enrollmentDate, Date incidentDate, TrackedEntityInstance entityInstance,
+    public Enrollment( Date enrollmentDate, Date incidentDate, TrackedEntity trackedEntity,
         Program program )
     {
         this.enrollmentDate = enrollmentDate;
         this.incidentDate = incidentDate;
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
         this.program = program;
     }
 
-    public Enrollment( Program program, TrackedEntityInstance entityInstance, OrganisationUnit organisationUnit )
+    public Enrollment( Program program, TrackedEntity trackedEntity, OrganisationUnit organisationUnit )
     {
         this.program = program;
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
         this.organisationUnit = organisationUnit;
     }
 
@@ -145,16 +144,16 @@ public class Enrollment
     // -------------------------------------------------------------------------
 
     /**
-     * Updated the bi-directional associations between this program instance and
-     * the given entity instance and program.
+     * Updated the bidirectional associations between this Enrollment and the
+     * given tracked entity and program.
      *
-     * @param entityInstance the entity instance to enroll.
-     * @param program the program to enroll the entity instance to.
+     * @param trackedEntity the tracked entity to enroll
+     * @param program the program to enroll the tracked entity in
      */
-    public void enrollTrackedEntityInstance( TrackedEntityInstance entityInstance, Program program )
+    public void enrollTrackedEntity( TrackedEntity trackedEntity, Program program )
     {
-        setEntityInstance( entityInstance );
-        entityInstance.getEnrollments().add( this );
+        setTrackedEntity( trackedEntity );
+        trackedEntity.getEnrollments().add( this );
 
         setProgram( program );
     }
@@ -162,64 +161,6 @@ public class Enrollment
     public boolean isCompleted()
     {
         return this.status == ProgramStatus.COMPLETED;
-    }
-
-    public Event getEventByStage( int stage )
-    {
-        int count = 1;
-
-        for ( Event programInstanceStage : events )
-        {
-            if ( count == stage )
-            {
-                return programInstanceStage;
-            }
-
-            count++;
-        }
-
-        return null;
-    }
-
-    public Event getActiveEvent()
-    {
-        for ( Event event : events )
-        {
-            if ( event.getProgramStage().getOpenAfterEnrollment()
-                && !event.isCompleted()
-                && (event.getStatus() != null
-                    && event.getStatus() != EventStatus.SKIPPED) )
-            {
-                return event;
-            }
-        }
-
-        for ( Event event : events )
-        {
-            if ( !event.isCompleted()
-                && (event.getStatus() != null
-                    && event.getStatus() != EventStatus.SKIPPED) )
-            {
-                return event;
-            }
-        }
-
-        return null;
-    }
-
-    public boolean hasActiveEvent( ProgramStage programStage )
-    {
-        for ( Event event : events )
-        {
-            if ( !event.isDeleted()
-                && event.getProgramStage().getUid().equalsIgnoreCase( programStage.getUid() )
-                && event.getStatus() == EventStatus.ACTIVE )
-            {
-                return true;
-            }
-        }
-
-        return false;
     }
 
     // -------------------------------------------------------------------------
@@ -234,7 +175,7 @@ public class Enrollment
 
         result = prime * result + ((incidentDate == null) ? 0 : incidentDate.hashCode());
         result = prime * result + ((enrollmentDate == null) ? 0 : enrollmentDate.hashCode());
-        result = prime * result + ((entityInstance == null) ? 0 : entityInstance.hashCode());
+        result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());
 
         return result;
@@ -250,7 +191,7 @@ public class Enrollment
     {
         return Objects.equals( incidentDate, other.incidentDate )
             && Objects.equals( enrollmentDate, other.enrollmentDate )
-            && Objects.equals( entityInstance, other.entityInstance )
+            && Objects.equals( trackedEntity, other.trackedEntity )
             && Objects.equals( program, other.program );
     }
 
@@ -371,14 +312,14 @@ public class Enrollment
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty
@@ -508,7 +449,7 @@ public class Enrollment
             ", organisationUnit=" + (organisationUnit != null ? organisationUnit.getUid() : "null") +
             ", incidentDate=" + incidentDate +
             ", enrollmentDate=" + enrollmentDate +
-            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
+            ", entityInstance=" + (trackedEntity != null ? trackedEntity.getUid() : "null") +
             ", program=" + program +
             ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +

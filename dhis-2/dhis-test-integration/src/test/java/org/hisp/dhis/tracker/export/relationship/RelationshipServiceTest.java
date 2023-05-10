@@ -53,7 +53,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -76,11 +76,11 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance inaccessibleTei;
+    private TrackedEntity inaccessibleTei;
 
     private Event eventA;
 
@@ -122,15 +122,15 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         inaccessibleTrackedEntityType.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( inaccessibleTrackedEntityType, false );
 
-        teiA = createTrackedEntityInstance( orgUnit );
+        teiA = createTrackedEntity( orgUnit );
         teiA.setTrackedEntityType( trackedEntityType );
         manager.save( teiA, false );
 
-        teiB = createTrackedEntityInstance( orgUnit );
+        teiB = createTrackedEntity( orgUnit );
         teiB.setTrackedEntityType( trackedEntityType );
         manager.save( teiB, false );
 
-        inaccessibleTei = createTrackedEntityInstance( orgUnit );
+        inaccessibleTei = createTrackedEntity( orgUnit );
         inaccessibleTei.setTrackedEntityType( inaccessibleTrackedEntityType );
         manager.save( inaccessibleTei, false );
 
@@ -147,7 +147,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         program.setProgramStages( Set.of( programStage, inaccessibleProgramStage ) );
         manager.save( program, false );
 
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntity( teiA, program, new Date(), new Date(),
             orgUnit );
         eventA = new Event();
         eventA.setEnrollment( enrollmentA );
@@ -155,7 +155,7 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         eventA.setOrganisationUnit( orgUnit );
         manager.save( eventA, false );
 
-        Enrollment enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(),
+        Enrollment enrollmentB = enrollmentService.enrollTrackedEntity( teiB, program, new Date(),
             new Date(),
             orgUnit );
         inaccessiblePsi = new Event();
@@ -223,14 +223,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByTrackedEntityInstanceIfUserHasNoAccessToTrackedEntityType()
+    void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
         throws ForbiddenException,
         NotFoundException
     {
         Relationship accessible = relationship( teiA, teiB );
         relationship( teiA, inaccessibleTei, teiToInaccessibleTeiType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntityInstance( teiA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntity( teiA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
@@ -238,14 +238,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByProgramInstanceIfUserHasNoAccessToRelationshipType()
+    void shouldNotReturnRelationshipByEnrollmentIfUserHasNoAccessToRelationshipType()
         throws ForbiddenException,
         NotFoundException
     {
         Relationship accessible = relationship( teiA, enrollmentA );
         relationship( teiB, enrollmentA, teiToPiInaccessibleType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByProgramInstance( enrollmentA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByEnrollment( enrollmentA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),
@@ -267,12 +267,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
             relationships.stream().map( Relationship::getUid ).collect( Collectors.toList() ) );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, TrackedEntityInstance to )
+    private Relationship relationship( TrackedEntity from, TrackedEntity to )
     {
         return relationship( from, to, teiToTeiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, TrackedEntityInstance to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, TrackedEntity to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -287,12 +287,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Enrollment to )
+    private Relationship relationship( TrackedEntity from, Enrollment to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Enrollment to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, Enrollment to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -307,12 +307,12 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         return relationship;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Event to )
+    private Relationship relationship( TrackedEntity from, Event to )
     {
         return relationship( from, to, teiToPsiType );
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Event to, RelationshipType type )
+    private Relationship relationship( TrackedEntity from, Event to, RelationshipType type )
     {
         Relationship relationship = new Relationship();
         relationship.setUid( CodeGenerator.generateUid() );
@@ -345,10 +345,10 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         manager.save( relationship );
     }
 
-    private RelationshipItem item( TrackedEntityInstance from )
+    private RelationshipItem item( TrackedEntity from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setTrackedEntityInstance( from );
+        relationshipItem.setTrackedEntity( from );
         return relationshipItem;
     }
 

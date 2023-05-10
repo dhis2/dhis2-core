@@ -52,7 +52,8 @@ import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
@@ -100,7 +101,7 @@ class JacksonRelationshipServiceTest
     private EventService eventService;
 
     @Mock
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    private TrackedEntityService teiDaoService;
 
     @Mock
     private UserService userService;
@@ -189,16 +190,16 @@ class JacksonRelationshipServiceTest
         relationshipTypeCache.put( relationship.getRelationshipType(), relationshipType );
 
         // init tracked entity instance cache
-        HashMap<String, TrackedEntityInstance> trackedEntityInstanceCache = new HashMap<>();
+        HashMap<String, TrackedEntity> trackedEntityInstanceCache = new HashMap<>();
         trackedEntityInstanceCache.put( relationship.getFrom().getTrackedEntityInstance().getTrackedEntityInstance(),
-            new TrackedEntityInstance()
+            new TrackedEntity()
             {
                 {
                     setTrackedEntityType( relationshipType.getFromConstraint().getTrackedEntityType() );
                 }
             } );
         trackedEntityInstanceCache.put( relationship.getTo().getTrackedEntityInstance().getTrackedEntityInstance(),
-            new TrackedEntityInstance()
+            new TrackedEntity()
             {
                 {
                     setTrackedEntityType( relationshipType.getToConstraint().getTrackedEntityType() );

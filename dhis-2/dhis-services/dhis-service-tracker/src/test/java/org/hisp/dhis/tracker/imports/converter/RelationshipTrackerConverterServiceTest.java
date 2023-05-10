@@ -40,7 +40,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
@@ -77,9 +77,9 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private RelationshipType teiToEvent;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
-    private Enrollment pi;
+    private Enrollment enrollment;
 
     private Event event;
 
@@ -101,12 +101,12 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         teiToEvent = createTeiToEventRelationshipType( 'B', program, teiType, false );
         teiToEvent.setUid( TEI_TO_EVENT_RELATIONSHIP_TYPE );
 
-        tei = createTrackedEntityInstance( organisationUnit );
+        tei = createTrackedEntity( organisationUnit );
         tei.setTrackedEntityType( teiType );
         tei.setUid( TEI );
-        pi = createProgramInstance( program, tei, organisationUnit );
-        pi.setUid( ENROLLMENT );
-        event = createEvent( createProgramStage( 'A', program ), pi, organisationUnit );
+        enrollment = createEnrollment( program, tei, organisationUnit );
+        enrollment.setUid( ENROLLMENT );
+        event = createEvent( createProgramStage( 'A', program ), enrollment, organisationUnit );
         event.setUid( EVENT );
 
         relationshipConverterService = new RelationshipTrackerConverterService();
@@ -122,7 +122,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         when( preheat.getRelationshipType( MetadataIdentifier.ofUid( TEI_TO_EVENT_RELATIONSHIP_TYPE ) ) )
             .thenReturn( teiToEvent );
         when( preheat.getTrackedEntity( TEI ) ).thenReturn( tei );
-        when( preheat.getEnrollment( ENROLLMENT ) ).thenReturn( pi );
+        when( preheat.getEnrollment( ENROLLMENT ) ).thenReturn( enrollment );
         when( preheat.getEvent( EVENT ) ).thenReturn( event );
 
         List<org.hisp.dhis.relationship.Relationship> from = relationshipConverterService
@@ -132,12 +132,12 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
         from.forEach( relationship -> {
             if ( TEI_TO_ENROLLMENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntity().getUid() );
                 assertEquals( ENROLLMENT, relationship.getTo().getEnrollment().getUid() );
             }
             else if ( TEI_TO_EVENT_RELATIONSHIP_TYPE.equals( relationship.getRelationshipType().getUid() ) )
             {
-                assertEquals( TEI, relationship.getFrom().getTrackedEntityInstance().getUid() );
+                assertEquals( TEI, relationship.getFrom().getTrackedEntity().getUid() );
                 assertEquals( EVENT, relationship.getTo().getEvent().getUid() );
             }
             else
@@ -198,7 +198,7 @@ class RelationshipTrackerConverterServiceTest extends DhisConvenienceTest
 
     private org.hisp.dhis.relationship.Relationship relationshipAFromDB()
     {
-        return createTeiToProgramInstanceRelationship( tei, pi, teiToEnrollment );
+        return createTeiToEnrollmentRelationship( tei, enrollment, teiToEnrollment );
     }
 
     private org.hisp.dhis.relationship.Relationship relationshipBFromDB()

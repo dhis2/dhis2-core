@@ -11,10 +11,10 @@
       <generator class="native" />
     </id>
 
-    <many-to-one name="entityInstance"
-      class="org.hisp.dhis.trackedentity.TrackedEntityInstance" column="trackedentityinstanceid"
-      foreign-key="fk_trackedentityprogramowner_trackedentityinstanceid"
-      lazy="false" unique-key="uk_tei_program" />
+    <many-to-one name="trackedEntity"
+                 class="org.hisp.dhis.trackedentity.TrackedEntity" column="trackedentityinstanceid"
+                 foreign-key="fk_trackedentityprogramowner_trackedentityinstanceid"
+                 lazy="false" unique-key="uk_tei_program" />
     <many-to-one name="program" class="org.hisp.dhis.program.Program"
       column="programid" not-null="true"
       foreign-key="fk_trackedentityprogramowner_programid" lazy="false"

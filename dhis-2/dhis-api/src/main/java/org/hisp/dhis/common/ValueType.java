@@ -41,7 +41,7 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.opengis.geometry.primitive.Point;
 
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
@@ -70,7 +70,7 @@ public enum ValueType
     INTEGER_POSITIVE( Integer.class, true ),
     INTEGER_NEGATIVE( Integer.class, true ),
     INTEGER_ZERO_OR_POSITIVE( Integer.class, true ),
-    TRACKER_ASSOCIATE( TrackedEntityInstance.class, false ),
+    TRACKER_ASSOCIATE( TrackedEntity.class, false ),
     USERNAME( String.class, true ),
     COORDINATE( Point.class, true ),
     ORGANISATION_UNIT( OrganisationUnit.class, false ),
@@ -101,10 +101,10 @@ public enum ValueType
         BOOLEAN, TRUE_ONLY );
 
     public static final Set<ValueType> TEXT_TYPES = Set.of(
-        TEXT, LONG_TEXT, LETTER, USERNAME, EMAIL, PHONE_NUMBER, URL );
+        TEXT, LONG_TEXT, LETTER, TIME, USERNAME, EMAIL, PHONE_NUMBER, URL );
 
     public static final Set<ValueType> DATE_TYPES = Set.of(
-        DATE, DATETIME, TIME, AGE );
+        DATE, DATETIME, AGE );
 
     private static final Set<ValueType> FILE_TYPES = Set.of(
         FILE_RESOURCE, IMAGE );

@@ -34,8 +34,8 @@ import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 
@@ -91,8 +91,8 @@ public class DefaultTrackedEntityAttributeValueAuditService
     }
 
     @Override
-    public void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance )
+    public void deleteTrackedEntityAttributeValueAudits( TrackedEntity trackedEntity )
     {
-        trackedEntityAttributeValueAuditStore.deleteTrackedEntityAttributeValueAudits( trackedEntityInstance );
+        trackedEntityAttributeValueAuditStore.deleteTrackedEntityAttributeValueAudits( trackedEntity );
     }
 }

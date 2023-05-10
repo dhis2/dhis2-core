@@ -37,7 +37,7 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
-import org.hisp.dhis.tracker.imports.preheat.mappers.ProgramInstanceMapper;
+import org.hisp.dhis.tracker.imports.preheat.mappers.EnrollmentMapper;
 import org.hisp.dhis.tracker.imports.preheat.supplier.DetachUtils;
 import org.springframework.stereotype.Component;
 
@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Enrollment.class, mapper = ProgramInstanceMapper.class )
+@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.Enrollment.class, mapper = EnrollmentMapper.class )
 public class EnrollmentStrategy implements ClassBasedSupplierStrategy
 {
     @Nonnull

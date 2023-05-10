@@ -56,16 +56,16 @@ import org.hisp.dhis.dxf2.events.importer.Processor;
 import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
+import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EnrollmentPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.preprocess.UserInfoInsertPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
+import org.hisp.dhis.dxf2.events.importer.insert.validation.EnrollmentRepeatableStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
 import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
@@ -78,14 +78,14 @@ import org.hisp.dhis.dxf2.events.importer.shared.preprocess.SharedEventStatusPre
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
+import org.hisp.dhis.dxf2.events.importer.shared.validation.EnrollmentCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.FilteredDataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
 import org.hisp.dhis.dxf2.events.importer.shared.validation.SharedProgramCheck;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
+import org.hisp.dhis.dxf2.events.importer.update.preprocess.EnrollmentGeometryPreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
 import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
@@ -272,8 +272,8 @@ public class ServiceConfig
             getCheckerByClass( SharedProgramCheck.class ),
             getCheckerByClass( ProgramStageCheck.class ),
             getCheckerByClass( TrackedEntityInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
+            getCheckerByClass( EnrollmentCheck.class ),
+            getCheckerByClass( EnrollmentRepeatableStageCheck.class ),
             getCheckerByClass( ProgramOrgUnitCheck.class ),
             getCheckerByClass( EventGeometryCheck.class ),
             getCheckerByClass( EventCreationAclCheck.class ),
@@ -296,7 +296,7 @@ public class ServiceConfig
             getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
             getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
             getCheckerByClass( SharedProgramCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( EnrollmentCheck.class ),
             getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
             getCheckerByClass( AttributeOptionComboCheck.class ),
             getCheckerByClass( AttributeOptionComboDateCheck.class ),
@@ -369,7 +369,7 @@ public class ServiceConfig
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
-                getProcessorByClass( ProgramInstancePreProcessor.class ),
+                getProcessorByClass( EnrollmentPreProcessor.class ),
                 getProcessorByClass( ProgramStagePreProcessor.class ),
                 getProcessorByClass( EventGeometryPreProcessor.class ),
                 getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
@@ -385,7 +385,7 @@ public class ServiceConfig
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
                 getProcessorByClass( ProgramStageInstanceUpdatePreProcessor.class ),
-                getProcessorByClass( ProgramInstanceGeometryPreProcessor.class ),
+                getProcessorByClass( EnrollmentGeometryPreProcessor.class ),
                 getProcessorByClass( UserInfoUpdatePreProcessor.class ) ),
             UPDATE_POST, newArrayList(
                 getProcessorByClass( PublishEventPostProcessor.class ),

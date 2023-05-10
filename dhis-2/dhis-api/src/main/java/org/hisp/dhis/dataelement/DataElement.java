@@ -297,11 +297,6 @@ public class DataElement extends BaseDimensionalItemObject
      */
     public String getValueColumn()
     {
-        if ( queryMods != null && queryMods.getSubExpression() != null )
-        {
-            return queryMods.getSubExpression();
-        }
-
         return (getAnalyticsDataType() == DataType.TEXT)
             ? TEXTVALUE_COLUMN_NAME
             : VALUE_COLUMN_NAME;

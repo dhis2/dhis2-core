@@ -79,10 +79,10 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -197,7 +197,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -595,14 +595,14 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programStageService.updateProgramStage( programStageAge );
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
         programService.updateProgram( programA );
-        TrackedEntityInstance entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-        TrackedEntityInstance entityInstanceS = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceS );
-        TrackedEntityInstance entityInstanceE = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceE );
+        TrackedEntity entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
+        TrackedEntity entityInstanceS = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceS );
+        TrackedEntity entityInstanceE = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceE );
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
@@ -615,13 +615,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
             entityInstanceE, "zubair@dhis2.org" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.updateTrackedEntity( entityInstanceB );
         entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
+        entityInstanceService.updateTrackedEntity( entityInstanceS );
         entityInstanceE.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueEmail ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceE );
+        entityInstanceService.updateTrackedEntity( entityInstanceE );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -629,15 +629,15 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( "UID-P1" );
         enrollmentService.updateEnrollment( enrollmentA );
-        Enrollment enrollmentE = enrollmentService.enrollTrackedEntityInstance( entityInstanceE,
+        Enrollment enrollmentE = enrollmentService.enrollTrackedEntity( entityInstanceE,
             programB, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentE.setUid( "UID-P2" );
         enrollmentService.updateEnrollment( enrollmentE );
-        Enrollment enrollmentS = enrollmentService.enrollTrackedEntityInstance( entityInstanceS,
+        Enrollment enrollmentS = enrollmentService.enrollTrackedEntity( entityInstanceS,
             programS, enrollmentDate, incidentDate, organisationUnitB );
         enrollmentS.setUid( "UID-PS" );
         enrollmentService.updateEnrollment( enrollmentS );

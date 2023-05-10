@@ -223,15 +223,9 @@ class AttributeValidatorTest
 
         when( trackedEntityAttribute.getValueType() ).thenReturn( ValueType.TEXT );
 
-        StringBuilder sbString = new StringBuilder();
-
-        for ( int i = 0; i < Constant.MAX_ATTR_VALUE_LENGTH + 1; i++ )
-        {
-            sbString.append( "a" );
-        }
-
         TrackedEntity te = TrackedEntity.builder().trackedEntity( CodeGenerator.generateUid() ).build();
-        validator.validateAttributeValue( reporter, te, trackedEntityAttribute, sbString.toString() );
+        validator.validateAttributeValue( reporter, te, trackedEntityAttribute,
+            "a".repeat( Constant.MAX_ATTR_VALUE_LENGTH + 1 ) );
 
         assertHasError( reporter, te, ValidationCode.E1077 );
     }

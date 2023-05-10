@@ -61,7 +61,7 @@ public class ProgramNotificationListener
     @TransactionalEventListener( fallbackExecution = true )
     public void onCompletion( ProgramEnrollmentCompletionNotificationEvent event )
     {
-        programNotificationService.sendEnrollmentCompletionNotifications( event.getEnrollment() );
+        programNotificationService.sendEnrollmentCompletionNotifications( event.getEnrollmentId() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )
@@ -75,7 +75,7 @@ public class ProgramNotificationListener
     public void onProgramRuleEnrollment( ProgramRuleEnrollmentEvent event )
     {
         programNotificationService.sendProgramRuleTriggeredNotifications( event.getTemplate(),
-            event.getProgramInstance() );
+            event.getEnrollment() );
     }
 
     @TransactionalEventListener( fallbackExecution = true )

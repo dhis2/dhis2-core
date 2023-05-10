@@ -63,7 +63,7 @@ public class ProgramNotificationInstanceParam extends BaseNotificationParam
 
     private Date scheduledAt;
 
-    public boolean hasProgramInstance()
+    public boolean hasEnrollment()
     {
         return enrollment != null;
     }

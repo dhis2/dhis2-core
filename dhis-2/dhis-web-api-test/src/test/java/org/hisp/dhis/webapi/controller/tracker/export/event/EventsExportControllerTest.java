@@ -56,7 +56,7 @@ import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.user.User;
@@ -141,7 +141,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventById()
     {
-        Event event = event( programInstance( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
 
         JsonEvent json = GET( "/tracker/events/{id}", event.getUid() )
             .content( HttpStatus.OK ).as( JsonEvent.class );
@@ -152,7 +152,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithFields()
     {
-        Event event = event( programInstance( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
 
         JsonEvent jsonEvent = GET( "/tracker/events/{id}?fields=orgUnit,status", event.getUid() )
             .content( HttpStatus.OK ).as( JsonEvent.class );
@@ -165,7 +165,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithNotes()
     {
-        Event event = event( programInstance( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
         event.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         manager.update( event );
 
@@ -181,7 +181,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithDataValues()
     {
-        Event event = event( programInstance( trackedEntityInstance() ) );
+        Event event = event( enrollment( trackedEntity() ) );
         event.getEventDataValues().add( dv );
         manager.update( event );
 
@@ -200,8 +200,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdWithFieldsRelationships()
     {
-        TrackedEntityInstance to = trackedEntityInstance();
-        Event from = event( programInstance( to ) );
+        TrackedEntity to = trackedEntity();
+        Event from = event( enrollment( to ) );
         Relationship relationship = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/events/{id}?fields=relationships", from.getUid() )
@@ -216,7 +216,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
             event.getEnrollment() );
 
         JsonRelationshipItem.JsonTrackedEntity trackedEntity = jsonRelationship.getTo().getTrackedEntity();
-        assertEquals( relationship.getTo().getTrackedEntityInstance().getUid(), trackedEntity.getTrackedEntity() );
+        assertEquals( relationship.getTo().getTrackedEntity().getUid(), trackedEntity.getTrackedEntity() );
 
         assertHasMember( jsonRelationship, "relationshipName" );
         assertHasMember( jsonRelationship, "relationshipType" );
@@ -228,8 +228,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdRelationshipsNoAccessToRelationshipType()
     {
-        TrackedEntityInstance to = trackedEntityInstance();
-        Event from = event( programInstance( to ) );
+        TrackedEntity to = trackedEntity();
+        Event from = event( enrollment( to ) );
         relationship( relationshipTypeNotAccessible(), from, to );
         this.switchContextToUser( user );
 
@@ -243,8 +243,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdRelationshipsNoAccessToRelationshipItemTo()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntityInstance to = trackedEntityInstance( type );
-        Event from = event( programInstance( to ) );
+        TrackedEntity to = trackedEntity( type );
+        Event from = event( enrollment( to ) );
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -257,8 +257,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getEventByIdRelationshipsNoAccessToBothRelationshipItems()
     {
-        TrackedEntityInstance to = trackedEntityInstanceNotInSearchScope();
-        Event from = event( programInstance( to ) );
+        TrackedEntity to = trackedEntityNotInSearchScope();
+        Event from = event( enrollment( to ) );
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -271,8 +271,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdRelationshipsNoAccessToRelationshipItemFrom()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntityInstance from = trackedEntityInstance( type );
-        Event to = event( programInstance( from ) );
+        TrackedEntity from = trackedEntity( type );
+        Event to = event( enrollment( from ) );
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -286,8 +286,8 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
     void getEventByIdContainsCreatedByAndUpdateByAndAssignedUserInDataValues()
     {
 
-        TrackedEntityInstance tei = trackedEntityInstance();
-        Enrollment enrollment = programInstance( tei );
+        TrackedEntity tei = trackedEntity();
+        Enrollment enrollment = enrollment( tei );
         Event programStageInstance = event( enrollment );
         programStageInstance.setCreatedByUserInfo( UserInfoSnapshot.from( user ) );
         programStageInstance.setLastUpdatedByUserInfo( UserInfoSnapshot.from( user ) );
@@ -351,42 +351,42 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         return type;
     }
 
-    private TrackedEntityInstance trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
-        TrackedEntityInstance tei = trackedEntityInstance( orgUnit );
+        TrackedEntity tei = trackedEntity( orgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntityInstance trackedEntityInstanceNotInSearchScope()
+    private TrackedEntity trackedEntityNotInSearchScope()
     {
-        TrackedEntityInstance tei = trackedEntityInstance( anotherOrgUnit );
+        TrackedEntity tei = trackedEntity( anotherOrgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntityInstance trackedEntityInstance( TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( TrackedEntityType trackedEntityType )
     {
-        TrackedEntityInstance tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntity tei = trackedEntity( orgUnit, trackedEntityType );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntityInstance trackedEntityInstance( OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit )
     {
-        return trackedEntityInstance( orgUnit, trackedEntityType );
+        return trackedEntity( orgUnit, trackedEntityType );
     }
 
-    private TrackedEntityInstance trackedEntityInstance( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
     {
-        TrackedEntityInstance tei = createTrackedEntityInstance( orgUnit );
+        TrackedEntity tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         tei.getSharing().setOwner( owner );
         return tei;
     }
 
-    private Enrollment programInstance( TrackedEntityInstance tei )
+    private Enrollment enrollment( TrackedEntity tei )
     {
         Enrollment enrollment = new Enrollment( program, tei, tei.getOrganisationUnit() );
         enrollment.setAutoFields();
@@ -440,7 +440,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         return type;
     }
 
-    private Relationship relationship( Event from, TrackedEntityInstance to )
+    private Relationship relationship( Event from, TrackedEntity to )
     {
         return relationship(
             relationshipTypeAccessible( RelationshipEntity.PROGRAM_STAGE_INSTANCE,
@@ -449,7 +449,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
             to );
     }
 
-    private Relationship relationship( RelationshipType type, Event from, TrackedEntityInstance to )
+    private Relationship relationship( RelationshipType type, Event from, TrackedEntity to )
     {
         Relationship r = new Relationship();
 
@@ -460,7 +460,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         r.setFrom( fromItem );
 
         RelationshipItem toItem = new RelationshipItem();
-        toItem.setTrackedEntityInstance( to );
+        toItem.setTrackedEntity( to );
         to.getRelationshipItems().add( toItem );
         r.setTo( toItem );
         toItem.setRelationship( r );
@@ -474,12 +474,12 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         return r;
     }
 
-    private Relationship relationship( TrackedEntityInstance from, Event to )
+    private Relationship relationship( TrackedEntity from, Event to )
     {
         Relationship r = new Relationship();
 
         RelationshipItem fromItem = new RelationshipItem();
-        fromItem.setTrackedEntityInstance( from );
+        fromItem.setTrackedEntity( from );
         from.getRelationshipItems().add( fromItem );
         r.setFrom( fromItem );
         fromItem.setRelationship( r );

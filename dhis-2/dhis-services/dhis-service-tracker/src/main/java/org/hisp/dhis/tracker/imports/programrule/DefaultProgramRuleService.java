@@ -44,7 +44,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
@@ -124,7 +124,7 @@ class DefaultProgramRuleService
             .flatMap( enrollment -> programRuleEngine.evaluateEnrollmentAndEvents(
                 enrollment,
                 getEventsFromEnrollment( enrollment.getUid(), bundle, preheat ),
-                getAttributes( enrollment.getUid(), enrollment.getEntityInstance().getUid(), bundle, preheat ) )
+                getAttributes( enrollment.getUid(), enrollment.getTrackedEntity().getUid(), bundle, preheat ) )
                 .stream() )
             .collect( Collectors.toList() );
     }
@@ -167,7 +167,7 @@ class DefaultProgramRuleService
             .orElse( Collections.emptyList() );
         attributeValues.addAll( payloadAttributeValues );
 
-        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( teiUid );
+        TrackedEntity trackedEntity = preheat.getTrackedEntity( teiUid );
 
         if ( trackedEntity != null )
         {

@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -56,7 +57,6 @@ import org.mapstruct.Mapping;
 interface RelationshipItemMapper
     extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
     @Override
     RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
 
@@ -70,14 +70,14 @@ interface RelationshipItemMapper
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    RelationshipItem.TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
+    RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity );
 
     @Mapping( target = "enrollment", source = "uid" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
+    @Mapping( target = "trackedEntity", source = "trackedEntity.uid" )
     @Mapping( target = "program", source = "program.uid" )
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
@@ -87,7 +87,7 @@ interface RelationshipItemMapper
     @Mapping( target = "completedAt", source = "endDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
+    @Mapping( target = "attributes", source = "trackedEntity.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )
     RelationshipItem.Enrollment from( Enrollment enrollment );
 

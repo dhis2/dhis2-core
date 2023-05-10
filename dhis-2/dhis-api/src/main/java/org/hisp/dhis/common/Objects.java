@@ -50,8 +50,8 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.report.Report;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.validation.ValidationRule;
@@ -89,7 +89,7 @@ public enum Objects
     PROGRAM( "program", Program.class ),
     PROGRAMSTAGEINSTANCE( "programStageInstance", Event.class ),
     PROGRAMINSTANCE( "programInstance", Enrollment.class ),
-    TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntityInstance.class ),
+    TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntity.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
     EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );
     private String value;

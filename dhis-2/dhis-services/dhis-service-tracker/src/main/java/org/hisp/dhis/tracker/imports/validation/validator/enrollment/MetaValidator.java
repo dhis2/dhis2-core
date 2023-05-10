@@ -30,7 +30,7 @@ package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1068;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1069;
 import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1070;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityInstanceExist;
+import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityExists;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
@@ -54,7 +54,7 @@ class MetaValidator
         Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
         reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
 
-        reporter.addErrorIf( () -> !trackedEntityInstanceExist( bundle, enrollment.getTrackedEntity() ),
+        reporter.addErrorIf( () -> !trackedEntityExists( bundle, enrollment.getTrackedEntity() ),
             enrollment,
             E1068, enrollment.getTrackedEntity() );
     }

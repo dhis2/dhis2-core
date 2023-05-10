@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -57,7 +57,7 @@ public class ProgramTempOwnershipAudit implements Serializable
 
     private String accessedBy;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity trackedEntity;
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -67,20 +67,20 @@ public class ProgramTempOwnershipAudit implements Serializable
     {
     }
 
-    public ProgramTempOwnershipAudit( Program program, TrackedEntityInstance entityInstance, String reason,
+    public ProgramTempOwnershipAudit( Program program, TrackedEntity trackedEntity, String reason,
         String accessedBy )
     {
         this.program = program;
         this.reason = reason;
         this.accessedBy = accessedBy;
         this.created = new Date();
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( program, entityInstance, reason, created, accessedBy );
+        return Objects.hash( program, trackedEntity, reason, created, accessedBy );
     }
 
     @Override
@@ -101,7 +101,7 @@ public class ProgramTempOwnershipAudit implements Serializable
         return Objects.equals( this.program, other.program )
             && Objects.equals( this.reason, other.reason ) && Objects.equals( this.created, other.created )
             && Objects.equals( this.accessedBy, other.accessedBy )
-            && Objects.equals( this.entityInstance, other.entityInstance );
+            && Objects.equals( this.trackedEntity, other.trackedEntity );
     }
 
     // -------------------------------------------------------------------------
@@ -128,14 +128,14 @@ public class ProgramTempOwnershipAudit implements Serializable
         this.program = program;
     }
 
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

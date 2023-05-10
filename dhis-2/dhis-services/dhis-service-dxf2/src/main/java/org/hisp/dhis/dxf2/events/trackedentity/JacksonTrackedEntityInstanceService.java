@@ -51,7 +51,8 @@ import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -80,7 +81,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     private final RelationshipTypeService relationshipTypeService;
 
     public JacksonTrackedEntityInstanceService(
-        org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService,
+        TrackedEntityService teiService,
         TrackedEntityAttributeService trackedEntityAttributeService,
         RelationshipService _relationshipService,
         org.hisp.dhis.dxf2.events.relationship.RelationshipService relationshipService,
@@ -100,7 +101,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         TrackerOwnershipManager trackerOwnershipAccessManager,
         TrackedEntityInstanceAggregate trackedEntityInstanceAggregate,
         TrackedEntityAttributeStore trackedEntityAttributeStore,
-        TrackedEntityInstanceAuditService trackedEntityInstanceAuditService,
+        TrackedEntityAuditService trackedEntityAuditService,
         TrackedEntityTypeService trackedEntityTypeService,
         Notifier notifier,
         ObjectMapper jsonMapper,
@@ -151,7 +152,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.trackedEntityInstanceAggregate = trackedEntityInstanceAggregate;
         this.trackedEntityAttributeStore = trackedEntityAttributeStore;
-        this.trackedEntityInstanceAuditService = trackedEntityInstanceAuditService;
+        this.trackedEntityAuditService = trackedEntityAuditService;
         this.trackedEntityTypeService = trackedEntityTypeService;
         this.notifier = notifier;
         this.jsonMapper = jsonMapper;

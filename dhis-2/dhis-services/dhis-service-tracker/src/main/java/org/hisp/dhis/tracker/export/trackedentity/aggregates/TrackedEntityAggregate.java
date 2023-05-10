@@ -55,11 +55,11 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.CurrentUserService;
@@ -117,16 +117,16 @@ public class TrackedEntityAggregate
     }
 
     /**
-     * Fetches a List of {@see TrackedEntityInstance} based on the list of
-     * primary keys and search parameters
+     * Fetches a List of {@see TrackedEntity} based on the list of primary keys
+     * and search parameters
      *
-     * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param ids a List of {@see TrackedEntity} Primary Keys
      * @param params an instance of {@see TrackedEntityParams}
      *
-     * @return a List of {@see TrackedEntityInstance} objects
+     * @return a List of {@see TrackedEntity} objects
      */
-    public List<TrackedEntityInstance> find( List<Long> ids, TrackedEntityParams params,
-        TrackedEntityInstanceQueryParams queryParams )
+    public List<TrackedEntity> find( List<Long> ids, TrackedEntityParams params,
+        TrackedEntityQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
@@ -164,44 +164,43 @@ public class TrackedEntityAggregate
             .build();
 
         /*
-         * Async fetch Relationships for the given TrackedEntityInstance id
-         * (only if isIncludeRelationships = true)
+         * Async fetch Relationships for the given TrackedEntity id (only if
+         * isIncludeRelationships = true)
          */
         final CompletableFuture<Multimap<String, RelationshipItem>> relationshipsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeRelationships(), () -> trackedEntityStore.getRelationships( ids, ctx ),
             getPool() );
 
         /*
-         * Async fetch Enrollments for the given TrackedEntityInstance id (only
-         * if isIncludeEnrollments = true)
+         * Async fetch Enrollments for the given TrackedEntity id (only if
+         * isIncludeEnrollments = true)
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
+            () -> enrollmentAggregate.findByTrackedEntityIds( ids, ctx ), getPool() );
 
         /*
-         * Async fetch all ProgramOwner for the given TrackedEntityInstance id
+         * Async fetch all ProgramOwner for the given TrackedEntity id
          */
         final CompletableFuture<Multimap<String, TrackedEntityProgramOwner>> programOwnersAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeProgramOwners(), () -> trackedEntityStore.getProgramOwners( ids ),
             getPool() );
 
         /*
-         * Async Fetch TrackedEntityInstances by id
+         * Async Fetch TrackedEntities by id
          */
-        final CompletableFuture<Map<String, TrackedEntityInstance>> teisAsync = supplyAsync(
-            () -> trackedEntityStore.getTrackedEntityInstances( ids, ctx ), getPool() );
+        final CompletableFuture<Map<String, TrackedEntity>> teisAsync = supplyAsync(
+            () -> trackedEntityStore.getTrackedEntities( ids, ctx ), getPool() );
 
         /*
-         * Async fetch TrackedEntityInstance Attributes by TrackedEntityInstance
-         * id
+         * Async fetch TrackedEntity Attributes by TrackedEntity id
          */
         final CompletableFuture<Multimap<String, TrackedEntityAttributeValue>> attributesAsync = supplyAsync(
             () -> trackedEntityStore.getAttributes( ids ), getPool() );
 
         /*
          * Async fetch Owned Tei mapped to the provided program attributes by
-         * TrackedEntityInstance id
+         * TrackedEntity id
          */
         final CompletableFuture<Multimap<String, String>> ownedTeiAsync = conditionalAsyncFetch(
             user.isPresent(),
@@ -213,7 +212,7 @@ public class TrackedEntityAggregate
         return allOf( teisAsync, attributesAsync, relationshipsAsync, enrollmentsAsync, ownedTeiAsync )
             .thenApplyAsync( fn -> {
 
-                Map<String, TrackedEntityInstance> teis = teisAsync.join();
+                Map<String, TrackedEntity> teis = teisAsync.join();
 
                 Multimap<String, TrackedEntityAttributeValue> attributes = attributesAsync.join();
                 Multimap<String, RelationshipItem> relationships = relationshipsAsync.join();
@@ -230,7 +229,7 @@ public class TrackedEntityAggregate
 
                 return teiUidStream.map( uid -> {
 
-                    TrackedEntityInstance tei = teis.get( uid );
+                    TrackedEntity tei = teis.get( uid );
                     tei.setTrackedEntityAttributeValues( filterAttributes( attributes.get( uid ), ownedTeis.get( uid ),
                         teiAttributesCache
                             .get( "ALL_ATTRIBUTES",
@@ -323,7 +322,7 @@ public class TrackedEntityAggregate
     private Context getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userUID, userGroupUIDs ),
+            () -> aclStore.getAccessibleTrackedEntityTypes( userUID, userGroupUIDs ),
             getPool() );
 
         final CompletableFuture<List<Long>> getPrograms = supplyAsync(

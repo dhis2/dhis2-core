@@ -54,7 +54,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipStore;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -69,7 +69,7 @@ import org.springframework.stereotype.Repository;
 public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<Relationship>
     implements RelationshipStore
 {
-    private static final String TRACKED_ENTITY_INSTANCE = "trackedEntityInstance";
+    private static final String TRACKED_ENTITY = "trackedEntity";
 
     private static final String PROGRAM_INSTANCE = "enrollment";
 
@@ -82,20 +82,20 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     }
 
     @Override
-    public List<Relationship> getByTrackedEntityInstance( TrackedEntityInstance tei,
+    public List<Relationship> getByTrackedEntity( TrackedEntity trackedEntity,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( tei,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( trackedEntity,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
     }
 
     @Override
-    public List<Relationship> getByProgramInstance( Enrollment pi,
+    public List<Relationship> getByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
     {
-        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( pi,
+        TypedQuery<Relationship> relationshipTypedQuery = getRelationshipTypedQuery( enrollment,
             pagingAndSortingCriteriaAdapter );
 
         return getList( relationshipTypedQuery );
@@ -156,8 +156,8 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
 
     private <T extends IdentifiableObject> String getRelationshipEntityType( T entity )
     {
-        if ( entity instanceof TrackedEntityInstance )
-            return TRACKED_ENTITY_INSTANCE;
+        if ( entity instanceof TrackedEntity )
+            return TRACKED_ENTITY;
         else if ( entity instanceof Enrollment )
             return PROGRAM_INSTANCE;
         else if ( entity instanceof Event )
@@ -336,10 +336,10 @@ public class HibernateRelationshipStore extends SoftDeleteHibernateObjectStore<R
     {
         RelationshipItem relationshipItemDirection = getItem( direction, relationship );
 
-        if ( relationshipItemDirection.getTrackedEntityInstance() != null )
+        if ( relationshipItemDirection.getTrackedEntity() != null )
         {
             return builder.equal( root.join( direction )
-                .get( TRACKED_ENTITY_INSTANCE ), getItem( direction, relationship ).getTrackedEntityInstance() );
+                .get( TRACKED_ENTITY ), getItem( direction, relationship ).getTrackedEntity() );
         }
         else if ( relationshipItemDirection.getEnrollment() != null )
         {

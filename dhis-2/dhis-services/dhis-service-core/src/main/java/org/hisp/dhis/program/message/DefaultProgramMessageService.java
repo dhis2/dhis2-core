@@ -52,7 +52,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.sms.config.MessageSendingCallback;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -74,7 +74,7 @@ public class DefaultProgramMessageService
 
     private final OrganisationUnitService organisationUnitService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ProgramService programService;
 
@@ -112,7 +112,7 @@ public class DefaultProgramMessageService
             }
             else
             {
-                throw new IllegalQueryException( "ProgramInstance does not exist." );
+                throw new IllegalQueryException( "Enrollment does not exist." );
             }
         }
 
@@ -241,7 +241,7 @@ public class DefaultProgramMessageService
 
         Set<Program> programs;
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
             enrollment = params.getEnrollment();
         }
@@ -253,7 +253,7 @@ public class DefaultProgramMessageService
 
         if ( enrollment == null )
         {
-            throw new IllegalQueryException( "ProgramInstance or Event has to be provided" );
+            throw new IllegalQueryException( "Enrollment or Event has to be provided" );
         }
 
         programs = new HashSet<>( programService.getCurrentUserPrograms() );
@@ -270,9 +270,9 @@ public class DefaultProgramMessageService
     {
         String violation = null;
 
-        if ( !params.hasProgramInstance() && !params.hasEvent() )
+        if ( !params.hasEnrollment() && !params.hasEvent() )
         {
-            violation = "Program instance or program stage instance must be provided";
+            violation = "Enrollment or program stage instance must be provided";
         }
 
         if ( violation != null )
@@ -303,11 +303,11 @@ public class DefaultProgramMessageService
 
         if ( message.getEnrollment() == null && message.getEvent() == null )
         {
-            violation = "Program instance or program stage instance must be specified";
+            violation = "Enrollment or program stage instance must be specified";
         }
 
-        if ( recipients.getTrackedEntityInstance() != null && trackedEntityInstanceService
-            .getTrackedEntityInstance( recipients.getTrackedEntityInstance().getUid() ) == null )
+        if ( recipients.getTrackedEntity() != null && trackedEntityService
+            .getTrackedEntity( recipients.getTrackedEntity().getUid() ) == null )
         {
             violation = "Tracked entity does not exist";
         }
@@ -337,7 +337,7 @@ public class DefaultProgramMessageService
 
         boolean isAuthorized;
 
-        if ( message.hasProgramInstance() )
+        if ( message.hasEnrollment() )
         {
             object = message.getEnrollment().getProgram();
         }
@@ -371,7 +371,7 @@ public class DefaultProgramMessageService
 
     private ProgramMessage setParameters( ProgramMessage message, BatchResponseStatus status )
     {
-        message.setEnrollment( getProgramInstance( message ) );
+        message.setEnrollment( getEnrollment( message ) );
         message.setEvent( getEvent( message ) );
         message.setProcessedDate( new Date() );
         message.setMessageStatus( status.isOk() ? ProgramMessageStatus.SENT : ProgramMessageStatus.FAILED );
@@ -387,7 +387,7 @@ public class DefaultProgramMessageService
             .collect( Collectors.toList() );
     }
 
-    private Enrollment getProgramInstance( ProgramMessage programMessage )
+    private Enrollment getEnrollment( ProgramMessage programMessage )
     {
         if ( programMessage.getEnrollment() != null )
         {

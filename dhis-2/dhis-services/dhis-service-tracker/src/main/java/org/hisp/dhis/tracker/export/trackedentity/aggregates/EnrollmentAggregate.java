@@ -71,14 +71,14 @@ public class EnrollmentAggregate
     /**
      * Key: tei uid , value Enrollment
      *
-     * @param ids a List of {@see TrackedEntityInstance} Primary Keys
+     * @param ids a List of {@see TrackedEntity} Primary Keys
      *
-     * @return a MultiMap where key is a {@see TrackedEntityInstance} uid and
-     *         the key a List of {@see Enrollment} objects
+     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
+     *         List of {@see Enrollment} objects
      */
-    Multimap<String, Enrollment> findByTrackedEntityInstanceIds( List<Long> ids, Context ctx )
+    Multimap<String, Enrollment> findByTrackedEntityIds( List<Long> ids, Context ctx )
     {
-        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityInstanceIds( ids,
+        Multimap<String, Enrollment> enrollments = enrollmentStore.getEnrollmentsByTrackedEntityIds( ids,
             ctx );
 
         if ( enrollments.isEmpty() )
@@ -123,7 +123,7 @@ public class EnrollmentAggregate
                 }
                 if ( ctx.getParams().getTeiEnrollmentParams().isIncludeAttributes() )
                 {
-                    enrollment.getEntityInstance()
+                    enrollment.getTrackedEntity()
                         .setTrackedEntityAttributeValues(
                             new LinkedHashSet<>( attributes.get( enrollment.getUid() ) ) );
                 }

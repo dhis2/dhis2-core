@@ -37,6 +37,8 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static org.hisp.dhis.analytics.AggregationType.CUSTOM;
+import static org.hisp.dhis.analytics.AggregationType.NONE;
 import static org.hisp.dhis.analytics.DataQueryParams.NUMERATOR_DENOMINATOR_PROPERTIES_COUNT;
 import static org.hisp.dhis.analytics.DataType.NUMERIC;
 import static org.hisp.dhis.analytics.QueryKey.NV;
@@ -316,10 +318,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
     /**
      * Returns the dynamic select columns. Dimensions come first and query items
-     * second. Program indicator expressions are converted to SQL expressions.
-     * In the case of non-default boundaries
-     * {@link EventQueryParams#hasNonDefaultBoundaries}, the period is
-     * hard-coded into the select statement with "(isoPeriod) as (periodType)".
+     * second.
      *
      * @param params the {@link EventQueryParams}.
      * @param isGroupByClause used to avoid grouping by period when using
@@ -330,15 +329,41 @@ public abstract class AbstractJdbcEventAnalyticsManager
     {
         List<String> columns = new ArrayList<>();
 
-        for ( DimensionalObject dimension : params.getDimensions() )
-        {
+        addDimensionSelectColumns( columns, params, isGroupByClause );
+        addItemSelectColumns( columns, params, isGroupByClause, isAggregated );
+
+        return columns;
+    }
+
+    /**
+     * Adds the dynamic dimension select columns. Program indicator expressions
+     * are converted to SQL expressions. In the case of non-default boundaries
+     * {@link EventQueryParams#hasNonDefaultBoundaries}, the period is
+     * hard-coded into the select statement with "(isoPeriod) as (periodType)".
+     * <p>
+     * If the first/last subquery is used then one query will be done for each
+     * period, and the period will not be present in the query, so add it to the
+     * select columns and skip it in the group by columns.
+     */
+    private void addDimensionSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause )
+    {
+        params.getDimensions().forEach( dimension -> {
             if ( isGroupByClause && dimension.getDimensionType() == DimensionType.PERIOD
                 && params.hasNonDefaultBoundaries() )
             {
-                continue;
+                return;
             }
 
-            if ( !params.hasNonDefaultBoundaries() || dimension.getDimensionType() != DimensionType.PERIOD )
+            if ( dimension.getDimensionType() == DimensionType.PERIOD &&
+                params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType() )
+            {
+                if ( !isGroupByClause )
+                {
+                    String alias = quote( dimension.getDimensionName() );
+                    columns.add( "cast('" + params.getLatestPeriod().getDimensionItem() + "' as text) as " + alias );
+                }
+            }
+            else if ( !params.hasNonDefaultBoundaries() || dimension.getDimensionType() != DimensionType.PERIOD )
             {
                 columns.add( getTableAndColumn( params, dimension, isGroupByClause ) );
             }
@@ -362,8 +387,12 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 throw new IllegalStateException( "Program indicator non-default boundary query must have " +
                     "exactly one period, or no periods and a period filter" );
             }
-        }
+        } );
+    }
 
+    private void addItemSelectColumns( List<String> columns, EventQueryParams params, boolean isGroupByClause,
+        boolean isAggregated )
+    {
         for ( QueryItem queryItem : params.getItems() )
         {
             ColumnAndAlias columnAndAlias = getColumnAndAlias( queryItem, params, isGroupByClause, isAggregated );
@@ -378,8 +407,6 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 columns.add( (new ColumnAndAlias( column, alias )).asSql() );
             }
         }
-
-        return columns;
     }
 
     /**
@@ -711,24 +738,29 @@ public abstract class AbstractJdbcEventAnalyticsManager
 
         EventOutputType outputType = params.getOutputType();
 
+        AggregationType aggregationType = params.getAggregationTypeFallback().getAggregationType();
+
+        String function = (aggregationType == NONE || aggregationType == CUSTOM)
+            ? ""
+            : aggregationType.getValue();
+
         if ( !params.isAggregation() )
         {
             return quoteAlias( params.getValue().getUid() );
         }
+        else if ( params.getAggregationTypeFallback().isFirstOrLastPeriodAggregationType()
+            && params.hasEventProgramIndicatorDimension() )
+        {
+            return function + "(value)";
+        }
         else if ( params.hasNumericValueDimension() )
         {
-            String function = params.getAggregationTypeFallback().getAggregationType().getValue();
-
             String expression = quoteAlias( params.getValue().getUid() );
 
             return function + "(" + expression + ")";
         }
         else if ( params.hasProgramIndicatorDimension() )
         {
-            String function = params.getProgramIndicator().getAggregationTypeFallback().getValue();
-
-            function = TextUtils.emptyIfEqual( function, AggregationType.CUSTOM.getValue() );
-
             String expression = programIndicatorService.getAnalyticsSql( params.getProgramIndicator().getExpression(),
                 NUMERIC, params.getProgramIndicator(), params.getEarliestStartDate(), params.getLatestEndDate() );
 
@@ -1018,8 +1050,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( value instanceof BigDecimal )
             {
-                // toPlainString method prevents scientific notation (3E+2)
-                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+                Optional<QueryItem> queryItem = params.getItems()
+                    .stream()
+                    .filter( item -> item.isProgramIndicator() && header.getName().equals( item.getItemName() ) )
+                    .findFirst();
+
+                if ( queryItem.isPresent() )
+                {
+                    grid.addValue( AnalyticsUtils.getRoundedValue( params,
+                        ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                        ((BigDecimal) value).doubleValue() ) );
+                }
+                else
+                {
+                    // toPlainString method prevents scientific notation (3E+2)
+                    grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+                }
             }
             else
             {

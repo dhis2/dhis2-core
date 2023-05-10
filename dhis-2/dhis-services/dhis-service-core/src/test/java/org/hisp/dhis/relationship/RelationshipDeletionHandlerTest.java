@@ -41,7 +41,7 @@ import org.hisp.dhis.common.DeleteNotAllowedException;
 import org.hisp.dhis.common.ObjectDeletionRequestedEvent;
 import org.hisp.dhis.system.deletion.DefaultDeletionManager;
 import org.hisp.dhis.system.deletion.DeletionManager;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -91,15 +91,15 @@ class RelationshipDeletionHandlerTest
     }
 
     @Test
-    void deleteTrackedEntityInstance()
+    void deleteTrackedEntity()
     {
-        when( relationshipService.getRelationshipsByTrackedEntityInstance( any(), anyBoolean() ) )
+        when( relationshipService.getRelationshipsByTrackedEntity( any(), anyBoolean() ) )
             .thenReturn( singletonList( new Relationship() ) );
 
-        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new TrackedEntityInstance() );
+        ObjectDeletionRequestedEvent event = new ObjectDeletionRequestedEvent( new TrackedEntity() );
         deletionManager.onDeletion( event );
 
-        verify( relationshipService, atLeastOnce() ).getRelationshipsByTrackedEntityInstance( any(), anyBoolean() );
+        verify( relationshipService, atLeastOnce() ).getRelationshipsByTrackedEntity( any(), anyBoolean() );
         verify( relationshipService, atLeastOnce() ).deleteRelationship( any() );
     }
 }

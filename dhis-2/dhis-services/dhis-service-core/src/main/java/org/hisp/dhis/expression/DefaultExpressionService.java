@@ -125,7 +125,7 @@ import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
 import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.expression.function.FunctionOrgUnitProgram;
-import org.hisp.dhis.expression.function.FunctionSubExpression;
+import org.hisp.dhis.expression.function.FunctionSubexpression;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -241,7 +241,7 @@ public class DefaultExpressionService
         .put( MIN_DATE, new FunctionMinDate() )
         .put( PERIOD_IN_YEAR, new ItemPeriodInYear() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
-        .put( SUB_EXPRESSION, new FunctionSubExpression() )
+        .put( SUB_EXPRESSION, new FunctionSubexpression() )
         .put( YEARLY_PERIOD_COUNT, new ItemYearlyPeriodCount() )
         .put( YEAR_TO_DATE, new FunctionYearToDate() )
         .build();
@@ -306,13 +306,6 @@ public class DefaultExpressionService
         this.statementBuilder = statementBuilder;
         this.i18nManager = i18nManager;
         this.constantMapCache = cacheProvider.createAllConstantsCache();
-
-        FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
-
-        if ( fn != null )
-        {
-            fn.init( cacheProvider );
-        }
     }
 
     // -------------------------------------------------------------------------

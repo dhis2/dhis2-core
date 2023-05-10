@@ -51,8 +51,8 @@ import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -72,7 +72,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
 
     private OrganisationUnit organisationUnit;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private Enrollment enrollment;
 
@@ -85,7 +85,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
     private ProgramService programService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramNotificationTemplateService programNotificationTemplateService;
@@ -110,8 +110,8 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( organisationUnit );
         program = createProgram( 'P' );
         programService.addProgram( program );
-        trackedEntityInstance = createTrackedEntityInstance( 'T', organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance );
+        trackedEntity = createTrackedEntity( 'T', organisationUnit );
+        trackedEntityService.addTrackedEntity( trackedEntity );
         programRule = createProgramRule( 'R', program );
         programRule.setCondition( "true" );
         manager.save( programRule );
@@ -126,9 +126,9 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         manager.save( programRuleAction );
         programRule.getProgramRuleActions().add( programRuleAction );
         manager.update( programRule );
-        enrollment = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        enrollment = createEnrollment( program, trackedEntity, organisationUnit );
         enrollmentService.addEnrollment( enrollment );
-        enrollmentB = createProgramInstance( program, trackedEntityInstance, organisationUnit );
+        enrollmentB = createEnrollment( program, trackedEntity, organisationUnit );
         enrollmentService.addEnrollment( enrollmentB );
     }
 

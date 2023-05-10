@@ -62,15 +62,15 @@ import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.util.SqlHelper;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.program.notification.NotificationTrigger;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -103,7 +103,7 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public int countEnrollments( ProgramInstanceQueryParams params )
+    public int countEnrollments( EnrollmentQueryParams params )
     {
         String hql = buildCountEnrollmentHql( params );
 
@@ -112,14 +112,14 @@ public class HibernateEnrollmentStore
         return query.getSingleResult().intValue();
     }
 
-    private String buildCountEnrollmentHql( ProgramInstanceQueryParams params )
+    private String buildCountEnrollmentHql( EnrollmentQueryParams params )
     {
         return buildEnrollmentHql( params ).getQuery().replaceFirst( "from Enrollment pi",
             "select count(distinct uid) from Enrollment pi" );
     }
 
     @Override
-    public List<Enrollment> getEnrollments( ProgramInstanceQueryParams params )
+    public List<Enrollment> getEnrollments( EnrollmentQueryParams params )
     {
         String hql = buildEnrollmentHql( params ).getFullQuery();
 
@@ -143,7 +143,7 @@ public class HibernateEnrollmentStore
         return query.list();
     }
 
-    private QueryWithOrderBy buildEnrollmentHql( ProgramInstanceQueryParams params )
+    private QueryWithOrderBy buildEnrollmentHql( EnrollmentQueryParams params )
     {
         String hql = "from Enrollment pi";
         SqlHelper hlp = new SqlHelper( true );
@@ -158,14 +158,14 @@ public class HibernateEnrollmentStore
             hql += hlp.whereAnd() + "pi.lastUpdated >= '" + getMediumDateString( params.getLastUpdated() ) + "'";
         }
 
-        if ( params.hasTrackedEntityInstance() )
+        if ( params.hasTrackedEntity() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.uid = '" + params.getTrackedEntityInstanceUid() + "'";
+            hql += hlp.whereAnd() + "pi.trackedEntity.uid = '" + params.getTrackedEntityUid() + "'";
         }
 
         if ( params.hasTrackedEntityType() )
         {
-            hql += hlp.whereAnd() + "pi.entityInstance.trackedEntityType.uid = '"
+            hql += hlp.whereAnd() + "pi.trackedEntity.trackedEntityType.uid = '"
                 + params.getTrackedEntityType().getUid() + "'";
         }
 
@@ -278,12 +278,12 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> get( TrackedEntityInstance entityInstance, Program program, ProgramStatus status )
+    public List<Enrollment> get( TrackedEntity trackedEntity, Program program, ProgramStatus status )
     {
         CriteriaBuilder builder = getCriteriaBuilder();
 
         return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "entityInstance" ), entityInstance ) )
+            .addPredicate( root -> builder.equal( root.get( "trackedEntity" ), trackedEntity ) )
             .addPredicate( root -> builder.equal( root.get( "program" ), program ) )
             .addPredicate( root -> builder.equal( root.get( STATUS ), status ) ) );
     }
@@ -415,8 +415,8 @@ public class HibernateEnrollmentStore
     }
 
     @Override
-    public List<Enrollment> getByProgramAndTrackedEntityInstance(
-        List<Pair<Program, TrackedEntityInstance>> programTeiPair, ProgramStatus programStatus )
+    public List<Enrollment> getByProgramAndTrackedEntity(
+        List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus )
     {
         checkNotNull( programTeiPair );
 
@@ -435,11 +435,11 @@ public class HibernateEnrollmentStore
         // TODO we may have potentially thousands of events here, so, it's
         // better to
         // partition the list
-        for ( Pair<Program, TrackedEntityInstance> pair : programTeiPair )
+        for ( Pair<Program, TrackedEntity> pair : programTeiPair )
         {
             predicates.add( cb.and(
                 cb.equal( enrollment.get( "program" ), pair.getLeft() ),
-                cb.equal( enrollment.get( "entityInstance" ), pair.getRight() ),
+                cb.equal( enrollment.get( "trackedEntity" ), pair.getRight() ),
                 cb.equal( enrollment.get( STATUS ), programStatus ) ) );
         }
 

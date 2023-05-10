@@ -39,6 +39,7 @@ import static org.hisp.dhis.common.DimensionItemType.PROGRAM_ATTRIBUTE;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_DATA_ELEMENT;
 import static org.hisp.dhis.common.DimensionItemType.PROGRAM_INDICATOR;
 import static org.hisp.dhis.common.DimensionItemType.REPORTING_RATE;
+import static org.hisp.dhis.common.DimensionItemType.SUBEXPRESSION_DIMENSION_ITEM;
 
 import java.util.Set;
 
@@ -112,6 +113,27 @@ class DataDimensionExtractorTest
         // Then
         assertThat( result.size(), is( equalTo( 1 ) ) );
         assertThat( result.get( Indicator.class ), containsInAnyOrder( indicatorItem.getId0() ) );
+    }
+
+    @Test
+    void testGetAtomicIdsForSubexpression()
+    {
+        // Given
+        final DimensionalItemId deItem = new DimensionalItemId( DATA_ELEMENT, "id0" );
+        final DimensionalItemId deoItem = new DimensionalItemId( DATA_ELEMENT_OPERAND, "de", "coc", "aoc" );
+        final Set<DimensionalItemId> subexItemIds = Set.of( deItem, deoItem );
+        final DimensionalItemId subexpressionItem = new DimensionalItemId( SUBEXPRESSION_DIMENSION_ITEM, "1",
+            subexItemIds, null );
+        final Set<DimensionalItemId> someItemIds = Set.of( subexpressionItem );
+
+        // When
+        final SetMap<Class<? extends IdentifiableObject>, String> result = new DataDimensionExtractor( null )
+            .getAtomicIds( someItemIds );
+
+        // Then
+        assertThat( result.size(), is( equalTo( 2 ) ) );
+        assertThat( result.get( DataElement.class ), containsInAnyOrder( deItem.getId0(), deoItem.getId0() ) );
+        assertThat( result.get( CategoryOptionCombo.class ), containsInAnyOrder( deoItem.getId1(), deoItem.getId2() ) );
     }
 
     @Test

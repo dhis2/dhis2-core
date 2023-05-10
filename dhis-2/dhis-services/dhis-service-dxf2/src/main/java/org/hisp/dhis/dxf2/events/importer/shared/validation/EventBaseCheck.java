@@ -111,7 +111,7 @@ public class EventBaseCheck implements Checker
 
         if ( enrollment == null )
         {
-            errors.add( "No program instance found for event: " + event.getEvent() );
+            errors.add( "No enrollment found for event: " + event.getEvent() );
 
         }
         else if ( COMPLETED.equals( enrollment.getStatus() ) )

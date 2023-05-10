@@ -35,17 +35,17 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 public interface RelationshipService
 {
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter criteria )
         throws ForbiddenException,
         NotFoundException;
 
-    List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter criteria )
         throws ForbiddenException,
         NotFoundException;

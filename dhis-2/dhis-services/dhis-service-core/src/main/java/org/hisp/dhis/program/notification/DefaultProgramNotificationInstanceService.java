@@ -69,12 +69,12 @@ public class DefaultProgramNotificationInstanceService
     @Transactional( readOnly = true )
     public void validateQueryParameters( ProgramNotificationInstanceParam params )
     {
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
             if ( !enrollmentService.enrollmentExists( params.getEnrollment().getUid() ) )
             {
                 throw new IllegalQueryException(
-                    String.format( "Program instance %s does not exist", params.getEnrollment().getUid() ) );
+                    String.format( "Enrollment %s does not exist", params.getEnrollment().getUid() ) );
             }
 
         }

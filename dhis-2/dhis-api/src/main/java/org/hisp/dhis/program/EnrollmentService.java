@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -113,8 +113,8 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( @Nonnull List<String> uids );
 
     /**
-     * Checks for the existence of a PI by UID. Deleted values are not taken
-     * into account.
+     * Checks for the existence of an enrollment by UID. Deleted values are not
+     * taken into account.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -122,8 +122,8 @@ public interface EnrollmentService
     boolean enrollmentExists( String uid );
 
     /**
-     * Checks for the existence of a PI by UID. Takes into account also the
-     * deleted values.
+     * Checks for the existence of an enrollment by UID. Takes into account also
+     * the deleted values.
      *
      * @param uid PSI UID to check for
      * @return true/false depending on result
@@ -140,43 +140,43 @@ public interface EnrollmentService
     List<String> getEnrollmentsUidsIncludingDeleted( List<String> uids );
 
     /**
-     * Returns a list with program instance values based on the given
-     * ProgramInstanceQueryParams.
+     * Returns a list with Enrollment values based on the given
+     * EnrollmentQueryParams.
      *
-     * @param params the ProgramInstanceQueryParams.
-     * @return List of PIs matching the params
+     * @param params the EnrollmentQueryParams.
+     * @return List of enrollments matching the params
      */
-    List<Enrollment> getEnrollments( ProgramInstanceQueryParams params );
+    List<Enrollment> getEnrollments( EnrollmentQueryParams params );
 
     /**
-     * Returns the number of program instance matches based on the given
-     * ProgramInstanceQueryParams.
+     * Returns the number of Enrollment matches based on the given
+     * EnrollmentQueryParams.
      *
-     * @param params the ProgramInstanceQueryParams.
-     * @return Number of PIs matching the params
+     * @param params the EnrollmentQueryParams.
+     * @return Number of enrollments matching the params
      */
-    int countEnrollments( ProgramInstanceQueryParams params );
+    int countEnrollments( EnrollmentQueryParams params );
 
     /**
      * Decides whether current user is authorized to perform the given query.
      * IllegalQueryException is thrown if not.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      */
-    void decideAccess( ProgramInstanceQueryParams params );
+    void decideAccess( EnrollmentQueryParams params );
 
     /**
-     * Validates the given ProgramInstanceQueryParams. The params is considered
-     * valid if no exception are thrown and the method returns normally.
+     * Validates the given EnrollmentQueryParams. The params is considered valid
+     * if no exception are thrown and the method returns normally.
      *
-     * @param params the ProgramInstanceQueryParams.
+     * @param params the EnrollmentQueryParams.
      * @throws IllegalQueryException if the given params is invalid.
      */
-    void validate( ProgramInstanceQueryParams params )
+    void validate( EnrollmentQueryParams params )
         throws IllegalQueryException;
 
     /**
-     * Retrieve program instances on a program
+     * Retrieve Enrollments on a program
      *
      * @param program Program
      * @return Enrollment list
@@ -184,7 +184,7 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( Program program );
 
     /**
-     * Retrieve program instances on a program by status
+     * Retrieve enrollments on a program by status
      *
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
@@ -194,23 +194,21 @@ public interface EnrollmentService
     List<Enrollment> getEnrollments( Program program, ProgramStatus status );
 
     /**
-     * Retrieve program instances on a TrackedEntityInstance with a status by a
-     * program
+     * Retrieve enrollments on a TrackedEntity with a status by a program
      *
-     * @param entityInstance TrackedEntityInstance
+     * @param entityInstance TrackedEntity
      * @param program Program
      * @param status Status of program-instance, include STATUS_ACTIVE,
      *        STATUS_COMPLETED and STATUS_CANCELLED
      * @return Enrollment list
      */
-    List<Enrollment> getEnrollments( TrackedEntityInstance entityInstance, Program program,
+    List<Enrollment> getEnrollments( TrackedEntity entityInstance, Program program,
         ProgramStatus status );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a TrackedEntity into a program. Must be run inside a transaction.
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param enrollmentDate The date of enrollment
      * @param incidentDate The date of incident
@@ -218,27 +216,26 @@ public interface EnrollmentService
      * @param uid UID to use for new instance
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit orgunit, String uid );
 
     /**
-     * Enroll a TrackedEntityInstance into a program. Must be run inside a
-     * transaction.
+     * Enroll a tracked entity into a program. Must be run inside a transaction.
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param enrollmentDate The date of enrollment
      * @param incidentDate The date of incident
      * @param orgunit Organisation Unit
      * @return Enrollment
      */
-    Enrollment enrollTrackedEntityInstance( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate,
         OrganisationUnit orgunit );
 
     /**
-     * Complete a program instance. Besides, program template messages will be
-     * send if it was defined to send when to complete this program
+     * Complete a enrollment. Besides, program template messages will be send if
+     * it was defined to send when to complete this program
      *
      * @param enrollment Enrollment
      */
@@ -252,8 +249,8 @@ public interface EnrollmentService
     void cancelEnrollmentStatus( Enrollment enrollment );
 
     /**
-     * Incomplete a program instance. This is is possible only if there is no
-     * other program instance with active status.
+     * Incomplete a enrollment. This is is possible only if there is no other
+     * enrollment with active status.
      *
      * @param enrollment Enrollment
      */
@@ -262,7 +259,7 @@ public interface EnrollmentService
     /**
      * Prepare a Enrollment for storing
      *
-     * @param trackedEntityInstance TrackedEntityInstance
+     * @param trackedEntity TrackedEntity
      * @param program Program
      * @param programStatus ProgramStatus
      * @param enrollmentDate The date of enrollment
@@ -272,6 +269,6 @@ public interface EnrollmentService
      * @return Enrollment
      */
     @Nonnull
-    Enrollment prepareEnrollment( TrackedEntityInstance trackedEntityInstance, Program program,
+    Enrollment prepareEnrollment( TrackedEntity trackedEntity, Program program,
         ProgramStatus programStatus, Date enrollmentDate, Date incidentDate, OrganisationUnit orgUnit, String uid );
 }

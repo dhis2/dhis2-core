@@ -262,6 +262,39 @@ public class DataHandler
     }
 
     /**
+     * Adds subexpressions values to the given grid based on the given data
+     * query parameters.
+     *
+     * @param params the {@link DataQueryParams}.
+     * @param grid the {@link Grid}.
+     */
+    @Transactional( readOnly = true )
+    public void addSubexpressionDimensionItemValues( DataQueryParams params, Grid grid )
+    {
+        if ( params.hasSubexpressions() && !params.isSkipData() )
+        {
+            // Generate one query per Subexpression
+            for ( DimensionalItemObject subex : params.getSubexpressions() )
+            {
+                DataQueryParams dataSourceParams = newBuilder( params )
+                    .withDataDimensionItems( List.of( subex ) )
+                    .withIncludeNumDen( false ).build();
+
+                Map<String, Object> aggregatedDataMap = getAggregatedDataValueMapObjectTyped( dataSourceParams );
+
+                for ( Map.Entry<String, Object> entry : aggregatedDataMap.entrySet() )
+                {
+                    Object value = getRoundedValueObject( params, entry.getValue() );
+
+                    grid.addRow()
+                        .addValues( entry.getKey().split( DIMENSION_SEP ) )
+                        .addValue( value );
+                }
+            }
+        }
+    }
+
+    /**
      * Transform expression dimension item object in the indicator object with
      * some default values missing in expression dimension item
      *

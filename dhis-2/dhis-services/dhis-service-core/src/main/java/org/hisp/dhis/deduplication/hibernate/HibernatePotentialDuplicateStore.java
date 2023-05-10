@@ -71,8 +71,8 @@ import org.hisp.dhis.program.UserInfoSnapshot;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditStore;
@@ -88,7 +88,7 @@ public class HibernatePotentialDuplicateStore
 {
     private final AuditManager auditManager;
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityStore trackedEntityStore;
 
     private final TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore;
 
@@ -96,13 +96,13 @@ public class HibernatePotentialDuplicateStore
 
     public HibernatePotentialDuplicateStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService,
-        TrackedEntityInstanceStore trackedEntityInstanceStore, AuditManager auditManager,
+        TrackedEntityStore trackedEntityStore, AuditManager auditManager,
         TrackedEntityAttributeValueAuditStore trackedEntityAttributeValueAuditStore,
         DhisConfigurationProvider config )
     {
         super( sessionFactory, jdbcTemplate, publisher, PotentialDuplicate.class, currentUserService,
             aclService, false );
-        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
+        this.trackedEntityStore = trackedEntityStore;
         this.auditManager = auditManager;
         this.trackedEntityAttributeValueAuditStore = trackedEntityAttributeValueAuditStore;
         this.config = config;
@@ -203,7 +203,7 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void moveTrackedEntityAttributeValues( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveTrackedEntityAttributeValues( TrackedEntity original, TrackedEntity duplicate,
         List<String> trackedEntityAttributes )
     {
         // Collect existing teav from original for the tea list
@@ -235,7 +235,7 @@ public class HibernatePotentialDuplicateStore
                     // it to original
                     updatedTeav = new TrackedEntityAttributeValue();
                     updatedTeav.setAttribute( av.getAttribute() );
-                    updatedTeav.setEntityInstance( original );
+                    updatedTeav.setTrackedEntity( original );
                     updatedTeav.setValue( av.getValue() );
                     auditType = CREATE;
                 }
@@ -271,33 +271,33 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void moveRelationships( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveRelationships( TrackedEntity original, TrackedEntity duplicate,
         List<String> relationships )
     {
         duplicate.getRelationshipItems()
             .stream()
             .filter( r -> relationships.contains( r.getRelationship().getUid() ) )
             .forEach( ri -> {
-                ri.setTrackedEntityInstance( original );
+                ri.setTrackedEntity( original );
 
                 getSession().update( ri );
             } );
     }
 
     @Override
-    public void moveEnrollments( TrackedEntityInstance original, TrackedEntityInstance duplicate,
+    public void moveEnrollments( TrackedEntity original, TrackedEntity duplicate,
         List<String> enrollments )
     {
-        List<Enrollment> pis = duplicate.getEnrollments()
+        List<Enrollment> enrollmentList = duplicate.getEnrollments()
             .stream()
             .filter( e -> !e.isDeleted() )
             .filter( e -> enrollments.contains( e.getUid() ) )
             .collect( Collectors.toList() );
 
-        pis.forEach( duplicate.getEnrollments()::remove );
+        enrollmentList.forEach( duplicate.getEnrollments()::remove );
 
-        pis.forEach( e -> {
-            e.setEntityInstance( original );
+        enrollmentList.forEach( e -> {
+            e.setTrackedEntity( original );
             e.setLastUpdatedBy( currentUserService.getCurrentUser() );
             e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
             e.setLastUpdated( new Date() );
@@ -310,15 +310,15 @@ public class HibernatePotentialDuplicateStore
     }
 
     @Override
-    public void removeTrackedEntity( TrackedEntityInstance trackedEntityInstance )
+    public void removeTrackedEntity( TrackedEntity trackedEntity )
     {
-        trackedEntityInstanceStore.delete( trackedEntityInstance );
+        trackedEntityStore.delete( trackedEntity );
     }
 
     @Override
     public void auditMerge( DeduplicationMergeParams params )
     {
-        TrackedEntityInstance duplicate = params.getDuplicate();
+        TrackedEntity duplicate = params.getDuplicate();
         MergeObject mergeObject = params.getMergeObject();
 
         mergeObject.getRelationships().forEach( rel -> {

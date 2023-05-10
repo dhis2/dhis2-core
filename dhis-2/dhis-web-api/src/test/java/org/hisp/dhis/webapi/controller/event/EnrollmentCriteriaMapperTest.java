@@ -39,12 +39,12 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -74,7 +74,7 @@ class EnrollmentCriteriaMapperTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
     private TrackerAccessManager trackerAccessManager;
@@ -88,7 +88,7 @@ class EnrollmentCriteriaMapperTest
 
     private static final String ENTITY_TYPE = "entityType";
 
-    private static final String ENTITY_INSTANCE = "entityInstance";
+    private static final String TRACKED_ENTITY = "trackedEntity";
 
     private Program program;
 
@@ -98,7 +98,7 @@ class EnrollmentCriteriaMapperTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     @BeforeEach
     void setUp()
@@ -115,8 +115,8 @@ class EnrollmentCriteriaMapperTest
         trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid( ENTITY_TYPE );
 
-        trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( ENTITY_INSTANCE );
+        trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY );
     }
 
     @Test
@@ -129,11 +129,11 @@ class EnrollmentCriteriaMapperTest
         when( organisationUnitService.getOrganisationUnit( ORG_UNIT1 ) ).thenReturn( organisationUnit );
         when( trackerAccessManager.canAccess( user, program, organisationUnit ) ).thenReturn( true );
         when( trackedEntityTypeService.getTrackedEntityType( ENTITY_TYPE ) ).thenReturn( trackedEntityType );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( ENTITY_INSTANCE ) )
-            .thenReturn( trackedEntityInstance );
+        when( trackedEntityService.getTrackedEntity( TRACKED_ENTITY ) )
+            .thenReturn( trackedEntity );
 
-        ProgramInstanceQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
-            ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, ENTITY_INSTANCE, false, 1, 1, false, false, false, null );
+        EnrollmentQueryParams params = mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID,
+            ProgramStatus.ACTIVE, null, null, ENTITY_TYPE, TRACKED_ENTITY, false, 1, 1, false, false, false, null );
 
         assertNotEmpty( params.getOrganisationUnits() );
         assertEquals( ORG_UNIT1, params.getOrganisationUnits().iterator().next().getUid() );
@@ -148,7 +148,7 @@ class EnrollmentCriteriaMapperTest
 
         Exception exception = assertThrows( IllegalQueryException.class,
             () -> mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID, ProgramStatus.ACTIVE,
-                null, null, "trackedEntityType", "trackedEntityInstance", false, 1, 1, false, false, false, null ) );
+                null, null, "trackedEntityType", "trackedEntity", false, 1, 1, false, false, false, null ) );
         assertEquals( "Organisation unit does not exist: " + ORG_UNIT1, exception.getMessage() );
     }
 
@@ -162,7 +162,7 @@ class EnrollmentCriteriaMapperTest
 
         Exception exception = assertThrows( ForbiddenException.class,
             () -> mapper.getFromUrl( orgUnits, DESCENDANTS, null, "lastUpdated", PROGRAM_UID, ProgramStatus.ACTIVE,
-                null, null, "trackedEntityType", "trackedEntityInstance", false, 1, 1, false, false, false, null ) );
+                null, null, "trackedEntityType", "trackedEntity", false, 1, 1, false, false, false, null ) );
         assertEquals( "User does not have access to organisation unit: " + ORG_UNIT1, exception.getMessage() );
     }
 }

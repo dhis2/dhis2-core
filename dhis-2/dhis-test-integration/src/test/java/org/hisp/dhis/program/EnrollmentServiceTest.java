@@ -41,8 +41,8 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -97,7 +97,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     private Enrollment enrollmentD;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
     @Override
     public void setUpTest()
@@ -123,10 +123,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programService.addProgram( programB );
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -154,7 +154,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testAddProgramInstance()
+    void testAddEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -163,7 +163,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testDeleteProgramInstance()
+    void testDeleteEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -178,7 +178,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testSoftDeleteProgramInstanceAndLinkedEvent()
+    void testSoftDeleteEnrollmentAndLinkedEvent()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long eventIdA = eventService.addEvent( eventA );
@@ -192,7 +192,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testUpdateProgramInstance()
+    void testUpdateEnrollment()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         assertNotNull( enrollmentService.getEnrollment( idA ) );
@@ -202,7 +202,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstanceById()
+    void testGetEnrollmentById()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idB = enrollmentService.addEnrollment( enrollmentB );
@@ -211,7 +211,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstanceByUid()
+    void testGetEnrollmentByUid()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentB );
@@ -220,7 +220,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByProgram()
+    void testGetEnrollmentsByProgram()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentB );
@@ -235,14 +235,14 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByEntityInstanceProgramStatus()
+    void testGetEnrollmentsByEntityInstanceProgramStatus()
     {
         enrollmentService.addEnrollment( enrollmentA );
-        Enrollment enrollment1 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment1 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment1.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment1 );
-        Enrollment enrollment2 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment2 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment2.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment2 );
@@ -258,13 +258,13 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetProgramInstancesByOuProgram()
+    void testGetEnrollmentsByOuProgram()
     {
         enrollmentService.addEnrollment( enrollmentA );
         enrollmentService.addEnrollment( enrollmentC );
         enrollmentService.addEnrollment( enrollmentD );
         List<Enrollment> enrollments = enrollmentService
-            .getEnrollments( new ProgramInstanceQueryParams().setProgram( programA )
+            .getEnrollments( new EnrollmentQueryParams().setProgram( programA )
                 .setOrganisationUnits( Sets.newHashSet( organisationUnitA ) )
                 .setOrganisationUnitMode( OrganisationUnitSelectionMode.SELECTED ) );
         assertEquals( 1, enrollments.size() );
@@ -272,15 +272,15 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testEnrollTrackedEntityInstance()
+    void testEnrollTrackedEntity()
     {
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstanceA, programB,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstanceA, programB,
             enrollmentDate, incidentDate, organisationUnitA );
         assertNotNull( enrollmentService.getEnrollment( enrollment.getId() ) );
     }
 
     @Test
-    void testCompleteProgramInstanceStatus()
+    void testCompleteEnrollmentStatus()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idD = enrollmentService.addEnrollment( enrollmentD );
@@ -291,7 +291,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testIncompleteProgramInstanceStatus()
+    void testIncompleteEnrollmentStatus()
     {
         enrollmentA.setStatus( ProgramStatus.COMPLETED );
         enrollmentD.setStatus( ProgramStatus.COMPLETED );
@@ -304,7 +304,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testCancelProgramInstanceStatus()
+    void testCancelEnrollmentStatus()
     {
         long idA = enrollmentService.addEnrollment( enrollmentA );
         long idD = enrollmentService.addEnrollment( enrollmentD );

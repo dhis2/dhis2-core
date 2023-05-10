@@ -45,7 +45,7 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
@@ -98,7 +98,7 @@ public class EnrollmentsExportController
 
         if ( enrollmentCriteria.getEnrollment() == null )
         {
-            ProgramInstanceQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
+            EnrollmentQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 

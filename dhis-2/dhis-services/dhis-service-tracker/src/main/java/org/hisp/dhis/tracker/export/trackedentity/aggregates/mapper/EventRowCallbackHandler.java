@@ -43,7 +43,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EventQuery;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.EventQuery.COLUMNS;
 import org.hisp.dhis.user.User;
@@ -108,9 +108,9 @@ public class EventRowCallbackHandler
         enrollment.setFollowup( rs.wasNull() ? null : followup );
         enrollment.setStatus(
             ProgramStatus.valueOf( rs.getString( EventQuery.getColumnName( COLUMNS.ENROLLMENT_STATUS ) ) ) );
-        TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
+        TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setUid( rs.getString( EventQuery.getColumnName( COLUMNS.TEI_UID ) ) );
-        enrollment.setEntityInstance( trackedEntity );
+        enrollment.setTrackedEntity( trackedEntity );
         event.setEnrollment( enrollment );
 
         ProgramStage programStage = new ProgramStage();

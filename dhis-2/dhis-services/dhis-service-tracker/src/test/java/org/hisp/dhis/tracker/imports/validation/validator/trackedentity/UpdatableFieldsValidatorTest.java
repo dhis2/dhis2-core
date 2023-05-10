@@ -37,13 +37,12 @@ import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,13 +90,14 @@ class UpdatableFieldsValidatorTest
 
         when( bundle.getImportStrategy() ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
-        when( bundle.getStrategy( any( TrackedEntity.class ) ) ).thenReturn( TrackerImportStrategy.UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.TrackedEntity.class ) ) )
+            .thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
             .thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Event.class ) ) )
             .thenReturn( TrackerImportStrategy.UPDATE );
 
-        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntityInstance() );
+        when( preheat.getTrackedEntity( TRACKED_ENTITY_ID ) ).thenReturn( trackedEntity() );
         when( preheat.getEnrollment( ENROLLMENT_ID ) ).thenReturn( getEnrollment() );
         when( preheat.getEvent( EVENT_ID ) ).thenReturn( event() );
 
@@ -109,7 +109,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyTrackedEntityValidationSuccess()
     {
-        TrackedEntity trackedEntity = validTei();
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTei();
 
         validator.validate( reporter, bundle, trackedEntity );
 
@@ -119,7 +119,7 @@ class UpdatableFieldsValidatorTest
     @Test
     void verifyTrackedEntityValidationFailsWhenUpdateTrackedEntityType()
     {
-        TrackedEntity trackedEntity = validTei();
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity = validTei();
         trackedEntity.setTrackedEntityType( MetadataIdentifier.ofUid( "NewTrackedEntityTypeId" ) );
 
         validator.validate( reporter, bundle, trackedEntity );
@@ -127,23 +127,23 @@ class UpdatableFieldsValidatorTest
         assertHasError( reporter, trackedEntity, E1126 );
     }
 
-    private TrackedEntity validTei()
+    private org.hisp.dhis.tracker.imports.domain.TrackedEntity validTei()
     {
-        return TrackedEntity.builder()
+        return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity( TRACKED_ENTITY_ID )
             .trackedEntityType( MetadataIdentifier.ofUid( TRACKED_ENTITY_TYPE_ID ) )
             .build();
     }
 
-    private TrackedEntityInstance trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid( TRACKED_ENTITY_TYPE_ID );
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setUid( TRACKED_ENTITY_ID );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
-        return trackedEntityInstance;
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setUid( TRACKED_ENTITY_ID );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
+        return trackedEntity;
     }
 
     private Enrollment getEnrollment()
@@ -154,7 +154,7 @@ class UpdatableFieldsValidatorTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( ENROLLMENT_ID );
         enrollment.setProgram( program );
-        enrollment.setEntityInstance( trackedEntityInstance() );
+        enrollment.setTrackedEntity( trackedEntity() );
         return enrollment;
     }
 

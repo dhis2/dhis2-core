@@ -34,7 +34,7 @@ import javax.annotation.Nonnull;
 
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -102,22 +102,22 @@ public interface RelationshipService
 
     List<Relationship> getRelationships( @Nonnull List<String> uids );
 
-    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    default List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity trackedEntity,
         boolean skipAccessValidation )
     {
-        return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
+        return getRelationshipsByTrackedEntity( trackedEntity, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 
-    default List<Relationship> getRelationshipsByProgramInstance( Enrollment pi, boolean skipAccessValidation )
+    default List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment, boolean skipAccessValidation )
     {
-        return getRelationshipsByProgramInstance( pi, null, skipAccessValidation );
+        return getRelationshipsByEnrollment( enrollment, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter, boolean skipAccessValidation );
 
     default List<Relationship> getRelationshipsByEvent( Event event, boolean skipAccessValidation )

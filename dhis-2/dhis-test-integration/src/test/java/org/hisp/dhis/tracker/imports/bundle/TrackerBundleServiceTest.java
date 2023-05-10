@@ -37,7 +37,7 @@ import java.util.List;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.junit.jupiter.api.Test;
@@ -73,14 +73,14 @@ class TrackerBundleServiceTest extends TrackerTest
     }
 
     @Test
-    void testTrackedEntityInstanceImport()
+    void testTrackedEntityImport()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/trackedentity_basic_data.json" );
         assertEquals( 13, trackerImportParams.getTrackedEntities().size() );
         TrackerBundle trackerBundle = trackerBundleService.create( trackerImportParams );
         trackerBundleService.commit( trackerBundle );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 13, trackedEntityInstances.size() );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 13, trackedEntities.size() );
     }
 }

@@ -43,7 +43,7 @@ import org.hisp.dhis.cacheinvalidation.debezium.TableNameToEntityMapping;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 @Slf4j
@@ -71,7 +71,7 @@ public class BaseCacheEvictionService
     protected TrackedEntityAttributeService trackedEntityAttributeService;
 
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     protected PeriodService periodService;

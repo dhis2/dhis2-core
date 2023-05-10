@@ -42,7 +42,7 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -91,8 +91,8 @@ class ConstraintValidatorTest
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         relType.getFromConstraint().setTrackedEntityType( trackedEntityType );
         relType.getToConstraint().setTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -102,7 +102,7 @@ class ConstraintValidatorTest
             .build();
 
         when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
-        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntityInstance );
+        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntity );
         when( params.toMetadataIdentifier( trackedEntityType ) )
             .thenReturn( MetadataIdentifier.ofUid( trackedEntityType.getUid() ) );
         when( bundle.getPreheat().getIdSchemes() ).thenReturn( params );
@@ -113,7 +113,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndToConstraintIsSetToEnrollment()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndToConstraintIsSetToEnrollment()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -133,7 +133,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityDoesNotExist()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityDoesNotExist()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -174,15 +174,15 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityTypeDoesNotMatch()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityTypeDoesNotMatch()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
         TrackedEntityType trackedEntityType = new TrackedEntityType();
         trackedEntityType.setUid( "madeUpUid" );
         relType.getFromConstraint().setTrackedEntityType( trackedEntityType );
         relType.getToConstraint().setTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
         Relationship relationship = Relationship.builder()
             .relationship( CodeGenerator.generateUid() )
@@ -192,7 +192,7 @@ class ConstraintValidatorTest
             .build();
 
         when( bundle.getPreheat().getRelationshipType( relationship.getRelationshipType() ) ).thenReturn( relType );
-        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntityInstance );
+        when( bundle.getPreheat().getTrackedEntity( anyString() ) ).thenReturn( trackedEntity );
         String uid = CodeGenerator.generateUid();
         when( params.toMetadataIdentifier( trackedEntityType ) ).thenReturn( MetadataIdentifier.ofUid( uid ) );
         when( bundle.getPreheat().getIdSchemes() ).thenReturn( params );
@@ -205,7 +205,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsProgramInstanceAndEnrollmentDoesNotExist()
+    void shouldFailWhenRelationshipEntityIsEnrollmentAndEnrollmentDoesNotExist()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, PROGRAM_STAGE_INSTANCE );
 
@@ -225,7 +225,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsProgramInstanceAndFromConstraintIsSetToEvent()
+    void shouldFailWhenRelationshipEntityIsEnrollmentAndFromConstraintIsSetToEvent()
     {
         RelationshipType relType = createRelTypeConstraint( PROGRAM_INSTANCE, TRACKED_ENTITY_INSTANCE );
 

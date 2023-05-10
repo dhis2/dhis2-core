@@ -39,7 +39,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -55,11 +55,11 @@ public interface RelationshipService
     // READ
     // -------------------------------------------------------------------------
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
+    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 
-    List<Relationship> getRelationshipsByProgramInstance( Enrollment pi,
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
         PagingAndSortingCriteriaAdapter criteria,
         boolean skipAccessValidation );
 

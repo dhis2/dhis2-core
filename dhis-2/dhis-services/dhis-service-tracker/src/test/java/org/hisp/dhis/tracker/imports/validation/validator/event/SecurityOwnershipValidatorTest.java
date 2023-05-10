@@ -51,7 +51,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -484,14 +484,14 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertIsEmpty( reporter.getErrors() );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntity getTEIWithNoEnrollments()
     {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setEnrollments( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet() );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
     private Enrollment getEnrollment( String enrollmentUid )
@@ -503,7 +503,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( enrollmentUid );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.setEntityInstance( getTEIWithNoProgramInstances() );
+        enrollment.setTrackedEntity( getTEIWithNoEnrollments() );
         enrollment.setProgram( program );
         enrollment.setStatus( ProgramStatus.ACTIVE );
         return enrollment;

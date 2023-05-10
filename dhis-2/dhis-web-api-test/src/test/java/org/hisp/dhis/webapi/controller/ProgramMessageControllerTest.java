@@ -37,8 +37,8 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -58,7 +58,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
 {
 
     @Autowired
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Autowired
     private EnrollmentService piService;
@@ -66,7 +66,7 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
     @Autowired
     private IdentifiableObjectManager idObjectManager;
 
-    private Enrollment piA;
+    private Enrollment enrollmentA;
 
     @BeforeEach
     void setUp()
@@ -75,23 +75,24 @@ class ProgramMessageControllerTest extends DhisControllerConvenienceTest
         idObjectManager.save( ouA );
         Program prA = createProgram( 'A', Sets.newHashSet(), ouA );
         idObjectManager.save( prA );
-        TrackedEntityInstance teiA = createTrackedEntityInstance( 'A', ouA );
-        teiService.addTrackedEntityInstance( teiA );
-        piA = createProgramInstance( prA, teiA, ouA );
-        piService.addEnrollment( piA );
+        TrackedEntity teiA = createTrackedEntity( 'A', ouA );
+        teiService.addTrackedEntity( teiA );
+        enrollmentA = createEnrollment( prA, teiA, ouA );
+        piService.addEnrollment( enrollmentA );
     }
 
     @Test
     void testGetProgramMessages()
     {
-        assertTrue( GET( "/messages?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
+        assertTrue( GET( "/messages?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK ).isArray() );
     }
 
     @Test
     void testGetScheduledSentMessage()
     {
         assertTrue(
-            GET( "/messages/scheduled/sent?programInstance={id}", piA.getUid() ).content( HttpStatus.OK ).isArray() );
+            GET( "/messages/scheduled/sent?programInstance={id}", enrollmentA.getUid() ).content( HttpStatus.OK )
+                .isArray() );
     }
 
     @Test

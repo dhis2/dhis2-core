@@ -62,10 +62,10 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -97,7 +97,7 @@ class EventCriteriaMapper
 
     private final AclService aclService;
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackedEntityAttributeService attributeService;
 
@@ -125,9 +125,9 @@ class EventCriteriaMapper
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntityInstance trackedEntityInstance = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
             criteria.getTrackedEntity() );
-        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntityInstance );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             criteria.getAttributeCc(),
@@ -162,14 +162,14 @@ class EventCriteriaMapper
             filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
         }
 
-        Set<String> programInstances = criteria.getEnrollments().stream()
+        Set<String> enrollments = criteria.getEnrollments().stream()
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
 
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntity( trackedEntityInstance )
+            .setTrackedEntity( trackedEntity )
             .setProgramStatus( criteria.getProgramStatus() ).setFollowUp( criteria.getFollowUp() )
             .setOrgUnitSelectionMode( criteria.getOuMode() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
@@ -194,7 +194,7 @@ class EventCriteriaMapper
             .addOrders( getOrderParams( criteria.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setProgramInstances( programInstances )
+            .setEvents( eventIds ).setEnrollments( enrollments )
             .setIncludeDeleted( criteria.isIncludeDeleted() );
     }
 
@@ -239,13 +239,13 @@ class EventCriteriaMapper
         }
     }
 
-    private void validateTrackedEntity( String trackedEntity, TrackedEntityInstance trackedEntityInstance )
+    private void validateTrackedEntity( String trackedEntityParam, TrackedEntity trackedEntity )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )
+        if ( !StringUtils.isEmpty( trackedEntityParam ) && trackedEntity == null )
         {
             throw new BadRequestException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntity );
+                "Tracked entity instance is specified but does not exist: " + trackedEntityParam );
         }
     }
 

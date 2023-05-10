@@ -60,7 +60,7 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.RelationshipCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -91,7 +91,7 @@ public class RelationshipController
 
     private final RelationshipService relationshipService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final EnrollmentService enrollmentService;
 
@@ -107,8 +107,8 @@ public class RelationshipController
     {
         if ( relationshipCriteria.getTei() != null )
         {
-            return Optional.ofNullable( trackedEntityInstanceService
-                .getTrackedEntityInstance( relationshipCriteria.getTei() ) )
+            return Optional.ofNullable( trackedEntityService
+                .getTrackedEntity( relationshipCriteria.getTei() ) )
                 .map( tei -> relationshipService.getRelationshipsByTrackedEntityInstance( tei,
                     relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(
@@ -119,7 +119,7 @@ public class RelationshipController
             return Optional.ofNullable( enrollmentService
                 .getEnrollment( relationshipCriteria.getEnrollment() ) )
                 .map(
-                    pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
+                    e -> relationshipService.getRelationshipsByEnrollment( e, relationshipCriteria,
                         false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No enrollment '" + relationshipCriteria.getEnrollment() + "' found." ) ) );
