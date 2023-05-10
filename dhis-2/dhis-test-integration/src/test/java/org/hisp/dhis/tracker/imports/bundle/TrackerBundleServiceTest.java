@@ -73,7 +73,7 @@ class TrackerBundleServiceTest extends TrackerTest
     }
 
     @Test
-    void testTrackedEntityInstanceImport()
+    void testTrackedEntityImport()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson( "tracker/trackedentity_basic_data.json" );

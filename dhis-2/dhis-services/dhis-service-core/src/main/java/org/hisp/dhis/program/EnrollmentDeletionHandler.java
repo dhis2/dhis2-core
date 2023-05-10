@@ -52,12 +52,12 @@ public class EnrollmentDeletionHandler extends IdObjectDeletionHandler<Enrollmen
     @Override
     protected void registerHandler()
     {
-        whenDeleting( TrackedEntity.class, this::deleteTrackedEntityInstance );
+        whenDeleting( TrackedEntity.class, this::deleteTrackedEntity );
         whenVetoing( Program.class, this::allowDeleteProgram );
         whenDeleting( Program.class, this::deleteProgram );
     }
 
-    private void deleteTrackedEntityInstance( TrackedEntity trackedEntity )
+    private void deleteTrackedEntity( TrackedEntity trackedEntity )
     {
         for ( Enrollment enrollment : trackedEntity.getEnrollments() )
         {

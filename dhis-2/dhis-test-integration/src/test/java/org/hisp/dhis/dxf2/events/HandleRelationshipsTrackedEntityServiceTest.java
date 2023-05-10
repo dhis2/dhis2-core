@@ -100,9 +100,9 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         organisationUnitA = createOrganisationUnit( 'A' );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA = createTrackedEntity( organisationUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
-        trackedEntityB = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityB = createTrackedEntity( organisationUnitA );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -116,7 +116,7 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         manager.save( programStageA2 );
         programA.getProgramStages().addAll( Set.of( programStageA1, programStageA2 ) );
         manager.update( programA );
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA,
             programA, null, null, organisationUnitA );
         eventA = new Event( enrollmentA, programStageA1 );
         eventA.setDueDate( null );

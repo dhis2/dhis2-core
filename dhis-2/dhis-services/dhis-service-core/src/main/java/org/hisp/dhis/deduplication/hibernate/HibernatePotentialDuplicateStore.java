@@ -235,7 +235,7 @@ public class HibernatePotentialDuplicateStore
                     // it to original
                     updatedTeav = new TrackedEntityAttributeValue();
                     updatedTeav.setAttribute( av.getAttribute() );
-                    updatedTeav.setEntityInstance( original );
+                    updatedTeav.setTrackedEntity( original );
                     updatedTeav.setValue( av.getValue() );
                     auditType = CREATE;
                 }
@@ -297,7 +297,7 @@ public class HibernatePotentialDuplicateStore
         enrollmentList.forEach( duplicate.getEnrollments()::remove );
 
         enrollmentList.forEach( e -> {
-            e.setEntityInstance( original );
+            e.setTrackedEntity( original );
             e.setLastUpdatedBy( currentUserService.getCurrentUser() );
             e.setLastUpdatedByUserInfo( UserInfoSnapshot.from( currentUserService.getCurrentUser() ) );
             e.setLastUpdated( new Date() );

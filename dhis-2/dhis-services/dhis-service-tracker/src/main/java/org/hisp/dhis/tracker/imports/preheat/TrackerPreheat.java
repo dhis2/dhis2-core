@@ -266,10 +266,10 @@ public class TrackerPreheat
     /**
      * Internal map of all existing TrackedEntityProgramOwner. Used for
      * ownership validations and updating. The root key of this map is the
-     * trackedEntityInstance UID. The value of the root map is another map which
-     * holds a key-value combination where the key is the program UID and the
-     * value is an object of {@link TrackedEntityProgramOwnerOrgUnit} holding
-     * the ownership OrganisationUnit
+     * tracked entity UID. The value of the root map is another map which holds
+     * a key-value combination where the key is the program UID and the value is
+     * an object of {@link TrackedEntityProgramOwnerOrgUnit} holding the
+     * ownership OrganisationUnit
      */
     @Getter
     private final Map<String, Map<String, TrackedEntityProgramOwnerOrgUnit>> programOwner = new HashMap<>();

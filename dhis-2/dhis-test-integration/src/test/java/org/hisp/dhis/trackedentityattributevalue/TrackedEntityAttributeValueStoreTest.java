@@ -99,10 +99,10 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
-        teiD = createTrackedEntityInstance( organisationUnit );
+        teiA = createTrackedEntity( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
+        teiD = createTrackedEntity( organisationUnit );
         entityInstanceService.addTrackedEntity( teiA );
         entityInstanceService.addTrackedEntity( teiB );
         entityInstanceService.addTrackedEntity( teiC );
@@ -143,11 +143,11 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         assertNotNull( attributeValueStore.get( teiA, atA ) );
         assertNotNull( attributeValueStore.get( teiA, atB ) );
         assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiA );
+        attributeValueStore.deleteByTrackedEntity( teiA );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
         assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiB );
+        attributeValueStore.deleteByTrackedEntity( teiB );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
         assertNull( attributeValueStore.get( teiB, atC ) );

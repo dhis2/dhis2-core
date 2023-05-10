@@ -219,7 +219,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     }
 
     @Override
-    public int deleteSoftDeletedTrackedEntityInstances()
+    public int deleteSoftDeletedTrackedEntities()
     {
         String teiSelect = "(select trackedentityinstanceid from trackedentityinstance where deleted is true)";
 

@@ -580,9 +580,9 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
         org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( programStageInstance.getUid() );
 
-        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
-            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
+            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
         event.setFollowup( programStageInstance.getEnrollment().getFollowup() );
@@ -640,10 +640,10 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
         }
-        if ( programStageInstance.getEnrollment().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
             event
-                .setTrackedEntityInstance( programStageInstance.getEnrollment().getEntityInstance().getUid() );
+                .setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
         Collection<EventDataValue> dataValues;
@@ -864,7 +864,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService
-                    .updateTrackedEntity( event.getEnrollment().getEntityInstance() );
+                    .updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
             }
 
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,
@@ -1122,17 +1122,17 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.
             {
                 if ( !bulkUpdate )
                 {
-                    if ( event.getEnrollment().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
-                        manager.update( event.getEnrollment().getEntityInstance(), user );
+                        manager.update( event.getEnrollment().getTrackedEntity(), user );
                     }
                 }
                 else
                 {
-                    if ( event.getEnrollment().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
                         trackedEntityInstancesToUpdate
-                            .add( event.getEnrollment().getEntityInstance() );
+                            .add( event.getEnrollment().getTrackedEntity() );
                     }
                 }
             }

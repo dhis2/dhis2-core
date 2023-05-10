@@ -228,7 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityAudit( auditable );
         }
     }
 
@@ -1232,7 +1232,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
                 TrackedEntityAttributeValue newAttributeValue = new TrackedEntityAttributeValue();
 
                 newAttributeValue.setStoredBy( storedBy );
-                newAttributeValue.setEntityInstance( daoEntityInstance );
+                newAttributeValue.setTrackedEntity( daoEntityInstance );
                 newAttributeValue.setValue( dtoAttribute.getValue() );
                 newAttributeValue.setAttribute( daoEntityAttribute );
 
@@ -1269,7 +1269,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             if ( daoEntityAttribute != null )
             {
                 TrackedEntityAttributeValue daoAttributeValue = new TrackedEntityAttributeValue();
-                daoAttributeValue.setEntityInstance( daoEntityInstance );
+                daoAttributeValue.setTrackedEntity( daoEntityInstance );
                 daoAttributeValue.setValue( dtoAttribute.getValue() );
                 daoAttributeValue.setAttribute( daoEntityAttribute );
 

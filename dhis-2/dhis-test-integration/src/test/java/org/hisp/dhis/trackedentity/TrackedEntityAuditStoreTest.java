@@ -60,10 +60,10 @@ class TrackedEntityAuditStoreTest extends SingleSetupIntegrationTestBase
         TrackedEntityAudit teiaD = new TrackedEntityAudit( "zIAwTY3Drrn", "Access", CREATED, "userB",
             AuditType.DELETE );
 
-        store.addTrackedEntityInstanceAudit( teiaA );
-        store.addTrackedEntityInstanceAudit( teiaB );
-        store.addTrackedEntityInstanceAudit( teiaC );
-        store.addTrackedEntityInstanceAudit( teiaD );
+        store.addTrackedEntityAudit( teiaA );
+        store.addTrackedEntityAudit( teiaB );
+        store.addTrackedEntityAudit( teiaC );
+        store.addTrackedEntityAudit( teiaD );
 
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
             .setTrackedEntities( List.of( "WGW7UnVcIIb" ) );

@@ -863,7 +863,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( queryItem );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -878,7 +878,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities );
@@ -895,7 +895,7 @@ class EventExporterTest extends TrackerTest
             queryItem( "notUpdated0", QueryOperator.EQ, "winter day" ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -912,7 +912,7 @@ class EventExporterTest extends TrackerTest
         params.addFilterAttributes( item );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
@@ -928,7 +928,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -944,7 +944,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -961,7 +961,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -978,7 +978,7 @@ class EventExporterTest extends TrackerTest
         params.addOrders( params.getAttributeOrders() );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1109,7 +1109,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1126,7 +1126,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
@@ -1145,7 +1145,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "QS6w44flWAf", "dUE514NMOlo" ), trackedEntities );
@@ -1163,7 +1163,7 @@ class EventExporterTest extends TrackerTest
             new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
-            .map( event -> event.getEnrollment().getEntityInstance().getUid() )
+            .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );

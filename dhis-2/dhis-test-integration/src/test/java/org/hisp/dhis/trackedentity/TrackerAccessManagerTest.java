@@ -155,10 +155,10 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntity trackedEntityB = createTrackedEntityInstance( orgUnitB );
-        TrackedEntity femaleA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntity femaleB = createTrackedEntityInstance( orgUnitB );
+        trackedEntityA = createTrackedEntity( orgUnitA );
+        TrackedEntity trackedEntityB = createTrackedEntity( orgUnitB );
+        TrackedEntity femaleA = createTrackedEntity( orgUnitA );
+        TrackedEntity femaleB = createTrackedEntity( orgUnitB );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
@@ -168,7 +168,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );

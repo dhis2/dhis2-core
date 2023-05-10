@@ -129,11 +129,11 @@ public class DefaultRelationshipService
 
     @Override
     @Transactional( readOnly = true )
-    public List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
+    public List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation )
     {
-        return relationshipStore.getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter );
+        return relationshipStore.getByTrackedEntity( tei, pagingAndSortingCriteriaAdapter );
     }
 
     @Override

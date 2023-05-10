@@ -102,9 +102,9 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         manager.save( organisationUnit );
 
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
+        teiA = createTrackedEntity( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
 
         teiA.setTrackedEntityType( trackedEntityType );
         teiB.setTrackedEntityType( trackedEntityType );
@@ -123,10 +123,10 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         manager.save( program );
         manager.save( programStage );
 
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntity( teiA, program, new Date(), new Date(),
             organisationUnit );
 
-        enrollmentB = enrollmentService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
+        enrollmentB = enrollmentService.enrollTrackedEntity( teiB, program, new Date(), new Date(),
             organisationUnit );
 
         eventA = new Event();

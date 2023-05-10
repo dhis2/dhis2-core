@@ -289,7 +289,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
 
     @Override
     @Transactional( readOnly = true )
-    public boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+    public boolean hasAccessUsingContext( User user, String trackedEntityUid, String programUid,
         EventContext eventContext )
     {
         Program program = eventContext.getProgramsByUid().get( programUid );
@@ -300,7 +300,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
 
         EventContext.TrackedEntityOuInfo trackedEntityOuInfo = eventContext.getTrackedEntityOuInfoByUid()
-            .get( trackedEntityInstanceUid );
+            .get( trackedEntityUid );
 
         if ( trackedEntityOuInfo == null )
         {
@@ -308,7 +308,7 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
         }
 
         OrganisationUnit ou = Optional.ofNullable( eventContext.getOrgUnitByTeiUidAndProgramUidPairs().get(
-            Pair.of( trackedEntityInstanceUid, programUid ) ) )
+            Pair.of( trackedEntityUid, programUid ) ) )
             .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
             .orElseGet( () -> organisationUnitService.getOrganisationUnit( trackedEntityOuInfo.getOrgUnitId() ) );
 
@@ -458,13 +458,13 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     /**
      * Returns key used to store and retrieve cached records for ownership
      *
-     * @param trackedEntityInstanceIdSupplier
+     * @param trackedEntityIdSupplier
      * @param program
      * @return a String representing a record of ownership
      */
-    private String getOwnershipCacheKey( LongSupplier trackedEntityInstanceIdSupplier, Program program )
+    private String getOwnershipCacheKey( LongSupplier trackedEntityIdSupplier, Program program )
     {
-        return trackedEntityInstanceIdSupplier.getAsLong() + "_" + program.getUid();
+        return trackedEntityIdSupplier.getAsLong() + "_" + program.getUid();
     }
 
     /**

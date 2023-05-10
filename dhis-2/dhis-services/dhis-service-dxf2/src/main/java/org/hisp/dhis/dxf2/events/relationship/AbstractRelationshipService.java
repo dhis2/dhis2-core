@@ -126,7 +126,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .getRelationshipsByTrackedEntity( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )

@@ -68,33 +68,33 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public int deleteByTrackedEntityInstance( TrackedEntity entityInstance )
+    public int deleteByTrackedEntity( TrackedEntity trackedEntity )
     {
         Query<TrackedEntityAttributeValue> query = getQuery(
-            "delete from TrackedEntityAttributeValue where entityInstance = :entityInstance" );
-        query.setParameter( "entityInstance", entityInstance );
+            "delete from TrackedEntityAttributeValue where trackedEntity = :trackedEntity" );
+        query.setParameter( "trackedEntity", trackedEntity );
         return query.executeUpdate();
     }
 
     @Override
-    public TrackedEntityAttributeValue get( TrackedEntity entityInstance, TrackedEntityAttribute attribute )
+    public TrackedEntityAttributeValue get( TrackedEntity trackedEntity, TrackedEntityAttribute attribute )
     {
-        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and attribute =:attribute";
+        String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity and attribute =:attribute";
 
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query )
-            .setParameter( "entityInstance", entityInstance )
+            .setParameter( "trackedEntity", trackedEntity )
             .setParameter( "attribute", attribute );
 
         return getSingleResult( typedQuery );
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> get( TrackedEntity entityInstance )
+    public List<TrackedEntityAttributeValue> get( TrackedEntity trackedEntity )
     {
-        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance";
+        String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity";
 
-        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "entityInstance",
-            entityInstance );
+        Query<TrackedEntityAttributeValue> typedQuery = getQuery( query ).setParameter( "trackedEntity",
+            trackedEntity );
 
         return getList( typedQuery );
     }
@@ -134,12 +134,12 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public List<TrackedEntityAttributeValue> get( TrackedEntity entityInstance, Program program )
+    public List<TrackedEntityAttributeValue> get( TrackedEntity trackedEntity, Program program )
     {
-        String query = " from TrackedEntityAttributeValue v where v.entityInstance =:entityInstance and v.attribute.program =:program";
+        String query = " from TrackedEntityAttributeValue v where v.trackedEntity =:trackedEntity and v.attribute.program =:program";
 
         Query<TrackedEntityAttributeValue> typedQuery = getQuery( query );
-        typedQuery.setParameter( "entityInstance", entityInstance );
+        typedQuery.setParameter( "trackedEntity", trackedEntity );
         typedQuery.setParameter( "program", program );
 
         return getList( typedQuery );

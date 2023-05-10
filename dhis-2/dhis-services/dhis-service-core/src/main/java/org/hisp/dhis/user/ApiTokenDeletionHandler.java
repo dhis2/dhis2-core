@@ -25,38 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
+package org.hisp.dhis.user;
 
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1068;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1069;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1070;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityExists;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.security.apikey.ApiTokenService;
+import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.stereotype.Component;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author Morten Svanaes
  */
-class MetaValidator
-    implements Validator<Enrollment>
+@Component
+@RequiredArgsConstructor
+public class ApiTokenDeletionHandler extends DeletionHandler
 {
+    private final ApiTokenService apiTokenService;
+
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    protected void register()
     {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
-
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
-
-        reporter.addErrorIf( () -> !trackedEntityExists( bundle, enrollment.getTrackedEntity() ),
-            enrollment,
-            E1068, enrollment.getTrackedEntity() );
+        whenDeleting( User.class, this::deleteUser );
     }
 
+    private void deleteUser( User user )
+    {
+        apiTokenService.getAllOwning( user ).forEach( apiTokenService::delete );
+    }
 }

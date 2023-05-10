@@ -185,7 +185,7 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
         program.getProgramAttributes().add( pteaB );
         manager.update( program );
 
-        tei = createTrackedEntityInstance( orgUnit );
+        tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 

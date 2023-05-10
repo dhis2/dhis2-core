@@ -595,13 +595,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programStageService.updateProgramStage( programStageAge );
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
         programService.updateProgram( programA );
-        TrackedEntity entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstanceA = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceA );
-        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceB );
-        TrackedEntity entityInstanceS = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceS = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceS );
-        TrackedEntity entityInstanceE = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstanceE = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceE );
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
@@ -629,15 +629,15 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( "UID-P1" );
         enrollmentService.updateEnrollment( enrollmentA );
-        Enrollment enrollmentE = enrollmentService.enrollTrackedEntityInstance( entityInstanceE,
+        Enrollment enrollmentE = enrollmentService.enrollTrackedEntity( entityInstanceE,
             programB, enrollmentDate, incidentDate, organisationUnitA );
         enrollmentE.setUid( "UID-P2" );
         enrollmentService.updateEnrollment( enrollmentE );
-        Enrollment enrollmentS = enrollmentService.enrollTrackedEntityInstance( entityInstanceS,
+        Enrollment enrollmentS = enrollmentService.enrollTrackedEntity( entityInstanceS,
             programS, enrollmentDate, incidentDate, organisationUnitB );
         enrollmentS.setUid( "UID-PS" );
         enrollmentService.updateEnrollment( enrollmentS );

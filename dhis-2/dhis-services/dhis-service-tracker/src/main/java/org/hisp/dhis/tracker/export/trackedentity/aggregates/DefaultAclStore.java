@@ -80,7 +80,7 @@ public class DefaultAclStore
     }
 
     @Override
-    public List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs )
+    public List<Long> getAccessibleTrackedEntityTypes( String userUID, List<String> userGroupUIDs )
     {
         return executeAclQuery( userUID, userGroupUIDs, GET_TEI_TYPE_ACL, "trackedentitytypeid" );
     }

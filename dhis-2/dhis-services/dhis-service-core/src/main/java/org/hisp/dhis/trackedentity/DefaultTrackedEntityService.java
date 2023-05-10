@@ -197,7 +197,7 @@ public class DefaultTrackedEntityService
 
         for ( TrackedEntity tei : trackedEntities )
         {
-            addTrackedEntityInstanceAudit( tei, accessedBy, AuditType.SEARCH );
+            addTrackedEntityAudit( tei, accessedBy, AuditType.SEARCH );
         }
 
         return trackedEntities;
@@ -395,7 +395,7 @@ public class DefaultTrackedEntityService
             {
                 TrackedEntityAudit trackedEntityAudit = new TrackedEntityAudit(
                     entity.get( TRACKED_ENTITY_INSTANCE_ID ), accessedBy, AuditType.SEARCH );
-                trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityAudit );
+                trackedEntityAuditService.addTrackedEntityAudit( trackedEntityAudit );
             }
 
             for ( QueryItem item : params.getAttributes() )
@@ -877,7 +877,7 @@ public class DefaultTrackedEntityService
     {
         TrackedEntity tei = trackedEntityStore.get( id );
 
-        addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
+        addTrackedEntityAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
 
         return tei;
     }
@@ -887,7 +887,7 @@ public class DefaultTrackedEntityService
     public TrackedEntity getTrackedEntity( String uid )
     {
         TrackedEntity tei = trackedEntityStore.getByUid( uid );
-        addTrackedEntityInstanceAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
+        addTrackedEntityAudit( tei, currentUserService.getCurrentUsername(), AuditType.READ );
 
         return tei;
     }
@@ -896,7 +896,7 @@ public class DefaultTrackedEntityService
     public TrackedEntity getTrackedEntity( String uid, User user )
     {
         TrackedEntity tei = trackedEntityStore.getByUid( uid );
-        addTrackedEntityInstanceAudit( tei, User.username( user ), AuditType.READ );
+        addTrackedEntityAudit( tei, User.username( user ), AuditType.READ );
 
         return tei;
     }
@@ -958,15 +958,14 @@ public class DefaultTrackedEntityService
         return true;
     }
 
-    private void addTrackedEntityInstanceAudit( TrackedEntity trackedEntity, String user,
-        AuditType auditType )
+    private void addTrackedEntityAudit( TrackedEntity trackedEntity, String user, AuditType auditType )
     {
         if ( user != null && trackedEntity != null && trackedEntity.getTrackedEntityType() != null
             && trackedEntity.getTrackedEntityType().isAllowAuditLog() )
         {
             TrackedEntityAudit trackedEntityAudit = new TrackedEntityAudit(
                 trackedEntity.getUid(), user, auditType );
-            trackedEntityAuditService.addTrackedEntityInstanceAudit( trackedEntityAudit );
+            trackedEntityAuditService.addTrackedEntityAudit( trackedEntityAudit );
         }
     }
 }

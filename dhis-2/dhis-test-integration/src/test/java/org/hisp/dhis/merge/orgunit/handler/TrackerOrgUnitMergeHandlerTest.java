@@ -112,9 +112,9 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-        teiA = createTrackedEntityInstance( 'A', ouA );
-        teiB = createTrackedEntityInstance( 'B', ouB );
-        teiC = createTrackedEntityInstance( 'C', ouC );
+        teiA = createTrackedEntity( 'A', ouA );
+        teiB = createTrackedEntity( 'B', ouB );
+        teiC = createTrackedEntity( 'C', ouC );
         teiService.addTrackedEntity( teiA );
         teiService.addTrackedEntity( teiB );
         teiService.addTrackedEntity( teiC );

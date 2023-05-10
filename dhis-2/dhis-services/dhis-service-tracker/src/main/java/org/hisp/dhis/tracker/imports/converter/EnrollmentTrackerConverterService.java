@@ -151,7 +151,7 @@ public class EnrollmentTrackerConverterService
         dbEnrollment.setIncidentDate( incidentDate != null ? incidentDate : enrollmentDate );
         dbEnrollment.setOrganisationUnit( organisationUnit );
         dbEnrollment.setProgram( program );
-        dbEnrollment.setEntityInstance( trackedEntity );
+        dbEnrollment.setTrackedEntity( trackedEntity );
         dbEnrollment.setFollowup( enrollment.isFollowUp() );
         dbEnrollment.setGeometry( enrollment.getGeometry() );
 

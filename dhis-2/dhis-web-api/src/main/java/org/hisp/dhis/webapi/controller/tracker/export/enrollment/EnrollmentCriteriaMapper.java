@@ -101,7 +101,7 @@ public class EnrollmentCriteriaMapper
 
         TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
             criteria.getTrackedEntity() );
-        validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
@@ -149,7 +149,7 @@ public class EnrollmentCriteriaMapper
         }
     }
 
-    private void validateTrackedEntityInstance( String id, TrackedEntity trackedEntity )
+    private void validateTrackedEntity( String id, TrackedEntity trackedEntity )
         throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntity == null )

@@ -140,7 +140,7 @@ class SecurityOwnershipValidator
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntity entityInstance = preheatEvent.getEnrollment().getEntityInstance();
+            TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
             validateUpdateAndDeleteEvent( reporter, bundle, event, preheatEvent,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
@@ -222,7 +222,7 @@ class SecurityOwnershipValidator
         }
         else
         {
-            return enrollment.getEntityInstance().getUid();
+            return enrollment.getTrackedEntity().getUid();
         }
     }
 
@@ -262,14 +262,14 @@ class SecurityOwnershipValidator
 
     private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
-        String trackedEntityInstance,
+        String trackedEntity,
         OrganisationUnit ownerOrganisationUnit,
         Program program )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
@@ -277,10 +277,10 @@ class SecurityOwnershipValidator
         }
 
         if ( ownerOrganisationUnit != null
-            && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
+            && !ownershipAccessManager.hasAccess( user, trackedEntity, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntity, program );
         }
     }
 

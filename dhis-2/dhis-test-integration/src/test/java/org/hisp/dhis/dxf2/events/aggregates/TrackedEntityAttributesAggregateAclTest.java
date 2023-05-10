@@ -61,10 +61,10 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
     void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -93,10 +93,10 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
                 .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
