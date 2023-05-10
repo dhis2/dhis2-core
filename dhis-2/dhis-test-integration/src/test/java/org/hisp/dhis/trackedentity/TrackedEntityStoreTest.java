@@ -136,16 +136,16 @@ class TrackedEntityStoreTest extends TransactionalIntegrationTest
         prB = createProgram( 'B', null, null );
         programService.addProgram( prA );
         programService.addProgram( prB );
-        teiA = createTrackedEntityInstance( ouA );
-        teiB = createTrackedEntityInstance( ouB );
-        teiC = createTrackedEntityInstance( ouB );
-        teiD = createTrackedEntityInstance( ouC );
-        teiE = createTrackedEntityInstance( ouC );
-        teiF = createTrackedEntityInstance( ouC );
+        teiA = createTrackedEntity( ouA );
+        teiB = createTrackedEntity( ouB );
+        teiC = createTrackedEntity( ouB );
+        teiD = createTrackedEntity( ouC );
+        teiE = createTrackedEntity( ouC );
+        teiF = createTrackedEntity( ouC );
     }
 
     @Test
-    void testTrackedEntityInstanceExists()
+    void testTrackedEntityExists()
     {
         teiStore.save( teiA );
         teiStore.save( teiB );

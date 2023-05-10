@@ -144,7 +144,7 @@ public class DefaultTrackerObjectsDeletionService
     }
 
     @Override
-    public TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle )
+    public TrackerTypeReport deleteTrackedEntity( TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
@@ -182,7 +182,7 @@ public class DefaultTrackerObjectsDeletionService
     }
 
     @Override
-    public TrackerTypeReport deleteRelationShips( TrackerBundle bundle )
+    public TrackerTypeReport deleteRelationships( TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
 

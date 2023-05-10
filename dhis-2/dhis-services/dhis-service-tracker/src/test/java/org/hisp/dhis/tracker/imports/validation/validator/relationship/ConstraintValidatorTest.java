@@ -113,7 +113,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndToConstraintIsSetToEnrollment()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndToConstraintIsSetToEnrollment()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -133,7 +133,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityDoesNotExist()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityDoesNotExist()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
 
@@ -174,7 +174,7 @@ class ConstraintValidatorTest
     }
 
     @Test
-    void shouldFailWhenRelationshipEntityIsTrackedEntityInstanceAndEntityTypeDoesNotMatch()
+    void shouldFailWhenRelationshipEntityIsTrackedEntityAndEntityTypeDoesNotMatch()
     {
         RelationshipType relType = createRelTypeConstraint( TRACKED_ENTITY_INSTANCE, TRACKED_ENTITY_INSTANCE );
         TrackedEntityType trackedEntityType = new TrackedEntityType();

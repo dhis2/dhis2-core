@@ -220,7 +220,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedTrackedEntityInstancesDeprecated()
     {
-        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntities();
     }
 
     @RequestMapping( value = "/softDeletedTrackedEntityRemoval", method = { RequestMethod.PUT,
@@ -229,7 +229,7 @@ public class MaintenanceController
     @ResponseStatus( HttpStatus.NO_CONTENT )
     public void deleteSoftDeletedTrackedEntities()
     {
-        maintenanceService.deleteSoftDeletedTrackedEntityInstances();
+        maintenanceService.deleteSoftDeletedTrackedEntities();
     }
 
     @RequestMapping( value = "/sqlViewsCreate", method = { RequestMethod.PUT, RequestMethod.POST } )

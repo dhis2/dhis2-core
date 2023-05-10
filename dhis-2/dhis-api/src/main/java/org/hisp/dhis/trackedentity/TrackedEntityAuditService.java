@@ -41,39 +41,38 @@ public interface TrackedEntityAuditService
     String ID = TrackedEntityAuditService.class.getName();
 
     /**
-     * Adds tracked entity instance audit
+     * Adds tracked entity audit
      *
      * @param trackedEntityAudit the audit to add
      */
-    void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit );
+    void addTrackedEntityAudit( TrackedEntityAudit trackedEntityAudit );
 
     /**
-     * Adds multipe tracked entity instance audit
+     * Adds multiple tracked entity audit
      *
      */
-    void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudits );
+    void addTrackedEntityAudit( List<TrackedEntityAudit> trackedEntityAudits );
 
     /**
-     * Deletes tracked entity instance audit for the given tracked entity
-     * instance
+     * Deletes tracked entity audit for the given tracked entity
      *
-     * @param trackedEntity the tracked entity instance
+     * @param trackedEntity the tracked entity
      */
-    void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity );
+    void deleteTrackedEntityAudit( TrackedEntity trackedEntity );
 
     /**
-     * Returns tracked entity instance audits matching query params
+     * Returns tracked entity audits matching query params
      *
-     * @param params tracked entity instance audit query params
-     * @return matching TrackedEntityInstanceAudits
+     * @param params tracked entity audit query params
+     * @return matching TrackedEntityAudits
      */
     List<TrackedEntityAudit> getTrackedEntityAudits( TrackedEntityAuditQueryParams params );
 
     /**
-     * Returns count of tracked entity instance audits matching query params
+     * Returns count of tracked entity audits matching query params
      *
-     * @param params tracked entity instance audit query params
-     * @return count of TrackedEntityInstanceAudits
+     * @param params tracked entity audit query params
+     * @return count of TrackedEntityAudits
      */
     int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params );
 

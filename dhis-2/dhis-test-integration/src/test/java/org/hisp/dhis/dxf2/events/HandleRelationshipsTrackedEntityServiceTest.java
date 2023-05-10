@@ -100,9 +100,9 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         organisationUnitA = createOrganisationUnit( 'A' );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA = createTrackedEntity( organisationUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
-        trackedEntityB = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityB = createTrackedEntity( organisationUnitA );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );

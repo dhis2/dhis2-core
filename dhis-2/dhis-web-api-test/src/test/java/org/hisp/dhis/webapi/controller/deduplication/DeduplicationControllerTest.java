@@ -66,8 +66,8 @@ class DeduplicationControllerTest extends DhisControllerConvenienceTest
         OrganisationUnit orgUnit = createOrganisationUnit( CodeGenerator.generateUid() );
         dbmsManager.save( orgUnit );
 
-        origin = createTrackedEntityInstance( orgUnit );
-        duplicate = createTrackedEntityInstance( orgUnit );
+        origin = createTrackedEntity( orgUnit );
+        duplicate = createTrackedEntity( orgUnit );
 
         dbmsManager.save( origin );
         dbmsManager.save( duplicate );

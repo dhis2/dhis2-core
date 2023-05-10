@@ -54,16 +54,16 @@ public class RelationshipDeletionHandler extends DeletionHandler
     @Override
     protected void register()
     {
-        whenDeleting( TrackedEntity.class, this::deleteTrackedEntityInstance );
+        whenDeleting( TrackedEntity.class, this::deleteTrackedEntity );
         whenDeleting( Event.class, this::deleteEvent );
         whenDeleting( Enrollment.class, this::deleteEnrollment );
         whenVetoing( RelationshipType.class, this::allowDeleteRelationshipType );
     }
 
-    private void deleteTrackedEntityInstance( TrackedEntity entityInstance )
+    private void deleteTrackedEntity( TrackedEntity trackedEntity )
     {
         Collection<Relationship> relationships = relationshipService
-            .getRelationshipsByTrackedEntityInstance( entityInstance, false );
+            .getRelationshipsByTrackedEntity( trackedEntity, false );
 
         if ( relationships != null )
         {

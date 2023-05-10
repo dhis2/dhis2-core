@@ -187,13 +187,12 @@ class AttributeValidator extends org.hisp.dhis.tracker.imports.validation.valida
                     enrollment, E1019, attrId.getIdentifierOrAttributeValue() + "=" + attrVal ) );
     }
 
-    private Set<MetadataIdentifier> buildTeiAttributes( TrackerBundle bundle,
-        String trackedEntityInstanceUid )
+    private Set<MetadataIdentifier> buildTeiAttributes( TrackerBundle bundle, String trackedEntityUid )
     {
         TrackerIdSchemeParams idSchemes = bundle.getPreheat().getIdSchemes();
         return Optional.of( bundle )
             .map( TrackerBundle::getPreheat )
-            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityInstanceUid ) )
+            .map( trackerPreheat -> trackerPreheat.getTrackedEntity( trackedEntityUid ) )
             .map( TrackedEntity::getTrackedEntityAttributeValues )
             .orElse( Collections.emptySet() )
             .stream()

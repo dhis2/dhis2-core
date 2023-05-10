@@ -292,7 +292,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
             manager.update( programA );
             manager.update( programB );
             // Create a TEI associated to program B
-            final TrackedEntity trackedEntity = persistTrackedEntityInstance(
+            final TrackedEntity trackedEntity = persistTrackedEntity(
                 Map.of( "program", programB ) );
             Enrollment piB = new Enrollment( programB, trackedEntity, organisationUnitA );
             piB.setEnrollmentDate( new Date() );

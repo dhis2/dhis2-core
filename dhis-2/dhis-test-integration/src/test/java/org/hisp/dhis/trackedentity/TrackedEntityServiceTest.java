@@ -152,10 +152,10 @@ class TrackedEntityServiceTest
         organisationUnitService.addOrganisationUnit( organisationUnitB );
         TrackedEntityAttribute entityInstanceAttribute = createTrackedEntityAttribute( 'A' );
         attributeService.addTrackedEntityAttribute( entityInstanceAttribute );
-        entityInstanceA1 = createTrackedEntityInstance( organisationUnit );
-        entityInstanceB1 = createTrackedEntityInstance( organisationUnit );
-        entityInstanceC1 = createTrackedEntityInstance( organisationUnit );
-        entityInstanceD1 = createTrackedEntityInstance( organisationUnit );
+        entityInstanceA1 = createTrackedEntity( organisationUnit );
+        entityInstanceB1 = createTrackedEntity( organisationUnit );
+        entityInstanceC1 = createTrackedEntity( organisationUnit );
+        entityInstanceD1 = createTrackedEntity( organisationUnit );
         entityInstanceA1.setUid( "UID-A1" );
         entityInstanceB1.setUid( "UID-B1" );
         entityInstanceC1.setUid( "UID-C1" );
@@ -221,7 +221,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testDeleteTrackedEntityInstanceAndLinkedEnrollmentsAndEvents()
+    void testDeleteTrackedEntityAndLinkedEnrollmentsAndEvents()
     {
         long idA = entityInstanceService.addTrackedEntity( entityInstanceA1 );
         long psIdA = enrollmentService.addEnrollment( enrollment );
@@ -315,7 +315,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testTrackedEntityInstanceGridWithNoFilterableAttributes()
+    void testTrackedEntityGridWithNoFilterableAttributes()
     {
         injectSecurityContext( superUser );
 
@@ -330,7 +330,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void testTrackedEntityInstanceGridWithNoDisplayAttributes()
+    void testTrackedEntityGridWithNoDisplayAttributes()
     {
         injectSecurityContext( superUser );
         trackedEntityAttribute.setDisplayInListNoProgram( false );
@@ -557,10 +557,10 @@ class TrackedEntityServiceTest
 
         addEntityInstances();
 
-        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
-        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
-        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
-        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
+        createTrackedEntityAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityAttribute( entityInstanceD1, tea, "B" );
 
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
@@ -582,10 +582,10 @@ class TrackedEntityServiceTest
 
         addEntityInstances();
 
-        createTrackedEntityInstanceAttribute( entityInstanceA1, tea, "A" );
-        createTrackedEntityInstanceAttribute( entityInstanceB1, tea, "D" );
-        createTrackedEntityInstanceAttribute( entityInstanceC1, tea, "C" );
-        createTrackedEntityInstanceAttribute( entityInstanceD1, tea, "B" );
+        createTrackedEntityAttribute( entityInstanceA1, tea, "A" );
+        createTrackedEntityAttribute( entityInstanceB1, tea, "D" );
+        createTrackedEntityAttribute( entityInstanceC1, tea, "C" );
+        createTrackedEntityAttribute( entityInstanceD1, tea, "B" );
 
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
@@ -620,7 +620,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void shouldSortGridByTrackedEntityInstanceIdAscendingWhenParamCreatedAscendingProvided()
+    void shouldSortGridByTrackedEntityIdAscendingWhenParamCreatedAscendingProvided()
     {
         injectSecurityContext( superUser );
         trackedEntityAttribute.setDisplayInListNoProgram( true );
@@ -648,7 +648,7 @@ class TrackedEntityServiceTest
     }
 
     @Test
-    void shouldSortGridByTrackedEntityInstanceIdDescendingWhenParamCreatedDescendingProvided()
+    void shouldSortGridByTrackedEntityIdDescendingWhenParamCreatedDescendingProvided()
     {
         injectSecurityContext( superUser );
         trackedEntityAttribute.setDisplayInListNoProgram( true );
@@ -745,7 +745,7 @@ class TrackedEntityServiceTest
         return tea;
     }
 
-    private void createTrackedEntityInstanceAttribute( TrackedEntity trackedEntity,
+    private void createTrackedEntityAttribute( TrackedEntity trackedEntity,
         TrackedEntityAttribute attribute, String value )
     {
         TrackedEntityAttributeValue trackedEntityAttributeValueA1 = new TrackedEntityAttributeValue();

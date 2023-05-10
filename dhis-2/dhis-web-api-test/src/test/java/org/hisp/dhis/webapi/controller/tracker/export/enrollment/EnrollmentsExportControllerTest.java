@@ -129,7 +129,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         tea.getSharing().setOwner( owner );
         manager.save( tea, false );
 
-        tei = createTrackedEntityInstance( orgUnit );
+        tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 

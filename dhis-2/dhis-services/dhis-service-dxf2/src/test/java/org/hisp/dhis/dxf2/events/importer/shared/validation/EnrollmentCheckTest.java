@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.dxf2.events.importer.shared.validation;
 
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
-import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityInstance;
 import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
@@ -87,7 +87,7 @@ class EnrollmentCheckTest extends BaseValidationTest
         //
         // Tracked Entity Instance
         //
-        TrackedEntity tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntity( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
         event.setProgram( program.getUid() );
         //
@@ -109,7 +109,7 @@ class EnrollmentCheckTest extends BaseValidationTest
         //
         // Tracked Entity Instance
         //
-        TrackedEntity tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntity( createOrganisationUnit( 'A' ) );
         when( workContext.getTrackedEntityInstance( event.getUid() ) ).thenReturn( Optional.of( tei ) );
         Enrollment enrollment1 = new Enrollment();
         Enrollment enrollment2 = new Enrollment();
@@ -140,7 +140,7 @@ class EnrollmentCheckTest extends BaseValidationTest
         //
         // Tracked Entity Instance
         //
-        TrackedEntity tei = createTrackedEntityInstance( createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntity( createOrganisationUnit( 'A' ) );
         Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
         teiMap.put( event.getUid(), Pair.of( tei, true ) );
         when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );

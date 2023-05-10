@@ -111,10 +111,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntity original = createTrackedEntityInstance( ou );
-        TrackedEntity duplicate = createTrackedEntityInstance( ou );
-        TrackedEntity control1 = createTrackedEntityInstance( ou );
-        TrackedEntity control2 = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
+        TrackedEntity control1 = createTrackedEntity( ou );
+        TrackedEntity control2 = createTrackedEntity( ou );
         trackedEntityService.addTrackedEntity( original );
         trackedEntityService.addTrackedEntity( duplicate );
         trackedEntityService.addTrackedEntity( control1 );
@@ -149,10 +149,10 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntity original = createTrackedEntityInstance( ou );
-        TrackedEntity duplicate = createTrackedEntityInstance( ou );
-        TrackedEntity control1 = createTrackedEntityInstance( ou );
-        TrackedEntity control2 = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
+        TrackedEntity control1 = createTrackedEntity( ou );
+        TrackedEntity control2 = createTrackedEntity( ou );
         trackedEntityService.addTrackedEntity( original );
         trackedEntityService.addTrackedEntity( duplicate );
         trackedEntityService.addTrackedEntity( control1 );
@@ -191,7 +191,7 @@ class PotentialDuplicateRemoveTrackedEntityTest extends TransactionalIntegration
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        TrackedEntity trackedEntity = createTrackedEntityInstance( 'T', ou, trackedEntityAttribute );
+        TrackedEntity trackedEntity = createTrackedEntity( 'T', ou, trackedEntityAttribute );
         trackedEntityService.addTrackedEntity( trackedEntity );
         return trackedEntity;
     }

@@ -595,13 +595,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programStageService.updateProgramStage( programStageAge );
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
         programService.updateProgram( programA );
-        TrackedEntity entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstanceA = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceA );
-        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceB );
-        TrackedEntity entityInstanceS = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity entityInstanceS = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceS );
-        TrackedEntity entityInstanceE = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstanceE = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceE );
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );

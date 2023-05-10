@@ -62,30 +62,30 @@ public interface TrackedEntityFilterService
     void update( TrackedEntityFilter trackedEntityFilter );
 
     /**
-     * Gets trackedEntityInstanceFilter
+     * Gets trackedEntityFilter
      *
-     * @param id id of trackedEntityInstanceFilter to be fetched
-     * @return trackedEntityInstanceFilter
+     * @param id id of trackedEntityFilter to be fetched
+     * @return trackedEntityFilter
      */
     TrackedEntityFilter get( long id );
 
     /**
-     * Gets trackedEntityInstanceFilter
+     * Gets trackedEntityFilter
      *
-     * @param program program of trackedEntityInstanceFilter to be fetched
-     * @return trackedEntityInstanceFilter
+     * @param program program of trackedEntityFilter to be fetched
+     * @return trackedEntityFilter
      */
     List<TrackedEntityFilter> get( Program program );
 
     /**
-     * Gets all trackedEntityInstanceFilters
+     * Gets all trackedEntityFilters
      *
-     * @return list of trackedEntityInstanceFilters
+     * @return list of trackedEntityFilters
      */
     List<TrackedEntityFilter> getAll();
 
     /**
-     * Validate the trackedEntityInstanceFilter
+     * Validate the trackedEntityFilter
      *
      * @param teiFilter
      * @return list of errors for each validation failures

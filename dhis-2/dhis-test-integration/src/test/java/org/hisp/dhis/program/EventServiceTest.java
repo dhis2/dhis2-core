@@ -150,9 +150,9 @@ class EventServiceTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
         entityInstanceService.addTrackedEntity( entityInstanceA );
-        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
+        entityInstanceB = createTrackedEntity( organisationUnitB );
         entityInstanceService.addTrackedEntity( entityInstanceB );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         attribute.setValueType( ValueType.PHONE_NUMBER );

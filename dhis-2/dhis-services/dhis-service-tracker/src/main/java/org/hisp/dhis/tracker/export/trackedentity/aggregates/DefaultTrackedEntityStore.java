@@ -118,11 +118,11 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
         Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
 
         idPartitions
-            .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
+            .forEach( partition -> trackedEntityMap.putAll( getTrackedEntitiesPartitioned( partition, ctx ) ) );
         return trackedEntityMap;
     }
 
-    private Map<String, TrackedEntity> getTrackedEntityInstancesPartitioned( List<Long> ids,
+    private Map<String, TrackedEntity> getTrackedEntitiesPartitioned( List<Long> ids,
         Context ctx )
     {
         TrackedEntityRowCallbackHandler handler = new TrackedEntityRowCallbackHandler();

@@ -73,15 +73,15 @@ public class DefaultRelationshipService implements RelationshipService
     private final EventService eventService;
 
     @Override
-    public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntity tei,
+    public List<Relationship> getRelationshipsByTrackedEntity(
+        TrackedEntity trackedEntity,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException
     {
 
         List<Relationship> relationships = relationshipStore
-            .getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter )
+            .getByTrackedEntity( trackedEntity, pagingAndSortingCriteriaAdapter )
             .stream()
             .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
             .collect( Collectors.toList() );

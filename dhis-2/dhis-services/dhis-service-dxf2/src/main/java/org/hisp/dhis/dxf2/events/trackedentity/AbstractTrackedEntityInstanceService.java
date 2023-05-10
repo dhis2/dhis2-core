@@ -228,7 +228,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityAudit( auditable );
         }
     }
 
