@@ -52,7 +52,7 @@ import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.context.ApplicationEventPublisher;
@@ -103,8 +103,8 @@ public class HibernateTrackedEntityAttributeStore
     }
 
     @Override
-    public Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue(
-        TrackedEntityInstanceQueryParams params )
+    public Optional<String> getTrackedEntityUidWithUniqueAttributeValue(
+        TrackedEntityQueryParams params )
     {
         // ---------------------------------------------------------------------
         // Select clause

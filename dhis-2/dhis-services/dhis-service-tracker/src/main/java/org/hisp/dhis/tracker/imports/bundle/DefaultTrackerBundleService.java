@@ -37,7 +37,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.ParamsConverter;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.TrackerType;
@@ -72,7 +72,7 @@ public class DefaultTrackerBundleService
 
     private final TrackerObjectDeletionService deletionService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private List<SideEffectHandlerService> sideEffectHandlers = new ArrayList<>();
 
@@ -132,7 +132,7 @@ public class DefaultTrackerBundleService
     private void updateTeisLastUpdated( TrackerBundle bundle )
     {
         Optional.ofNullable( bundle.getUpdatedTeis() ).filter( ut -> !ut.isEmpty() ).ifPresent(
-            teis -> trackedEntityInstanceService.updateTrackedEntityInstanceLastUpdated( teis, new Date() ) );
+            teis -> trackedEntityService.updateTrackedEntityLastUpdated( teis, new Date() ) );
     }
 
     @Override
@@ -151,10 +151,10 @@ public class DefaultTrackerBundleService
         }
 
         Map<TrackerType, TrackerTypeReport> reportMap = Map.of(
-            TrackerType.RELATIONSHIP, deletionService.deleteRelationShips( bundle ),
+            TrackerType.RELATIONSHIP, deletionService.deleteRelationships( bundle ),
             TrackerType.EVENT, deletionService.deleteEvents( bundle ),
             TrackerType.ENROLLMENT, deletionService.deleteEnrollments( bundle ),
-            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntityInstances( bundle ) );
+            TrackerType.TRACKED_ENTITY, deletionService.deleteTrackedEntity( bundle ) );
 
         return new PersistenceReport( reportMap );
     }

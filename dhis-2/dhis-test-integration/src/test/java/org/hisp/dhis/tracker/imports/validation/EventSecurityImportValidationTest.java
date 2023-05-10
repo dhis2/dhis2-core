@@ -56,8 +56,8 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -77,7 +77,7 @@ class EventSecurityImportValidationTest extends TrackerTest
 {
 
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -193,10 +193,10 @@ class EventSecurityImportValidationTest extends TrackerTest
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
+        maleA = createTrackedEntity( 'A', organisationUnitA );
+        maleB = createTrackedEntity( organisationUnitB );
+        femaleA = createTrackedEntity( organisationUnitA );
+        femaleB = createTrackedEntity( organisationUnitB );
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
@@ -208,7 +208,7 @@ class EventSecurityImportValidationTest extends TrackerTest
         int testYear = Calendar.getInstance().get( Calendar.YEAR ) - 1;
         Date dateMar20 = getDate( testYear, 3, 20 );
         Date dateApr10 = getDate( testYear, 4, 10 );
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( maleA, programA,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( maleA, programA,
             dateMar20, dateApr10, organisationUnitA, "MNWZ6hnuhSX" );
         enrollmentService.addEnrollment( enrollment );
         trackedEntityProgramOwnerService.updateTrackedEntityProgramOwner( maleA.getUid(), programA.getUid(),

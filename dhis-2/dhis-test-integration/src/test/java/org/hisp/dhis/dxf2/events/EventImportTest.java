@@ -182,7 +182,7 @@ class EventImportTest extends TransactionalIntegrationTest
         manager.save( organisationUnitB );
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntity maleA = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity maleA = createTrackedEntity( organisationUnitA );
         maleA.setTrackedEntityType( trackedEntityType );
         manager.save( maleA );
         trackedEntityInstanceMaleA = trackedEntityInstanceService.getTrackedEntityInstance( maleA );

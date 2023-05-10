@@ -38,7 +38,7 @@ public interface ProgramOwnerMapper
     extends ViewMapper<TrackedEntityProgramOwner, ProgramOwner>
 {
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
+    @Mapping( target = "trackedEntity", source = "trackedEntity.uid" )
     @Mapping( target = "program", source = "program.uid" )
     @Override
     ProgramOwner from( TrackedEntityProgramOwner trackedEntityProgramOwner );

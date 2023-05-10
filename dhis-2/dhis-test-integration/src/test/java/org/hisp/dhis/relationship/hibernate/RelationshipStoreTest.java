@@ -58,7 +58,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -71,7 +71,7 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     private RelationshipTypeService relationshipTypeService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -109,12 +109,12 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByTrackedEntityInstance()
+    void testGetByTrackedEntity()
     {
         Relationship teiRelationship = addTeiToTeiRelationship();
 
         List<Relationship> relationshipList = relationshipService
-            .getRelationshipsByTrackedEntityInstance( trackedEntityA, true );
+            .getRelationshipsByTrackedEntity( trackedEntityA, true );
 
         assertEquals( 1, relationshipList.size() );
         assertTrue( relationshipList.contains( teiRelationship ) );
@@ -131,8 +131,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
         Event event = addEvent( enrollment, programStageA );
 
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityA = createTrackedEntity( organisationUnit );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Relationship relationshipA = addTeiToEventRelationship( trackedEntityA,
             event );
@@ -149,8 +149,8 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
     @Test
     void testGetByEnrollment()
     {
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        trackedEntityA = createTrackedEntity( organisationUnit );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
 
         Program programA = addProgram();
 
@@ -208,11 +208,11 @@ class RelationshipStoreTest extends TransactionalIntegrationTest
 
     private Relationship addTeiToTeiRelationship()
     {
-        trackedEntityA = createTrackedEntityInstance( organisationUnit );
-        trackedEntityB = createTrackedEntityInstance( organisationUnit );
+        trackedEntityA = createTrackedEntity( organisationUnit );
+        trackedEntityB = createTrackedEntity( organisationUnit );
 
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityA );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityB );
+        trackedEntityService.addTrackedEntity( trackedEntityA );
+        trackedEntityService.addTrackedEntity( trackedEntityB );
 
         Relationship teiRelationship = new Relationship();
 

@@ -39,7 +39,7 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.EnrollmentTrackerConverterService;
@@ -61,7 +61,7 @@ public class DefaultTrackerObjectsDeletionService
 {
     private final EnrollmentService enrollmentService;
 
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
     private final EventService eventService;
 
@@ -96,11 +96,11 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEvents( trackerBundle );
 
-            TrackedEntity tei = enrollment.getEntityInstance();
+            TrackedEntity tei = enrollment.getTrackedEntity();
             tei.getEnrollments().remove( enrollment );
 
             enrollmentService.deleteEnrollment( enrollment );
-            teiService.updateTrackedEntityInstance( tei );
+            teiService.updateTrackedEntity( tei );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );
@@ -130,7 +130,7 @@ public class DefaultTrackerObjectsDeletionService
 
             if ( event.getProgramStage().getProgram().isRegistration() )
             {
-                teiService.updateTrackedEntityInstance( event.getEnrollment().getEntityInstance() );
+                teiService.updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
 
                 enrollment.getEvents().remove( event );
                 enrollmentService.updateEnrollment( enrollment );
@@ -144,7 +144,7 @@ public class DefaultTrackerObjectsDeletionService
     }
 
     @Override
-    public TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle )
+    public TrackerTypeReport deleteTrackedEntity( TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.TRACKED_ENTITY );
 
@@ -157,7 +157,7 @@ public class DefaultTrackerObjectsDeletionService
             Entity objectReport = new Entity( TrackerType.TRACKED_ENTITY, uid, idx );
 
             TrackedEntity daoEntityInstance = teiService
-                .getTrackedEntityInstance( uid );
+                .getTrackedEntity( uid );
 
             Set<Enrollment> daoEnrollments = daoEntityInstance.getEnrollments();
 
@@ -172,7 +172,7 @@ public class DefaultTrackerObjectsDeletionService
 
             deleteEnrollments( trackerBundle );
 
-            teiService.deleteTrackedEntityInstance( daoEntityInstance );
+            teiService.deleteTrackedEntity( daoEntityInstance );
 
             typeReport.getStats().incDeleted();
             typeReport.addEntity( objectReport );
@@ -182,7 +182,7 @@ public class DefaultTrackerObjectsDeletionService
     }
 
     @Override
-    public TrackerTypeReport deleteRelationShips( TrackerBundle bundle )
+    public TrackerTypeReport deleteRelationships( TrackerBundle bundle )
     {
         TrackerTypeReport typeReport = new TrackerTypeReport( TrackerType.RELATIONSHIP );
 

@@ -85,10 +85,10 @@ import org.hisp.dhis.node.NodeUtils;
 import org.hisp.dhis.node.types.CollectionNode;
 import org.hisp.dhis.node.types.RootNode;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.schema.descriptors.TrackedEntityInstanceSchemaDescriptor;
 import org.hisp.dhis.system.grid.GridUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -128,14 +128,16 @@ import com.google.common.collect.Lists;
  */
 @OpenApi.Tags( "tracker" )
 @Controller
-@RequestMapping( value = TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = TrackedEntityInstanceController.RESOURCE_PATH )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
 public class TrackedEntityInstanceController
 {
+    public static final String RESOURCE_PATH = "/trackedEntityInstances";
+
     private final TrackedEntityInstanceService trackedEntityInstanceService;
 
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService instanceService;
+    private final TrackedEntityService instanceService;
 
     private final ContextUtils contextUtils;
 
@@ -166,7 +168,7 @@ public class TrackedEntityInstanceController
     {
         List<String> fields = contextService.getFieldsFromRequestOrAll();
 
-        TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
         List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService.getTrackedEntityInstances(
             queryParams,
@@ -207,7 +209,7 @@ public class TrackedEntityInstanceController
         User user = currentUserService.getCurrentUser();
 
         TrackedEntity trackedEntity = instanceService
-            .getTrackedEntityInstance( teiId );
+            .getTrackedEntity( teiId );
 
         List<String> trackerAccessErrors = trackerAccessManager.canRead( user, trackedEntity );
 
@@ -283,7 +285,7 @@ public class TrackedEntityInstanceController
         User currentUser = currentUserService.getCurrentUser();
 
         TrackedEntity tei = Optional
-            .ofNullable( instanceService.getTrackedEntityInstance( teiId ) )
+            .ofNullable( instanceService.getTrackedEntity( teiId ) )
             .orElseThrow(
                 () -> new WebMessageException( notFound( "TrackedEntity not found for ID " + teiId ) ) );
 
@@ -368,13 +370,13 @@ public class TrackedEntityInstanceController
     public @ResponseBody int getTrackedEntityInstanceCount( TrackedEntityInstanceCriteria criteria )
     {
         criteria.setSkipMeta( true );
-        criteria.setPage( TrackedEntityInstanceQueryParams.DEFAULT_PAGE );
-        criteria.setPageSize( TrackedEntityInstanceQueryParams.DEFAULT_PAGE_SIZE );
+        criteria.setPage( TrackedEntityQueryParams.DEFAULT_PAGE );
+        criteria.setPageSize( TrackedEntityQueryParams.DEFAULT_PAGE_SIZE );
         criteria.setTotalPages( true );
         criteria.setSkipPaging( true );
         criteria.setIncludeAllAttributes( false );
         criteria.setOrder( null );
-        final TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        final TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
         return trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, false, false );
     }
@@ -472,7 +474,7 @@ public class TrackedEntityInstanceController
                     (!importOptions.getImportStrategy().isSync()
                         || importSummary.getImportCount().getDeleted() == 0) )
             .forEach( importSummary -> importSummary.setHref(
-                ContextUtils.getRootPath( request ) + TrackedEntityInstanceSchemaDescriptor.API_ENDPOINT + "/"
+                ContextUtils.getRootPath( request ) + TrackedEntityInstanceController.RESOURCE_PATH + "/"
                     + importSummary.getReference() ) );
 
         if ( importSummaries.getImportSummaries().size() == 1 )
@@ -544,9 +546,9 @@ public class TrackedEntityInstanceController
     {
         criteria.setLastUpdatedDuration( null );
         criteria.setIncludeAllAttributes( false );
-        final TrackedEntityInstanceQueryParams queryParams = criteriaMapper.map( criteria );
+        final TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
-        return instanceService.getTrackedEntityInstancesGrid( queryParams );
+        return instanceService.getTrackedEntitiesGrid( queryParams );
     }
 
     private TrackedEntityInstanceParams getTrackedEntityInstanceParams( List<String> fields )

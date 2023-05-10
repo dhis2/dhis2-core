@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.data;
 
 import static java.util.Collections.emptyList;
 import static org.hisp.dhis.analytics.AggregationType.COUNT;
-import static org.hisp.dhis.analytics.AggregationType.NONE;
+import static org.hisp.dhis.analytics.AggregationType.MAX;
 import static org.hisp.dhis.analytics.AggregationType.SUM;
 import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.common.ValueType.DATE;
@@ -49,7 +49,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.AnalyticsAggregationType;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.AnalyticsTableGenerator;
@@ -116,6 +115,8 @@ class AnalyticsServiceTest
 {
     private CategoryOptionCombo ocDef;
 
+    private String ocDefUid;
+
     private Category catDef;
 
     private Period peJan;
@@ -153,6 +154,10 @@ class AnalyticsServiceTest
     private DataElement deF;
 
     private DataElement deG;
+
+    private String deAUid;
+
+    private String deBUid;
 
     private DataElement deH;
 
@@ -287,7 +292,7 @@ class AnalyticsServiceTest
     private void setUpMetadata()
     {
         ocDef = categoryService.getDefaultCategoryOptionCombo();
-        ocDef.setUid( "o1234578def" );
+        ocDefUid = ocDef.getUid();
 
         categoryService.updateCategoryOptionCombo( ocDef );
         catDef = categoryService.getDefaultCategory();
@@ -324,8 +329,11 @@ class AnalyticsServiceTest
         deD = createDataElement( 'D' );
         deE = createDataElement( 'E', INTEGER, SUM );
         deF = createDataElement( 'F', BOOLEAN, COUNT );
-        deG = createDataElement( 'G', TEXT, NONE );
-        deH = createDataElement( 'H', DATE, NONE );
+        deG = createDataElement( 'G', TEXT, MAX );
+        deH = createDataElement( 'H', DATE, MAX );
+
+        deAUid = deA.getUid();
+        deBUid = deB.getUid();
 
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
@@ -988,6 +996,22 @@ class AnalyticsServiceTest
     }
 
     @Test
+    void testIndicatorSubexpressionInteger()
+    {
+        withIndicator( inA, "subExpression( #{" + deE.getUid() + "} )" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-201705", 1.0,
+                "indicatorAA-ouabcdefghA-201706", 2.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnit( ouA )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( peMay, peJun ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
     void testIndicatorSubexpressionBoolean()
     {
         withIndicator( inA, "subExpression( if( #{" + deF.getUid() + "}, 3, 4 ) )" );
@@ -1033,6 +1057,111 @@ class AnalyticsServiceTest
     }
 
     @Test
+    void testIndicatorSubexpressionCatOptionCommbo()
+    {
+        withIndicator( inA, "subExpression(#{" + deAUid + "}/#{" + deBUid + "." + ocDefUid + "})" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 2.6,
+                "indicatorAA-ouabcdefghB-2017Q1", 2.1 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorSubexpressionAverage()
+    {
+        withIndicator( inA, "subExpression(#{" + deAUid + "}/#{" + deBUid + "}).aggregationType(AVERAGE)" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 0.52,
+                "indicatorAA-ouabcdefghB-2017Q1", 0.69 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorSubexpressionAverageWithMax()
+    {
+        withIndicator( inA,
+            "subExpression(#{" + deAUid + "}.aggregationType(MAX)/#{" + deBUid + "}).aggregationType(AVERAGE)" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 0.49,
+                "indicatorAA-ouabcdefghB-2017Q1", 0.64 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorSubexpressionAverageWithAndWithoutMax()
+    {
+        withIndicator( inA,
+            "subExpression(#{" + deAUid + "}+#{" + deAUid + "}.aggregationType(MAX)/#{" + deBUid +
+                "}).aggregationType(AVERAGE)" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 62.1,
+                "indicatorAA-ouabcdefghB-2017Q1", 101.0 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithTwoSubexpressions()
+    {
+        // Note: Expressions and values are the sum of the two previous tests.
+        withIndicator( inA,
+            "subExpression(#{" + deAUid + "}.aggregationType(MAX)/#{" + deBUid + "}).aggregationType(AVERAGE)" +
+                " + subExpression(#{" + deAUid + "}+#{" + deAUid + "}.aggregationType(MAX)/#{" + deBUid +
+                "}).aggregationType(AVERAGE)" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 62.6,
+                "indicatorAA-ouabcdefghB-2017Q1", 101.6 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
+    void testIndicatorWithTwoSubexpressionsThatDifferOnlyByAggregationType()
+    {
+        withIndicator( inA,
+            "subExpression(#{" + deAUid + "}.aggregationType(SUM)/#{" + deBUid + "}).aggregationType(MAX)" +
+                " + subExpression(#{" + deAUid + "}.aggregationType(SUM)/#{" + deBUid + "})" );
+
+        assertDataValues(
+            Map.of( "indicatorAA-ouabcdefghA-2017Q1", 3.6,
+                "indicatorAA-ouabcdefghB-2017Q1", 3.1 ),
+            DataQueryParams.newBuilder()
+                .withOrganisationUnits( List.of( ouA, ouB ) )
+                .withIndicators( List.of( inA ) )
+                .withAggregationType( AnalyticsAggregationType.SUM )
+                .withPeriods( List.of( quarter ) )
+                .withOutputFormat( OutputFormat.ANALYTICS ).build() );
+    }
+
+    @Test
     void test_deA_ouB_ouC_2017_02()
     {
         assertDataValues(
@@ -1040,7 +1169,7 @@ class AnalyticsServiceTest
             DataQueryParams.newBuilder()
                 .withFilterOrganisationUnits( List.of( ouB, ouC ) )
                 .withDataElements( List.of( deA ) )
-                .withAggregationType( new AnalyticsAggregationType( AggregationType.MAX, AggregationType.MAX ) )
+                .withAggregationType( new AnalyticsAggregationType( MAX, MAX ) )
                 .withPeriod( peFeb )
                 .withOutputFormat( OutputFormat.ANALYTICS ).build() );
     }

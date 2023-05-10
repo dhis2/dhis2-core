@@ -54,7 +54,7 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
     private UserService _userService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -88,10 +88,10 @@ class TrackerOwnershipManagerTest extends IntegrationTestBase
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
 
-        entityInstanceA1 = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceB1 = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA1 );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB1 );
+        entityInstanceA1 = createTrackedEntity( organisationUnitA );
+        entityInstanceB1 = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceA1 );
+        entityInstanceService.addTrackedEntity( entityInstanceB1 );
         programA = createProgram( 'A' );
         programA.setAccessLevel( AccessLevel.PROTECTED );
         programService.addProgram( programA );

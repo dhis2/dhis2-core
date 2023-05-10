@@ -44,7 +44,7 @@ import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +83,7 @@ class RelationshipControllerTest
     private RelationshipService relationshipService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
     private EnrollmentService enrollmentService;
@@ -118,10 +118,10 @@ class RelationshipControllerTest
     void verifyEndpointWithTei()
         throws Exception
     {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
+        when( trackedEntityService.getTrackedEntity( TEI_ID ) ).thenReturn( tei );
         mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ).andExpect( status().isOk() );
 
-        verify( trackedEntityInstanceService ).getTrackedEntityInstance( TEI_ID );
+        verify( trackedEntityService ).getTrackedEntity( TEI_ID );
         verify( relationshipService ).getRelationshipsByTrackedEntityInstance( eq( tei ), any(), eq( false ) );
     }
 

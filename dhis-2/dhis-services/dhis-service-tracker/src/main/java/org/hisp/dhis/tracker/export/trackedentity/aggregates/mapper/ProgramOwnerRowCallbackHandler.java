@@ -71,7 +71,7 @@ public class ProgramOwnerRowCallbackHandler
 
         TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setUid( rs.getString( "key" ) );
-        programOwner.setEntityInstance( trackedEntity );
+        programOwner.setTrackedEntity( trackedEntity );
 
         return programOwner;
     }

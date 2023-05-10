@@ -59,7 +59,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
@@ -80,7 +80,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -244,15 +244,15 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         // ---------------------------------------------------------------------
         // TrackedEntity & Enrollment
         // ---------------------------------------------------------------------
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnit );
+        entityInstanceService.addTrackedEntity( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntity( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntity( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         // TODO enroll twice?
         // ---------------------------------------------------------------------

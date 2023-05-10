@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import java.io.IOException;
 import java.io.InputStream;
 
 import javax.servlet.http.HttpServletResponse;
@@ -74,7 +73,7 @@ public class I18nController
         @RequestParam( value = "package", required = false, defaultValue = "org.hisp.dhis" ) String searchPackage,
         HttpServletResponse response,
         InputStream inputStream )
-        throws IOException
+        throws Exception
     {
         I18n i18n = i18nManager.getI18n( searchPackage );
         I18nOutput output = new I18nOutput();

@@ -37,7 +37,7 @@ import org.hisp.dhis.dxf2.TrackerTest;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -76,12 +76,12 @@ class TrackedEntityAggregateUserTest extends TrackerTest
     void testFetchTrackedEntityInstances()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
-        TrackedEntityInstanceQueryParams queryParams = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
         queryParams.setTrackedEntityType( trackedEntityTypeA );
         queryParams.setIncludeAllAttributes( true );
@@ -91,7 +91,7 @@ class TrackedEntityAggregateUserTest extends TrackerTest
         assertThat( trackedEntityInstances, hasSize( 4 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
         // Check further for explicit uid in param
-        queryParams.getTrackedEntityInstanceUids().addAll( trackedEntityInstances.stream().limit( 2 )
+        queryParams.getTrackedEntityUids().addAll( trackedEntityInstances.stream().limit( 2 )
             .map( TrackedEntityInstance::getTrackedEntityInstance ).collect( Collectors.toSet() ) );
         final List<TrackedEntityInstance> limitedTTrackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );

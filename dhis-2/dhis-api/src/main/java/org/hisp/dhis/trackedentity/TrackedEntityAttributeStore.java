@@ -68,7 +68,7 @@ public interface TrackedEntityAttributeStore
      *        should be checked.
      * @return Optional of TrackedEntity UID or empty Optional.
      */
-    Optional<String> getTrackedEntityInstanceUidWithUniqueAttributeValue( TrackedEntityInstanceQueryParams params );
+    Optional<String> getTrackedEntityUidWithUniqueAttributeValue( TrackedEntityQueryParams params );
 
     /**
      * Fetches all {@link TrackedEntityAttribute} linked to all

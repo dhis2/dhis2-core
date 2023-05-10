@@ -105,7 +105,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramWithOrgUnitsMap() )
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         when( preheat.getTrackedEntity( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_TYPE_ID, teiType, orgUnit ) );
+            .thenReturn( trackedEntity( TEI_TYPE_ID, teiType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -177,7 +177,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
             .thenReturn( Collections.singletonMap( PROGRAM_UID, Collections.singletonList( ORG_UNIT_ID ) ) );
         TrackedEntityType anotherTrackedEntityType = trackedEntityType( TEI_ID, 'B' );
         when( preheat.getTrackedEntity( TEI_ID ) )
-            .thenReturn( trackedEntityInstance( TEI_ID, anotherTrackedEntityType, orgUnit ) );
+            .thenReturn( trackedEntity( TEI_ID, anotherTrackedEntityType, orgUnit ) );
 
         Enrollment enrollment = Enrollment.builder()
             .enrollment( CodeGenerator.generateUid() )
@@ -271,9 +271,9 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return trackedEntityType;
     }
 
-    private TrackedEntity trackedEntityInstance( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntity( String uid, TrackedEntityType type, OrganisationUnit orgUnit )
     {
-        TrackedEntity tei = createTrackedEntityInstance( orgUnit );
+        TrackedEntity tei = createTrackedEntity( orgUnit );
         tei.setUid( uid );
         tei.setTrackedEntityType( type );
         return tei;

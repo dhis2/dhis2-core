@@ -68,7 +68,7 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -215,7 +215,7 @@ class TrackedEntityCriteriaMapperTest
         criteria.setIncludeAllAttributes( true );
         criteria.setOrder( Collections.singletonList( OrderCriteria.of( "created", SortDirection.ASC ) ) );
 
-        final TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        final TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertThat( params.getQuery().getFilter(), is( "query-test" ) );
         assertThat( params.getQuery().getOperator(), is( QueryOperator.EQ ) );
@@ -260,7 +260,7 @@ class TrackedEntityCriteriaMapperTest
         Date date = parseDate( "2022-12-13" );
         criteria.setEnrollmentEnrolledAfter( date );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( date, params.getProgramEnrollmentStartDate() );
     }
@@ -273,7 +273,7 @@ class TrackedEntityCriteriaMapperTest
         Date date = parseDate( "2022-12-13" );
         criteria.setEnrollmentEnrolledBefore( date );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( DateUtils.addDays( date, 1 ), params.getProgramEnrollmentEndDate() );
     }
@@ -285,7 +285,7 @@ class TrackedEntityCriteriaMapperTest
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         List<QueryItem> items = params.getFilters();
         assertNotNull( items );
@@ -318,7 +318,7 @@ class TrackedEntityCriteriaMapperTest
     {
         criteria.setFilter( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         List<QueryItem> items = params.getFilters();
         assertNotNull( items );
@@ -386,7 +386,7 @@ class TrackedEntityCriteriaMapperTest
     {
         criteria.setAttribute( Set.of( TEA_1_UID, TEA_2_UID ) );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         List<QueryItem> items = params.getAttributes();
         assertNotNull( items );
@@ -423,7 +423,7 @@ class TrackedEntityCriteriaMapperTest
     {
         criteria.setProgram( PROGRAM_UID );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( program, params.getProgram() );
     }
@@ -446,7 +446,7 @@ class TrackedEntityCriteriaMapperTest
         criteria.setProgram( PROGRAM_UID );
         criteria.setProgramStage( PROGRAM_STAGE_UID );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( programStage, params.getProgramStage() );
     }
@@ -478,7 +478,7 @@ class TrackedEntityCriteriaMapperTest
     {
         criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
@@ -503,7 +503,7 @@ class TrackedEntityCriteriaMapperTest
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
         criteria.setProgram( PROGRAM_UID );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
     }
@@ -539,7 +539,7 @@ class TrackedEntityCriteriaMapperTest
         criteria.setAssignedUser( "IsdLBTOBzMi;invalid;l5ab8q5skbB" );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
             params.getAssignedUserQueryParam().getAssignedUsers() );
@@ -555,7 +555,7 @@ class TrackedEntityCriteriaMapperTest
         OrderCriteria order2 = OrderCriteria.of( "createdAt", SortDirection.DESC );
         criteria.setOrder( List.of( order1, order2 ) );
 
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertEquals( List.of(
             new OrderParam( "trackedEntity", SortDirection.ASC ),
@@ -567,7 +567,7 @@ class TrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         assertIsEmpty( params.getOrders() );
     }
@@ -589,7 +589,7 @@ class TrackedEntityCriteriaMapperTest
         ForbiddenException
     {
         criteria.setFilter( Set.of( TEA_2_UID + ":like:project:x:eq:2" ) );
-        TrackedEntityInstanceQueryParams params = mapper.map( criteria );
+        TrackedEntityQueryParams params = mapper.map( criteria );
 
         List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
             .collect( Collectors.toList() );

@@ -41,7 +41,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +54,7 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
 {
 
     @Autowired
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Autowired
     private EnrollmentService piService;
@@ -112,12 +112,12 @@ class TrackerOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
         idObjectManager.save( ouA );
         idObjectManager.save( ouB );
         idObjectManager.save( ouC );
-        teiA = createTrackedEntityInstance( 'A', ouA );
-        teiB = createTrackedEntityInstance( 'B', ouB );
-        teiC = createTrackedEntityInstance( 'C', ouC );
-        teiService.addTrackedEntityInstance( teiA );
-        teiService.addTrackedEntityInstance( teiB );
-        teiService.addTrackedEntityInstance( teiC );
+        teiA = createTrackedEntity( 'A', ouA );
+        teiB = createTrackedEntity( 'B', ouB );
+        teiC = createTrackedEntity( 'C', ouC );
+        teiService.addTrackedEntity( teiA );
+        teiService.addTrackedEntity( teiB );
+        teiService.addTrackedEntity( teiC );
         enrollmentA = createEnrollment( prA, teiA, ouA );
         enrollmentB = createEnrollment( prA, teiB, ouB );
         enrollmentC = createEnrollment( prA, teiC, ouA );

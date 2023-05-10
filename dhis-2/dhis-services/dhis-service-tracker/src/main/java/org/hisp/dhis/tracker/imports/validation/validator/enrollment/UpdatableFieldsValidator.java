@@ -49,7 +49,7 @@ class UpdatableFieldsValidator
     {
         Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
         Program program = preheatEnrollment.getProgram();
-        TrackedEntity trackedEntity = preheatEnrollment.getEntityInstance();
+        TrackedEntity trackedEntity = preheatEnrollment.getTrackedEntity();
 
         reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
             "program" );

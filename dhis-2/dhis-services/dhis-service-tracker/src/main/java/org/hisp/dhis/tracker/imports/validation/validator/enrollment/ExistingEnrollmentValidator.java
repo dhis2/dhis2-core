@@ -85,7 +85,7 @@ class ExistingEnrollmentValidator
     {
         checkNotNull( enrollment.getTrackedEntity(), TRACKED_ENTITY_INSTANCE_CANT_BE_NULL );
 
-        TrackedEntity tei = getTrackedEntityInstance( bundle, enrollment.getTrackedEntity() );
+        TrackedEntity tei = getTrackedEntity( bundle, enrollment.getTrackedEntity() );
 
         Set<org.hisp.dhis.tracker.imports.domain.Enrollment> payloadEnrollment = bundle.getEnrollments()
             .stream().filter( Objects::nonNull )
@@ -144,7 +144,7 @@ class ExistingEnrollmentValidator
         return enrollment;
     }
 
-    private TrackedEntity getTrackedEntityInstance( TrackerBundle bundle, String uid )
+    private TrackedEntity getTrackedEntity( TrackerBundle bundle, String uid )
     {
         TrackedEntity tei = bundle.getPreheat().getTrackedEntity( uid );
 

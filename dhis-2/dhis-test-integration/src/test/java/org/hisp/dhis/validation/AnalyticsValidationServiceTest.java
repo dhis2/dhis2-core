@@ -86,7 +86,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -104,7 +104,7 @@ import com.google.common.collect.Sets;
 class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityAttributeService entityAttributeService;
@@ -223,14 +223,14 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-        TrackedEntity entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntity( 'A', orgUnitA, entityAttribute );
+        entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
         entityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstance );
+        entityInstanceService.updateTrackedEntity( entityInstance );
         Program program = createProgram( 'A', null, Sets.newHashSet( entityAttribute ),
             Sets.newHashSet( orgUnitA, orgUnitA ), null );
         program.setUid( PROGRAM_UID );
@@ -246,7 +246,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicator );
         programService.updateProgram( program );
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
         enrollmentService.addEnrollment( enrollment );
         Event stageInstanceA = eventService.createEvent( enrollment,

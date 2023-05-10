@@ -41,7 +41,7 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.relationship.RelationshipTypeService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -57,7 +57,7 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
     private PotentialDuplicateStore potentialDuplicateStore;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -85,14 +85,14 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        original = createTrackedEntityInstance( ou );
-        duplicate = createTrackedEntityInstance( ou );
-        extra1 = createTrackedEntityInstance( ou );
-        extra2 = createTrackedEntityInstance( ou );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.addTrackedEntityInstance( extra1 );
-        trackedEntityInstanceService.addTrackedEntityInstance( extra2 );
+        original = createTrackedEntity( ou );
+        duplicate = createTrackedEntity( ou );
+        extra1 = createTrackedEntity( ou );
+        extra2 = createTrackedEntity( ou );
+        trackedEntityService.addTrackedEntity( original );
+        trackedEntityService.addTrackedEntity( duplicate );
+        trackedEntityService.addTrackedEntity( extra1 );
+        trackedEntityService.addTrackedEntity( extra2 );
         relationshipTypeBiDirectional = createRelationshipType( 'A' );
         relationshipTypeUniDirectional = createRelationshipType( 'B' );
         relationshipTypeBiDirectional.setBidirectional( true );
@@ -150,12 +150,12 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
         relationshipService.addRelationship( uni2 );
         relationshipService.addRelationship( uni3 );
         relationshipService.addRelationship( uni4 );
-        original = trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() );
-        duplicate = trackedEntityInstanceService.getTrackedEntityInstance( duplicate.getUid() );
+        original = trackedEntityService.getTrackedEntity( original.getUid() );
+        duplicate = trackedEntityService.getTrackedEntity( duplicate.getUid() );
         List<String> relationships = Lists.newArrayList( uni3.getUid() );
         potentialDuplicateStore.moveRelationships( original, duplicate, relationships );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
-        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
+        trackedEntityService.updateTrackedEntity( original );
+        trackedEntityService.updateTrackedEntity( duplicate );
         Relationship _uni1 = relationshipService.getRelationship( uni1.getUid() );
         Relationship _uni2 = relationshipService.getRelationship( uni2.getUid() );
         Relationship _uni3 = relationshipService.getRelationship( uni3.getUid() );

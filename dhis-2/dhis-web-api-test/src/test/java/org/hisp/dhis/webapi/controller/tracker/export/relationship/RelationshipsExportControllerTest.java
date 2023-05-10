@@ -167,7 +167,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsById()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship r = relationship( from, to );
 
@@ -183,7 +183,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByIdWithFieldsAll()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship r = relationship( from, to );
 
@@ -198,7 +198,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByIdWithFields()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship r = relationship( from, to );
 
@@ -242,7 +242,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEvent()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship r = relationship( from, to );
 
@@ -258,7 +258,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEventWithFields()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         Relationship r = relationship( from, to );
 
@@ -277,7 +277,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEventWithAssignedUser()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         from.setAssignedUser( owner );
         relationship( from, to );
@@ -295,7 +295,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEventWithDataValues()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         from.setEventDataValues( Set.of( new EventDataValue( dataElement.getUid(), "12" ) ) );
         relationship( from, to );
@@ -313,7 +313,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEventWithNotes()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Event from = event( enrollment( to ) );
         from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         relationship( from, to );
@@ -338,7 +338,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollment()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         Relationship r = relationship( from, to );
 
@@ -354,7 +354,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollmentWithFieldsAll()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         Relationship r = relationship( from, to );
 
@@ -370,7 +370,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollmentWithEvents()
     {
-        Enrollment from = enrollment( trackedEntityInstance() );
+        Enrollment from = enrollment( trackedEntity() );
         Event to = event( from );
         relationship( from, to );
 
@@ -386,7 +386,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollmentWithAttributes()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         to.setTrackedEntityAttributeValues( Set.of( attributeValue( tea, to, "12" ) ) );
         program.setProgramAttributes( List.of( createProgramTrackedEntityAttribute( program, tea ) ) );
 
@@ -406,7 +406,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByEnrollmentWithNotes()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         from.setComments( List.of( note( "oqXG28h988k", "my notes", owner.getUid() ) ) );
         relationship( from, to );
@@ -431,7 +431,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntity()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         Relationship r = relationship( from, to );
 
@@ -447,7 +447,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTei()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         Relationship r = relationship( from, to );
 
@@ -463,7 +463,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityWithEnrollments()
     {
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity to = trackedEntity();
         Enrollment from = enrollment( to );
         relationship( from, to );
 
@@ -481,7 +481,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityAndEnrollmentWithAttributes()
     {
-        TrackedEntity to = trackedEntityInstance( orgUnit );
+        TrackedEntity to = trackedEntity( orgUnit );
         to.setTrackedEntityAttributeValues(
             Set.of( attributeValue( tea, to, "12" ), attributeValue( tea2, to, "24" ) ) );
         program.setProgramAttributes( List.of( createProgramTrackedEntityAttribute( program, tea2 ) ) );
@@ -504,7 +504,7 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityWithProgramOwners()
     {
-        TrackedEntity to = trackedEntityInstance( orgUnit );
+        TrackedEntity to = trackedEntity( orgUnit );
         Enrollment from = enrollment( to );
         to.setProgramOwners( Set.of( new TrackedEntityProgramOwner( to, from.getProgram(), orgUnit ) ) );
         relationship( from, to );
@@ -524,8 +524,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityRelationshipTeiToTei()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntity();
         Relationship r = relationship( from, to );
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/relationships?trackedEntity={tei}", from.getUid() )
@@ -540,8 +540,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipType()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntity();
         relationship( relationshipTypeNotAccessible(), from, to );
         this.switchContextToUser( user );
 
@@ -552,8 +552,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemTo()
     {
-        TrackedEntity from = trackedEntityInstance();
-        TrackedEntity to = trackedEntityInstanceNotInSearchScope();
+        TrackedEntity from = trackedEntity();
+        TrackedEntity to = trackedEntityNotInSearchScope();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -564,8 +564,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityRelationshipsNoAccessToBothRelationshipItems()
     {
-        TrackedEntity from = trackedEntityInstanceNotInSearchScope();
-        TrackedEntity to = trackedEntityInstanceNotInSearchScope();
+        TrackedEntity from = trackedEntityNotInSearchScope();
+        TrackedEntity to = trackedEntityNotInSearchScope();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -576,8 +576,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     @Test
     void getRelationshipsByTrackedEntityRelationshipsNoAccessToRelationshipItemFrom()
     {
-        TrackedEntity from = trackedEntityInstanceNotInSearchScope();
-        TrackedEntity to = trackedEntityInstance();
+        TrackedEntity from = trackedEntityNotInSearchScope();
+        TrackedEntity to = trackedEntity();
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -589,8 +589,8 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
     void getRelationshipsByTrackedEntityRelationshipsNoAccessToTrackedEntityType()
     {
         TrackedEntityType type = trackedEntityTypeNotAccessible();
-        TrackedEntity from = trackedEntityInstance( type );
-        TrackedEntity to = trackedEntityInstance( type );
+        TrackedEntity from = trackedEntity( type );
+        TrackedEntity to = trackedEntity( type );
         relationship( from, to );
         this.switchContextToUser( user );
 
@@ -628,37 +628,37 @@ class RelationshipsExportControllerTest extends DhisControllerConvenienceTest
         return type;
     }
 
-    private TrackedEntity trackedEntityInstance()
+    private TrackedEntity trackedEntity()
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit );
+        TrackedEntity tei = trackedEntity( orgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstanceNotInSearchScope()
+    private TrackedEntity trackedEntityNotInSearchScope()
     {
-        TrackedEntity tei = trackedEntityInstance( anotherOrgUnit );
+        TrackedEntity tei = trackedEntity( anotherOrgUnit );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( TrackedEntityType trackedEntityType )
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntity tei = trackedEntity( orgUnit, trackedEntityType );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit )
     {
-        TrackedEntity tei = trackedEntityInstance( orgUnit, trackedEntityType );
+        TrackedEntity tei = trackedEntity( orgUnit, trackedEntityType );
         manager.save( tei, false );
         return tei;
     }
 
-    private TrackedEntity trackedEntityInstance( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
+    private TrackedEntity trackedEntity( OrganisationUnit orgUnit, TrackedEntityType trackedEntityType )
     {
-        TrackedEntity tei = createTrackedEntityInstance( orgUnit );
+        TrackedEntity tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         tei.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         tei.getSharing().setOwner( owner );

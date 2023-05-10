@@ -51,7 +51,7 @@ import org.hisp.dhis.program.notification.event.ProgramEnrollmentNotificationEve
 import org.hisp.dhis.programrule.engine.EnrollmentEvaluationEvent;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -75,7 +75,7 @@ public class DefaultEnrollmentService
 
     private final CurrentUserService currentUserService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ApplicationEventPublisher eventPublisher;
 
@@ -384,7 +384,7 @@ public class DefaultEnrollmentService
         Enrollment enrollment = new Enrollment();
         enrollment.setUid( CodeGenerator.isValidUid( uid ) ? uid : CodeGenerator.generateUid() );
         enrollment.setOrganisationUnit( organisationUnit );
-        enrollment.enrollTrackedEntityInstance( trackedEntity, program );
+        enrollment.enrollTrackedEntity( trackedEntity, program );
 
         if ( enrollmentDate != null )
         {
@@ -411,16 +411,16 @@ public class DefaultEnrollmentService
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit )
     {
-        return enrollTrackedEntityInstance( trackedEntity, program, enrollmentDate,
+        return enrollTrackedEntity( trackedEntity, program, enrollmentDate,
             incidentDate, organisationUnit, CodeGenerator.generateUid() );
     }
 
     @Override
     @Transactional
-    public Enrollment enrollTrackedEntityInstance( TrackedEntity trackedEntity, Program program,
+    public Enrollment enrollTrackedEntity( TrackedEntity trackedEntity, Program program,
         Date enrollmentDate, Date incidentDate, OrganisationUnit organisationUnit, String uid )
     {
         // ---------------------------------------------------------------------
@@ -451,7 +451,7 @@ public class DefaultEnrollmentService
         // -----------------------------------------------------------------
 
         updateEnrollment( enrollment );
-        trackedEntityInstanceService.updateTrackedEntityInstance( trackedEntity );
+        trackedEntityService.updateTrackedEntity( trackedEntity );
 
         return enrollment;
     }
@@ -518,7 +518,7 @@ public class DefaultEnrollmentService
     {
         Program program = enrollment.getProgram();
 
-        TrackedEntity tei = enrollment.getEntityInstance();
+        TrackedEntity tei = enrollment.getTrackedEntity();
 
         if ( getEnrollments( tei, program, ProgramStatus.ACTIVE ).size() > 0 )
         {

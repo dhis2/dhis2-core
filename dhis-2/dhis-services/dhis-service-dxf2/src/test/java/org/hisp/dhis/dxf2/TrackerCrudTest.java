@@ -61,7 +61,7 @@ import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.DefaultTrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.DefaultTrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -95,7 +95,7 @@ class TrackerCrudTest
     private Notifier notifier;
 
     @Mock
-    private DefaultTrackedEntityInstanceService defaultTrackedEntityInstanceService;
+    private DefaultTrackedEntityService defaultTrackedEntityInstanceService;
 
     @Mock
     private EnrollmentService enrollmentService;
@@ -157,11 +157,11 @@ class TrackerCrudTest
         when( notifier.notify( any( JobConfiguration.class ), anyString() ) ).thenReturn( notifier );
         when( notifier.clear( any() ) ).thenReturn( notifier );
 
-        when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid, user ) )
+        when( defaultTrackedEntityInstanceService.getTrackedEntity( trackedEntityInstanceUid, user ) )
             .thenReturn( new TrackedEntity() );
-        when( defaultTrackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceUid ) )
+        when( defaultTrackedEntityInstanceService.getTrackedEntity( trackedEntityInstanceUid ) )
             .thenReturn( new TrackedEntity() );
-        when( defaultTrackedEntityInstanceService.getTrackedEntityInstancesUidsIncludingDeleted( anyList() ) )
+        when( defaultTrackedEntityInstanceService.getTrackedEntitiesUidsIncludingDeleted( anyList() ) )
             .thenReturn( new ArrayList<>() );
 
         when( enrollmentService.deleteEnrollments( anyList(), any(), anyBoolean() ) )
@@ -226,7 +226,7 @@ class TrackerCrudTest
         assertFalse(
             importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).addTrackedEntityInstance( any() );
+        verify( defaultTrackedEntityInstanceService, times( 1 ) ).addTrackedEntity( any() );
     }
 
     @Test
@@ -243,9 +243,9 @@ class TrackerCrudTest
         assertFalse(
             importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).getTrackedEntityInstance( trackedEntityInstanceUid,
+        verify( defaultTrackedEntityInstanceService, times( 1 ) ).getTrackedEntity( trackedEntityInstanceUid,
             user );
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).updateTrackedEntityInstance( any() );
+        verify( defaultTrackedEntityInstanceService, times( 1 ) ).updateTrackedEntity( any() );
     }
 
     @Test
@@ -253,7 +253,7 @@ class TrackerCrudTest
     {
         List<TrackedEntityInstance> trackedEntityInstanceList = Collections.singletonList( trackedEntityInstance );
 
-        when( defaultTrackedEntityInstanceService.trackedEntityInstanceExists( trackedEntityInstanceUid ) )
+        when( defaultTrackedEntityInstanceService.trackedEntityExists( trackedEntityInstanceUid ) )
             .thenReturn( true );
 
         when( importOptions.getImportStrategy() ).thenReturn( ImportStrategy.DELETE );
@@ -265,7 +265,7 @@ class TrackerCrudTest
         assertFalse(
             importSummaries.getImportSummaries().stream().anyMatch( is -> is.isStatus( ImportStatus.ERROR ) ) );
 
-        verify( defaultTrackedEntityInstanceService, times( 1 ) ).deleteTrackedEntityInstance( any() );
+        verify( defaultTrackedEntityInstanceService, times( 1 ) ).deleteTrackedEntity( any() );
     }
 
 }

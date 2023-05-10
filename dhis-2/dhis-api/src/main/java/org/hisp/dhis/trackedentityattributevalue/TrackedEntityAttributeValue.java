@@ -63,7 +63,7 @@ public class TrackedEntityAttributeValue
     private TrackedEntityAttribute attribute;
 
     @AuditAttribute
-    private TrackedEntity entityInstance;
+    private TrackedEntity trackedEntity;
 
     private Date created;
 
@@ -100,17 +100,17 @@ public class TrackedEntityAttributeValue
         setAutoFields();
     }
 
-    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity entityInstance )
+    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity trackedEntity )
     {
         setAttribute( attribute );
-        setEntityInstance( entityInstance );
+        setTrackedEntity( trackedEntity );
     }
 
-    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity entityInstance,
+    public TrackedEntityAttributeValue( TrackedEntityAttribute attribute, TrackedEntity trackedEntity,
         String value )
     {
         setAttribute( attribute );
-        setEntityInstance( entityInstance );
+        setTrackedEntity( trackedEntity );
         setValue( value );
     }
 
@@ -135,7 +135,7 @@ public class TrackedEntityAttributeValue
     {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((entityInstance == null) ? 0 : entityInstance.hashCode());
+        result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
         result = prime * result + ((attribute == null) ? 0 : attribute.hashCode());
         result = prime * result + ((getValue() == null) ? 0 : getValue().hashCode());
         return result;
@@ -161,14 +161,14 @@ public class TrackedEntityAttributeValue
 
         final TrackedEntityAttributeValue other = (TrackedEntityAttributeValue) object;
 
-        if ( entityInstance == null )
+        if ( trackedEntity == null )
         {
-            if ( other.entityInstance != null )
+            if ( other.trackedEntity != null )
             {
                 return false;
             }
         }
-        else if ( !entityInstance.equals( other.entityInstance ) )
+        else if ( !trackedEntity.equals( other.trackedEntity ) )
         {
             return false;
         }
@@ -205,7 +205,7 @@ public class TrackedEntityAttributeValue
     {
         return "TrackedEntityAttributeValue{" +
             "attribute=" + attribute +
-            ", entityInstance=" + (entityInstance != null ? entityInstance.getUid() : "null") +
+            ", entityInstance=" + (trackedEntity != null ? trackedEntity.getUid() : "null") +
             ", value='" + value + '\'' +
             ", created=" + created +
             ", lastUpdated=" + lastUpdated +
@@ -361,14 +361,14 @@ public class TrackedEntityAttributeValue
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntity getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public TrackedEntityAttributeValue setEntityInstance( TrackedEntity entityInstance )
+    public TrackedEntityAttributeValue setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
         return this;
     }
 

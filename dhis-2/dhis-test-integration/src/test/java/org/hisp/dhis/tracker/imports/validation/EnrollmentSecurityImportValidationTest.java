@@ -46,7 +46,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.tracker.TrackerTest;
@@ -67,7 +67,7 @@ import com.google.common.collect.Sets;
 class EnrollmentSecurityImportValidationTest extends TrackerTest
 {
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -152,10 +152,10 @@ class EnrollmentSecurityImportValidationTest extends TrackerTest
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
-        maleA = createTrackedEntityInstance( 'A', organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
+        maleA = createTrackedEntity( 'A', organisationUnitA );
+        maleB = createTrackedEntity( organisationUnitB );
+        femaleA = createTrackedEntity( organisationUnitA );
+        femaleB = createTrackedEntity( organisationUnitB );
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );

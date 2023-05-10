@@ -61,7 +61,7 @@ public class SmsDeliveryChannelStrategy
 
         OrganisationUnit orgUnit = getOrganisationUnit( message );
 
-        TrackedEntity tei = getTrackedEntityInstance( message );
+        TrackedEntity tei = getTrackedEntity( message );
 
         if ( orgUnit != null )
         {
@@ -71,7 +71,7 @@ public class SmsDeliveryChannelStrategy
         if ( tei != null )
         {
             message.getRecipients().getPhoneNumbers()
-                .add( getTrackedEntityInstanceRecipient( tei, ValueType.PHONE_NUMBER ) );
+                .add( getTrackedEntityRecipient( tei, ValueType.PHONE_NUMBER ) );
         }
 
         return message;

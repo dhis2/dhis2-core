@@ -35,7 +35,7 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -48,7 +48,7 @@ public abstract class DeliveryChannelStrategy
     protected OrganisationUnitService organisationUnitService;
 
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     // -------------------------------------------------------------------------
     // Abstract methods
@@ -66,7 +66,7 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    public String getTrackedEntityInstanceRecipient( TrackedEntity tei, ValueType type )
+    public String getTrackedEntityRecipient( TrackedEntity tei, ValueType type )
     {
         Set<TrackedEntityAttributeValue> attributeValues = tei.getTrackedEntityAttributeValues();
 
@@ -87,7 +87,7 @@ public abstract class DeliveryChannelStrategy
     // Public methods
     // -------------------------------------------------------------------------
 
-    protected TrackedEntity getTrackedEntityInstance( ProgramMessage message )
+    protected TrackedEntity getTrackedEntity( ProgramMessage message )
     {
         if ( message.getRecipients().getTrackedEntity() == null )
         {
@@ -96,7 +96,7 @@ public abstract class DeliveryChannelStrategy
 
         String uid = message.getRecipients().getTrackedEntity().getUid();
 
-        TrackedEntity tei = trackedEntityInstanceService.getTrackedEntityInstance( uid );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( uid );
 
         message.getRecipients().setTrackedEntity( tei );
 

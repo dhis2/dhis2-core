@@ -80,6 +80,7 @@ import org.hisp.dhis.textpattern.TextPatternSegment;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
@@ -104,7 +105,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
     private TrackedEntityInstanceService trackedEntityInstanceService;
 
     @Autowired
-    private org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    private TrackedEntityService teiDaoService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -185,11 +186,11 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
         trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        maleA = createTrackedEntityInstance( organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
-        dateConflictsMaleA = createTrackedEntityInstance( organisationUnitA );
+        maleA = createTrackedEntity( organisationUnitA );
+        maleB = createTrackedEntity( organisationUnitB );
+        femaleA = createTrackedEntity( organisationUnitA );
+        femaleB = createTrackedEntity( organisationUnitB );
+        dateConflictsMaleA = createTrackedEntity( organisationUnitA );
         TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
         uniqueId.setValue( "12345" );
         maleA.setTrackedEntityType( trackedEntityType );
@@ -218,10 +219,10 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         teiMaleB = trackedEntityInstanceService.getTrackedEntityInstance( maleB );
         teiFemaleA = trackedEntityInstanceService.getTrackedEntityInstance( femaleA );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( uniqueId );
-        enrollmentService.enrollTrackedEntityInstance( maleA, programA, null, null, organisationUnitA );
-        enrollmentService.enrollTrackedEntityInstance( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
+        enrollmentService.enrollTrackedEntity( maleA, programA, null, null, organisationUnitA );
+        enrollmentService.enrollTrackedEntity( femaleA, programA, DateTime.now().plusMonths( 1 ).toDate(),
             null, organisationUnitA );
-        enrollmentService.enrollTrackedEntityInstance( dateConflictsMaleA, programA,
+        enrollmentService.enrollTrackedEntity( dateConflictsMaleA, programA,
             DateTime.now().plusMonths( 1 ).toDate(), DateTime.now().plusMonths( 2 ).toDate(), organisationUnitA );
     }
 
@@ -507,7 +508,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         trackedEntityInstanceService.deleteTrackedEntityInstance( maleA.getUid() );
         assertNull( trackedEntityInstanceService.getTrackedEntityInstance( maleA.getUid() ) );
         assertNotNull( trackedEntityInstanceService.getTrackedEntityInstance( maleB.getUid() ) );
-        boolean existsDeleted = teiDaoService.trackedEntityInstanceExistsIncludingDeleted( maleA.getUid() );
+        boolean existsDeleted = teiDaoService.trackedEntityExistsIncludingDeleted( maleA.getUid() );
         assertTrue( existsDeleted );
     }
 
@@ -585,7 +586,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         uids.add( teiMaleA.getTrackedEntityInstance() );
         uids.add( teiMaleB.getTrackedEntityInstance() );
         uids.add( teiFemaleA.getTrackedEntityInstance() );
-        List<String> fetchedUids = teiDaoService.getTrackedEntityInstancesUidsIncludingDeleted( uids );
+        List<String> fetchedUids = teiDaoService.getTrackedEntitiesUidsIncludingDeleted( uids );
         assertContainsOnly( new HashSet<>( uids ), new HashSet<>( fetchedUids ) );
     }
 

@@ -56,8 +56,8 @@ import org.hisp.dhis.system.util.SmsUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -77,7 +77,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
 
     private static final String NO_TEI_EXIST = "No tracked entity exists with given phone number";
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
@@ -87,17 +87,17 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender,
-        TrackedEntityInstanceService trackedEntityInstanceService,
+        TrackedEntityService trackedEntityService,
         TrackedEntityAttributeService trackedEntityAttributeService, SMSCommandService smsCommandService )
     {
         super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( trackedEntityAttributeService );
-        checkNotNull( trackedEntityInstanceService );
+        checkNotNull( trackedEntityService );
         checkNotNull( smsCommandService );
 
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
+        this.trackedEntityService = trackedEntityService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this.smsCommandService = smsCommandService;
     }
@@ -111,7 +111,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
     {
         Set<OrganisationUnit> ous = getOrganisationUnits( sms );
 
-        List<TrackedEntity> teis = getTrackedEntityInstanceByPhoneNumber( sms, smsCommand, ous );
+        List<TrackedEntity> teis = getTrackedEntityByPhoneNumber( sms, smsCommand, ous );
 
         if ( !validate( teis, ous, sms ) )
         {
@@ -137,7 +137,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         register( enrollments, keyValue, smsCommand, sms, ous );
     }
 
-    private List<TrackedEntity> getTrackedEntityInstanceByPhoneNumber( IncomingSms sms, SMSCommand command,
+    private List<TrackedEntity> getTrackedEntityByPhoneNumber( IncomingSms sms, SMSCommand command,
         Set<OrganisationUnit> ous )
     {
         List<TrackedEntityAttribute> attributes = trackedEntityAttributeService.getAllTrackedEntityAttributes().stream()
@@ -147,7 +147,7 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
 
         attributes.parallelStream().map( attr -> getParams( attr, sms, command.getProgram(), ous ) )
             .forEach(
-                param -> teis.addAll( trackedEntityInstanceService.getTrackedEntityInstances( param, false, true ) ) );
+                param -> teis.addAll( trackedEntityService.getTrackedEntities( param, false, true ) ) );
 
         return teis;
     }
@@ -157,10 +157,10 @@ public class ProgramStageDataEntrySMSListener extends CommandSMSListener
         return trackedEntities.size() > 1;
     }
 
-    private TrackedEntityInstanceQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms,
+    private TrackedEntityQueryParams getParams( TrackedEntityAttribute attribute, IncomingSms sms,
         Program program, Set<OrganisationUnit> ous )
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         QueryFilter queryFilter = new QueryFilter();
         queryFilter.setOperator( QueryOperator.LIKE );

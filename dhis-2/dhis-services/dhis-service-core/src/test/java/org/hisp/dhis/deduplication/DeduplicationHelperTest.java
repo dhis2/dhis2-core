@@ -271,7 +271,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
         TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
         attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setTrackedEntity( original );
         attributeValueOriginal.setValue( "Attribute-Original" );
 
         original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
@@ -280,7 +280,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
         TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
         attributeValueDuplicate.setAttribute( attribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setTrackedEntity( duplicate );
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
@@ -298,7 +298,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
         TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
         attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setTrackedEntity( original );
         attributeValueOriginal.setValue( "Attribute-Original" );
 
         original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
@@ -308,7 +308,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
         TrackedEntityAttribute duplicateAttribute = createTrackedEntityAttribute( 'B' );
         attributeValueDuplicate.setAttribute( duplicateAttribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setTrackedEntity( duplicate );
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
@@ -557,7 +557,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiA()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntity( organisationUnitA );
         tei.setTrackedEntityType( trackedEntityTypeA );
 
         return tei;
@@ -565,7 +565,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiB()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;
@@ -573,7 +573,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiC()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;

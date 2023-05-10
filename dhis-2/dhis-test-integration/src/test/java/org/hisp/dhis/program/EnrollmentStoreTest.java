@@ -55,7 +55,7 @@ import org.hisp.dhis.program.notification.ProgramNotificationRecipient;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,7 +73,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     private EnrollmentStore enrollmentStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -144,10 +144,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programService.addProgram( programB );
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -223,10 +223,10 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         programNotificationStore.save( a2 );
         programNotificationStore.save( a3 );
         // TEI
-        TrackedEntity teiX = createTrackedEntityInstance( organisationUnitA );
-        TrackedEntity teiY = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( teiX );
-        entityInstanceService.addTrackedEntityInstance( teiY );
+        TrackedEntity teiX = createTrackedEntity( organisationUnitA );
+        TrackedEntity teiY = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( teiX );
+        entityInstanceService.addTrackedEntity( teiY );
         // Program
         programA.setNotificationTemplates( Sets.newHashSet( a1, a2, a3 ) );
         programService.updateProgram( programA );
@@ -271,7 +271,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testGetByProgramAndTrackedEntityInstance()
+    void testGetByProgramAndTrackedEntity()
     {
         // Create a second enrollment with identical Program and TEI as
         // enrollmentA.
@@ -286,7 +286,7 @@ class EnrollmentStoreTest extends TransactionalIntegrationTest
         Pair<Program, TrackedEntity> pair1 = Pair.of( programA, entityInstanceA );
         programTeiPair.add( pair1 );
         final List<Enrollment> enrollments = enrollmentStore
-            .getByProgramAndTrackedEntityInstance( programTeiPair, ProgramStatus.ACTIVE );
+            .getByProgramAndTrackedEntity( programTeiPair, ProgramStatus.ACTIVE );
         assertEquals( 2, enrollments.size() );
         assertThat( enrollments, containsInAnyOrder( Matchers.hasProperty( "uid", is( "UID-Z" ) ),
             Matchers.hasProperty( "uid", is( "UID-A" ) ) ) );

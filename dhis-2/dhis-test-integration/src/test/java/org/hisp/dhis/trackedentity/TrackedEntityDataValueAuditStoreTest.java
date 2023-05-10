@@ -71,7 +71,7 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
     private TrackedEntityDataValueAuditStore auditStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -162,10 +162,10 @@ class TrackedEntityDataValueAuditStoreTest extends SingleSetupIntegrationTestBas
         dataElementService.addDataElement( deA );
         dataElementService.addDataElement( deB );
 
-        TrackedEntity teiA = createTrackedEntityInstance( ouA );
-        entityInstanceService.addTrackedEntityInstance( teiA );
+        TrackedEntity teiA = createTrackedEntity( ouA );
+        entityInstanceService.addTrackedEntity( teiA );
 
-        Enrollment enrollmentA = enrollmentService.enrollTrackedEntityInstance(
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity(
             teiA, pA, new Date(), new Date(), ouA );
 
         dvA = new EventDataValue( deA.getUid(), "A", USER_SNAP_A );

@@ -70,7 +70,7 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     }
 
     @Override
-    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids,
+    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds( List<Long> ids,
         Context ctx )
     {
         List<List<Long>> teiIds = Lists.partition( ids, PARITITION_SIZE );
@@ -78,12 +78,12 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
         Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
 
         teiIds.forEach( partition -> enrollmentMultimap
-            .putAll( getEnrollmentsByTrackedEntityInstanceIdsPartitioned( partition, ctx ) ) );
+            .putAll( getEnrollmentsByTrackedEntityIdsPartitioned( partition, ctx ) ) );
 
         return enrollmentMultimap;
     }
 
-    private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityInstanceIdsPartitioned( List<Long> ids,
+    private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIdsPartitioned( List<Long> ids,
         Context ctx )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();

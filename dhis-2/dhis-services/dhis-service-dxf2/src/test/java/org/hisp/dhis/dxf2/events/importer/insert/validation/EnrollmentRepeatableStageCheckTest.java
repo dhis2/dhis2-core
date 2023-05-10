@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.dxf2.events.importer.insert.validation;
 
+import static org.hisp.dhis.DhisConvenienceTest.*;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createProgram;
 import static org.hisp.dhis.DhisConvenienceTest.createProgramStage;
-import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityInstance;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
@@ -77,7 +77,7 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
     {
         // Data preparation
         Program program = createProgram( 'P' );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntity( 'A', createOrganisationUnit( 'A' ) );
         event.setProgramStage( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setTrackedEntityInstance( tei.getUid() );
@@ -109,7 +109,7 @@ class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
     {
         // Data preparation
         Program program = createProgram( 'P' );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', createOrganisationUnit( 'A' ) );
+        TrackedEntity tei = createTrackedEntity( 'A', createOrganisationUnit( 'A' ) );
         event.setProgramStage( CodeGenerator.generateUid() );
         event.setProgram( program.getUid() );
         event.setTrackedEntityInstance( tei.getUid() );

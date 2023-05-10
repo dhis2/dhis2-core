@@ -67,6 +67,7 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -99,7 +100,7 @@ public abstract class AbstractRelationshipService
 
     protected EventService eventService;
 
-    protected org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiDaoService;
+    protected TrackedEntityService teiDaoService;
 
     protected UserService userService;
 
@@ -125,7 +126,7 @@ public abstract class AbstractRelationshipService
         User user = currentUserService.getCurrentUser();
 
         return relationshipService
-            .getRelationshipsByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
+            .getRelationshipsByTrackedEntity( tei, pagingAndSortingCriteriaAdapter, skipAccessValidation )
             .stream()
             .filter( ( r ) -> !skipAccessValidation && trackerAccessManager.canRead( user, r ).isEmpty() )
             .map( r -> getRelationship( r, user ) )
@@ -859,7 +860,7 @@ public abstract class AbstractRelationshipService
         // Find and put all Relationship members in their respective cache
         if ( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ) != null )
         {
-            teiDaoService.getTrackedEntityInstancesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user )
+            teiDaoService.getTrackedEntitiesByUid( relationshipEntities.get( TRACKED_ENTITY_INSTANCE ), user )
                 .forEach( tei -> trackedEntityInstanceCache.put( tei.getUid(), tei ) );
         }
 

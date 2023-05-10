@@ -74,7 +74,7 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -100,7 +100,7 @@ class EventRequestToSearchParamsMapper
 
     private final AclService aclService;
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService entityInstanceService;
 
     private final DataElementService dataElementService;
 
@@ -184,7 +184,7 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
 
-        TrackedEntity tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
+        TrackedEntity tei = entityInstanceService.getTrackedEntity( trackedEntityInstance );
 
         if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {

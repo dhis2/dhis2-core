@@ -40,7 +40,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.audit.payloads.TrackedEntityInstanceAudit;
+import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -55,9 +55,9 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -79,13 +79,13 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class DefaultTrackedEntityService implements TrackedEntityService
 {
-    private final org.hisp.dhis.trackedentity.TrackedEntityInstanceService teiService;
+    private final org.hisp.dhis.trackedentity.TrackedEntityService teiService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityInstanceAuditService trackedEntityInstanceAuditService;
+    private final TrackedEntityAuditService trackedEntityAuditService;
 
     private final CurrentUserService currentUserService;
 
@@ -104,7 +104,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         throws NotFoundException,
         ForbiddenException
     {
-        TrackedEntity daoTrackedEntity = teiService.getTrackedEntityInstance( uid );
+        TrackedEntity daoTrackedEntity = teiService.getTrackedEntity( uid );
         if ( daoTrackedEntity == null )
         {
             throw new NotFoundException( TrackedEntity.class, uid );
@@ -319,7 +319,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     }
 
     @Override
-    public List<TrackedEntity> getTrackedEntities( TrackedEntityInstanceQueryParams queryParams,
+    public List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams queryParams,
         TrackedEntityParams params )
         throws ForbiddenException,
         NotFoundException
@@ -329,7 +329,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             return Collections.emptyList();
         }
 
-        final List<Long> ids = teiService.getTrackedEntityInstanceIds( queryParams, false, false );
+        final List<Long> ids = teiService.getTrackedEntityIds( queryParams, false, false );
 
         if ( ids.isEmpty() )
         {
@@ -462,25 +462,25 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         Map<String, TrackedEntityType> tetMap = trackedEntityTypeService.getAllTrackedEntityType().stream()
             .collect( Collectors.toMap( TrackedEntityType::getUid, t -> t ) );
 
-        List<TrackedEntityInstanceAudit> auditable = trackedEntities
+        List<TrackedEntityAudit> auditable = trackedEntities
             .stream()
             .filter( Objects::nonNull )
             .filter( tei -> tei.getTrackedEntityType() != null )
             .filter( tei -> tetMap.get( tei.getTrackedEntityType().getUid() ).isAllowAuditLog() )
             .map(
-                tei -> new TrackedEntityInstanceAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
+                tei -> new TrackedEntityAudit( tei.getUid(), accessedBy, AuditType.SEARCH ) )
             .collect( Collectors.toList() );
 
         if ( !auditable.isEmpty() )
         {
-            trackedEntityInstanceAuditService.addTrackedEntityInstanceAudit( auditable );
+            trackedEntityAuditService.addTrackedEntityAudit( auditable );
         }
     }
 
     @Override
-    public int getTrackedEntityCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    public int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation )
     {
-        return teiService.getTrackedEntityInstanceCount( params, skipAccessValidation, skipSearchScopeValidation );
+        return teiService.getTrackedEntityCount( params, skipAccessValidation, skipSearchScopeValidation );
     }
 }

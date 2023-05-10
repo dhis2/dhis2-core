@@ -515,7 +515,7 @@ public class DefaultProgramNotificationService
     private ProgramMessageRecipients resolveProgramNotificationRecipients(
         ProgramNotificationTemplate template, OrganisationUnit organisationUnit, Enrollment enrollment )
     {
-        return resolveRecipients( template, organisationUnit, enrollment.getEntityInstance(), enrollment );
+        return resolveRecipients( template, organisationUnit, enrollment.getTrackedEntity(), enrollment );
     }
 
     private ProgramMessageRecipients resolveProgramStageNotificationRecipients(
@@ -544,7 +544,7 @@ public class DefaultProgramNotificationService
         }
         else
         {
-            TrackedEntity trackedEntity = event.getEnrollment().getEntityInstance();
+            TrackedEntity trackedEntity = event.getEnrollment().getTrackedEntity();
 
             return resolveRecipients( template, organisationUnit, trackedEntity, event.getEnrollment() );
         }
@@ -568,7 +568,7 @@ public class DefaultProgramNotificationService
         else if ( recipientType == ProgramNotificationRecipient.PROGRAM_ATTRIBUTE
             && template.getRecipientProgramAttribute() != null )
         {
-            List<String> recipientList = enrollment.getEntityInstance().getTrackedEntityAttributeValues().stream()
+            List<String> recipientList = enrollment.getTrackedEntity().getTrackedEntityAttributeValues().stream()
                 .filter( av -> template.getRecipientProgramAttribute().getUid().equals( av.getAttribute().getUid() ) )
                 .map( TrackedEntityAttributeValue::getPlainValue )
                 .collect( toList() );

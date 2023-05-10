@@ -61,7 +61,7 @@ import org.hisp.dhis.smscompression.models.Uid;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -77,7 +77,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EnrollmentSMSListener extends CompressionSMSListener
 {
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
     private final EnrollmentService enrollmentService;
 
@@ -93,7 +93,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
         EventService eventService,
-        TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityService teiService,
         EnrollmentService enrollmentService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
@@ -141,37 +141,37 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
 
-        TrackedEntity entityInstance;
-        boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
+        TrackedEntity trackedEntity;
+        boolean teiExists = teiService.trackedEntityExists( teiUid.getUid() );
 
         if ( teiExists )
         {
             log.info( String.format( "Given TEI [%s] exists. Updating...", teiUid ) );
-            entityInstance = teiService.getTrackedEntityInstance( teiUid.getUid() );
+            trackedEntity = teiService.getTrackedEntity( teiUid.getUid() );
         }
         else
         {
             log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUid ) );
-            entityInstance = new TrackedEntity();
-            entityInstance.setUid( teiUid.getUid() );
-            entityInstance.setOrganisationUnit( orgUnit );
-            entityInstance.setTrackedEntityType( entityType );
+            trackedEntity = new TrackedEntity();
+            trackedEntity.setUid( teiUid.getUid() );
+            trackedEntity.setOrganisationUnit( orgUnit );
+            trackedEntity.setTrackedEntityType( entityType );
         }
 
-        Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues( subm, entityInstance );
+        Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues( subm, trackedEntity );
 
         if ( teiExists )
         {
-            updateAttributeValues( attributeValues, entityInstance.getTrackedEntityAttributeValues() );
-            entityInstance.setTrackedEntityAttributeValues( attributeValues );
-            teiService.updateTrackedEntityInstance( entityInstance );
+            updateAttributeValues( attributeValues, trackedEntity.getTrackedEntityAttributeValues() );
+            trackedEntity.setTrackedEntityAttributeValues( attributeValues );
+            teiService.updateTrackedEntity( trackedEntity );
         }
         else
         {
-            teiService.createTrackedEntityInstance( entityInstance, attributeValues );
+            teiService.createTrackedEntity( trackedEntity, attributeValues );
         }
 
-        TrackedEntity tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
+        TrackedEntity tei = teiService.getTrackedEntity( teiUid.getUid() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
@@ -186,7 +186,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         else
         {
-            enrollment = enrollmentService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
+            enrollment = enrollmentService.enrollTrackedEntity( tei, program, enrollmentDate, incidentDate,
                 orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
@@ -298,7 +298,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( attribute );
-        trackedEntityAttributeValue.setEntityInstance( tei );
+        trackedEntityAttributeValue.setTrackedEntity( tei );
         trackedEntityAttributeValue.setValue( val );
         return trackedEntityAttributeValue;
     }

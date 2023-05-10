@@ -1050,8 +1050,22 @@ public abstract class AbstractJdbcEventAnalyticsManager
             }
             else if ( value instanceof BigDecimal )
             {
-                // toPlainString method prevents scientific notation (3E+2)
-                grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+                Optional<QueryItem> queryItem = params.getItems()
+                    .stream()
+                    .filter( item -> item.isProgramIndicator() && header.getName().equals( item.getItemName() ) )
+                    .findFirst();
+
+                if ( queryItem.isPresent() )
+                {
+                    grid.addValue( AnalyticsUtils.getRoundedValue( params,
+                        ((ProgramIndicator) queryItem.get().getItem()).getDecimals(),
+                        ((BigDecimal) value).doubleValue() ) );
+                }
+                else
+                {
+                    // toPlainString method prevents scientific notation (3E+2)
+                    grid.addValue( ((BigDecimal) value).stripTrailingZeros().toPlainString() );
+                }
             }
             else
             {

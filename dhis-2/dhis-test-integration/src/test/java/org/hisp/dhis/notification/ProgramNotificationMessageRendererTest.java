@@ -63,7 +63,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -147,7 +147,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
     private ProgramStageDataElementService programStageDataElementService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityAttributeValueService trackedEntityAttributeValueService;
@@ -217,16 +217,16 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programStageService.updateProgramStage( programStageA );
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
         programService.updateProgram( programA );
-        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA = createTrackedEntity( organisationUnitA );
         trackedEntityA.setUid( trackedEntityUid );
-        entityInstanceService.addTrackedEntityInstance( trackedEntityA );
+        entityInstanceService.addTrackedEntity( trackedEntityA );
         trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityA,
             "attribute-test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValueA );
         trackedEntityA.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValueA ) );
-        entityInstanceService.updateTrackedEntityInstance( trackedEntityA );
+        entityInstanceService.updateTrackedEntity( trackedEntityA );
         // Enrollment to be provided in message renderer
-        enrollmentA = enrollmentService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA,
             enrollmentDate, incidentDate, organisationUnitA );
         enrollmentA.setUid( enrollmentUid );
         enrollmentService.updateEnrollment( enrollmentA );

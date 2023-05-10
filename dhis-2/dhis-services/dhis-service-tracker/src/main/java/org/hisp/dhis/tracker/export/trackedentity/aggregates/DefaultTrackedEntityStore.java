@@ -39,9 +39,9 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.OwnedTeiMapper;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityAttributeRowCallbackHandler;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityInstanceRowCallbackHandler;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.TrackedEntityRowCallbackHandler;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TeiAttributeQuery;
-import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityInstanceQuery;
+import org.hisp.dhis.tracker.export.trackedentity.aggregates.query.TrackedEntityQuery;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -58,7 +58,7 @@ import com.google.common.collect.Multimap;
 @Repository
 public class DefaultTrackedEntityStore extends AbstractStore implements TrackedEntityStore
 {
-    private static final String GET_TEIS_SQL = TrackedEntityInstanceQuery.getQuery();
+    private static final String GET_TEIS_SQL = TrackedEntityQuery.getQuery();
 
     private static final String GET_TEI_ATTRIBUTES = TeiAttributeQuery.getQuery();
 
@@ -111,21 +111,21 @@ public class DefaultTrackedEntityStore extends AbstractStore implements TrackedE
     }
 
     @Override
-    public Map<String, TrackedEntity> getTrackedEntityInstances( List<Long> ids, Context ctx )
+    public Map<String, TrackedEntity> getTrackedEntities( List<Long> ids, Context ctx )
     {
         List<List<Long>> idPartitions = Lists.partition( ids, PARITITION_SIZE );
 
         Map<String, TrackedEntity> trackedEntityMap = new LinkedHashMap<>();
 
         idPartitions
-            .forEach( partition -> trackedEntityMap.putAll( getTrackedEntityInstancesPartitioned( partition, ctx ) ) );
+            .forEach( partition -> trackedEntityMap.putAll( getTrackedEntitiesPartitioned( partition, ctx ) ) );
         return trackedEntityMap;
     }
 
-    private Map<String, TrackedEntity> getTrackedEntityInstancesPartitioned( List<Long> ids,
+    private Map<String, TrackedEntity> getTrackedEntitiesPartitioned( List<Long> ids,
         Context ctx )
     {
-        TrackedEntityInstanceRowCallbackHandler handler = new TrackedEntityInstanceRowCallbackHandler();
+        TrackedEntityRowCallbackHandler handler = new TrackedEntityRowCallbackHandler();
 
         if ( !ctx.isSuperUser() && ctx.getTrackedEntityTypes().isEmpty() )
         {

@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.scheduling.JobConfiguration;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.user.User;
 
 /**
@@ -62,8 +62,8 @@ public interface TrackedEntityInstanceService
      * Fetches a List of {@see TrackedEntity} based on the specified parameters.
      * This methods beh
      *
-     * @param queryParams a {@see TrackedEntityInstanceQueryParams} instance
-     *        with the query parameters
+     * @param queryParams a {@see TrackedEntityQueryParams} instance with the
+     *        query parameters
      * @param params a {@see TrackedEntityInstanceParams} instance containing
      *        the directives for how much data should be fetched (e.g.
      *        Enrollments, Events, Relationships)
@@ -72,10 +72,10 @@ public interface TrackedEntityInstanceService
      *        be ignored
      * @return a List of {@see TrackedEntity}
      */
-    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityInstanceQueryParams queryParams,
+    List<TrackedEntityInstance> getTrackedEntityInstances( TrackedEntityQueryParams queryParams,
         TrackedEntityInstanceParams params, boolean skipAccessValidation, boolean skipSearchScopeValidation );
 
-    int getTrackedEntityInstanceCount( TrackedEntityInstanceQueryParams params, boolean skipAccessValidation,
+    int getTrackedEntityInstanceCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
         boolean skipSearchScopeValidation );
 
     TrackedEntityInstance getTrackedEntityInstance( String uid );

@@ -34,7 +34,7 @@ import java.util.List;
  */
 public interface AclStore
 {
-    List<Long> getAccessibleTrackedEntityInstanceTypes( String userUID, List<String> userGroupUIDs );
+    List<Long> getAccessibleTrackedEntityTypes( String userUID, List<String> userGroupUIDs );
 
     List<Long> getAccessiblePrograms( String userUID, List<String> userGroupUIDs );
 

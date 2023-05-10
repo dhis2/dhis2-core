@@ -52,7 +52,7 @@ import org.hisp.dhis.programrule.ProgramRuleAction;
 import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -85,7 +85,7 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
     private ProgramService programService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramNotificationTemplateService programNotificationTemplateService;
@@ -110,8 +110,8 @@ class ProgramNotificationInstanceServiceTest extends IntegrationTestBase
         organisationUnitService.addOrganisationUnit( organisationUnit );
         program = createProgram( 'P' );
         programService.addProgram( program );
-        trackedEntity = createTrackedEntityInstance( 'T', organisationUnit );
-        trackedEntityInstanceService.addTrackedEntityInstance( trackedEntity );
+        trackedEntity = createTrackedEntity( 'T', organisationUnit );
+        trackedEntityService.addTrackedEntity( trackedEntity );
         programRule = createProgramRule( 'R', program );
         programRule.setCondition( "true" );
         manager.save( programRule );

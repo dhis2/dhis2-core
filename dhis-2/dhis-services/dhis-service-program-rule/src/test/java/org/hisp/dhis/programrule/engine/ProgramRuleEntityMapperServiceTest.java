@@ -429,7 +429,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         organisationUnit = createOrganisationUnit( 'O' );
 
         trackedEntityAttribute = createTrackedEntityAttribute( 'A', ValueType.TEXT );
-        trackedEntity = createTrackedEntityInstance( 'I', organisationUnit, trackedEntityAttribute );
+        trackedEntity = createTrackedEntity( 'I', organisationUnit, trackedEntityAttribute );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'E', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( SAMPLE_VALUE_A );
@@ -452,7 +452,7 @@ class ProgramRuleEntityMapperServiceTest extends DhisConvenienceTest
         enrollment.setAutoFields();
         enrollment.setEnrollmentDate( new Date() );
         enrollment.setIncidentDate( new Date() );
-        enrollment.setEntityInstance( trackedEntity );
+        enrollment.setTrackedEntity( trackedEntity );
 
         eventA = new Event( enrollment, programStage );
         eventB = new Event( enrollment, programStage );

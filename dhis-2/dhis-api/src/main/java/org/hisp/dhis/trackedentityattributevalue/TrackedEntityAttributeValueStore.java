@@ -51,12 +51,12 @@ public interface TrackedEntityAttributeValueStore
     void saveVoid( TrackedEntityAttributeValue attributeValue );
 
     /**
-     * Deletes all {@link TrackedEntityAttributeValue} of a instance
+     * Deletes all {@link TrackedEntityAttributeValue} of a tracked entity.
      *
      * @param instance {@link TrackedEntity}
      * @return The error code. If the code is 0, deleting success
      */
-    int deleteByTrackedEntityInstance( TrackedEntity instance );
+    int deleteByTrackedEntity( TrackedEntity instance );
 
     /**
      * Retrieve a {@link TrackedEntityAttributeValue} on a {@link TrackedEntity}

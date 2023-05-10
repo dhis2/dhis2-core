@@ -213,7 +213,7 @@ public class DbChangeEventHandler extends BaseCacheEvictionService
 
         TrackedEntityAttribute trackedEntityAttribute = trackedEntityAttributeService.getTrackedEntityAttribute(
             trackedEntityAttributeId );
-        TrackedEntity entityInstance = trackedEntityInstanceService.getTrackedEntityInstance(
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity(
             entityInstanceId );
 
         return new TrackedEntityAttributeValue( trackedEntityAttribute, entityInstance );

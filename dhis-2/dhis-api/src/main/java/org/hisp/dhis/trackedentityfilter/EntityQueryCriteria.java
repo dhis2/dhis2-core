@@ -100,7 +100,7 @@ public class EntityQueryCriteria implements Serializable
      * Property indicating explicit tracked entity uids to be used when listing
      * events.
      */
-    private Set<String> trackedEntityInstances;
+    private Set<String> trackedEntities;
 
     /**
      * The trackedEntityType to be used when querying tei.
@@ -215,16 +215,16 @@ public class EntityQueryCriteria implements Serializable
         this.lastUpdatedDate = lastUpdatedDate;
     }
 
-    @JsonProperty
+    @JsonProperty( "trackedEntityInstances" )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Set<String> getTrackedEntityInstances()
+    public Set<String> getTrackedEntities()
     {
-        return trackedEntityInstances;
+        return trackedEntities;
     }
 
-    public void setTrackedEntityInstances( Set<String> trackedEntityInstances )
+    public void setTrackedEntities( Set<String> trackedEntities )
     {
-        this.trackedEntityInstances = trackedEntityInstances;
+        this.trackedEntities = trackedEntities;
     }
 
     @JsonProperty

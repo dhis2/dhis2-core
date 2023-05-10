@@ -42,7 +42,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,7 +59,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     private EnrollmentService enrollmentService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -123,10 +123,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programService.addProgram( programB );
         programC = createProgram( 'C', new HashSet<>(), organisationUnitA );
         programService.addProgram( programC );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntity entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -238,11 +238,11 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     void testGetEnrollmentsByEntityInstanceProgramStatus()
     {
         enrollmentService.addEnrollment( enrollmentA );
-        Enrollment enrollment1 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment1 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment1.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment1 );
-        Enrollment enrollment2 = enrollmentService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollment2 = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
         enrollment2.setStatus( ProgramStatus.COMPLETED );
         enrollmentService.updateEnrollment( enrollment2 );
@@ -272,9 +272,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
     }
 
     @Test
-    void testEnrollTrackedEntityInstance()
+    void testEnrollTrackedEntity()
     {
-        Enrollment enrollment = enrollmentService.enrollTrackedEntityInstance( entityInstanceA, programB,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstanceA, programB,
             enrollmentDate, incidentDate, organisationUnitA );
         assertNotNull( enrollmentService.getEnrollment( enrollment.getId() ) );
     }

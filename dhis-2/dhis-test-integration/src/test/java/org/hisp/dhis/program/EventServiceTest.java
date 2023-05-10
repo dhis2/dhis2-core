@@ -46,7 +46,7 @@ import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -78,7 +78,7 @@ class EventServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private EnrollmentService enrollmentService;
@@ -150,10 +150,10 @@ class EventServiceTest extends TransactionalIntegrationTest
         organisationUnitService.addOrganisationUnit( organisationUnitA );
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitService.addOrganisationUnit( organisationUnitB );
-        entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
+        entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         attribute.setValueType( ValueType.PHONE_NUMBER );
         attributeService.addTrackedEntityAttribute( attribute );
@@ -162,7 +162,7 @@ class EventServiceTest extends TransactionalIntegrationTest
         attributeValue.setValue( "123456789" );
         attributeValueService.addTrackedEntityAttributeValue( attributeValue );
         entityInstanceA.getTrackedEntityAttributeValues().add( attributeValue );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         /**
          * Program A
          */

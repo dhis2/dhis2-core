@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +62,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
     private AuditService auditService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -75,12 +75,12 @@ class HardDeleteAuditTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( 'A' );
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        TrackedEntity tei = createTrackedEntity( 'A', ou, attribute );
         transactionTemplate.execute( status -> {
             manager.save( ou );
             manager.save( attribute );
-            trackedEntityInstanceService.addTrackedEntityInstance( tei );
-            trackedEntityInstanceService.deleteTrackedEntityInstance( tei );
+            trackedEntityService.addTrackedEntity( tei );
+            trackedEntityService.deleteTrackedEntity( tei );
             dbmsManager.clearSession();
             return null;
         } );
@@ -89,7 +89,7 @@ class HardDeleteAuditTest extends IntegrationTestBase
         List<Audit> audits = auditService.getAudits( query );
         assertEquals( 2, audits.size() );
         transactionTemplate.execute( status -> {
-            jdbcMaintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+            jdbcMaintenanceStore.deleteSoftDeletedTrackedEntities();
             dbmsManager.clearSession();
             return null;
         } );

@@ -75,9 +75,9 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
         for ( Event ev : params.getEvents() )
         {
             Enrollment enrollment = preheatedEnrollments.get( ev.getEnrollment() );
-            if ( enrollment != null && enrollment.getEntityInstance() != null )
+            if ( enrollment != null && enrollment.getTrackedEntity() != null )
             {
-                teiIds.add( enrollment.getEntityInstance().getId() );
+                teiIds.add( enrollment.getTrackedEntity().getId() );
             }
         }
 
@@ -85,7 +85,7 @@ public class ProgramOwnerSupplier extends AbstractPreheatSupplier
             .getTrackedEntityProgramOwnerOrgUnits( teiIds );
 
         tepos = tepos.stream().map(
-            tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityInstanceId(), tepo.getProgramId(),
+            tepo -> new TrackedEntityProgramOwnerOrgUnit( tepo.getTrackedEntityId(), tepo.getProgramId(),
                 OrganisationUnitMapper.INSTANCE.map( tepo.getOrganisationUnit() ) ) )
             .collect( Collectors.toList() );
 

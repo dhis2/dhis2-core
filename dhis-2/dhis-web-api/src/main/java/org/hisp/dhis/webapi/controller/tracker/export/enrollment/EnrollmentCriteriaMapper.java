@@ -50,7 +50,7 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -82,7 +82,7 @@ public class EnrollmentCriteriaMapper
     private final TrackedEntityTypeService trackedEntityTypeService;
 
     @Nonnull
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     @Nonnull
     private final TrackerAccessManager trackerAccessManager;
@@ -99,9 +99,9 @@ public class EnrollmentCriteriaMapper
             criteria.getTrackedEntityType() );
         validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
             criteria.getTrackedEntity() );
-        validateTrackedEntityInstance( criteria.getTrackedEntity(), trackedEntity );
+        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 
         User user = currentUserService.getCurrentUser();
         Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
@@ -116,7 +116,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramStartDate( criteria.getEnrolledAfter() );
         params.setProgramEndDate( criteria.getEnrolledBefore() );
         params.setTrackedEntityType( trackedEntityType );
-        params.setTrackedEntityInstanceUid(
+        params.setTrackedEntityUid(
             Optional.ofNullable( trackedEntity ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.addOrganisationUnits( orgUnits );
         params.setOrganisationUnitMode( criteria.getOuMode() );
@@ -149,7 +149,7 @@ public class EnrollmentCriteriaMapper
         }
     }
 
-    private void validateTrackedEntityInstance( String id, TrackedEntity trackedEntity )
+    private void validateTrackedEntity( String id, TrackedEntity trackedEntity )
         throws BadRequestException
     {
         if ( isNotEmpty( id ) && trackedEntity == null )

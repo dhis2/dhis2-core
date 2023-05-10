@@ -58,8 +58,8 @@ import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.user.CurrentUserService;
@@ -126,7 +126,7 @@ public class TrackedEntityAggregate
      * @return a List of {@see TrackedEntity} objects
      */
     public List<TrackedEntity> find( List<Long> ids, TrackedEntityParams params,
-        TrackedEntityInstanceQueryParams queryParams )
+        TrackedEntityQueryParams queryParams )
     {
         final Optional<User> user = Optional.ofNullable( currentUserService.getCurrentUser() );
 
@@ -177,7 +177,7 @@ public class TrackedEntityAggregate
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
+            () -> enrollmentAggregate.findByTrackedEntityIds( ids, ctx ), getPool() );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntity id
@@ -187,10 +187,10 @@ public class TrackedEntityAggregate
             getPool() );
 
         /*
-         * Async Fetch TrackedEntityInstances by id
+         * Async Fetch TrackedEntities by id
          */
         final CompletableFuture<Map<String, TrackedEntity>> teisAsync = supplyAsync(
-            () -> trackedEntityStore.getTrackedEntityInstances( ids, ctx ), getPool() );
+            () -> trackedEntityStore.getTrackedEntities( ids, ctx ), getPool() );
 
         /*
          * Async fetch TrackedEntity Attributes by TrackedEntity id
@@ -322,7 +322,7 @@ public class TrackedEntityAggregate
     private Context getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userUID, userGroupUIDs ),
+            () -> aclStore.getAccessibleTrackedEntityTypes( userUID, userGroupUIDs ),
             getPool() );
 
         final CompletableFuture<List<Long>> getPrograms = supplyAsync(

@@ -43,7 +43,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -78,7 +78,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
     @Autowired
     private TrackedEntityInstanceService subject;
 
-    private TrackedEntityInstanceQueryParams queryParams;
+    private TrackedEntityQueryParams queryParams;
 
     private TrackedEntityInstanceParams params;
 
@@ -97,7 +97,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         manager.save( tet );
         OrganisationUnit ou = createOrganisationUnit( 'a' );
         manager.save( ou );
-        TrackedEntity teiToSync = createTrackedEntityInstance( 'a', ou, teaA );
+        TrackedEntity teiToSync = createTrackedEntity( 'a', ou, teaA );
         teiToSync.setTrackedEntityType( tet );
         teiToSync.setUid( TEI_NOT_IN_SYNC_UID );
         TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiToSync, teaB );
@@ -107,7 +107,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
         teiToSync.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
         manager.update( teiToSync );
-        TrackedEntity alreadySynchronizedTei = createTrackedEntityInstance( 'b', ou );
+        TrackedEntity alreadySynchronizedTei = createTrackedEntity( 'b', ou );
         alreadySynchronizedTei.setTrackedEntityType( tet );
         alreadySynchronizedTei.setLastSynchronized( TOMORROW );
         alreadySynchronizedTei.setUid( SYNCHRONIZED_TEI_UID );
@@ -126,7 +126,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
 
     private void prepareSyncParams()
     {
-        queryParams = new TrackedEntityInstanceQueryParams();
+        queryParams = new TrackedEntityQueryParams();
         queryParams.setIncludeDeleted( true );
         params = new TrackedEntityInstanceParams( false, TrackedEntityInstanceEnrollmentParams.FALSE, false, false,
             true, true );

@@ -65,7 +65,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -97,7 +97,7 @@ class EventCriteriaMapper
 
     private final AclService aclService;
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final TrackedEntityAttributeService attributeService;
 
@@ -125,7 +125,7 @@ class EventCriteriaMapper
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( entityInstanceService::getTrackedEntityInstance,
+        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
             criteria.getTrackedEntity() );
         validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
 
@@ -239,13 +239,13 @@ class EventCriteriaMapper
         }
     }
 
-    private void validateTrackedEntity( String trackedEntity, TrackedEntity trackedEntityInstance )
+    private void validateTrackedEntity( String trackedEntityParam, TrackedEntity trackedEntity )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( trackedEntity ) && trackedEntityInstance == null )
+        if ( !StringUtils.isEmpty( trackedEntityParam ) && trackedEntity == null )
         {
             throw new BadRequestException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntity );
+                "Tracked entity instance is specified but does not exist: " + trackedEntityParam );
         }
     }
 
