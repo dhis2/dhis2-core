@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.webapi.security.config;
 
-import static org.hisp.dhis.external.conf.ConfigurationKey.CSP_ENABLED;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -36,6 +34,7 @@ import java.util.Set;
 import javax.sql.DataSource;
 
 import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.SecurityService;
@@ -208,7 +207,7 @@ public class DhisWebApiWebSecurityConfig
 
             http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private class AuthorizationServerAuthenticationManagerConfigurer
@@ -334,7 +333,7 @@ public class DhisWebApiWebSecurityConfig
 
                 .csrf().disable();
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
     }
 
@@ -392,6 +391,9 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ExternalAccessVoter externalAccessVoter;
+
+        @Autowired
+        private ConfigurationService configurationService;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -486,13 +488,13 @@ public class DhisWebApiWebSecurityConfig
 
             configureMatchers( http );
             configureOAuthAuthorizationServer( http );
-            configureCspFilter( http, dhisConfig, dhisOidcProviderRepository );
+            configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
             configureApiTokenAuthorizationFilter( http );
             configureOAuthTokenFilters( http );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         private void configureMatchers( HttpSecurity http )
@@ -553,9 +555,9 @@ public class DhisWebApiWebSecurityConfig
         }
 
         private void configureCspFilter( HttpSecurity http, DhisConfigurationProvider dhisConfig,
-            DhisOidcProviderRepository dhisOidcProviderRepository )
+            ConfigurationService configurationService )
         {
-            http.addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+            http.addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                 HeaderWriterFilter.class );
         }
 
@@ -696,11 +698,9 @@ public class DhisWebApiWebSecurityConfig
      * Customizes various "global" security related headers.
      *
      * @param http http security config builder
-     * @param dhisConfig DHIS2 configuration provider
-     *
      * @throws Exception
      */
-    public static void setHttpHeaders( HttpSecurity http, DhisConfigurationProvider dhisConfig )
+    public static void setHttpHeaders( HttpSecurity http )
         throws Exception
     {
         http
@@ -710,13 +710,6 @@ public class DhisWebApiWebSecurityConfig
             .and()
             .xssProtection()
             .and()
-            .httpStrictTransportSecurity()
-            .and()
-            .frameOptions().sameOrigin();
-
-        if ( dhisConfig.isEnabled( CSP_ENABLED ) )
-        {
-            http.headers().contentSecurityPolicy( dhisConfig.getProperty( ConfigurationKey.CSP_HEADER_VALUE ) );
-        }
+            .httpStrictTransportSecurity();
     }
 }

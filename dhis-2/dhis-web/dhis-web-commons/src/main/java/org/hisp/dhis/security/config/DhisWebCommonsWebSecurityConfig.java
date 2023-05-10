@@ -32,6 +32,7 @@ import static org.hisp.dhis.webapi.security.config.DhisWebApiWebSecurityConfig.s
 import java.util.Arrays;
 import java.util.List;
 
+import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.i18n.I18nManager;
@@ -159,6 +160,9 @@ public class DhisWebCommonsWebSecurityConfig
         @Autowired
         private DhisOidcProviderRepository dhisOidcProviderRepository;
 
+        @Autowired
+        private ConfigurationService configurationService;
+
         public void configure( AuthenticationManagerBuilder auth )
             throws Exception
         {
@@ -268,13 +272,13 @@ public class DhisWebCommonsWebSecurityConfig
                 .csrf()
                 .disable()
 
-                .addFilterBefore( new CspFilter( dhisConfig, dhisOidcProviderRepository ),
+                .addFilterBefore( new CspFilter( dhisConfig, configurationService ),
                     HeaderWriterFilter.class )
 
                 .addFilterBefore( CorsFilter.get(), BasicAuthenticationFilter.class )
                 .addFilterBefore( CustomAuthenticationFilter.get(), UsernamePasswordAuthenticationFilter.class );
 
-            setHttpHeaders( http, dhisConfig );
+            setHttpHeaders( http );
         }
 
         @Bean
