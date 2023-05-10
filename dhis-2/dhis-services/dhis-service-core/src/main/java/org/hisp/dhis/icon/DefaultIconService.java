@@ -66,23 +66,23 @@ public class DefaultIconService
 
     private final FileResourceService fileResourceService;
 
-    private final Map<String, StandardIcon> standardIcons = Arrays.stream( StandardIcon.Icon.values() )
-        .map( StandardIcon.Icon::getVariants )
+    private final Map<String, DefaultIcon> defaultIcons = Arrays.stream( DefaultIcon.Icon.values() )
+        .map( DefaultIcon.Icon::getVariants )
         .flatMap( Collection::stream )
-        .collect( Collectors.toMap( StandardIcon::getKey, Function.identity() ) );
+        .collect( Collectors.toMap( DefaultIcon::getKey, Function.identity() ) );
 
     @Override
     @Transactional( readOnly = true )
     public Collection<Icon> getIcons( String contextApiPath )
     {
-        return Stream.concat( standardIcons.values().stream(), customIconStore.getAllIcons().stream() ).toList();
+        return Stream.concat( defaultIcons.values().stream(), customIconStore.getAllIcons().stream() ).toList();
     }
 
     @Override
     @Transactional( readOnly = true )
     public Collection<Icon> getIcons( Collection<String> keywords, String contextApiPath )
     {
-        return Stream.concat( standardIcons.values().stream()
+        return Stream.concat( defaultIcons.values().stream()
             .filter( icon -> new HashSet<>( icon.getKeywords() ).containsAll( keywords ) ).toList().stream(),
             customIconStore.getIconsByKeywords( keywords ).stream() )
             .toList();
@@ -93,9 +93,9 @@ public class DefaultIconService
     public Icon getIcon( String key, String contextApiPath )
         throws NotFoundException
     {
-        if ( standardIcons.containsKey( key ) )
+        if ( defaultIcons.containsKey( key ) )
         {
-            return standardIcons.get( key );
+            return defaultIcons.get( key );
         }
         else
         {
@@ -127,10 +127,10 @@ public class DefaultIconService
     public Optional<Resource> getIconResource( String key )
         throws NotFoundException
     {
-        if ( standardIcons.containsKey( key ) )
+        if ( defaultIcons.containsKey( key ) )
         {
             return Optional
-                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, StandardIcon.Icon.SUFFIX ) ) );
+                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icon.SUFFIX ) ) );
         }
 
         throw new NotFoundException( String.format( "No standard icon found with key %s.", key ) );
@@ -140,7 +140,7 @@ public class DefaultIconService
     @Transactional( readOnly = true )
     public List<String> getKeywords()
     {
-        return Stream.concat( standardIcons.values().stream()
+        return Stream.concat( defaultIcons.values().stream()
             .map( Icon::getKeywords )
             .flatMap( List::stream ), customIconStore.getKeywords().stream() ).toList();
     }
@@ -149,7 +149,7 @@ public class DefaultIconService
     @Transactional( readOnly = true )
     public boolean iconExists( String key )
     {
-        return standardIcons.get( key ) != null || customIconStore.getIconByKey( key ) != null;
+        return defaultIcons.get( key ) != null || customIconStore.getIconByKey( key ) != null;
     }
 
     @Override

@@ -85,8 +85,7 @@ public interface IconService
      *
      * @param key key of the icon
      * @return the icon resource
-     * @throws NotFoundException if no standard icon exists with the provided
-     *         key
+     * @throws NotFoundException if no default icon exists with the provided key
      */
     Optional<Resource> getIconResource( String key )
         throws NotFoundException;
@@ -99,7 +98,7 @@ public interface IconService
     List<String> getKeywords();
 
     /**
-     * Checks whether an icon with a given key exists, either standard or custom
+     * Checks whether an icon with a given key exists, either default or custom
      *
      * @param key key of the icon
      * @return true if the icon exists, false otherwise

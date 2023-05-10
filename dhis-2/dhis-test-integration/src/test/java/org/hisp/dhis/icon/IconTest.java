@@ -89,28 +89,28 @@ class IconTest extends TrackerTest
     @Test
     void shouldGetAllIconsWhenRequested()
     {
-        Map<String, StandardIcon> standardIconMap = getAllStandardIcons();
+        Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
 
-        assertEquals( standardIconMap.size() + 1, iconService.getIcons( "contextPath" ).size(),
-            String.format( "Expected to find %d icons, but found %d instead", standardIconMap.size() + 1,
+        assertEquals( defaultIconMap.size() + 1, iconService.getIcons( "contextPath" ).size(),
+            String.format( "Expected to find %d icons, but found %d instead", defaultIconMap.size() + 1,
                 iconService.getIcons( "contextPath" ).size() ) );
     }
 
     @Test
-    void shouldGetStandardIconWhenKeyBelongsToStandardIcon()
+    void shouldGetDefaultIconWhenKeyBelongsToDefaultIcon()
         throws NotFoundException
     {
-        String standardIconKey = getAllStandardIcons().keySet().stream().findAny().orElse( null );
+        String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse( null );
 
-        Icon icon = iconService.getIcon( standardIconKey, "contextPath" );
+        Icon icon = iconService.getIcon( defaultIconKey, "contextPath" );
 
-        assertEquals( standardIconKey, icon.getKey() );
+        assertEquals( defaultIconKey, icon.getKey() );
     }
 
     @Test
     void shouldGetAllKeywordsWhenRequested()
     {
-        List<String> keywordList = getAllStandardIcons().values().stream()
+        List<String> keywordList = getAllDefaultIcons().values().stream()
             .map( Icon::getKeywords )
             .flatMap( List::stream ).toList();
 
@@ -124,15 +124,15 @@ class IconTest extends TrackerTest
         throws BadRequestException,
         NotFoundException
     {
-        Optional<StandardIcon> standardIcon = getAllStandardIcons().values().stream()
+        Optional<DefaultIcon> defaultIcon = getAllDefaultIcons().values().stream()
             .filter( si -> si.getKeywords().size() > 0 ).findAny();
 
-        if ( standardIcon.isEmpty() )
+        if ( defaultIcon.isEmpty() )
         {
             return;
         }
 
-        String keyword = standardIcon.get().getKeywords().get( 0 );
+        String keyword = defaultIcon.get().getKeywords().get( 0 );
 
         FileResource fileResourceB = createAndPersistFileResource( 'B' );
         iconService
@@ -159,20 +159,20 @@ class IconTest extends TrackerTest
     }
 
     @Test
-    void shouldGetIconDataWhenKeyBelongsToStandardIcon()
+    void shouldGetIconDataWhenKeyBelongsToDefaultIcon()
         throws NotFoundException,
         IOException
     {
-        String standardIconKey = getAllStandardIcons().keySet().stream().findAny().orElse( null );
+        String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse( null );
 
-        Optional<Resource> iconResource = iconService.getIconResource( standardIconKey );
+        Optional<Resource> iconResource = iconService.getIconResource( defaultIconKey );
 
         assertTrue( iconResource.isPresent() );
         assertNotNull( iconResource.get().getURL() );
     }
 
     @Test
-    void shouldFailWhenGettingIconDataOfNonStandardIcon()
+    void shouldFailWhenGettingIconDataOfNonDefaultIcon()
     {
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.getIconResource( "madeUpIconKey" ) );
@@ -182,17 +182,17 @@ class IconTest extends TrackerTest
     }
 
     @Test
-    void shouldFailWhenSavingCustomIconAndStandardIconWithSameKeyExists()
+    void shouldFailWhenSavingCustomIconAndDefaultIconWithSameKeyExists()
     {
-        Map<String, StandardIcon> standardIconMap = getAllStandardIcons();
-        String standardIconKey = standardIconMap.values().iterator().next().getKey();
+        Map<String, DefaultIcon> defaultIconMap = getAllDefaultIcons();
+        String defaultIconKey = defaultIconMap.values().iterator().next().getKey();
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> iconService.addCustomIcon(
-                new CustomIcon( standardIconKey, "description", List.of( "keyword1" ), new FileResource(),
+                new CustomIcon( defaultIconKey, "description", List.of( "keyword1" ), new FileResource(),
                     new User() ) ) );
 
-        String expectedMessage = String.format( "Icon with key %s already exists.", standardIconKey );
+        String expectedMessage = String.format( "Icon with key %s already exists.", defaultIconKey );
         assertEquals( expectedMessage, exception.getMessage() );
     }
 
@@ -214,11 +214,11 @@ class IconTest extends TrackerTest
         return fileResourceService.getFileResource( fileResourceUid );
     }
 
-    private Map<String, StandardIcon> getAllStandardIcons()
+    private Map<String, DefaultIcon> getAllDefaultIcons()
     {
-        return Arrays.stream( StandardIcon.Icon.values() )
-            .map( StandardIcon.Icon::getVariants )
+        return Arrays.stream( DefaultIcon.Icon.values() )
+            .map( DefaultIcon.Icon::getVariants )
             .flatMap( Collection::stream )
-            .collect( Collectors.toMap( StandardIcon::getKey, Function.identity() ) );
+            .collect( Collectors.toMap( DefaultIcon::getKey, Function.identity() ) );
     }
 }

@@ -39,7 +39,7 @@ import lombok.Getter;
  * are not possible to modify.
  */
 @Getter
-public class StandardIcon implements Icon
+public class DefaultIcon implements Icon
 {
     private final String key;
 
@@ -47,7 +47,7 @@ public class StandardIcon implements Icon
 
     private final List<String> keywords;
 
-    public StandardIcon( String key, String description, List<String> keywords )
+    public DefaultIcon( String key, String description, List<String> keywords )
     {
         this.key = key;
         this.description = description;
@@ -413,32 +413,32 @@ public class StandardIcon implements Icon
 
         public static final String SUFFIX = "svg";
 
-        private final StandardIcon standardIcon;
+        private final DefaultIcon defaultIcon;
 
         Icon( String key, String description, List<String> keywords )
         {
-            this.standardIcon = new StandardIcon( key, description, keywords );
+            this.defaultIcon = new DefaultIcon( key, description, keywords );
         }
 
         public String getKey()
         {
-            return standardIcon.getKey();
+            return defaultIcon.getKey();
         }
 
         public String getDescription()
         {
-            return standardIcon.getDescription();
+            return defaultIcon.getDescription();
         }
 
         public List<String> getKeywords()
         {
-            return standardIcon.getKeywords();
+            return defaultIcon.getKeywords();
         }
 
-        public Collection<StandardIcon> getVariants()
+        public Collection<DefaultIcon> getVariants()
         {
             return Arrays.stream( VARIANTS )
-                .map( variant -> new StandardIcon( String.format( "%s_%s", getKey(), variant ), getDescription(),
+                .map( variant -> new DefaultIcon( String.format( "%s_%s", getKey(), variant ), getDescription(),
                     getKeywords() ) )
                 .toList();
         }

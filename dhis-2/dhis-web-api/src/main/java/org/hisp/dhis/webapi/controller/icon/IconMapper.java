@@ -37,9 +37,9 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
+import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconDto;
-import org.hisp.dhis.icon.StandardIcon;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
@@ -61,7 +61,7 @@ public class IconMapper
             return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(),
                     ci.getFileResource().getUid(), ci.getCreatedBy().getUid(), getCustomIconReference(ci.getFileResource().getUid()));
         } else {
-            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(), getStandardIconReference(icon.getKey()));
+            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(), getDefaultIconReference(icon.getKey()));
         }
     }
 
@@ -86,9 +86,9 @@ public class IconMapper
             fileResourceUid );
     }
 
-    private String getStandardIconReference( String key )
+    private String getDefaultIconReference( String key )
     {
         return String.format( "%s%s/%s/icon.%s", contextService.getApiPath(), IconSchemaDescriptor.API_ENDPOINT, key,
-            StandardIcon.Icon.SUFFIX );
+            DefaultIcon.Icon.SUFFIX );
     }
 }
