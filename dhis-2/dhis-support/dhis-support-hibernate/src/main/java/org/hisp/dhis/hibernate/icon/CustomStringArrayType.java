@@ -90,7 +90,10 @@ public class CustomStringArrayType implements UserType
         }
         else
         {
-            st.setNull( index, sqlTypes()[0] );
+            if ( st != null )
+            {
+                st.setNull( index, sqlTypes()[0] );
+            }
         }
     }
 
