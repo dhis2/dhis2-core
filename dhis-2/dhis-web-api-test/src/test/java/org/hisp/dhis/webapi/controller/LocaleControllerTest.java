@@ -106,6 +106,30 @@ class LocaleControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testGetUiLocalesInServerLanguageWhenUserLanguageNotSet()
+    {
+        DELETE( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID );
+        POST( "/systemSettings/keyUiLocale/?value=es" );
+        JsonArray response = GET( "/locales/ui" ).content();
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "bn", firstElement.getLocale() );
+        assertEquals( "বাংলা", firstElement.getName() );
+        assertEquals( "bengalí", firstElement.getDisplayName() );
+    }
+
+    @Test
+    void testGetUiLocalesInEnglishWhenUserAndServerLanguageNotSet()
+    {
+        DELETE( "/userSettings/keyUiLocale/?userId=" + ADMIN_USER_UID );
+        DELETE( "/systemSettings/keyUiLocale" );
+        JsonArray response = GET( "/locales/ui" ).content();
+        JsonWebLocale firstElement = response.getObject( 0 ).as( JsonWebLocale.class );
+        assertEquals( "ar", firstElement.getLocale() );
+        assertEquals( "العربية", firstElement.getName() );
+        assertEquals( "Arabic", firstElement.getDisplayName() );
+    }
+
+    @Test
     void testGetDbLocales()
     {
         POST( "/locales/dbLocales?country=IE&language=en" );
