@@ -33,7 +33,7 @@
     <module>dhis-services</module>
     <module>dhis-support</module>
     <module>dhis-web-api</module>
-    <module>dhis-web-api-test</module>
+    <module>dhis-test-web-api</module>
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
