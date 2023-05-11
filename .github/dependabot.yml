@@ -57,6 +57,17 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+  - package-ecosystem: "maven"
+    directory: "/dhis-2/dhis-e2e-test"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
   # 2.40
   - package-ecosystem: "github-actions"
     directory: "/"
