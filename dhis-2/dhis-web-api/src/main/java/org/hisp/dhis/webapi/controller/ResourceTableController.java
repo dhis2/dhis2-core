@@ -135,7 +135,7 @@ public class ResourceTableController
 
         JobConfiguration analyticsTableJob = new JobConfiguration( "inMemoryAnalyticsJob", ANALYTICS_TABLE, "",
             analyticsJobParameters, true, true );
-        analyticsTableJob.setUserUid( currentUserService.getCurrentUser().getUid() );
+        analyticsTableJob.setExecutedBy( currentUserService.getCurrentUser().getUid() );
 
         return execute( analyticsTableJob );
     }

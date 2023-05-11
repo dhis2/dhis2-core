@@ -59,6 +59,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonStats;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
@@ -812,6 +813,16 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "/attributes?fields=id,name&filter=userAttribute:eq:true" )
                 .content().getList( "attributes", JsonIdentifiableObject.class );
         assertEquals( 0, response.size() );
+    }
+
+    @Test
+    void testCreateObjectWithInvalidUid()
+    {
+        JsonImportSummary response = POST( "/dataSets/",
+            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" )
+                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
+        assertEquals( "Invalid UID `11111111111` for property `uid`",
+            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014 ).getMessage() );
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )

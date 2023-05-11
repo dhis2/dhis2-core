@@ -103,7 +103,7 @@ public class DataIntegrityController
         params.setType( type );
         JobConfiguration config = new JobConfiguration( description, JobType.DATA_INTEGRITY, null,
             params, true, true );
-        config.setUserUid( currentUser.getUid() );
+        config.setExecutedBy( currentUser.getUid() );
         config.setAutoFields();
 
         if ( !schedulingManager.executeNow( config ) )
