@@ -134,10 +134,12 @@ public class TrackedEntitiesExportController
                 ? (long) trackedEntityService.getTrackedEntityCount( queryParams, true, true )
                 : null;
 
+            int pageCount = (int) Math.ceil( count / (double) queryParams.getPageSizeWithDefault() );
             pagingWrapper = pagingWrapper.withPager(
                 PagingWrapper.Pager.builder()
                     .page( queryParams.getPageWithDefault() )
                     .total( count )
+                    .pageCount( pageCount )
                     .pageSize( queryParams.getPageSizeWithDefault() )
                     .build() );
         }
