@@ -249,6 +249,8 @@ public enum ErrorCode
     E4053( "Program stage `{0}` must reference a program" ),
     E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
+    E4058( "Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects" ),
+
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
     E4061(
