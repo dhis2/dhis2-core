@@ -89,7 +89,7 @@
     <spring-retry.version>1.3.4</spring-retry.version>
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
-    <cache2k-api.version>1.6.0.Final</cache2k-api.version>
+    <cache2k-api.version>2.6.1.Final</cache2k-api.version>
     <lettuce.version>6.2.3.RELEASE</lettuce.version>
 
     <!--DBMS -->
