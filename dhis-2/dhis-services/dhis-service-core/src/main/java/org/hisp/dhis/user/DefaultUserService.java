@@ -70,6 +70,7 @@ import org.hisp.dhis.commons.filter.FilterUtils;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.security.PasswordManager;
@@ -872,6 +873,19 @@ public class DefaultUserService
     public List<User> getUsersWithAuthority( String authority )
     {
         return userStore.getHasAuthority( authority );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public CurrentUserDetails createUserDetails( String userUid )
+        throws NotFoundException
+    {
+        User user = userStore.getByUid( userUid );
+        if ( user == null )
+        {
+            throw new NotFoundException( User.class, userUid );
+        }
+        return createUserDetails( user );
     }
 
     @Override

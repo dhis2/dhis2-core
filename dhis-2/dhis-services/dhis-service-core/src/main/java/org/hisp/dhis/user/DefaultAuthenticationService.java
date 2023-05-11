@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,65 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.scheduling.parameters;
+package org.hisp.dhis.user;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import lombok.RequiredArgsConstructor;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.predictor.Predictor;
-import org.hisp.dhis.predictor.PredictorGroup;
-import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-/**
- * @author Henning Håkonsen
- */
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class PredictorJobParameters implements JobParameters
+@Service
+@RequiredArgsConstructor
+public class DefaultAuthenticationService implements AuthenticationService
 {
-    /**
-     * Today plus n days (n can be negative)
-     */
-    @JsonProperty
-    private int relativeStart;
+    private final UserService userService;
 
-    /**
-     * Today plus n days (n can be negative)
-     */
-    @JsonProperty
-    private int relativeEnd;
+    @Override
+    public void obtainAuthentication( String userId )
+        throws NotFoundException
+    {
+        if ( userId == null )
+        {
+            clearAuthentication();
+            return;
+        }
+        CurrentUserDetails user = userService.createUserDetails( userId );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(
+            new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() ) );
+        SecurityContextHolder.setContext( context );
+    }
 
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, Predictor.class } )
-    private List<String> predictors = new ArrayList<>();
-
-    @JsonProperty
-    @OpenApi.Property( { UID[].class, PredictorGroup.class } )
-    private List<String> predictorGroups = new ArrayList<>();
-
-    // programmatically used only
-
-    /**
-     * When set overrides the {@link #relativeStart}
-     */
-    private Date startDate;
-
-    /**
-     * When set overrides the {@link #relativeEnd}
-     */
-    private Date endDate;
+    @Override
+    public void clearAuthentication()
+    {
+        SecurityContextHolder.clearContext();
+    }
 }

@@ -37,7 +37,6 @@ import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationStoreConfiguration;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.commons.util.DebugUtils;
 import org.hisp.dhis.config.DataSourceConfig;
@@ -49,24 +48,19 @@ import org.hisp.dhis.config.StoreConfig;
 import org.hisp.dhis.configuration.NotifierConfiguration;
 import org.hisp.dhis.datasource.DatabasePoolUtils;
 import org.hisp.dhis.db.migration.config.FlywayConfig;
-import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.h2.H2SqlFunction;
 import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
 import org.hisp.dhis.jdbc.config.JdbcConfig;
 import org.hisp.dhis.leader.election.LeaderElectionConfiguration;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.AbstractSchedulingManager;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobConfigurationService;
-import org.hisp.dhis.scheduling.JobService;
 import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.SchedulingManagerSupport;
 import org.hisp.dhis.security.SystemAuthoritiesProvider;
 import org.hisp.dhis.startup.DefaultAdminUserPopulator;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.webapi.mvc.ContentNegotiationConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -81,6 +75,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.ldap.authentication.LdapAuthenticator;
@@ -226,12 +223,9 @@ public class WebTestConfiguration
      */
     @Bean
     @Primary
-    public SchedulingManager synchronousSchedulingManager( JobService jobService,
-        JobConfigurationService jobConfigurationService, MessageService messageService, Notifier notifier,
-        EventHookPublisher eventHookPublisher, LeaderManager leaderManager, CacheProvider cacheProvider )
+    public SchedulingManager synchronousSchedulingManager( SchedulingManagerSupport support )
     {
-        return new TestSchedulingManager( jobService, jobConfigurationService, messageService, notifier,
-            eventHookPublisher, leaderManager, cacheProvider );
+        return new TestSchedulingManager( support );
     }
 
     public static class TestSchedulingManager extends AbstractSchedulingManager
@@ -240,12 +234,9 @@ public class WebTestConfiguration
 
         private boolean isRunning = false;
 
-        public TestSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-            MessageService messageService, Notifier notifier, EventHookPublisher eventHookPublisher,
-            LeaderManager leaderManager, CacheProvider cacheProvider )
+        public TestSchedulingManager( SchedulingManagerSupport support )
         {
-            super( jobService, jobConfigurationService, messageService, leaderManager, notifier, eventHookPublisher,
-                cacheProvider );
+            super( support );
         }
 
         @Override
@@ -271,7 +262,19 @@ public class WebTestConfiguration
         {
             if ( enabled )
             {
-                return execute( configuration );
+                Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+                try
+                {
+                    // executing will set and clear the SecurityContext
+                    // so it is restored afterward to what it was before
+                    return execute( configuration );
+                }
+                finally
+                {
+                    SecurityContext context = SecurityContextHolder.createEmptyContext();
+                    context.setAuthentication( auth );
+                    SecurityContextHolder.setContext( context );
+                }
             }
             return !isRunning;
         }

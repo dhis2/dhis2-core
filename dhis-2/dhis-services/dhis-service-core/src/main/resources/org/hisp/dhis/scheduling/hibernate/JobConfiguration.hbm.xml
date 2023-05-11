@@ -48,6 +48,8 @@
             </type>
         </property>
 
+        <property name="executedBy" type="text" column="executedby" length="11" />
+
         <property name="lastExecuted" type="timestamp" />
 
         <property name="lastRuntimeExecution" type="text" />
