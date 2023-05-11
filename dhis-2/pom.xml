@@ -82,7 +82,7 @@
     <com.google.zxing.javase.version>3.5.1</com.google.zxing.javase.version>
 
     <!-- Spring -->
-    <spring.version>5.3.25</spring.version>
+    <spring.version>5.3.27</spring.version>
     <spring-data-redis.version>2.7.9</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.0</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
@@ -90,7 +90,7 @@
     <spring-restdocs.version>2.0.7.RELEASE</spring-restdocs.version>
     <spring-ldap.version>2.4.1</spring-ldap.version>
     <cache2k-api.version>1.6.0.Final</cache2k-api.version>
-    <lettuce.version>6.2.3.RELEASE</lettuce.version>
+    <lettuce.version>6.2.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
     <flyway-core.version>9.15.2</flyway-core.version>
@@ -164,7 +164,7 @@
     <lombok.version>1.18.26</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.2</joda-time.version>
-    <cron-utils.version>9.2.0</cron-utils.version>
+    <cron-utils.version>9.2.1</cron-utils.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-beanutils.version>1.9.4</commons-beanutils.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
