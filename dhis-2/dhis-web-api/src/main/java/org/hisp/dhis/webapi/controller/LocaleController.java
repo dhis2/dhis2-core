@@ -27,15 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.*;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -57,14 +55,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.*;
 
 @OpenApi.Tags( "ui" )
 @Controller
@@ -86,17 +77,24 @@ public class LocaleController
     public @ResponseBody List<WebLocale> getUiLocales( Model model )
     {
         List<Locale> locales = localeManager.getAvailableLocales();
-        List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
+        Locale userUiLocale = localeManager.getCurrentLocale();
 
-        return webLocales;
+        return locales.stream()
+            .map( locale -> WebLocale.fromLocale( locale, userUiLocale ) )
+            .sorted( Comparator.comparing( WebLocale::getDisplayName ) )
+            .toList();
     }
 
     @GetMapping( value = "/db" )
     public @ResponseBody List<WebLocale> getDbLocales()
     {
         List<Locale> locales = localeService.getAllLocales();
-        List<WebLocale> webLocales = locales.stream().map( WebLocale::fromLocale ).collect( Collectors.toList() );
-        return webLocales;
+        Locale userUiLocale = localeManager.getCurrentLocale();
+
+        return locales.stream()
+            .map( locale -> WebLocale.fromLocale( locale, userUiLocale ) )
+            .sorted( Comparator.comparing( WebLocale::getDisplayName ) )
+            .toList();
     }
 
     @GetMapping( value = "/languages", produces = APPLICATION_JSON_VALUE )

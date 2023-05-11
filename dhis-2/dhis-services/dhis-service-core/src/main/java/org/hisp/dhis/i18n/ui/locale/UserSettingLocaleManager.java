@@ -33,6 +33,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.CheckForNull;
+
 import org.hisp.dhis.i18n.locale.LocaleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManager;
 import org.hisp.dhis.i18n.ui.resourcebundle.ResourceBundleManagerException;
@@ -92,7 +94,6 @@ public class UserSettingLocaleManager
     public List<Locale> getLocalesOrderedByPriority()
     {
         List<Locale> locales = new ArrayList<>();
-
         Locale userLocale = getUserSelectedLocale();
 
         if ( userLocale != null )
@@ -101,11 +102,11 @@ public class UserSettingLocaleManager
         }
 
         locales.add( DEFAULT_LOCALE );
-
         return locales;
     }
 
-    private Locale getUserSelectedLocale()
+    @CheckForNull
+    public Locale getUserSelectedLocale()
     {
         return (Locale) userSettingService.getUserSetting( UserSettingKey.UI_LOCALE );
     }
