@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -176,7 +177,11 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.add( createNameMinMaxReport( ErrorCode.E4002, klass, property, value.length() ) );
         }
 
-        if ( isInvalidEmail( property, value ) )
+        if ( isInvalidUid( property, value ) )
+        {
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4014, value, property.getFieldName() ) );
+        }
+        else if ( isInvalidEmail( property, value ) )
         {
             errorReports.add( createNameReport( ErrorCode.E4003, klass, property, value ) );
         }
@@ -207,6 +212,11 @@ public class DefaultSchemaValidator implements SchemaValidator
          */
 
         return errorReports;
+    }
+
+    private boolean isInvalidUid( Property property, String value )
+    {
+        return property.getFieldName().equals( "uid" ) && !CodeGenerator.isValidUid( value );
     }
 
     private boolean isInvalidColor( Property property, String value )

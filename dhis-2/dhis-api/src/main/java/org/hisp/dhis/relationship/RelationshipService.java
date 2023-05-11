@@ -102,13 +102,13 @@ public interface RelationshipService
 
     List<Relationship> getRelationships( @Nonnull List<String> uids );
 
-    default List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
+    default List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity trackedEntity,
         boolean skipAccessValidation )
     {
-        return getRelationshipsByTrackedEntityInstance( tei, null, skipAccessValidation );
+        return getRelationshipsByTrackedEntity( trackedEntity, null, skipAccessValidation );
     }
 
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
+    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter,
         boolean skipAccessValidation );
 

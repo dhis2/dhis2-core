@@ -29,11 +29,14 @@ package org.hisp.dhis.programrule.action.validation;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.option.Option;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleAction;
+import org.hisp.dhis.programrule.ProgramRuleActionType;
 import org.hisp.dhis.programrule.ProgramRuleActionValidationResult;
 import org.springframework.stereotype.Component;
 
@@ -82,6 +85,16 @@ public class HideProgramStageProgramRuleActionValidator implements ProgramRuleAc
                 .errorReport(
                     new ErrorReport( ProgramStage.class, ErrorCode.E4039, programRuleAction.getProgramStage().getUid(),
                         rule.getName() ) )
+                .build();
+        }
+
+        if ( ObjectUtils.anyNotNull( programRuleAction.getDataElement(), programRuleAction.getOption(),
+            programRuleAction.getOptionGroup(), programRuleAction.getProgramStageSection() ) )
+        {
+            return ProgramRuleActionValidationResult.builder()
+                .valid( false )
+                .errorReport( new ErrorReport( Option.class, ErrorCode.E4058,
+                    rule.getName(), ProgramRuleActionType.HIDEPROGRAMSTAGE.name() ) )
                 .build();
         }
 

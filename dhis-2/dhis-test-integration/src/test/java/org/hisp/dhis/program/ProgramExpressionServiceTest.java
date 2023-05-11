@@ -102,7 +102,7 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase
         dataElementB = createDataElement( 'B' );
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnit );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnit );
         entityInstanceService.addTrackedEntity( entityInstance );
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );

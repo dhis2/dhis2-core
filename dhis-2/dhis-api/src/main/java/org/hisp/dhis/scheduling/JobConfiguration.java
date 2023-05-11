@@ -131,7 +131,11 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
 
     private boolean inMemoryJob = false;
 
-    private String userUid;
+    /**
+     * Optional UID of the user that executes the job. (The user's
+     * authentication is set in the security context for the execution scope)
+     */
+    private String executedBy;
 
     private boolean leaderOnlyJob = false;
 
@@ -148,14 +152,14 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
      *
      * @param name the job name.
      * @param jobType the {@link JobType}.
-     * @param userUid the user UID.
+     * @param executedBy the user UID.
      * @param inMemoryJob whether this is an in-memory job.
      */
-    public JobConfiguration( String name, JobType jobType, String userUid, boolean inMemoryJob )
+    public JobConfiguration( String name, JobType jobType, String executedBy, boolean inMemoryJob )
     {
         this.name = name;
         this.jobType = jobType;
-        this.userUid = userUid;
+        this.executedBy = executedBy;
         this.inMemoryJob = inMemoryJob;
         init();
     }
@@ -265,7 +269,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
             ", enabled=" + enabled +
             ", inMemoryJob=" + inMemoryJob +
             ", lastRuntimeExecution='" + lastRuntimeExecution + '\'' +
-            ", userUid='" + userUid + '\'' +
+            ", executedBy='" + executedBy + '\'' +
             ", leaderOnlyJob=" + leaderOnlyJob +
             ", jobStatus=" + jobStatus +
             ", nextExecutionTime=" + nextExecutionTime +
@@ -458,16 +462,27 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         this.inMemoryJob = inMemoryJob;
     }
 
+    /**
+     * Kept for backwards compatibility
+     *
+     * @see #getExecutedBy()
+     */
     @JacksonXmlProperty
     @JsonProperty( access = JsonProperty.Access.READ_ONLY )
     public String getUserUid()
     {
-        return userUid;
+        return executedBy;
     }
 
-    public void setUserUid( String userUid )
+    @JsonProperty
+    public String getExecutedBy()
     {
-        this.userUid = userUid;
+        return executedBy;
+    }
+
+    public void setExecutedBy( String executedBy )
+    {
+        this.executedBy = executedBy;
     }
 
     public String getQueueIdentifier()

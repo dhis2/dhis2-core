@@ -505,9 +505,9 @@ public class AuditController
             rootNode.addChild( NodeUtils.createPager( pager ) );
         }
 
-        CollectionNode trackedEntityInstanceAudits = rootNode
+        CollectionNode trackedEntityAudits = rootNode
             .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
-        trackedEntityInstanceAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
+        trackedEntityAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 
         return rootNode;

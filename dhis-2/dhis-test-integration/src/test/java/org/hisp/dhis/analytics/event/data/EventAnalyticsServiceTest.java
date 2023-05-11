@@ -392,7 +392,7 @@ class EventAnalyticsServiceTest
         idObjectManager.save( trackedEntityType );
 
         // Tracked Entity Instances (Registrations)
-        TrackedEntity teiA = createTrackedEntityInstance( ouD );
+        TrackedEntity teiA = createTrackedEntity( ouD );
         teiA.setUid( "trackEntInA" );
         teiA.setTrackedEntityType( trackedEntityType );
         idObjectManager.save( teiA );

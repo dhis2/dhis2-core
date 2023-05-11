@@ -120,12 +120,10 @@ public class TrackedEntitiesExportController
     {
         TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
 
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields,
-            criteria.isIncludeDeleted() );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields, criteria.isIncludeDeleted() );
 
-        List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
-            .fromCollection(
-                trackedEntityService.getTrackedEntities( queryParams, trackedEntityInstanceParams ) );
+        List<TrackedEntity> trackedEntities = TRACKED_ENTITY_MAPPER
+            .fromCollection( trackedEntityService.getTrackedEntities( queryParams, trackedEntityParams ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -144,7 +142,7 @@ public class TrackedEntitiesExportController
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntities, fields );
         return pagingWrapper.withInstances( objectNodes );
     }
 
@@ -159,12 +157,11 @@ public class TrackedEntitiesExportController
         NotFoundException
     {
         TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS,
-            criteria.isIncludeDeleted() );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( CSV_FIELDS, criteria.isIncludeDeleted() );
 
-        List<TrackedEntity> trackedEntityInstances = TRACKED_ENTITY_MAPPER
+        List<TrackedEntity> trackedEntities = TRACKED_ENTITY_MAPPER
             .fromCollection(
-                trackedEntityService.getTrackedEntities( queryParams, trackedEntityInstanceParams ) );
+                trackedEntityService.getTrackedEntities( queryParams, trackedEntityParams ) );
 
         OutputStream outputStream = response.getOutputStream();
 
@@ -190,7 +187,7 @@ public class TrackedEntitiesExportController
             response.setHeader( HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"trackedEntities.csv\"" );
         }
 
-        csvEventService.write( outputStream, trackedEntityInstances, !skipHeader );
+        csvEventService.write( outputStream, trackedEntities, !skipHeader );
     }
 
     @GetMapping( value = "{id}" )
@@ -200,10 +197,10 @@ public class TrackedEntitiesExportController
         throws ForbiddenException,
         NotFoundException
     {
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( fields );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, program, trackedEntityParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
@@ -216,10 +213,10 @@ public class TrackedEntitiesExportController
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityParams trackedEntityInstanceParams = fieldsMapper.map( CSV_FIELDS );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( CSV_FIELDS );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityInstanceParams ) );
+            trackedEntityService.getTrackedEntity( id, program, trackedEntityParams ) );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );

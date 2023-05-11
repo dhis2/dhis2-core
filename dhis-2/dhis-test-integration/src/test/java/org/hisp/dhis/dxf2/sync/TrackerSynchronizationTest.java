@@ -97,7 +97,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         manager.save( tet );
         OrganisationUnit ou = createOrganisationUnit( 'a' );
         manager.save( ou );
-        TrackedEntity teiToSync = createTrackedEntityInstance( 'a', ou, teaA );
+        TrackedEntity teiToSync = createTrackedEntity( 'a', ou, teaA );
         teiToSync.setTrackedEntityType( tet );
         teiToSync.setUid( TEI_NOT_IN_SYNC_UID );
         TrackedEntityAttributeValue teavB = createTrackedEntityAttributeValue( 'b', teiToSync, teaB );
@@ -107,7 +107,7 @@ class TrackerSynchronizationTest extends SingleSetupIntegrationTestBase
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( teavB );
         teiToSync.getTrackedEntityAttributeValues().addAll( List.of( teavA, teavB ) );
         manager.update( teiToSync );
-        TrackedEntity alreadySynchronizedTei = createTrackedEntityInstance( 'b', ou );
+        TrackedEntity alreadySynchronizedTei = createTrackedEntity( 'b', ou );
         alreadySynchronizedTei.setTrackedEntityType( tet );
         alreadySynchronizedTei.setLastSynchronized( TOMORROW );
         alreadySynchronizedTei.setUid( SYNCHRONIZED_TEI_UID );

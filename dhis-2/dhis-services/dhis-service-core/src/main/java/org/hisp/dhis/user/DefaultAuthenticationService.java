@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,41 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.tracker.imports.validation.validator.enrollment;
+package org.hisp.dhis.user;
 
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1068;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1069;
-import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1070;
-import static org.hisp.dhis.tracker.imports.validation.validator.ValidationUtils.trackedEntityExists;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.validation.Reporter;
-import org.hisp.dhis.tracker.imports.validation.Validator;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Service;
 
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-class MetaValidator
-    implements Validator<Enrollment>
+@Service
+@RequiredArgsConstructor
+public class DefaultAuthenticationService implements AuthenticationService
 {
+    private final UserService userService;
+
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Enrollment enrollment )
+    public void obtainAuthentication( String userId )
+        throws NotFoundException
     {
-        OrganisationUnit organisationUnit = bundle.getPreheat().getOrganisationUnit( enrollment.getOrgUnit() );
-        reporter.addErrorIfNull( organisationUnit, enrollment, E1070, enrollment.getOrgUnit() );
-
-        Program program = bundle.getPreheat().getProgram( enrollment.getProgram() );
-        reporter.addErrorIfNull( program, enrollment, E1069, enrollment.getProgram() );
-
-        reporter.addErrorIf( () -> !trackedEntityExists( bundle, enrollment.getTrackedEntity() ),
-            enrollment,
-            E1068, enrollment.getTrackedEntity() );
+        if ( userId == null )
+        {
+            clearAuthentication();
+            return;
+        }
+        CurrentUserDetails user = userService.createUserDetails( userId );
+        SecurityContext context = SecurityContextHolder.createEmptyContext();
+        context.setAuthentication(
+            new UsernamePasswordAuthenticationToken( user, null, user.getAuthorities() ) );
+        SecurityContextHolder.setContext( context );
     }
 
+    @Override
+    public void clearAuthentication()
+    {
+        SecurityContextHolder.clearContext();
+    }
 }

@@ -196,17 +196,17 @@ public abstract class TrackerTest extends IntegrationTestBase
         injectSecurityContext( user );
     }
 
-    public TrackedEntity persistTrackedEntityInstance()
+    public TrackedEntity persistTrackedEntity()
     {
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
         trackedEntityService.addTrackedEntity( entityInstance );
         return entityInstance;
     }
 
-    public TrackedEntity persistTrackedEntityInstance( Map<String, Object> teiValues )
+    public TrackedEntity persistTrackedEntity( Map<String, Object> teiValues )
     {
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
         if ( teiValues != null && !teiValues.isEmpty() )
         {
@@ -309,7 +309,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     private TrackedEntity _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize,
         Map<String, Object> enrollmentValues )
     {
-        TrackedEntity entityInstance = persistTrackedEntityInstance();
+        TrackedEntity entityInstance = persistTrackedEntity();
         final ImportSummary importSummary = enrollmentService.addEnrollment(
             createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ),
             ImportOptions.getDefaultImportOptions() );

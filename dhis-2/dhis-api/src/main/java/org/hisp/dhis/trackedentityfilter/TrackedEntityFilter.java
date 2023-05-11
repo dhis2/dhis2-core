@@ -58,12 +58,12 @@ public class TrackedEntityFilter
 {
 
     /**
-     * Property indicating program's of trackedEntityInstanceFilter
+     * Property indicating program's of trackedEntityFilter
      */
     private Program program;
 
     /**
-     * Property indicating description of trackedEntityInstanceFilter
+     * Property indicating description of trackedEntityFilter
      */
     private String description;
 

@@ -80,7 +80,7 @@ class ReportSummaryDeleteIntegrationTest extends TrackerTest
     }
 
     @Test
-    void testTrackedEntityInstanceDeletion()
+    void testTrackedEntityDeletion()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/tracked_entity_basic_data_for_deletion.json" );

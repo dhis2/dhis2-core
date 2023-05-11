@@ -98,8 +98,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntity original = createTrackedEntityInstance( ou );
-        TrackedEntity duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
         trackedEntityService.addTrackedEntity( original );
@@ -143,8 +143,8 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         trackedEntityType.setSharing( sharing );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-        TrackedEntity original = createTrackedEntityInstance( ou );
-        TrackedEntity duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
         trackedEntityService.addTrackedEntity( original );

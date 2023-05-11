@@ -85,10 +85,10 @@ class PotentialDuplicateStoreRelationshipTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        original = createTrackedEntityInstance( ou );
-        duplicate = createTrackedEntityInstance( ou );
-        extra1 = createTrackedEntityInstance( ou );
-        extra2 = createTrackedEntityInstance( ou );
+        original = createTrackedEntity( ou );
+        duplicate = createTrackedEntity( ou );
+        extra1 = createTrackedEntity( ou );
+        extra2 = createTrackedEntity( ou );
         trackedEntityService.addTrackedEntity( original );
         trackedEntityService.addTrackedEntity( duplicate );
         trackedEntityService.addTrackedEntity( extra1 );

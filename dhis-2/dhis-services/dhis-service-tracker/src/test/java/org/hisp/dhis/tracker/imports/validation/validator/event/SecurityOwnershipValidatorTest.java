@@ -486,7 +486,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
     private TrackedEntity getTEIWithNoEnrollments()
     {
-        TrackedEntity trackedEntity = createTrackedEntityInstance( organisationUnit );
+        TrackedEntity trackedEntity = createTrackedEntity( organisationUnit );
         trackedEntity.setUid( TEI_ID );
         trackedEntity.setEnrollments( Sets.newHashSet() );
         trackedEntity.setTrackedEntityType( trackedEntityType );

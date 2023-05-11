@@ -43,6 +43,7 @@ import javax.annotation.Nullable;
 
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.NotFoundException;
 
 /**
  * @author Chau Thu Tran
@@ -465,6 +466,18 @@ public interface UserService
     List<User> getUsersWithAuthority( String authority );
 
     /**
+     * Use this method instead of {@link #createUserDetails(User)} if no
+     * {@link User} instance is available or if the one available is not fully
+     * loaded or connected to a session.
+     *
+     * @see #createUserDetails(User)
+     * @param userUid UID of the {@link CurrentUserDetails} to create
+     * @return the implementation object
+     */
+    CurrentUserDetails createUserDetails( String userUid )
+        throws NotFoundException;
+
+    /**
      * It creates a CurrentUserDetailsImpl object from a User object. It also
      * fetches the users locked and credentials expired status.
      *
@@ -484,7 +497,7 @@ public interface UserService
      *        whether the user's credentials are expired or not.
      * @return A CurrentUserDetailsImpl object.
      */
-    CurrentUserDetailsImpl createUserDetails( User user, boolean accountNonLocked,
+    CurrentUserDetails createUserDetails( User user, boolean accountNonLocked,
         boolean credentialsNonExpired );
 
     /**

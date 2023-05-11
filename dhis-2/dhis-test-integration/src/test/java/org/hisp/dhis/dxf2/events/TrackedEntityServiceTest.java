@@ -186,11 +186,11 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
         trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        maleA = createTrackedEntityInstance( organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
-        dateConflictsMaleA = createTrackedEntityInstance( organisationUnitA );
+        maleA = createTrackedEntity( organisationUnitA );
+        maleB = createTrackedEntity( organisationUnitB );
+        femaleA = createTrackedEntity( organisationUnitA );
+        femaleB = createTrackedEntity( organisationUnitB );
+        dateConflictsMaleA = createTrackedEntity( organisationUnitA );
         TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
         uniqueId.setValue( "12345" );
         maleA.setTrackedEntityType( trackedEntityType );

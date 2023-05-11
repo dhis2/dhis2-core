@@ -2120,7 +2120,7 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static TrackedEntityFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    public static TrackedEntityFilter createTrackedEntityFilter( char uniqueChar, Program program )
     {
         TrackedEntityFilter trackedEntityFilter = new TrackedEntityFilter();
         trackedEntityFilter.setAutoFields();
@@ -2141,7 +2141,7 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( OrganisationUnit organisationUnit )
+    public static TrackedEntity createTrackedEntity( OrganisationUnit organisationUnit )
     {
         TrackedEntity trackedEntity = new TrackedEntity();
         trackedEntity.setAutoFields();
@@ -2150,7 +2150,7 @@ public abstract class DhisConvenienceTest
         return trackedEntity;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( char uniqueChar,
+    public static TrackedEntity createTrackedEntity( char uniqueChar,
         OrganisationUnit organisationUnit )
     {
         TrackedEntity trackedEntity = new TrackedEntity();
@@ -2161,7 +2161,7 @@ public abstract class DhisConvenienceTest
         return trackedEntity;
     }
 
-    public static TrackedEntity createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
+    public static TrackedEntity createTrackedEntity( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
         TrackedEntity trackedEntity = new TrackedEntity();

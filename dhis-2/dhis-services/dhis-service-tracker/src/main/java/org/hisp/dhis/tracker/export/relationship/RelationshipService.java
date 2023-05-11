@@ -40,7 +40,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 public interface RelationshipService
 {
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntity tei,
+    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter criteria )
         throws ForbiddenException,
         NotFoundException;

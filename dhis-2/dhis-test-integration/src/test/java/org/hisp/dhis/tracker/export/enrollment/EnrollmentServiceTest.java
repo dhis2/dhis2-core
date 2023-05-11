@@ -131,15 +131,15 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setOwner( user );
         manager.save( trackedEntityTypeA, false );
 
-        trackedEntityA = createTrackedEntityInstance( orgUnitA );
+        trackedEntityA = createTrackedEntity( orgUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
-        TrackedEntity trackedEntityB = createTrackedEntityInstance( orgUnitB );
+        TrackedEntity trackedEntityB = createTrackedEntity( orgUnitB );
         trackedEntityB.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityB, false );
 
-        TrackedEntity trackedEntityC = createTrackedEntityInstance( orgUnitC );
+        TrackedEntity trackedEntityC = createTrackedEntity( orgUnitC );
         trackedEntityC.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityC, false );
 
