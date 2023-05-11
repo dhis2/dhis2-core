@@ -40,8 +40,8 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
-import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -51,7 +51,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesEnrollmentsTests
-    extends PotentialDuplicatesApiTestDeprecated
+    extends PotentialDuplicatesApiTest
 {
     @BeforeEach
     public void beforeEach()
@@ -99,7 +99,7 @@ public class PotentialDuplicatesEnrollmentsTests
                 Arrays.asList( enrollmentToMerge ) ).build() )
             .validate().statusCode( 200 );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=enrollments" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=enrollments" )
             .validate().statusCode( 200 )
             .body( "enrollments", hasSize( 2 ) );
     }
@@ -115,7 +115,7 @@ public class PotentialDuplicatesEnrollmentsTests
         String teiA = originalTeiResponse.extractImportedTeis().get( 0 );
         String enrollmentA = originalTeiResponse.extractImportedEnrollments().get( 0 );
 
-        TrackerApiResponse duplicateTeiResponse = trackerActions.postAndGetJobReport(
+        TrackerApiResponse duplicateTeiResponse = trackerImportExportActions.postAndGetJobReport(
             new JsonFileReader(
                 new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
                     .get() );
@@ -136,7 +136,7 @@ public class PotentialDuplicatesEnrollmentsTests
             .statusCode( 200 )
             .body( "status", equalTo( "MERGED" ) );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollments", hasSize( 2 ) )
             .body( "enrollments.enrollment", hasItems( enrollmentA, enrollmentB ) )
@@ -147,7 +147,7 @@ public class PotentialDuplicatesEnrollmentsTests
             .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "events.dataValues", hasSize( greaterThanOrEqualTo( 1 ) ) );
 
-        trackerActions.getTrackedEntity( teiB )
+        trackerImportExportActions.getTrackedEntity( teiB )
             .validate().statusCode( 404 );
     }
 
@@ -157,7 +157,7 @@ public class PotentialDuplicatesEnrollmentsTests
         // arrange
         String teiB = createTeiWithoutEnrollment( Constants.ORG_UNIT_IDS[0] );
 
-        TrackerApiResponse imported = trackerActions.postAndGetJobReport( new TeiDataBuilder()
+        TrackerApiResponse imported = trackerImportExportActions.postAndGetJobReport( new TeiDataBuilder()
             .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], TRACKER_PROGRAM_ID,
                 TRACKER_PROGRAM_STAGE_ID ) )
             .validateSuccessfulImport();
@@ -181,19 +181,19 @@ public class PotentialDuplicatesEnrollmentsTests
             .statusCode( 200 )
             .body( "status", equalTo( "MERGED" ) );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "enrollments", hasSize( 1 ) )
             .body( "enrollments.enrollment", hasItems( enrollment ) )
             .body( String.format( "enrollments.find{it.enrollment=='%s'}.events", enrollment ), hasSize( 1 ) );
 
-        trackerActions.getTrackedEntity( teiB ).validate().statusCode( 404 );
+        trackerImportExportActions.getTrackedEntity( teiB ).validate().statusCode( 404 );
     }
 
     private String createTeiWithoutEnrollment( String ouId )
     {
         JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, ouId );
 
-        return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
+        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }
 }

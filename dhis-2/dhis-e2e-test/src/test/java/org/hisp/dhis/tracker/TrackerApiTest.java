@@ -35,11 +35,11 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.MaintenanceActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.actions.tracker.TrackerImportExportActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.helpers.file.JsonFileReader;
-import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
@@ -49,7 +49,6 @@ import com.google.gson.JsonObject;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-@Tag( "tracker" )
 @Tag( "category:tracker_nti" )
 public class TrackerApiTest
     extends ApiTest
@@ -62,14 +61,14 @@ public class TrackerApiTest
 
     protected ProgramActions programActions;
 
-    protected TrackerActions trackerActions;
+    protected TrackerImportExportActions trackerImportExportActions;
 
     @BeforeAll
     public void beforeTracker()
     {
         loginActions = new LoginActions();
         programActions = new ProgramActions();
-        trackerActions = new TrackerActions();
+        trackerImportExportActions = new TrackerImportExportActions();
     }
 
     protected String importEnrollment()
@@ -78,7 +77,8 @@ public class TrackerApiTest
         JsonObject teiBody = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/teiAndEnrollment.json" ) );
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedEnrollments()
+        return trackerImportExportActions.postAndGetJobReport( teiBody ).validateSuccessfulImport()
+            .extractImportedEnrollments()
             .get( 0 );
     }
 
@@ -88,7 +88,8 @@ public class TrackerApiTest
         JsonObject teiBody = new FileReaderUtils()
             .readJsonAndGenerateData( new File( "src/test/resources/tracker/importer/teis/tei.json" ) );
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
+        return trackerImportExportActions.postAndGetJobReport( teiBody ).validateSuccessfulImport()
+            .extractImportedTeis().get( 0 );
     }
 
     protected String importTei( String orgUnit )
@@ -99,7 +100,8 @@ public class TrackerApiTest
             .replacePropertyValuesRecursivelyWith( "orgUnit", orgUnit )
             .get( JsonObject.class );
 
-        return trackerActions.postAndGetJobReport( teiBody ).validateSuccessfulImport().extractImportedTeis().get( 0 );
+        return trackerImportExportActions.postAndGetJobReport( teiBody ).validateSuccessfulImport()
+            .extractImportedTeis().get( 0 );
     }
 
     protected List<String> importEvents()
@@ -109,7 +111,7 @@ public class TrackerApiTest
             .read( new File( "src/test/resources/tracker/importer/events/events.json" ) )
             .replacePropertyValuesWithIds( "event" ).get( JsonObject.class );
 
-        return trackerActions.postAndGetJobReport( object )
+        return trackerImportExportActions.postAndGetJobReport( object )
             .validateSuccessfulImport().extractImportedEvents();
     }
 
@@ -121,7 +123,7 @@ public class TrackerApiTest
             .replacePropertyValuesRecursivelyWith( "program", programId )
             .get( JsonObject.class );
 
-        return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
+        return trackerImportExportActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
     }
 
     protected TrackerApiResponse importTeiWithEnrollment( String ouId, String programId )
@@ -133,7 +135,7 @@ public class TrackerApiTest
             .replacePropertyValuesRecursivelyWith( "orgUnit", ouId )
             .get( JsonObject.class );
 
-        return trackerActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
+        return trackerImportExportActions.postAndGetJobReport( teiWithEnrollment ).validateSuccessfulImport();
     }
 
     /*
@@ -150,7 +152,7 @@ public class TrackerApiTest
             .replacePropertyValuesRecursivelyWith( "programStage", programStageId )
             .get( JsonObject.class );
 
-        TrackerApiResponse response = trackerActions.postAndGetJobReport( teiWithEnrollment );
+        TrackerApiResponse response = trackerImportExportActions.postAndGetJobReport( teiWithEnrollment );
 
         response.validateSuccessfulImport();
         return response;
@@ -168,7 +170,7 @@ public class TrackerApiTest
                     "ZwwuwNp6gVd" )
                 .get( JsonObject.class );
 
-        return trackerActions.postAndGetJobReport( object )
+        return trackerImportExportActions.postAndGetJobReport( object )
             .validateSuccessfulImport();
     }
 
@@ -180,7 +182,7 @@ public class TrackerApiTest
             .setRelationshipType( "xLmPUYJX8Ks" )
             .array();
 
-        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+        return trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
     }
 
     protected TrackerApiResponse importRelationshipEnrollmentToTei( String enrollment, String teiB )
@@ -188,7 +190,7 @@ public class TrackerApiTest
         JsonObject payload = new RelationshipDataBuilder().setFromEntity( "enrollment", enrollment )
             .setToTrackedEntity( teiB ).setRelationshipType( "fdc6uOvgoji" ).array();
 
-        return trackerActions.postAndGetJobReport( payload ).validateSuccessfulImport();
+        return trackerImportExportActions.postAndGetJobReport( payload ).validateSuccessfulImport();
     }
 
     @AfterEach

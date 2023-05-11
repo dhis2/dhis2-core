@@ -37,8 +37,8 @@ import org.hisp.dhis.actions.AuditActions;
 import org.hisp.dhis.actions.metadata.ProgramActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
-import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
+import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -48,7 +48,7 @@ import com.google.gson.JsonObject;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesAttributeMergeTests
-    extends PotentialDuplicatesApiTestDeprecated
+    extends PotentialDuplicatesApiTest
 {
     private final String program = Constants.TRACKER_PROGRAM_ID;
 
@@ -78,7 +78,7 @@ public class PotentialDuplicatesAttributeMergeTests
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate )
             .validate().statusCode( 200 );
 
-        trackerActions.getTrackedEntity( teiA )
+        trackerImportExportActions.getTrackedEntity( teiA )
             .validate()
             .body( "attributes", hasSize( 2 ) );
     }
@@ -97,7 +97,7 @@ public class PotentialDuplicatesAttributeMergeTests
                 .build() )
             .validate().statusCode( 200 );
 
-        trackerActions.getTrackedEntity( teiA )
+        trackerImportExportActions.getTrackedEntity( teiA )
             .validate()
             .body( "attributes", hasSize( 1 ) )
             .body( "attributes[0].value", equalTo( "attribute 2" ) );
@@ -150,7 +150,8 @@ public class PotentialDuplicatesAttributeMergeTests
             tei.addOrAppendToArrayByJsonPath( "trackedEntities[0]", "attributes", attribute );
         }
 
-        return trackerActions.postAndGetJobReport( tei.build() ).validateSuccessfulImport().extractImportedTeis()
+        return trackerImportExportActions.postAndGetJobReport( tei.build() ).validateSuccessfulImport()
+            .extractImportedTeis()
             .get( 0 );
     }
 }

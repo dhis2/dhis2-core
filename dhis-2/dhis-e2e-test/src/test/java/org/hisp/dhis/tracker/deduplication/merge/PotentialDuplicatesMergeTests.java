@@ -35,7 +35,7 @@ import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.metadata.TrackedEntityTypeActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTestDeprecated;
+import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -45,7 +45,7 @@ import org.junit.jupiter.params.provider.ValueSource;
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
 public class PotentialDuplicatesMergeTests
-    extends PotentialDuplicatesApiTestDeprecated
+    extends PotentialDuplicatesApiTest
 {
     @BeforeEach
     public void beforeEach()
@@ -73,7 +73,7 @@ public class PotentialDuplicatesMergeTests
             .body( "status", equalTo( "MERGED" ) )
             .body( "lastUpdatedByUserName", equalTo( admin_username ) );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "createdBy.username", equalTo( "tasuperadmin" ) )
             .body( "updatedBy.username", equalTo( admin_username ) )
