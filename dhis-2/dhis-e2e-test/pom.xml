@@ -125,7 +125,7 @@
     <dependency>
       <groupId>org.aeonbits.owner</groupId>
       <artifactId>owner</artifactId>
-      <version>1.0.10</version>
+      <version>1.0.12</version>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>
