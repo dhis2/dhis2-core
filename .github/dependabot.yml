@@ -57,6 +57,65 @@ updates:
       - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
         versions:
           - ">= 2.0"
+  # 2.40
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    target-branch: "2.40"
+  - package-ecosystem: "maven"
+    directory: "/dhis-2"
+    schedule:
+      interval: "daily"
+      time: "02:17" # GitHub says 'High load times include the start of every hour'
+      timezone: "Europe/Oslo"
+    pull-request-branch-name:
+      separator: "-"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    target-branch: "2.40"
+    ignore:
+      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
+        versions:
+          - ">= 3.0"
+      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
+        versions:
+          - ">= 11.0"
+      - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+        versions:
+          - ">= 6.0"
+      - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
+        versions:
+          - ">= 6.0"
+      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
+      - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
+        versions:
+          - ">= 2.0"
+      - dependency-name: "org.springframework.session:spring-session-data-redis" # Spring redis 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
+      - dependency-name: "org.springframework.restdocs:*" # Spring restdocs 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
+      - dependency-name: "org.springframework.ldap:*" # Spring ldap 3.x requires Spring 6 (see above)
+        versions:
+          - ">= 3.0"
+      - dependency-name: "org.hisp.dhis.parser:*" # Antlr parser must be upgraded manually due to circular dependency with rule engine
+        versions:
+          - ">= 1.0"
+      - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
+        versions:
+          - ">= 2.0"
   # 2.39
   - package-ecosystem: "github-actions"
     directory: "/"
@@ -180,69 +239,4 @@ updates:
         versions:
           - ">= 2.0"
     target-branch: "2.38"
-    open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
-  # 2.37
-  - package-ecosystem: "github-actions"
-    directory: "/"
-    schedule:
-      interval: "daily"
-      time: "02:17" # GitHub says 'High load times include the start of every hour'
-      timezone: "Europe/Oslo"
-    pull-request-branch-name:
-      separator: "-"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
-    target-branch: "2.37"
-    open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
-  - package-ecosystem: "maven"
-    directory: "/dhis-2"
-    schedule:
-      interval: "daily"
-      time: "02:17" # GitHub says 'High load times include the start of every hour'
-      timezone: "Europe/Oslo"
-    pull-request-branch-name:
-      separator: "-"
-    commit-message:
-      prefix: "chore"
-      include: "scope"
-    ignore:
-      - dependency-name: "org.apache.struts:*" # will be removed from core (significant work involved in upgrade with the risk of regressions)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.eclipse.jetty:*" # Jetty 11 moved some code to a different package, updated the Servlet version which requires more work
-        versions:
-          - ">= 11.0"
-      - dependency-name: "org.antlr:antlr4-runtime" # Automatically upgrade ANTLR version can cause issues in rule-engine and antlr-parser libraries
-      - dependency-name: "org.jboss.logging:jboss-logging"
-        versions:
-          - ">= 3.5" # Requires Java 11 as a minimum for the runtime while 2.37 still supports Java 8
-      - dependency-name: "org.springframework:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
-        versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.security:*" # Spring framework 6 requires minimum JDK 17 so it will require more effort/time until we update it
-        versions:
-          - ">= 6.0"
-      - dependency-name: "org.springframework.data:spring-data-redis" # Spring data redis 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.springframework.retry:spring-retry" # Spring retry 2.x requires Spring 6 (see above)
-        versions:
-          - ">= 2.0"
-      - dependency-name: "org.springframework.session:spring-session-data-redis" # Spring redis 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.springframework.restdocs:*" # Spring restdocs 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.springframework.ldap:*" # Spring ldap 3.x requires Spring 6 (see above)
-        versions:
-          - ">= 3.0"
-      - dependency-name: "org.hisp.dhis.parser:*" # Antlr parser must be upgraded manually due to circular dependency with rule engine
-        versions:
-          - ">= 1.0"
-      - dependency-name: "org.hisp.dhis.rules:*" # Rule engine must be upgraded manually due to circular dependency with ANTLR parser
-        versions:
-          - ">= 2.0"
-    target-branch: "2.37"
     open-pull-requests-limit: 1 # only initially so we do not take away too many CI resources
