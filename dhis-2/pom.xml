@@ -132,7 +132,7 @@
     <htmlparser.version>2.1</htmlparser.version>
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.3</poi.version>
-    <itext.version>2.1.7</itext.version>
+    <itext.version>4.2.1</itext.version>
 
     <!-- GIS -->
     <batik-transcoder.version>1.16</batik-transcoder.version>
