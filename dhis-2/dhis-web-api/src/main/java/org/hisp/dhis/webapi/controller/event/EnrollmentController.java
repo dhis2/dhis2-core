@@ -52,10 +52,10 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.EnrollmentParams;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
-import org.hisp.dhis.dxf2.events.enrollment.ImportEnrollmentsTask;
+import org.hisp.dhis.dxf2.deprecated.tracker.EnrollmentParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollments;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.ImportEnrollmentsTask;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -106,7 +106,7 @@ public class EnrollmentController
     private CurrentUserService currentUserService;
 
     @Autowired
-    private org.hisp.dhis.dxf2.events.enrollment.EnrollmentService enrollmentService;
+    private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService enrollmentService;
 
     @Autowired
     private AsyncTaskExecutor taskExecutor;

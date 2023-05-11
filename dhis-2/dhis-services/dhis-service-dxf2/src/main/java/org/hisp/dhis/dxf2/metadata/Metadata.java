@@ -58,7 +58,7 @@ import org.hisp.dhis.dataexchange.aggregate.AggregateDataExchange;
 import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.dataset.Section;
 import org.hisp.dhis.document.Document;
-import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
 import org.hisp.dhis.eventchart.EventChart;
 import org.hisp.dhis.eventhook.EventHook;
 import org.hisp.dhis.eventreport.EventReport;
