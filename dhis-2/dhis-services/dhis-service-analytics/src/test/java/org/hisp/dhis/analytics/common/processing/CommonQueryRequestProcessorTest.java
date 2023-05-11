@@ -197,7 +197,8 @@ class CommonQueryRequestProcessorTest
         IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
             () -> commonQueryRequestProcessor.process( request ) );
 
-        assertEquals( "No enum constant org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+        assertEquals(
+            "No enum constant org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
             exception.getMessage() );
     }
 
@@ -209,7 +210,8 @@ class CommonQueryRequestProcessorTest
         IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
             () -> commonQueryRequestProcessor.process( request ) );
 
-        assertEquals( "No enum constant org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
+        assertEquals(
+            "No enum constant org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus.WRONG_PROGRAM_STATUS",
             exception.getMessage() );
     }
 

@@ -37,8 +37,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.util.Optional;
 
-import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
