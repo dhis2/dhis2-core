@@ -678,6 +678,10 @@ public interface JobProgress
         @JsonProperty
         private Date cancelledTime;
 
+        @Setter
+        @JsonProperty
+        private String userId;
+
         public void cancel()
         {
             this.cancelledTime = new Date();

@@ -28,9 +28,17 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -68,5 +76,33 @@ class ProgramRuleActionControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Conflict", 409, "ERROR", "Expression is not valid",
             POST( "/programRuleActions/data/expression/description?programId=" + pId, "1 + " )
                 .content( HttpStatus.CONFLICT ) );
+    }
+
+    @Test
+    void testSaveActionWithIrrelevantReferenceObjects()
+    {
+        Program program = createProgram( 'A' );
+        manager.save( program );
+        DataElement dataElement = createDataElement( 'A' );
+        manager.save( dataElement );
+        ProgramStage programStage = createProgramStage( 'A', program );
+        programStage.addDataElement( dataElement, 0 );
+        programStage.setProgram( program );
+        manager.save( programStage );
+        ProgramRule programRule = createProgramRule( 'A', program );
+        manager.save( programRule );
+
+        String programRuleAction = "{ 'programRule':{'id':'" + programRule.getUid() + "'}, " +
+            "'programRuleActionType': 'HIDEPROGRAMSTAGE', " +
+            "'dataElement':{'id':'" + dataElement.getUid() + "'}, " +
+            "'programStage': {'id':'" + programStage.getUid() + "'} }";
+
+        JsonErrorReport error = POST( "/programRuleActions", programRuleAction ).content( HttpStatus.CONFLICT ).find(
+            JsonErrorReport.class,
+            report -> report.getErrorCode() == ErrorCode.E4058 );
+        assertNotNull( error );
+        assertEquals(
+            "Program Rule `ProgramRuleA` with Action Type `HIDEPROGRAMSTAGE` has irrelevant reference objects",
+            error.getMessage() );
     }
 }

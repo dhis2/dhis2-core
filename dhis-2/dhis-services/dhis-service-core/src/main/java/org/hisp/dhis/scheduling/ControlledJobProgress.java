@@ -40,6 +40,8 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 
 /**
  * The {@link ControlledJobProgress} take care of the flow control aspect of
@@ -341,6 +343,11 @@ public class ControlledJobProgress implements JobProgress
         if ( configuration != null )
         {
             process.setJobId( configuration.getUid() );
+        }
+        CurrentUserDetails user = CurrentUserUtil.getCurrentUserDetails();
+        if ( user != null )
+        {
+            process.setUserId( user.getUid() );
         }
         incompleteProcess.set( process );
         processes.add( process );

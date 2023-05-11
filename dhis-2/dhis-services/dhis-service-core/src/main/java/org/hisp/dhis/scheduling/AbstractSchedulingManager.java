@@ -53,14 +53,9 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.commons.util.DebugUtils;
-import org.hisp.dhis.eventhook.EventHookPublisher;
 import org.hisp.dhis.eventhook.EventUtils;
-import org.hisp.dhis.leader.election.LeaderManager;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.scheduling.JobProgress.Process;
-import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.Clock;
 import org.slf4j.MDC;
 
@@ -75,17 +70,7 @@ import org.slf4j.MDC;
 @AllArgsConstructor
 public abstract class AbstractSchedulingManager implements SchedulingManager
 {
-    private final JobService jobService;
-
-    private final JobConfigurationService jobConfigurationService;
-
-    private final MessageService messageService;
-
-    private final LeaderManager leaderManager;
-
-    private final Notifier notifier;
-
-    private final EventHookPublisher eventHookPublisher;
+    private final SchedulingManagerSupport support;
 
     /**
      * Set of currently running jobs. We use a map to use CAS operation
@@ -102,26 +87,19 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
     private final Cache<Boolean> cancelledRemotely;
 
-    protected AbstractSchedulingManager( JobService jobService, JobConfigurationService jobConfigurationService,
-        MessageService messageService, LeaderManager leaderManager, Notifier notifier,
-        EventHookPublisher eventHookPublisher, CacheProvider cacheProvider )
+    protected AbstractSchedulingManager( SchedulingManagerSupport support )
     {
-        this.jobService = jobService;
-        this.jobConfigurationService = jobConfigurationService;
-        this.messageService = messageService;
-        this.leaderManager = leaderManager;
-        this.notifier = notifier;
-        this.eventHookPublisher = eventHookPublisher;
+        this.support = support;
 
-        this.runningRemotely = cacheProvider.createRunningJobsInfoCache();
-        this.completedRemotely = cacheProvider.createCompletedJobsInfoCache();
-        this.cancelledRemotely = cacheProvider.createJobCancelRequestedCache();
+        this.runningRemotely = support.getCacheProvider().createRunningJobsInfoCache();
+        this.completedRemotely = support.getCacheProvider().createCompletedJobsInfoCache();
+        this.cancelledRemotely = support.getCacheProvider().createJobCancelRequestedCache();
     }
 
     @PostConstruct
     public void init()
     {
-        leaderManager.setSchedulingManager( this );
+        support.getLeaderManager().setSchedulingManager( this );
     }
 
     protected final void clusterHeartbeat()
@@ -242,7 +220,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             // OBS! intentionally the sequence is reloaded every time to allow for changes of the sequence
             //      while it is running
-            List<JobConfiguration> sequence = jobConfigurationService.getAllJobConfigurations().stream()
+            List<JobConfiguration> sequence = support.getJobConfigurationService().getAllJobConfigurations().stream()
                 .filter( c -> name.equals( c.getQueueName() ) )
                 .sorted( comparing( JobConfiguration::getQueuePosition ) )
                 .collect( Collectors.toList() );
@@ -260,7 +238,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
     /**
      * Run a job potentially in the future.
-     *
+     * <p>
      * This is used for scheduled jobs to reload the job right before it is run
      * so the most recent configuration is used.
      *
@@ -269,7 +247,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
      */
     protected final boolean execute( String jobId )
     {
-        return execute( jobConfigurationService.getJobConfigurationByUid( jobId ) );
+        return execute( support.getJobConfigurationService().getJobConfigurationByUid( jobId ) );
     }
 
     /**
@@ -283,7 +261,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             return false;
         }
         JobType type = configuration.getJobType();
-        if ( configuration.isLeaderOnlyJob() && !leaderManager.isLeader() )
+        if ( configuration.isLeaderOnlyJob() && !support.getLeaderManager().isLeader() )
         {
             whenLeaderOnlyOnNonLeader( configuration );
             return false;
@@ -311,7 +289,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
             configuration.setJobStatus( JobStatus.RUNNING );
             if ( !configuration.isInMemoryJob() )
             {
-                jobConfigurationService.updateJobConfiguration( configuration );
+                support.getJobConfigurationService().updateJobConfiguration( configuration );
             }
             // in memory effect only: mark running (dirty)
             configuration.setLastExecutedStatus( JobStatus.RUNNING );
@@ -321,8 +299,18 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 : "TYPE:" + configuration.getJobType().name();
             MDC.put( "sessionId", identifier );
             // run the actual job
-            eventHookPublisher.publishEvent( EventUtils.schedulerStart( configuration ) );
-            jobService.getJob( type ).execute( configuration, progress );
+            support.getEventHookPublisher().publishEvent( EventUtils.schedulerStart( configuration ) );
+
+            try
+            {
+                support.getAuthenticationService().obtainAuthentication( configuration.getExecutedBy() );
+                support.getJobService().getJob( type ).execute( configuration, progress );
+            }
+            finally
+            {
+                support.getAuthenticationService().clearAuthentication();
+            }
+
             Process process = progress.getProcesses().peekLast();
             if ( process != null && process.getStatus() == JobProgress.Status.RUNNING )
             {
@@ -340,11 +328,11 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
 
             if ( wasSuccessfulRun )
             {
-                eventHookPublisher.publishEvent( EventUtils.schedulerCompleted( configuration ) );
+                support.getEventHookPublisher().publishEvent( EventUtils.schedulerCompleted( configuration ) );
             }
             else
             {
-                eventHookPublisher.publishEvent( EventUtils.schedulerFailed( configuration ) );
+                support.getEventHookPublisher().publishEvent( EventUtils.schedulerFailed( configuration ) );
             }
 
             return wasSuccessfulRun;
@@ -353,8 +341,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             progress.failedProcess( ex );
             whenRunThrewException( configuration, ex, progress );
-
-            eventHookPublisher.publishEvent( EventUtils.schedulerFailed( configuration ) );
+            support.getEventHookPublisher().publishEvent( EventUtils.schedulerFailed( configuration ) );
             return false;
         }
         finally
@@ -369,9 +356,9 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
     private ControlledJobProgress createJobProgress( JobConfiguration configuration )
     {
         JobProgress tracker = configuration.getJobType().isUsingNotifications()
-            ? new NotifierJobProgress( notifier, configuration )
+            ? new NotifierJobProgress( support.getNotifier(), configuration )
             : NoopJobProgress.INSTANCE;
-        return new ControlledJobProgress( messageService, configuration, tracker, true );
+        return new ControlledJobProgress( support.getMessageService(), configuration, tracker, true );
     }
 
     private void whenRunIsDone( JobConfiguration configuration, Clock clock )
@@ -389,7 +376,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         {
             return;
         }
-        JobConfiguration persistentConfiguration = jobConfigurationService
+        JobConfiguration persistentConfiguration = support.getJobConfigurationService()
             .getJobConfigurationByUid( configuration.getUid() );
 
         if ( persistentConfiguration != null )
@@ -401,7 +388,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
                 configuration.setEnabled( false );
             }
             // only if it still exists: update
-            jobConfigurationService.updateJobConfiguration( configuration );
+            support.getJobConfigurationService().updateJobConfiguration( configuration );
         }
     }
 
@@ -412,7 +399,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         log.error( DebugUtils.getStackTrace( ex ) );
         if ( !configuration.isInMemoryJob() )
         {
-            messageService.sendSystemErrorNotification( message, ex );
+            support.getMessageService().sendSystemErrorNotification( message, ex );
         }
         configuration
             .setLastExecutedStatus( progress.isCancellationRequested() ? JobStatus.STOPPED : JobStatus.FAILED );
@@ -435,7 +422,7 @@ public abstract class AbstractSchedulingManager implements SchedulingManager
         log.error( message );
         if ( !configuration.isInMemoryJob() )
         {
-            messageService.sendSystemErrorNotification( message, new RuntimeException( message ) );
+            support.getMessageService().sendSystemErrorNotification( message, new RuntimeException( message ) );
         }
     }
 

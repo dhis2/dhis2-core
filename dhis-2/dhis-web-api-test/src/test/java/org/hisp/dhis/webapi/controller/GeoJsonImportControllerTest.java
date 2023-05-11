@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.stream.IntStream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
@@ -491,7 +492,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         return assertStatus( HttpStatus.CREATED,
             POST( "/organisationUnits/",
                 "{"
-                    + "'id':'" + id.substring( 0, 4 ) + "5678901', "
+                    + "'id':'" + StringUtils.deleteWhitespace( id ).substring( 0, 4 ) + "5678901', "
                     + "'name':'" + name + "', "
                     + "'shortName':'" + id + "', "
                     + "'code':'" + code + "', "
