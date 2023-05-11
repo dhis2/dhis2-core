@@ -68,6 +68,7 @@ class CodeGeneratorTest
         assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
         assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
         assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
+        assertFalse( CodeGenerator.isValidUid( "11111111111" ) );
     }
 
     @Test
