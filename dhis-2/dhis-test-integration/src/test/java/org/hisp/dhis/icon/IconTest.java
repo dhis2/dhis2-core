@@ -73,7 +73,7 @@ class IconTest extends TrackerTest
     @Autowired
     private IconService iconService;
 
-    private final List<String> keywords = List.of( "k1", "k2", "k3" );
+    private final String[] keywords = { "k1", "k2", "k3" };
 
     @SneakyThrows
     @Override
@@ -112,10 +112,10 @@ class IconTest extends TrackerTest
     {
         List<String> keywordList = getAllDefaultIcons().values().stream()
             .map( Icon::getKeywords )
-            .flatMap( List::stream ).toList();
+            .flatMap( Arrays::stream ).toList();
 
-        assertEquals( keywordList.size() + keywords.size(), iconService.getKeywords().size(),
-            String.format( "Expected to find %d icons, but found %d instead", keywordList.size() + 1,
+        assertEquals( keywordList.size() + keywords.length, iconService.getKeywords().size(),
+            String.format( "Expected to find %d icons, but found %d instead", keywordList.size() + keywords.length,
                 iconService.getIcons().size() ) );
     }
 
@@ -125,37 +125,37 @@ class IconTest extends TrackerTest
         NotFoundException
     {
         Optional<DefaultIcon> defaultIcon = getAllDefaultIcons().values().stream()
-            .filter( si -> si.getKeywords().size() > 0 ).findAny();
+            .filter( si -> si.getKeywords().length > 0 ).findAny();
 
         if ( defaultIcon.isEmpty() )
         {
             return;
         }
 
-        String keyword = defaultIcon.get().getKeywords().get( 0 );
+        String keyword = defaultIcon.get().getKeywords()[0];
 
         FileResource fileResourceB = createAndPersistFileResource( 'B' );
         iconService
-            .addCustomIcon( new CustomIcon( "iconKeyB", "description", List.of( "k4", "k5", "k6" ), fileResourceB,
+            .addCustomIcon( new CustomIcon( "iconKeyB", "description", new String[] { "k4", "k5", "k6" }, fileResourceB,
                 currentUserService.getCurrentUser() ) );
         FileResource fileResourceC = createAndPersistFileResource( 'C' );
         iconService
-            .addCustomIcon( new CustomIcon( "iconKeyC", "description", List.of( "k6", "k7", "k8" ), fileResourceC,
+            .addCustomIcon( new CustomIcon( "iconKeyC", "description", new String[] { "k6", "k7", "k8" }, fileResourceC,
                 currentUserService.getCurrentUser() ) );
         FileResource fileResourceD = createAndPersistFileResource( 'D' );
-        iconService.addCustomIcon( new CustomIcon( "iconKeyD", "description", List.of( keyword ), fileResourceD,
+        iconService.addCustomIcon( new CustomIcon( "iconKeyD", "description", new String[] { keyword }, fileResourceD,
             currentUserService.getCurrentUser() ) );
 
-        assertEquals( 1, iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size(),
+        assertEquals( 1, iconService.getIcons( new String[] { "k4", "k5", "k6" } ).size(),
             "Expected one icon containing the keys k4, k5 and k6, but found "
-                + iconService.getIcons( List.of( "k4", "k5", "k6" ) ).size() );
-        assertEquals( 1, iconService.getIcons( List.of( "k6", "k7" ) ).size(),
+                + iconService.getIcons( new String[] { "k4", "k5", "k6" } ).size() );
+        assertEquals( 1, iconService.getIcons( new String[] { "k6", "k7" } ).size(),
             "Expected one icon containing the keys k6 and k7, but found "
-                + iconService.getIcons( List.of( "k6", "k7" ) ).size() );
-        assertEquals( 2, iconService.getIcons( List.of( "k6" ) ).size(),
+                + iconService.getIcons( new String[] { "k6", "k7" } ).size() );
+        assertEquals( 2, iconService.getIcons( new String[] { "k6" } ).size(),
             "Expected two icons containing the key k6, but found "
-                + iconService.getIcons( List.of( "k6" ) ).size() );
-        assertGreaterOrEqual( 2, iconService.getIcons( List.of( keyword ) ).size() );
+                + iconService.getIcons( new String[] { "k6" } ).size() );
+        assertGreaterOrEqual( 2, iconService.getIcons( new String[] { keyword } ).size() );
     }
 
     @Test
@@ -189,7 +189,7 @@ class IconTest extends TrackerTest
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> iconService.addCustomIcon(
-                new CustomIcon( defaultIconKey, "description", List.of( "keyword1" ), new FileResource(),
+                new CustomIcon( defaultIconKey, "description", new String[] { "keyword1" }, new FileResource(),
                     new User() ) ) );
 
         String expectedMessage = String.format( "Icon with key %s already exists.", defaultIconKey );

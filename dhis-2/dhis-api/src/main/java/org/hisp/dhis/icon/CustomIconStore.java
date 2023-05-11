@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.Collection;
 import java.util.List;
 
 public interface CustomIconStore
@@ -46,7 +45,7 @@ public interface CustomIconStore
      * @param keywords the icon needs to contain
      * @return the list of custom icons that contain all the keywords
      */
-    List<CustomIcon> getIconsByKeywords( Collection<String> keywords );
+    List<CustomIcon> getIconsByKeywords( String[] keywords );
 
     /**
      * Gets all custom icons present in the database

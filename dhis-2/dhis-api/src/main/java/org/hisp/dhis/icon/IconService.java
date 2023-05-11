@@ -54,7 +54,7 @@ public interface IconService
      * @param keywords collection of keywords
      * @return a collection of matching icons
      */
-    Collection<Icon> getIcons( Collection<String> keywords );
+    Collection<Icon> getIcons( String[] keywords );
 
     /**
      * Gets the icon associated to a key, if it exists
@@ -124,7 +124,7 @@ public interface IconService
      * @throws BadRequestException when icon key is not specified
      * @throws NotFoundException when no icon with the provided key exists
      */
-    void updateCustomIcon( String key, String description, List<String> keywords )
+    void updateCustomIcon( String key, String description, String[] keywords )
         throws BadRequestException,
         NotFoundException;
 

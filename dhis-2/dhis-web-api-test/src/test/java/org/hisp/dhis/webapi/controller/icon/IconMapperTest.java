@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.hisp.dhis.feedback.BadRequestException;
@@ -67,7 +66,7 @@ class IconMapperTest
 
     private static final String DESCRIPTION = "description";
 
-    private static final List<String> KEYWORDS = List.of( "k1", "k2" );
+    private static final String[] KEYWORDS = { "k1", "k2" };
 
     private static final FileResource fileResource = new FileResource();
 

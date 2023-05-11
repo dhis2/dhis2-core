@@ -31,10 +31,10 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -80,10 +80,10 @@ public class DefaultIconService
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Icon> getIcons( Collection<String> keywords )
+    public Collection<Icon> getIcons( String[] keywords )
     {
         return Stream.concat( defaultIcons.values().stream()
-            .filter( icon -> new HashSet<>( icon.getKeywords() ).containsAll( keywords ) ).toList().stream(),
+            .filter( icon -> Set.of( icon.getKeywords() ).containsAll( List.of( keywords ) ) ).toList().stream(),
             customIconStore.getIconsByKeywords( keywords ).stream() )
             .toList();
     }
@@ -142,7 +142,7 @@ public class DefaultIconService
     {
         return Stream.concat( defaultIcons.values().stream()
             .map( Icon::getKeywords )
-            .flatMap( List::stream ), customIconStore.getKeywords().stream() ).toList();
+            .flatMap( Arrays::stream ), customIconStore.getKeywords().stream() ).toList();
     }
 
     @Override
@@ -165,7 +165,7 @@ public class DefaultIconService
 
     @Override
     @Transactional
-    public void updateCustomIcon( String key, String description, List<String> keywords )
+    public void updateCustomIcon( String key, String description, String[] keywords )
         throws BadRequestException,
         NotFoundException
     {

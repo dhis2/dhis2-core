@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon.hibernate;
 
-import java.util.Collection;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -79,18 +78,18 @@ public class HibernateCustomIconStore
     }
 
     @Override
-    public List<CustomIcon> getIconsByKeywords( Collection<String> keywords )
+    public List<CustomIcon> getIconsByKeywords( String[] keywords )
     {
-        return sessionFactory.getCurrentSession().createNativeQuery(
-            "select c.* from customicon c join customiconkeywords k on k.customiconid = c.customiconid where k.keyword in (:keywords) group by c.customiconid having count (distinct k.keyword ) = :numKeywords ",
-            CustomIcon.class ).setParameter( "keywords", keywords )
-            .setParameter( "numKeywords", (long) keywords.size() ).getResultList();
+        return sessionFactory.getCurrentSession()
+            .createNativeQuery( "select * from customicon where keywords @> (:keywords)", CustomIcon.class )
+            .setParameter( "keywords", keywords ).getResultList();
     }
 
     @Override
     public List<String> getKeywords()
     {
-        return sessionFactory.getCurrentSession().createNativeQuery( "select distinct keyword from customiconkeywords" )
+        return sessionFactory.getCurrentSession()
+            .createNativeQuery( "select distinct unnest(keywords) from customicon" )
             .getResultList();
     }
 }

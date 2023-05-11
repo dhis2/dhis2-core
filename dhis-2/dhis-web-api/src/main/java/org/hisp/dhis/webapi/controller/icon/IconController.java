@@ -125,7 +125,7 @@ public class IconController
     }
 
     @GetMapping
-    public @ResponseBody List<IconDto> getAllIcons( @RequestParam( required = false ) Collection<String> keywords )
+    public @ResponseBody List<IconDto> getAllIcons( @RequestParam( required = false ) String[] keywords )
     {
         Collection<Icon> icons;
 

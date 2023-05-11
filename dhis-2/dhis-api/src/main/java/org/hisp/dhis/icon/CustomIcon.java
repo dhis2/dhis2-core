@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
-
 import javax.annotation.Nonnull;
 
 import lombok.Getter;
@@ -53,13 +51,13 @@ public class CustomIcon implements Icon
 
     private String description;
 
-    private List<String> keywords;
+    private String[] keywords;
 
     private FileResource fileResource;
 
     private User createdBy;
 
-    public CustomIcon( @Nonnull String key, String description, List<String> keywords,
+    public CustomIcon( @Nonnull String key, String description, String[] keywords,
         @Nonnull FileResource fileResource,
         User user )
     {

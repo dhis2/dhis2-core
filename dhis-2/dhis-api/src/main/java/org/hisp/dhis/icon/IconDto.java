@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -54,7 +52,7 @@ public class IconDto
     private String description;
 
     @JsonProperty
-    private List<String> keywords;
+    private String[] keywords;
 
     @JsonProperty
     private String fileResourceUid;
@@ -65,7 +63,7 @@ public class IconDto
     @JsonProperty( "href" )
     private String reference;
 
-    public IconDto( String key, String description, List<String> keywords, String reference )
+    public IconDto( String key, String description, String[] keywords, String reference )
     {
         this.key = key;
         this.description = description;

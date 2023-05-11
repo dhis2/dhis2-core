@@ -20,10 +20,7 @@
 
     <many-to-one name="fileResource" unique="true" not-null="true" column="fileresourceid" class="org.hisp.dhis.fileresource.FileResource"/>
 
-    <bag name="keywords" table="customiconkeywords">
-      <key column="customiconid" foreign-key="fk_keyword_customiconid" />
-      <element column="keyword" type="string"/>
-    </bag>
+    <property name="keywords" type="org.hisp.dhis.hibernate.icon.CustomStringArrayType"/>
 
     <many-to-one name="createdBy" class="org.hisp.dhis.user.User"
                  column="createdby"

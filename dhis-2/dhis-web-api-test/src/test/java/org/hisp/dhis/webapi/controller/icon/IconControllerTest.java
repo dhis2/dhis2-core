@@ -35,14 +35,14 @@ import java.io.InputStream;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.web.HttpStatus;
-import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;
 
-class IconControllerTest extends DhisControllerConvenienceTest
+class IconControllerTest extends DhisControllerIntegrationTest
 {
     private static final String iconKey = "iconKey";
 

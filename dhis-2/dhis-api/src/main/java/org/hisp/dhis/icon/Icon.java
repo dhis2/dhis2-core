@@ -27,13 +27,11 @@
  */
 package org.hisp.dhis.icon;
 
-import java.util.List;
-
 public interface Icon
 {
     String getKey();
 
     String getDescription();
 
-    List<String> getKeywords();
+    String[] getKeywords();
 }
