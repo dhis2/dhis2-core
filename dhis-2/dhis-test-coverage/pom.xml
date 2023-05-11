@@ -12,7 +12,7 @@
     <artifactId>dhis-test-coverage</artifactId>
     <name>DHIS Test Coverage</name>
     <!-- Aggregate coverage across module boundaries i.e. tests in module dhis-service-core testing code in dhis-api,
-         modules like dhis-web-api-test having no sources but only tests that test other modules -->
+         modules like dhis-test-web-api having no sources but only tests that test other modules -->
     <!-- Why do we need an extra module that lists all modules as dependencies only for coverage? See https://github.com/jacoco/jacoco/wiki/MavenMultiModule-->
     <!-- Official example: https://github.com/jacoco/jacoco/tree/v0.8.8/jacoco-maven-plugin.test/it/it-report-aggregate-->
     <dependencies>
@@ -124,12 +124,12 @@
             <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-web-api</artifactId>
         </dependency>
-        <!-- dhis-web-api-test and dhis-test-integration only contains tests, since they should contribute execution data
+        <!-- dhis-test-web-api and dhis-test-integration only contains tests, since they should contribute execution data
              but not itself be part of the report they have scope test
              https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-web-api-test</artifactId>
+            <artifactId>dhis-test-web-api</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
         </dependency>
@@ -182,7 +182,7 @@
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-artemis</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-support-cache-invalidation</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api</ignoredUnusedDeclaredDependency>
-                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-api-test</ignoredUnusedDeclaredDependency>
+                <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-test-web-api</ignoredUnusedDeclaredDependency>
                 <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-test-integration</ignoredUnusedDeclaredDependency>
                 <!-- surefire complains about it being missing, so I added it as a dependency even though dhis-test-coverage has no tests
                      better alternative would be a way to exclude the module from surefire itself -->
