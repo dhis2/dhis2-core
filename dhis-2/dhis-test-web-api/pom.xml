@@ -9,12 +9,12 @@
     <version>2.40.1-SNAPSHOT</version>
   </parent>
 
-  <artifactId>dhis-web-api-test</artifactId>
+  <artifactId>dhis-test-web-api</artifactId>
   <packaging>jar</packaging>
   <name>DHIS Web API Test</name>
 
   <build>
-    <finalName>dhis-web-api-test</finalName>
+    <finalName>dhis-test-web-api</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -135,7 +135,7 @@
   </profiles>
 
   <dependencies>
-    <!-- dhis-web-api-test only contains tests so test scope on modules it tests is intuitively correct, but to have its
+    <!-- dhis-test-web-api only contains tests so test scope on modules it tests is intuitively correct, but to have its
          coverage included in the report we need to use scope compile (or runtime, provided) see https://www.eclemma.org/jacoco/trunk/doc/report-aggregate-mojo.html -->
     <dependency>
       <groupId>org.hisp.dhis</groupId>
