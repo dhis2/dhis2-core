@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,48 +25,48 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.predictor;
+package org.hisp.dhis.scheduling;
 
-import java.util.Date;
-import java.util.List;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.security.SecurityContextRunnable;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.common.AsyncTaskExecutor;
+import org.hisp.dhis.eventhook.EventHookPublisher;
+import org.hisp.dhis.leader.election.LeaderManager;
+import org.hisp.dhis.message.MessageService;
+import org.hisp.dhis.system.notification.Notifier;
+import org.hisp.dhis.user.AuthenticationService;
+import org.hisp.dhis.user.UserService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.stereotype.Component;
 
-/**
- * @author Jim Grace
- */
-public class PredictionTask
-    extends SecurityContextRunnable
+@Component
+@Getter
+@RequiredArgsConstructor
+public class SchedulingManagerSupport
 {
-    private final Date startDate;
+    private final UserService userService;
 
-    private final Date endDate;
+    private final AuthenticationService authenticationService;
 
-    private final List<String> predictors;
+    private final JobService jobService;
 
-    private final List<String> predictorGroups;
+    private final JobConfigurationService jobConfigurationService;
 
-    private final PredictionService predictionService;
+    private final MessageService messageService;
 
-    private final JobProgress progress;
+    private final LeaderManager leaderManager;
 
-    public PredictionTask( Date startDate, Date endDate,
-        List<String> predictors, List<String> predictorGroups,
-        PredictionService predictionService, JobProgress progress )
-    {
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-        this.predictionService = predictionService;
-        this.progress = progress;
-    }
+    private final Notifier notifier;
 
-    @Override
-    public void call()
-    {
-        predictionService.predictTask( startDate, endDate,
-            predictors, predictorGroups, progress );
-    }
+    private final EventHookPublisher eventHookPublisher;
+
+    private final CacheProvider cacheProvider;
+
+    private final AsyncTaskExecutor taskExecutor;
+
+    @Qualifier( "taskScheduler" )
+    private final TaskScheduler jobScheduler;
 }
