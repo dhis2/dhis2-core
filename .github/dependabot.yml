@@ -58,7 +58,7 @@ updates:
         versions:
           - ">= 2.0"
   - package-ecosystem: "maven"
-    directory: "/dhis-2/dhis-e2e-test"
+    directory: "/dhis-2/dhis-test-e2e"
     schedule:
       interval: "daily"
       time: "02:17" # GitHub says 'High load times include the start of every hour'

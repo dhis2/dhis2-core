@@ -223,9 +223,9 @@ public class EventsTests
         // this test class should only test new tracker. The call should therefore be replaced with
         // trackerImportExportActions.getEvents( builder )
         // Right now this leads to this error
-        // dhis-e2e-test-test-1   | JSON path events doesn't match.
-        // dhis-e2e-test-test-1   | Expected: a collection with size a value equal to or greater than <1>
-        //     dhis-e2e-test-test-1   |   Actual: null
+        // dhis-test-e2e-test-1   | JSON path events doesn't match.
+        // dhis-test-e2e-test-1   | Expected: a collection with size a value equal to or greater than <1>
+        //     dhis-test-e2e-test-1   |   Actual: null
         eventActions.get( builder.build() )
             .validate().statusCode( 200 )
             .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
