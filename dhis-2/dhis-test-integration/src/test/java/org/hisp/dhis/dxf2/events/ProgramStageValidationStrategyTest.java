@@ -47,9 +47,9 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
@@ -80,7 +80,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private org.hisp.dhis.dxf2.events.event.EventService eventService;
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.EventService eventService;
 
     @Autowired
     private TrackedEntityInstanceService trackedEntityInstanceService;
@@ -101,17 +101,17 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
 
     private OrganisationUnit organisationUnitA;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueAMissing;
+    private DataValue dataValueAMissing;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueBMissing;
+    private DataValue dataValueBMissing;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueCMissing;
+    private DataValue dataValueCMissing;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueA;
+    private DataValue dataValueA;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueB;
+    private DataValue dataValueB;
 
-    private org.hisp.dhis.dxf2.events.event.DataValue dataValueC;
+    private DataValue dataValueC;
 
     private Program programA;
 
@@ -217,12 +217,12 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         categoryOptionComboA.getSharing().addUserAccess( userAccess1 );
         manager.save( categoryComboA, false );
         manager.save( categoryOptionComboA, false );
-        dataValueAMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementA.getUid(), "" );
-        dataValueBMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementB.getUid(), "" );
-        dataValueCMissing = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementC.getUid(), "" );
-        dataValueA = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementA.getUid(), "42" );
-        dataValueB = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementB.getUid(), "Ford Prefect" );
-        dataValueC = new org.hisp.dhis.dxf2.events.event.DataValue( dataElementC.getUid(), "84" );
+        dataValueAMissing = new DataValue( dataElementA.getUid(), "" );
+        dataValueBMissing = new DataValue( dataElementB.getUid(), "" );
+        dataValueCMissing = new DataValue( dataElementC.getUid(), "" );
+        dataValueA = new DataValue( dataElementA.getUid(), "42" );
+        dataValueB = new DataValue( dataElementB.getUid(), "Ford Prefect" );
+        dataValueC = new DataValue( dataElementC.getUid(), "84" );
     }
 
     /*
@@ -256,7 +256,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementsWithValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueB,
+            dataValueC );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
@@ -266,7 +267,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void missingCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing,
+            dataValueC );
         event.setStatus( EventStatus.COMPLETED );
         assertInvalidImport( addEvent( event ) );
     }
@@ -275,7 +277,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementAndCompletedEventWithValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueB,
+            dataValueC );
         event.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
@@ -291,7 +294,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void missingCompulsoryDataElementWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing,
+            dataValueC );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
     }
@@ -300,7 +304,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementsWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueB,
+            dataValueC );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
@@ -310,7 +315,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void missingCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldFailTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueBMissing,
+            dataValueC );
         event.setStatus( EventStatus.COMPLETED );
         assertInvalidImport( addEvent( event ) );
     }
@@ -319,7 +325,8 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementAndCompletedEventWithValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueB,
+            dataValueC );
         event.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
@@ -352,11 +359,12 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     {
         validationOnInsertUpdate( programStageA );
         // Create event having 3 Data Values
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueBMissing );
         // FIXME
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         // this
@@ -380,10 +388,11 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     {
         validationOnInsertUpdate( programStageA );
         // Create event
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         // Update Data Value value
         dataValueB.setValue( "new value" );
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueB );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
@@ -393,11 +402,13 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementButOtherCompulsoryMissingInDBAndValidationOnUpdateShouldFailTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueAMissing, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueAMissing, dataValueB,
+            dataValueC );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueB ), checkDataValue( dataValueC ) );
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueB );
         assertInvalidImport( updateEventWithSingleValueUpdate( updatedEvent ) );
     }
 
@@ -405,9 +416,10 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void emptyNonCompulsoryDataElementAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         // DataValueC is not mandatory - so ok to remove
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueCMissing );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
@@ -416,11 +428,12 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnUpdateShouldFailTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
@@ -434,9 +447,10 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         dataValueB.setValue( "new value" );
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
@@ -447,8 +461,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnUpdateShouldPassTest()
     {
         validationOnInsertUpdate( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
@@ -463,8 +478,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void compulsoryDataElementWithEmptyValueAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueBMissing );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
     }
@@ -473,9 +489,10 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         dataValueB.setValue( "new value" );
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueB );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );
@@ -485,8 +502,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void emptyNonCompulsoryDataElementAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueCMissing );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
@@ -495,11 +513,12 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void compulsoryDataElementWithEmptyValueCompletedEventAndValidationOnCompleteShouldFailTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
         // Single value update -> should pass -> because data values are fetched
         // from DB
         // and merged
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueBMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueBMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueC ) );
@@ -513,8 +532,9 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void correctCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueB );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueB );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
@@ -525,17 +545,19 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
     void emptyNonCompulsoryDataElementWithCompletedEventAndValidationOnCompleteShouldPassTest()
     {
         validationOnComplete( programStageA );
-        org.hisp.dhis.dxf2.events.event.Event event = addDefaultEvent();
-        org.hisp.dhis.dxf2.events.event.Event updatedEvent = createDefaultEvent( event.getUid(), dataValueCMissing );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = addDefaultEvent();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event updatedEvent = createDefaultEvent( event.getUid(),
+            dataValueCMissing );
         updatedEvent.setStatus( EventStatus.COMPLETED );
         assertSuccessfulImport( updateEventWithSingleValueUpdate( updatedEvent ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ) );
     }
 
-    private org.hisp.dhis.dxf2.events.event.Event createEvent( String program, String programStage, String orgUnit,
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent( String program, String programStage,
+        String orgUnit,
         String person )
     {
-        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
         event.setProgram( program );
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );
@@ -544,17 +566,17 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         return event;
     }
 
-    private ImportSummary addEvent( org.hisp.dhis.dxf2.events.event.Event event )
+    private ImportSummary addEvent( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
     {
         return eventService.addEvent( event, null, false );
     }
 
-    private ImportSummary updateEventWithSingleValueUpdate( org.hisp.dhis.dxf2.events.event.Event event )
+    private ImportSummary updateEventWithSingleValueUpdate( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
     {
         return eventService.updateEvent( event, true, null, false );
     }
 
-    private ImportSummary updateEvent( org.hisp.dhis.dxf2.events.event.Event event )
+    private ImportSummary updateEvent( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
     {
         return eventService.updateEvent( event, false, null, false );
     }
@@ -621,10 +643,11 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         manager.update( programStage );
     }
 
-    private org.hisp.dhis.dxf2.events.event.Event createDefaultEvent( DataValue... dataValues )
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createDefaultEvent( DataValue... dataValues )
     {
         final String uid = CodeGenerator.generateUid();
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValues ) );
@@ -633,9 +656,10 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         return event;
     }
 
-    private org.hisp.dhis.dxf2.events.event.Event createDefaultEvent( String uid, DataValue... dataValues )
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createDefaultEvent( String uid, DataValue... dataValues )
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid(),
             trackedEntityInstanceMaleA.getTrackedEntityInstance() );
         event.getDataValues().addAll( Arrays.asList( dataValues ) );
@@ -644,9 +668,10 @@ class ProgramStageValidationStrategyTest extends TransactionalIntegrationTest
         return event;
     }
 
-    private org.hisp.dhis.dxf2.events.event.Event addDefaultEvent()
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event addDefaultEvent()
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createDefaultEvent( dataValueA, dataValueB, dataValueC );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createDefaultEvent( dataValueA, dataValueB,
+            dataValueC );
         assertSuccessfulImport( addEvent( event ) );
         assertDataValuesOnPsi( event.getEvent(), checkDataValue( dataValueA ), checkDataValue( dataValueB ),
             checkDataValue( dataValueC ) );

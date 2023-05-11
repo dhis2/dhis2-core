@@ -38,7 +38,8 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.deprecated.tracker.EnrollmentParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -121,7 +122,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     {
         String enrollmentUid = CodeGenerator.generateUid();
 
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
             program.getUid(),
             trackedEntity.getUid() );
         enrollment.setEnrollment( enrollmentUid );
@@ -142,7 +143,7 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
     @Test
     void shouldSetUpdatedByUserInfoWhenUpdateEnrollments()
     {
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = enrollment( organisationUnitA.getUid(),
             program.getUid(),
             trackedEntity.getUid() );
         enrollment.setEnrollment( this.enrollment.getUid() );
@@ -157,10 +158,10 @@ class EnrollmentImportTest extends TransactionalIntegrationTest
                     .getLastUpdatedByUserInfo() ) );
     }
 
-    private org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment( String orgUnit, String program,
+    private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment( String orgUnit, String program,
         String trackedEntity )
     {
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
         enrollment.setOrgUnit( orgUnit );
         enrollment.setProgram( program );
         enrollment.setTrackedEntityInstance( trackedEntity );

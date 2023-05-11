@@ -37,7 +37,8 @@ import java.util.HashSet;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dxf2.events.event.DataValue;
+import org.hisp.dhis.dxf2.deprecated.tracker.EventParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -62,7 +63,7 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
 {
 
     @Autowired
-    private org.hisp.dhis.dxf2.events.event.EventService eventService;
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.EventService eventService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -124,7 +125,8 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     @Test
     void testGetPersonsByProgramStageInstance()
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -137,7 +139,8 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     @Test
     void testGetEventByUid()
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -148,7 +151,8 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     @Test
     void testSaveEvent()
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -164,7 +168,8 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
     @Test
     void testDeleteEvent()
     {
-        org.hisp.dhis.dxf2.events.event.Event event = createEvent( programA.getUid(), programStageA.getUid(),
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = createEvent( programA.getUid(),
+            programStageA.getUid(),
             organisationUnitA.getUid() );
         ImportSummary importSummary = eventService.addEvent( event, null, false );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
@@ -174,9 +179,10 @@ class NoRegistrationSingleEventServiceTest extends TransactionalIntegrationTest
         assertNull( programStageInstanceService.getEvent( importSummary.getReference() ) );
     }
 
-    private org.hisp.dhis.dxf2.events.event.Event createEvent( String program, String programStage, String orgUnit )
+    private org.hisp.dhis.dxf2.deprecated.tracker.event.Event createEvent( String program, String programStage,
+        String orgUnit )
     {
-        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
         event.setProgram( program );
         event.setProgramStage( programStage );
         event.setOrgUnit( orgUnit );

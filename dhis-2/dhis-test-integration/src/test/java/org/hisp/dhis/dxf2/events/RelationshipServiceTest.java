@@ -40,10 +40,10 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -243,7 +243,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
         enrollment.setEnrollment( enrollmentA.getUid() );
         to.setEnrollment( enrollment );
 
@@ -277,7 +277,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
         enrollment.setEnrollment( enrollmentB.getUid() );
         to.setEnrollment( enrollment );
 
@@ -310,7 +310,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
         event.setEvent( eventA.getUid() );
         to.setEvent( event );
 
@@ -344,7 +344,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
         event.setEvent( eventB.getUid() );
         to.setEvent( event );
 
