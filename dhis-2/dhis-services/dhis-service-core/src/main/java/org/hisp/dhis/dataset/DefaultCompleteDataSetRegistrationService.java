@@ -131,10 +131,7 @@ public class DefaultCompleteDataSetRegistrationService
     {
         registration.setLastUpdated( new Date() );
 
-        if ( !registration.hasLastUpdatedBy() )
-        {
-            registration.setLastUpdatedBy( currentUserService.getCurrentUsername() );
-        }
+        registration.setLastUpdatedBy( currentUserService.getCurrentUsername() );
 
         completeDataSetRegistrationStore.updateCompleteDataSetRegistration( registration );
     }

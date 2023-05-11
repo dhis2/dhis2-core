@@ -136,8 +136,22 @@ public class CommonParams
      * of the option instead of the code, or the name of the legend instead of
      * the legend ID, in the data response.
      */
-    @Builder.Default
-    private final IdScheme dataIdScheme = UID;
+    private final IdScheme dataIdScheme;
+
+    /**
+     * The general id scheme, which drives the values in the response object.
+     */
+    private final IdScheme outputIdScheme;
+
+    /**
+     * The id scheme specific for data elements.
+     */
+    private final IdScheme outputDataElementIdScheme;
+
+    /**
+     * The id scheme specific for org units.
+     */
+    private final IdScheme outputOrgUnitIdScheme;
 
     /**
      * Overrides the start date of the relative period. e.g: "2016-01-01".
@@ -178,6 +192,51 @@ public class CommonParams
      * Indicates if additional ou hierarchy data should be provided.
      */
     private final boolean showHierarchy;
+
+    /**
+     * weather the query should consider only items with lat/long coordinates
+     */
+    private boolean coordinatesOnly;
+
+    /**
+     * weather the query should consider only items with geometry
+     */
+    private boolean geometryOnly;
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different
+     * from the default (UID).
+     */
+    public boolean isGeneralOutputIdSchemeSet()
+    {
+        return outputIdScheme != null && !UID.equals( outputIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different
+     * from the default (UID).
+     */
+    public boolean isOutputDataElementIdSchemeSet()
+    {
+        return outputDataElementIdScheme != null && !UID.equals( outputDataElementIdScheme );
+    }
+
+    /**
+     * Indicates whether this query defines a master identifier scheme different
+     * from the default (UID).
+     */
+    public boolean isOutputOrgUnitIdSchemeSet()
+    {
+        return outputOrgUnitIdScheme != null && !UID.equals( outputOrgUnitIdScheme );
+    }
+
+    /**
+     * Indicates whether a non-default identifier scheme is specified.
+     */
+    public boolean hasCustomIdSchemaSet()
+    {
+        return isGeneralOutputIdSchemeSet() || isOutputDataElementIdSchemeSet() || isOutputOrgUnitIdSchemeSet();
+    }
 
     public List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
     {

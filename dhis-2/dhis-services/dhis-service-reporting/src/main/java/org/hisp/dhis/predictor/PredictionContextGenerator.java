@@ -79,7 +79,7 @@ public class PredictionContextGenerator
 
             for ( Period outputPeriod : outputPeriods )
             {
-                contexts.add( new PredictionContext( preDis.getOutputCoc(), aoc, outputPeriod, periodValueMap ) );
+                contexts.add( new PredictionContext( preDis.getOutputCombo(), aoc, outputPeriod, periodValueMap ) );
             }
         }
 

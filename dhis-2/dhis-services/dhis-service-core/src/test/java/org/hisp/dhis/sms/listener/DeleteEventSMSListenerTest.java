@@ -43,9 +43,9 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
@@ -61,7 +61,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class DeleteEventSMSListenerTest extends
+class DeleteEventSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 
@@ -93,7 +94,7 @@ class DeleteEventSMSListenerTest extends
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -112,7 +113,7 @@ class DeleteEventSMSListenerTest extends
 
     private IncomingSms incomingSmsDelete;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     @BeforeEach
     public void initTest()
@@ -120,7 +121,7 @@ class DeleteEventSMSListenerTest extends
     {
         subject = new DeleteEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, identifiableObjectManager );
+            eventService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -130,7 +131,7 @@ class DeleteEventSMSListenerTest extends
             message = (String) invocation.getArguments()[1];
             return response;
         } );
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+        when( eventService.getEvent( anyString() ) ).thenReturn( event );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
@@ -156,8 +157,8 @@ class DeleteEventSMSListenerTest extends
         user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
         incomingSmsDelete = createSMSFromSubmission( createDeleteSubmission() );
     }
@@ -167,7 +168,7 @@ class DeleteEventSMSListenerTest extends
         DeleteSmsSubmission subm = new DeleteSmsSubmission();
 
         subm.setUserId( user.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
+        subm.setEvent( event.getUid() );
         subm.setSubmissionId( 1 );
 
         return subm;

@@ -43,7 +43,7 @@ public class Order
 
         private String name;
 
-        Attribute( final String name )
+        Attribute( String name )
         {
             this.name = name;
         }

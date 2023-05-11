@@ -11,7 +11,7 @@
             <generator class="native"/>
         </id>
 
-        <many-to-one name="entityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+        <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
                      column="trackedentityinstanceid"
                      foreign-key="fk_attributevalueaudit_trackedentityinstanceid"/>
 

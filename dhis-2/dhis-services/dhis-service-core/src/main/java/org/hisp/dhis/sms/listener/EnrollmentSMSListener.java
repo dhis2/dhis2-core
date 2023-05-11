@@ -42,12 +42,12 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -58,10 +58,10 @@ import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -77,9 +77,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class EnrollmentSMSListener extends CompressionSMSListener
 {
-    private final TrackedEntityInstanceService teiService;
+    private final TrackedEntityService teiService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackedEntityAttributeValueService attributeValueService;
 
@@ -92,17 +92,17 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
         DataElementService dataElementService, ProgramStageService programStageService,
-        ProgramStageInstanceService programStageInstanceService,
-        TrackedEntityAttributeValueService attributeValueService, TrackedEntityInstanceService teiService,
-        ProgramInstanceService programInstanceService, IdentifiableObjectManager identifiableObjectManager )
+        EventService eventService,
+        TrackedEntityAttributeValueService attributeValueService, TrackedEntityService teiService,
+        EnrollmentService enrollmentService, IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            programService, organisationUnitService, categoryService, dataElementService, eventService,
             identifiableObjectManager );
 
         this.teiService = teiService;
         this.programStageService = programStageService;
-        this.programInstanceService = programInstanceService;
+        this.enrollmentService = enrollmentService;
         this.attributeValueService = attributeValueService;
         this.userService = userService;
     }
@@ -141,52 +141,52 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.OU_NOTIN_PROGRAM.set( ouid, progid ) );
         }
 
-        TrackedEntityInstance entityInstance;
-        boolean teiExists = teiService.trackedEntityInstanceExists( teiUid.getUid() );
+        TrackedEntity trackedEntity;
+        boolean teiExists = teiService.trackedEntityExists( teiUid.getUid() );
 
         if ( teiExists )
         {
             log.info( String.format( "Given TEI [%s] exists. Updating...", teiUid ) );
-            entityInstance = teiService.getTrackedEntityInstance( teiUid.getUid() );
+            trackedEntity = teiService.getTrackedEntity( teiUid.getUid() );
         }
         else
         {
             log.info( String.format( "Given TEI [%s] does not exist. Creating...", teiUid ) );
-            entityInstance = new TrackedEntityInstance();
-            entityInstance.setUid( teiUid.getUid() );
-            entityInstance.setOrganisationUnit( orgUnit );
-            entityInstance.setTrackedEntityType( entityType );
+            trackedEntity = new TrackedEntity();
+            trackedEntity.setUid( teiUid.getUid() );
+            trackedEntity.setOrganisationUnit( orgUnit );
+            trackedEntity.setTrackedEntityType( entityType );
         }
 
-        Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues( subm, entityInstance );
+        Set<TrackedEntityAttributeValue> attributeValues = getSMSAttributeValues( subm, trackedEntity );
 
         if ( teiExists )
         {
-            updateAttributeValues( attributeValues, entityInstance.getTrackedEntityAttributeValues() );
-            entityInstance.setTrackedEntityAttributeValues( attributeValues );
-            teiService.updateTrackedEntityInstance( entityInstance );
+            updateAttributeValues( attributeValues, trackedEntity.getTrackedEntityAttributeValues() );
+            trackedEntity.setTrackedEntityAttributeValues( attributeValues );
+            teiService.updateTrackedEntity( trackedEntity );
         }
         else
         {
-            teiService.createTrackedEntityInstance( entityInstance, attributeValues );
+            teiService.createTrackedEntity( trackedEntity, attributeValues );
         }
 
-        TrackedEntityInstance tei = teiService.getTrackedEntityInstance( teiUid.getUid() );
+        TrackedEntity tei = teiService.getTrackedEntity( teiUid.getUid() );
 
         // TODO: Unsure about this handling for enrollments, this needs to be
         // checked closely
-        ProgramInstance enrollment;
-        boolean enrollmentExists = programInstanceService.programInstanceExists( enrollmentid.getUid() );
+        Enrollment enrollment;
+        boolean enrollmentExists = enrollmentService.enrollmentExists( enrollmentid.getUid() );
         if ( enrollmentExists )
         {
-            enrollment = programInstanceService.getProgramInstance( enrollmentid.getUid() );
+            enrollment = enrollmentService.getEnrollment( enrollmentid.getUid() );
             // Update these dates in case they've changed
             enrollment.setEnrollmentDate( enrollmentDate );
             enrollment.setIncidentDate( incidentDate );
         }
         else
         {
-            enrollment = programInstanceService.enrollTrackedEntityInstance( tei, program, enrollmentDate, incidentDate,
+            enrollment = enrollmentService.enrollTrackedEntity( tei, program, enrollmentDate, incidentDate,
                 orgUnit, enrollmentid.getUid() );
         }
         if ( enrollment == null )
@@ -195,7 +195,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
         enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
-        programInstanceService.updateProgramInstance( enrollment );
+        enrollmentService.updateEnrollment( enrollment );
 
         // We now check if the enrollment has events to process
         User user = userService.getUser( subm.getUserId().getUid() );
@@ -209,7 +209,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         enrollment.setStatus( getCoreProgramStatus( subm.getEnrollmentStatus() ) );
         enrollment.setGeometry( convertGeoPointToGeometry( subm.getCoordinates() ) );
-        programInstanceService.updateProgramInstance( enrollment );
+        enrollmentService.updateEnrollment( enrollment );
 
         if ( !errorUIDs.isEmpty() )
         {
@@ -268,7 +268,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
     }
 
     private Set<TrackedEntityAttributeValue> getSMSAttributeValues( EnrollmentSmsSubmission submission,
-        TrackedEntityInstance entityInstance )
+        TrackedEntity entityInstance )
     {
         if ( submission.getValues() == null )
         {
@@ -279,7 +279,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
     }
 
     protected TrackedEntityAttributeValue createTrackedEntityValue( SmsAttributeValue SMSAttributeValue,
-        TrackedEntityInstance tei )
+        TrackedEntity tei )
     {
         Uid attribUid = SMSAttributeValue.getAttribute();
         String val = SMSAttributeValue.getValue();
@@ -298,12 +298,12 @@ public class EnrollmentSMSListener extends CompressionSMSListener
         }
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( attribute );
-        trackedEntityAttributeValue.setEntityInstance( tei );
+        trackedEntityAttributeValue.setTrackedEntity( tei );
         trackedEntityAttributeValue.setValue( val );
         return trackedEntityAttributeValue;
     }
 
-    protected List<Object> processEvent( SmsEvent event, User user, ProgramInstance programInstance, IncomingSms sms )
+    protected List<Object> processEvent( SmsEvent event, User user, Enrollment enrollment, IncomingSms sms )
     {
         Uid stageid = event.getProgramStage();
         Uid aocid = event.getAttributeOptionCombo();
@@ -327,7 +327,7 @@ public class EnrollmentSMSListener extends CompressionSMSListener
             throw new SMSProcessingException( SmsResponse.INVALID_AOC.set( aocid ) );
         }
 
-        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, programInstance, sms,
+        List<Object> errorUIDs = saveNewEvent( event.getEvent().getUid(), orgUnit, programStage, enrollment, sms,
             aoc, user, event.getValues(), event.getEventStatus(), event.getEventDate(), event.getDueDate(),
             event.getCoordinates() );
 

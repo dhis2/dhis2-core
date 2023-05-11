@@ -148,9 +148,6 @@ public class BulkPatchManager
 
         // we don't allow changing UIDs
         ((BaseIdentifiableObject) patchedObject.get()).setUid( id );
-
-        // Only supports new Sharing format
-        ((BaseIdentifiableObject) patchedObject.get()).clearLegacySharingCollections();
     }
 
     private static TypeReport createTypeReport( Class<?> klass, String id, ErrorReport errorReport )

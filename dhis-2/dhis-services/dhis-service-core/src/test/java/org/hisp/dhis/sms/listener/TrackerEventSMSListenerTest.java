@@ -50,13 +50,13 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
@@ -81,7 +81,8 @@ import com.google.common.collect.Sets;
 
 @MockitoSettings( strictness = Strictness.LENIENT )
 @ExtendWith( MockitoExtension.class )
-class TrackerEventSMSListenerTest extends
+class TrackerEventSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 
@@ -113,7 +114,7 @@ class TrackerEventSMSListenerTest extends
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -129,7 +130,7 @@ class TrackerEventSMSListenerTest extends
     // Needed for this test
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private ProgramStageService programStageService;
@@ -152,9 +153,9 @@ class TrackerEventSMSListenerTest extends
 
     private ProgramStage programStage;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     @BeforeEach
     public void initTest()
@@ -162,7 +163,7 @@ class TrackerEventSMSListenerTest extends
     {
         subject = new TrackerEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, programStageService, programInstanceService, identifiableObjectManager );
+            eventService, programStageService, enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -175,7 +176,7 @@ class TrackerEventSMSListenerTest extends
 
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programStageService.getProgramStage( anyString() ) ).thenReturn( programStage );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
         when( dataElementService.getDataElement( anyString() ) ).thenReturn( dataElement );
         when( categoryService.getCategoryOptionCombo( anyString() ) ).thenReturn( categoryOptionCombo );
 
@@ -253,12 +254,12 @@ class TrackerEventSMSListenerTest extends
         stages.add( programStage );
         program.setProgramStages( stages );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( program );
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
+        enrollment.setProgram( program );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
         incomingSmsTrackerEvent = createSMSFromSubmission( createTrackerEventSubmission() );
         incomingSmsTrackerEventWithNulls = createSMSFromSubmission( createTrackerEventSubmissionWithNulls() );
@@ -273,8 +274,8 @@ class TrackerEventSMSListenerTest extends
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setProgramStage( programStage.getUid() );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        subm.setEnrollment( programInstance.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
+        subm.setEnrollment( enrollment.getUid() );
+        subm.setEvent( event.getUid() );
         subm.setEventStatus( SmsEventStatus.COMPLETED );
         subm.setEventDate( new Date() );
         subm.setDueDate( new Date() );

@@ -53,7 +53,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programRuleAction", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleAction
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The programRule that the action belongs to

@@ -366,7 +366,7 @@ public class DefaultPushAnalysisService
      * @param user the user generate the Visualization.
      * @return absolute URL to the uploaded image.
      */
-    private String generateVisualizationHtml( final Visualization visualization, final User user )
+    private String generateVisualizationHtml( Visualization visualization, User user )
         throws IOException
     {
         switch ( visualization.getType() )
@@ -385,7 +385,7 @@ public class DefaultPushAnalysisService
      * @param user user to generate chart for
      * @return absolute URL to uploaded image
      */
-    private String generateChartHtml( final Visualization visualization, User user )
+    private String generateChartHtml( Visualization visualization, User user )
         throws IOException
     {
         JFreeChart jFreechart = chartService
@@ -401,7 +401,7 @@ public class DefaultPushAnalysisService
      * @param user user generating the Pivot.
      * @return a HTML representation of the Pivot table.
      */
-    private String generateReportTableHtml( final Visualization visualization, User user )
+    private String generateReportTableHtml( Visualization visualization, User user )
     {
         StringWriter stringWriter = new StringWriter();
 

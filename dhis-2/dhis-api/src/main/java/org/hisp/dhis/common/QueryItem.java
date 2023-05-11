@@ -303,7 +303,7 @@ public class QueryItem implements GroupableItem
         return getQueryFilterItems().stream()
             .map( code -> optionSet.getOptionByCode( code ) )
             .filter( Objects::nonNull )
-            .map( BaseIdentifiableObject::getUid )
+            .map( IdentifiableObject::getUid )
             .collect( Collectors.toList() );
     }
 

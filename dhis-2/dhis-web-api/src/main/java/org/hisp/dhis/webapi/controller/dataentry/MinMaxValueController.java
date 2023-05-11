@@ -71,7 +71,7 @@ public class MinMaxValueController
         saveOrUpdateMinMaxDataElement( valueDto );
     }
 
-    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_DELETE')" )
+    @PreAuthorize( "hasRole('ALL') or hasRole('F_MINMAX_DATAELEMENT_ADD')" )
     @DeleteMapping( "/minMaxValues" )
     @ResponseStatus( value = HttpStatus.NO_CONTENT )
     public void removeMinMaxValue( MinMaxValueQueryParams params )

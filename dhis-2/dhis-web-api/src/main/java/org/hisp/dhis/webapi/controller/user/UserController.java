@@ -49,6 +49,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -97,15 +98,16 @@ import org.hisp.dhis.schema.descriptors.UserSchemaDescriptor;
 import org.hisp.dhis.security.RestoreOptions;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroupService;
 import org.hisp.dhis.user.UserInvitationStatus;
 import org.hisp.dhis.user.UserQueryParams;
-import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.user.UserSetting;
 import org.hisp.dhis.user.UserSettingKey;
-import org.hisp.dhis.user.UserSettingService;
 import org.hisp.dhis.user.Users;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -127,7 +129,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.fasterxml.jackson.core.JsonPointer;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.google.common.collect.Lists;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -143,15 +144,8 @@ public class UserController
 
     public static final String BULK_INVITE_PATH = "/invites";
 
-    private static final String KEY_USERNAME = "username";
-
-    private static final String KEY_PASSWORD = "password";
-
     @Autowired
     protected DbmsManager dbmsManager;
-
-    @Autowired
-    private UserService userService;
 
     @Autowired
     private UserGroupService userGroupService;
@@ -166,7 +160,7 @@ public class UserController
     private OrganisationUnitService organisationUnitService;
 
     @Autowired
-    private UserSettingService userSettingService;
+    private PasswordValidationService passwordValidationService;
 
     // -------------------------------------------------------------------------
     // GET
@@ -262,14 +256,16 @@ public class UserController
     }
 
     @Override
-    protected List<User> getEntity( String uid, WebOptions options )
+    @Nonnull
+    protected User getEntity( String uid, WebOptions options )
+        throws NotFoundException
     {
-        List<User> users = Lists.newArrayList();
-        Optional<User> user = Optional.ofNullable( userService.getUser( uid ) );
-
-        user.ifPresent( users::add );
-
-        return users;
+        User user = userService.getUser( uid );
+        if ( user == null )
+        {
+            throw new NotFoundException( User.class, uid );
+        }
+        return user;
     }
 
     @Override
@@ -510,12 +506,17 @@ public class UserController
 
         Map<String, String> auth = renderService.fromJson( request.getInputStream(), Map.class );
 
-        String username = StringUtils.trimToNull( auth != null ? auth.get( KEY_USERNAME ) : null );
-        String password = StringUtils.trimToNull( auth != null ? auth.get( KEY_PASSWORD ) : null );
+        String username = StringUtils.trimToNull( auth != null ? auth.get( "username" ) : null );
+        String password = StringUtils.trimToNull( auth != null ? auth.get( "password" ) : null );
 
         if ( auth == null || username == null )
         {
             return conflict( "Username must be specified" );
+        }
+
+        if ( !ValidationUtils.usernameIsValid( username, false ) )
+        {
+            return conflict( "Username is not valid" );
         }
 
         if ( userService.getUserByUsername( username ) != null )
@@ -528,9 +529,14 @@ public class UserController
             return conflict( "Password must be specified" );
         }
 
-        if ( !ValidationUtils.passwordIsValid( password ) )
+        CredentialsInfo credentialsInfo = new CredentialsInfo( username, password,
+            existingUser.getEmail() != null ? existingUser.getEmail() : "", false );
+
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        if ( !result.isValid() )
         {
-            return conflict( "Password must have at least 8 characters, one digit, one uppercase" );
+            return conflict( result.getErrorMessage() );
         }
 
         User userReplica = new User();
@@ -545,6 +551,7 @@ public class UserController
         userReplica.setLdapId( null );
         userReplica.setOpenId( null );
         userReplica.setUsername( username );
+        userReplica.setLastLogin( null );
         userService.encodeAndSetPassword( userReplica, password );
 
         userService.addUser( userReplica );
@@ -637,7 +644,8 @@ public class UserController
         HttpServletResponse response )
         throws IOException,
         ForbiddenException,
-        ConflictException
+        ConflictException,
+        NotFoundException
     {
         User parsed = renderService.fromXml( request.getInputStream(), getEntityClass() );
 
@@ -652,18 +660,15 @@ public class UserController
         HttpServletRequest request )
         throws IOException,
         ConflictException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         User inputUser = renderService.fromJson( request.getInputStream(), getEntityClass() );
 
-        List<User> users = getEntity( pvUid, NO_WEB_OPTIONS );
-        if ( users.isEmpty() )
-        {
-            throw new ConflictException( getEntityName() + " does not exist: " + pvUid );
-        }
+        User user = getEntity( pvUid );
 
         // TODO: To remove when we remove old UserCredentials compatibility
-        populateUserCredentialsDtoCopyOnlyChanges( users.get( 0 ), inputUser );
+        populateUserCredentialsDtoCopyOnlyChanges( user, inputUser );
 
         return importReport( updateUser( pvUid, inputUser ) )
             .withPlainResponseBefore( DhisApiVersion.V38 );
@@ -671,18 +676,14 @@ public class UserController
 
     protected ImportReport updateUser( String userUid, User inputUser )
         throws ConflictException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
-        List<User> users = getEntity( userUid, NO_WEB_OPTIONS );
-
-        if ( users.isEmpty() )
-        {
-            throw new ConflictException( getEntityName() + " does not exist: " + userUid );
-        }
+        User user = getEntity( userUid );
 
         User currentUser = currentUserService.getCurrentUser();
 
-        if ( !aclService.canUpdate( currentUser, users.get( 0 ) ) )
+        if ( !aclService.canUpdate( currentUser, user ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to update this user." );
         }
@@ -692,16 +693,16 @@ public class UserController
         // (in case it gets detached)
         currentUser.getAllAuthorities();
 
-        inputUser.setId( users.get( 0 ).getId() );
+        inputUser.setId( user.getId() );
         inputUser.setUid( userUid );
-        mergeLastLoginAttribute( users.get( 0 ), inputUser );
+        mergeLastLoginAttribute( user, inputUser );
 
         boolean isPasswordChangeAttempt = inputUser.getPassword() != null;
 
         List<String> groupsUids = getUids( inputUser.getGroups() );
 
         if ( !userService.canAddOrUpdateUser( groupsUids, currentUser )
-            || !currentUser.canModifyUser( users.get( 0 ) ) )
+            || !currentUser.canModifyUser( user ) )
         {
             throw new ConflictException(
                 "You must have permissions to create user, " +

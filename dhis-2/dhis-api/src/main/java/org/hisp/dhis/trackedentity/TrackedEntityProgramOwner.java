@@ -48,7 +48,7 @@ public class TrackedEntityProgramOwner implements Serializable
 {
     private int id;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity trackedEntity;
 
     private Program program;
 
@@ -69,10 +69,10 @@ public class TrackedEntityProgramOwner implements Serializable
         this.createdBy = "internal";
     }
 
-    public TrackedEntityProgramOwner( TrackedEntityInstance trackedEntityInstance, Program program,
+    public TrackedEntityProgramOwner( TrackedEntity trackedEntity, Program program,
         OrganisationUnit organisationUnit )
     {
-        this.entityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
         this.program = program;
         this.organisationUnit = organisationUnit;
         this.createdBy = "internal";
@@ -97,7 +97,7 @@ public class TrackedEntityProgramOwner implements Serializable
         final int prime = 31;
         int result = super.hashCode();
 
-        result = prime * result + ((entityInstance == null) ? 0 : entityInstance.hashCode());
+        result = prime * result + ((trackedEntity == null) ? 0 : trackedEntity.hashCode());
         result = prime * result + ((program == null) ? 0 : program.hashCode());
 
         return result;
@@ -123,14 +123,14 @@ public class TrackedEntityProgramOwner implements Serializable
 
         final TrackedEntityProgramOwner other = (TrackedEntityProgramOwner) object;
 
-        if ( entityInstance == null )
+        if ( trackedEntity == null )
         {
-            if ( other.entityInstance != null )
+            if ( other.trackedEntity != null )
             {
                 return false;
             }
         }
-        else if ( !entityInstance.equals( other.entityInstance ) )
+        else if ( !trackedEntity.equals( other.trackedEntity ) )
         {
             return false;
         }
@@ -170,14 +170,14 @@ public class TrackedEntityProgramOwner implements Serializable
     @JsonProperty( "trackedEntityInstance" )
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( localName = "trackedEntityInstance", namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntityInstance trackedEntityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = trackedEntityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

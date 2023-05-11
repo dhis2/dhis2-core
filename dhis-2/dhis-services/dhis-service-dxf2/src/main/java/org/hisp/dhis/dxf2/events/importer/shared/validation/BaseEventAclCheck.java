@@ -36,8 +36,8 @@ import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.User;
 
@@ -50,7 +50,7 @@ public abstract class BaseEventAclCheck implements Checker
     {
         ImportOptions importOptions = ctx.getImportOptions();
 
-        ProgramStageInstance programStageInstance = prepareForAclValidation( ctx, event );
+        Event programStageInstance = prepareForAclValidation( ctx, event );
 
         List<String> errors = checkAcl( ctx.getServiceDelegator().getTrackerAccessManager(), importOptions.getUser(),
             programStageInstance );
@@ -67,20 +67,20 @@ public abstract class BaseEventAclCheck implements Checker
         return importSummary;
     }
 
-    private ProgramStageInstance prepareForAclValidation( WorkContext ctx, ImmutableEvent event )
+    private Event prepareForAclValidation( WorkContext ctx, ImmutableEvent event )
     {
         final IdScheme programStageIdScheme = ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme();
 
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
+        Event programStageInstance = new Event();
         programStageInstance.setProgramStage( ctx.getProgramStage( programStageIdScheme, event.getProgramStage() ) );
         programStageInstance.setOrganisationUnit( ctx.getOrganisationUnitMap().get( event.getUid() ) );
         programStageInstance.setStatus( event.getStatus() );
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
-        programStageInstance.setProgramInstance( programInstance );
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
+        programStageInstance.setEnrollment( enrollment );
 
         return programStageInstance;
     }
 
     public abstract List<String> checkAcl( TrackerAccessManager trackerAccessManager, User user,
-        ProgramStageInstance programStageInstance );
+        Event event );
 }

@@ -33,7 +33,7 @@ import lombok.Getter;
 import org.hisp.dhis.artemis.audit.AuditManager;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstanceStore;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.springframework.context.ApplicationEventPublisher;
@@ -51,7 +51,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Builder
 public class ServiceDelegator
 {
-    private final ProgramInstanceStore programInstanceStore;
+    private final EnrollmentStore enrollmentStore;
 
     private final TrackerAccessManager trackerAccessManager;
 

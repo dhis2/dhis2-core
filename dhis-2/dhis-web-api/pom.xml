@@ -101,10 +101,6 @@
       <artifactId>spring-security-config</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.springframework.security.oauth</groupId>
-      <artifactId>spring-security-oauth2</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-oauth2-core</artifactId>
     </dependency>
@@ -340,6 +336,12 @@
     <dependency>
       <groupId>io.github.classgraph</groupId>
       <artifactId>classgraph</artifactId>
+    </dependency>
+
+    <!-- Image Processing -->
+    <dependency>
+      <groupId>org.imgscalr</groupId>
+      <artifactId>imgscalr-lib</artifactId>
     </dependency>
 
     <!-- Test -->

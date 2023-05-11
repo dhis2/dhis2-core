@@ -101,8 +101,8 @@ public class DataItemQueryController
      * @return the list of items found in JSON format
      */
     @GetMapping( value = API_RESOURCE_PATH, produces = APPLICATION_JSON_VALUE )
-    public ResponseEntity<RootNode> getJson( @RequestParam
-    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
+    public ResponseEntity<RootNode> getJson( @RequestParam Map<String, String> urlParameters,
+        OrderParams orderParams, @CurrentUser User currentUser )
         throws QueryParserException
     {
         log.debug( "Looking for data items (JSON response)" );
@@ -116,8 +116,8 @@ public class DataItemQueryController
      * @return the list of items found in XML format
      */
     @GetMapping( value = API_RESOURCE_PATH + ".xml", produces = APPLICATION_XML_VALUE )
-    public ResponseEntity<RootNode> getXml( @RequestParam
-    final Map<String, String> urlParameters, OrderParams orderParams, @CurrentUser User currentUser )
+    public ResponseEntity<RootNode> getXml( @RequestParam Map<String, String> urlParameters,
+        OrderParams orderParams, @CurrentUser User currentUser )
     {
         log.debug( "Looking for data items (XML response)" );
 
@@ -171,12 +171,11 @@ public class DataItemQueryController
         return new ResponseEntity<>( rootNode, OK );
     }
 
-    private void checkAuthorization( final User currentUser,
-        final Set<Class<? extends BaseIdentifiableObject>> entities )
+    private void checkAuthorization( User currentUser, Set<Class<? extends BaseIdentifiableObject>> entities )
     {
         if ( isNotEmpty( entities ) )
         {
-            for ( final Class<? extends BaseIdentifiableObject> entity : entities )
+            for ( Class<? extends BaseIdentifiableObject> entity : entities )
             {
                 if ( !aclService.canRead( currentUser, entity ) )
                 {

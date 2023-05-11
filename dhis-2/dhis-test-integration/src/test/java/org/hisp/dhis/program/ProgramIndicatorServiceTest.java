@@ -56,10 +56,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.util.DateUtils;
@@ -80,7 +80,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private TrackedEntityAttributeService attributeService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -92,7 +92,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private DataElementService dataElementService;
@@ -104,7 +104,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ConstantService constantService;
@@ -121,7 +121,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
 
     private Program programB;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private DataElement deAInteger;
 
@@ -242,17 +242,17 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         programStageDataElementService.addProgramStageDataElement( stageDataElementI );
         programStageDataElementService.addProgramStageDataElement( stageDataElementJ );
         // ---------------------------------------------------------------------
-        // TrackedEntityInstance & Enrollment
+        // TrackedEntity & Enrollment
         // ---------------------------------------------------------------------
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnit );
+        entityInstanceService.addTrackedEntity( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntity( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );
-        programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, programA, enrollmentDate,
+        enrollment = enrollmentService.enrollTrackedEntity( entityInstance, programA, enrollmentDate,
             incidentDate, organisationUnit );
         // TODO enroll twice?
         // ---------------------------------------------------------------------
@@ -271,15 +271,15 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         // ---------------------------------------------------------------------
         // TrackedEntityDataValue
         // ---------------------------------------------------------------------
-        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceA = eventService.createEvent( enrollment,
             psA, enrollmentDate, incidentDate, organisationUnit );
-        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceB = eventService.createEvent( enrollment,
             psB, enrollmentDate, incidentDate, organisationUnit );
-        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
-        programStageInstances.add( stageInstanceA );
-        programStageInstances.add( stageInstanceB );
-        programInstance.setProgramStageInstances( programStageInstances );
-        programInstance.setProgram( programA );
+        Set<Event> events = new HashSet<>();
+        events.add( stageInstanceA );
+        events.add( stageInstanceB );
+        enrollment.setEvents( events );
+        enrollment.setProgram( programA );
         // ---------------------------------------------------------------------
         // Constant
         // ---------------------------------------------------------------------

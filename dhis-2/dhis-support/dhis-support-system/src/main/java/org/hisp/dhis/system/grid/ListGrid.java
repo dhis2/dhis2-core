@@ -45,6 +45,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import net.sf.jasperreports.engine.JRException;
@@ -112,6 +113,12 @@ public class ListGrid
     private PerformanceMetrics performanceMetrics;
 
     /**
+     * Transformed collection of the value meta information for better
+     * javascript handling. Describe origin of the repeatable stage value.
+     */
+    private Map<Integer, Map<String, Object>> rowContext;
+
+    /**
      * A Map which can hold internal arbitrary meta data. Will not be
      * serialized.
      */
@@ -154,6 +161,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = new HashMap<>();
         this.internalMetaData = new HashMap<>();
+        this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -166,6 +174,7 @@ public class ListGrid
         this.headers = new ArrayList<>();
         this.metaData = metaData;
         this.internalMetaData = internalMetaData;
+        this.rowContext = new TreeMap<>();
         this.grid = new ArrayList<>();
     }
 
@@ -372,6 +381,14 @@ public class ListGrid
     }
 
     @Override
+    public Grid setRowContext( Map<Integer, Map<String, Object>> rowContext )
+    {
+        this.rowContext = rowContext;
+
+        return this;
+    }
+
+    @Override
     public Grid setInternalMetaData( Map<String, Object> internalMetaData )
     {
         this.internalMetaData = internalMetaData;
@@ -383,6 +400,13 @@ public class ListGrid
     public PerformanceMetrics getPerformanceMetrics()
     {
         return performanceMetrics;
+    }
+
+    @Override
+    @JsonProperty
+    public Map<Integer, Map<String, Object>> getRowContext()
+    {
+        return rowContext;
     }
 
     @Override

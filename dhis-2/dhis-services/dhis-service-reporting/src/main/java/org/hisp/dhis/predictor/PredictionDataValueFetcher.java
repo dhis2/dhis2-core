@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.predictor;
 
+import static java.util.Collections.emptyList;
+import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toMap;
+import static org.hisp.dhis.common.DimensionalObjectUtils.COMPOSITE_DIM_OBJECT_PLAIN_SEP;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
 import static org.hisp.dhis.commons.collection.CollectionUtils.isEmpty;
 import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_UNIT;
@@ -34,6 +39,7 @@ import static org.hisp.dhis.datavalue.DataValueStore.DDV_QUEUE_TIMEOUT_VALUE;
 import static org.hisp.dhis.datavalue.DataValueStore.END_OF_DDV_DATA;
 import static org.hisp.dhis.system.util.MathUtils.addDoubleObjects;
 import static org.hisp.dhis.system.util.ValidationUtils.getObjectValue;
+import static org.hisp.dhis.util.ObjectUtils.firstNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,15 +52,12 @@ import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.MapMapMap;
-import org.hisp.dhis.commons.collection.CachingMap;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.datavalue.DataExportParams;
@@ -82,7 +85,7 @@ import org.hisp.dhis.period.Period;
  * collects data values until it has all the data for an organisation unit, and
  * then it returns them to the caller.
  * <p>
- * The returned data values may optionally include deleted values, because
+ * The returned data includes deleted values for the predictor output because
  * predictor processing needs to know where the former predicted values are
  * present, even when they are deleted, because they might be replaced with new,
  * undeleted values.
@@ -94,48 +97,102 @@ import org.hisp.dhis.period.Period;
  *
  * @author Jim Grace
  */
-@RequiredArgsConstructor
 public class PredictionDataValueFetcher
     implements Runnable
 {
     private final DataValueService dataValueService;
 
-    private final CategoryService categoryService;
+    /**
+     * Organisation units assigned to the current user.
+     */
+    private final Set<OrganisationUnit> currentUserOrgUnits;
 
-    private Set<OrganisationUnit> currentUserOrgUnits;
-
+    /*
+     * Organisation unit level at which we are fetching data.
+     */
     private int orgUnitLevel;
 
+    /*
+     * Periods at which we are fetching input data.
+     */
     private Set<Period> queryPeriods;
 
+    /**
+     * Periods at which we are fetching previous predictions (deleted or not).
+     */
     private Set<Period> outputPeriods;
 
+    /**
+     * Data elements to fetch.
+     */
     private Set<DataElement> dataElements;
 
+    /**
+     * Data element operands to fetch.
+     */
     private Set<DataElementOperand> dataElementOperands;
 
+    /**
+     * Output data element (and optionally category option combo) for the
+     * predictor output (to fetch previous values, deleted or not).
+     */
     private DataElementOperand outputDataElementOperand;
 
+    /**
+     * Whether to include organisation unit descendants.
+     */
     private boolean includeDescendants = false;
 
-    private boolean includeDeleted = false;
-
+    /**
+     * Find organisation unit (or ancestor orgUnit) for a data value.
+     */
     private Map<String, OrganisationUnit> orgUnitLookup;
 
+    /**
+     * Find data element for a data value. For this purpose it does not matter
+     * whether the DataElement object has query modifiers.
+     */
     private Map<Long, DataElement> dataElementLookup;
 
+    /**
+     * Find period for a data value.
+     */
     private Map<Long, Period> periodLookup;
 
-    private CachingMap<Long, CategoryOptionCombo> cocLookup;
+    /**
+     * Find catOptionCombo & attributeOptionCombo for a data value.
+     */
+    private final Map<Long, CategoryOptionCombo> cocLookup;
 
+    /**
+     * Requested data elements, by data element UID.
+     */
+    private Map<String, List<DataElement>> dataElementRequests;
+
+    /**
+     * Requested data element operands, by data element operand UID.
+     */
+    private Map<String, List<DataElementOperand>> dataElementOperandRequests;
+
+    /**
+     * Next (lookahead) deflated data value. Processed immediately if it is for
+     * the current organisation unit, otherwise saved for the next orgUnit.
+     */
     private DeflatedDataValue nextDeflatedDataValue;
 
+    /**
+     * Organisation unit for the next deflated data value.
+     */
     private OrganisationUnit nextOrgUnit;
 
+    /**
+     * Exception (if any) on the producer side, waiting to be reported.
+     */
     private RuntimeException producerException;
 
-    private ExecutorService executor;
-
+    /**
+     * Queue to receive deflated data values from asynchronous thread.
+     */
     private BlockingQueue<DeflatedDataValue> blockingQueue;
 
     /**
@@ -146,10 +203,18 @@ public class PredictionDataValueFetcher
      */
     private static final int DDV_BLOCKING_QUEUE_SIZE = 1;
 
+    public PredictionDataValueFetcher( DataValueService dataValueService, CategoryService categoryService,
+        Set<OrganisationUnit> currentUserOrgUnits )
+    {
+        this.dataValueService = dataValueService;
+        this.currentUserOrgUnits = currentUserOrgUnits;
+        this.cocLookup = categoryService.getAllCategoryOptionCombos().stream()
+            .collect( toMap( CategoryOptionCombo::getId, identity() ) );
+    }
+
     /**
      * Initializes for datavalue retrieval.
      *
-     * @param currentUserOrgUnits orgUnits assigned to current user.
      * @param orgUnitLevel level of organisation units to fetch.
      * @param orgUnits organisation units to fetch.
      * @param queryPeriods periods to fetch.
@@ -158,11 +223,10 @@ public class PredictionDataValueFetcher
      * @param dataElementOperands data element operands to fetch.
      */
     public void init(
-        Set<OrganisationUnit> currentUserOrgUnits, int orgUnitLevel, List<OrganisationUnit> orgUnits,
-        Set<Period> queryPeriods, Set<Period> outputPeriods, Set<DataElement> dataElements,
-        Set<DataElementOperand> dataElementOperands, DataElementOperand outputDataElementOperand )
+        int orgUnitLevel, List<OrganisationUnit> orgUnits, Set<Period> queryPeriods, Set<Period> outputPeriods,
+        Set<DataElement> dataElements, Set<DataElementOperand> dataElementOperands,
+        DataElementOperand outputDataElementOperand )
     {
-        this.currentUserOrgUnits = currentUserOrgUnits;
         this.orgUnitLevel = orgUnitLevel;
         this.queryPeriods = queryPeriods;
         this.outputPeriods = outputPeriods;
@@ -172,11 +236,15 @@ public class PredictionDataValueFetcher
 
         orgUnitLookup = orgUnits.stream().collect( Collectors.toMap( OrganisationUnit::getPath, Function.identity() ) );
         dataElementLookup = dataElements.stream()
-            .collect( Collectors.toMap( DataElement::getId, Function.identity() ) );
+            .collect( toMap( DataElement::getId, Function.identity(), ( de1, de2 ) -> de1 ) );
         dataElementLookup.putAll( dataElementOperands.stream().map( DataElementOperand::getDataElement )
-            .distinct().collect( Collectors.toMap( DataElement::getId, Function.identity() ) ) );
+            .distinct().collect( toMap( DataElement::getId, Function.identity(), ( deo1, deo2 ) -> deo1 ) ) );
         periodLookup = queryPeriods.stream().collect( Collectors.toMap( Period::getId, Function.identity() ) );
-        cocLookup = new CachingMap<>();
+
+        dataElementRequests = dataElements.stream()
+            .collect( groupingBy( DataElement::getUid ) );
+        dataElementOperandRequests = dataElementOperands.stream()
+            .collect( groupingBy( DataElementOperand::getUid ) );
 
         producerException = null;
 
@@ -189,7 +257,7 @@ public class PredictionDataValueFetcher
             return;
         }
 
-        executor = Executors.newSingleThreadExecutor();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
         executor.execute( this ); // Invoke run() on another thread
         executor.shutdown();
 
@@ -212,7 +280,7 @@ public class PredictionDataValueFetcher
         params.setBlockingQueue( blockingQueue );
         params.setOrderByOrgUnitPath( true );
         params.setIncludeDescendants( includeDescendants );
-        params.setIncludeDeleted( includeDeleted );
+        params.setIncludeDeleted( true );
 
         try
         {
@@ -272,18 +340,6 @@ public class PredictionDataValueFetcher
     public PredictionDataValueFetcher setIncludeDescendants( boolean includeDescendants )
     {
         this.includeDescendants = includeDescendants;
-        return this;
-    }
-
-    /**
-     * Sets whether the data should include deleted values.
-     *
-     * @param includeDeleted whether the data should include deleted values.
-     * @return this object (for method chaining).
-     */
-    public PredictionDataValueFetcher setIncludeDeleted( boolean includeDeleted )
-    {
-        this.includeDeleted = includeDeleted;
         return this;
     }
 
@@ -378,11 +434,9 @@ public class PredictionDataValueFetcher
 
         OrganisationUnit orgUnit = orgUnitLookup.get( truncatePathToLevel( ddv.getSourcePath() ) );
 
-        CategoryOptionCombo categoryOptionCombo = cocLookup.get( ddv.getCategoryOptionComboId(),
-            () -> categoryService.getCategoryOptionCombo( ddv.getCategoryOptionComboId() ) );
+        CategoryOptionCombo categoryOptionCombo = cocLookup.get( ddv.getCategoryOptionComboId() );
 
-        CategoryOptionCombo attributeOptionCombo = cocLookup.get( ddv.getAttributeOptionComboId(),
-            () -> categoryService.getCategoryOptionCombo( ddv.getAttributeOptionComboId() ) );
+        CategoryOptionCombo attributeOptionCombo = cocLookup.get( ddv.getAttributeOptionComboId() );
 
         return new DataValue( dataElement, period, orgUnit, categoryOptionCombo, attributeOptionCombo, ddv.getValue(),
             ddv.getStoredBy(), ddv.getLastUpdated(), ddv.getComment(), ddv.isFollowup(), ddv.isDeleted() );
@@ -391,15 +445,17 @@ public class PredictionDataValueFetcher
     /**
      * Adds a non-deleted value to the value map.
      * <p>
-     * The two types of dimensional item object that are needed from the data
-     * value table are DataElement (the sum of all category option combos for
-     * that data element) and DataElementOperand (a particular combination of
-     * DataElement and CategoryOptionCombo).
-     * <p>
-     * In the case of disaggregated predictions, a "wildcard" DataElementOperand
-     * may also be requested where the DataElementOperand contains only a
-     * DataElement and no CategoryOptionCombo. This means to collect all
-     * CategoryOptionCombos for this DataElement.
+     * There are three types of dimensional item objects that any data value may
+     * be returned for:
+     * <ol>
+     * <li>DataElement: sum values across all catOptionCombos</li>
+     * <li>DataElementOperand: specified catOptionCombo</li>
+     * <li>Wildcard DataElement (represented as a DataElementOperand with a null
+     * catOptionCombo): return a DataElementOperand for each different
+     * catOptionCombo (for use in disaggregated predictions)</li>
+     * </ol>
+     * Note that for any of these three types there may be multiple dimension
+     * item objects for any data value if they have different query modifiers.
      */
     private void addValueToMap( DataValue dv,
         MapMapMap<CategoryOptionCombo, Period, DimensionalItemObject, Object> map )
@@ -408,23 +464,43 @@ public class PredictionDataValueFetcher
 
         if ( value != null )
         {
-            DataElementOperand dataElementOperand = new DataElementOperand(
-                dv.getDataElement(), dv.getCategoryOptionCombo() );
-
-            DataElementOperand wildcardDataElementOperand = new DataElementOperand(
-                dv.getDataElement() );
-
-            if ( dataElementOperands.contains( dataElementOperand ) ||
-                dataElementOperands.contains( wildcardDataElementOperand ) )
+            // Add value to any requested data elements
+            for ( DataElement de : getDataElementRequestList( dv.getDataElement().getUid() ) )
             {
-                addToMap( dataElementOperand, dv, value, map );
+                addToMap( de, dv, value, map );
             }
 
-            if ( dataElements.contains( dv.getDataElement() ) )
+            // Add value to any requested data element operands
+            for ( DataElementOperand deo : getDataElementOperandRequestList( dv.getDataElement().getUid()
+                + COMPOSITE_DIM_OBJECT_PLAIN_SEP + dv.getCategoryOptionCombo().getUid() ) )
             {
-                addToMap( dv.getDataElement(), dv, value, map );
+                addToMap( deo, dv, value, map );
+            }
+
+            // Record value for any requested wildcard data element operands
+            for ( DataElementOperand deo : getDataElementOperandRequestList( dv.getDataElement().getUid() ) )
+            {
+                DataElementOperand newDeo = new DataElementOperand( deo.getDataElement(), dv.getCategoryOptionCombo() );
+                newDeo.setQueryMods( deo.getQueryMods() );
+                addToMap( newDeo, dv, value, map );
             }
         }
+    }
+
+    /**
+     * Returns matching data element requests or empty list if none.
+     */
+    private List<DataElement> getDataElementRequestList( String uid )
+    {
+        return firstNonNull( dataElementRequests.get( uid ), emptyList() );
+    }
+
+    /**
+     * Returns matching data element operands requests or empty list if none.
+     */
+    private List<DataElementOperand> getDataElementOperandRequestList( String uid )
+    {
+        return firstNonNull( dataElementOperandRequests.get( uid ), emptyList() );
     }
 
     /**

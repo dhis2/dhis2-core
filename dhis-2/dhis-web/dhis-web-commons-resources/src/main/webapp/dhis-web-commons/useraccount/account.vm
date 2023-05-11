@@ -9,11 +9,9 @@
     <script type="text/javascript" src="../javascripts/useraccount/account.js"></script>
     <script type="text/javascript" src="../i18nJavaScript.action"></script>
     #if( !$keySelfRegistrationNoRecaptcha )
-        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <script nonce="$cspNonce" src="https://www.google.com/recaptcha/api.js" async defer></script>
     #end
-    <script type="text/javascript" >
 
-    </script>
     <link type="text/css" rel="stylesheet" href="../css/account.css">
 </head>
 <body>
@@ -22,7 +20,7 @@
 
 <div id="accountContainer">
 
-<div id="bannerArea"><a href="http://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
+<div id="bannerArea"><a href="https://dhis2.org"><img src="../security/logo_front.png" style="border:none"></a></div>
 
 <div id="accountInput">
 
@@ -61,7 +59,7 @@
     </tr>
     <tr>
         <td><label id="label_password" for="password">$i18n.getString( "password" )</label></td>
-        <td><input type="password" id="password" name="password"  onfocusout="checkPasswordForUsername()" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
+        <td><input type="password" id="password" name="password" autocomplete="off" placeholder="$i18n.getString( 'password_hint' )"></td>
     </tr>
     <tr>
         <td><label id="label_retypePassword" for="retypePassword">$i18n.getString( "confirm_password" )</label></td>
@@ -73,7 +71,7 @@
         <td><input type="hidden" id="email" name="email" value="$email">
             <input type="text" id="email" name="email" value="$email" disabled="disabled"></td>
         #else
-        <td><input type="text" id="email" name="email" onfocusout="checkPasswordForEmail()"></td>
+        <td><input type="text" id="email" name="email"></td>
         #end
     </tr>
     <tr>

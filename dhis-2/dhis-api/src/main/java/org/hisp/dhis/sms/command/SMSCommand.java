@@ -49,7 +49,8 @@ import com.google.common.base.MoreObjects;
 
 @JacksonXmlRootElement( localName = "smscommand", namespace = DxfNamespaces.DXF_2_0 )
 public class SMSCommand
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     public static final String WRONG_FORMAT_MESSAGE = "Wrong command format";
 

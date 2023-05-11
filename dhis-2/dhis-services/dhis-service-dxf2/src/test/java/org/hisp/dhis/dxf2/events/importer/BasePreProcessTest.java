@@ -37,8 +37,8 @@ import java.util.Map;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
+import org.hisp.dhis.program.EnrollmentStore;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -57,7 +57,7 @@ public abstract class BasePreProcessTest
     protected ServiceDelegator serviceDelegator;
 
     @Mock
-    protected ProgramInstanceStore programInstanceStore;
+    protected EnrollmentStore enrollmentStore;
 
     protected Event event;
 
@@ -76,7 +76,7 @@ public abstract class BasePreProcessTest
         when( workContext.getImportOptions() ).thenReturn( ImportOptions.getDefaultImportOptions() );
         when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
 
-        when( serviceDelegator.getProgramInstanceStore() ).thenReturn( programInstanceStore );
+        when( serviceDelegator.getEnrollmentStore() ).thenReturn( enrollmentStore );
     }
 
 }

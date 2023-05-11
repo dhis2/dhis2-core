@@ -43,7 +43,6 @@ import org.hisp.dhis.dataset.CompleteDataSetRegistrationService;
 import org.hisp.dhis.datavalue.DataValueAuditService;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -115,9 +114,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramStageInstances()
+    public int deleteSoftDeletedEvents()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+        int result = maintenanceStore.deleteSoftDeletedEvents();
 
         log.info( "Permanently deleted soft deleted events: " + result );
 
@@ -135,9 +134,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramInstances()
+    public int deleteSoftDeletedEnrollments()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+        int result = maintenanceStore.deleteSoftDeletedEnrollments();
 
         log.info( "Permanently deleted soft deleted enrollments: " + result );
 
@@ -145,9 +144,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedTrackedEntityInstances()
+    public int deleteSoftDeletedTrackedEntities()
     {
-        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntities();
 
         log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
 
@@ -155,23 +154,10 @@ public class DefaultMaintenanceService
     }
 
     @Override
+    @Transactional
     public void prunePeriods()
     {
-        for ( Period period : periodService.getAllPeriods() )
-        {
-            long periodId = period.getId();
-
-            try
-            {
-                periodService.deletePeriod( period );
-
-                log.info( "Deleted period with id: " + periodId );
-            }
-            catch ( DeleteNotAllowedException ex )
-            {
-                log.debug( "Period has associated objects and could not be deleted: " + periodId );
-            }
-        }
+        maintenanceStore.prunePeriods();
     }
 
     @Override

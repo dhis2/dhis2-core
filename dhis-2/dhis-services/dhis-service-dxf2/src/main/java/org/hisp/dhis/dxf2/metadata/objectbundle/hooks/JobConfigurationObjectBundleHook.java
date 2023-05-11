@@ -85,7 +85,6 @@ public class JobConfigurationObjectBundleHook
         List<ErrorReport> errorReports = box[0];
         if ( errorReports == null || errorReports.isEmpty() )
         {
-            jobConfiguration.setNextExecutionTime( null );
             log.info( "Validation succeeded for job configuration: '{}'", jobConfiguration.getName() );
         }
         else

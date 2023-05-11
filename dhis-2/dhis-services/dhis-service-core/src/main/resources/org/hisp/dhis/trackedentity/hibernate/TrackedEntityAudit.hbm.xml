@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	<class name="org.hisp.dhis.audit.payloads.TrackedEntityAudit" table="trackedentityinstanceaudit">
+        <id name="id" column="trackedentityinstanceauditid">
+            <generator class="sequence">
+              <param name="sequence_name">trackedentityinstanceaudit_sequence</param>
+            </generator>
+        </id>
+
+        <property name="trackedEntity" column="trackedEntityInstance"/>
+
+        <property name="created" type="timestamp"/>
+
+        <property name="accessedBy"/>
+
+        <property name="auditType" column="audittype" length="100" not-null="true">
+            <type name="org.hibernate.type.EnumType">
+                <param name="enumClass">org.hisp.dhis.common.AuditType</param>
+              <param name="useNamed">true</param>
+                <param name="type">12</param>
+            </type>
+        </property>
+        
+        <property name="comment" length="50000"/>
+    </class>
+</hibernate-mapping>

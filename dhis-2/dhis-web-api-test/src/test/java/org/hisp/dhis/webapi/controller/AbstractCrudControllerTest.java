@@ -116,6 +116,21 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPartialUpdateObjectWithOldPatch()
+    {
+        assertStatus( HttpStatus.NO_CONTENT, PATCH_OLD( "/users/" + "M5zQapPyTZI",
+            "{'surname': 'Peter'}" ) );
+        assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
+    }
+
+    @Test
+    void testPartialUpdateObjectNestedObjects()
+    {
+        assertStatus( HttpStatus.BAD_REQUEST, PATCH_OLD( "/users/" + "M5zQapPyTZI",
+            "{'user': {'surname' : 'Peter'}}" ) );
+    }
+
+    @Test
     void testPatchRemoveById()
     {
         String ou1 = assertStatus( HttpStatus.CREATED,

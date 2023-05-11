@@ -40,10 +40,10 @@ import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 public class JsonAssertions
 {
@@ -78,7 +78,7 @@ public class JsonAssertions
         assertTrue( rels.isEmpty(), "instances should not contain any relationships" );
     }
 
-    public static void assertEventWithinRelationshipItem( ProgramStageInstance expected, JsonRelationshipItem actual )
+    public static void assertEventWithinRelationshipItem( Event expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEvent jsonEvent = actual.getEvent();
         assertFalse( jsonEvent.isEmpty(), "event should not be empty" );
@@ -86,11 +86,11 @@ public class JsonAssertions
 
         assertEquals( expected.getStatus().toString(), jsonEvent.getStatus(), "event status" );
         assertEquals( expected.getProgramStage().getUid(), jsonEvent.getProgramStage(), "event programStage UID" );
-        assertEquals( expected.getProgramInstance().getUid(), jsonEvent.getEnrollment(), "event programInstance UID" );
+        assertEquals( expected.getEnrollment().getUid(), jsonEvent.getEnrollment(), "event enrollment UID" );
         assertFalse( jsonEvent.has( "relationships" ), "relationships is not returned within relationship items" );
     }
 
-    public static void assertTrackedEntityWithinRelationshipItem( TrackedEntityInstance expected,
+    public static void assertTrackedEntityWithinRelationshipItem( TrackedEntity expected,
         JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonTrackedEntity jsonTEI = actual.getTrackedEntity();
@@ -111,12 +111,12 @@ public class JsonAssertions
         assertEquals( expectedUid, j.getString( member ).string(), member + " UID" );
     }
 
-    public static void assertEnrollmentWithinRelationship( ProgramInstance expected, JsonRelationshipItem actual )
+    public static void assertEnrollmentWithinRelationship( Enrollment expected, JsonRelationshipItem actual )
     {
         JsonRelationshipItem.JsonEnrollment jsonEnrollment = actual.getEnrollment();
         assertFalse( jsonEnrollment.isEmpty(), "enrollment should not be empty" );
         assertEquals( expected.getUid(), jsonEnrollment.getEnrollment(), "enrollment UID" );
-        assertEquals( expected.getEntityInstance().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
+        assertEquals( expected.getTrackedEntity().getUid(), jsonEnrollment.getTrackedEntity(), "trackedEntity UID" );
         assertEquals( expected.getProgram().getUid(), jsonEnrollment.getProgram(), "program UID" );
         assertEquals( expected.getOrganisationUnit().getUid(), jsonEnrollment.getOrgUnit(), "orgUnit UID" );
         assertTrue( jsonEnrollment.getArray( "events" ).isEmpty(), "events should be empty" );

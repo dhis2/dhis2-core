@@ -33,7 +33,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipTypeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceStore;
+import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.springframework.stereotype.Component;
 
 @Component( "org.hisp.dhis.dxf2.metadata.objectbundle.hooks.RelationshipObjectBundleHook" )
@@ -41,7 +41,7 @@ import org.springframework.stereotype.Component;
 public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relationship>
 {
 
-    private final TrackedEntityInstanceStore trackedEntityInstanceStore;
+    private final TrackedEntityStore trackedEntityStore;
 
     private final RelationshipTypeService relationshipTypeService;
 
@@ -60,10 +60,10 @@ public class RelationshipObjectBundleHook extends AbstractObjectBundleHook<Relat
 
     private void handleRelationshipItem( RelationshipItem relationshipItem )
     {
-        if ( relationshipItem.getTrackedEntityInstance() != null )
+        if ( relationshipItem.getTrackedEntity() != null )
         {
-            relationshipItem.setTrackedEntityInstance(
-                trackedEntityInstanceStore.getByUid( relationshipItem.getTrackedEntityInstance().getUid() ) );
+            relationshipItem.setTrackedEntity(
+                trackedEntityStore.getByUid( relationshipItem.getTrackedEntity().getUid() ) );
         }
     }
 

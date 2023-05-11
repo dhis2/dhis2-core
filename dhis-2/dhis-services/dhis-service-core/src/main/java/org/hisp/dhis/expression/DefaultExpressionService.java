@@ -99,7 +99,6 @@ import org.hisp.dhis.antlr.Parser;
 import org.hisp.dhis.antlr.ParserException;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DimensionService;
 import org.hisp.dhis.common.DimensionalItemId;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -126,7 +125,7 @@ import org.hisp.dhis.expression.function.FunctionOrgUnitAncestor;
 import org.hisp.dhis.expression.function.FunctionOrgUnitDataSet;
 import org.hisp.dhis.expression.function.FunctionOrgUnitGroup;
 import org.hisp.dhis.expression.function.FunctionOrgUnitProgram;
-import org.hisp.dhis.expression.function.FunctionSubExpression;
+import org.hisp.dhis.expression.function.FunctionSubexpression;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
@@ -242,7 +241,7 @@ public class DefaultExpressionService
         .put( MIN_DATE, new FunctionMinDate() )
         .put( PERIOD_IN_YEAR, new ItemPeriodInYear() )
         .put( PERIOD_OFFSET, new PeriodOffset() )
-        .put( SUB_EXPRESSION, new FunctionSubExpression() )
+        .put( SUB_EXPRESSION, new FunctionSubexpression() )
         .put( YEARLY_PERIOD_COUNT, new ItemYearlyPeriodCount() )
         .put( YEAR_TO_DATE, new FunctionYearToDate() )
         .build();
@@ -307,13 +306,6 @@ public class DefaultExpressionService
         this.statementBuilder = statementBuilder;
         this.i18nManager = i18nManager;
         this.constantMapCache = cacheProvider.createAllConstantsCache();
-
-        FunctionSubExpression fn = (FunctionSubExpression) INDICATOR_EXPRESSION_ITEMS.get( SUB_EXPRESSION );
-
-        if ( fn != null )
-        {
-            fn.init( cacheProvider );
-        }
     }
 
     // -------------------------------------------------------------------------
@@ -362,6 +354,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getIndicatorDimensionalItemMap(
         Collection<Indicator> indicators )
     {
@@ -375,6 +368,7 @@ public class DefaultExpressionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<OrganisationUnitGroup> getOrgUnitGroupCountGroups( Collection<Indicator> indicators )
     {
         if ( indicators == null )
@@ -456,10 +450,10 @@ public class DefaultExpressionService
         }
 
         Map<String, Constant> constants = new CachingMap<String, Constant>()
-            .load( idObjectManager.getAllNoAcl( Constant.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( Constant.class ), IdentifiableObject::getUid );
 
         Map<String, OrganisationUnitGroup> orgUnitGroups = new CachingMap<String, OrganisationUnitGroup>()
-            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), BaseIdentifiableObject::getUid );
+            .load( idObjectManager.getAllNoAcl( OrganisationUnitGroup.class ), IdentifiableObject::getUid );
 
         for ( Indicator indicator : indicators )
         {
@@ -475,7 +469,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
-    @Transactional
+    @Transactional( readOnly = true )
     public ExpressionValidationOutcome expressionIsValid( String expression, ParseType parseType )
     {
         try
@@ -700,6 +694,7 @@ public class DefaultExpressionService
     // -------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public Map<String, Constant> getConstantMap()
     {
         return constantMapCache.get( "x", key -> constantService.getConstantMap() );

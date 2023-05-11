@@ -40,7 +40,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -52,7 +52,7 @@ import com.google.common.collect.Multimap;
  * @author Luciano Fiandesio
  */
 @Component( "workContextTrackedEntityInstancesSupplier" )
-public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, Pair<TrackedEntityInstance, Boolean>>>
+public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, Pair<TrackedEntity, Boolean>>>
 {
     private final AclService aclService;
 
@@ -64,7 +64,7 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
     }
 
     @Override
-    public Map<String, Pair<TrackedEntityInstance, Boolean>> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, Pair<TrackedEntity, Boolean>> get( ImportOptions importOptions, List<Event> events )
     {
 
         if ( events == null )
@@ -93,9 +93,9 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         //
         // Get all TEI associated to the events
         //
-        Map<String, TrackedEntityInstance> teiMap = getTrackedEntityInstances( teiUids, teiToEvent );
+        Map<String, TrackedEntity> teiMap = getTrackedEntityInstances( teiUids, teiToEvent );
 
-        Map<String, Pair<TrackedEntityInstance, Boolean>> result = new HashMap<>();
+        Map<String, Pair<TrackedEntity, Boolean>> result = new HashMap<>();
 
         //
         // Return a map containing a Pair where key is the Tei and value is the
@@ -104,7 +104,7 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         //
         for ( String event : teiMap.keySet() )
         {
-            TrackedEntityInstance tei = teiMap.get( event );
+            TrackedEntity tei = teiMap.get( event );
             result.put( event,
                 Pair.of( tei, !importOptions.isSkipLastUpdated() ? aclService.canUpdate( importOptions.getUser(), tei )
                     : null ) );
@@ -114,7 +114,7 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         return result;
     }
 
-    private Map<String, TrackedEntityInstance> getTrackedEntityInstances( Set<String> teiUids,
+    private Map<String, TrackedEntity> getTrackedEntityInstances( Set<String> teiUids,
         Multimap<String, String> teiToEvent )
     {
         final String sql = "select tei.trackedentityinstanceid, tei.uid, tei.code " +
@@ -124,11 +124,11 @@ public class TrackedEntityInstanceSupplier extends AbstractSupplier<Map<String, 
         parameters.addValue( "ids", teiUids );
 
         return jdbcTemplate.query( sql, parameters, ( ResultSet rs ) -> {
-            Map<String, TrackedEntityInstance> results = new HashMap<>();
+            Map<String, TrackedEntity> results = new HashMap<>();
 
             while ( rs.next() )
             {
-                TrackedEntityInstance tei = new TrackedEntityInstance();
+                TrackedEntity tei = new TrackedEntity();
                 tei.setId( rs.getLong( "trackedentityinstanceid" ) );
                 tei.setUid( rs.getString( "uid" ) );
                 tei.setCode( rs.getString( "code" ) );

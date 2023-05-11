@@ -78,9 +78,8 @@ public interface ProgramService
     void updateProgram( Program program );
 
     /**
-     * Deletes a {@link Program}. All {@link ProgramStage},
-     * {@link ProgramInstance} and {@link ProgramStageInstance} belong to this
-     * program are removed
+     * Deletes a {@link Program}. All {@link ProgramStage}, {@link Enrollment}
+     * and {@link Event} belong to this program are removed
      *
      * @param program the Program to delete.
      */
@@ -171,14 +170,14 @@ public interface ProgramService
     SetValuedMap<String, String> getProgramOrganisationUnitsAssociationsForCurrentUser( Set<String> programUids );
 
     /**
-     * Get all the organisation unit associated for a set of program uids. This
-     * method uses jdbc to directly fetch the associated org unit uids for every
-     * program uid. This method returns all the associations irrespective of the
+     * Look for a program - org Unit association in a Cache. If the association
+     * exists we return true, otherwise we do a database lookup in the Store and
+     * add to the cache. This method checks the associations irrespective of the
      * sharing settings or org unit scopes.
      *
-     * @param programUids A set of program uids
-     * @return A object of {@link IdentifiableObjectAssociations} containing
-     *         association for each programUid
+     * @param program input program uid
+     * @param orgUnit
+     * @return whether a org Unit is associated to the input program
      */
-    SetValuedMap<String, String> getProgramOrganisationUnitsAssociations( Set<String> programUids );
+    boolean checkProgramOrganisationUnitsAssociations( String program, String orgUnit );
 }

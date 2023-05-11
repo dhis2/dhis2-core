@@ -28,11 +28,13 @@
 package org.hisp.dhis.commons.collection;
 
 import static java.util.stream.Collectors.toList;
+import static lombok.AccessLevel.PRIVATE;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -48,11 +50,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import lombok.NoArgsConstructor;
+
 /**
  * Utility methods for operations on various collections.
  *
  * @author Morten Olav Hansen
  */
+@NoArgsConstructor( access = PRIVATE )
 public class CollectionUtils
 {
     public static final String[] STRING_ARR = new String[0];
@@ -237,6 +242,17 @@ public class CollectionUtils
     }
 
     /**
+     * Returns an empty set if the given set is null, if not returns the set.
+     *
+     * @param map the map.
+     * @return a non-null map.
+     */
+    public static <T, V> Map<T, V> emptyIfNull( Map<T, V> map )
+    {
+        return map != null ? map : new HashMap<>();
+    }
+
+    /**
      * Adds an item not already present in the target collection
      *
      * @param collection collection to add item to.
@@ -295,24 +311,20 @@ public class CollectionUtils
     }
 
     /**
-     * Returns a map of 11 key/value pairs.
+     * Returns a map of 1 or more key/value pairs.
      */
-    public static <K, V> Map<K, V> mapOf(
-        K k1, V v1, K k2, V v2, K k3, V v3, K k4, V v4, K k5, V v5, K k6, V v6,
-        K k7, V v7, K k8, V v8, K k9, V v9, K k10, V v10, K k11, V v11 )
+    public static <K, V> Map<K, V> mapOf( K key, V value, Object... keysAndValues )
     {
-        return Map.ofEntries(
-            Map.entry( k1, v1 ),
-            Map.entry( k2, v2 ),
-            Map.entry( k3, v3 ),
-            Map.entry( k4, v4 ),
-            Map.entry( k5, v5 ),
-            Map.entry( k6, v6 ),
-            Map.entry( k7, v7 ),
-            Map.entry( k8, v8 ),
-            Map.entry( k9, v9 ),
-            Map.entry( k10, v10 ),
-            Map.entry( k11, v11 ) );
+        List<Map.Entry<K, V>> entries = new ArrayList<>( 1 + keysAndValues.length / 2 );
+
+        entries.add( Map.entry( key, value ) );
+
+        for ( int i = 1; i < keysAndValues.length; i += 2 )
+        {
+            entries.add( Map.entry( (K) keysAndValues[i - 1], (V) keysAndValues[i] ) );
+        }
+
+        return Map.ofEntries( entries.toArray( new Map.Entry[entries.size()] ) );
     }
 
     /**

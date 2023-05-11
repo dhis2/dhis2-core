@@ -52,14 +52,15 @@ import org.hisp.dhis.dxf2.events.enrollment.Enrollments;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -89,13 +90,13 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleA;
+    private TrackedEntity maleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance maleB;
+    private TrackedEntity maleB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleA;
+    private TrackedEntity femaleA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance femaleB;
+    private TrackedEntity femaleB;
 
     private OrganisationUnit organisationUnitA;
 
@@ -158,10 +159,10 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         manager.update( programStageA );
         manager.update( programStageB );
         manager.update( programA );
-        maleA = createTrackedEntityInstance( organisationUnitA );
-        maleB = createTrackedEntityInstance( organisationUnitB );
-        femaleA = createTrackedEntityInstance( organisationUnitA );
-        femaleB = createTrackedEntityInstance( organisationUnitB );
+        maleA = createTrackedEntity( organisationUnitA );
+        maleB = createTrackedEntity( organisationUnitB );
+        femaleA = createTrackedEntity( organisationUnitA );
+        femaleB = createTrackedEntity( organisationUnitB );
         maleA.setTrackedEntityType( trackedEntityType );
         maleB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
@@ -320,7 +321,7 @@ class EnrollmentSecurityTest extends TransactionalIntegrationTest
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( organisationUnitA, organisationUnitB ) );
         user.setDataViewOrganisationUnits( Sets.newHashSet( organisationUnitB ) );
         injectSecurityContext( user );
-        ProgramInstanceQueryParams params = new ProgramInstanceQueryParams();
+        EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( programA );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
         params.setUser( user );

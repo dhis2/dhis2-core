@@ -37,7 +37,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -69,11 +69,11 @@ public class JdbcEventCommentStore implements EventCommentStore
 
     /**
      * Save all the comments ({@see TrackedEntityComment} for the list of
-     * {@see ProgramStageInstance}
+     * {@see Event}
      *
-     * @param batch a List of {@see ProgramStageInstance}
+     * @param batch a List of {@see Event}
      */
-    public void saveAllComments( List<ProgramStageInstance> batch )
+    public void saveAllComments( List<Event> batch )
     {
         try
         {
@@ -81,12 +81,12 @@ public class JdbcEventCommentStore implements EventCommentStore
             // having comments
             // that can actually be saved)
             // In resulting PSI list, all comments without text are removed.
-            List<ProgramStageInstance> programStageInstances = batch.stream()
+            List<Event> events = batch.stream()
                 .map( this::withoutEmptyComments )
                 .filter( this::hasComments )
                 .collect( toList() );
 
-            for ( ProgramStageInstance psi : programStageInstances )
+            for ( Event psi : events )
             {
                 Integer sortOrder = getInitialSortOrder( psi );
 
@@ -108,12 +108,12 @@ public class JdbcEventCommentStore implements EventCommentStore
         }
     }
 
-    private boolean hasComments( ProgramStageInstance programStageInstance )
+    private boolean hasComments( Event event )
     {
-        return CollectionUtils.isNotEmpty( programStageInstance.getComments() );
+        return CollectionUtils.isNotEmpty( event.getComments() );
     }
 
-    Integer getInitialSortOrder( ProgramStageInstance psi )
+    Integer getInitialSortOrder( Event psi )
     {
         if ( psi.getId() > 0 )
         {
@@ -128,15 +128,15 @@ public class JdbcEventCommentStore implements EventCommentStore
         return 1;
     }
 
-    private ProgramStageInstance withoutEmptyComments( ProgramStageInstance programStageInstance )
+    private Event withoutEmptyComments( Event event )
     {
-        programStageInstance.setComments( getNonEmptyComments( programStageInstance ) );
-        return programStageInstance;
+        event.setComments( getNonEmptyComments( event ) );
+        return event;
     }
 
-    private List<TrackedEntityComment> getNonEmptyComments( ProgramStageInstance programStageInstance )
+    private List<TrackedEntityComment> getNonEmptyComments( Event event )
     {
-        return programStageInstance.getComments().stream()
+        return event.getComments().stream()
             .filter( this::hasCommentText )
             .collect( toList() );
     }
@@ -191,7 +191,7 @@ public class JdbcEventCommentStore implements EventCommentStore
         catch ( DataAccessException e )
         {
             log.error(
-                "An error occurred saving a link between a TrackedEntityComment and a ProgramStageInstance with primary key: "
+                "An error occurred saving a link between a TrackedEntityComment and an Event with primary key: "
                     + programStageInstanceId,
                 e );
             throw e;

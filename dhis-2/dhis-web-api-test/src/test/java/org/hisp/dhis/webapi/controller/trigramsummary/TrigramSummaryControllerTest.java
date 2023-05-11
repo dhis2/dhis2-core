@@ -45,14 +45,14 @@ import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeTableManager;
@@ -99,9 +99,9 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
 
     private Program program;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttribute teaA;
 
@@ -185,17 +185,17 @@ class TrigramSummaryControllerTest extends DhisControllerConvenienceTest
         program.getProgramAttributes().add( pteaB );
         manager.update( program );
 
-        tei = createTrackedEntityInstance( orgUnit );
+        tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 
-        programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance );
+        enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        enrollment.setFollowup( true );
+        manager.save( enrollment );
     }
 
     @Test

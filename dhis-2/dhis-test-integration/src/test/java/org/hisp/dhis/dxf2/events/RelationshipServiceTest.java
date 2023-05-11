@@ -40,8 +40,6 @@ import java.util.stream.Stream;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.Enrollment;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
@@ -49,15 +47,16 @@ import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,7 +64,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class RelationshipServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private RelationshipService relationshipService;
@@ -73,19 +72,19 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     @Autowired
     private IdentifiableObjectManager manager;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
-    private ProgramInstance programInstanceA;
+    private Enrollment enrollmentA;
 
-    private ProgramInstance programInstanceB;
+    private Enrollment enrollmentB;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
     private final RelationshipType relationshipTypeTeiToTei = createRelationshipType( 'A' );
 
@@ -103,9 +102,9 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         manager.save( organisationUnit );
 
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
+        teiA = createTrackedEntity( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
 
         teiA.setTrackedEntityType( trackedEntityType );
         teiB.setTrackedEntityType( trackedEntityType );
@@ -124,23 +123,23 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         manager.save( program );
         manager.save( programStage );
 
-        programInstanceA = programInstanceService.enrollTrackedEntityInstance( teiA, program, new Date(), new Date(),
+        enrollmentA = enrollmentService.enrollTrackedEntity( teiA, program, new Date(), new Date(),
             organisationUnit );
 
-        programInstanceB = programInstanceService.enrollTrackedEntityInstance( teiB, program, new Date(), new Date(),
+        enrollmentB = enrollmentService.enrollTrackedEntity( teiB, program, new Date(), new Date(),
             organisationUnit );
 
-        programStageInstanceA = new ProgramStageInstance();
-        programStageInstanceA.setProgramInstance( programInstanceA );
-        programStageInstanceA.setProgramStage( programStage );
-        programStageInstanceA.setOrganisationUnit( organisationUnit );
-        manager.save( programStageInstanceA );
+        eventA = new Event();
+        eventA.setEnrollment( enrollmentA );
+        eventA.setProgramStage( programStage );
+        eventA.setOrganisationUnit( organisationUnit );
+        manager.save( eventA );
 
-        programStageInstanceB = new ProgramStageInstance();
-        programStageInstanceB.setProgramInstance( programInstanceB );
-        programStageInstanceB.setProgramStage( programStage );
-        programStageInstanceB.setOrganisationUnit( organisationUnit );
-        manager.save( programStageInstanceB );
+        eventB = new Event();
+        eventB.setEnrollment( enrollmentB );
+        eventB.setProgramStage( programStage );
+        eventB.setOrganisationUnit( organisationUnit );
+        manager.save( eventB );
 
         relationshipTypeTeiToTei.getFromConstraint()
             .setRelationshipEntity( RelationshipEntity.TRACKED_ENTITY_INSTANCE );
@@ -244,8 +243,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( programInstanceA.getUid() );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        enrollment.setEnrollment( enrollmentA.getUid() );
         to.setEnrollment( enrollment );
 
         relationship.setFrom( from );
@@ -269,7 +268,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     @Test
     void shouldUpdateTeiToPiRelationship()
     {
-        org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, programInstanceA, null );
+        org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, enrollmentA, null );
 
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationship( relationship.getUid() );
@@ -278,8 +277,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        Enrollment enrollment = new Enrollment();
-        enrollment.setEnrollment( programInstanceB.getUid() );
+        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        enrollment.setEnrollment( enrollmentB.getUid() );
         to.setEnrollment( enrollment );
 
         relationshipPayload.setFrom( from );
@@ -311,8 +310,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        Event event = new Event();
-        event.setEvent( programStageInstanceA.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        event.setEvent( eventA.getUid() );
         to.setEvent( event );
 
         relationshipPayload.setFrom( from );
@@ -336,7 +335,7 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     @Test
     void shouldUpdateTeiToPsiRelationship()
     {
-        org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, null, programStageInstanceA );
+        org.hisp.dhis.relationship.Relationship relationship = relationship( teiA, null, null, eventA );
 
         Relationship relationshipPayload = new Relationship();
         relationshipPayload.setRelationship( relationship.getUid() );
@@ -345,8 +344,8 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
         RelationshipItem from = teiFrom();
 
         RelationshipItem to = new RelationshipItem();
-        Event event = new Event();
-        event.setEvent( programStageInstanceB.getUid() );
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        event.setEvent( eventB.getUid() );
         to.setEvent( event );
 
         relationshipPayload.setFrom( from );
@@ -379,29 +378,29 @@ class RelationshipServiceTest extends TransactionalIntegrationTest
     }
 
     private org.hisp.dhis.relationship.Relationship relationship(
-        org.hisp.dhis.trackedentity.TrackedEntityInstance teiFrom,
-        org.hisp.dhis.trackedentity.TrackedEntityInstance teiTo, ProgramInstance piTo, ProgramStageInstance psiTo )
+        TrackedEntity teiFrom,
+        TrackedEntity teiTo, Enrollment piTo, Event psiTo )
     {
         org.hisp.dhis.relationship.Relationship relationship = new org.hisp.dhis.relationship.Relationship();
 
         org.hisp.dhis.relationship.RelationshipItem from = new org.hisp.dhis.relationship.RelationshipItem();
-        from.setTrackedEntityInstance( teiFrom );
+        from.setTrackedEntity( teiFrom );
 
         org.hisp.dhis.relationship.RelationshipItem to = new org.hisp.dhis.relationship.RelationshipItem();
 
         if ( null != teiTo )
         {
-            to.setTrackedEntityInstance( teiTo );
+            to.setTrackedEntity( teiTo );
             relationship.setRelationshipType( relationshipTypeTeiToTei );
         }
         else if ( null != piTo )
         {
-            to.setProgramInstance( piTo );
+            to.setEnrollment( piTo );
             relationship.setRelationshipType( relationshipTypeTeiToPi );
         }
         else
         {
-            to.setProgramStageInstance( psiTo );
+            to.setEvent( psiTo );
             relationship.setRelationshipType( relationshipTypeTeiToPsi );
         }
 

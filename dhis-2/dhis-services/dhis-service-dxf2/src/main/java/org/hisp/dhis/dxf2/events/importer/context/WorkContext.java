@@ -46,11 +46,11 @@ import org.hisp.dhis.dxf2.events.event.Note;
 import org.hisp.dhis.dxf2.events.importer.ServiceDelegator;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -82,37 +82,35 @@ public class WorkContext
     private final Map<String, OrganisationUnit> organisationUnitMap;
 
     /**
-     * Holds a Map of all {@see TrackedEntityInstance} associated to the Events
-     * to import.
-     *
-     * Map: key -> Event UID value -> Pair<TrackedEntityInstance,
-     * canBeUpdatedByCurrentUser boolean>
-     */
-    private final Map<String, Pair<TrackedEntityInstance, Boolean>> trackedEntityInstanceMap;
-
-    /**
-     * Holds a Map of all {@see ProgramInstance} associated to the Events to
+     * Holds a Map of all {@see TrackedEntity} associated to the Events to
      * import.
      *
-     * Map: key -> Event UID value -> ProgramInstance
+     * Map: key -> Event UID value -> Pair<TrackedEntity,
+     * canBeUpdatedByCurrentUser boolean>
      */
-    private final Map<String, ProgramInstance> programInstanceMap;
+    private final Map<String, Pair<TrackedEntity, Boolean>> trackedEntityInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramStageInstance} associated to the Events
-     * to import.
+     * Holds a Map of all {@see Enrollment} associated to the Events to import.
      *
-     * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
+     * Map: key -> Event UID value -> Enrollment
      */
-    private final Map<String, ProgramStageInstance> programStageInstanceMap;
+    private final Map<String, Enrollment> programInstanceMap;
 
     /**
-     * Holds a Map of all {@see ProgramStageInstance} associated to the Events
-     * to import and only contains already persisted values.
+     * Holds a Map of all {@see Event} associated to the Events to import.
      *
-     * Map: key -> ProgramStageInstance UID value -> ProgramStageInstance
+     * Map: key -> Event UID value -> Event
      */
-    private final Map<String, ProgramStageInstance> persistedProgramStageInstanceMap;
+    private final Map<String, Event> programStageInstanceMap;
+
+    /**
+     * Holds a Map of all {@see Event} associated to the Events to import and
+     * only contains already persisted values.
+     *
+     * Map: key -> Event UID value -> Event
+     */
+    private final Map<String, Event> persistedProgramStageInstanceMap;
 
     /**
      * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to
@@ -183,19 +181,19 @@ public class WorkContext
         return null;
     }
 
-    public Optional<TrackedEntityInstance> getTrackedEntityInstance( String event )
+    public Optional<TrackedEntity> getTrackedEntityInstance( String event )
     {
-        final Pair<TrackedEntityInstance, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+        final Pair<TrackedEntity, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
 
         return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
     }
 
-    public Optional<ProgramStageInstance> getProgramStageInstance( String event )
+    public Optional<Event> getProgramStageInstance( String event )
     {
         return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );
     }
 
-    public Optional<ProgramInstance> getProgramInstance( String event )
+    public Optional<Enrollment> getProgramInstance( String event )
     {
         return Optional.ofNullable( this.getProgramInstanceMap().get( event ) );
     }

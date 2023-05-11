@@ -41,16 +41,16 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipService;
 import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -86,7 +86,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     private OrganisationUnitService organisationUnitService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private OrganisationUnit organisationUnitA;
 
@@ -102,7 +102,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute attribute;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private MergeObject mergeObject;
 
@@ -122,7 +122,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         relationshipType = createRelationshipType( 'A' );
         relationshipTypeBidirectional = createRelationshipType( 'B' );
         attribute = createTrackedEntityAttribute( 'A' );
-        programInstance = createProgramInstance( createProgram( 'A' ), getTeiA(), organisationUnitA );
+        enrollment = createEnrollment( createProgram( 'A' ), getTeiA(), organisationUnitA );
         mergeObject = MergeObject.builder()
             .relationships( relationshipUids )
             .trackedEntityAttributes( attributeUids )
@@ -136,9 +136,9 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         when( aclService.canDataWrite( user, trackedEntityTypeA ) ).thenReturn( true );
         when( aclService.canDataWrite( user, trackedEntityTypeB ) ).thenReturn( true );
         when( aclService.canDataWrite( user, relationshipType ) ).thenReturn( true );
-        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( true );
+        when( aclService.canDataWrite( user, enrollment.getProgram() ) ).thenReturn( true );
         when( relationshipService.getRelationships( relationshipUids ) ).thenReturn( getRelationships() );
-        when( programInstanceService.getProgramInstances( enrollmentUids ) ).thenReturn( getEnrollments() );
+        when( enrollmentService.getEnrollments( enrollmentUids ) ).thenReturn( getEnrollments() );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitA ) ).thenReturn( true );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnitB ) ).thenReturn( true );
     }
@@ -219,9 +219,9 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     @Test
-    void shouldNotHasUserAccessWhenUserHasNoAccessToProgramInstance()
+    void shouldNotHasUserAccessWhenUserHasNoAccessToEnrollment()
     {
-        when( aclService.canDataWrite( user, programInstance.getProgram() ) ).thenReturn( false );
+        when( aclService.canDataWrite( user, enrollment.getProgram() ) ).thenReturn( false );
 
         String hasUserAccess = deduplicationHelper.getUserAccessErrors(
             getTeiA(), getTeiB(),
@@ -267,20 +267,20 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     void shouldFailGenerateMergeObjectConflictingValue()
     {
-        TrackedEntityInstance original = getTeiA();
+        TrackedEntity original = getTeiA();
 
         TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
         attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setTrackedEntity( original );
         attributeValueOriginal.setValue( "Attribute-Original" );
 
         original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
 
-        TrackedEntityInstance duplicate = getTeiA();
+        TrackedEntity duplicate = getTeiA();
 
         TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
         attributeValueDuplicate.setAttribute( attribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setTrackedEntity( duplicate );
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
@@ -294,21 +294,21 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
-        TrackedEntityInstance original = getTeiA();
+        TrackedEntity original = getTeiA();
 
         TrackedEntityAttributeValue attributeValueOriginal = new TrackedEntityAttributeValue();
         attributeValueOriginal.setAttribute( attribute );
-        attributeValueOriginal.setEntityInstance( original );
+        attributeValueOriginal.setTrackedEntity( original );
         attributeValueOriginal.setValue( "Attribute-Original" );
 
         original.getTrackedEntityAttributeValues().add( attributeValueOriginal );
 
-        TrackedEntityInstance duplicate = getTeiA();
+        TrackedEntity duplicate = getTeiA();
 
         TrackedEntityAttributeValue attributeValueDuplicate = new TrackedEntityAttributeValue();
         TrackedEntityAttribute duplicateAttribute = createTrackedEntityAttribute( 'B' );
         attributeValueDuplicate.setAttribute( duplicateAttribute );
-        attributeValueDuplicate.setEntityInstance( duplicate );
+        attributeValueDuplicate.setTrackedEntity( duplicate );
         attributeValueDuplicate.setValue( "Attribute-Duplicate" );
 
         duplicate.getTrackedEntityAttributeValues().add( attributeValueDuplicate );
@@ -325,11 +325,11 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
-        TrackedEntityInstance original = getTeiA();
+        TrackedEntity original = getTeiA();
 
-        TrackedEntityInstance another = getTeiA();
+        TrackedEntity another = getTeiA();
 
-        TrackedEntityInstance duplicate = getTeiA();
+        TrackedEntity duplicate = getTeiA();
 
         Relationship anotherBaseRelationship = getRelationship();
 
@@ -370,35 +370,35 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         throws PotentialDuplicateConflictException,
         PotentialDuplicateForbiddenException
     {
-        TrackedEntityInstance original = getTeiA();
+        TrackedEntity original = getTeiA();
         Program programA = createProgram( 'A' );
-        ProgramInstance programInstanceA = createProgramInstance( programA, original, organisationUnitA );
-        programInstanceA.setUid( "programInstanceA" );
-        original.getProgramInstances().add( programInstanceA );
+        Enrollment enrollmentA = createEnrollment( programA, original, organisationUnitA );
+        enrollmentA.setUid( "enrollmentA" );
+        original.getEnrollments().add( enrollmentA );
 
-        TrackedEntityInstance duplicate = getTeiA();
+        TrackedEntity duplicate = getTeiA();
         Program programB = createProgram( 'B' );
-        ProgramInstance programInstanceB = createProgramInstance( programB, duplicate, organisationUnitA );
-        programInstanceB.setUid( "programInstanceB" );
-        duplicate.getProgramInstances().add( programInstanceB );
+        Enrollment enrollmentB = createEnrollment( programB, duplicate, organisationUnitA );
+        enrollmentB.setUid( "enrollmentB" );
+        duplicate.getEnrollments().add( enrollmentB );
 
         MergeObject generatedMergeObject = deduplicationHelper.generateMergeObject( original, duplicate );
 
-        assertEquals( "programInstanceB", generatedMergeObject.getEnrollments().get( 0 ) );
+        assertEquals( "enrollmentB", generatedMergeObject.getEnrollments().get( 0 ) );
     }
 
     @Test
     void shouldFailGenerateMergeObjectEnrollmentsSameProgram()
     {
-        TrackedEntityInstance original = getTeiA();
+        TrackedEntity original = getTeiA();
 
         Program program = createProgram( 'A' );
-        ProgramInstance programInstanceA = createProgramInstance( program, original, organisationUnitA );
-        original.getProgramInstances().add( programInstanceA );
+        Enrollment enrollmentA = createEnrollment( program, original, organisationUnitA );
+        original.getEnrollments().add( enrollmentA );
 
-        TrackedEntityInstance duplicate = getTeiA();
-        ProgramInstance programInstanceB = createProgramInstance( program, duplicate, organisationUnitA );
-        duplicate.getProgramInstances().add( programInstanceB );
+        TrackedEntity duplicate = getTeiA();
+        Enrollment enrollmentB = createEnrollment( program, duplicate, organisationUnitA );
+        duplicate.getEnrollments().add( enrollmentB );
 
         assertThrows( PotentialDuplicateConflictException.class,
             () -> deduplicationHelper.generateMergeObject( original, duplicate ) );
@@ -407,9 +407,9 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeis()
     {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+        TrackedEntity teiA = getTeiA();
+        TrackedEntity teiB = getTeiB();
+        TrackedEntity teiC = getTeiC();
 
         // A->C, B->C
         RelationshipItem fromA = new RelationshipItem();
@@ -417,10 +417,10 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         RelationshipItem fromB = new RelationshipItem();
         RelationshipItem toB = new RelationshipItem();
 
-        fromA.setTrackedEntityInstance( teiA );
-        toA.setTrackedEntityInstance( teiC );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+        fromA.setTrackedEntity( teiA );
+        toA.setTrackedEntity( teiC );
+        fromB.setTrackedEntity( teiB );
+        toB.setTrackedEntity( teiC );
 
         Relationship relA = new Relationship();
         Relationship relB = new Relationship();
@@ -453,9 +453,9 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     void shouldFailGetDuplicateRelationshipErrorWithDuplicateRelationshipsWithTeisBidirectional()
     {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+        TrackedEntity teiA = getTeiA();
+        TrackedEntity teiB = getTeiB();
+        TrackedEntity teiC = getTeiC();
 
         // A->C, B->C
         RelationshipItem fromA = new RelationshipItem();
@@ -463,10 +463,10 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         RelationshipItem fromB = new RelationshipItem();
         RelationshipItem toB = new RelationshipItem();
 
-        fromA.setTrackedEntityInstance( teiC );
-        toA.setTrackedEntityInstance( teiA );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+        fromA.setTrackedEntity( teiC );
+        toA.setTrackedEntity( teiA );
+        fromB.setTrackedEntity( teiB );
+        toB.setTrackedEntity( teiC );
 
         Relationship relA = new Relationship();
         Relationship relB = new Relationship();
@@ -499,9 +499,9 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     @Test
     void shouldNotFailGetDuplicateRelationshipError()
     {
-        TrackedEntityInstance teiA = getTeiA();
-        TrackedEntityInstance teiB = getTeiB();
-        TrackedEntityInstance teiC = getTeiC();
+        TrackedEntity teiA = getTeiA();
+        TrackedEntity teiB = getTeiB();
+        TrackedEntity teiC = getTeiC();
 
         // A->C, C->B
         RelationshipItem fromA = new RelationshipItem();
@@ -509,10 +509,10 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         RelationshipItem fromB = new RelationshipItem();
         RelationshipItem toB = new RelationshipItem();
 
-        fromA.setTrackedEntityInstance( teiA );
-        toA.setTrackedEntityInstance( teiC );
-        fromB.setTrackedEntityInstance( teiB );
-        toB.setTrackedEntityInstance( teiC );
+        fromA.setTrackedEntity( teiA );
+        toA.setTrackedEntity( teiC );
+        fromB.setTrackedEntity( teiB );
+        toB.setTrackedEntity( teiC );
 
         Relationship relA = new Relationship();
         Relationship relB = new Relationship();
@@ -550,30 +550,30 @@ class DeduplicationHelperTest extends DhisConvenienceTest
         return Lists.newArrayList( relationshipA );
     }
 
-    private List<ProgramInstance> getEnrollments()
+    private List<Enrollment> getEnrollments()
     {
-        return Lists.newArrayList( programInstance );
+        return Lists.newArrayList( enrollment );
     }
 
-    private TrackedEntityInstance getTeiA()
+    private TrackedEntity getTeiA()
     {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntity( organisationUnitA );
         tei.setTrackedEntityType( trackedEntityTypeA );
 
         return tei;
     }
 
-    private TrackedEntityInstance getTeiB()
+    private TrackedEntity getTeiB()
     {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;
     }
 
-    private TrackedEntityInstance getTeiC()
+    private TrackedEntity getTeiC()
     {
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;
@@ -603,11 +603,11 @@ class DeduplicationHelperTest extends DhisConvenienceTest
     }
 
     private RelationshipItem getRelationshipItem( Relationship relationship,
-        TrackedEntityInstance trackedEntityInstance )
+        TrackedEntity trackedEntity )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
         relationshipItem.setRelationship( relationship );
-        relationshipItem.setTrackedEntityInstance( trackedEntityInstance );
+        relationshipItem.setTrackedEntity( trackedEntity );
 
         return relationshipItem;
     }

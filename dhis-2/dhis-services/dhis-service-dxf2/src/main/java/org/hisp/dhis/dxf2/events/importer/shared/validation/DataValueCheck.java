@@ -55,9 +55,9 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.option.OptionSet;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ValidationStrategy;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.system.util.ValidationUtils;
@@ -137,7 +137,7 @@ public class DataValueCheck implements Checker
 
         if ( allowSingleUpdates )
         {
-            final ProgramStageInstance programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
+            final Event programStageInstance = ctx.getProgramStageInstanceMap().get( event.getUid() );
 
             dataValues.addAll( programStageInstance.getEventDataValues().stream()
                 .filter( dv -> !StringUtils.isEmpty( dv.getValue().trim() ) ).map( EventDataValue::getDataElement )
@@ -241,8 +241,18 @@ public class DataValueCheck implements Checker
             return null;
         }
 
-        return !optionSet.getOptionCodesAsSet().contains( value )
-            ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
+        boolean isValid = true;
+
+        if ( dataElement.getValueType().isMultiText() )
+        {
+            isValid = dataElement.getOptionSet().hasAllOptions( ValueType.splitMultiText( value ) );
+        }
+        else
+        {
+            isValid = dataElement.getOptionSet().getOptionByCode( value ) != null;
+        }
+
+        return !isValid ? "Value '" + value + "' is not a valid option code of option set: " + optionSet.getUid()
             : null;
     }
 

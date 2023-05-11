@@ -27,192 +27,80 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
-import java.util.Optional;
+import lombok.Getter;
+import lombok.Setter;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
-@JacksonXmlRootElement( localName = "jobParameters", namespace = DxfNamespaces.DXF_2_0 )
+/**
+ * Parameters for the job to test job execution by simulating runs mostly to
+ * simulate errors during a run.
+ *
+ * @author Jan Bernitt
+ */
+@Getter
+@Setter
 public class TestJobParameters implements JobParameters
 {
     /**
      * Initial waiting time in millis (as there is no actual "work" done)
      */
+    @JsonProperty
     private Long waitMillis;
 
     /**
      * Number of stages in the job, zero if {@code null}
      */
+    @JsonProperty
     private Integer stages;
 
     /**
      * Stage number at which an item fails, none of {@code null}
      */
+    @JsonProperty
     private Integer failAtStage;
 
     /**
      * Number of items in each stage, none if {@code null}
      */
+    @JsonProperty
     private Integer items;
 
     /**
      * Item number in the failing stage at which the failure occurs, none if
      * {@code null}
      */
+    @JsonProperty
     private Integer failAtItem;
 
     /**
      * Duration each item takes in millis, zero if {@code null}
      */
+    @JsonProperty
     private Long itemDuration;
 
     /**
      * The message used when failing the item
      */
+    @JsonProperty
     private String failWithMessage;
 
     /**
      * When true, an exception is used to fail, otherwise the progress tracking
      * api is used
      */
+    @JsonProperty
     private boolean failWithException;
 
     /**
      * Stage failure policy to use, when {@code null} it is the default policy
      */
+    @JsonProperty
     private FailurePolicy failWithPolicy;
 
+    @JsonProperty
     private boolean runStagesParallel;
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Long getWaitMillis()
-    {
-        return waitMillis;
-    }
-
-    public void setWaitMillis( Long waitMillis )
-    {
-        this.waitMillis = waitMillis;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getStages()
-    {
-        return stages;
-    }
-
-    public void setStages( Integer stages )
-    {
-        this.stages = stages;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getFailAtStage()
-    {
-        return failAtStage;
-    }
-
-    public void setFailAtStage( Integer failAtStage )
-    {
-        this.failAtStage = failAtStage;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getItems()
-    {
-        return items;
-    }
-
-    public void setItems( Integer items )
-    {
-        this.items = items;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getFailAtItem()
-    {
-        return failAtItem;
-    }
-
-    public void setFailAtItem( Integer failAtItem )
-    {
-        this.failAtItem = failAtItem;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Long getItemDuration()
-    {
-        return itemDuration;
-    }
-
-    public void setItemDuration( Long itemDuration )
-    {
-        this.itemDuration = itemDuration;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getFailWithMessage()
-    {
-        return failWithMessage;
-    }
-
-    public void setFailWithMessage( String failWithMessage )
-    {
-        this.failWithMessage = failWithMessage;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isFailWithException()
-    {
-        return failWithException;
-    }
-
-    public void setFailWithException( boolean failWithException )
-    {
-        this.failWithException = failWithException;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public FailurePolicy getFailWithPolicy()
-    {
-        return failWithPolicy;
-    }
-
-    public void setFailWithPolicy( FailurePolicy failWithPolicy )
-    {
-        this.failWithPolicy = failWithPolicy;
-    }
-
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isRunStagesParallel()
-    {
-        return runStagesParallel;
-    }
-
-    public void setRunStagesParallel( boolean runStagesParallel )
-    {
-        this.runStagesParallel = runStagesParallel;
-    }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        return Optional.empty();
-    }
 }

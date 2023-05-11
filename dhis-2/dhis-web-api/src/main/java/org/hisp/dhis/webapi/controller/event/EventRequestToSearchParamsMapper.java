@@ -73,8 +73,8 @@ import org.hisp.dhis.query.QueryUtils;
 import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -100,7 +100,7 @@ class EventRequestToSearchParamsMapper
 
     private final AclService aclService;
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService entityInstanceService;
 
     private final DataElementService dataElementService;
 
@@ -144,7 +144,7 @@ class EventRequestToSearchParamsMapper
         CategoryOptionCombo attributeOptionCombo, IdSchemes idSchemes, Integer page, Integer pageSize,
         boolean totalPages, boolean skipPaging, List<OrderParam> orders, List<OrderParam> gridOrders,
         boolean includeAttributes,
-        Set<String> events, Set<String> programInstances, Boolean skipEventId,
+        Set<String> events, Set<String> enrollments, Boolean skipEventId,
         AssignedUserSelectionMode assignedUserSelectionMode,
         Set<String> assignedUsers, Set<String> filters, Set<String> dataElements, boolean includeAllDataElements,
         boolean includeDeleted )
@@ -184,7 +184,7 @@ class EventRequestToSearchParamsMapper
             throw new IllegalQueryException( "User has no access to program stage: " + ps.getUid() );
         }
 
-        TrackedEntityInstance tei = entityInstanceService.getTrackedEntityInstance( trackedEntityInstance );
+        TrackedEntity tei = entityInstanceService.getTrackedEntity( trackedEntityInstance );
 
         if ( !StringUtils.isEmpty( trackedEntityInstance ) && tei == null )
         {
@@ -239,14 +239,14 @@ class EventRequestToSearchParamsMapper
                 .collect( Collectors.toSet() );
         }
 
-        if ( programInstances != null )
+        if ( enrollments != null )
         {
-            programInstances = programInstances.stream()
+            enrollments = enrollments.stream()
                 .filter( CodeGenerator::isValidUid )
                 .collect( Collectors.toSet() );
         }
 
-        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntityInstance( tei )
+        return params.setProgram( pr ).setProgramStage( ps ).setOrgUnit( ou ).setTrackedEntity( tei )
             .setProgramStatus( programStatus ).setFollowUp( followUp ).setOrgUnitSelectionMode( orgUnitSelectionMode )
             .setUserWithAssignedUsers( assignedUserSelectionMode, user, assignedUsers )
             .setStartDate( startDate ).setEndDate( endDate ).setDueDateStart( dueDateStart ).setDueDateEnd( dueDateEnd )
@@ -256,7 +256,7 @@ class EventRequestToSearchParamsMapper
             .setPageSize( pageSize ).setTotalPages( totalPages ).setSkipPaging( skipPaging )
             .setSkipEventId( skipEventId ).setIncludeAttributes( includeAttributes )
             .setIncludeAllDataElements( includeAllDataElements ).addOrders( orders ).addGridOrders( gridOrders )
-            .setEvents( events ).setProgramInstances( programInstances ).setIncludeDeleted( includeDeleted );
+            .setEvents( events ).setEnrollments( enrollments ).setIncludeDeleted( includeDeleted );
     }
 
     private QueryItem getQueryItem( String item )
@@ -332,7 +332,7 @@ class EventRequestToSearchParamsMapper
             getGridOrderParams( eventCriteria.getOrder(), dataElementOrders ),
             false,
             eventIds,
-            eventCriteria.getProgramInstances(),
+            eventCriteria.getEnrollments(),
             eventCriteria.getSkipEventId(),
             eventCriteria.getAssignedUserMode(),
             assignedUserIds,

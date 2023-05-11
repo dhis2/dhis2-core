@@ -55,8 +55,8 @@ import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.hisp.dhis.period.WeeklyPeriodType;
 import org.hisp.dhis.period.YearlyPeriodType;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -90,14 +90,14 @@ public class J2MEDataValueSMSListener extends CommandSMSListener
 
     private final CompleteDataSetRegistrationService registrationService;
 
-    public J2MEDataValueSMSListener( ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+    public J2MEDataValueSMSListener( EnrollmentService enrollmentService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, DataValueService dataValueService,
         CategoryService dataElementCategoryService1, SMSCommandService smsCommandService,
         CompleteDataSetRegistrationService registrationService )
     {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( dataValueService );

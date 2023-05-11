@@ -29,7 +29,7 @@ package org.hisp.dhis.dxf2.events.event;
 
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 /**
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
@@ -37,11 +37,11 @@ import org.hisp.dhis.program.ProgramStageInstance;
 public interface EventCommentStore
 {
     /**
-     * Inserts non-empty comments from a List {@see ProgramStageInstance}
+     * Inserts non-empty comments from a List {@see Event}
      *
-     * @param programStageInstances a List of {@see ProgramStageInstance}
+     * @param events a List of {@see Event}
      *
      */
-    void saveAllComments( List<ProgramStageInstance> programStageInstances );
+    void saveAllComments( List<Event> events );
 
 }

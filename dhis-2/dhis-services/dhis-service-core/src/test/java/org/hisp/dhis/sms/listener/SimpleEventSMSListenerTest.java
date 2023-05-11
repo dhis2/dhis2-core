@@ -51,12 +51,12 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
@@ -77,7 +77,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.google.common.collect.Sets;
 
 @ExtendWith( MockitoExtension.class )
-class SimpleEventSMSListenerTest extends
+class SimpleEventSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 
@@ -109,7 +110,7 @@ class SimpleEventSMSListenerTest extends
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -125,7 +126,7 @@ class SimpleEventSMSListenerTest extends
     // Needed for this test
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     private SimpleEventSMSListener subject;
 
@@ -143,7 +144,7 @@ class SimpleEventSMSListenerTest extends
 
     private Program program;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     @BeforeEach
     public void initTest()
@@ -151,7 +152,7 @@ class SimpleEventSMSListenerTest extends
     {
         subject = new SimpleEventSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, programInstanceService, identifiableObjectManager );
+            eventService, enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -243,8 +244,8 @@ class SimpleEventSMSListenerTest extends
         stages.add( programStage );
         program.setProgramStages( stages );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
         incomingSmsSimpleEvent = createSMSFromSubmission( createSimpleEventSubmission() );
         incomingSmsSimpleEventWithNulls = createSMSFromSubmission( createSimpleEventSubmissionWithNulls() );
@@ -259,7 +260,7 @@ class SimpleEventSMSListenerTest extends
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setEventProgram( program.getUid() );
         subm.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        subm.setEvent( programStageInstance.getUid() );
+        subm.setEvent( event.getUid() );
         subm.setEventStatus( SmsEventStatus.COMPLETED );
         subm.setEventDate( new Date() );
         subm.setDueDate( new Date() );

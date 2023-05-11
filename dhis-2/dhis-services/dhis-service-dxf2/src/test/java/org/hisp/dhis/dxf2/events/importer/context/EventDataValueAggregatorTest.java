@@ -39,9 +39,8 @@ import java.util.Set;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -67,7 +66,8 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnNewEvent()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "val1" ), createDataValue( "efgh", "val2" ),
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "val1" ),
+            createDataValue( "efgh", "val2" ),
             createDataValue( "ilmn", "val3" ) );
         Map<String, Set<EventDataValue>> dataValues = subject.aggregateDataValues( Lists.newArrayList( event1 ),
             new HashMap<>(), importOptions );
@@ -82,9 +82,10 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSI()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "val1" ), createDataValue( "efgh", "val2" ),
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "val1" ),
+            createDataValue( "efgh", "val2" ),
             createDataValue( "ilmn", "val3" ) );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -101,8 +102,8 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSI_PayloadHasLessDataValues()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "val1" ) );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "val1" ) );
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -117,9 +118,10 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSI_PayloadHasMoreDataValues()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "val1" ), createDataValue( "efgh", "val2" ),
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "val1" ),
+            createDataValue( "efgh", "val2" ),
             createDataValue( "ilmn", "val3" ), createDataValue( "gggg", "val4" ) );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -137,10 +139,10 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSI_PayloadHasNoDataValues()
     {
-        Event event1 = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event1 = new org.hisp.dhis.dxf2.events.event.Event();
         event1.setUid( CodeGenerator.generateUid() );
         event1.setDataValues( Sets.newHashSet() );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -154,9 +156,10 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSI_PayloadHasEmptyDataValues()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "" ), createDataValue( "efgh", "" ),
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "" ),
+            createDataValue( "efgh", "" ),
             createDataValue( "ilmn", "" ) );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -170,9 +173,9 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSIwithMerge()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "val5" ) );
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "val5" ) );
         importOptions.setMergeDataValues( true );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -189,9 +192,9 @@ class EventDataValueAggregatorTest
     @Test
     void verifyAggregateDataValuesOnExistingPSIwithMergeAndEmptyDataValue()
     {
-        Event event1 = createEvent( createDataValue( "abcd", "" ) );
+        org.hisp.dhis.dxf2.events.event.Event event1 = createEvent( createDataValue( "abcd", "" ) );
         importOptions.setMergeDataValues( true );
-        Map<String, ProgramStageInstance> programStageInstanceMap = new HashMap<>();
+        Map<String, Event> programStageInstanceMap = new HashMap<>();
         programStageInstanceMap.put( event1.getUid(),
             createPsi( event1.getUid(), createEventDataValue( "abcd", "val1" ), createEventDataValue( "efgh", "val2" ),
                 createEventDataValue( "ilmn", "val3" ) ) );
@@ -204,12 +207,12 @@ class EventDataValueAggregatorTest
         assertDataValue( dataValues.get( event1.getUid() ), "ilmn", "val3" );
     }
 
-    private ProgramStageInstance createPsi( String uid, EventDataValue... eventDataValues )
+    private Event createPsi( String uid, EventDataValue... eventDataValues )
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setUid( uid );
-        programStageInstance.setEventDataValues( Sets.newHashSet( eventDataValues ) );
-        return programStageInstance;
+        Event event = new Event();
+        event.setUid( uid );
+        event.setEventDataValues( Sets.newHashSet( eventDataValues ) );
+        return event;
     }
 
     private void assertDataValue( Set<EventDataValue> dataValues, String dataElement, String value )
@@ -221,9 +224,9 @@ class EventDataValueAggregatorTest
         } );
     }
 
-    private Event createEvent( DataValue... dataValues )
+    private org.hisp.dhis.dxf2.events.event.Event createEvent( DataValue... dataValues )
     {
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setUid( CodeGenerator.generateUid() );
         event.setDataValues( Sets.newHashSet( dataValues ) );
         return event;

@@ -29,15 +29,24 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.DhisConvenienceTest.createCategoryOptionCombo;
 import static org.hisp.dhis.DhisConvenienceTest.createDataElement;
+import static org.hisp.dhis.DhisConvenienceTest.createDataSet;
 import static org.hisp.dhis.DhisConvenienceTest.createIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createProgram;
+import static org.hisp.dhis.DhisConvenienceTest.createProgramIndicator;
+import static org.hisp.dhis.DhisConvenienceTest.createTrackedEntityAttribute;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -45,6 +54,8 @@ import org.junit.jupiter.api.Test;
  */
 class MetadataItemTest
 {
+    private static final String serverUrl = "http://localhost:8080/dhis";
+
     @Test
     void testCreateForDataElement()
     {
@@ -80,19 +91,184 @@ class MetadataItemTest
     @Test
     void testIconUrlForIndicator()
     {
-        String serverBaseUrl = "http://localhost:8080/dhis";
-
+        // Given
         ObjectStyle style = new ObjectStyle();
         style.setIcon( "icon-name" );
 
         Indicator indicator = createIndicator( 'A', new IndicatorType() );
         indicator.setStyle( style );
 
-        MetadataItem item = new MetadataItem( "any-name", serverBaseUrl, indicator );
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, indicator );
 
-        assertEquals( "any-name", item.getName() );
-        assertEquals( serverBaseUrl, item.getServerBaseUrl() );
-        assertEquals( style.getIcon(), indicator.getStyle().getIcon() );
-        assertEquals( "http://localhost:8080/dhis/api/icons/icon-name/icon.svg", indicator.getStyle().getIcon() );
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForProgramIndicator()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        ProgramIndicator indicator = createProgramIndicator( 'A', createProgram( 'B' ), "", "" );
+        indicator.setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, indicator );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForDataElement()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        DataElement dataElement = createDataElement( 'A', ValueType.TEXT, AggregationType.COUNT,
+            DataElementDomain.AGGREGATE );
+        dataElement.setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dataElement );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForDataSet()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        DataSet dataElement = createDataSet( 'A' );
+        dataElement.setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dataElement );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForTrackedEntityAttribute()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 'A' );
+        tea.setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, tea );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForReportingRate()
+
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        ReportingRate rr = new ReportingRate( createDataSet( 'A' ) );
+        rr.getDataSet().setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, rr );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForProgramDataElementDimensionItem()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        ProgramDataElementDimensionItem dimensionItem = new ProgramDataElementDimensionItem( createProgram( 'A' ),
+            createDataElement( 'B' ) );
+        dimensionItem.getDataElement().setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dimensionItem );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForDataDimensionItemWithDataElement()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        DataDimensionItem dimensionItem = new DataDimensionItem();
+        dimensionItem.setDataElement( createDataElement( 'A' ) );
+        dimensionItem.getDataElement().setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dimensionItem.getDimensionalItemObject() );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForDataDimensionItemWithIndicator()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        DataDimensionItem dimensionItem = new DataDimensionItem();
+        dimensionItem.setIndicator( createIndicator( 'A', new IndicatorType( "test", 1, true ) ) );
+        dimensionItem.getIndicator().setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dimensionItem.getDimensionalItemObject() );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    @Test
+    void testIconUrlForDataDimensionItemWithProgramIndicator()
+    {
+        // Given
+        ObjectStyle style = new ObjectStyle();
+        style.setIcon( "icon-name" );
+
+        DataDimensionItem dimensionItem = new DataDimensionItem();
+        dimensionItem.setProgramIndicator( createProgramIndicator( 'A', createProgram( 'A' ), "test_exp", "" ) );
+        dimensionItem.getProgramIndicator().setStyle( style );
+
+        // When
+        MetadataItem item = new MetadataItem( "any-name", serverUrl, dimensionItem.getDimensionalItemObject() );
+
+        // Then
+        assertMetadataItemIconPath( item, style );
+    }
+
+    private void assertMetadataItemIconPath( MetadataItem metadataItem, ObjectStyle style )
+    {
+        assertEquals( "any-name", metadataItem.getName() );
+        assertEquals( serverUrl, metadataItem.getServerBaseUrl() );
+        assertEquals( style.getIcon(), metadataItem.getStyle().getIcon() );
+        assertEquals( serverUrl + "/api/icons/icon-name/icon.svg", metadataItem.getStyle().getIcon() );
     }
 }

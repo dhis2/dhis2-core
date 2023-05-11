@@ -30,10 +30,10 @@
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_parameters_in_method_declaration" value="16"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_resources_in_try" value="80"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_selector_in_method_invocation" value="16"/>
-<setting id="org.eclipse.jdt.core.formatter.alignment_for_superclass_in_type_declaration" value="24"/>
+<setting id="org.eclipse.jdt.core.formatter.alignment_for_superclass_in_type_declaration" value="32"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_enum_declaration" value="24"/>
-<setting id="org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_type_declaration" value="24"/>
-<setting id="org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_constructor_declaration" value="17"/>
+<setting id="org.eclipse.jdt.core.formatter.alignment_for_superinterfaces_in_type_declaration" value="32"/>
+<setting id="org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_constructor_declaration" value="33"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_throws_clause_in_method_declaration" value="17"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_type_arguments" value="0"/>
 <setting id="org.eclipse.jdt.core.formatter.alignment_for_type_parameters" value="0"/>
@@ -101,7 +101,7 @@
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_local_variable" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_method" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_package" value="insert"/>
-<setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_parameter" value="insert"/>
+<setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_parameter" value="do not insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_annotation_on_type" value="insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_label" value="do not insert"/>
 <setting id="org.eclipse.jdt.core.formatter.insert_new_line_after_opening_brace_in_array_initializer" value="do not insert"/>
@@ -311,6 +311,5 @@
 <setting id="org.eclipse.jdt.core.formatter.wrap_before_conditional_operator" value="true"/>
 <setting id="org.eclipse.jdt.core.formatter.wrap_before_or_operator_multicatch" value="true"/>
 <setting id="org.eclipse.jdt.core.formatter.wrap_outer_expressions_when_nested" value="true"/>
-
 </profile>
 </profiles>

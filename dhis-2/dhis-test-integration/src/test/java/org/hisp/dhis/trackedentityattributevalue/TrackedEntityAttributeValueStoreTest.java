@@ -39,10 +39,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -56,7 +56,7 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     private TrackedEntityAttributeValueStore attributeValueStore;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -78,13 +78,13 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
     private TrackedEntityAttribute atD;
 
-    private TrackedEntityInstance teiA;
+    private TrackedEntity teiA;
 
-    private TrackedEntityInstance teiB;
+    private TrackedEntity teiB;
 
-    private TrackedEntityInstance teiC;
+    private TrackedEntity teiC;
 
-    private TrackedEntityInstance teiD;
+    private TrackedEntity teiD;
 
     private TrackedEntityAttributeValue avA;
 
@@ -99,14 +99,14 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-        teiA = createTrackedEntityInstance( organisationUnit );
-        teiB = createTrackedEntityInstance( organisationUnit );
-        teiC = createTrackedEntityInstance( organisationUnit );
-        teiD = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( teiA );
-        entityInstanceService.addTrackedEntityInstance( teiB );
-        entityInstanceService.addTrackedEntityInstance( teiC );
-        entityInstanceService.addTrackedEntityInstance( teiD );
+        teiA = createTrackedEntity( organisationUnit );
+        teiB = createTrackedEntity( organisationUnit );
+        teiC = createTrackedEntity( organisationUnit );
+        teiD = createTrackedEntity( organisationUnit );
+        entityInstanceService.addTrackedEntity( teiA );
+        entityInstanceService.addTrackedEntity( teiB );
+        entityInstanceService.addTrackedEntity( teiC );
+        entityInstanceService.addTrackedEntity( teiD );
         atA = createTrackedEntityAttribute( 'A' );
         atB = createTrackedEntityAttribute( 'B' );
         atC = createTrackedEntityAttribute( 'C' );
@@ -143,11 +143,11 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
         assertNotNull( attributeValueStore.get( teiA, atA ) );
         assertNotNull( attributeValueStore.get( teiA, atB ) );
         assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiA );
+        attributeValueStore.deleteByTrackedEntity( teiA );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
         assertNotNull( attributeValueStore.get( teiB, atC ) );
-        attributeValueStore.deleteByTrackedEntityInstance( teiB );
+        attributeValueStore.deleteByTrackedEntity( teiB );
         assertNull( attributeValueStore.get( teiA, atA ) );
         assertNull( attributeValueStore.get( teiA, atB ) );
         assertNull( attributeValueStore.get( teiB, atC ) );
@@ -196,14 +196,14 @@ class TrackedEntityAttributeValueStoreTest extends SingleSetupIntegrationTestBas
 
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( List.of( atA ) )
-            .setTrackedEntityInstances( List.of( teiA ) )
+            .setTrackedEntities( List.of( teiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( List.of( auditA ),
             attributeValueAuditStore.getTrackedEntityAttributeValueAudits( params ) );
 
         params = new TrackedEntityAttributeValueAuditQueryParams()
-            .setTrackedEntityInstances( List.of( teiA ) )
+            .setTrackedEntities( List.of( teiA ) )
             .setAuditTypes( List.of( AuditType.UPDATE ) );
 
         assertContainsOnly( List.of( auditA, auditB ),

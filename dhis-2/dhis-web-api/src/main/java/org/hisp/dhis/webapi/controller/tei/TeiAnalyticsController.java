@@ -103,8 +103,7 @@ class TeiAnalyticsController
     @Nonnull
     private final ContextUtils contextUtils;
 
-    @GetMapping( value = "query/{trackedEntityType}", produces = { APPLICATION_JSON_VALUE,
-        "application/javascript" } )
+    @GetMapping( value = "query/{trackedEntityType}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     Grid getGrid(
         @PathVariable String trackedEntityType,
         TeiQueryRequest teiQueryRequest,

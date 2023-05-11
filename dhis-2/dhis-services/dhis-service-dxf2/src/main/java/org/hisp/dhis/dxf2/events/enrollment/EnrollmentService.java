@@ -35,10 +35,9 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.EnrollmentParams;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 
 /**
@@ -52,28 +51,32 @@ public interface EnrollmentService
     // READ
     // -------------------------------------------------------------------------
 
-    List<Enrollment> getEnrollmentsJson( InputStream inputStream )
+    List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> getEnrollmentsJson( InputStream inputStream )
         throws IOException;
 
-    List<Enrollment> getEnrollmentsXml( InputStream inputStream )
+    List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> getEnrollmentsXml( InputStream inputStream )
         throws IOException;
 
-    Enrollment getEnrollment( String id, EnrollmentParams params );
+    org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( String id, EnrollmentParams params );
 
-    Enrollment getEnrollment( ProgramInstance programInstance, EnrollmentParams params );
+    org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( org.hisp.dhis.program.Enrollment enrollment,
+        EnrollmentParams params );
 
-    Enrollment getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params,
+    org.hisp.dhis.dxf2.events.enrollment.Enrollment getEnrollment( User user,
+        org.hisp.dhis.program.Enrollment enrollment, EnrollmentParams params,
         boolean skipOwnershipCheck );
 
-    List<Enrollment> getEnrollments( Iterable<ProgramInstance> programInstances );
+    List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> getEnrollments(
+        Iterable<org.hisp.dhis.program.Enrollment> programInstances );
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( EnrollmentQueryParams params );
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
 
-    ImportSummaries addEnrollmentList( List<Enrollment> enrollments, ImportOptions importOptions );
+    ImportSummaries addEnrollmentList( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions );
 
     ImportSummaries addEnrollmentsJson( InputStream inputStream, ImportOptions importOptions )
         throws IOException;
@@ -81,12 +84,15 @@ public interface EnrollmentService
     ImportSummaries addEnrollmentsXml( InputStream inputStream, ImportOptions importOptions )
         throws IOException;
 
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, boolean clearSession );
+    ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions, boolean clearSession );
 
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions, JobConfiguration jobId );
+    ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions, JobConfiguration jobId );
 
-    ImportSummaries addEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
-        TrackedEntityInstance trackedEntityInstance, boolean clearSession );
+    ImportSummaries addEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
+        TrackedEntity trackedEntity, boolean clearSession );
 
     // -------------------------------------------------------------------------
     // UPDATE
@@ -101,17 +107,21 @@ public interface EnrollmentService
     ImportSummary updateEnrollmentXml( String id, InputStream inputStream, ImportOptions importOptions )
         throws IOException;
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions );
+    ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions );
 
-    ImportSummary addEnrollment( Enrollment enrollment, ImportOptions importOptions,
-        TrackedEntityInstance daoTrackedEntityInstance );
+    ImportSummary addEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions,
+        TrackedEntity daoTrackedEntity );
 
-    ImportSummaries updateEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    ImportSummaries updateEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         boolean clearSession );
 
-    ImportSummary updateEnrollment( Enrollment enrollment, ImportOptions importOptions );
+    ImportSummary updateEnrollment( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment,
+        ImportOptions importOptions );
 
-    ImportSummary updateEnrollmentForNote( Enrollment enrollment );
+    ImportSummary updateEnrollmentForNote( org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment );
 
     void cancelEnrollment( String uid );
 
@@ -125,6 +135,7 @@ public interface EnrollmentService
 
     ImportSummary deleteEnrollment( String uid );
 
-    ImportSummaries deleteEnrollments( List<Enrollment> enrollments, ImportOptions importOptions,
+    ImportSummaries deleteEnrollments( List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments,
+        ImportOptions importOptions,
         boolean clearSession );
 }

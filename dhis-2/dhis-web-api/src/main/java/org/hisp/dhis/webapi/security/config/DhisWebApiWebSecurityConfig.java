@@ -45,8 +45,6 @@ import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
 import org.hisp.dhis.security.jwt.Dhis2JwtAuthenticationManagerResolver;
 import org.hisp.dhis.security.jwt.DhisBearerJwtTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.ldap.authentication.CustomLdapAuthenticationProvider;
-import org.hisp.dhis.security.oauth2.DefaultClientDetailsService;
-import org.hisp.dhis.security.oauth2.OAuth2AuthorizationServerEnabledCondition;
 import org.hisp.dhis.security.oidc.DhisAuthorizationCodeTokenResponseClient;
 import org.hisp.dhis.security.oidc.DhisCustomAuthorizationRequestResolver;
 import org.hisp.dhis.security.oidc.DhisOidcLogoutSuccessHandler;
@@ -58,8 +56,6 @@ import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.webapi.filter.CorsFilter;
 import org.hisp.dhis.webapi.filter.CspFilter;
 import org.hisp.dhis.webapi.filter.CustomAuthenticationFilter;
-import org.hisp.dhis.webapi.oprovider.DhisOauthAuthenticationProvider;
-import org.hisp.dhis.webapi.security.EmbeddedJettyBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.ExternalAccessVoter;
 import org.hisp.dhis.webapi.security.FormLoginBasicAuthenticationEntryPoint;
 import org.hisp.dhis.webapi.security.apikey.ApiTokenAuthManager;
@@ -72,51 +68,28 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
-import org.springframework.context.annotation.Primary;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
 import org.springframework.security.access.vote.UnanimousBased;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.annotation.SecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.ObjectPostProcessor;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
-import org.springframework.security.config.annotation.authentication.configurers.userdetails.DaoAuthenticationConfigurer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.core.session.SessionRegistryImpl;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerEndpointsConfiguration;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
-import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
-import org.springframework.security.oauth2.provider.approval.DefaultUserApprovalHandler;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationManager;
-import org.springframework.security.oauth2.provider.authentication.OAuth2AuthenticationProcessingFilter;
-import org.springframework.security.oauth2.provider.code.JdbcAuthorizationCodeServices;
-import org.springframework.security.oauth2.provider.endpoint.FrameworkEndpointHandlerMapping;
-import org.springframework.security.oauth2.provider.error.OAuth2AccessDeniedHandler;
-import org.springframework.security.oauth2.provider.error.OAuth2AuthenticationEntryPoint;
-import org.springframework.security.oauth2.provider.expression.OAuth2WebSecurityExpressionHandler;
-import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
-import org.springframework.security.oauth2.provider.token.ResourceServerTokenServices;
-import org.springframework.security.oauth2.provider.token.TokenStore;
-import org.springframework.security.oauth2.provider.token.store.JdbcTokenStore;
 import org.springframework.security.oauth2.server.resource.web.BearerTokenAuthenticationFilter;
 import org.springframework.security.oauth2.server.resource.web.DefaultBearerTokenResolver;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.security.web.DefaultSecurityFilterChain;
 import org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler;
 import org.springframework.security.web.access.expression.WebExpressionVoter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.switchuser.SwitchUserFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.header.HeaderWriterFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.util.UrlPathHelper;
@@ -147,140 +120,10 @@ public class DhisWebApiWebSecurityConfig
     @Autowired
     public DataSource dataSource;
 
-    /**
-     * This configuration class is responsible for setting up the OAuth2 /token
-     * endpoint and /authorize endpoint. This config is a modification of the
-     * config that is automatically enabled by using
-     * the @EnableAuthorizationServer annotation. The spring-security-oauth2
-     * project is deprecated, but as of August 19, 2020; there is still no other
-     * viable alternative available.
-     */
-    @Configuration
-    @Order( 1001 )
-    @Import( { AuthorizationServerEndpointsConfiguration.class } )
-    @Conditional( value = OAuth2AuthorizationServerEnabledCondition.class )
-    public class OAuth2SecurityConfig
-        extends WebSecurityConfigurerAdapter
-        implements AuthorizationServerConfigurer
-    {
-        @Autowired
-        private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
-
-        @Autowired
-        @Qualifier( "customLdapAuthenticationProvider" )
-        private CustomLdapAuthenticationProvider customLdapAuthenticationProvider;
-
-        @Autowired
-        private AuthorizationServerEndpointsConfiguration endpoints;
-
-        @Autowired
-        private DhisOauthAuthenticationProvider dhisOauthAuthenticationProvider;
-
-        @Autowired
-        private DefaultAuthenticationEventPublisher authenticationEventPublisher;
-
-        @Override
-        protected void configure( HttpSecurity http )
-            throws Exception
-        {
-            AuthorizationServerSecurityConfigurer configurer = new AuthorizationServerSecurityConfigurer();
-            FrameworkEndpointHandlerMapping handlerMapping = endpoints.oauth2EndpointHandlerMapping();
-            http.setSharedObject( FrameworkEndpointHandlerMapping.class, handlerMapping );
-
-            endpoints.authorizationEndpoint().setUserApprovalPage( "forward:/uaa/oauth/confirm_access" );
-            endpoints.authorizationEndpoint().setErrorPage( "forward:/uaa/oauth/error" );
-
-            configure( configurer );
-            http.apply( configurer );
-
-            String tokenEndpointPath = handlerMapping.getServletPath( "/oauth/token" );
-
-            http
-                .authorizeRequests()
-                .antMatchers( tokenEndpointPath ).fullyAuthenticated()
-                .and()
-                .requestMatchers()
-                .antMatchers( tokenEndpointPath )
-                .and()
-                .sessionManagement().sessionCreationPolicy( SessionCreationPolicy.NEVER );
-
-            http.apply( new AuthorizationServerAuthenticationManagerConfigurer() );
-
-            setHttpHeaders( http );
-        }
-
-        private class AuthorizationServerAuthenticationManagerConfigurer
-            extends SecurityConfigurerAdapter<DefaultSecurityFilterChain, HttpSecurity>
-        {
-            @Override
-            @SuppressWarnings( "unchecked" )
-            public void init( HttpSecurity builder )
-            {
-                // This is a quirk to remove the default
-                // DaoAuthenticationConfigurer,
-                // that gets automatically assigned in the
-                // AuthorizationServerSecurityConfigurer.
-                // We only want ONE authentication provider (our own...)
-                AuthenticationManagerBuilder authBuilder = builder
-                    .getSharedObject( AuthenticationManagerBuilder.class );
-                authBuilder.removeConfigurer( DaoAuthenticationConfigurer.class );
-                authBuilder.authenticationProvider( dhisOauthAuthenticationProvider );
-            }
-        }
-
-        @Override
-        public void configure( AuthorizationServerSecurityConfigurer security )
-        {
-            // Intentionally empty
-        }
-
-        @Override
-        public void configure( ClientDetailsServiceConfigurer configurer )
-        {
-            // Intentionally empty
-        }
-
-        @Bean( "authorizationCodeServices" )
-        public JdbcAuthorizationCodeServices jdbcAuthorizationCodeServices()
-        {
-            return new JdbcAuthorizationCodeServices( dataSource );
-        }
-
-        @Override
-        public void configure( final AuthorizationServerEndpointsConfigurer endpoints )
-        {
-            ProviderManager providerManager = new ProviderManager(
-                List.of( twoFactorAuthenticationProvider, customLdapAuthenticationProvider ) );
-
-            if ( authenticationEventPublisher != null )
-            {
-                providerManager.setAuthenticationEventPublisher( authenticationEventPublisher );
-            }
-
-            endpoints
-                .prefix( "/uaa" )
-                .userApprovalHandler( new DefaultUserApprovalHandler() )
-                .authorizationCodeServices( jdbcAuthorizationCodeServices() )
-                .tokenStore( tokenStore() )
-                .authenticationManager( providerManager );
-        }
-    }
-
     @Bean
-    public TokenStore tokenStore()
+    public SessionRegistryImpl sessionRegistry()
     {
-        return new JdbcTokenStore( dataSource );
-    }
-
-    @Bean( "defaultTokenService" )
-    @Primary
-    public DefaultTokenServices tokenServices()
-    {
-        final DefaultTokenServices defaultTokenServices = new DefaultTokenServices();
-        defaultTokenServices.setTokenStore( tokenStore() );
-        defaultTokenServices.setSupportRefreshToken( true );
-        defaultTokenServices.setRefreshTokenValiditySeconds( Integer.MAX_VALUE );
-        return defaultTokenServices;
+        return new SessionRegistryImpl();
     }
 
     /**
@@ -352,14 +195,6 @@ public class DhisWebApiWebSecurityConfig
         private DhisConfigurationProvider dhisConfig;
 
         @Autowired
-        @Qualifier( "defaultTokenService" )
-        private ResourceServerTokenServices tokenServices;
-
-        @Autowired
-        @Qualifier( "defaultClientDetailsService" )
-        private DefaultClientDetailsService clientDetailsService;
-
-        @Autowired
         private TwoFactorAuthenticationProvider twoFactorAuthenticationProvider;
 
         @Autowired
@@ -380,9 +215,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ApiTokenService apiTokenService;
-
-        @Autowired
-        private SessionRegistry sessionRegistry;
 
         @Autowired
         private UserService userService;
@@ -417,35 +249,11 @@ public class DhisWebApiWebSecurityConfig
             auth.authenticationEventPublisher( authenticationEventPublisher );
         }
 
-        /**
-         * This AuthenticationManager is responsible for authorizing access,
-         * refresh and code OAuth2 tokens from the /token and /authorize
-         * endpoints. It is used only by the
-         * OAuth2AuthenticationProcessingFilter.
-         */
-        private AuthenticationManager oauthAuthenticationManager()
-        {
-            OAuth2AuthenticationManager oauthAuthenticationManager = new OAuth2AuthenticationManager();
-            oauthAuthenticationManager.setResourceId( "oauth2-resource" );
-            oauthAuthenticationManager.setTokenServices( tokenServices );
-            oauthAuthenticationManager.setClientDetailsService( clientDetailsService );
-
-            return oauthAuthenticationManager;
-        }
-
         public WebExpressionVoter apiWebExpressionVoter()
         {
             WebExpressionVoter voter = new WebExpressionVoter();
 
-            DefaultWebSecurityExpressionHandler handler;
-            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
-            {
-                handler = new OAuth2WebSecurityExpressionHandler();
-            }
-            else
-            {
-                handler = new DefaultWebSecurityExpressionHandler();
-            }
+            DefaultWebSecurityExpressionHandler handler = new DefaultWebSecurityExpressionHandler();
             handler.setDefaultRolePrefix( "" );
 
             voter.setExpressionHandler( handler );
@@ -467,11 +275,6 @@ public class DhisWebApiWebSecurityConfig
         private void configureAccessRestrictions(
             ExpressionUrlAuthorizationConfigurer<HttpSecurity>.ExpressionInterceptUrlRegistry authorize )
         {
-            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
-            {
-                authorize.expressionHandler( new OAuth2WebSecurityExpressionHandler() );
-            }
-
             authorize
 
                 .antMatchers( "/impersonate" ).hasAnyAuthority( "ALL", "F_IMPERSONATE_USER" )
@@ -482,6 +285,7 @@ public class DhisWebApiWebSecurityConfig
                 .antMatchers( apiContextPath + "/authentication/login" ).permitAll()
                 .antMatchers( apiContextPath + "/account/recovery" ).permitAll()
                 .antMatchers( apiContextPath + "/account/restore" ).permitAll()
+                .antMatchers( apiContextPath + "/account" ).permitAll()
                 .antMatchers( apiContextPath + "/staticContent/*" ).permitAll()
                 .antMatchers( apiContextPath + "/externalFileResources/*" ).permitAll()
                 .antMatchers( apiContextPath + "/icons/*/icon.svg" ).permitAll()
@@ -502,7 +306,6 @@ public class DhisWebApiWebSecurityConfig
             http.csrf().disable();
 
             configureMatchers( http );
-            configureOAuthAuthorizationServer( http );
             configureCspFilter( http, dhisConfig, configurationService );
             configureCorsFilter( http );
             configureMobileAuthFilter( http );
@@ -517,24 +320,40 @@ public class DhisWebApiWebSecurityConfig
         {
             String[] activeProfiles = getApplicationContext().getEnvironment().getActiveProfiles();
 
+            http.securityContext( httpSecuritySecurityContextConfigurer -> httpSecuritySecurityContextConfigurer
+                .requireExplicitSave( true ) );
+
+            http.antMatcher( apiContextPath + "/**" )
+                .authorizeRequests( this::configureAccessRestrictions )
+                .httpBasic()
+
+                .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
+                .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() )
+
+                .addObjectPostProcessor( new ObjectPostProcessor<BasicAuthenticationFilter>()
+                {
+                    @Override
+                    public <O extends BasicAuthenticationFilter> O postProcess( O filter )
+                    {
+                        // Explicitly set security context repository on http basic, is NullSecurityContextRepository by default now.
+                        filter.setSecurityContextRepository( new HttpSessionSecurityContextRepository() );
+                        return filter;
+                    }
+                } );
+
+            http
+                .sessionManagement()
+                .requireExplicitAuthenticationStrategy( true )
+                .sessionFixation().migrateSession()
+                .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
+                .enableSessionUrlRewriting( false )
+                .maximumSessions(
+                    Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
+                .expiredUrl( "/dhis-web-commons-security/logout.action" );
+
             // Special handling if we are running in embedded Jetty mode
             if ( Arrays.asList( activeProfiles ).contains( "embeddedJetty" ) )
             {
-                http.antMatcher( "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( strutsLessFormLoginBasicAuthenticationEntryPoint() );
-
-                http
-                    .sessionManagement()
-                    .sessionFixation().migrateSession()
-                    .sessionCreationPolicy( SessionCreationPolicy.ALWAYS )
-                    .enableSessionUrlRewriting( false )
-                    .maximumSessions(
-                        Integer.parseInt( dhisConfig.getProperty( ConfigurationKey.MAX_SESSIONS_PER_USER ) ) )
-                    .sessionRegistry( sessionRegistry );
-
                 http
                     .formLogin()
                     .authenticationDetailsSource( twoFactorWebAuthenticationDetailsSource )
@@ -552,25 +371,6 @@ public class DhisWebApiWebSecurityConfig
                     .logoutSuccessUrl( "/" )
                     .logoutSuccessHandler( dhisOidcLogoutSuccessHandler )
                     .deleteCookies( "JSESSIONID" );
-            }
-            else
-            {
-                // This config will redirect unauthorized requests to the
-                // default login form webpage
-                http.antMatcher( apiContextPath + "/**" )
-                    .authorizeRequests( this::configureAccessRestrictions )
-                    .httpBasic()
-                    .authenticationDetailsSource( httpBasicWebAuthenticationDetailsSource )
-                    .authenticationEntryPoint( formLoginBasicAuthenticationEntryPoint() );
-            }
-        }
-
-        private void configureOAuthAuthorizationServer( HttpSecurity http )
-            throws Exception
-        {
-            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
-            {
-                http.exceptionHandling().accessDeniedHandler( new OAuth2AccessDeniedHandler() );
             }
         }
 
@@ -613,35 +413,10 @@ public class DhisWebApiWebSecurityConfig
          */
         private void configureOAuthTokenFilters( HttpSecurity http )
         {
-            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_OAUTH2_AUTHORIZATION_SERVER ) )
-            {
-                http.addFilterAfter( getOAuthAuthorizationServerFilter(), BasicAuthenticationFilter.class );
-            }
-            else if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION ) )
+            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION ) )
             {
                 http.addFilterAfter( getJwtBearerTokenAuthenticationFilter(), BasicAuthenticationFilter.class );
             }
-        }
-
-        /**
-         * This is the "deprecated" OAuth2 authorization server. It is
-         * deprecated by Spring, but we still use it since there is no
-         * alternative yet. An experimental authorization server is in the
-         * makings, and will hopefully replace this in the future.
-         *
-         * @return OAuth2AuthenticationProcessingFilter to be added to filter
-         *         chain
-         */
-        private OAuth2AuthenticationProcessingFilter getOAuthAuthorizationServerFilter()
-        {
-            AuthenticationEntryPoint authenticationEntryPoint = new OAuth2AuthenticationEntryPoint();
-
-            OAuth2AuthenticationProcessingFilter filter = new OAuth2AuthenticationProcessingFilter();
-            filter.setAuthenticationEntryPoint( authenticationEntryPoint );
-            filter.setAuthenticationManager( oauthAuthenticationManager() );
-            filter.setStateless( false );
-
-            return filter;
         }
 
         /**
@@ -705,19 +480,6 @@ public class DhisWebApiWebSecurityConfig
             return new FormLoginBasicAuthenticationEntryPoint( "/login.html" );
         }
 
-        /**
-         * HTTP Basic entrypoint for the /api server when running in embedded
-         * Jetty mode. We don't want to redirect into the web pages, since they
-         * are not running.
-         *
-         * @return EmbeddedJettyBasicAuthenticationEntryPoint entryPoint to use
-         *         in http config.
-         */
-        @Bean
-        public EmbeddedJettyBasicAuthenticationEntryPoint embeddedJettyBasicAuthenticationEntryPoint()
-        {
-            return new EmbeddedJettyBasicAuthenticationEntryPoint( "DHIS2_API" );
-        }
     }
 
     /**

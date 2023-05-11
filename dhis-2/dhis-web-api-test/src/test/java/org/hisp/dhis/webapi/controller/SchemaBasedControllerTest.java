@@ -71,7 +71,7 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "softDeletableObject", // depends on programInstance (see above)
         "relationship", // generator insufficient for embedded fields
         "relationshipType", // generator insufficient for embedded fields
-        "programStageInstanceFilter", // generator insufficient
+        "eventFilter", // generator insufficient
         "interpretation", // required ObjectReport not required in schema
         "user", // generator insufficient to understand user
         "jobConfiguration", // API requires configurable=true
@@ -81,7 +81,6 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
         "programStage", // body request does not include mandatory field programId
         "programStageWorkingList", // same reason as programStage
         "dataElement", // non-postgres SQL in deletion handler
-        "trackedEntityInstance", // conflict (no details)
         "predictor", // NPE in preheat when creating objects
         "aggregateDataExchange" // required JSONB objects not working
     );
@@ -124,7 +123,8 @@ class SchemaBasedControllerTest extends DhisControllerConvenienceTest
                 assertStatus( HttpStatus.OK, DELETE( endpoint + "/" + uid ) );
             }
         }
-        assertTrue( testedSchemas >= 57, "make sure we actually test schemas" );
+
+        assertTrue( testedSchemas >= 56, "make sure we actually test schemas" );
     }
 
     /**

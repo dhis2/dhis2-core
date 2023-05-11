@@ -64,7 +64,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "dataApprovalWorkflow", namespace = DxfNamespaces.DXF_2_0 )
 public class DataApprovalWorkflow
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The period type for approving data with this workflow.

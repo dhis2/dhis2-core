@@ -61,7 +61,6 @@ import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
 import org.hisp.dhis.dxf2.events.event.persistence.EventPersistenceService;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
@@ -69,9 +68,9 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.CurrentUserService;
@@ -109,7 +108,7 @@ public class EventManager
 
     private static final String IMPORT_ERROR_STRING = "Invalid or conflicting data";
 
-    public ImportSummary addEvent( final Event event, final WorkContext workContext )
+    public ImportSummary addEvent( final org.hisp.dhis.dxf2.events.event.Event event, final WorkContext workContext )
     {
         final ImportSummaries importSummaries = addEvents( List.of( event ), workContext );
 
@@ -123,7 +122,8 @@ public class EventManager
         }
     }
 
-    public ImportSummaries addEvents( final List<Event> events, final WorkContext workContext )
+    public ImportSummaries addEvents( final List<org.hisp.dhis.dxf2.events.event.Event> events,
+        final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
@@ -134,7 +134,8 @@ public class EventManager
 
         // filter out events which are already in the database as well as
         // duplicates in the payload (if stage is not repeatable)
-        List<Event> validEvents = resolveImportableEvents( events, importSummaries, workContext );
+        List<org.hisp.dhis.dxf2.events.event.Event> validEvents = resolveImportableEvents( events, importSummaries,
+            workContext );
 
         if ( validEvents.isEmpty() )
         {
@@ -161,7 +162,7 @@ public class EventManager
         if ( !workContext.getImportOptions().isDryRun() )
         {
             // fetch persistable events //
-            List<Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
+            List<org.hisp.dhis.dxf2.events.event.Event> eventsToInsert = invalidEvents.isEmpty() ? validEvents
                 : validEvents.stream().filter( e -> !invalidEvents.contains( e.getEvent() ) ).collect( toList() );
 
             if ( isNotEmpty( eventsToInsert ) )
@@ -184,7 +185,7 @@ public class EventManager
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
-            List<Event> savedEvents = events.stream()
+            List<org.hisp.dhis.dxf2.events.event.Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             executorsByPhase.get( EventProcessorPhase.INSERT_POST ).execute( workContext, savedEvents );
@@ -198,9 +199,9 @@ public class EventManager
         return importSummaries;
     }
 
-    public ImportSummary updateEvent( final Event event, final WorkContext workContext )
+    public ImportSummary updateEvent( final org.hisp.dhis.dxf2.events.event.Event event, final WorkContext workContext )
     {
-        final List<Event> singleEvent = singletonList( event );
+        final List<org.hisp.dhis.dxf2.events.event.Event> singleEvent = singletonList( event );
 
         final ImportSummaries importSummaries = updateEvents( singleEvent, workContext );
 
@@ -214,7 +215,8 @@ public class EventManager
         }
     }
 
-    public ImportSummaries updateEvents( final List<Event> events, final WorkContext workContext )
+    public ImportSummaries updateEvents( final List<org.hisp.dhis.dxf2.events.event.Event> events,
+        final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
@@ -258,7 +260,7 @@ public class EventManager
             // persisted
             // correctly.
 
-            List<Event> savedEvents = events.stream()
+            List<org.hisp.dhis.dxf2.events.event.Event> savedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
 
             executorsByPhase.get( EventProcessorPhase.UPDATE_POST ).execute( workContext, savedEvents );
@@ -273,7 +275,8 @@ public class EventManager
         return importSummaries;
     }
 
-    public ImportSummaries deleteEvents( final List<Event> events, final WorkContext workContext )
+    public ImportSummaries deleteEvents( final List<org.hisp.dhis.dxf2.events.event.Event> events,
+        final WorkContext workContext )
     {
         final ImportSummaries importSummaries = new ImportSummaries();
 
@@ -316,7 +319,7 @@ public class EventManager
             // Post processing only the events that passed validation and were
             // persisted
             // correctly.
-            List<Event> deletedEvents = events.stream()
+            List<org.hisp.dhis.dxf2.events.event.Event> deletedEvents = events.stream()
                 .filter( e -> !eventPersistenceFailedUids.contains( e.getEvent() ) ).collect( toList() );
             executorsByPhase.get( EventProcessorPhase.DELETE_POST ).execute( workContext, deletedEvents );
 
@@ -330,11 +333,12 @@ public class EventManager
         return importSummaries;
     }
 
-    private void auditTrackedEntityDataValueHistory( Event event, WorkContext workContext, Date today )
+    private void auditTrackedEntityDataValueHistory( org.hisp.dhis.dxf2.events.event.Event event,
+        WorkContext workContext, Date today )
     {
         String persistedDataValue = null;
 
-        ProgramStageInstance psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
+        Event psi = workContext.getPersistedProgramStageInstanceMap().get( event.getUid() );
 
         Map<String, EventDataValue> dataValueDBMap = Optional.ofNullable( psi ).map( p -> p.getEventDataValues()
             .stream()
@@ -372,7 +376,7 @@ public class EventManager
             audit.setCreated( today );
             audit.setAuditType( auditType );
             audit.setProvidedElsewhere( dv.getProvidedElsewhere() );
-            audit.setProgramStageInstance( psi );
+            audit.setEvent( psi );
             audit.setValue( persistedDataValue != null ? persistedDataValue : dv.getValue() );
             audit.setDataElement( workContext.getDataElementMap().get( dv.getDataElement() ) );
             audit.setModifiedBy( currentUserService.getCurrentUsername() );
@@ -381,10 +385,11 @@ public class EventManager
         }
     }
 
-    private void incrementSummaryTotals( final List<Event> events, final ImportSummaries importSummaries,
+    private void incrementSummaryTotals( final List<org.hisp.dhis.dxf2.events.event.Event> events,
+        final ImportSummaries importSummaries,
         final ImportStrategy importStrategy )
     {
-        for ( final Event event : events )
+        for ( final org.hisp.dhis.dxf2.events.event.Event event : events )
         {
             if ( !importSummaries.getByReference( event.getUid() ).isPresent() )
             {
@@ -417,9 +422,11 @@ public class EventManager
     }
 
     private void handleFailure( final WorkContext workContext, final ImportSummaries importSummaries,
-        final List<Event> validEvents, final String errorMessage, final ImportStrategy importStrategy )
+        final List<org.hisp.dhis.dxf2.events.event.Event> validEvents, final String errorMessage,
+        final ImportStrategy importStrategy )
     {
-        final List<Event> failedEvents = retryEach( workContext, validEvents, importStrategy );
+        final List<org.hisp.dhis.dxf2.events.event.Event> failedEvents = retryEach( workContext, validEvents,
+            importStrategy );
 
         failedEvents.forEach( failedEvent -> importSummaries.getImportSummaries()
             .add( error( errorMessage, failedEvent.getEvent() ) ) );
@@ -434,14 +441,15 @@ public class EventManager
      * @param importSummaries ImportSummaries used for import
      * @return Events that is possible to import (pass validation)
      */
-    private List<Event> resolveImportableEvents( final List<Event> events, final ImportSummaries importSummaries,
+    private List<org.hisp.dhis.dxf2.events.event.Event> resolveImportableEvents(
+        final List<org.hisp.dhis.dxf2.events.event.Event> events, final ImportSummaries importSummaries,
         final WorkContext workContext )
     {
-        List<Event> importableEvents = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> importableEvents = new ArrayList<>();
         Set<String> importableStageEvents = new HashSet<>();
         final Set<String> existingProgramStageInstances = workContext.getProgramStageInstanceMap().keySet();
 
-        for ( Event eventToImport : events )
+        for ( org.hisp.dhis.dxf2.events.event.Event eventToImport : events )
         {
             if ( existingProgramStageInstances.contains( eventToImport.getUid() ) )
             {
@@ -487,12 +495,13 @@ public class EventManager
         return importableEvents;
     }
 
-    private List<Event> retryEach( final WorkContext workContext, final List<Event> retryEvents,
+    private List<org.hisp.dhis.dxf2.events.event.Event> retryEach( final WorkContext workContext,
+        final List<org.hisp.dhis.dxf2.events.event.Event> retryEvents,
         final ImportStrategy importStrategy )
     {
-        final List<Event> failedEvents = new ArrayList<>( 0 );
+        final List<org.hisp.dhis.dxf2.events.event.Event> failedEvents = new ArrayList<>( 0 );
 
-        for ( final Event event : retryEvents )
+        for ( final org.hisp.dhis.dxf2.events.event.Event event : retryEvents )
         {
             try
             {
@@ -524,11 +533,12 @@ public class EventManager
      * Only returns the ImportSummary for Events that *did* not pass validation
      *
      */
-    private List<ImportSummary> run( WorkContext workContext, List<Event> events, List<? extends Checker> checkers )
+    private List<ImportSummary> run( WorkContext workContext, List<org.hisp.dhis.dxf2.events.event.Event> events,
+        List<? extends Checker> checkers )
     {
         final List<ImportSummary> importSummaries = new ArrayList<>( 0 );
 
-        for ( final Event event : events )
+        for ( final org.hisp.dhis.dxf2.events.event.Event event : events )
         {
             for ( Checker checker : checkers )
             {

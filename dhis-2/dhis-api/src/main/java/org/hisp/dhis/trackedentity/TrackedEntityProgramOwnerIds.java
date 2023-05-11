@@ -29,22 +29,22 @@ package org.hisp.dhis.trackedentity;
 
 public class TrackedEntityProgramOwnerIds
 {
-    private final String trackedEntityInstanceId;
+    private final String trackedEntityId;
 
     private final String programId;
 
     private final String orgUnitUid;
 
-    public TrackedEntityProgramOwnerIds( String trackedEntityInstanceId, String programId, String orgUnitUid )
+    public TrackedEntityProgramOwnerIds( String trackedEntityId, String programId, String orgUnitUid )
     {
-        this.trackedEntityInstanceId = trackedEntityInstanceId;
+        this.trackedEntityId = trackedEntityId;
         this.programId = programId;
         this.orgUnitUid = orgUnitUid;
     }
 
-    public String getTrackedEntityInstanceId()
+    public String getTrackedEntityId()
     {
-        return trackedEntityInstanceId;
+        return trackedEntityId;
     }
 
     public String getProgramId()

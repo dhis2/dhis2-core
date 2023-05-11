@@ -46,7 +46,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "programRuleVariable", namespace = DxfNamespaces.DXF_2_0 )
 public class ProgramRuleVariable
-    extends BaseIdentifiableObject implements MetadataObject
+    extends BaseIdentifiableObject
+    implements MetadataObject
 {
     /**
      * The program that the variable belongs to
@@ -135,6 +136,16 @@ public class ProgramRuleVariable
         this.useCodeForOptionSet = useCodeForOptionSet;
         this.programStage = programStage;
         this.valueType = valueType;
+    }
+
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.attribute != null;
     }
 
     // -------------------------------------------------------------------------

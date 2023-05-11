@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.notification.ProgramTemplateVariable;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.springframework.stereotype.Component;
@@ -48,21 +48,21 @@ import com.google.common.collect.Maps;
  */
 @Component
 public class ProgramNotificationMessageRenderer
-    extends BaseNotificationMessageRenderer<ProgramInstance>
+    extends BaseNotificationMessageRenderer<Enrollment>
 {
-    public static final ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<ProgramInstance, String>>()
-        .put( ProgramTemplateVariable.PROGRAM_NAME, pi -> pi.getProgram().getDisplayName() )
-        .put( ProgramTemplateVariable.ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getDisplayName() )
-        .put( ProgramTemplateVariable.CURRENT_DATE, pi -> formatDate( new Date() ) )
-        .put( ProgramTemplateVariable.ENROLLMENT_DATE, pi -> formatDate( pi.getEnrollmentDate() ) )
-        .put( ProgramTemplateVariable.INCIDENT_DATE, pi -> formatDate( pi.getIncidentDate() ) )
-        .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE, pi -> daysSince( pi.getEnrollmentDate() ) )
-        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_ID, pi -> pi.getOrganisationUnit().getUid() )
-        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_NAME, pi -> pi.getOrganisationUnit().getName() )
-        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_CODE, pi -> pi.getOrganisationUnit().getCode() )
-        .put( ProgramTemplateVariable.PROGRAM_ID, pi -> pi.getProgram().getUid() )
-        .put( ProgramTemplateVariable.ENROLLMENT_ID, ProgramInstance::getUid )
-        .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, pi -> pi.getEntityInstance().getUid() )
+    public static final ImmutableMap<TemplateVariable, Function<Enrollment, String>> VARIABLE_RESOLVERS = new ImmutableMap.Builder<TemplateVariable, Function<Enrollment, String>>()
+        .put( ProgramTemplateVariable.PROGRAM_NAME, e -> e.getProgram().getDisplayName() )
+        .put( ProgramTemplateVariable.ORG_UNIT_NAME, e -> e.getOrganisationUnit().getDisplayName() )
+        .put( ProgramTemplateVariable.CURRENT_DATE, e -> formatDate( new Date() ) )
+        .put( ProgramTemplateVariable.ENROLLMENT_DATE, e -> formatDate( e.getEnrollmentDate() ) )
+        .put( ProgramTemplateVariable.INCIDENT_DATE, e -> formatDate( e.getIncidentDate() ) )
+        .put( ProgramTemplateVariable.DAYS_SINCE_ENROLLMENT_DATE, e -> daysSince( e.getEnrollmentDate() ) )
+        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_ID, e -> e.getOrganisationUnit().getUid() )
+        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_NAME, e -> e.getOrganisationUnit().getName() )
+        .put( ProgramTemplateVariable.ENROLLMENT_ORG_UNIT_CODE, e -> e.getOrganisationUnit().getCode() )
+        .put( ProgramTemplateVariable.PROGRAM_ID, e -> e.getProgram().getUid() )
+        .put( ProgramTemplateVariable.ENROLLMENT_ID, Enrollment::getUid )
+        .put( ProgramTemplateVariable.TRACKED_ENTITY_ID, e -> e.getTrackedEntity().getUid() )
         .build();
 
     private static final Set<ExpressionType> SUPPORTED_EXPRESSION_TYPES = ImmutableSet
@@ -73,21 +73,21 @@ public class ProgramNotificationMessageRenderer
     // -------------------------------------------------------------------------
 
     @Override
-    protected ImmutableMap<TemplateVariable, Function<ProgramInstance, String>> getVariableResolvers()
+    protected ImmutableMap<TemplateVariable, Function<Enrollment, String>> getVariableResolvers()
     {
         return VARIABLE_RESOLVERS;
     }
 
     @Override
     protected Map<String, String> resolveTrackedEntityAttributeValues( Set<String> attributeKeys,
-        ProgramInstance entity )
+        Enrollment entity )
     {
         if ( attributeKeys.isEmpty() )
         {
             return Maps.newHashMap();
         }
 
-        return entity.getEntityInstance().getTrackedEntityAttributeValues().stream()
+        return entity.getTrackedEntity().getTrackedEntityAttributeValues().stream()
             .filter( av -> attributeKeys.contains( av.getAttribute().getUid() ) )
             .collect(
                 Collectors.toMap( av -> av.getAttribute().getUid(), ProgramNotificationMessageRenderer::filterValue ) );
@@ -106,7 +106,7 @@ public class ProgramNotificationMessageRenderer
     }
 
     @Override
-    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, ProgramInstance entity )
+    protected Map<String, String> resolveDataElementValues( Set<String> elementKeys, Enrollment entity )
     {
         // DataElements are not supported for program notifications
         return Collections.emptyMap();

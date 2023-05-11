@@ -32,9 +32,9 @@ import java.util.List;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilter;
-import org.hisp.dhis.programstagefilter.ProgramStageInstanceFilterService;
-import org.hisp.dhis.schema.descriptors.ProgramStageInstanceFilterSchemaDescriptor;
+import org.hisp.dhis.programstagefilter.EventFilter;
+import org.hisp.dhis.programstagefilter.EventFilterService;
+import org.hisp.dhis.schema.descriptors.EventFilterSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,21 +44,21 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @OpenApi.Tags( "tracker" )
 @RestController
-@RequestMapping( value = ProgramStageInstanceFilterSchemaDescriptor.API_ENDPOINT )
+@RequestMapping( value = EventFilterSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.ALL, DhisApiVersion.DEFAULT } )
-public class EventFilterController extends AbstractCrudController<ProgramStageInstanceFilter>
+public class EventFilterController extends AbstractCrudController<EventFilter>
 {
-    private final ProgramStageInstanceFilterService psiFilterService;
+    private final EventFilterService eventFilterService;
 
-    public EventFilterController( ProgramStageInstanceFilterService psiFilterService )
+    public EventFilterController( EventFilterService eventFilterService )
     {
-        this.psiFilterService = psiFilterService;
+        this.eventFilterService = eventFilterService;
     }
 
     @Override
-    public void preCreateEntity( ProgramStageInstanceFilter eventFilter )
+    public void preCreateEntity( EventFilter eventFilter )
     {
-        List<String> errors = psiFilterService.validate( eventFilter );
+        List<String> errors = eventFilterService.validate( eventFilter );
         if ( !errors.isEmpty() )
         {
             throw new IllegalQueryException( errors.toString() );
@@ -66,9 +66,9 @@ public class EventFilterController extends AbstractCrudController<ProgramStageIn
     }
 
     @Override
-    public void preUpdateEntity( ProgramStageInstanceFilter oldEventFilter, ProgramStageInstanceFilter newEventFilter )
+    public void preUpdateEntity( EventFilter oldEventFilter, EventFilter newEventFilter )
     {
-        List<String> errors = psiFilterService.validate( newEventFilter );
+        List<String> errors = eventFilterService.validate( newEventFilter );
         if ( !errors.isEmpty() )
         {
             throw new IllegalQueryException( errors.toString() );

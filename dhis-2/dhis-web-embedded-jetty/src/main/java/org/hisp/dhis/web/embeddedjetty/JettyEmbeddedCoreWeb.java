@@ -39,6 +39,7 @@ import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.hisp.dhis.system.startup.StartupListener;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
 import org.springframework.web.context.ContextLoaderListener;
 import org.springframework.web.context.request.RequestContextListener;
 import org.springframework.web.context.support.AnnotationConfigWebApplicationContext;
@@ -50,7 +51,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
     private static final String SERVER_HOSTNAME_OR_IP = "localhost";
 
-    private static final Long elapsedSinceStart = System.currentTimeMillis();
+    private static final Long ELAPSED_SINCE_START = System.currentTimeMillis();
 
     public JettyEmbeddedCoreWeb()
     {
@@ -91,6 +92,7 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
         AnnotationConfigWebApplicationContext webApplicationContext = getWebApplicationContext();
         contextHandler.addEventListener( new ContextLoaderListener( webApplicationContext ) );
         contextHandler.addEventListener( new StartupListener() );
+        contextHandler.addEventListener( new HttpSessionEventPublisher() );
 
         // Spring Security Filter
         contextHandler.addFilter(
@@ -99,7 +101,11 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
             EnumSet.allOf( DispatcherType.class ) );
 
         ContextHandler.Context context = contextHandler.getServletContext();
+
         setupServlets( context, webApplicationContext );
+
+        context.addServlet( "LogoutServlet", LogoutServlet.class )
+            .addMapping( "/dhis-web-commons-security/logout.action" );
 
         context.addServlet( "GetModulesServlet", GetAppMenuServlet.class )
             .addMapping( "/dhis-web-commons/menu/getModules.action" );
@@ -119,6 +125,6 @@ public class JettyEmbeddedCoreWeb extends EmbeddedJettyBase
 
     public static Long getElapsedMsSinceStart()
     {
-        return System.currentTimeMillis() - elapsedSinceStart;
+        return System.currentTimeMillis() - ELAPSED_SINCE_START;
     }
 }

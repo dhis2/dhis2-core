@@ -38,7 +38,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.events.importer.validation.BaseValidationTest;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.BeforeEach;
@@ -109,16 +109,16 @@ class EventBaseCheckTest extends BaseValidationTest
         event.setEvent( event.getUid() );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertHasError( importSummary, event, null );
-        assertHasConflict( importSummary, event, "No program instance found for event: " + event.getEvent() );
+        assertHasConflict( importSummary, event, "No enrollment found for event: " + event.getEvent() );
     }
 
     @Test
     void verifyNoErrorOnNonCompletedProgramInstance()
     {
         event.setEvent( event.getUid() );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstanceMap.put( event.getUid(), programInstance );
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
+        Enrollment enrollment = new Enrollment();
+        programInstanceMap.put( event.getUid(), enrollment );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         ImportSummary importSummary = rule.check( new ImmutableEvent( event ), workContext );
         assertNoError( importSummary );
@@ -131,12 +131,12 @@ class EventBaseCheckTest extends BaseValidationTest
         ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
         importOptions.setUser( new User() );
         event.setEvent( event.getUid() );
-        Map<String, ProgramInstance> programInstanceMap = new HashMap<>();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        // Set program instance end date to NOW - one month
-        programInstance.setEndDate( Date.from( ZonedDateTime.now().minusMonths( 1 ).toInstant() ) );
-        programInstanceMap.put( event.getUid(), programInstance );
+        Map<String, Enrollment> programInstanceMap = new HashMap<>();
+        Enrollment enrollment = new Enrollment();
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        // Set enrollment end date to NOW - one month
+        enrollment.setEndDate( Date.from( ZonedDateTime.now().minusMonths( 1 ).toInstant() ) );
+        programInstanceMap.put( event.getUid(), enrollment );
         when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
         when( workContext.getImportOptions() ).thenReturn( importOptions );
         // When

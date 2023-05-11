@@ -48,6 +48,7 @@ import org.hisp.dhis.dto.TypeReport;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.hisp.dhis.utils.DataGenerator;
+import org.hisp.dhis.utils.SharingUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -315,20 +316,11 @@ public class MetadataImportTest
     private JsonObject generateMetadataObjectWithInvalidSharing()
     {
         JsonObject dataElementGroup = DataGenerator.generateObjectForEndpoint( "/dataElementGroup" );
-        dataElementGroup.addProperty( "publicAccess", "rw------" );
 
-        JsonArray userGroupAccesses = new JsonArray();
-        JsonObject userGroupAccess = new JsonObject();
-        userGroupAccess.addProperty( "access", "rwrw----" );
-        userGroupAccess.addProperty( "userGroupUid", "non-existing-id" );
-        userGroupAccess.addProperty( "id", "non-existing-id" );
-
-        userGroupAccesses.add( userGroupAccess );
-
-        dataElementGroup.add( "userGroupAccesses", userGroupAccesses );
+        dataElementGroup.add( "sharing",
+            SharingUtils.createSharingObject( null, "rw------", Map.of(), Map.of( "non-existing-id", "rwrw----" ) ) );
 
         JsonArray array = new JsonArray();
-
         array.add( dataElementGroup );
 
         JsonObject metadata = new JsonObject();

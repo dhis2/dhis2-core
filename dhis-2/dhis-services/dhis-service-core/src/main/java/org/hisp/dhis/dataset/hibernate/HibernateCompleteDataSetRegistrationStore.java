@@ -33,11 +33,10 @@ import java.util.Date;
 import java.util.List;
 
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Root;
 
-import org.hibernate.Criteria;
 import org.hibernate.SessionFactory;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.CompleteDataSetRegistrationStore;
@@ -146,14 +145,15 @@ public class HibernateCompleteDataSetRegistrationStore
             throw new IllegalArgumentException( "lastUpdated parameter must be specified" );
         }
 
-        Criteria criteria = sessionFactory.getCurrentSession()
-            .createCriteria( CompleteDataSetRegistration.class )
-            .setProjection( Projections.rowCount() );
+        CriteriaBuilder builder = getCriteriaBuilder();
 
-        criteria.add( Restrictions.ge( "lastUpdated", lastUpdated ) );
+        CriteriaQuery<Long> query = builder.createQuery( Long.class );
 
-        Number rs = (Number) criteria.uniqueResult();
+        Root<CompleteDataSetRegistration> root = query.from( CompleteDataSetRegistration.class );
 
-        return rs != null ? rs.intValue() : 0;
+        query.select( builder.countDistinct( root ) );
+        query.where( builder.greaterThanOrEqualTo( root.get( "lastUpdated" ), lastUpdated ) );
+
+        return Math.toIntExact( getSession().createQuery( query ).getSingleResult() );
     }
 }

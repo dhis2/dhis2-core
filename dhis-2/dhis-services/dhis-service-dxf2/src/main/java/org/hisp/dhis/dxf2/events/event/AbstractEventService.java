@@ -111,13 +111,12 @@ import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EventSyncService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.scheduling.JobConfiguration;
@@ -127,8 +126,8 @@ import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -145,7 +144,7 @@ import com.google.common.collect.Lists;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Slf4j
-public abstract class AbstractEventService implements EventService
+public abstract class AbstractEventService implements org.hisp.dhis.dxf2.events.event.EventService
 {
     public static final List<String> STATIC_EVENT_COLUMNS = Arrays.asList( EVENT_ID, EVENT_ENROLLMENT_ID,
         EVENT_CREATED_ID,
@@ -167,15 +166,15 @@ public abstract class AbstractEventService implements EventService
 
     protected ProgramService programService;
 
-    protected ProgramInstanceService programInstanceService;
+    protected EnrollmentService enrollmentService;
 
-    protected ProgramStageInstanceService programStageInstanceService;
+    protected EventService eventService;
 
     protected OrganisationUnitService organisationUnitService;
 
     protected CurrentUserService currentUserService;
 
-    protected TrackedEntityInstanceService entityInstanceService;
+    protected TrackedEntityService entityInstanceService;
 
     protected TrackedEntityCommentService commentService;
 
@@ -203,8 +202,6 @@ public abstract class AbstractEventService implements EventService
 
     protected UserService userService;
 
-    protected EventSyncService eventSyncService;
-
     protected EventServiceContextBuilder eventServiceContextBuilder;
 
     protected Cache<Boolean> dataElementCache;
@@ -217,14 +214,15 @@ public abstract class AbstractEventService implements EventService
 
     private final CachingMap<String, OrganisationUnit> organisationUnitCache = new CachingMap<>();
 
-    private final Set<TrackedEntityInstance> trackedEntityInstancesToUpdate = new HashSet<>();
+    private final Set<TrackedEntity> trackedEntityInstancesToUpdate = new HashSet<>();
 
     // -------------------------------------------------------------------------
     // CREATE
     // -------------------------------------------------------------------------
 
     @Override
-    public ImportSummaries processEventImport( List<Event> events, ImportOptions importOptions,
+    public ImportSummaries processEventImport( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        ImportOptions importOptions,
         JobConfiguration jobConfiguration )
     {
         return eventImporter.importAll( events, importOptions, jobConfiguration );
@@ -232,7 +230,8 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public ImportSummaries addEvents( List<Event> events, ImportOptions importOptions, boolean clearSession )
+    public ImportSummaries addEvents( List<org.hisp.dhis.dxf2.events.event.Event> events, ImportOptions importOptions,
+        boolean clearSession )
     {
         final WorkContext workContext = workContextLoader.load( importOptions, events );
         return eventManager.addEvents( events, workContext );
@@ -240,7 +239,8 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public ImportSummaries addEvents( final List<Event> events, ImportOptions importOptions,
+    public ImportSummaries addEvents( final List<org.hisp.dhis.dxf2.events.event.Event> events,
+        ImportOptions importOptions,
         final JobConfiguration jobConfiguration )
     {
         notifier.clear( jobConfiguration ).notify( jobConfiguration, "Importing events" );
@@ -271,7 +271,8 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public ImportSummary addEvent( Event event, ImportOptions importOptions, boolean bulkImport )
+    public ImportSummary addEvent( org.hisp.dhis.dxf2.events.event.Event event, ImportOptions importOptions,
+        boolean bulkImport )
     {
         final WorkContext workContext = workContextLoader.load( importOptions, Collections.singletonList( event ) );
 
@@ -296,7 +297,7 @@ public abstract class AbstractEventService implements EventService
         }
 
         Events events = new Events();
-        List<Event> eventList = new ArrayList<>();
+        List<org.hisp.dhis.dxf2.events.event.Event> eventList = new ArrayList<>();
 
         if ( params.isSkipPaging() )
         {
@@ -337,7 +338,7 @@ public abstract class AbstractEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
+    private Pager handleLastPageFlag( EventSearchParams params, List<org.hisp.dhis.dxf2.events.event.Event> eventList )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
@@ -527,7 +528,7 @@ public abstract class AbstractEventService implements EventService
             .setSkipChangedBefore( skipChangedBefore );
 
         Events anonymousEvents = new Events();
-        List<Event> events = eventStore.getEvents( params, psdesWithSkipSyncTrue );
+        List<org.hisp.dhis.dxf2.events.event.Event> events = eventStore.getEvents( params, psdesWithSkipSyncTrue );
         anonymousEvents.setEvents( events );
         return anonymousEvents;
     }
@@ -560,14 +561,15 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, EventParams eventParams )
+    public org.hisp.dhis.dxf2.events.event.Event getEvent( org.hisp.dhis.program.Event event, EventParams eventParams )
     {
-        return getEvent( programStageInstance, false, false, eventParams );
+        return getEvent( event, false, false, eventParams );
     }
 
     @Transactional( readOnly = true )
     @Override
-    public Event getEvent( ProgramStageInstance programStageInstance, boolean isSynchronizationQuery,
+    public org.hisp.dhis.dxf2.events.event.Event getEvent( org.hisp.dhis.program.Event programStageInstance,
+        boolean isSynchronizationQuery,
         boolean skipOwnershipCheck, EventParams eventParams )
     {
         if ( programStageInstance == null )
@@ -575,17 +577,17 @@ public abstract class AbstractEventService implements EventService
             return null;
         }
 
-        Event event = new Event();
+        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
         event.setEvent( programStageInstance.getUid() );
 
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
-            event.setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+            event.setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
-        event.setFollowup( programStageInstance.getProgramInstance().getFollowup() );
+        event.setFollowup( programStageInstance.getEnrollment().getFollowup() );
         event.setEnrollmentStatus(
-            EnrollmentStatus.fromProgramStatus( programStageInstance.getProgramInstance().getStatus() ) );
+            EnrollmentStatus.fromProgramStatus( programStageInstance.getEnrollment().getStatus() ) );
         event.setStatus( programStageInstance.getStatus() );
         event.setEventDate( DateUtils.getIso8601NoTz( programStageInstance.getExecutionDate() ) );
         event.setDueDate( DateUtils.getIso8601NoTz( programStageInstance.getDueDate() ) );
@@ -626,10 +628,10 @@ public abstract class AbstractEventService implements EventService
             event.setOrgUnitName( ou.getName() );
         }
 
-        Program program = programStageInstance.getProgramInstance().getProgram();
+        Program program = programStageInstance.getEnrollment().getProgram();
 
         event.setProgram( program.getUid() );
-        event.setEnrollment( programStageInstance.getProgramInstance().getUid() );
+        event.setEnrollment( programStageInstance.getEnrollment().getUid() );
         event.setProgramStage( programStageInstance.getProgramStage().getUid() );
         CategoryOptionCombo attributeOptionCombo = programStageInstance.getAttributeOptionCombo();
         if ( attributeOptionCombo != null )
@@ -638,10 +640,10 @@ public abstract class AbstractEventService implements EventService
             event.setAttributeCategoryOptions( String.join( ";", attributeOptionCombo
                 .getCategoryOptions().stream().map( CategoryOption::getUid ).collect( Collectors.toList() ) ) );
         }
-        if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+        if ( programStageInstance.getEnrollment().getTrackedEntity() != null )
         {
             event
-                .setTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance().getUid() );
+                .setTrackedEntityInstance( programStageInstance.getEnrollment().getTrackedEntity().getUid() );
         }
 
         Collection<EventDataValue> dataValues;
@@ -703,19 +705,20 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public ImportSummaries updateEvents( List<Event> events, ImportOptions importOptions, boolean singleValue,
+    public ImportSummaries updateEvents( List<org.hisp.dhis.dxf2.events.event.Event> events,
+        ImportOptions importOptions, boolean singleValue,
         boolean clearSession )
     {
         ImportSummaries importSummaries = new ImportSummaries();
         importOptions = updateImportOptions( importOptions );
-        List<List<Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
+        List<List<org.hisp.dhis.dxf2.events.event.Event>> partitions = Lists.partition( events, FLUSH_FREQUENCY );
 
-        for ( List<Event> _events : partitions )
+        for ( List<org.hisp.dhis.dxf2.events.event.Event> _events : partitions )
         {
             reloadUser( importOptions );
             // prepareCaches( importOptions.getUser(), _events );
 
-            for ( Event event : _events )
+            for ( org.hisp.dhis.dxf2.events.event.Event event : _events )
             {
                 importSummaries.addImportSummary( updateEvent( event, singleValue, importOptions, true ) );
             }
@@ -733,7 +736,8 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public ImportSummary updateEvent( Event event, boolean singleValue, ImportOptions importOptions,
+    public ImportSummary updateEvent( org.hisp.dhis.dxf2.events.event.Event event, boolean singleValue,
+        ImportOptions importOptions,
         boolean bulkUpdate )
     {
         ImportOptions localImportOptions = importOptions;
@@ -753,10 +757,10 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public void updateEventForNote( Event event )
+    public void updateEventForNote( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+        org.hisp.dhis.program.Event programStageInstance = eventService
+            .getEvent( event.getEvent() );
 
         if ( programStageInstance == null )
         {
@@ -773,10 +777,10 @@ public abstract class AbstractEventService implements EventService
 
     @Transactional
     @Override
-    public void updateEventForEventDate( Event event )
+    public void updateEventForEventDate( org.hisp.dhis.dxf2.events.event.Event event )
     {
-        ProgramStageInstance programStageInstance = programStageInstanceService
-            .getProgramStageInstance( event.getEvent() );
+        Event programStageInstance = eventService
+            .getEvent( event.getEvent() );
 
         if ( programStageInstance == null )
         {
@@ -822,14 +826,14 @@ public abstract class AbstractEventService implements EventService
 
         programStageInstance.setOrganisationUnit( organisationUnit );
         programStageInstance.setExecutionDate( executionDate );
-        programStageInstanceService.updateProgramStageInstance( programStageInstance );
+        eventService.updateEvent( programStageInstance );
     }
 
     @Transactional
     @Override
     public void updateEventsSyncTimestamp( List<String> eventsUIDs, Date lastSynchronized )
     {
-        programStageInstanceService.updateProgramStageInstancesSyncTimestamp( eventsUIDs, lastSynchronized );
+        eventService.updateEventsSyncTimestamp( eventsUIDs, lastSynchronized );
     }
 
     // -------------------------------------------------------------------------
@@ -840,27 +844,27 @@ public abstract class AbstractEventService implements EventService
     @Override
     public ImportSummary deleteEvent( String uid )
     {
-        boolean existsEvent = programStageInstanceService.programStageInstanceExists( uid );
+        boolean existsEvent = eventService.eventExists( uid );
 
         if ( existsEvent )
         {
-            ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( uid );
+            Event event = eventService.getEvent( uid );
 
             List<String> errors = trackerAccessManager.canDelete( currentUserService.getCurrentUser(),
-                programStageInstance, false );
+                event, false );
 
             if ( !errors.isEmpty() )
             {
                 return new ImportSummary( ImportStatus.ERROR, errors.toString() ).incrementIgnored();
             }
 
-            programStageInstance.setAutoFields();
-            programStageInstanceService.deleteProgramStageInstance( programStageInstance );
+            event.setAutoFields();
+            eventService.deleteEvent( event );
 
-            if ( programStageInstance.getProgramStage().getProgram().isRegistration() )
+            if ( event.getProgramStage().getProgram().isRegistration() )
             {
                 entityInstanceService
-                    .updateTrackedEntityInstance( programStageInstance.getProgramInstance().getEntityInstance() );
+                    .updateTrackedEntity( event.getEnrollment().getTrackedEntity() );
             }
 
             ImportSummary importSummary = new ImportSummary( ImportStatus.SUCCESS,
@@ -891,7 +895,8 @@ public abstract class AbstractEventService implements EventService
     // -------------------------------------------------------------------------
     // HELPERS
     // -------------------------------------------------------------------------
-    private void saveTrackedEntityComment( ProgramStageInstance programStageInstance, Event event, User user,
+    private void saveTrackedEntityComment( org.hisp.dhis.program.Event programStageInstance,
+        org.hisp.dhis.dxf2.events.event.Event event, User user,
         String storedBy )
     {
         for ( Note note : event.getNotes() )
@@ -1103,31 +1108,31 @@ public abstract class AbstractEventService implements EventService
         trackedEntityInstancesToUpdate.clear();
     }
 
-    private void updateTrackedEntityInstance( ProgramStageInstance programStageInstance, User user, boolean bulkUpdate )
+    private void updateTrackedEntityInstance( Event event, User user, boolean bulkUpdate )
     {
-        updateTrackedEntityInstance( Lists.newArrayList( programStageInstance ), user, bulkUpdate );
+        updateTrackedEntityInstance( Lists.newArrayList( event ), user, bulkUpdate );
     }
 
-    private void updateTrackedEntityInstance( List<ProgramStageInstance> programStageInstances, User user,
+    private void updateTrackedEntityInstance( List<Event> events, User user,
         boolean bulkUpdate )
     {
-        for ( ProgramStageInstance programStageInstance : programStageInstances )
+        for ( org.hisp.dhis.program.Event event : events )
         {
-            if ( programStageInstance.getProgramInstance() != null )
+            if ( event.getEnrollment() != null )
             {
                 if ( !bulkUpdate )
                 {
-                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
-                        manager.update( programStageInstance.getProgramInstance().getEntityInstance(), user );
+                        manager.update( event.getEnrollment().getTrackedEntity(), user );
                     }
                 }
                 else
                 {
-                    if ( programStageInstance.getProgramInstance().getEntityInstance() != null )
+                    if ( event.getEnrollment().getTrackedEntity() != null )
                     {
                         trackedEntityInstancesToUpdate
-                            .add( programStageInstance.getProgramInstance().getEntityInstance() );
+                            .add( event.getEnrollment().getTrackedEntity() );
                     }
                 }
             }

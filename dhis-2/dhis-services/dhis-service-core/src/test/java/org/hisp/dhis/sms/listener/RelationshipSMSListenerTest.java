@@ -43,10 +43,10 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.RelationshipConstraint;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipService;
@@ -57,7 +57,7 @@ import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.smscompression.SmsCompressionException;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
@@ -68,7 +68,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class RelationshipSMSListenerTest extends
+class RelationshipSMSListenerTest
+    extends
     CompressionSMSListenerTest
 {
 
@@ -100,7 +101,7 @@ class RelationshipSMSListenerTest extends
     private CategoryService categoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private IdentifiableObjectManager identifiableObjectManager;
@@ -126,12 +127,12 @@ class RelationshipSMSListenerTest extends
     private RelationshipTypeService relationshipTypeService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private RelationshipType relationshipType;
 
@@ -141,8 +142,8 @@ class RelationshipSMSListenerTest extends
     {
         subject = new RelationshipSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageInstanceService, relationshipService, relationshipTypeService, trackedEntityInstanceService,
-            programInstanceService, identifiableObjectManager );
+            eventService, relationshipService, relationshipTypeService, trackedEntityService,
+            enrollmentService, identifiableObjectManager );
 
         setUpInstances();
 
@@ -154,7 +155,7 @@ class RelationshipSMSListenerTest extends
         } );
 
         when( relationshipTypeService.getRelationshipType( anyString() ) ).thenReturn( relationshipType );
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
 
         doAnswer( invocation -> {
             updatedIncomingSms = (IncomingSms) invocation.getArguments()[0];
@@ -180,8 +181,8 @@ class RelationshipSMSListenerTest extends
         user = makeUser( "U" );
         user.setPhoneNumber( ORIGINATOR );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
 
         relationshipType = new RelationshipType();
         relationshipType.setAutoFields();
@@ -200,8 +201,8 @@ class RelationshipSMSListenerTest extends
         subm.setUserId( user.getUid() );
         subm.setRelationshipType( relationshipType.getUid() );
         subm.setRelationship( "uf3svrmpzOj" );
-        subm.setFrom( programInstance.getUid() );
-        subm.setTo( programInstance.getUid() );
+        subm.setFrom( enrollment.getUid() );
+        subm.setTo( enrollment.getUid() );
         subm.setSubmissionId( 1 );
 
         return subm;

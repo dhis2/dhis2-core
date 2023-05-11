@@ -52,7 +52,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     // Dependencies
     // -------------------------------------------------------------------------
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ProgramService programService;
 
@@ -66,7 +66,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional
     public void createTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiUid );
         if ( entityInstance == null )
         {
             return;
@@ -86,7 +86,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
     @Override
     @Transactional
-    public void createTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+    public void createTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program,
         OrganisationUnit ou )
     {
         if ( entityInstance == null || program == null || ou == null )
@@ -96,7 +96,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         trackedEntityProgramOwnerStore.save( buildTrackedEntityProgramOwner( entityInstance, program, ou ) );
     }
 
-    private TrackedEntityProgramOwner buildTrackedEntityProgramOwner( TrackedEntityInstance entityInstance,
+    private TrackedEntityProgramOwner buildTrackedEntityProgramOwner( TrackedEntity entityInstance,
         Program program, OrganisationUnit ou )
     {
         TrackedEntityProgramOwner teiProgramOwner = new TrackedEntityProgramOwner( entityInstance, program, ou );
@@ -113,7 +113,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional
     public void createOrUpdateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiUid );
         Program program = programService.getProgram( programUid );
         if ( entityInstance == null )
         {
@@ -142,7 +142,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional
     public void createOrUpdateTrackedEntityProgramOwner( long teiUid, long programUid, long orgUnitUid )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiUid );
         Program program = programService.getProgram( programUid );
         if ( entityInstance == null )
         {
@@ -169,7 +169,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
     @Override
     @Transactional
-    public void createOrUpdateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+    public void createOrUpdateTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program,
         OrganisationUnit ou )
     {
         if ( entityInstance == null || program == null || ou == null )
@@ -191,7 +191,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
 
     @Override
     @Transactional
-    public void updateTrackedEntityProgramOwner( TrackedEntityInstance entityInstance, Program program,
+    public void updateTrackedEntityProgramOwner( TrackedEntity entityInstance, Program program,
         OrganisationUnit ou )
     {
         if ( entityInstance == null || program == null || ou == null )
@@ -225,7 +225,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional
     public void updateTrackedEntityProgramOwner( String teiUid, String programUid, String orgUnitUid )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiUid );
         if ( entityInstance == null )
         {
             return;
@@ -255,7 +255,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional
     public void createTrackedEntityProgramOwner( long teiId, long programId, long orgUnitId )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiId );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiId );
         if ( entityInstance == null )
         {
             return;
@@ -302,7 +302,7 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
     @Transactional( readOnly = true )
     public TrackedEntityProgramOwner getTrackedEntityProgramOwner( String teiUid, String programUid )
     {
-        TrackedEntityInstance entityInstance = trackedEntityInstanceService.getTrackedEntityInstance( teiUid );
+        TrackedEntity entityInstance = trackedEntityService.getTrackedEntity( teiUid );
         Program program = programService.getProgram( programUid );
         if ( entityInstance == null || program == null )
         {

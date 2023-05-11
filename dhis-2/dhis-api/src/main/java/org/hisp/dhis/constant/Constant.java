@@ -40,7 +40,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "constant", namespace = DxfNamespaces.DXF_2_0 )
 public class Constant
-    extends BaseNameableObject implements MetadataObject
+    extends BaseNameableObject
+    implements MetadataObject
 {
     // -------------------------------------------------------------------------
     // Variables

@@ -126,13 +126,13 @@ public class DefaultCacheProvider
         teiAttributesCache,
         programTeiAttributesCache,
         userGroupUIDCache,
+        oldTrackerSecurityCache,
         securityCache,
         runningJobsInfo,
         completedJobsInfo,
         jobCancelRequested,
         dataIntegritySummaryCache,
-        dataIntegrityDetailsCache,
-        subExpressionCache
+        dataIntegrityDetailsCache
     }
 
     private final Map<String, Cache<?>> allCaches = new ConcurrentHashMap<>();
@@ -589,6 +589,17 @@ public class DefaultCacheProvider
     }
 
     @Override
+    public <V> Cache<V> createOldTrackerSecurityCache()
+    {
+        return registerCache( this.<V> newBuilder()
+            .forRegion( Region.oldTrackerSecurityCache.name() )
+            .expireAfterWrite( 10, TimeUnit.MINUTES )
+            .withInitialCapacity( (int) getActualSize( SIZE_100 ) )
+            .forceInMemory()
+            .withMaximumSize( orZeroInTestRun( getActualSize( SIZE_1K ) ) ) );
+    }
+
+    @Override
     public <V> Cache<V> createSecurityCache()
     {
         return registerCache( this.<V> newBuilder()
@@ -637,13 +648,5 @@ public class DefaultCacheProvider
         return registerCache( this.<V> newBuilder()
             .forRegion( Region.dataIntegrityDetailsCache.name() )
             .expireAfterWrite( 1, HOURS ) );
-    }
-
-    @Override
-    public <V> Cache<V> createSubExpressionCache()
-    {
-        return registerCache( this.<V> newBuilder()
-            .forRegion( Region.subExpressionCache.name() )
-            .expireAfterWrite( 5, TimeUnit.MINUTES ) );
     }
 }

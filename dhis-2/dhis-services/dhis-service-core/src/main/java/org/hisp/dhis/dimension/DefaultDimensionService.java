@@ -83,7 +83,6 @@ import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IdentifiableProperty;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.MapMap;
 import org.hisp.dhis.common.ReportingRate;
 import org.hisp.dhis.common.SetMap;
@@ -97,6 +96,7 @@ import org.hisp.dhis.dataelement.DataElementOperand;
 import org.hisp.dhis.eventvisualization.Attribute;
 import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.expression.ExpressionService;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
@@ -121,6 +121,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityProgramIndicatorDimension;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Sets;
 
@@ -153,6 +154,7 @@ public class DefaultDimensionService
     // --------------------------------------------------------------------------
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalItemObject> getCanReadDimensionItems( String uid )
     {
         DimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
@@ -170,6 +172,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<T> getCanReadObjects( List<T> objects )
     {
         User user = currentUserService.getCurrentUser();
@@ -178,6 +181,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public <T extends IdentifiableObject> List<T> getCanReadObjects( User user, List<T> objects )
     {
         List<T> list = new ArrayList<>( objects );
@@ -188,6 +192,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionType getDimensionType( String uid )
     {
         Category cat = idObjectManager.get( Category.class, uid );
@@ -239,7 +244,7 @@ public class DefaultDimensionService
             return DimensionType.PROGRAM_INDICATOR;
         }
 
-        final Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
+        Map<String, DimensionType> dimObjectTypeMap = new HashMap<>();
 
         dimObjectTypeMap.put( DimensionalObject.DATA_X_DIM_ID, DimensionType.DATA_X );
         dimObjectTypeMap.put( DimensionalObject.PERIOD_DIM_ID, DimensionType.PERIOD );
@@ -249,6 +254,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalObject> getAllDimensions()
     {
         Collection<Category> dcs = idObjectManager.getDataDimensions( Category.class );
@@ -256,7 +262,7 @@ public class DefaultDimensionService
         Collection<DataElementGroupSet> degs = idObjectManager.getDataDimensions( DataElementGroupSet.class );
         Collection<OrganisationUnitGroupSet> ougs = idObjectManager.getDataDimensions( OrganisationUnitGroupSet.class );
 
-        final List<DimensionalObject> dimensions = new ArrayList<>();
+        List<DimensionalObject> dimensions = new ArrayList<>();
 
         dimensions.addAll( dcs );
         dimensions.addAll( cogs );
@@ -269,12 +275,13 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public List<DimensionalObject> getDimensionConstraints()
     {
         Collection<CategoryOptionGroupSet> cogs = idObjectManager.getDataDimensions( CategoryOptionGroupSet.class );
         Collection<Category> cs = categoryService.getAttributeCategories();
 
-        final List<DimensionalObject> dimensions = new ArrayList<>();
+        List<DimensionalObject> dimensions = new ArrayList<>();
 
         dimensions.addAll( cogs );
         dimensions.addAll( cs );
@@ -283,6 +290,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void mergeAnalyticalObject( BaseAnalyticalObject object )
     {
         if ( object != null )
@@ -305,6 +313,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public void mergeEventAnalyticalObject( EventAnalyticalObject object )
     {
         if ( object != null )
@@ -333,12 +342,14 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalObject getDimensionalObjectCopy( String uid, boolean filterCanRead )
+        throws NotFoundException
     {
         BaseDimensionalObject dimension = idObjectManager.get( DimensionalObject.DYNAMIC_DIMENSION_CLASSES, uid );
         if ( dimension == null )
         {
-            throw new IllegalQueryException( "Dimension does not exist: " + uid );
+            throw new NotFoundException( "Dimension does not exist: " + uid );
         }
         BaseDimensionalObject copy = mergeService.clone( dimension );
 
@@ -353,12 +364,14 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( String dimensionItem )
     {
         return getDataDimensionalItemObject( IdScheme.UID, dimensionItem );
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( IdScheme idScheme, String dimensionItem )
     {
         if ( DimensionalObjectUtils.isCompositeDimensionalObject( dimensionItem ) )
@@ -400,6 +413,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public DimensionalItemObject getDataDimensionalItemObject( DimensionalItemId itemId )
     {
         Collection<DimensionalItemObject> items = getDataDimensionalItemObjectMap( Sets.newHashSet( itemId ) ).values();
@@ -408,6 +422,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
@@ -420,6 +435,7 @@ public class DefaultDimensionService
     }
 
     @Override
+    @Transactional( readOnly = true )
     public Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds )
     {
@@ -435,7 +451,7 @@ public class DefaultDimensionService
     // Supportive methods
     // --------------------------------------------------------------------------
 
-    private void populateEventRepetitions( final EventAnalyticalObject object )
+    private void populateEventRepetitions( EventAnalyticalObject object )
     {
         // Populating event repetitions
         object.getEventRepetitions().clear();
@@ -444,19 +460,19 @@ public class DefaultDimensionService
         populateEventRepetitions( object, object.getFilters(), FILTER );
     }
 
-    private void populateEventRepetitions( final EventAnalyticalObject object,
-        final List<DimensionalObject> dimensionalObjects, final Attribute parent )
+    private void populateEventRepetitions( EventAnalyticalObject object, List<DimensionalObject> dimensionalObjects,
+        Attribute parent )
     {
         if ( isNotEmpty( dimensionalObjects ) )
         {
-            for ( final DimensionalObject dimensionalObject : dimensionalObjects )
+            for ( DimensionalObject dimensionalObject : dimensionalObjects )
             {
-                final boolean hasEventRepetition = dimensionalObject.getEventRepetition() != null;
-                final boolean hasSameDimension = hasEventRepetition && dimensionalObject.getDimension() != null;
+                boolean hasEventRepetition = dimensionalObject.getEventRepetition() != null;
+                boolean hasSameDimension = hasEventRepetition && dimensionalObject.getDimension() != null;
 
                 if ( hasEventRepetition && hasSameDimension )
                 {
-                    final EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
+                    EventRepetition eventRepetition = dimensionalObject.getEventRepetition();
                     eventRepetition.setParent( parent );
                     eventRepetition.setDimension( dimensionalObject.getDimension() );
 

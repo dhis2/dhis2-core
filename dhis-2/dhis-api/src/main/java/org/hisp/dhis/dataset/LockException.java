@@ -27,6 +27,11 @@
  */
 package org.hisp.dhis.dataset;
 
+import java.util.Date;
+
+import lombok.Setter;
+import lombok.ToString;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.PrimaryKeyObject;
@@ -41,6 +46,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@Setter
+@ToString
 @JacksonXmlRootElement( localName = "lockException", namespace = DxfNamespaces.DXF_2_0 )
 public class LockException implements PrimaryKeyObject
 {
@@ -51,6 +58,8 @@ public class LockException implements PrimaryKeyObject
     private OrganisationUnit organisationUnit;
 
     private DataSet dataSet;
+
+    private Date created;
 
     public LockException()
     {
@@ -87,21 +96,11 @@ public class LockException implements PrimaryKeyObject
         return id;
     }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
-
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     public Period getPeriod()
     {
         return period;
-    }
-
-    public void setPeriod( Period period )
-    {
-        this.period = period;
     }
 
     @JsonProperty
@@ -112,11 +111,6 @@ public class LockException implements PrimaryKeyObject
         return organisationUnit;
     }
 
-    public void setOrganisationUnit( OrganisationUnit organisationUnit )
-    {
-        this.organisationUnit = organisationUnit;
-    }
-
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
@@ -125,19 +119,23 @@ public class LockException implements PrimaryKeyObject
         return dataSet;
     }
 
-    public void setDataSet( DataSet dataSet )
+    @JsonProperty
+    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
+    public Date getCreated()
     {
-        this.dataSet = dataSet;
+        return created;
     }
 
-    @Override
-    public String toString()
+    /**
+     * Set auto-generated fields on save or update
+     */
+    public void setAutoFields()
     {
-        return "LockException{" +
-            "id=" + id +
-            ", period=" + period +
-            ", organisationUnit=" + organisationUnit +
-            ", dataSet=" + dataSet +
-            '}';
+        Date date = new Date();
+
+        if ( created == null )
+        {
+            created = date;
+        }
     }
 }

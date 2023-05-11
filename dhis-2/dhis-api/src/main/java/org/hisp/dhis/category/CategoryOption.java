@@ -56,7 +56,8 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
  */
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class CategoryOption
-    extends BaseDimensionalItemObject implements SystemDefaultMetadataObject
+    extends BaseDimensionalItemObject
+    implements SystemDefaultMetadataObject
 {
     public static final String DEFAULT_NAME = "default";
 
@@ -302,7 +303,7 @@ public class CategoryOption
         this.categoryOptionCombos = categoryOptionCombos;
     }
 
-    @JsonProperty
+    @JsonProperty( "categoryOptionGroups" )
     @JsonSerialize( contentAs = BaseIdentifiableObject.class )
     @JacksonXmlElementWrapper( localName = "categoryOptionGroups", namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "categoryOptionGroup", namespace = DxfNamespaces.DXF_2_0 )

@@ -42,6 +42,7 @@ import static org.hisp.dhis.common.DimensionalObject.ORGUNIT_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
 import static org.hisp.dhis.common.DimensionalObjectUtils.asTypedList;
 import static org.hisp.dhis.common.DimensionalObjectUtils.getDimensionalItemIds;
+import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getLocalPeriodIdentifiers;
 import static org.hisp.dhis.common.IdentifiableObjectUtils.getUids;
 import static org.hisp.dhis.common.ValueType.COORDINATE;
@@ -56,11 +57,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
-import org.hisp.dhis.analytics.data.handler.SchemaIdResponseMapper;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.event.EventQueryParams;
 import org.hisp.dhis.analytics.event.EventQueryValidator;
 import org.hisp.dhis.analytics.orgunit.OrgUnitHelper;
@@ -73,13 +75,13 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.DisplayProperty;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.GridHeader;
-import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectUtils;
 import org.hisp.dhis.common.MetadataItem;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RepeatableStageParams;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.common.ValueStatus;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.option.Option;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -96,7 +98,7 @@ public abstract class AbstractAnalyticsService
 
     protected final EventQueryValidator queryValidator;
 
-    protected final SchemaIdResponseMapper schemaIdResponseMapper;
+    protected final SchemeIdResponseMapper schemeIdResponseMapper;
 
     /**
      * Returns a grid based on the given query.
@@ -200,10 +202,10 @@ public abstract class AbstractAnalyticsService
 
         if ( params.hasDataIdScheme() )
         {
-            substituteData( grid );
+            schemeIdResponseMapper.applyOptionAndLegendSetMapping( grid, NAME );
         }
 
-        applyIdScheme( params, grid );
+        schemeIdResponseMapper.applyCustomIdScheme( params, grid );
 
         // ---------------------------------------------------------------------
         // Paging
@@ -217,23 +219,37 @@ public abstract class AbstractAnalyticsService
 
         addHeaders( params, grid );
 
+        // ---------------------------------------------------------------------
+        // RowContext
+        // ---------------------------------------------------------------------
+
+        setRowContextColumns( grid );
+
         return grid;
     }
 
     /**
-     * Substitutes the meta data of the grid with the identifier scheme meta
-     * data property indicated in the query. This happens only when a custom
-     * identifier scheme is specified.
+     * Add information about row context. The row context is based on origin of
+     * repeatable stage value. Please see the {@link ValueStatus}
      *
-     * @param params the {@link EventQueryParams}.
+     *
      * @param grid the {@link Grid}.
      */
-    void applyIdScheme( EventQueryParams params, Grid grid )
+    private void setRowContextColumns( Grid grid )
     {
-        if ( !params.isSkipMeta() && params.hasCustomIdSchemaSet() )
-        {
-            grid.substituteMetaData( schemaIdResponseMapper.getSchemeIdResponseMap( params ) );
-        }
+        Map<Integer, Map<String, Object>> oldRowContext = grid.getRowContext();
+
+        Map<Integer, Map<String, Object>> newRowContext = new TreeMap<>();
+
+        oldRowContext.keySet().forEach( rowKey -> {
+            Map<String, Object> newCols = new HashMap<>();
+            Map<String, Object> cols = oldRowContext.get( rowKey );
+            cols.keySet().forEach(
+                colKey -> newCols.put( Integer.toString( grid.getIndexOfHeader( colKey ) ), cols.get( colKey ) ) );
+            newRowContext.put( rowKey, newCols );
+        } );
+
+        grid.setRowContext( newRowContext );
     }
 
     /**
@@ -580,29 +596,5 @@ public abstract class AbstractAnalyticsService
         }
 
         return dimensionUids;
-    }
-
-    /**
-     * Substitutes metadata in the given grid.
-     *
-     * @param grid the {@link Grid}.
-     */
-    private void substituteData( Grid grid )
-    {
-        for ( int i = 0; i < grid.getHeaders().size(); i++ )
-        {
-            GridHeader header = grid.getHeaders().get( i );
-
-            if ( header.hasOptionSet() )
-            {
-                Map<String, String> optionMap = header.getOptionSetObject().getOptionCodePropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, optionMap );
-            }
-            else if ( header.hasLegendSet() )
-            {
-                Map<String, String> legendMap = header.getLegendSetObject().getLegendUidPropertyMap( IdScheme.NAME );
-                grid.substituteMetaData( i, i, legendMap );
-            }
-        }
     }
 }

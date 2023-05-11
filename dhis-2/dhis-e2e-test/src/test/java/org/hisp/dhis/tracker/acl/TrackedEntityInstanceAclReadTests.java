@@ -45,6 +45,7 @@ import org.hisp.dhis.actions.metadata.MetadataActions;
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.dto.Me;
 import org.hisp.dhis.dto.OrgUnit;
+import org.hisp.dhis.dto.Sharing;
 import org.hisp.dhis.dto.UserGroup;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.models.User;
@@ -91,11 +92,11 @@ public class TrackedEntityInstanceAclReadTests
         teiActions.postFile( new File( "src/test/resources/tracker/acl/data.json" ) );
 
         // Set up all users for testing
-        users.add( new User( "User A", "O2PajOxjJSa", "UserA!123" ) );
-        users.add( new User( "User B", "aDy67f9ijOe", "UserB!123" ) );
-        users.add( new User( "User C", "CKrrGm5Be8O", "UserC!123" ) );
-        users.add( new User( "User D", "Lpa5INiC3Qf", "UserD!123" ) );
-        users.add( new User( "User ALL", "GTqb3WOZMop", "UserALL!123" ) );
+        users.add( new User( "User A", "O2PajOxjJSa", "UauosA!123" ) );
+        users.add( new User( "User B", "aDy67f9ijOe", "UauosB!123" ) );
+        users.add( new User( "User C", "CKrrGm5Be8O", "UauosC!123" ) );
+        users.add( new User( "User D", "Lpa5INiC3Qf", "UauosD!123" ) );
+        users.add( new User( "User ALL", "GTqb3WOZMop", "UauosALL!123" ) );
 
         // Update passwords, so we can log in as them
         // Set AllAuth if user has it and ou scopes.
@@ -156,7 +157,7 @@ public class TrackedEntityInstanceAclReadTests
             .add( "programs=true" )
             .add( "trackedEntityAttributes=true" )
             .add( "programStages=true" )
-            .add( "fields=id,userAccesses,publicAccess,userGroupAccesses" )
+            .add( "fields=id,sharing" )
             .build();
 
         ApiResponse response = metadataActions.get( params );
@@ -169,50 +170,24 @@ public class TrackedEntityInstanceAclReadTests
             {
                 dataRead.put( entry.getKey(), new ArrayList<>() );
 
-                entry.getValue().getAsJsonArray().forEach( obj -> {
-                    JsonObject object = obj.getAsJsonObject();
+                for ( JsonElement element : entry.getValue().getAsJsonArray() )
+                {
+                    JsonObject object = element.getAsJsonObject();
 
-                    boolean hasDataRead = false;
+                    final Sharing sharing = new Sharing( object );
 
-                    if ( object.has( "publicAccess" )
-                        && object.get( "publicAccess" ).getAsString().matches( _DATAREAD ) )
+                    if ( sharing == null )
                     {
-                        hasDataRead = true;
-                    }
-                    else
-                    {
-                        JsonArray userAccesses = object.getAsJsonArray( "userAccesses" ).getAsJsonArray();
-                        JsonArray userGroupAccess = object.getAsJsonArray( "userGroupAccesses" ).getAsJsonArray();
-
-                        for ( JsonElement access : userAccesses )
-                        {
-                            if ( access.getAsJsonObject().get( "userUid" ).getAsString().equals( user.getUid() ) &&
-                                access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
-                            {
-                                hasDataRead = true;
-                            }
-                        }
-
-                        if ( !hasDataRead )
-                        {
-                            for ( JsonElement access : userGroupAccess )
-                            {
-                                if ( user.getGroups()
-                                    .contains( access.getAsJsonObject().get( "userGroupUid" ).getAsString() ) &&
-                                    access.getAsJsonObject().get( "access" ).getAsString().matches( _DATAREAD ) )
-                                {
-                                    hasDataRead = true;
-                                }
-                            }
-                        }
+                        continue;
                     }
 
-                    if ( hasDataRead )
+                    if ( hasPublicAccess( sharing, _DATAREAD ) || hasUserAccess( user, sharing, _DATAREAD )
+                        || hasUserGroupAccess( user, sharing,
+                            _DATAREAD ) )
                     {
-                        dataRead.get( entry.getKey() ).add( obj.getAsJsonObject().get( "id" ).getAsString() );
+                        dataRead.get( entry.getKey() ).add( object.get( "id" ).getAsString() );
                     }
-
-                } );
+                }
             }
         } );
 
@@ -242,7 +217,7 @@ public class TrackedEntityInstanceAclReadTests
         JsonObject json = response.getBody();
 
         json.getAsJsonArray( "trackedEntityInstances" ).iterator()
-            .forEachRemaining( ( teiJson ) -> assertTrackedEntityInstance( user, teiJson.getAsJsonObject() ) );
+            .forEachRemaining( ( teiJson ) -> assertTrackedEntity( user, teiJson.getAsJsonObject() ) );
 
     }
 
@@ -281,12 +256,12 @@ public class TrackedEntityInstanceAclReadTests
     /* Helper methods */
 
     /**
-     * Asserts that the trackedEntityInstance follows the expectations.
+     * Asserts that the trackedEntity follows the expectations.
      *
      * @param user the user(username) we are testing as
-     * @param tei the trackedEntityInstance we are testing
+     * @param tei the trackedEntity we are testing
      */
-    private void assertTrackedEntityInstance( User user, JsonObject tei )
+    private void assertTrackedEntity( User user, JsonObject tei )
     {
         String trackedEntityType = tei.get( "trackedEntityType" ).getAsString();
         List<String> ous = Lists.newArrayList( tei.getAsJsonObject().get( "orgUnit" ).getAsString() );
@@ -409,4 +384,46 @@ public class TrackedEntityInstanceAclReadTests
             String.format( "User should not have access to data based on metadata with uid '%s'", str ) );
     }
 
+    private boolean hasUserAccess( User user, Sharing sharing, String access )
+    {
+        if ( !sharing.hasUsers() )
+        {
+            return false;
+        }
+
+        for ( String userId : sharing.getUsers().keySet() )
+        {
+            if ( userId.equals( user.getUid() ) &&
+                sharing.getUsers().get( userId ).matches( access ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasUserGroupAccess( User user, Sharing sharing, String access )
+    {
+        if ( !sharing.hasUserGroups() )
+        {
+            return false;
+        }
+
+        for ( String userGroupId : sharing.getUserGroups().keySet() )
+        {
+            if ( user.getGroups().contains( userGroupId ) && sharing.getUserGroups().get( userGroupId ) != null &&
+                sharing.getUserGroups().get( userGroupId ).matches( access ) )
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean hasPublicAccess( Sharing sharing, String access )
+    {
+        return sharing.getPublicAccess() != null && sharing.getPublicAccess().matches( access );
+    }
 }

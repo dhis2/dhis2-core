@@ -39,12 +39,12 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.web.HttpStatus;
@@ -63,9 +63,9 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
 
     private Program program;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttribute teaA;
 
@@ -142,17 +142,17 @@ class TrackedEntityAttributeControllerTest extends DhisControllerConvenienceTest
         program.getProgramAttributes().add( pteaB );
         manager.update( program );
 
-        tei = createTrackedEntityInstance( orgUnit );
+        tei = createTrackedEntity( orgUnit );
         tei.setTrackedEntityType( trackedEntityType );
         manager.save( tei );
 
-        programInstance = new ProgramInstance( program, tei, orgUnit );
-        programInstance.setAutoFields();
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setStatus( ProgramStatus.COMPLETED );
-        programInstance.setFollowup( true );
-        manager.save( programInstance );
+        enrollment = new Enrollment( program, tei, orgUnit );
+        enrollment.setAutoFields();
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setStatus( ProgramStatus.COMPLETED );
+        enrollment.setFollowup( true );
+        manager.save( enrollment );
     }
 
     @Test

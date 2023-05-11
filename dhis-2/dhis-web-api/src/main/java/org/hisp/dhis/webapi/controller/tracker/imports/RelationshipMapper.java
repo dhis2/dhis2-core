@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.imports;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.mapstruct.Context;
@@ -40,9 +40,9 @@ import org.mapstruct.Mapping;
     MetadataIdentifierMapper.class
 } )
 interface RelationshipMapper
-    extends DomainMapper<Relationship, org.hisp.dhis.tracker.domain.Relationship>
+    extends DomainMapper<Relationship, org.hisp.dhis.tracker.imports.domain.Relationship>
 {
     @Mapping( target = "relationshipType", source = "relationshipType", qualifiedByName = "toMetadataIdentifier" )
-    org.hisp.dhis.tracker.domain.Relationship from( Relationship relationship,
+    org.hisp.dhis.tracker.imports.domain.Relationship from( Relationship relationship,
         @Context TrackerIdSchemeParams idSchemeParams );
 }

@@ -37,9 +37,9 @@ import java.util.Set;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -62,22 +62,17 @@ public class SingleEventListener extends CommandSMSListener
 {
     private final SMSCommandService smsCommandService;
 
-    private final ProgramInstanceService programInstanceService;
-
-    public SingleEventListener( ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+    public SingleEventListener( EnrollmentService enrollmentService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
-        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        ProgramInstanceService programInstanceService1 )
+        @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService )
     {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
-        checkNotNull( programInstanceService1 );
 
         this.smsCommandService = smsCommandService;
-        this.programInstanceService = programInstanceService1;
     }
 
     // -------------------------------------------------------------------------
@@ -106,9 +101,9 @@ public class SingleEventListener extends CommandSMSListener
     private void registerEvent( Map<String, String> commandValuePairs, SMSCommand smsCommand, IncomingSms sms,
         Set<OrganisationUnit> ous )
     {
-        List<ProgramInstance> programInstances = new ArrayList<>(
-            programInstanceService.getProgramInstances( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
+        List<Enrollment> enrollments = new ArrayList<>(
+            enrollmentService.getEnrollments( smsCommand.getProgram(), ProgramStatus.ACTIVE ) );
 
-        register( programInstances, commandValuePairs, smsCommand, sms, ous );
+        register( enrollments, commandValuePairs, smsCommand, sms, ous );
     }
 }

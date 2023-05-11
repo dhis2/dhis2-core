@@ -57,10 +57,10 @@ import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.importexport.ImportStrategy;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.schema.descriptors.RelationshipSchemaDescriptor;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.controller.event.webrequest.RelationshipCriteria;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -91,11 +91,11 @@ public class RelationshipController
 
     private final RelationshipService relationshipService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
-    private final ProgramStageInstanceService programStageInstanceService;
+    private final EventService eventService;
 
     // -------------------------------------------------------------------------
     // READ
@@ -107,8 +107,8 @@ public class RelationshipController
     {
         if ( relationshipCriteria.getTei() != null )
         {
-            return Optional.ofNullable( trackedEntityInstanceService
-                .getTrackedEntityInstance( relationshipCriteria.getTei() ) )
+            return Optional.ofNullable( trackedEntityService
+                .getTrackedEntity( relationshipCriteria.getTei() ) )
                 .map( tei -> relationshipService.getRelationshipsByTrackedEntityInstance( tei,
                     relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(
@@ -116,20 +116,19 @@ public class RelationshipController
         }
         else if ( relationshipCriteria.getEnrollment() != null )
         {
-            return Optional.ofNullable( programInstanceService
-                .getProgramInstance( relationshipCriteria.getEnrollment() ) )
+            return Optional.ofNullable( enrollmentService
+                .getEnrollment( relationshipCriteria.getEnrollment() ) )
                 .map(
-                    pi -> relationshipService.getRelationshipsByProgramInstance( pi, relationshipCriteria,
+                    e -> relationshipService.getRelationshipsByEnrollment( e, relationshipCriteria,
                         false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No enrollment '" + relationshipCriteria.getEnrollment() + "' found." ) ) );
         }
         else if ( relationshipCriteria.getEvent() != null )
         {
-            return Optional.ofNullable( programStageInstanceService
-                .getProgramStageInstance( relationshipCriteria.getEvent() ) )
-                .map( psi -> relationshipService.getRelationshipsByProgramStageInstance( psi,
-                    relationshipCriteria, false ) )
+            return Optional.ofNullable( eventService
+                .getEvent( relationshipCriteria.getEvent() ) )
+                .map( event -> relationshipService.getRelationshipsByEvent( event, relationshipCriteria, false ) )
                 .orElseThrow( () -> new WebMessageException(
                     notFound( "No event '" + relationshipCriteria.getEvent() + "' found." ) ) );
         }

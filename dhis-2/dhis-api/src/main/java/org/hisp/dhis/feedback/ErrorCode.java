@@ -249,6 +249,8 @@ public enum ErrorCode
     E4053( "Program stage `{0}` must reference a program" ),
     E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
+    E4058( "Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects" ),
+
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
     E4061(
@@ -290,7 +292,7 @@ public enum ErrorCode
     E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one program instance" ),
+    E6000( "Program `{0}` has more than one Enrollment" ),
     E6001( "Program stage `{0}` has invalid next event scheduling property `{1}`" +
         "This property need to be data element of value type date and belong the program stage" ),
     E6002( "Class name {0} is not supported" ),
@@ -393,6 +395,11 @@ public enum ErrorCode
     E7135( "Date time is not parsable: `{0}`" ),
     E7136( "Program is not specified" ),
     E7137( "Expression is not parsable: `{0}`" ),
+    E7138( "Invalid offset: `{0}`" ),
+    E7139( "programStatus and enrollmentStatus cannot be used together." ),
+    E7140( "parameters programStatus/enrollmentStatus must be of the form: [programUid].[ENROLLMENT_STATUS]" ),
+    E7141( "parameter eventStatus must be of the form: [programUid].[programStageUid].[EVENT_STATUS]" ),
+    E7142( "Program(s) `{0}` are not defined on Tracked Entity Type `{1}`" ),
 
     /* Event analytics */
     E7200( Constants.AT_LEAST_ONE_ORGANISATION_UNIT_MUST_BE_SPECIFIED ),

@@ -32,6 +32,7 @@ import static org.apache.commons.lang3.StringUtils.isNotBlank;
 import static org.hisp.dhis.common.CodeGenerator.isValidUid;
 import static org.hisp.dhis.feedback.ErrorCode.E4014;
 import static org.hisp.dhis.feedback.ErrorCode.E7136;
+import static org.hisp.dhis.feedback.ErrorCode.E7139;
 
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.IllegalQueryException;
@@ -71,6 +72,11 @@ public class CommonQueryRequestValidator implements Validator<CommonQueryRequest
 
         validateEnrollmentDate( commonQueryRequest.getEnrollmentDate() );
         validateEventDate( commonQueryRequest.getEventDate() );
+
+        if ( commonQueryRequest.hasProgramStatus() && commonQueryRequest.hasEnrollmentStatus() )
+        {
+            throw new IllegalQueryException( new ErrorMessage( E7139 ) );
+        }
     }
 
     /**

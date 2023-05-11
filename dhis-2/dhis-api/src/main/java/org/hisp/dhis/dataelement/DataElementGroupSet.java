@@ -56,7 +56,8 @@ import com.google.common.collect.Lists;
  */
 @JacksonXmlRootElement( localName = "dataElementGroupSet", namespace = DxfNamespaces.DXF_2_0 )
 public class DataElementGroupSet
-    extends BaseDimensionalObject implements MetadataObject
+    extends BaseDimensionalObject
+    implements MetadataObject
 {
     private Boolean compulsory = false;
 

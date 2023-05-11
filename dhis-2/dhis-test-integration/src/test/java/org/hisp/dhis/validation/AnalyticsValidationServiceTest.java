@@ -70,23 +70,23 @@ import org.hisp.dhis.period.MonthlyPeriodType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.scheduling.NoopJobProgress;
 import org.hisp.dhis.system.grid.ListGrid;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.user.User;
@@ -104,7 +104,7 @@ import com.google.common.collect.Sets;
 class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
 {
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private TrackedEntityAttributeService entityAttributeService;
@@ -116,7 +116,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     private ProgramService programService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private ProgramStageService programStageService;
@@ -125,7 +125,7 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
     private ProgramIndicatorService programIndicatorService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -223,14 +223,14 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         entityAttribute.setAggregationType( AggregationType.COUNT );
         entityAttribute.setUid( TRACKED_ENTITY_ATTRIBUTE_UID );
         entityAttributeService.addTrackedEntityAttribute( entityAttribute );
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( 'A', orgUnitA, entityAttribute );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntity( 'A', orgUnitA, entityAttribute );
+        entityInstanceService.addTrackedEntity( entityInstance );
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue( entityAttribute,
             entityInstance );
         trackedEntityAttributeValue.setValue( "123" );
         entityAttributeValueService.addTrackedEntityAttributeValue( trackedEntityAttributeValue );
         entityInstance.setTrackedEntityAttributeValues( Sets.newHashSet( trackedEntityAttributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstance );
+        entityInstanceService.updateTrackedEntity( entityInstance );
         Program program = createProgram( 'A', null, Sets.newHashSet( entityAttribute ),
             Sets.newHashSet( orgUnitA, orgUnitA ), null );
         program.setUid( PROGRAM_UID );
@@ -246,19 +246,19 @@ class AnalyticsValidationServiceTest extends TransactionalIntegrationTest
         program.setProgramStages( Sets.newHashSet( stageA ) );
         program.getProgramIndicators().add( programIndicator );
         programService.updateProgram( program );
-        ProgramInstance programInstance = programInstanceService.enrollTrackedEntityInstance( entityInstance, program,
+        Enrollment enrollment = enrollmentService.enrollTrackedEntity( entityInstance, program,
             dateMar20, dateMar20, orgUnitA );
-        programInstanceService.addProgramInstance( programInstance );
-        ProgramStageInstance stageInstanceA = programStageInstanceService.createProgramStageInstance( programInstance,
+        enrollmentService.addEnrollment( enrollment );
+        Event stageInstanceA = eventService.createEvent( enrollment,
             stageA, dateMar20, dateMar20, orgUnitA );
-        ProgramStageInstance stageInstanceB = programStageInstanceService.createProgramStageInstance( programInstance,
+        Event stageInstanceB = eventService.createEvent( enrollment,
             stageA, dateApr10, dateApr10, orgUnitA );
         stageInstanceA.setExecutionDate( dateMar20 );
         stageInstanceB.setExecutionDate( dateApr10 );
         stageInstanceA.setAttributeOptionCombo( defaultCombo );
         stageInstanceB.setAttributeOptionCombo( defaultCombo );
-        programStageInstanceService.addProgramStageInstance( stageInstanceA );
-        programStageInstanceService.addProgramStageInstance( stageInstanceB );
+        eventService.addEvent( stageInstanceA );
+        eventService.addEvent( stageInstanceB );
         categoryManager.addAndPruneAllOptionCombos();
         Expression expressionA = new Expression( EXPRESSION_A, "ProgramTrackedEntityAttribute" );
         Expression expressionD = new Expression( EXPRESSION_D, "ProgramDataElement" );

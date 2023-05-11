@@ -48,7 +48,6 @@ import java.util.LinkedList;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.render.DefaultRenderService;
 import org.hisp.dhis.render.RenderService;
@@ -56,14 +55,15 @@ import org.hisp.dhis.scheduling.JobType;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notification;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.tracker.DefaultTrackerImportService;
-import org.hisp.dhis.tracker.report.ImportReport;
-import org.hisp.dhis.tracker.report.PersistenceReport;
-import org.hisp.dhis.tracker.report.Status;
-import org.hisp.dhis.tracker.report.TimingsStats;
-import org.hisp.dhis.tracker.report.ValidationReport;
+import org.hisp.dhis.tracker.imports.DefaultTrackerImportService;
+import org.hisp.dhis.tracker.imports.report.ImportReport;
+import org.hisp.dhis.tracker.imports.report.PersistenceReport;
+import org.hisp.dhis.tracker.imports.report.Status;
+import org.hisp.dhis.tracker.imports.report.TimingsStats;
+import org.hisp.dhis.tracker.imports.report.ValidationReport;
 import org.hisp.dhis.webapi.controller.CrudControllerAdvice;
-import org.hisp.dhis.webapi.controller.tracker.TrackerControllerSupport;
+import org.hisp.dhis.webapi.controller.tracker.ControllerSupport;
+import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -81,7 +81,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class TrackerImportControllerTest
 {
 
-    private final static String ENDPOINT = TrackerControllerSupport.RESOURCE_PATH;
+    private final static String ENDPOINT = ControllerSupport.RESOURCE_PATH;
 
     private MockMvc mockMvc;
 
@@ -95,7 +95,7 @@ class TrackerImportControllerTest
     private TrackerAsyncImporter asyncImporter;
 
     @Mock
-    private CsvEventService<Event> csvEventService;
+    private CsvService<Event> csvEventService;
 
     @Mock
     private Notifier notifier;
@@ -147,7 +147,7 @@ class TrackerImportControllerTest
             .andExpect( jsonPath( "$.message" ).value( TRACKER_JOB_ADDED ) )
             .andExpect( content().contentType( "application/json" ) );
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( asyncImporter ).importTracker( any(), any(), any() );
     }
 
@@ -210,7 +210,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( syncImporter ).importTracker( any() );
 
         try
@@ -278,7 +278,7 @@ class TrackerImportControllerTest
             .getResponse()
             .getContentAsString();
 
-        verify( csvEventService ).readEvents( any(), eq( true ) );
+        verify( csvEventService ).read( any(), eq( true ) );
         verify( syncImporter ).importTracker( any() );
 
         try

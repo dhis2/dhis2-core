@@ -395,7 +395,7 @@ public class TrackedEntityInstance
     @Override
     public String toString()
     {
-        return "TrackedEntityInstance{" +
+        return "TrackedEntity{" +
             "trackedEntityType='" + trackedEntityType + '\'' +
             ", trackedEntityInstance='" + trackedEntityInstance + '\'' +
             ", orgUnit='" + orgUnit + '\'' +

@@ -43,7 +43,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 @Controller
 @RequestMapping( value = DataSetNotificationTemplateSchemaDescriptor.API_ENDPOINT )
 @ApiVersion( include = { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class DataSetNotificationTemplateController extends
+public class DataSetNotificationTemplateController
+    extends
     AbstractCrudController<DataSetNotificationTemplate>
 {
 }

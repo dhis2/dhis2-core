@@ -36,10 +36,10 @@ import org.hisp.dhis.deduplication.PotentialDuplicateStore;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -56,7 +56,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
     private PotentialDuplicateStore potentialDuplicateStore;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackedEntityAttributeService trackedEntityAttributeService;
@@ -67,11 +67,11 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
     @Autowired
     private OrganisationUnitService organisationUnitService;
 
-    private TrackedEntityInstance original;
+    private TrackedEntity original;
 
-    private TrackedEntityInstance duplicate;
+    private TrackedEntity duplicate;
 
-    private TrackedEntityInstance control;
+    private TrackedEntity control;
 
     private TrackedEntityAttribute trackedEntityAttributeA;
 
@@ -88,12 +88,12 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        original = createTrackedEntityInstance( ou );
-        duplicate = createTrackedEntityInstance( ou );
-        control = createTrackedEntityInstance( ou );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
-        trackedEntityInstanceService.addTrackedEntityInstance( control );
+        original = createTrackedEntity( ou );
+        duplicate = createTrackedEntity( ou );
+        control = createTrackedEntity( ou );
+        trackedEntityService.addTrackedEntity( original );
+        trackedEntityService.addTrackedEntity( duplicate );
+        trackedEntityService.addTrackedEntity( control );
         trackedEntityAttributeA = createTrackedEntityAttribute( 'A' );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
         trackedEntityAttributeC = createTrackedEntityAttribute( 'C' );
@@ -135,10 +135,10 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // Clear the session so we get new data from the DB for the next
             // queries.
             dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
+            TrackedEntity _original = trackedEntityService
+                .getTrackedEntity( original.getUid() );
+            TrackedEntity _duplicate = trackedEntityService
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
@@ -153,7 +153,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;
@@ -172,10 +172,10 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // Clear the session so we get new data from the DB for the next
             // queries.
             dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
+            TrackedEntity _original = trackedEntityService
+                .getTrackedEntity( original.getUid() );
+            TrackedEntity _duplicate = trackedEntityService
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 3, _original.getTrackedEntityAttributeValues().size() );
@@ -190,7 +190,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;
@@ -209,10 +209,10 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
             // Clear the session so we get new data from the DB for the next
             // queries.
             dbmsManager.clearSession();
-            TrackedEntityInstance _original = trackedEntityInstanceService
-                .getTrackedEntityInstance( original.getUid() );
-            TrackedEntityInstance _duplicate = trackedEntityInstanceService
-                .getTrackedEntityInstance( duplicate.getUid() );
+            TrackedEntity _original = trackedEntityService
+                .getTrackedEntity( original.getUid() );
+            TrackedEntity _duplicate = trackedEntityService
+                .getTrackedEntity( duplicate.getUid() );
             assertNotNull( _original );
             assertNotNull( _duplicate );
             assertEquals( 4, _original.getTrackedEntityAttributeValues().size() );
@@ -227,7 +227,7 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
                     assertEquals( "AttributeA", teav.getValue() );
                 }
             } );
-            TrackedEntityInstance _control = trackedEntityInstanceService.getTrackedEntityInstance( control.getUid() );
+            TrackedEntity _control = trackedEntityService.getTrackedEntity( control.getUid() );
             assertNotNull( _control );
             assertEquals( 3, _control.getTrackedEntityAttributeValues().size() );
             return null;

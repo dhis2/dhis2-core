@@ -43,7 +43,7 @@ import org.hisp.dhis.dxf2.events.importer.Checker;
 import org.hisp.dhis.dxf2.events.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.events.importer.shared.ImmutableEvent;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.springframework.stereotype.Component;
 
 /**
@@ -106,15 +106,15 @@ public class EventBaseCheck implements Checker
     private void validateProgramInstance( ImmutableEvent event, WorkContext ctx, List<String> errors )
     {
 
-        ProgramInstance programInstance = ctx.getProgramInstanceMap().get( event.getUid() );
+        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
         ImportOptions importOptions = ctx.getImportOptions();
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
-            errors.add( "No program instance found for event: " + event.getEvent() );
+            errors.add( "No enrollment found for event: " + event.getEvent() );
 
         }
-        else if ( COMPLETED.equals( programInstance.getStatus() ) )
+        else if ( COMPLETED.equals( enrollment.getStatus() ) )
         {
             if ( importOptions == null || importOptions.getUser() == null
                 || importOptions.getUser().isAuthorized( F_EDIT_EXPIRED.getAuthority() ) )
@@ -131,10 +131,10 @@ public class EventBaseCheck implements Checker
 
             referenceDate = removeTimeStamp( referenceDate );
 
-            if ( referenceDate.after( removeTimeStamp( programInstance.getEndDate() ) ) )
+            if ( referenceDate.after( removeTimeStamp( enrollment.getEndDate() ) ) )
             {
                 errors.add( "Not possible to add event to a completed enrollment. Event created date ( " + referenceDate
-                    + " ) is after enrollment completed date ( " + removeTimeStamp( programInstance.getEndDate() )
+                    + " ) is after enrollment completed date ( " + removeTimeStamp( enrollment.getEndDate() )
                     + " )." );
             }
         }

@@ -38,9 +38,8 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.event.Event;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -67,7 +66,8 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
     }
 
     @Override
-    public Map<String, CategoryOptionCombo> get( ImportOptions importOptions, List<Event> events )
+    public Map<String, CategoryOptionCombo> get( ImportOptions importOptions,
+        List<org.hisp.dhis.dxf2.events.event.Event> events )
     {
         if ( events == null )
         {
@@ -79,13 +79,13 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         Map<String, CategoryOptionCombo> eventToCocMap = new HashMap<>();
         Map<String, Program> programMap = programSupplier.get( importOptions, events );
 
-        Map<String, ProgramStageInstance> programStageInstanceMap = programStageInstanceSupplier.get( importOptions,
+        Map<String, Event> programStageInstanceMap = programStageInstanceSupplier.get( importOptions,
             events );
 
-        for ( Event event : events )
+        for ( org.hisp.dhis.dxf2.events.event.Event event : events )
         {
             Program program = programMap.get( event.getProgram() );
-            ProgramStageInstance psi = programStageInstanceMap.get( event.getUid() );
+            Event psi = programStageInstanceMap.get( event.getUid() );
 
             // Can't proceed with null Program, this will fail during the
             // validation stage
@@ -105,7 +105,8 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
         return eventToCocMap;
     }
 
-    private CategoryOptionCombo getCategoryOptionCombo( Program program, Event event, ProgramStageInstance psi,
+    private CategoryOptionCombo getCategoryOptionCombo( Program program, org.hisp.dhis.dxf2.events.event.Event event,
+        Event psi,
         IdScheme idScheme )
     {
         final CategoryCombo programCatCombo = program.getCategoryCombo();
@@ -114,7 +115,7 @@ public class CategoryOptionComboSupplier extends AbstractSupplier<Map<String, Ca
 
         /*
          * Event create request contain aoc information in payload but for event
-         * update aoc should be fetched from ProgramStageInstance
+         * update aoc should be fetched from Event
          */
         if ( psi != null && aoc == null )
         {

@@ -33,15 +33,15 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.events.report.EventRow;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
@@ -49,7 +49,7 @@ import org.springframework.stereotype.Service;
 public class EventServiceContextBuilder
 {
 
-    private final TrackedEntityInstanceService entityInstanceService;
+    private final TrackedEntityService entityInstanceService;
 
     private final ProgramService programService;
 
@@ -57,7 +57,7 @@ public class EventServiceContextBuilder
 
     private final OrganisationUnitService organisationUnitService;
 
-    public EventServiceContextBuilder( TrackedEntityInstanceService entityInstanceService,
+    public EventServiceContextBuilder( TrackedEntityService entityInstanceService,
         ProgramService programService, TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
         OrganisationUnitService organisationUnitService )
     {
@@ -90,7 +90,7 @@ public class EventServiceContextBuilder
                 .collect( Collectors.toSet() ) )
             .stream()
             .collect( Collectors.toMap(
-                BaseIdentifiableObject::getUid,
+                IdentifiableObject::getUid,
                 program -> program ) );
 
         Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs = eventsByProgramUid.keySet().stream()
@@ -105,13 +105,13 @@ public class EventServiceContextBuilder
                 programsByUid.get( programUid ) ).stream() )
             .collect( Collectors.toMap(
                 trackedEntityProgramOwnerIds -> Pair.of(
-                    trackedEntityProgramOwnerIds.getTrackedEntityInstanceId(),
+                    trackedEntityProgramOwnerIds.getTrackedEntityId(),
                     trackedEntityProgramOwnerIds.getProgramId() ),
                 TrackedEntityProgramOwnerIds::getOrgUnitUid ) );
 
         Map<String, OrganisationUnit> orgUnitsByUid = organisationUnitService
             .getOrganisationUnitsByUid( orgUnitByTeiUidAndProgramUidPairs.values() ).stream()
-            .collect( Collectors.toMap( BaseIdentifiableObject::getUid, ou -> ou ) );
+            .collect( Collectors.toMap( IdentifiableObject::getUid, ou -> ou ) );
 
         return new EventContext( trackedEntityInstanceByUid, programsByUid, orgUnitByTeiUidAndProgramUidPairs,
             orgUnitsByUid );

@@ -62,6 +62,7 @@ import org.hisp.dhis.analytics.common.params.dimension.ElementWithOffset;
 import org.hisp.dhis.analytics.common.processing.HeaderParamsHandler;
 import org.hisp.dhis.analytics.common.processing.MetadataParamsHandler;
 import org.hisp.dhis.analytics.common.query.Field;
+import org.hisp.dhis.analytics.data.handler.SchemeIdResponseMapper;
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
@@ -94,6 +95,8 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private MetadataParamsHandler metadataDetailsHandler;
 
+    private SchemeIdResponseMapper schemeIdResponseMapper;
+
     private User user;
 
     @Mock
@@ -104,12 +107,14 @@ class GridAdaptorTest extends DhisConvenienceTest
     {
         headerParamsHandler = new HeaderParamsHandler();
         metadataDetailsHandler = new MetadataParamsHandler();
-        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, currentUserService );
+        schemeIdResponseMapper = new SchemeIdResponseMapper();
+        gridAdaptor = new GridAdaptor( headerParamsHandler, metadataDetailsHandler, schemeIdResponseMapper,
+            currentUserService );
         user = makeUser( ADMIN_USER_UID );
     }
 
     @Test
-    void testCreateGridWithField()
+    void testCreateGridWithFields()
         throws SQLException
     {
         // Given
@@ -241,6 +246,15 @@ class GridAdaptorTest extends DhisConvenienceTest
 
     private CommonParams stubCommonParams()
     {
+        List<DimensionIdentifier<DimensionParam>> dimIdentifiers = getDimensionIdentifiers();
+
+        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) )
+            .dimensionIdentifiers( dimIdentifiers )
+            .build();
+    }
+
+    private List<DimensionIdentifier<DimensionParam>> getDimensionIdentifiers()
+    {
         List<String> ous = List.of( "ou1-uid", "ou2-uid" );
 
         DimensionIdentifier<DimensionParam> dimensionIdentifierA = stubDimensionIdentifier(
@@ -253,9 +267,7 @@ class GridAdaptorTest extends DhisConvenienceTest
         dimIdentifiers.add( dimensionIdentifierA );
         dimIdentifiers.add( dimensionIdentifierB );
 
-        return CommonParams.builder().programs( List.of( createProgram( 'A' ) ) )
-            .dimensionIdentifiers( dimIdentifiers )
-            .build();
+        return dimIdentifiers;
     }
 
     private DimensionIdentifier<DimensionParam> stubDimensionIdentifier( List<String> ous,

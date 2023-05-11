@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.events.event.DataValue;
 import org.hisp.dhis.dxf2.events.event.Event;
@@ -82,7 +82,7 @@ class FilteringOutUndeclaredDataElementsProcessorTest
         preProcessor.process( event, ctx );
         Set<String> allowedDataValues = ctx
             .getProgramStage( ctx.getImportOptions().getIdSchemes().getProgramStageIdScheme(), PROGRAMSTAGE )
-            .getDataElements().stream().map( BaseIdentifiableObject::getUid ).collect( Collectors.toSet() );
+            .getDataElements().stream().map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
         Set<String> filteredEventDataValues = ctx.getEventDataValueMap().values().stream().flatMap( Collection::stream )
             .map( EventDataValue::getDataElement ).collect( Collectors.toSet() );
         assertTrue( allowedDataValues.containsAll( filteredEventDataValues ) );

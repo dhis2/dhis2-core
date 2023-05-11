@@ -39,8 +39,8 @@ import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -54,7 +54,7 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase
     private ProgramExpressionService programExpressionService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -102,8 +102,8 @@ class ProgramExpressionServiceTest extends SingleSetupIntegrationTestBase
         dataElementB = createDataElement( 'B' );
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
-        TrackedEntityInstance entityInstance = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstance );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnit );
+        entityInstanceService.addTrackedEntity( entityInstance );
         programExpressionA = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT
             + ProgramExpression.SEPARATOR_OBJECT + stageA.getUid() + "." + dataElementA.getUid() + "]", "A" );
         programExpressionB = new ProgramExpression( "[" + ProgramExpression.OBJECT_PROGRAM_STAGE_DATAELEMENT

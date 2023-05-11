@@ -30,14 +30,12 @@ package org.hisp.dhis.webapi.controller.event;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
-import static org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 
 import java.util.Date;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -55,9 +53,10 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -81,9 +80,12 @@ public class TrackedEntityInstanceCriteriaMapper
 
     private final TrackedEntityAttributeService attributeService;
 
+    private final TrackerAccessManager trackerAccessManager;
+
     public TrackedEntityInstanceCriteriaMapper( CurrentUserService currentUserService,
         OrganisationUnitService organisationUnitService, ProgramService programService,
-        TrackedEntityAttributeService attributeService, TrackedEntityTypeService trackedEntityTypeService )
+        TrackedEntityAttributeService attributeService, TrackedEntityTypeService trackedEntityTypeService,
+        TrackerAccessManager trackerAccessManager )
     {
         checkNotNull( currentUserService );
         checkNotNull( organisationUnitService );
@@ -96,12 +98,13 @@ public class TrackedEntityInstanceCriteriaMapper
         this.programService = programService;
         this.attributeService = attributeService;
         this.trackedEntityTypeService = trackedEntityTypeService;
+        this.trackerAccessManager = trackerAccessManager;
     }
 
     @Transactional( readOnly = true )
-    public TrackedEntityInstanceQueryParams map( TrackedEntityInstanceCriteria criteria )
+    public TrackedEntityQueryParams map( TrackedEntityInstanceCriteria criteria )
     {
-        TrackedEntityInstanceQueryParams params = new TrackedEntityInstanceQueryParams();
+        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         final Date programEnrollmentStartDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentStartDate(),
             criteria.getProgramStartDate() );
@@ -109,14 +112,9 @@ public class TrackedEntityInstanceCriteriaMapper
         final Date programEnrollmentEndDate = ObjectUtils.firstNonNull( criteria.getProgramEnrollmentEndDate(),
             criteria.getProgramEndDate() );
 
-        Set<OrganisationUnit> possibleSearchOrgUnits = new HashSet<>();
-
         User user = currentUserService.getCurrentUser();
 
-        if ( user != null )
-        {
-            possibleSearchOrgUnits = user.getTeiSearchOrganisationUnitsWithFallback();
-        }
+        Program program = validateProgram( criteria );
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
@@ -150,10 +148,9 @@ public class TrackedEntityInstanceCriteriaMapper
                 throw new IllegalQueryException( "Organisation unit does not exist: " + orgUnit );
             }
 
-            if ( user != null && !user.isSuper()
-                && !organisationUnitService.isInUserHierarchy( organisationUnit.getUid(), possibleSearchOrgUnits ) )
+            if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
             {
-                throw new IllegalQueryException( "Organisation unit is not part of the search scope: " + orgUnit );
+                throw new IllegalQueryException( "User does not have access to organisation unit: " + orgUnit );
             }
 
             params.getOrganisationUnits().add( organisationUnit );
@@ -163,8 +160,6 @@ public class TrackedEntityInstanceCriteriaMapper
         {
             params.getOrganisationUnits().addAll( user.getOrganisationUnits() );
         }
-
-        Program program = validateProgram( criteria );
 
         List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
 
@@ -188,7 +183,7 @@ public class TrackedEntityInstanceCriteriaMapper
             .setEventStartDate( criteria.getEventStartDate() )
             .setEventEndDate( criteria.getEventEndDate() )
             .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, criteria.getAssignedUsers() )
-            .setTrackedEntityInstanceUids( criteria.getTrackedEntityInstances() )
+            .setTrackedEntityUids( criteria.getTrackedEntityInstances() )
             .setSkipMeta( criteria.isSkipMeta() )
             .setPage( criteria.getPage() )
             .setPageSize( criteria.getPageSize() )

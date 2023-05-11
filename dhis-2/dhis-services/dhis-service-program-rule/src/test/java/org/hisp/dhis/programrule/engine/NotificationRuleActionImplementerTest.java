@@ -48,10 +48,10 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplateService;
 import org.hisp.dhis.program.notification.event.ProgramRuleEnrollmentEvent;
@@ -110,9 +110,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
     private RuleAction setMandatoryFieldFalse;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private ProgramRule programRuleA;
 
@@ -135,7 +135,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     }
 
     @Test
-    void test_implementWithProgramInstanceWithTemplate()
+    void test_implementWithEnrollmentWithTemplate()
     {
 
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
@@ -155,17 +155,17 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programInstance.getId(), ((ProgramRuleEnrollmentEvent) eventType).getProgramInstance().getId() );
+        assertEquals( enrollment.getId(), ((ProgramRuleEnrollmentEvent) eventType).getEnrollment().getId() );
     }
 
     @Test
-    void test_implementWithProgramStageInstanceWithTemplate()
+    void test_implementWithEventWithTemplate()
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( template );
 
@@ -184,14 +184,14 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         ArgumentCaptor<ApplicationEvent> argumentEventCaptor = ArgumentCaptor.forClass( ApplicationEvent.class );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, event );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
 
         verify( publisher ).publishEvent( argumentEventCaptor.capture() );
         assertEquals( eventType, argumentEventCaptor.getValue() );
-        assertEquals( programStageInstance.getId(),
-            ((ProgramRuleStageEvent) eventType).getProgramStageInstance().getId() );
+        assertEquals( event.getId(),
+            ((ProgramRuleStageEvent) eventType).getEvent().getId() );
     }
 
     @Test
@@ -213,9 +213,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         when( loggingService.getByKey( anyString() ) ).thenReturn( result.getLogEntry() );
 
-        String key = template.getUid() + programInstance.getUid();
+        String key = template.getUid() + enrollment.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         assertEquals( key, logEntry.getKey() );
     }
@@ -240,9 +240,9 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         when( loggingService.getByKey( anyString() ) )
             .thenReturn( NotificationValidationResult.builder().valid( true ).build().getLogEntry() );
 
-        String key = template.getUid() + programInstance.getUid();
+        String key = template.getUid() + enrollment.getUid();
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         assertEquals( key, logEntry.getKey() );
         assertTrue( logEntry.isAllowMultiple() );
@@ -254,7 +254,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
         // overriding stub to check null templates
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, enrollment );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
         verify( loggingService, never() ).save( any() );
@@ -265,7 +265,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     {
         when( templateStore.getByUid( anyString() ) ).thenReturn( null );
 
-        implementer.implement( ruleEffectWithActionSendMessage, programStageInstance );
+        implementer.implement( ruleEffectWithActionSendMessage, event );
 
         verify( templateStore, times( 1 ) ).getByUid( anyString() );
     }
@@ -274,7 +274,7 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
     void test_NothingHappensIfActionIsNull()
     {
         assertThrows( NullPointerException.class,
-            () -> implementer.implement( null, programInstance ), "Rule Effect cannot be null" );
+            () -> implementer.implement( null, enrollment ), "Rule Effect cannot be null" );
     }
 
     // -------------------------------------------------------------------------
@@ -315,16 +315,16 @@ class NotificationRuleActionImplementerTest extends DhisConvenienceTest
 
         programRuleA.setProgram( programA );
 
-        programInstance = new ProgramInstance();
-        programInstance.setProgram( programA );
-        programInstance.setAutoFields();
+        enrollment = new Enrollment();
+        enrollment.setProgram( programA );
+        enrollment.setAutoFields();
 
         ProgramStage programStageA = createProgramStage( 'S', programA );
         programA.getProgramStages().add( programStageA );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setProgramStage( programStageA );
+        event.setEnrollment( enrollment );
+        event.setAutoFields();
     }
 }

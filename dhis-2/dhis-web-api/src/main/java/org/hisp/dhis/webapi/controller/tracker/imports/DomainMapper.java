@@ -33,13 +33,13 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.tracker.TrackerIdSchemeParams;
+import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 
-public interface DomainMapper<FROM, TO>
+public interface DomainMapper<T, R>
 {
-    TO from( FROM from, TrackerIdSchemeParams idSchemeParams );
+    R from( T from, TrackerIdSchemeParams idSchemeParams );
 
-    default List<TO> fromCollection( Collection<FROM> froms, TrackerIdSchemeParams idSchemeParams )
+    default List<R> fromCollection( Collection<T> froms, TrackerIdSchemeParams idSchemeParams )
     {
         return Optional.ofNullable( froms )
             .orElse( Collections.emptySet() )

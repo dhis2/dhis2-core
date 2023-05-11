@@ -35,8 +35,8 @@ import lombok.experimental.Accessors;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.Pager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 
 /**
  * Encapsulation of a web API request for tracked entity data value audit
@@ -50,7 +50,7 @@ public class TrackedEntityAttributeValueAuditQueryParams
 {
     private List<TrackedEntityAttribute> trackedEntityAttributes = new ArrayList<>();
 
-    private List<TrackedEntityInstance> trackedEntityInstances = new ArrayList<>();
+    private List<TrackedEntity> trackedEntities = new ArrayList<>();
 
     private List<AuditType> auditTypes = new ArrayList<>();
 

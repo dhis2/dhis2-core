@@ -80,6 +80,8 @@ public enum HttpStatus
     LENGTH_REQUIRED( 411, "Length Required" ),
     PRECONDITION_FAILED( 412, "Precondition Failed" ),
     PAYLOAD_TOO_LARGE( 413, "Payload Too Large" ),
+    REQUEST_URI_TOO_LONG( 414, "Request-URI Too Long" ),
+    UNSUPPORTED_MEDIA_TYPE( 415, "Unsupported Media Type" ),
     UNPROCESSABLE_ENTITY( 422, "Unprocessable Entity" ),
     LOCKED( 423, "Locked" ),
     FAILED_DEPENDENCY( 424, "Failed Dependency" ),

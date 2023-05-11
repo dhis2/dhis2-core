@@ -39,12 +39,12 @@ import java.util.Optional;
 
 import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -71,11 +71,11 @@ class RelationshipControllerTest
 
     private static final String REL_ID = "REL_ID";
 
-    private TrackedEntityInstance tei = new TrackedEntityInstance();
+    private TrackedEntity tei = new TrackedEntity();
 
-    private ProgramInstance enrollment = new ProgramInstance();
+    private Enrollment enrollment = new Enrollment();
 
-    private ProgramStageInstance event = new ProgramStageInstance();
+    private Event event = new Event();
 
     private Relationship relationship = new Relationship();
 
@@ -83,13 +83,13 @@ class RelationshipControllerTest
     private RelationshipService relationshipService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @InjectMocks
     private RelationshipController relationshipController;
@@ -118,10 +118,10 @@ class RelationshipControllerTest
     void verifyEndpointWithTei()
         throws Exception
     {
-        when( trackedEntityInstanceService.getTrackedEntityInstance( TEI_ID ) ).thenReturn( tei );
+        when( trackedEntityService.getTrackedEntity( TEI_ID ) ).thenReturn( tei );
         mockMvc.perform( get( ENDPOINT ).param( "tei", TEI_ID ) ).andExpect( status().isOk() );
 
-        verify( trackedEntityInstanceService ).getTrackedEntityInstance( TEI_ID );
+        verify( trackedEntityService ).getTrackedEntity( TEI_ID );
         verify( relationshipService ).getRelationshipsByTrackedEntityInstance( eq( tei ), any(), eq( false ) );
     }
 
@@ -136,11 +136,11 @@ class RelationshipControllerTest
     void verifyEndpointWithEvent()
         throws Exception
     {
-        when( programStageInstanceService.getProgramStageInstance( EVENT_ID ) ).thenReturn( event );
+        when( eventService.getEvent( EVENT_ID ) ).thenReturn( event );
         mockMvc.perform( get( ENDPOINT ).param( "event", EVENT_ID ) ).andExpect( status().isOk() );
 
-        verify( programStageInstanceService ).getProgramStageInstance( EVENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramStageInstance( eq( event ), any(), eq( false ) );
+        verify( eventService ).getEvent( EVENT_ID );
+        verify( relationshipService ).getRelationshipsByEvent( eq( event ), any(), eq( false ) );
     }
 
     @Test
@@ -154,11 +154,11 @@ class RelationshipControllerTest
     void verifyEndpointWithEnrollment()
         throws Exception
     {
-        when( programInstanceService.getProgramInstance( ENROLLMENT_ID ) ).thenReturn( enrollment );
+        when( enrollmentService.getEnrollment( ENROLLMENT_ID ) ).thenReturn( enrollment );
         mockMvc.perform( get( ENDPOINT ).param( "enrollment", ENROLLMENT_ID ) ).andExpect( status().isOk() );
 
-        verify( programInstanceService ).getProgramInstance( ENROLLMENT_ID );
-        verify( relationshipService ).getRelationshipsByProgramInstance( eq( enrollment ), any(), eq( false ) );
+        verify( enrollmentService ).getEnrollment( ENROLLMENT_ID );
+        verify( relationshipService ).getRelationshipsByEnrollment( eq( enrollment ), any(), eq( false ) );
     }
 
     @Test

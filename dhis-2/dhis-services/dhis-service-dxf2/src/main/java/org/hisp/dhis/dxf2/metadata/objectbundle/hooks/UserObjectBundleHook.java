@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.adapter.BaseIdentifiableObject_;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -86,6 +86,13 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         // TODO: To remove when we remove old UserCredentials compatibility
         populateUserCredentialsDtoFields( user );
+
+        if ( bundle.getImportMode().isCreate() && !ValidationUtils.isValidUid( user.getUid() ) )
+        {
+            addReports.accept(
+                new ErrorReport( User.class, ErrorCode.E4014, user.getUid(), "uid" )
+                    .setErrorProperty( "uid" ) );
+        }
 
         if ( bundle.getImportMode().isCreate() && !ValidationUtils.usernameIsValid( user.getUsername(),
             user.isInvitation() ) )
@@ -283,7 +290,7 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
     {
         Set<UserRole> roles = user
             .getUserRoles();
-        Set<String> currentRoles = roles.stream().map( BaseIdentifiableObject::getUid )
+        Set<String> currentRoles = roles.stream().map( IdentifiableObject::getUid )
             .collect( Collectors.toSet() );
 
         if ( userRoles != null )

@@ -48,14 +48,13 @@ import org.hisp.dhis.dxf2.events.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.EventSyncService;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.query.QueryService;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityCommentService;
@@ -94,14 +93,14 @@ public class JacksonEventService extends AbstractEventService
 
     public JacksonEventService( EventImporter eventImporter, EventManager eventManager,
         WorkContextLoader workContextLoader, EventServiceFacade jacksonEventServiceFacade,
-        ProgramService programService, ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService, OrganisationUnitService organisationUnitService,
-        CurrentUserService currentUserService, TrackedEntityInstanceService entityInstanceService,
+        ProgramService programService, EnrollmentService enrollmentService,
+        EventService eventService, OrganisationUnitService organisationUnitService,
+        CurrentUserService currentUserService, TrackedEntityService entityInstanceService,
         TrackedEntityCommentService commentService, EventStore eventStore, Notifier notifier, DbmsManager dbmsManager,
         IdentifiableObjectManager manager, CategoryService categoryService, FileResourceService fileResourceService,
         SchemaService schemaService, QueryService queryService, TrackerAccessManager trackerAccessManager,
         TrackerOwnershipManager trackerOwnershipAccessManager, RelationshipService relationshipService,
-        UserService userService, EventSyncService eventSyncService, ObjectMapper jsonMapper,
+        UserService userService, ObjectMapper jsonMapper,
         @Qualifier( "xmlMapper" ) ObjectMapper xmlMapper, CacheProvider cacheProvider,
         EventServiceContextBuilder eventServiceContextBuilder )
     {
@@ -110,8 +109,8 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( workContextLoader );
         checkNotNull( jacksonEventServiceFacade );
         checkNotNull( programService );
-        checkNotNull( programInstanceService );
-        checkNotNull( programStageInstanceService );
+        checkNotNull( enrollmentService );
+        checkNotNull( eventService );
         checkNotNull( organisationUnitService );
         checkNotNull( currentUserService );
         checkNotNull( entityInstanceService );
@@ -127,7 +126,6 @@ public class JacksonEventService extends AbstractEventService
         checkNotNull( trackerAccessManager );
         checkNotNull( trackerOwnershipAccessManager );
         checkNotNull( userService );
-        checkNotNull( eventSyncService );
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
         checkNotNull( eventServiceContextBuilder );
@@ -137,8 +135,8 @@ public class JacksonEventService extends AbstractEventService
         this.workContextLoader = workContextLoader;
         this.jacksonEventServiceFacade = jacksonEventServiceFacade;
         this.programService = programService;
-        this.programInstanceService = programInstanceService;
-        this.programStageInstanceService = programStageInstanceService;
+        this.enrollmentService = enrollmentService;
+        this.eventService = eventService;
         this.organisationUnitService = organisationUnitService;
         this.currentUserService = currentUserService;
         this.entityInstanceService = entityInstanceService;
@@ -155,7 +153,6 @@ public class JacksonEventService extends AbstractEventService
         this.trackerOwnershipAccessManager = trackerOwnershipAccessManager;
         this.relationshipService = relationshipService;
         this.userService = userService;
-        this.eventSyncService = eventSyncService;
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
         this.dataElementCache = cacheProvider.createDataElementCache();
