@@ -41,7 +41,7 @@ import com.google.common.net.HttpHeaders;
  */
 public final class ApiTokenResolver
 {
-    private static final Pattern authorizationPattern = Pattern.compile( "^ApiToken (?<token>[a-zA-Z0-9-._~+/]+=*)$",
+    private static final Pattern AUTHORIZATION_PATTERN = Pattern.compile( "^ApiToken (?<token>[a-zA-Z0-9-._~+/]+=*)$",
         Pattern.CASE_INSENSITIVE );
 
     public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
@@ -61,6 +61,8 @@ public final class ApiTokenResolver
 
         if ( authorizationHeaderToken != null )
         {
+            validateChecksum( authorizationHeaderToken );
+
             if ( parameterToken != null )
             {
                 throw new ApiTokenAuthenticationException( ApiTokenErrors
@@ -71,10 +73,17 @@ public final class ApiTokenResolver
 
         if ( parameterToken != null && isParameterTokenSupportedForRequest( request ) )
         {
+            validateChecksum( parameterToken );
+
             return parameterToken;
         }
 
         return null;
+    }
+
+    private void validateChecksum( String token )
+    {
+
     }
 
     public void setAllowFormEncodedBodyParameter( boolean allowFormEncodedBodyParameter )
@@ -100,7 +109,7 @@ public final class ApiTokenResolver
             return null;
         }
 
-        Matcher matcher = authorizationPattern.matcher( authorization );
+        Matcher matcher = AUTHORIZATION_PATTERN.matcher( authorization );
         if ( !matcher.matches() )
         {
             throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidToken( "Api token is malformed" ) );

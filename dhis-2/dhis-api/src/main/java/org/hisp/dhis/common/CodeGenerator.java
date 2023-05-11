@@ -39,14 +39,14 @@ import org.springframework.util.Base64Utils;
  */
 public class CodeGenerator
 {
-    public static final String letters = "abcdefghijklmnopqrstuvwxyz"
+    public static final String LETTERS = "abcdefghijklmnopqrstuvwxyz"
         + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    public static final String ALLOWED_CHARS = "0123456789" + letters;
+    public static final String ALLOWED_CHARS = "0123456789" + LETTERS;
 
     public static final int NUMBER_OF_CODEPOINTS = ALLOWED_CHARS.length();
 
-    public static final int CODESIZE = 11;
+    public static final int CODE_SIZE = 11;
 
     private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z]{1}[a-zA-Z0-9]{10}$" );
 
@@ -67,7 +67,7 @@ public class CodeGenerator
      */
     public static String generateUid()
     {
-        return generateNonSecureCode( CODESIZE );
+        return generateCode( CODE_SIZE );
     }
 
     /**
@@ -87,8 +87,7 @@ public class CodeGenerator
     /**
      * Generates a pseudo random string with alphanumeric characters. Uses a
      * {@link SecureRandom} instance and is slower than
-     * {@link #generateCode(int)}, this should only be used when security is
-     * required.
+     * {@link #generateCode(int)}, this should only be used for security purposes.
      *
      * @param codeSize the number of characters in the code.
      * @return the code.
@@ -97,6 +96,28 @@ public class CodeGenerator
     {
         SecureRandom r = new SecureRandom();
         return generateRandomCode( codeSize, r );
+    }
+
+    /**
+     * Generates a pseudo random string with alphanumeric characters.
+     *
+     * @param codeSize the number of characters in the code.
+     * @param r the random number generator to use.
+     * @return the code.
+     */
+    private static String generateRandomCode( int codeSize, java.util.Random r )
+    {
+        char[] randomChars = new char[codeSize];
+
+        // First char should be a letter
+        randomChars[0] = LETTERS.charAt( r.nextInt( LETTERS.length() ) );
+
+        for ( int i = 1; i < codeSize; ++i )
+        {
+            randomChars[i] = ALLOWED_CHARS.charAt( r.nextInt( NUMBER_OF_CODEPOINTS ) );
+        }
+
+        return new String( randomChars );
     }
 
     /**
@@ -116,25 +137,17 @@ public class CodeGenerator
     }
 
     /**
-     * Generates a pseudo random string with alphanumeric characters.
+     * Generates a random 32-character token to be used in URLs.
      *
-     * @param codeSize the number of characters in the code.
-     * @param r the random number generator to use.
-     * @return the code.
+     * @return a token.
      */
-    private static String generateRandomCode( int codeSize, java.util.Random r )
+    public static String getRandomUrlToken()
     {
-        char[] randomChars = new char[codeSize];
+        SecureRandom sr = new SecureRandom();
+        byte[] tokenBytes = new byte[URL_RANDOM_TOKEN_LENGTH];
+        sr.nextBytes( tokenBytes );
 
-        // First char should be a letter
-        randomChars[0] = letters.charAt( r.nextInt( letters.length() ) );
-
-        for ( int i = 1; i < codeSize; ++i )
-        {
-            randomChars[i] = ALLOWED_CHARS.charAt( r.nextInt( NUMBER_OF_CODEPOINTS ) );
-        }
-
-        return new String( randomChars );
+        return Base64Utils.encodeToUrlSafeString( tokenBytes );
     }
 
     /**
@@ -146,19 +159,5 @@ public class CodeGenerator
     public static boolean isValidUid( String code )
     {
         return code != null && CODE_PATTERN.matcher( code ).matches();
-    }
-
-    /**
-     * Generates a random 32 character token to be used in URLs.
-     *
-     * @return a token.
-     */
-    public static String getRandomUrlToken()
-    {
-        SecureRandom sr = new SecureRandom();
-        byte[] tokenBytes = new byte[URL_RANDOM_TOKEN_LENGTH];
-        sr.nextBytes( tokenBytes );
-
-        return Base64Utils.encodeToUrlSafeString( tokenBytes );
     }
 }

@@ -87,7 +87,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
             if ( apiToken == null )
             {
                 throw new ApiTokenAuthenticationException(
-                    ApiTokenErrors.invalidToken( "The API token does not exists." ) );
+                    ApiTokenErrors.invalidToken( "The API token does not exists" ) );
             }
 
             validateTokenExpiry( apiToken.getExpire() );

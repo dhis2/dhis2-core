@@ -49,8 +49,8 @@ public class ApiTokenSchemaDescriptor implements SchemaDescriptor
     @Override
     public Schema getSchema()
     {
-        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL2 );
-        schema.setRelativeApiEndpoint( API_ENDPOINT2 );
+        Schema schema = new Schema( ApiToken.class, SINGULAR, PLURAL1 );
+        schema.setRelativeApiEndpoint( API_ENDPOINT1 );
         schema.setDataShareable( false );
         schema.setDefaultPrivate( true );
         schema.setDataReadShareable( false );

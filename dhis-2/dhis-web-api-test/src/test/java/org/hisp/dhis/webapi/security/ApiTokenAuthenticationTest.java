@@ -89,7 +89,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     private TokenAndKey createNewToken()
     {
         ApiToken token = new ApiToken();
-        token.setOwner( "M5zQapPyTZI" );
+        token.setOwner( adminUser.getUid() );
         token = apiTokenService.initToken( token, ApiTokenType.PERSONAL_ACCESS_TOKEN );
         apiTokenStore.save( token );
         final String key = token.getKey();
@@ -99,21 +99,20 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         return TokenAndKey.of( key, token );
     }
 
+    // Yeah, that's a good idea, I think
     @Test
-    void testApiTokenAuthentication()
+    void testApiTokenAuthenticationWithInvalidKey()
     {
-        final TokenAndKey tokenAndKey = createNewToken();
-        JsonUser user = GET( URI, ApiTokenHeader( tokenAndKey.key ) ).content().as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
-        assertEquals( "The API token does not exists.",
-            GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
+        String errorMessage = GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.UNAUTHORIZED ).getMessage();
+        assertEquals( "The API token does not exists.", errorMessage );
     }
 
     @Test
-    void testInvalidApiTokenAuthentication()
+    void testValidApiTokenAuthentication()
     {
         final TokenAndKey tokenAndKey = createNewToken();
-        JsonUser user = GET( URI, ApiTokenHeader( tokenAndKey.key ) ).content().as( JsonUser.class );
+
+        JsonUser user = GET( URI, ApiTokenHeader( tokenAndKey.key ) ).content( HttpStatus.OK ).as( JsonUser.class );
         assertEquals( adminUser.getUid(), user.getId() );
     }
 
@@ -125,8 +124,9 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         final ApiToken apiToken = tokenAndKey.apiToken;
         apiToken.addIpToAllowedList( "192.168.2.1" );
         apiTokenService.update( apiToken );
+        String errorMessage = GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage();
         assertEquals( "Failed to authenticate API token, request ip address is not allowed.",
-            GET( URI, ApiTokenHeader( key ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
+            errorMessage );
         apiToken.addIpToAllowedList( "127.0.0.1" );
         apiTokenService.update( apiToken );
         JsonUser user = GET( URI, ApiTokenHeader( key ) ).content().as( JsonUser.class );

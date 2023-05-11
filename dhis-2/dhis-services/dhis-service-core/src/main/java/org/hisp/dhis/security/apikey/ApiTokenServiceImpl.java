@@ -27,23 +27,22 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.CRC32;
-
-import javax.annotation.Nonnull;
-
+import com.google.common.base.Preconditions;
+import com.google.common.hash.Hashing;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.google.common.base.Preconditions;
-import com.google.common.hash.Hashing;
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
+import java.util.zip.CRC32;
+
+import static com.google.common.base.Preconditions.checkNotNull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -65,6 +64,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional( readOnly = true )
+    @Nonnull
     public List<ApiToken> getAll()
     {
         return this.apiTokenStore.getAll();
@@ -72,21 +72,31 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ApiToken> getAllOwning( User user )
+    @Nonnull
+    public List<ApiToken> getAllOwning( @Nonnull User user )
     {
         return apiTokenStore.getAllOwning( user );
     }
 
     @Override
+    @CheckForNull
+    public ApiToken getWithUid( @Nonnull String uid )
+    {
+        return apiTokenStore.getByUid( uid );
+    }
+
+    @Override
     @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key, User user )
+    @CheckForNull
+    public ApiToken getWithKey( @Nonnull String key, @Nonnull User user )
     {
         return apiTokenStore.getByKey( key, user );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key )
+    @CheckForNull
+    public ApiToken getWithKey( @Nonnull String key )
     {
         return apiTokenStore.getByKey( key );
     }
@@ -113,7 +123,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
         apiTokenStore.update( apiToken );
 
-        // Invalidate cache here or let cache expire ?
+        // Invalidate cache here or let cache expire?
     }
 
     @Override
@@ -121,11 +131,12 @@ public class ApiTokenServiceImpl implements ApiTokenService
     public void delete( @Nonnull ApiToken apiToken )
     {
         apiTokenStore.delete( apiToken );
-        // Invalidate cache here or let cache expire ?
+        // Invalidate cache here or let cache expire?
     }
 
     @Override
-    public ApiToken initToken( ApiToken token, ApiTokenType type )
+    @Nonnull
+    public ApiToken initToken( @Nonnull ApiToken token, @Nonnull ApiTokenType type )
     {
         Preconditions.checkNotNull( token );
         Preconditions.checkNotNull( type );
@@ -141,16 +152,24 @@ public class ApiTokenServiceImpl implements ApiTokenService
         }
 
         String randomSecureToken = CodeGenerator.generateSecureCode( 32 );
+
+
         long checksumLong = getChecksum( randomSecureToken );
 
-        String finalToken = String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong );
+        String plaintextToken = String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong );
 
-        token.setKey( finalToken );
+        token.setKey( plaintextToken );
 
         Preconditions.checkArgument( token.getKey().length() == 48,
             "Could not create new token, please try again." );
 
         return token;
+    }
+
+    @Nonnull
+    public String hashKey( @Nonnull String key )
+    {
+        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
     }
 
     private static long getChecksum( String randomSecureToken )
@@ -159,16 +178,5 @@ public class ApiTokenServiceImpl implements ApiTokenService
         CRC32 crc = new CRC32();
         crc.update( bytes, 0, bytes.length );
         return crc.getValue();
-    }
-
-    public String hashKey( String key )
-    {
-        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
-    }
-
-    @Override
-    public ApiToken getWithUid( String uid )
-    {
-        return apiTokenStore.getByUid( uid );
     }
 }
