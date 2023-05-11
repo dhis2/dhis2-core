@@ -73,7 +73,7 @@ public class PotentialDuplicatesMergeTests
             .body( "status", equalTo( "MERGED" ) )
             .body( "lastUpdatedByUserName", equalTo( admin_username ) );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "createdBy.username", equalTo( "tasuperadmin" ) )
             .body( "updatedBy.username", equalTo( admin_username ) )

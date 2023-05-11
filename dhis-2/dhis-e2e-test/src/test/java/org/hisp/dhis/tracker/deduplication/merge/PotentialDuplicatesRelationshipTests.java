@@ -35,11 +35,11 @@ import java.util.Arrays;
 
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.LoginActions;
-import org.hisp.dhis.actions.tracker.RelationshipActions;
+import org.hisp.dhis.actions.deprecated.tracker.RelationshipActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.tracker.deduplication.PotentialDuplicatesApiTest;
-import org.hisp.dhis.tracker.importer.databuilder.RelationshipDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -81,7 +81,7 @@ public class PotentialDuplicatesRelationshipTests
             .validate().statusCode( 200 );
 
         // assert
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "relationships", hasSize( 2 ) )
             .body( "relationships.relationship", hasItems( relationship3, relationship2 ) );
@@ -103,7 +103,7 @@ public class PotentialDuplicatesRelationshipTests
             new JsonObjectBuilder().addArray( "relationships", Arrays.asList( relationship ) ).build() )
             .validate().statusCode( 200 );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate()
             .statusCode( 200 )
             .body( "relationships", hasSize( 1 ) )
@@ -123,7 +123,7 @@ public class PotentialDuplicatesRelationshipTests
 
         potentialDuplicatesActions.autoMergePotentialDuplicate( potentialDuplicate ).validate().statusCode( 200 );
 
-        trackerActions.getTrackedEntity( teiA + "?fields=*" )
+        trackerImportExportActions.getTrackedEntity( teiA + "?fields=*" )
             .validate().statusCode( 200 )
             .body( "relationships", hasSize( 0 ) );
 
@@ -153,7 +153,7 @@ public class PotentialDuplicatesRelationshipTests
             .buildBidirectionalRelationship( teiA, teiB )
             .array();
 
-        return trackerActions.postAndGetJobReport( payload )
+        return trackerImportExportActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
     }
 
@@ -163,7 +163,7 @@ public class PotentialDuplicatesRelationshipTests
             .buildUniDirectionalRelationship( teiA, teiB )
             .array();
 
-        return trackerActions.postAndGetJobReport( payload )
+        return trackerImportExportActions.postAndGetJobReport( payload )
             .validateSuccessfulImport();
     }
 }

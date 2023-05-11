@@ -31,10 +31,10 @@ import org.hisp.dhis.Constants;
 import org.hisp.dhis.TestRunStorage;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.tracker.PotentialDuplicatesActions;
-import org.hisp.dhis.actions.tracker.importer.TrackerActions;
+import org.hisp.dhis.actions.tracker.TrackerImportExportActions;
 import org.hisp.dhis.dto.TrackerApiResponse;
 import org.hisp.dhis.tracker.TrackerApiTest;
-import org.hisp.dhis.tracker.importer.databuilder.TeiDataBuilder;
+import org.hisp.dhis.tracker.imports.databuilder.TeiDataBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,14 +57,14 @@ public class PotentialDuplicatesApiTest
 
     protected UserActions userActions;
 
-    protected TrackerActions trackerActions;
+    protected TrackerImportExportActions trackerImportExportActions;
 
     protected PotentialDuplicatesActions potentialDuplicatesActions;
 
     @BeforeEach
     public void beforeEachPotentialDuplicateTest()
     {
-        trackerActions = new TrackerActions();
+        trackerImportExportActions = new TrackerImportExportActions();
         userActions = new UserActions();
         potentialDuplicatesActions = new PotentialDuplicatesActions();
     }
@@ -85,14 +85,14 @@ public class PotentialDuplicatesApiTest
     {
         JsonObject object = new TeiDataBuilder().array( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0] );
 
-        return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
+        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }
 
     protected String createTei( String teiType )
     {
         JsonObject object = new TeiDataBuilder().array( teiType, Constants.ORG_UNIT_IDS[0] );
 
-        return trackerActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
+        return trackerImportExportActions.postAndGetJobReport( object ).extractImportedTeis().get( 0 );
     }
 
     protected TrackerApiResponse createTeiWithEnrollmentsAndEvents()
@@ -102,7 +102,7 @@ public class PotentialDuplicatesApiTest
 
     protected TrackerApiResponse createTeiWithEnrollmentsAndEvents( String program, String programStage )
     {
-        return trackerActions.postAndGetJobReport( new TeiDataBuilder()
+        return trackerImportExportActions.postAndGetJobReport( new TeiDataBuilder()
             .buildWithEnrollmentAndEvent( Constants.TRACKED_ENTITY_TYPE, Constants.ORG_UNIT_IDS[0], program,
                 programStage ) )
             .validateSuccessfulImport();
