@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.event;
+package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.Map;
 
@@ -36,6 +36,12 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 
+/**
+ * @deprecated this is a class related to "old" (deprecated) tracker which will
+ *             be removed with "old" tracker. Make sure to plan migrating to new
+ *             tracker.
+ */
+@Deprecated( since = "2.41" )
 public class EventContext
 {
     private final Map<String, TrackedEntityOuInfo> trackedEntityOuInfoByUid;

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events.importer.context;
+package org.hisp.dhis.dxf2.deprecated.tracker.importer.context;
 
 import static java.util.Collections.singleton;
 import static java.util.Collections.singletonList;
@@ -43,7 +43,6 @@ import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
-import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.ProgramSupplier;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.security.acl.AccessStringHelper;

@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;
 import static org.junit.jupiter.api.Assertions.assertAll;
@@ -38,7 +38,6 @@ import java.util.List;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.deprecated.tracker.EnrollmentParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;

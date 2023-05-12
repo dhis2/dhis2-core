@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.user.UserRole.AUTHORITY_ALL;

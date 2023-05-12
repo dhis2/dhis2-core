@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.dxf2.events;
+package org.hisp.dhis.dxf2.deprecated.tracker;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -42,7 +42,6 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.deprecated.tracker.EnrollmentParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService;
 import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;

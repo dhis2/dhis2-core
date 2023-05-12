@@ -102,7 +102,6 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
-import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
