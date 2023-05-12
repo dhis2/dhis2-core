@@ -103,7 +103,7 @@ pipeline {
                     stage('Run tests') {
                         steps {
                             script {
-                                dir("dhis-2/dhis-e2e-test") {
+                                dir("dhis-2/dhis-test-e2e") {
                                     sh "docker pull ${DOCKER_IMAGE_NAME_FULL}"
                                     sh "DHIS2_IMAGE=${DOCKER_IMAGE_NAME_FULL} docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} --file docker-compose.yml --file docker-compose.e2e.yml up --remove-orphans --exit-code-from test"
                                 }
@@ -113,7 +113,7 @@ pipeline {
                         post {
                             always {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         archiveArtifacts artifacts: "coverage.csv", allowEmptyArchive: true
                                     }
                                 }
@@ -121,7 +121,7 @@ pipeline {
 
                             failure {
                                 script {
-                                    dir("dhis-2/dhis-e2e-test") {
+                                    dir("dhis-2/dhis-test-e2e") {
                                         sh "docker-compose --project-name ${DOCKER_IMAGE_TAG_BASE} logs web > ${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                         archiveArtifacts artifacts: "${DOCKER_IMAGE_TAG_BASE}_logs.txt"
                                     }
