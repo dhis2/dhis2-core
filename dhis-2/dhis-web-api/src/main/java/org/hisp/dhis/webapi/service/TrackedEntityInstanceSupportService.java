@@ -36,10 +36,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;

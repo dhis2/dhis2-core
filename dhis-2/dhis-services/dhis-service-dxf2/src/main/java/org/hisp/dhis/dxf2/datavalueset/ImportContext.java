@@ -51,6 +51,7 @@ import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.datavalue.DataValueAudit;
 import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflictDescriptor;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
@@ -331,8 +332,8 @@ public final class ImportContext
     }
 
     /**
-     * Context for a single {@link org.hisp.dhis.dxf2.events.event.DataValue} of
-     * a {@link DataValueSet} during the import.
+     * Context for a single {@link DataValue} of a {@link DataValueSet} during
+     * the import.
      *
      * @author Jan Bernitt
      */

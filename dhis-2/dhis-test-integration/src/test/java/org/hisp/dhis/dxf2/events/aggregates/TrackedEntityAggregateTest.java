@@ -57,13 +57,13 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceEnrollmentParams;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.trackedentity.ProgramOwner;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceEnrollmentParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.program.Enrollment;
@@ -293,7 +293,7 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertFalse( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
         assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
         assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
-            .anyMatch( org.hisp.dhis.dxf2.events.event.Event::isDeleted ) );
+            .anyMatch( org.hisp.dhis.dxf2.deprecated.tracker.event.Event::isDeleted ) );
 
         this.deleteOneEnrollment( trackedEntityInstances.get( 0 ) );
         this.deleteOneEvent( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ) );
@@ -306,7 +306,7 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertTrue( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).isDeleted() );
         assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
         assertTrue( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
-            .anyMatch( org.hisp.dhis.dxf2.events.event.Event::isDeleted ) );
+            .anyMatch( org.hisp.dhis.dxf2.deprecated.tracker.event.Event::isDeleted ) );
 
         queryParams.setIncludeDeleted( false );
         trackedEntityInstances = trackedEntityInstanceService
@@ -315,7 +315,7 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 0 ) );
         assertThat( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents(), hasSize( 4 ) );
         assertFalse( trackedEntityInstances.get( 1 ).getEnrollments().get( 0 ).getEvents().stream()
-            .anyMatch( org.hisp.dhis.dxf2.events.event.Event::isDeleted ) );
+            .anyMatch( org.hisp.dhis.dxf2.deprecated.tracker.event.Event::isDeleted ) );
     }
 
     @Test
@@ -413,7 +413,8 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments(), hasSize( 1 ) );
         assertThat( trackedEntityInstances.get( 0 ).getEnrollments().get( 0 ).getEvents(), hasSize( 5 ) );
 
-        List<org.hisp.dhis.dxf2.events.event.Event> events = trackedEntityInstances.get( 0 ).getEnrollments().get( 0 )
+        List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = trackedEntityInstances.get( 0 )
+            .getEnrollments().get( 0 )
             .getEvents();
 
         assertThat( events.get( 0 ).getNotes(), hasSize( 2 ) );
@@ -495,8 +496,8 @@ class TrackedEntityAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
-        org.hisp.dhis.dxf2.events.event.Event event = enrollment.getEvents().get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = enrollment.getEvents().get( 0 );
         assertNotNull( event );
         // The id is not serialized to JSON
         assertThat( event.getId(), is( notNullValue() ) );
@@ -526,7 +527,7 @@ class TrackedEntityAggregateTest extends TrackerTest
         assertThat( event.getCompletedBy(), is( "[Unknown]" ) );
     }
 
-    private void assertAssignedUserProperties( org.hisp.dhis.dxf2.events.event.Event event )
+    private void assertAssignedUserProperties( org.hisp.dhis.dxf2.deprecated.tracker.event.Event event )
     {
         assertEquals( FIRST_NAME + TEST_USER, event.getAssignedUserFirstName() );
         assertEquals( SURNAME + TEST_USER, event.getAssignedUserSurname() );
@@ -549,7 +550,8 @@ class TrackedEntityAggregateTest extends TrackerTest
             false, false, false );
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = trackedEntityInstances.get( 0 ).getEnrollments()
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = trackedEntityInstances.get( 0 )
+            .getEnrollments()
             .get( 0 );
         assertThat( "Tracked Entity Type does not match", enrollment.getTrackedEntityType(),
             is( trackedEntityTypeA.getUid() ) );
@@ -592,8 +594,8 @@ class TrackedEntityAggregateTest extends TrackerTest
         final List<TrackedEntityInstance> trackedEntityInstances = trackedEntityInstanceService
             .getTrackedEntityInstances( queryParams, params, false, true );
         TrackedEntityInstance tei = trackedEntityInstances.get( 0 );
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
-        org.hisp.dhis.dxf2.events.event.Event event = enrollment.getEvents().get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = tei.getEnrollments().get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = enrollment.getEvents().get( 0 );
         assertThat( enrollment.getFollowup(), is( true ) );
         assertThat( event.getFollowup(), is( true ) );
     }

@@ -40,7 +40,7 @@ import java.util.HashSet;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
 import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;

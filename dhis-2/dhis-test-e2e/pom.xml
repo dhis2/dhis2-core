@@ -99,12 +99,12 @@
     <dependency>
       <groupId>com.epam.reportportal</groupId>
       <artifactId>agent-java-junit5</artifactId>
-      <version>5.1.4</version>
+      <version>5.1.6</version>
     </dependency>
     <dependency>
       <groupId>com.epam.reportportal</groupId>
       <artifactId>logger-java-log4j</artifactId>
-      <version>5.1.4</version>
+      <version>5.1.6</version>
     </dependency>
     <dependency>
       <groupId>com.google.code.gson</groupId>
@@ -136,7 +136,7 @@
     <dependency>
       <groupId>org.skyscreamer</groupId>
       <artifactId>jsonassert</artifactId>
-      <version>1.5.0</version>
+      <version>1.5.1</version>
       <scope>test</scope>
     </dependency>
     <dependency>
