@@ -36,6 +36,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -173,7 +175,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
     }
 
     @Override
-    public TrackedEntity getTrackedEntity( TrackedEntity trackedEntity, TrackedEntityParams params )
+    public TrackedEntity getTrackedEntity( @Nonnull TrackedEntity trackedEntity, TrackedEntityParams params )
         throws ForbiddenException
     {
         User user = currentUserService.getCurrentUser();

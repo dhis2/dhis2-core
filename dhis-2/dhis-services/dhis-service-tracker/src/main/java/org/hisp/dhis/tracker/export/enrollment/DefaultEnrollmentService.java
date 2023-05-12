@@ -38,6 +38,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -92,7 +94,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     }
 
     @Override
-    public Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params )
+    public Enrollment getEnrollment( @Nonnull Enrollment enrollment, EnrollmentParams params )
         throws ForbiddenException
     {
         User user = currentUserService.getCurrentUser();
