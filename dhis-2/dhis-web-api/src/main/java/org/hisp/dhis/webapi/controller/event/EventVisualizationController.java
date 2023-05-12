@@ -80,7 +80,7 @@ import org.springframework.web.bind.annotation.RequestParam;
  *
  * @author maikel arabori
  */
-@OpenApi.Tags( "tracker" )
+@OpenApi.Tags( "analytics" )
 @Controller
 @RequestMapping( value = API_ENDPOINT )
 @ApiVersion( { DEFAULT, ALL } )
