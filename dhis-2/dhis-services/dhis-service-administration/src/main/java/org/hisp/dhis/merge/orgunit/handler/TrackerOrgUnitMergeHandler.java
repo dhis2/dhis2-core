@@ -67,7 +67,7 @@ public class TrackerOrgUnitMergeHandler
     }
 
     @Transactional
-    public void mergeTrackedEntityInstances( OrgUnitMergeRequest request )
+    public void mergeTrackedEntities( OrgUnitMergeRequest request )
     {
         migrate( "update ProgramOwnershipHistory poh " +
             "set poh.organisationUnit = :target " +

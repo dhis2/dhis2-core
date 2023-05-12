@@ -73,7 +73,7 @@ public interface TrackerOwnershipManager
 
     boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
-    boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+    boolean hasAccessUsingContext( User user, String trackedEntityUid, String programUid,
         EventContext eventContext );
 
     /**

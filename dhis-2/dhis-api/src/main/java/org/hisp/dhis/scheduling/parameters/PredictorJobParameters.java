@@ -28,8 +28,11 @@
 package org.hisp.dhis.scheduling.parameters;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -47,12 +50,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class PredictorJobParameters implements JobParameters
 {
+    /**
+     * Today plus n days (n can be negative)
+     */
     @JsonProperty
     private int relativeStart;
 
+    /**
+     * Today plus n days (n can be negative)
+     */
     @JsonProperty
     private int relativeEnd;
 
@@ -64,12 +75,15 @@ public class PredictorJobParameters implements JobParameters
     @OpenApi.Property( { UID[].class, PredictorGroup.class } )
     private List<String> predictorGroups = new ArrayList<>();
 
-    public PredictorJobParameters( int relativeStart, int relativeEnd, List<String> predictors,
-        List<String> predictorGroups )
-    {
-        this.relativeStart = relativeStart;
-        this.relativeEnd = relativeEnd;
-        this.predictors = predictors;
-        this.predictorGroups = predictorGroups;
-    }
+    // programmatically used only
+
+    /**
+     * When set overrides the {@link #relativeStart}
+     */
+    private Date startDate;
+
+    /**
+     * When set overrides the {@link #relativeEnd}
+     */
+    private Date endDate;
 }

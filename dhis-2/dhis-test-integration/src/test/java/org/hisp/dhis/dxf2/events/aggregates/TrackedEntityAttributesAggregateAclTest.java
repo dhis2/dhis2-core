@@ -36,9 +36,9 @@ import java.util.Map;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.TrackerTest;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
@@ -61,10 +61,10 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
     void verifyTeiCantBeAccessedNoPublicAccessOnTrackedEntityType()
     {
         doInTransaction( () -> {
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();
         queryParams.setOrganisationUnits( Sets.newHashSet( organisationUnitA ) );
@@ -93,10 +93,10 @@ class TrackedEntityAttributesAggregateAclTest extends TrackerTest
                 .getTrackedEntityType( trackedEntityTypeZ.getUid() );
             trackedEntityType.setPublicAccess( DATA_READ );
             trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance( Map.of( "trackedEntityType", trackedEntityType ) );
-            this.persistTrackedEntityInstance();
-            this.persistTrackedEntityInstance();
+            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntity( Map.of( "trackedEntityType", trackedEntityType ) );
+            this.persistTrackedEntity();
+            this.persistTrackedEntity();
         } );
         final TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( tetUid );
         TrackedEntityQueryParams queryParams = new TrackedEntityQueryParams();

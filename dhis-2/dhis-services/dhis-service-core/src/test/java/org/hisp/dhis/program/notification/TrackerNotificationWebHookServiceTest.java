@@ -137,7 +137,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntity( organisationUnitA );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'I', tei, trackedEntityAttribute );
         tei.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
 

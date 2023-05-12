@@ -122,15 +122,15 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
         inaccessibleTrackedEntityType.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.save( inaccessibleTrackedEntityType, false );
 
-        teiA = createTrackedEntityInstance( orgUnit );
+        teiA = createTrackedEntity( orgUnit );
         teiA.setTrackedEntityType( trackedEntityType );
         manager.save( teiA, false );
 
-        teiB = createTrackedEntityInstance( orgUnit );
+        teiB = createTrackedEntity( orgUnit );
         teiB.setTrackedEntityType( trackedEntityType );
         manager.save( teiB, false );
 
-        inaccessibleTei = createTrackedEntityInstance( orgUnit );
+        inaccessibleTei = createTrackedEntity( orgUnit );
         inaccessibleTei.setTrackedEntityType( inaccessibleTrackedEntityType );
         manager.save( inaccessibleTei, false );
 
@@ -223,14 +223,14 @@ class RelationshipServiceTest extends SingleSetupIntegrationTestBase
     }
 
     @Test
-    void shouldNotReturnRelationshipByTrackedEntityInstanceIfUserHasNoAccessToTrackedEntityType()
+    void shouldNotReturnRelationshipByTrackedEntityIfUserHasNoAccessToTrackedEntityType()
         throws ForbiddenException,
         NotFoundException
     {
         Relationship accessible = relationship( teiA, teiB );
         relationship( teiA, inaccessibleTei, teiToInaccessibleTeiType );
 
-        List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntityInstance( teiA,
+        List<Relationship> relationships = relationshipService.getRelationshipsByTrackedEntity( teiA,
             new Paging() );
 
         assertContainsOnly( List.of( accessible.getUid() ),

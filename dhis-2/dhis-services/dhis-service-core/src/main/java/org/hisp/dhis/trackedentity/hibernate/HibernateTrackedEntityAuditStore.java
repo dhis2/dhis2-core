@@ -74,13 +74,13 @@ public class HibernateTrackedEntityAuditStore
     // -------------------------------------------------------------------------
 
     @Override
-    public void addTrackedEntityInstanceAudit( TrackedEntityAudit trackedEntityAudit )
+    public void addTrackedEntityAudit( TrackedEntityAudit trackedEntityAudit )
     {
         getSession().save( trackedEntityAudit );
     }
 
     @Override
-    public void addTrackedEntityInstanceAudit( List<TrackedEntityAudit> trackedEntityAudit )
+    public void addTrackedEntityAudit( List<TrackedEntityAudit> trackedEntityAudit )
     {
         final String sql = "INSERT INTO trackedentityinstanceaudit (" +
             "trackedentityinstanceauditid, " +
@@ -111,7 +111,7 @@ public class HibernateTrackedEntityAuditStore
     }
 
     @Override
-    public void deleteTrackedEntityInstanceAudit( TrackedEntity trackedEntity )
+    public void deleteTrackedEntityAudit( TrackedEntity trackedEntity )
     {
         String hql = "delete TrackedEntityAudit where trackedEntity = :trackedEntity";
         getSession().createQuery( hql ).setParameter( "trackedEntity", trackedEntity ).executeUpdate();

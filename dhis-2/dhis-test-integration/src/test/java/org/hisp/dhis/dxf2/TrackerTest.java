@@ -56,10 +56,11 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.commons.util.RelationshipUtils;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentService;
-import org.hisp.dhis.dxf2.events.enrollment.EnrollmentStatus;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Note;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentService;
+import org.hisp.dhis.dxf2.deprecated.tracker.enrollment.EnrollmentStatus;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventService;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Note;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.hibernate.HibernateService;
@@ -196,17 +197,17 @@ public abstract class TrackerTest extends IntegrationTestBase
         injectSecurityContext( user );
     }
 
-    public TrackedEntity persistTrackedEntityInstance()
+    public TrackedEntity persistTrackedEntity()
     {
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
         trackedEntityService.addTrackedEntity( entityInstance );
         return entityInstance;
     }
 
-    public TrackedEntity persistTrackedEntityInstance( Map<String, Object> teiValues )
+    public TrackedEntity persistTrackedEntity( Map<String, Object> teiValues )
     {
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnitA );
         entityInstance.setTrackedEntityType( trackedEntityTypeA );
         if ( teiValues != null && !teiValues.isEmpty() )
         {
@@ -281,26 +282,27 @@ public abstract class TrackerTest extends IntegrationTestBase
         return _persistTrackedEntityInstanceWithEnrollmentAndEvents( 5, enrollmentValues );
     }
 
-    public org.hisp.dhis.dxf2.events.enrollment.Enrollment deleteOneEnrollment(
-        org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance trackedEntityInstance )
+    public org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment deleteOneEnrollment(
+        TrackedEntityInstance trackedEntityInstance )
     {
-        List<org.hisp.dhis.dxf2.events.enrollment.Enrollment> enrollments = trackedEntityInstance.getEnrollments();
+        List<org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment> enrollments = trackedEntityInstance
+            .getEnrollments();
         assertThat( enrollments, is( not( empty() ) ) );
 
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = enrollments.get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = enrollments.get( 0 );
         ImportSummary importSummary = enrollmentService.deleteEnrollment( enrollment.getEnrollment() );
         assertEquals( 0, importSummary.getConflictCount() );
         return enrollment;
 
     }
 
-    public org.hisp.dhis.dxf2.events.event.Event deleteOneEvent(
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment )
+    public org.hisp.dhis.dxf2.deprecated.tracker.event.Event deleteOneEvent(
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment )
     {
-        List<org.hisp.dhis.dxf2.events.event.Event> events = enrollment.getEvents();
+        List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> events = enrollment.getEvents();
         assertThat( events, is( not( empty() ) ) );
 
-        org.hisp.dhis.dxf2.events.event.Event event = events.get( 0 );
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = events.get( 0 );
         ImportSummary importSummary = eventService.deleteEvent( event.getEvent() );
         assertEquals( 0, importSummary.getConflictCount() );
         return event;
@@ -309,7 +311,7 @@ public abstract class TrackerTest extends IntegrationTestBase
     private TrackedEntity _persistTrackedEntityInstanceWithEnrollmentAndEvents( int eventSize,
         Map<String, Object> enrollmentValues )
     {
-        TrackedEntity entityInstance = persistTrackedEntityInstance();
+        TrackedEntity entityInstance = persistTrackedEntity();
         final ImportSummary importSummary = enrollmentService.addEnrollment(
             createEnrollmentWithEvents( this.programA, entityInstance, eventSize, enrollmentValues ),
             ImportOptions.getDefaultImportOptions() );
@@ -318,11 +320,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         return entityInstance;
     }
 
-    private org.hisp.dhis.dxf2.events.enrollment.Enrollment createEnrollmentWithEvents( Program program,
+    private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment createEnrollmentWithEvents( Program program,
         TrackedEntity trackedEntity,
         int events )
     {
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.events.enrollment.Enrollment();
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = new org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment();
         enrollment.setEnrollment( CodeGenerator.generateUid() );
         enrollment.setOrgUnit( organisationUnitA.getUid() );
         enrollment.setProgram( program.getUid() );
@@ -334,11 +336,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         enrollment.setCompletedBy( "hello-world" );
         if ( events > 0 )
         {
-            List<org.hisp.dhis.dxf2.events.event.Event> eventList = new ArrayList<>();
+            List<org.hisp.dhis.dxf2.deprecated.tracker.event.Event> eventList = new ArrayList<>();
             String now = DateUtils.getIso8601NoTz( new Date() );
             for ( int i = 0; i < events; i++ )
             {
-                org.hisp.dhis.dxf2.events.event.Event event1 = new org.hisp.dhis.dxf2.events.event.Event();
+                org.hisp.dhis.dxf2.deprecated.tracker.event.Event event1 = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
                 event1.setEnrollment( enrollment.getEnrollment() );
                 event1.setEventDate(
                     DateTimeFormatter.ofPattern( "yyyy-MM-dd", Locale.ENGLISH ).format( LocalDateTime.now() ) );
@@ -362,11 +364,11 @@ public abstract class TrackerTest extends IntegrationTestBase
         return enrollment;
     }
 
-    private org.hisp.dhis.dxf2.events.enrollment.Enrollment createEnrollmentWithEvents( Program program,
+    private org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment createEnrollmentWithEvents( Program program,
         TrackedEntity trackedEntity,
         int events, Map<String, Object> enrollmentValues )
     {
-        org.hisp.dhis.dxf2.events.enrollment.Enrollment enrollment = createEnrollmentWithEvents( program,
+        org.hisp.dhis.dxf2.deprecated.tracker.enrollment.Enrollment enrollment = createEnrollmentWithEvents( program,
             trackedEntity, events );
         if ( enrollmentValues != null && !enrollmentValues.isEmpty() )
         {

@@ -37,6 +37,8 @@ import java.util.List;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -111,6 +113,54 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         final ApiToken apiToken0 = createAndSaveToken();
         final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey() );
         assertEquals( apiToken1.getKey(), apiToken0.getKey() );
+    }
+
+    @Test
+    void testGetAllByUser()
+    {
+        preCreateInjectAdminUser();
+
+        final ApiToken apiToken0 = createAndSaveToken();
+        createAndSaveToken();
+        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+        User user = userService.getUserByUsername( currentUserDetails.getUsername() );
+        List<ApiToken> allOwning = apiTokenService.getAllOwning( user );
+
+        assertEquals( 2, allOwning.size() );
+        assertEquals( allOwning.get( 0 ).getKey(), apiToken0.getKey() );
+    }
+
+    @Test
+    void testSaveGetCurrentUser()
+    {
+        preCreateInjectAdminUser();
+
+        final ApiToken apiToken0 = createAndSaveToken();
+        CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+        User user = userService.getUserByUsername( currentUserDetails.getUsername() );
+        final ApiToken apiToken1 = apiTokenService.getWithKey( apiToken0.getKey(), user );
+        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
+    }
+
+    @Test
+    void testShouldDeleteTokensWhenUserIsDeleted()
+    {
+        preCreateInjectAdminUser();
+
+        User userB = createUserWithAuth( "userB" );
+        injectSecurityContext( userB );
+        String apiTokenCreator = CurrentUserUtil.getCurrentUsername();
+        createAndSaveToken();
+        createAndSaveToken();
+
+        User adminUser = userService.getUserByUsername( "admin_test" );
+        injectSecurityContext( adminUser );
+
+        User user = userService.getUserByUsername( apiTokenCreator );
+        userService.deleteUser( user );
+
+        List<ApiToken> all = apiTokenService.getAll();
+        assertEquals( 0, all.size() );
     }
 
     @Test

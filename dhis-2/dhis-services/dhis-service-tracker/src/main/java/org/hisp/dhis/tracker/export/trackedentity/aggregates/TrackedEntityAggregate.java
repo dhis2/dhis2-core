@@ -177,7 +177,7 @@ public class TrackedEntityAggregate
          */
         final CompletableFuture<Multimap<String, Enrollment>> enrollmentsAsync = conditionalAsyncFetch(
             ctx.getParams().isIncludeEnrollments(),
-            () -> enrollmentAggregate.findByTrackedEntityInstanceIds( ids, ctx ), getPool() );
+            () -> enrollmentAggregate.findByTrackedEntityIds( ids, ctx ), getPool() );
 
         /*
          * Async fetch all ProgramOwner for the given TrackedEntity id
@@ -187,7 +187,7 @@ public class TrackedEntityAggregate
             getPool() );
 
         /*
-         * Async Fetch TrackedEntityInstances by id
+         * Async Fetch TrackedEntities by id
          */
         final CompletableFuture<Map<String, TrackedEntity>> teisAsync = supplyAsync(
             () -> trackedEntityStore.getTrackedEntities( ids, ctx ), getPool() );
@@ -322,7 +322,7 @@ public class TrackedEntityAggregate
     private Context getSecurityContext( String userUID, List<String> userGroupUIDs )
     {
         final CompletableFuture<List<Long>> getTeiTypes = supplyAsync(
-            () -> aclStore.getAccessibleTrackedEntityInstanceTypes( userUID, userGroupUIDs ),
+            () -> aclStore.getAccessibleTrackedEntityTypes( userUID, userGroupUIDs ),
             getPool() );
 
         final CompletableFuture<List<Long>> getPrograms = supplyAsync(

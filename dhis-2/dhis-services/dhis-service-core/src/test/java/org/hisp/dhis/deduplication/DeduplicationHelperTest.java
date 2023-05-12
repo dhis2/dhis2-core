@@ -557,7 +557,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiA()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntity( organisationUnitA );
         tei.setTrackedEntityType( trackedEntityTypeA );
 
         return tei;
@@ -565,7 +565,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiB()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;
@@ -573,7 +573,7 @@ class DeduplicationHelperTest extends DhisConvenienceTest
 
     private TrackedEntity getTeiC()
     {
-        TrackedEntity tei = createTrackedEntityInstance( organisationUnitB );
+        TrackedEntity tei = createTrackedEntity( organisationUnitB );
         tei.setTrackedEntityType( trackedEntityTypeB );
 
         return tei;

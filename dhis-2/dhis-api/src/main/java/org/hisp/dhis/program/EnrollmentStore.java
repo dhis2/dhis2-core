@@ -181,6 +181,6 @@ public interface EnrollmentStore
      * @param programStatus filter on the status of all the Program
      * @return a List of {@see Enrollment}
      */
-    List<Enrollment> getByProgramAndTrackedEntityInstance(
+    List<Enrollment> getByProgramAndTrackedEntity(
         List<Pair<Program, TrackedEntity>> programTeiPair, ProgramStatus programStatus );
 }

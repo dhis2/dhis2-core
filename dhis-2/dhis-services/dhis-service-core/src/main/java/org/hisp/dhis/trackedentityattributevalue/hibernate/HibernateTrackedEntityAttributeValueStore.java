@@ -68,7 +68,7 @@ public class HibernateTrackedEntityAttributeValueStore
     }
 
     @Override
-    public int deleteByTrackedEntityInstance( TrackedEntity trackedEntity )
+    public int deleteByTrackedEntity( TrackedEntity trackedEntity )
     {
         Query<TrackedEntityAttributeValue> query = getQuery(
             "delete from TrackedEntityAttributeValue where trackedEntity = :trackedEntity" );

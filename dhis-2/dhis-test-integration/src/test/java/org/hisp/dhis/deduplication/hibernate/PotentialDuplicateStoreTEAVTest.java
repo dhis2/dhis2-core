@@ -88,9 +88,9 @@ class PotentialDuplicateStoreTEAVTest extends IntegrationTestBase
     {
         OrganisationUnit ou = createOrganisationUnit( "OU_A" );
         organisationUnitService.addOrganisationUnit( ou );
-        original = createTrackedEntityInstance( ou );
-        duplicate = createTrackedEntityInstance( ou );
-        control = createTrackedEntityInstance( ou );
+        original = createTrackedEntity( ou );
+        duplicate = createTrackedEntity( ou );
+        control = createTrackedEntity( ou );
         trackedEntityService.addTrackedEntity( original );
         trackedEntityService.addTrackedEntity( duplicate );
         trackedEntityService.addTrackedEntity( control );

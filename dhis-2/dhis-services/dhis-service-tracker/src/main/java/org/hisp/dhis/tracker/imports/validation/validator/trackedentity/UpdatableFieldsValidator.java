@@ -45,11 +45,11 @@ class UpdatableFieldsValidator
     public void validate( Reporter reporter,
         TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
     {
-        TrackedEntity trackedEntityInstance = bundle
+        TrackedEntity preheatedTrackedEntity = bundle
             .getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
         reporter.addErrorIf(
-            () -> !trackedEntity.getTrackedEntityType().isEqualTo( trackedEntityInstance.getTrackedEntityType() ),
+            () -> !trackedEntity.getTrackedEntityType().isEqualTo( preheatedTrackedEntity.getTrackedEntityType() ),
             trackedEntity, E1126, "trackedEntityType" );
     }
 

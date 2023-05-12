@@ -45,10 +45,10 @@ import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dxf2.TrackerTest;
-import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
-import org.hisp.dhis.dxf2.events.trackedentity.Attribute;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -292,7 +292,7 @@ class TrackedEntityAttributesAggregateTest extends TrackerTest
             manager.update( programA );
             manager.update( programB );
             // Create a TEI associated to program B
-            final TrackedEntity trackedEntity = persistTrackedEntityInstance(
+            final TrackedEntity trackedEntity = persistTrackedEntity(
                 Map.of( "program", programB ) );
             Enrollment piB = new Enrollment( programB, trackedEntity, organisationUnitA );
             piB.setEnrollmentDate( new Date() );

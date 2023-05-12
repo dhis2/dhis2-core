@@ -34,10 +34,10 @@ import java.util.*;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.dxf2.events.trackedentity.Relationship;
-import org.hisp.dhis.dxf2.events.trackedentity.RelationshipItem;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.RelationshipItem;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -100,9 +100,9 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         organisationUnitA = createOrganisationUnit( 'A' );
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA = createTrackedEntity( organisationUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
-        trackedEntityB = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityB = createTrackedEntity( organisationUnitA );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programA.setProgramType( ProgramType.WITH_REGISTRATION );
@@ -225,7 +225,7 @@ class HandleRelationshipsTrackedEntityServiceTest extends SingleSetupIntegration
         TrackedEntityInstance trackedEntityInstance, Event programStageInstance )
     {
         RelationshipItem relationshipItemEvent = new RelationshipItem();
-        org.hisp.dhis.dxf2.events.event.Event event = new org.hisp.dhis.dxf2.events.event.Event();
+        org.hisp.dhis.dxf2.deprecated.tracker.event.Event event = new org.hisp.dhis.dxf2.deprecated.tracker.event.Event();
         event.setEvent( programStageInstance.getUid() );
         relationshipItemEvent.setEvent( event );
         RelationshipItem relationshipItemTei = new RelationshipItem();

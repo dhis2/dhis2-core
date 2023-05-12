@@ -217,7 +217,7 @@ class ProgramNotificationMessageRendererTest extends TransactionalIntegrationTes
         programStageService.updateProgramStage( programStageA );
         programA.setProgramStages( Sets.newHashSet( programStageA ) );
         programService.updateProgram( programA );
-        trackedEntityA = createTrackedEntityInstance( organisationUnitA );
+        trackedEntityA = createTrackedEntity( organisationUnitA );
         trackedEntityA.setUid( trackedEntityUid );
         entityInstanceService.addTrackedEntity( trackedEntityA );
         trackedEntityAttributeValueA = new TrackedEntityAttributeValue( trackedEntityAttributeA, trackedEntityA,

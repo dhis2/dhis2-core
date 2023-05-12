@@ -176,7 +176,7 @@ public class ValidationUtils
                 } );
     }
 
-    public static boolean trackedEntityInstanceExist( TrackerBundle bundle, String teiUid )
+    public static boolean trackedEntityExists( TrackerBundle bundle, String teiUid )
     {
         return bundle.getPreheat().getTrackedEntity( teiUid ) != null
             || bundle.findTrackedEntityByUid( teiUid ).isPresent();

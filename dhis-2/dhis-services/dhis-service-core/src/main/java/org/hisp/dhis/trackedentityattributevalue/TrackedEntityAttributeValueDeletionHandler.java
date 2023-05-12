@@ -54,11 +54,11 @@ public class TrackedEntityAttributeValueDeletionHandler extends DeletionHandler
     @Override
     protected void register()
     {
-        whenDeleting( TrackedEntity.class, this::deleteTrackedEntityInstance );
+        whenDeleting( TrackedEntity.class, this::deleteTrackedEntity );
         whenVetoing( TrackedEntityAttribute.class, this::allowDeleteTrackedEntityAttribute );
     }
 
-    private void deleteTrackedEntityInstance( TrackedEntity instance )
+    private void deleteTrackedEntity( TrackedEntity instance )
     {
         Collection<TrackedEntityAttributeValue> attributeValues = attributeValueService
             .getTrackedEntityAttributeValues( instance );

@@ -156,7 +156,7 @@ class ProgramMessageServiceTest extends TransactionalIntegrationTest
         Set<String> ouUids = new HashSet<>();
         ouUids.add( ouA.getUid() );
         // ouSet.add( ouB );
-        teiA = createTrackedEntityInstance( ouA );
+        teiA = createTrackedEntity( ouA );
         teiService.addTrackedEntity( teiA );
         recipientsA = new ProgramMessageRecipients();
         recipientsA.setOrganisationUnit( ouA );

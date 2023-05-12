@@ -118,7 +118,7 @@ class AuditIntegrationTest extends IntegrationTestBase
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         manager.save( ou );
         manager.save( attribute );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        TrackedEntity tei = createTrackedEntity( 'A', ou, attribute );
         trackedEntityService.addTrackedEntity( tei );
         AuditQuery query = AuditQuery.builder().uid( Sets.newHashSet( tei.getUid() ) ).build();
         await().atMost( TIMEOUT, TimeUnit.SECONDS ).until( () -> auditService.countAudits( query ) >= 0 );
@@ -138,7 +138,7 @@ class AuditIntegrationTest extends IntegrationTestBase
         TrackedEntityAttribute attribute = createTrackedEntityAttribute( 'A' );
         manager.save( ou );
         manager.save( attribute );
-        TrackedEntity tei = createTrackedEntityInstance( 'A', ou, attribute );
+        TrackedEntity tei = createTrackedEntity( 'A', ou, attribute );
         trackedEntityService.addTrackedEntity( tei );
         TrackedEntityAttributeValue dataValue = createTrackedEntityAttributeValue( 'A', tei, attribute );
         attributeValueService.addTrackedEntityAttributeValue( dataValue );

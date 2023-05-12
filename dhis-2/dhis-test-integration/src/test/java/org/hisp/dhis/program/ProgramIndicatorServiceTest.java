@@ -244,7 +244,7 @@ class ProgramIndicatorServiceTest extends TransactionalIntegrationTest
         // ---------------------------------------------------------------------
         // TrackedEntity & Enrollment
         // ---------------------------------------------------------------------
-        TrackedEntity entityInstance = createTrackedEntityInstance( organisationUnit );
+        TrackedEntity entityInstance = createTrackedEntity( organisationUnit );
         entityInstanceService.addTrackedEntity( entityInstance );
         incidentDate = DateUtils.getMediumDate( "2014-10-22" );
         enrollmentDate = DateUtils.getMediumDate( "2014-12-31" );

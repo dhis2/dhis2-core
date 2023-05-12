@@ -249,7 +249,7 @@ class TrackedEntityServiceTest extends IntegrationTestBase
             new ProgramTrackedEntityAttribute( programB, teaE ) ) );
         manager.update( programB );
 
-        trackedEntityA = createTrackedEntityInstance( orgUnitA );
+        trackedEntityA = createTrackedEntity( orgUnitA );
         trackedEntityA.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityA, false );
 
@@ -285,11 +285,11 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         enrollmentB.setEvents( Set.of( eventB ) );
         manager.save( enrollmentB, false );
 
-        trackedEntityB = createTrackedEntityInstance( orgUnitB );
+        trackedEntityB = createTrackedEntity( orgUnitB );
         trackedEntityB.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityB, false );
 
-        TrackedEntity trackedEntityC = createTrackedEntityInstance( orgUnitC );
+        TrackedEntity trackedEntityC = createTrackedEntity( orgUnitC );
         trackedEntityC.setTrackedEntityType( trackedEntityTypeA );
         manager.save( trackedEntityC, false );
 
@@ -588,24 +588,24 @@ class TrackedEntityServiceTest extends IntegrationTestBase
         assertIsEmpty( limitedTrackedEntities );
         // Update status to overdue
         queryParams.setEventStatus( EventStatus.OVERDUE );
-        final List<TrackedEntity> limitedTrackedEntityInstances2 = trackedEntityService
+        final List<TrackedEntity> limitedTrackedEntities2 = trackedEntityService
             .getTrackedEntities( queryParams, params );
-        assertIsEmpty( limitedTrackedEntityInstances2 );
+        assertIsEmpty( limitedTrackedEntities2 );
         // Update status to schedule
         queryParams.setEventStatus( EventStatus.SCHEDULE );
-        final List<TrackedEntity> limitedTrackedEntityInstances3 = trackedEntityService
+        final List<TrackedEntity> limitedTrackedEntities3 = trackedEntityService
             .getTrackedEntities( queryParams, params );
-        assertIsEmpty( limitedTrackedEntityInstances3 );
+        assertIsEmpty( limitedTrackedEntities3 );
         // Update status to schedule
         queryParams.setEventStatus( EventStatus.SKIPPED );
-        final List<TrackedEntity> limitedTrackedEntityInstances4 = trackedEntityService
+        final List<TrackedEntity> limitedTrackedEntities4 = trackedEntityService
             .getTrackedEntities( queryParams, params );
-        assertIsEmpty( limitedTrackedEntityInstances4 );
+        assertIsEmpty( limitedTrackedEntities4 );
         // Update status to visited
         queryParams.setEventStatus( EventStatus.VISITED );
-        final List<TrackedEntity> limitedTrackedEntityInstances5 = trackedEntityService
+        final List<TrackedEntity> limitedTrackedEntities5 = trackedEntityService
             .getTrackedEntities( queryParams, params );
-        assertIsEmpty( limitedTrackedEntityInstances5 );
+        assertIsEmpty( limitedTrackedEntities5 );
     }
 
     @Test

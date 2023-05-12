@@ -90,7 +90,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
-import org.hisp.dhis.dxf2.events.event.EventStore;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventStore;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitLevel;
@@ -392,7 +392,7 @@ class EventAnalyticsServiceTest
         idObjectManager.save( trackedEntityType );
 
         // Tracked Entity Instances (Registrations)
-        TrackedEntity teiA = createTrackedEntityInstance( ouD );
+        TrackedEntity teiA = createTrackedEntity( ouD );
         teiA.setUid( "trackEntInA" );
         teiA.setTrackedEntityType( trackedEntityType );
         idObjectManager.save( teiA );

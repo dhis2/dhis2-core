@@ -365,7 +365,7 @@ class EnrollmentSMSListenerTest
         event = new Event();
         event.setAutoFields();
 
-        trackedEntity = createTrackedEntityInstance( organisationUnit );
+        trackedEntity = createTrackedEntity( organisationUnit );
         trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
         trackedEntity.setOrganisationUnit( organisationUnit );
 

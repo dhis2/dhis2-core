@@ -129,7 +129,7 @@ public class RelationshipsExportController
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByTrackedEntity()
     {
         return ( o, criteria ) -> relationshipService
-            .getRelationshipsByTrackedEntityInstance( (TrackedEntity) o, criteria );
+            .getRelationshipsByTrackedEntity( (TrackedEntity) o, criteria );
     }
 
     private CheckedBiFunction<Object, PagingAndSortingCriteriaAdapter, List<Relationship>> getRelationshipsByEnrollment()
