@@ -110,15 +110,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
             throw new NotFoundException( TrackedEntity.class, uid );
         }
 
-        User user = currentUserService.getCurrentUser();
-        List<String> errors = trackerAccessManager.canRead( user, daoTrackedEntity );
-
-        if ( !errors.isEmpty() )
-        {
-            throw new ForbiddenException( errors.toString() );
-        }
-
-        return getTrackedEntity( daoTrackedEntity, params, user );
+        return getTrackedEntity( daoTrackedEntity, params );
     }
 
     @Override
@@ -182,16 +174,14 @@ public class DefaultTrackedEntityService implements TrackedEntityService
 
     @Override
     public TrackedEntity getTrackedEntity( TrackedEntity trackedEntity, TrackedEntityParams params )
+        throws ForbiddenException
     {
-        return getTrackedEntity( trackedEntity, params, currentUserService.getCurrentUser() );
-    }
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, trackedEntity );
 
-    private TrackedEntity getTrackedEntity( TrackedEntity trackedEntity, TrackedEntityParams params,
-        User user )
-    {
-        if ( trackedEntity == null )
+        if ( !errors.isEmpty() )
         {
-            return null;
+            throw new ForbiddenException( errors.toString() );
         }
 
         TrackedEntity result = new TrackedEntity();
@@ -311,7 +301,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         else if ( item.getEvent() != null )
         {
             result.setEvent(
-                eventService.getEvent( item.getEvent(),
+                eventService.getEvent( item.getEvent().getUid(),
                     EventParams.TRUE.withIncludeRelationships( false ) ) );
         }
 

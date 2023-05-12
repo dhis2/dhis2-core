@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -44,12 +45,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -87,11 +88,12 @@ public class EnrollmentsExportController
         EnrollmentCriteria enrollmentCriteria,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<Enrollment> enrollmentList;
+        List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
             .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
@@ -114,10 +116,21 @@ public class EnrollmentsExportController
         {
             Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
                 TextUtils.SEMICOLON );
-            enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
-                    .toList()
-                : Collections.emptyList();
+            if ( enrollmentIds != null )
+            {
+                List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
+                for ( String e : enrollmentIds )
+                {
+                    org.hisp.dhis.program.Enrollment enrollment = enrollmentService.getEnrollment( e,
+                        enrollmentParams );
+                    list.add( enrollment );
+                }
+                enrollmentList = list;
+            }
+            else
+            {
+                enrollmentList = Collections.emptyList();
+            }
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
@@ -125,20 +138,16 @@ public class EnrollmentsExportController
         return pagingWrapper.withInstances( objectNodes );
     }
 
-    @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getEnrollmentById(
-        @PathVariable String id,
+    @GetMapping( value = "{uid}" )
+    public ResponseEntity<ObjectNode> getEnrollment(
+        @PathVariable String uid,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws NotFoundException
+        throws NotFoundException,
+        ForbiddenException
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
+        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( uid, enrollmentParams ) );
 
-        org.hisp.dhis.webapi.controller.tracker.view.Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
-        if ( enrollment == null )
-        {
-            throw new NotFoundException( org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class, id );
-        }
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }

@@ -58,4 +58,8 @@ public interface RelationshipService
     Optional<Relationship> findRelationshipByUid( String id )
         throws ForbiddenException,
         NotFoundException;
+
+    Relationship getRelationship( String id )
+        throws ForbiddenException,
+        NotFoundException;
 }

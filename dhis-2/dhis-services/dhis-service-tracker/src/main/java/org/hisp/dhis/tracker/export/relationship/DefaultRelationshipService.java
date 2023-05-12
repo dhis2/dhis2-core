@@ -139,6 +139,29 @@ public class DefaultRelationshipService implements RelationshipService
         return Optional.of( map( relationship ) );
     }
 
+    @Override
+    public Relationship getRelationship( String uid )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Relationship relationship = relationshipStore.getByUid( uid );
+
+        if ( relationship == null )
+        {
+            throw new NotFoundException( Relationship.class, uid );
+        }
+
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, relationship );
+
+        if ( !errors.isEmpty() )
+        {
+            throw new ForbiddenException( errors.toString() );
+        }
+
+        return map( relationship );
+    }
+
     /**
      * Map to a non-proxied Relationship to prevent hibernate exceptions.
      */
