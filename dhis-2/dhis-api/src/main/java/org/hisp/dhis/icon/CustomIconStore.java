@@ -65,15 +65,17 @@ public interface CustomIconStore
      * Persists a custom icon to the database
      *
      * @param customIcon Icon to be saved
+     * @param fileResourceId id of the file resource linked to the custom icon
+     * @param createdByUserId id of the user that creates the custom icon
      */
-    void save( CustomIcon customIcon );
+    void save( CustomIcon customIcon, long fileResourceId, long createdByUserId );
 
     /**
      * Deletes a custom icon from the database
      *
-     * @param customIcon Icon to be deleted
+     * @param customIconKey Key of the icon to be deleted
      */
-    void delete( CustomIcon customIcon );
+    void delete( String customIconKey );
 
     /**
      * Updates a custom icon from the database

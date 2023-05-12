@@ -59,7 +59,7 @@ public class IconMapper
     public IconDto from( Icon icon) {
         if (icon instanceof CustomIcon ci) {
             return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(),
-                    ci.getFileResource().getUid(), ci.getCreatedBy().getUid(), getCustomIconReference(ci.getFileResource().getUid()));
+                    ci.getFileResourceUid(), ci.getCreatedByUserUid(), getCustomIconReference(ci.getFileResourceUid()));
         } else {
             return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(), getDefaultIconReference(icon.getKey()));
         }
@@ -77,7 +77,7 @@ public class IconMapper
         }
 
         return new CustomIcon( iconDto.getKey(), iconDto.getDescription(), iconDto.getKeywords(),
-            fileResource.get(), currentUserService.getCurrentUser() );
+            fileResource.get().getUid(), currentUserService.getCurrentUser().getUid() );
     }
 
     private String getCustomIconReference( String fileResourceUid )

@@ -33,9 +33,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.hisp.dhis.fileresource.FileResource;
-import org.hisp.dhis.user.User;
-
 /**
  * This class represents icons that are uploaded by users and are possible to
  * modify and delete later on.
@@ -53,18 +50,17 @@ public class CustomIcon implements Icon
 
     private String[] keywords;
 
-    private FileResource fileResource;
+    private String fileResourceUid;
 
-    private User createdBy;
+    private String createdByUserUid;
 
-    public CustomIcon( @Nonnull String key, String description, String[] keywords,
-        @Nonnull FileResource fileResource,
-        User user )
+    public CustomIcon( @Nonnull String key, String description, String[] keywords, @Nonnull String fileResourceUid,
+        String createdByUserUid )
     {
         this.key = key;
         this.description = description;
         this.keywords = keywords;
-        this.fileResource = fileResource;
-        this.createdBy = user;
+        this.fileResourceUid = fileResourceUid;
+        this.createdByUserUid = createdByUserUid;
     }
 }

@@ -45,6 +45,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
@@ -65,6 +66,8 @@ public class DefaultIconService
     private final CustomIconStore customIconStore;
 
     private final FileResourceService fileResourceService;
+
+    private final CurrentUserService currentUserService;
 
     private final Map<String, DefaultIcon> defaultIcons = Arrays.stream( DefaultIcon.Icons.values() )
         .map( DefaultIcon.Icons::getVariants )
@@ -138,11 +141,11 @@ public class DefaultIconService
 
     @Override
     @Transactional( readOnly = true )
-    public List<String> getKeywords()
+    public Set<String> getKeywords()
     {
         return Stream.concat( defaultIcons.values().stream()
             .map( Icon::getKeywords )
-            .flatMap( Arrays::stream ), customIconStore.getKeywords().stream() ).toList();
+            .flatMap( Arrays::stream ), customIconStore.getKeywords().stream() ).collect( Collectors.toSet() );
     }
 
     @Override
@@ -159,8 +162,8 @@ public class DefaultIconService
         NotFoundException
     {
         validateIconExists( customIcon.getKey() );
-        validateFileResourceExists( customIcon.getFileResource() );
-        customIconStore.save( customIcon );
+        FileResource fileResource = getFileResource( customIcon.getFileResourceUid() );
+        customIconStore.save( customIcon, fileResource.getId(), currentUserService.getCurrentUser().getId() );
     }
 
     @Override
@@ -197,8 +200,8 @@ public class DefaultIconService
         NotFoundException
     {
         CustomIcon icon = validateCustomIconExists( key );
-        fileResourceService.getFileResource( icon.getFileResource().getUid() ).setAssigned( false );
-        customIconStore.delete( icon );
+        fileResourceService.getFileResource( icon.getFileResourceUid() ).setAssigned( false );
+        customIconStore.delete( key );
     }
 
     private void validateIconExists( String key )
@@ -221,19 +224,22 @@ public class DefaultIconService
         }
     }
 
-    private void validateFileResourceExists( FileResource fileResource )
+    private FileResource getFileResource( String fileResourceUid )
         throws BadRequestException,
         NotFoundException
     {
-        if ( fileResource == null || Strings.isNullOrEmpty( fileResource.getUid() ) )
+        if ( Strings.isNullOrEmpty( fileResourceUid ) )
         {
             throw new BadRequestException( "File resource id not specified." );
         }
 
-        if ( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ).isEmpty() )
+        Optional<FileResource> fileResource = fileResourceService.getFileResource( fileResourceUid, CUSTOM_ICON );
+        if ( fileResource.isEmpty() )
         {
-            throw new NotFoundException( String.format( "File resource %s does not exist", fileResource.getUid() ) );
+            throw new NotFoundException( String.format( "File resource %s does not exist", fileResourceUid ) );
         }
+
+        return fileResource.get();
     }
 
     private CustomIcon validateCustomIconExists( String key )

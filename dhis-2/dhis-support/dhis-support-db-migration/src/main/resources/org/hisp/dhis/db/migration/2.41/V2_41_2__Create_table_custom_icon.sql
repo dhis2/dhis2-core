@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS customicon (
-    customiconid int8 NOT NULL,
+    customiconid int8 GENERATED ALWAYS AS IDENTITY,
     "key" varchar(100) NOT NULL,
     fileresourceid int8 NOT NULL,
     description text NULL,

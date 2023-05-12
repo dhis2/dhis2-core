@@ -38,9 +38,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,7 +53,6 @@ import org.hisp.dhis.fileresource.FileResourceDomain;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -83,7 +82,8 @@ class IconTest extends TrackerTest
         FileResource fileResource = createAndPersistFileResource( 'A' );
         String iconKey = "iconKey";
         iconService.addCustomIcon(
-            new CustomIcon( iconKey, "description", keywords, fileResource, currentUserService.getCurrentUser() ) );
+            new CustomIcon( iconKey, "description", keywords, fileResource.getUid(),
+                currentUserService.getCurrentUser().getUid() ) );
     }
 
     @Test
@@ -110,9 +110,9 @@ class IconTest extends TrackerTest
     @Test
     void shouldGetAllKeywordsWhenRequested()
     {
-        List<String> keywordList = getAllDefaultIcons().values().stream()
+        Set<String> keywordList = getAllDefaultIcons().values().stream()
             .map( Icon::getKeywords )
-            .flatMap( Arrays::stream ).toList();
+            .flatMap( Arrays::stream ).collect( Collectors.toSet() );
 
         assertEquals( keywordList.size() + keywords.length, iconService.getKeywords().size(),
             String.format( "Expected to find %d icons, but found %d instead", keywordList.size() + keywords.length,
@@ -136,15 +136,18 @@ class IconTest extends TrackerTest
 
         FileResource fileResourceB = createAndPersistFileResource( 'B' );
         iconService
-            .addCustomIcon( new CustomIcon( "iconKeyB", "description", new String[] { "k4", "k5", "k6" }, fileResourceB,
-                currentUserService.getCurrentUser() ) );
+            .addCustomIcon(
+                new CustomIcon( "iconKeyB", "description", new String[] { "k4", "k5", "k6" }, fileResourceB.getUid(),
+                    currentUserService.getCurrentUser().getUid() ) );
         FileResource fileResourceC = createAndPersistFileResource( 'C' );
         iconService
-            .addCustomIcon( new CustomIcon( "iconKeyC", "description", new String[] { "k6", "k7", "k8" }, fileResourceC,
-                currentUserService.getCurrentUser() ) );
+            .addCustomIcon(
+                new CustomIcon( "iconKeyC", "description", new String[] { "k6", "k7", "k8" }, fileResourceC.getUid(),
+                    currentUserService.getCurrentUser().getUid() ) );
         FileResource fileResourceD = createAndPersistFileResource( 'D' );
-        iconService.addCustomIcon( new CustomIcon( "iconKeyD", "description", new String[] { keyword }, fileResourceD,
-            currentUserService.getCurrentUser() ) );
+        iconService
+            .addCustomIcon( new CustomIcon( "iconKeyD", "description", new String[] { keyword }, fileResourceD.getUid(),
+                currentUserService.getCurrentUser().getUid() ) );
 
         assertEquals( 1, iconService.getIcons( new String[] { "k4", "k5", "k6" } ).size(),
             "Expected one icon containing the keys k4, k5 and k6, but found "
@@ -189,8 +192,8 @@ class IconTest extends TrackerTest
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> iconService.addCustomIcon(
-                new CustomIcon( defaultIconKey, "description", new String[] { "keyword1" }, new FileResource(),
-                    new User() ) ) );
+                new CustomIcon( defaultIconKey, "description", new String[] { "keyword1" }, "fileResourceUid",
+                    "userUid" ) ) );
 
         String expectedMessage = String.format( "Icon with key %s already exists.", defaultIconKey );
         assertEquals( expectedMessage, exception.getMessage() );

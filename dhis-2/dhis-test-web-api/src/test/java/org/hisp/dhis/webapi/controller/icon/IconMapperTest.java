@@ -97,8 +97,8 @@ class IconMapperTest
         assertEquals( KEY, customIcon.getKey() );
         assertEquals( DESCRIPTION, customIcon.getDescription() );
         assertEquals( KEYWORDS, customIcon.getKeywords() );
-        assertEquals( fileResource.getUid(), customIcon.getFileResource().getUid() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), customIcon.getCreatedBy().getUid() );
+        assertEquals( fileResource.getUid(), customIcon.getFileResourceUid() );
+        assertEquals( currentUserService.getCurrentUser().getUid(), customIcon.getCreatedByUserUid() );
     }
 
     @Test
@@ -115,8 +115,8 @@ class IconMapperTest
     @Test
     void shouldReturnIconDtoFromIcon()
     {
-        Icon icon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource,
-            currentUserService.getCurrentUser() );
+        Icon icon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
+            currentUserService.getCurrentUser().getUid() );
 
         IconDto iconDto = iconMapper.from( icon );
 

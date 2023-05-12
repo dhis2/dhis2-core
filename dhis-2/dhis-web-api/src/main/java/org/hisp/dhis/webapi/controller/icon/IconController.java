@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletResponse;
@@ -142,7 +143,7 @@ public class IconController
     }
 
     @GetMapping( "/keywords" )
-    public @ResponseBody List<String> getKeywords()
+    public @ResponseBody Set<String> getKeywords()
     {
         return iconService.getKeywords();
     }
@@ -176,7 +177,7 @@ public class IconController
         NotFoundException
     {
         CustomIcon icon = iconService.getCustomIcon( iconKey );
-        fileResourceService.getFileResource( icon.getFileResource().getUid() ).setAssigned( false );
+        fileResourceService.getFileResource( icon.getFileResourceUid() ).setAssigned( false );
         iconService.deleteCustomIcon( iconKey );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
