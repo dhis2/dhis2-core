@@ -2,7 +2,7 @@
 
 ## Guidelines
 
-Read the contribution [guidelines](https://developers.dhis2.org/docs/conceptual/contribute/).
+Read the contribution [guidelines](https://developers.dhis2.org/community/contribute/).
 
 ## Requirements
 
