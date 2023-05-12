@@ -35,7 +35,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
-import org.hisp.dhis.dxf2.events.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;

@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.dxf2.events.event.EventContext;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
