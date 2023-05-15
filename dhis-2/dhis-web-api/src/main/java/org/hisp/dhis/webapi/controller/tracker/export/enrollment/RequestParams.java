@@ -33,25 +33,34 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 
 /**
  * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
+@OpenApi.Property
 @Data
 @NoArgsConstructor
 public class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
+    @OpenApi.Property( { UID.class, Program.class } )
     private String program;
 
     private ProgramStatus programStatus;
@@ -66,13 +75,17 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Date enrolledBefore;
 
+    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
     private String trackedEntityType;
 
+    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
     private String trackedEntity;
 
+    @OpenApi.Property( { UID[].class, Enrollment.class } )
     private String enrollment;
 
     private boolean includeDeleted;
 
+    @OpenApi.Property( name = "fields", value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }
