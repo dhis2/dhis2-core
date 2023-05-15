@@ -33,7 +33,7 @@
     <module>dhis-services</module>
     <module>dhis-support</module>
     <module>dhis-web-api</module>
-    <module>dhis-web-api-test</module>
+    <module>dhis-test-web-api</module>
     <module>dhis-web-embedded-jetty</module>
     <module>dhis-test-coverage</module>
     <module>dhis-test-integration</module>
@@ -83,7 +83,7 @@
 
     <!-- Spring -->
     <spring.version>5.3.27</spring.version>
-    <spring-data-redis.version>2.7.11</spring-data-redis.version>
+    <spring-data-redis.version>2.7.12</spring-data-redis.version>
     <spring-session-data-redis.version>2.7.1</spring-session-data-redis.version>
     <spring-mobile-device.version>1.1.5.RELEASE</spring-mobile-device.version>
     <spring-retry.version>1.3.4</spring-retry.version>
@@ -156,7 +156,7 @@
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.2.0.Final</version.debezium>
+    <version.debezium>2.2.1.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -194,7 +194,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.18.0</testcontainers.version>
+    <testcontainers.version>1.18.1</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
