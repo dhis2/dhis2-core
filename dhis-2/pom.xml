@@ -220,7 +220,7 @@
     <jrebel-x-maven-plugin.version>1.1.10</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.33</dhis-antlr-expression-parser.version>
     <jai-imageio.version>1.1.1</jai-imageio.version>
-    <gson.version>2.8.9</gson.version>
+    <gson.version>2.10.1</gson.version>
     <semver4j.version>3.1.0</semver4j.version>
   </properties>
 
