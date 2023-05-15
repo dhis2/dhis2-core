@@ -190,17 +190,17 @@ public class TrackedEntitiesExportController
         csvEventService.write( outputStream, trackedEntities, !skipHeader );
     }
 
-    @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getTrackedEntityById( @PathVariable String id,
+    @GetMapping( value = "{uid}" )
+    public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable String uid,
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws ForbiddenException,
         NotFoundException
     {
         TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields );
+        TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER
+            .from( trackedEntityService.getTrackedEntity( uid, program, trackedEntityParams ) );
 
-        TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 

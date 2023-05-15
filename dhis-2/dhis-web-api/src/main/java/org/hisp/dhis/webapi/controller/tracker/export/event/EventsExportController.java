@@ -53,12 +53,12 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Event;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.mapstruct.factory.Mappers;
@@ -172,12 +172,12 @@ public class EventsExportController
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws NotFoundException
+        throws NotFoundException,
+        ForbiddenException
     {
         EventParams eventParams = eventsMapper.map( fields );
-        Event event = eventService.getEvent( uid, eventParams );
+        Event event = EVENTS_MAPPER.from( eventService.getEvent( uid, eventParams ) );
 
-        return ResponseEntity
-            .ok( fieldFilterService.toObjectNode( EVENTS_MAPPER.from( event ), fields ) );
+        return ResponseEntity.ok( fieldFilterService.toObjectNode( event, fields ) );
     }
 }
