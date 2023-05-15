@@ -31,7 +31,6 @@ import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -114,23 +113,14 @@ public class EnrollmentsExportController
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
-                TextUtils.SEMICOLON );
-            if ( enrollmentIds != null )
+            Set<String> enrollmentUids = Set.of( enrollmentCriteria.getEnrollment().split( TextUtils.SEMICOLON ) );
+
+            List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
+            for ( String e : enrollmentUids )
             {
-                List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
-                for ( String e : enrollmentIds )
-                {
-                    org.hisp.dhis.program.Enrollment enrollment = enrollmentService.getEnrollment( e,
-                        enrollmentParams );
-                    list.add( enrollment );
-                }
-                enrollmentList = list;
+                list.add( enrollmentService.getEnrollment( e, enrollmentParams ) );
             }
-            else
-            {
-                enrollmentList = Collections.emptyList();
-            }
+            enrollmentList = list;
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
