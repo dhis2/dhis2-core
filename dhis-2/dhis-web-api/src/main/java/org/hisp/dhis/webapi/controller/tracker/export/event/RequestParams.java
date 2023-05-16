@@ -35,42 +35,59 @@ import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to {@link EventsExportController}.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@OpenApi.Property
 @Data
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
+    @OpenApi.Property( { UID.class, Program.class } )
     private String program;
 
+    @OpenApi.Property( { UID.class, ProgramStage.class } )
     private String programStage;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     private String trackedEntity;
 
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
     private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
     private AssignedUserSelectionMode assignedUserMode;
 
+    @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
 
     private Date occurredAfter;
@@ -97,8 +114,10 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private EventStatus status;
 
+    @OpenApi.Property( { UID.class, CategoryCombo.class } )
     private String attributeCc;
 
+    @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private String attributeCos;
 
     private boolean skipMeta;
@@ -107,6 +126,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private boolean includeDeleted;
 
+    @OpenApi.Property( { UID[].class, Event.class } )
     private String event;
 
     private Boolean skipEventId;
@@ -115,9 +135,11 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Set<String> filterAttributes = new HashSet<>();
 
+    @OpenApi.Property( { UID[].class, Enrollment.class } )
     private Set<String> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
 
+    @OpenApi.Property( name = "fields", value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

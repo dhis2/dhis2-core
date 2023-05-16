@@ -45,6 +45,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor

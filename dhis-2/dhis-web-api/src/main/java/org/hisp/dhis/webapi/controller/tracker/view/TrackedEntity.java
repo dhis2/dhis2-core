@@ -36,6 +36,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -43,12 +45,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class TrackedEntity
 {
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     @JsonProperty
     private String trackedEntity;
 
