@@ -34,6 +34,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -45,6 +46,8 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @NoArgsConstructor
 public class RequestParams extends PagingAndSortingCriteriaAdapter
 {
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+
     private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
@@ -71,5 +74,5 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private boolean includeDeleted;
 
-    private List<FieldPath> fields = EnrollmentsExportController.DEFAULT_FIELDS_PARAMS;
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

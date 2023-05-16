@@ -39,6 +39,7 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -52,6 +53,8 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
+
     private String program;
 
     private String programStage;
@@ -116,5 +119,5 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private IdSchemes idSchemes = new IdSchemes();
 
-    private List<FieldPath> fields = EventsExportController.DEFAULT_FIELDS_PARAMS;
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

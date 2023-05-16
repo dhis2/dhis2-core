@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.event.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
@@ -51,7 +52,6 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -82,10 +82,6 @@ public class EventsExportController
 {
     protected static final String EVENTS = "events";
 
-    private static final String DEFAULT_FIELDS_PARAM_STRING = "*,!relationships";
-
-    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
-
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
     @Nonnull
@@ -103,8 +99,7 @@ public class EventsExportController
     private final EventFieldsParamMapper eventsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public PagingWrapper<ObjectNode> getEvents(
-        RequestParams requestParams )
+    public PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
@@ -173,7 +168,7 @@ public class EventsExportController
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

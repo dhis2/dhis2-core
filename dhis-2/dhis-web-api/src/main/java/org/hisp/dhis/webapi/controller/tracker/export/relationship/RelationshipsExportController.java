@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -45,7 +46,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
@@ -79,10 +79,6 @@ import com.google.common.collect.ImmutableMap;
 public class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
-
-    private static final String DEFAULT_FIELDS_PARAM_STRING = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
-
-    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
@@ -147,8 +143,7 @@ public class RelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<ObjectNode> getRelationships(
-        RequestParams requestParams )
+    PagingWrapper<ObjectNode> getRelationships( RequestParams requestParams )
         throws NotFoundException,
         BadRequestException,
         ForbiddenException
@@ -174,7 +169,7 @@ public class RelationshipsExportController
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getRelationship(
         @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

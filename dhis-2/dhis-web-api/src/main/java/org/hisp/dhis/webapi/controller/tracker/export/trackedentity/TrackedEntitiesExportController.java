@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_ZIP;
@@ -82,10 +83,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 public class TrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
-
-    private static final String DEFAULT_FIELDS_PARAM_STRING = "*,!relationships,!enrollments,!events,!programOwners";
-
-    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     /**
      * Fields we need to fetch from the DB to fulfill requests for CSV. CSV
@@ -195,7 +192,7 @@ public class TrackedEntitiesExportController
     @GetMapping( value = "{uid}" )
     public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable String uid,
         @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws ForbiddenException,
         NotFoundException
     {

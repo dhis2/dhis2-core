@@ -38,6 +38,7 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
@@ -51,6 +52,8 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+
     private String query;
 
     private Set<String> attribute = new HashSet<>();
@@ -188,5 +191,5 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      */
     private Boolean potentialDuplicate;
 
-    private List<FieldPath> fields = TrackedEntitiesExportController.DEFAULT_FIELDS_PARAMS;
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

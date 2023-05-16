@@ -81,7 +81,7 @@ import org.springframework.transaction.annotation.Transactional;
  *
  * @author Luciano Fiandesio
  */
-@Component( "org.hisp.dhis.webapi.controller.tracker.export.trackedentity.EntityParamsMapper" )
+@Component
 @RequiredArgsConstructor
 public class TrackedEntityParamsMapper
 {

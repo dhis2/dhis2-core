@@ -81,7 +81,7 @@ import org.springframework.stereotype.Component;
  * {@link RequestParams} to {@link EventSearchParams} which is used to fetch
  * events from the DB.
  */
-@Component( "org.hisp.dhis.webapi.controller.tracker.export.EventParamsMapper" )
+@Component
 @RequiredArgsConstructor
 class EventParamsMapper
 {

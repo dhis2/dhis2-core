@@ -56,7 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
@@ -64,7 +64,7 @@ import org.springframework.transaction.annotation.Transactional;
  * {@link RequestParams} to {@link EnrollmentQueryParams} which is used to fetch
  * enrollments from the DB.
  */
-@Service( "org.hisp.dhis.webapi.controller.tracker.export.EnrollmentParamsMapper" )
+@Component
 @RequiredArgsConstructor
 public class EnrollmentParamsMapper
 {
