@@ -182,27 +182,8 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/",
             "{'attributes':[{'type': 'IpAllowedList','allowedIps':['X.1.1.1','2.2.2.2','3.3.3.3']}]}" );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", post.error().getMessage() );
-    }
-
-    @Test
-    void testCantAddInvalidIpPut()
-    {
-        final ApiToken token = createNewEmptyToken();
-        token.addIpToAllowedList( "X.1.1.1" );
-        final HttpResponse put = PUT( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}", token.getUid(),
-            Body( renderService.toJsonAsString( token ) ) );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", put.error().getMessage() );
-    }
-
-    @Test
-    void testCantAddInvalidIpPatch()
-    {
-        final ApiToken token = createNewEmptyToken();
-        final HttpResponse patch = PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}",
-            token.getUid() + "?importReportMode=ERRORS", Body(
-                "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','allowedIps':['X.1.1.1']}]}]" ) );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", patch.error().getMessage() );
+        assertEquals( "Failed to validate the token's attributes, message: Not a valid ip address, value=X.1.1.1",
+            post.error().getMessage() );
     }
 
     @Test
@@ -210,7 +191,8 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/",
             "{'attributes':[" + "{'type':'MethodAllowedList','allowedMethods':['POST','X','PATCH']}" + "]}" );
-        assertEquals( "Not a valid http method, value=X", post.error().getMessage() );
+        assertEquals( "Failed to validate the token's attributes, message: Not a valid http method, value=X",
+            post.error().getMessage() );
     }
 
     @Test
@@ -218,55 +200,9 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/", "{'attributes':["
             + "{'type':'RefererAllowedList','allowedReferrers':['http:XXX//hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
-        assertEquals( "Not a valid referrer url, value=http:XXX//hostname3.com", post.error().getMessage() );
-    }
-
-    @Test
-    void testCanModifyWithPut()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.addReferrerToAllowedList( "http://hostname1.com" );
-        apiToken1.addMethodToAllowedList( "GET" );
-        apiToken1.addIpToAllowedList( "2.2.2.2" );
-        assertStatus( HttpStatus.OK, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) ) );
-        final ApiToken apiToken2 = fetchAsEntity( newToken.getUid() );
-        assertTrue( apiToken2.getIpAllowedList().getAllowedIps().contains( "2.2.2.2" ) );
-        assertTrue( apiToken2.getMethodAllowedList().getAllowedMethods().contains( "GET" ) );
-        assertTrue( apiToken2.getRefererAllowedList().getAllowedReferrers().contains( "http://hostname1.com" ) );
-        apiToken2.getIpAllowedList().getAllowedIps().remove( "2.2.2.2" );
-        apiToken2.getMethodAllowedList().getAllowedMethods().remove( "GET" );
-        apiToken2.getRefererAllowedList().getAllowedReferrers().remove( "http://hostname1.com" );
-        assertStatus( HttpStatus.OK, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken2 ) ) ) );
-        final ApiToken apiToken3 = fetchAsEntity( newToken.getUid() );
-        assertFalse( apiToken3.getIpAllowedList().getAllowedIps().contains( "2.2.2.2" ) );
-        assertFalse( apiToken3.getMethodAllowedList().getAllowedMethods().contains( "GET" ) );
-        assertFalse( apiToken3.getRefererAllowedList().getAllowedReferrers().contains( "http://hostname1.com" ) );
-    }
-
-    @Test
-    void testCantModifyKeyPut()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.setKey( "x" );
-        final HttpResponse put = PUT( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) );
-        final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );
-        assertEquals( newToken.getKey(), afterPatched.getKey() );
-    }
-
-    @Test
-    void testCantModifyOthers()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.setKey( "x" );
-        switchToNewUser( "anonymous" );
-        assertStatus( HttpStatus.NOT_FOUND, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) ) );
+        assertEquals(
+            "Failed to validate the token's attributes, message: Not a valid referrer url, value=http:XXX//hostname3.com",
+            post.error().getMessage() );
     }
 
     @Test
@@ -283,7 +219,8 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final ApiToken newToken = createNewEmptyToken();
         switchContextToUser( userB );
-        assertStatus( HttpStatus.NOT_FOUND, DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/" + newToken.getUid() ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT1 + "/" + newToken.getUid() ) );
     }
 
     @Test

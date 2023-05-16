@@ -30,16 +30,14 @@ package org.hisp.dhis.webapi.controller.security;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-import java.util.function.Consumer;
 
 import javax.servlet.http.HttpServletRequest;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -47,8 +45,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReportMode;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.feedback.ErrorReport;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
@@ -56,13 +53,12 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.security.apikey.ApiTokenType;
-import org.hisp.dhis.user.CurrentUser;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -77,62 +73,45 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ApiTokenController extends AbstractCrudController<ApiToken>
 {
-    public static final String OPERATION_NOT_SUPPORTED_ON_API_TOKEN = "Operation not supported on ApiToken";
+    public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
     private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     private final ApiTokenService apiTokenService;
 
     @Override
-    public void partialUpdateObject( String pvUid, Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
-    }
-
-    @Override
-    public void updateObjectProperty( String pvUid, String pvProperty, Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
-    }
-
-    @Override
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
-    @ResponseBody
-    public WebMessage postXmlObject( HttpServletRequest request )
-    {
-        throw new IllegalStateException( OPERATION_NOT_SUPPORTED_ON_API_TOKEN );
-    }
-
-    @Override
     @PostMapping( consumes = "application/json" )
     @ResponseBody
     public WebMessage postJsonObject( HttpServletRequest request )
         throws ForbiddenException,
-        IOException
+        IOException,
+        ConflictException
     {
-        ApiToken apiToken = deserializeJsonEntity( request );
-        User user = currentUserService.getCurrentUser();
+        User currentUser = currentUserService.getCurrentUser();
 
-        if ( !aclService.canCreate( user, getEntityClass() ) )
+        if ( !aclService.canCreate( currentUser, getEntityClass() ) )
         {
             throw new ForbiddenException( "You don't have the proper permissions to create this object." );
         }
 
-        validateTokenAttributes( apiToken );
+        ApiToken inputToken = deserializeJsonEntity( request );
 
-        apiTokenService.initToken( apiToken, ApiTokenType.PERSONAL_ACCESS_TOKEN );
+        try
+        {
+            validateTokenAttributes( inputToken );
+        }
+        catch ( Exception e )
+        {
+            throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
+        }
 
-        // Hash the plaintext token key and overwrite value in the entity with the hash.
-        final String plaintextKey = apiToken.getKey();
-        apiToken.setKey( apiTokenService.hashKey( plaintextKey ) );
+        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes() );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
-            .setUser( user )
+            .setUser( currentUser )
             .setImportStrategy( ImportStrategy.CREATE )
-            .addObject( apiToken );
+            .addObject( apiTokenPair.getRight() );
 
         ObjectReport report = importService.importMetadata( params ).getFirstObjectReport();
         WebMessage webMessage = objectReport( report );
@@ -142,7 +121,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             String uid = report.getUid();
             webMessage.setHttpStatus( HttpStatus.CREATED );
             webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
-            webMessage.setResponse( new ApiTokenCreationResponse( report, plaintextKey ) );
+            webMessage.setResponse( new ApiTokenCreationResponse( report, apiTokenPair.getLeft() ) );
         }
         else
         {
@@ -153,30 +132,19 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     }
 
     @Override
-    protected void prePatchEntity( ApiToken oldToken, ApiToken newToken )
+    @PostMapping( consumes = { "application/xml", "text/xml" } )
+    @ResponseBody
+    public WebMessage postXmlObject( HttpServletRequest request )
+        throws HttpRequestMethodNotSupportedException
     {
-        preModify( oldToken, newToken );
-    }
-
-    @Override
-    protected void preUpdateEntity( ApiToken oldToken, ApiToken newToken )
-    {
-        preModify( oldToken, newToken );
-    }
-
-    private void preModify( ApiToken oldToken, ApiToken newToken )
-    {
-        newToken.setKey( oldToken.getKey() );
-        validateTokenAttributes( newToken );
+        throw new HttpRequestMethodNotSupportedException( METHOD_TYPE_IS_NOT_SUPPORTED_MSG );
     }
 
     private void validateTokenAttributes( ApiToken token )
     {
-        List<ErrorReport> errorReports = new ArrayList<>();
-
         if ( token.getIpAllowedList() != null )
         {
-            token.getIpAllowedList().getAllowedIps().forEach( ip -> validateIp( ip, errorReports::add ) );
+            token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );
         }
         if ( token.getMethodAllowedList() != null )
         {
@@ -196,16 +164,12 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         }
     }
 
-    private void validateIp( String ip, Consumer<ErrorReport> reportConsumer )
+    private void validateIp( String ip )
     {
         InetAddressValidator validator = new InetAddressValidator();
         if ( !validator.isValid( ip ) )
         {
-            reportConsumer.accept(
-                new ErrorReport( ApiToken.class, ErrorCode.E4027, ip, "uid" )
-                    .setErrorProperty( "ipAllowedList" ) );
-
-            //            throw new BadRequestException( "Not a valid ip address, value=" + ip );
+            throw new IllegalArgumentException( "Not a valid ip address, value=" + ip );
         }
     }
 
@@ -217,4 +181,5 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
         }
     }
+
 }

@@ -27,13 +27,8 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.List;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -47,7 +42,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import static org.hisp.dhis.security.apikey.ApiTokenType.hashToken;
+import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -71,17 +74,17 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
 
     @BeforeEach
     final void setup()
-        throws Exception
+        throws
+        Exception
     {
         userService = _userService;
     }
 
     public ApiToken createAndSaveToken()
     {
-        final ApiToken token = new ApiToken();
-        final ApiToken object = apiTokenService.initToken( token, ApiTokenType.PERSONAL_ACCESS_TOKEN );
-        apiTokenStore.save( object );
-        return token;
+        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null );
+        apiTokenStore.save( apiTokenPair.getRight() );
+        return apiTokenPair.getRight();
     }
 
     @Test
@@ -213,5 +216,34 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     {
         final User otherUser = createUserWithAuth( "otherUser" );
         injectSecurityContext( otherUser );
+    }
+
+    @Test
+    void testValidateChecksums()
+    {
+        char[] token = ApiTokenServiceImpl.generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        assertTrue( validateChecksum( token ) );
+    }
+
+    @Test
+    void testHashingToken()
+    {
+        char[] token = ApiTokenServiceImpl.generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        String hashedToken = hashToken( token );
+        assertTrue( isValidSHA256( hashedToken ) );
+    }
+
+    private static boolean isValidSHA256( String s )
+    {
+        // Check if the string is a valid hexadecimal number
+        String hexPattern = "^[0-9a-fA-F]+$";
+        Pattern pattern = Pattern.compile( hexPattern );
+        if ( !pattern.matcher( s ).matches() )
+        {
+            return false;
+        }
+
+        // SHA-256 hexadecimal strings are exactly 64 characters long
+        return s.length() == 64;
     }
 }

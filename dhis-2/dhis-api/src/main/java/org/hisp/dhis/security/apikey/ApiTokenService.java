@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import org.hisp.dhis.user.User;
+import java.util.List;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
-import java.util.List;
+
+import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -60,8 +62,5 @@ public interface ApiTokenService
     ApiToken getWithKey( @Nonnull String key );
 
     @Nonnull
-    ApiToken initToken( @Nonnull ApiToken entity, @Nonnull ApiTokenType type );
-
-    @Nonnull
-    String hashKey( @Nonnull String key );
+    Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes );
 }

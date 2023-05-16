@@ -27,10 +27,19 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAttribute;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
-import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.IpAllowedList;
 import org.hisp.dhis.security.apikey.MethodAllowedList;
 import org.hisp.dhis.security.apikey.RefererAllowedList;
@@ -46,15 +55,6 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.web.filter.OncePerRequestFilter;
-
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -73,15 +73,12 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
     private final AuthenticationEntryPoint authenticationEntryPoint;
 
-    private final ApiTokenService apiTokenService;
-
     private final AuthenticationEventPublisher eventPublisher;
 
-    public Dhis2ApiTokenFilter( ApiTokenService apiTokenService, ApiTokenAuthManager apiTokenAuthManager,
+    public Dhis2ApiTokenFilter( ApiTokenAuthManager apiTokenAuthManager,
         AuthenticationEntryPoint authenticationEntryPoint,
         DefaultAuthenticationEventPublisher defaultAuthenticationEventPublisher )
     {
-        this.apiTokenService = apiTokenService;
         this.authenticationEntryPoint = authenticationEntryPoint;
         this.apiTokenAuthManager = apiTokenAuthManager;
         this.authenticationFailureHandler = getAuthenticationFailureHandler( authenticationEntryPoint,
@@ -92,23 +89,22 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
     @Override
     protected void doFilterInternal( HttpServletRequest request, HttpServletResponse response, FilterChain filterChain )
-        throws
-        ServletException,
+        throws ServletException,
         IOException
     {
-        String plaintextToken;
+        String tokenHash;
         try
         {
-            plaintextToken = apiTokenResolver.resolve( request );
+            tokenHash = apiTokenResolver.resolve( request );
         }
-        catch ( ApiTokenAuthenticationException invalid )
+        catch ( ApiTokenAuthenticationException e )
         {
-            logger.debug( "Sending to authentication entry point since we failed to resolve API token", invalid );
-            authenticationEntryPoint.commence( request, response, invalid );
+            logger.debug( "Sending to authentication entry point since we failed to resolve API token", e );
+            authenticationEntryPoint.commence( request, response, e );
             return;
         }
 
-        if ( plaintextToken == null )
+        if ( tokenHash == null )
         {
             logger.debug( "Did not process request since did not find API token in header or body" );
             filterChain.doFilter( request, response );
@@ -117,10 +113,8 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
         try
         {
-            String hashedToken = apiTokenService.hashKey( plaintextToken );
-
             ApiTokenAuthenticationToken authenticationToken = (ApiTokenAuthenticationToken) apiTokenAuthManager
-                .authenticate( new ApiTokenAuthenticationToken( hashedToken ) );
+                .authenticate( new ApiTokenAuthenticationToken( tokenHash ) );
 
             setRequestDetails( request, authenticationToken );
             validateRequestRules( request, authenticationToken.getToken() );
@@ -132,11 +126,11 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
 
             filterChain.doFilter( request, response );
         }
-        catch ( AuthenticationException failed )
+        catch ( AuthenticationException e )
         {
             SecurityContextHolder.clearContext();
-            logger.debug( "Failed to process authentication request", failed );
-            authenticationFailureHandler.onAuthenticationFailure( request, response, failed );
+            logger.debug( "Failed to process authentication request", e );
+            authenticationFailureHandler.onAuthenticationFailure( request, response, e );
         }
     }
 
@@ -223,7 +217,8 @@ public class Dhis2ApiTokenFilter extends OncePerRequestFilter
     }
 
     /**
-     * Custom authentication failure handler needed for proper failure messaging with the AuthenticationLoggerListener
+     * Custom authentication failure handler needed for proper failure messaging
+     * with the AuthenticationLoggerListener
      */
     private AuthenticationFailureHandler getAuthenticationFailureHandler(
         AuthenticationEntryPoint authenticationEntryPoint,

@@ -27,22 +27,23 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import com.google.common.base.Preconditions;
-import com.google.common.hash.Hashing;
+import static com.google.common.base.Preconditions.checkNotNull;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.CRC32;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import com.google.common.base.Preconditions;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -51,8 +52,6 @@ import static com.google.common.base.Preconditions.checkNotNull;
 @Transactional
 public class ApiTokenServiceImpl implements ApiTokenService
 {
-    private static final Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis( 30 );
-
     private final ApiTokenStore apiTokenStore;
 
     public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
@@ -136,47 +135,51 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Nonnull
-    public ApiToken initToken( @Nonnull ApiToken token, @Nonnull ApiTokenType type )
+    public Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes )
     {
-        Preconditions.checkNotNull( token );
-        Preconditions.checkNotNull( type );
+        ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
 
-        token.setVersion( 1 );
-        token.setType( type );
+        char[] plaintextToken = generatePlainTextToken( type );
 
-        token.getTranslations().clear();
+        final ApiToken token = ApiToken.builder().type( type )
+            .version( type.getVersion() )
+            .attributes( tokenAttributes == null ? new ArrayList<>() : tokenAttributes )
+            .expire( System.currentTimeMillis() + type.getTtl() )
+            .key( ApiTokenType.hashToken( plaintextToken ) )
+            .build();
 
-        if ( token.getExpire() == null )
-        {
-            token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
-        }
+        return Pair.of( plaintextToken, token );
+    }
 
-        String randomSecureToken = CodeGenerator.generateSecureCode( 32 );
+    protected static char[] generatePlainTextToken( ApiTokenType type )
+    {
+        char[] secureCode = CodeGenerator.generateSecureCode( type.getLength() );
 
-
-        long checksumLong = getChecksum( randomSecureToken );
-
-        String plaintextToken = String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong );
-
-        token.setKey( plaintextToken );
-
-        Preconditions.checkArgument( token.getKey().length() == 48,
+        Preconditions.checkArgument( secureCode.length == type.getLength(),
             "Could not create new token, please try again." );
 
+        long checksum = CodeGenerator.generateCrc32Checksum( secureCode );
+
+        // Convert checksum to a char array
+        char[] checksumChars = Long.toString( checksum ).toCharArray();
+
+        // Padding checksum to 10 digits
+        int paddingLength = 10 - checksumChars.length;
+        char[] paddedChecksum = new char[10];
+        Arrays.fill( paddedChecksum, '0' );
+        System.arraycopy( checksumChars, 0, paddedChecksum, paddingLength, checksumChars.length );
+
+        char[] prefix = type.getPrefix().toCharArray();
+        char[] underscore = new char[] { '_' };
+
+        // Concatenate prefix, underscore, secureCode, and checksum
+        char[] token = new char[prefix.length + underscore.length + secureCode.length + paddedChecksum.length];
+        System.arraycopy( prefix, 0, token, 0, prefix.length );
+        System.arraycopy( underscore, 0, token, prefix.length, underscore.length );
+        System.arraycopy( secureCode, 0, token, prefix.length + underscore.length, secureCode.length );
+        System.arraycopy( paddedChecksum, 0, token, prefix.length + underscore.length + secureCode.length,
+            paddedChecksum.length );
+
         return token;
-    }
-
-    @Nonnull
-    public String hashKey( @Nonnull String key )
-    {
-        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
-    }
-
-    private static long getChecksum( String randomSecureToken )
-    {
-        byte[] bytes = randomSecureToken.getBytes();
-        CRC32 crc = new CRC32();
-        crc.update( bytes, 0, bytes.length );
-        return crc.getValue();
     }
 }

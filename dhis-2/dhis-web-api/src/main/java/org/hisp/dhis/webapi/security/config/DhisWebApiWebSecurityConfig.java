@@ -396,7 +396,7 @@ public class DhisWebApiWebSecurityConfig
         {
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
             {
-                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( this.apiTokenService,
+                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter(
                     new ApiTokenAuthManager( userService, securityService, apiTokenService, cacheProvider ),
                     apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
 
