@@ -34,15 +34,15 @@ import lombok.NoArgsConstructor;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * This class is a DTO for the Icon class. It is used to serialize and
- * deserialize Icon objects. Ideally it should live in the dhis-web-api module,
- * but it is not possible to do so because we need to use it in
- * IconSchemaDescriptor, which is in the dhis-service-schema module.
+ * This class is the API response representation of the Icon class. It is used
+ * to serialize and deserialize Icon objects. Ideally it should live in the
+ * dhis-web-api module, but it is not possible to do so because we need to use
+ * it in IconSchemaDescriptor, which is in the dhis-service-schema module.
  */
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class IconDto
+public class IconResponse
 {
 
     @JsonProperty
@@ -63,7 +63,7 @@ public class IconDto
     @JsonProperty( "href" )
     private String reference;
 
-    public IconDto( String key, String description, String[] keywords, String reference )
+    public IconResponse( String key, String description, String[] keywords, String reference )
     {
         this.key = key;
         this.description = description;

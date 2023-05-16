@@ -51,7 +51,7 @@ import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconDto;
+import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -90,7 +90,7 @@ public class IconController
     private final IconMapper iconMapper;
 
     @GetMapping( "/{iconKey}" )
-    public @ResponseBody IconDto getIcon( @PathVariable String iconKey )
+    public @ResponseBody IconResponse getIcon( @PathVariable String iconKey )
         throws WebMessageException,
         NotFoundException
     {
@@ -126,7 +126,7 @@ public class IconController
     }
 
     @GetMapping
-    public @ResponseBody List<IconDto> getAllIcons( @RequestParam( required = false ) String[] keywords )
+    public @ResponseBody List<IconResponse> getAllIcons( @RequestParam( required = false ) String[] keywords )
     {
         Collection<Icon> icons;
 

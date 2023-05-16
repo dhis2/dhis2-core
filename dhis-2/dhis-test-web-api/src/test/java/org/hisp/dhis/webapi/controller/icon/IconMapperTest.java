@@ -39,7 +39,7 @@ import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconDto;
+import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.service.ContextService;
@@ -75,10 +75,6 @@ class IconMapperTest
     @BeforeEach
     void setUp()
     {
-        User user = new User();
-        user.setUid( "user uid" );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-
         fileResource.setUid( "file resource uid" );
         iconMapper = new IconMapper( fileResourceService, currentUserService, contextService );
     }
@@ -87,10 +83,12 @@ class IconMapperTest
     void shouldReturnCustomIconFromIconDto()
         throws BadRequestException
     {
-        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid(), "reference" );
+        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid() );
         when( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) )
             .thenReturn( Optional.of( fileResource ) );
+        User user = new User();
+        user.setUid( "user uid" );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
 
         CustomIcon customIcon = iconMapper.to( iconDto );
 
@@ -104,8 +102,7 @@ class IconMapperTest
     @Test
     void shouldFailWhenMappingToCustomIconWithNonExistentFileResource()
     {
-        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid(), "reference" );
+        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid() );
 
         Exception exception = assertThrows( BadRequestException.class, () -> iconMapper.to( iconDto ) );
         assertEquals( String.format( "File resource with uid %s does not exist", iconDto.getFileResourceUid() ),
@@ -113,17 +110,21 @@ class IconMapperTest
     }
 
     @Test
-    void shouldReturnIconDtoFromIcon()
+    void shouldReturnIconResponseFromIcon()
     {
+        User user = new User();
+        user.setUid( "user uid" );
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+
         Icon icon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
             currentUserService.getCurrentUser().getUid() );
 
-        IconDto iconDto = iconMapper.from( icon );
+        IconResponse iconResponse = iconMapper.from( icon );
 
-        assertEquals( KEY, iconDto.getKey() );
-        assertEquals( DESCRIPTION, iconDto.getDescription() );
-        assertEquals( KEYWORDS, iconDto.getKeywords() );
-        assertEquals( fileResource.getUid(), iconDto.getFileResourceUid() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), iconDto.getUserUid() );
+        assertEquals( KEY, iconResponse.getKey() );
+        assertEquals( DESCRIPTION, iconResponse.getDescription() );
+        assertEquals( KEYWORDS, iconResponse.getKeywords() );
+        assertEquals( fileResource.getUid(), iconResponse.getFileResourceUid() );
+        assertEquals( currentUserService.getCurrentUser().getUid(), iconResponse.getUserUid() );
     }
 }

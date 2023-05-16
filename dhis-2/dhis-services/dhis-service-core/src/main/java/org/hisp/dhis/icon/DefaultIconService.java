@@ -163,7 +163,7 @@ public class DefaultIconService
     {
         validateIconExists( customIcon.getKey() );
         FileResource fileResource = getFileResource( customIcon.getFileResourceUid() );
-        customIconStore.save( customIcon, fileResource.getId(), currentUserService.getCurrentUser().getId() );
+        customIconStore.save( customIcon, fileResource, currentUserService.getCurrentUser() );
     }
 
     @Override
@@ -200,7 +200,7 @@ public class DefaultIconService
         NotFoundException
     {
         CustomIcon icon = validateCustomIconExists( key );
-        fileResourceService.getFileResource( icon.getFileResourceUid() ).setAssigned( false );
+        getFileResource( icon.getFileResourceUid() ).setAssigned( false );
         customIconStore.delete( key );
     }
 

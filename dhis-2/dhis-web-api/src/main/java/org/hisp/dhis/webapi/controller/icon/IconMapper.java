@@ -39,7 +39,7 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.DefaultIcon;
 import org.hisp.dhis.icon.Icon;
-import org.hisp.dhis.icon.IconDto;
+import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.schema.descriptors.FileResourceSchemaDescriptor;
 import org.hisp.dhis.schema.descriptors.IconSchemaDescriptor;
 import org.hisp.dhis.user.CurrentUserService;
@@ -56,12 +56,12 @@ public class IconMapper
 
     private ContextService contextService;
 
-    public IconDto from( Icon icon) {
+    public IconResponse from(Icon icon) {
         if (icon instanceof CustomIcon ci) {
-            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(),
+            return new IconResponse(icon.getKey(), icon.getDescription(), icon.getKeywords(),
                     ci.getFileResourceUid(), ci.getCreatedByUserUid(), getCustomIconReference(ci.getFileResourceUid()));
         } else {
-            return new IconDto(icon.getKey(), icon.getDescription(), icon.getKeywords(), getDefaultIconReference(icon.getKey()));
+            return new IconResponse(icon.getKey(), icon.getDescription(), icon.getKeywords(), getDefaultIconReference(icon.getKey()));
         }
     }
 

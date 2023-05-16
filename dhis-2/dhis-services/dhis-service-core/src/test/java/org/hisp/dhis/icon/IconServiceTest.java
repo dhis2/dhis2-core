@@ -31,7 +31,6 @@ import static org.hisp.dhis.fileresource.FileResourceDomain.CUSTOM_ICON;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -87,7 +86,8 @@ class IconServiceTest
             .addCustomIcon(
                 new CustomIcon( uniqueKey, "description", new String[] { "keyword1" }, fileResourceUid, "userUid" ) );
 
-        verify( customIconStore, times( 1 ) ).save( any( CustomIcon.class ), anyLong(), anyLong() );
+        verify( customIconStore, times( 1 ) ).save( any( CustomIcon.class ), any( FileResource.class ),
+            any( User.class ) );
     }
 
     @Test
@@ -211,7 +211,8 @@ class IconServiceTest
         String uniqueKey = "key";
         when( customIconStore.getIconByKey( uniqueKey ) ).thenReturn(
             new CustomIcon( uniqueKey, "description", new String[] {}, "fileResourceUid", "userUid" ) );
-        when( fileResourceService.getFileResource( "fileResourceUid" ) ).thenReturn( new FileResource() );
+        when( fileResourceService.getFileResource( "fileResourceUid", CUSTOM_ICON ) )
+            .thenReturn( Optional.of( new FileResource() ) );
 
         iconService.deleteCustomIcon( uniqueKey );
 

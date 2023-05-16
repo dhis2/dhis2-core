@@ -29,6 +29,9 @@ package org.hisp.dhis.icon;
 
 import java.util.List;
 
+import org.hisp.dhis.fileresource.FileResource;
+import org.hisp.dhis.user.User;
+
 public interface CustomIconStore
 {
     /**
@@ -65,10 +68,10 @@ public interface CustomIconStore
      * Persists a custom icon to the database
      *
      * @param customIcon Icon to be saved
-     * @param fileResourceId id of the file resource linked to the custom icon
-     * @param createdByUserId id of the user that creates the custom icon
+     * @param fileResource file resource linked to the custom icon
+     * @param createdByUser user that created the custom icon
      */
-    void save( CustomIcon customIcon, long fileResourceId, long createdByUserId );
+    void save( CustomIcon customIcon, FileResource fileResource, User createdByUser );
 
     /**
      * Deletes a custom icon from the database
