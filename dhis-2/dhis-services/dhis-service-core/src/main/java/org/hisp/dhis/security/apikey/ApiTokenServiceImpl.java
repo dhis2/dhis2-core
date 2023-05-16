@@ -158,16 +158,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
         Preconditions.checkArgument( secureCode.length == type.getLength(),
             "Could not create new token, please try again." );
 
-        long checksum = CodeGenerator.generateCrc32Checksum( secureCode );
-
-        // Convert checksum to a char array
-        char[] checksumChars = Long.toString( checksum ).toCharArray();
-
-        // Padding checksum to 10 digits
-        int paddingLength = 10 - checksumChars.length;
-        char[] paddedChecksum = new char[10];
-        Arrays.fill( paddedChecksum, '0' );
-        System.arraycopy( checksumChars, 0, paddedChecksum, paddingLength, checksumChars.length );
+        char[] paddedChecksum = generateChecksum( type, secureCode );
 
         char[] prefix = type.getPrefix().toCharArray();
         char[] underscore = new char[] { '_' };
@@ -181,5 +172,33 @@ public class ApiTokenServiceImpl implements ApiTokenService
             paddedChecksum.length );
 
         return token;
+    }
+
+    private static char[] generateChecksum( ApiTokenType type, char[] secureCode )
+    {
+        String checksumType = type.getChecksumType();
+
+        return switch ( checksumType )
+        {
+            case "CRC32" -> generateCrc32Checksum( secureCode );
+
+            default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
+        };
+
+    }
+
+    private static char[] generateCrc32Checksum( char[] secureCode )
+    {
+        long checksum = CodeGenerator.generateCrc32Checksum( secureCode );
+
+        // Convert checksum to a char array
+        char[] checksumChars = Long.toString( checksum ).toCharArray();
+
+        // Padding CRC32 checksum to 10 digits
+        int paddingLength = 10 - checksumChars.length;
+        char[] paddedChecksum = new char[10];
+        Arrays.fill( paddedChecksum, '0' );
+        System.arraycopy( checksumChars, 0, paddedChecksum, paddingLength, checksumChars.length );
+        return paddedChecksum;
     }
 }

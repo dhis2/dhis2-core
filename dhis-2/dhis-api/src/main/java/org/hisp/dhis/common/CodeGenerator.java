@@ -92,7 +92,7 @@ public class CodeGenerator
     }
 
     /**
-     * Generates a pseudo random string with alphanumeric characters. Uses a
+     * Generates a string of random alphanumeric characters. Uses a
      * {@link ThreadLocalRandom} instance and is considered non-secure and
      * should not be used for security purposes.
      *
@@ -106,7 +106,7 @@ public class CodeGenerator
     }
 
     /**
-     * Generates a pseudo random string with alphanumeric characters. Uses a
+     * Generates a string of random alphanumeric characters. Uses a
      * {@link SecureRandom} instance and is slower than
      * {@link #generateCode(int)}, this should only be used for security
      * purposes.
@@ -121,11 +121,14 @@ public class CodeGenerator
     }
 
     /**
-     * Generates a pseudo random string with alphanumeric characters.
+     * Generates a string of random alphanumeric characters to the following
+     * rules:
+     * <ul>
+     * <li>Alphanumeric characters only.</li>
+     * <li>First character is alphabetic.</li>
+     * </ul>
      *
-     * @param codeSize the number of characters in the code.
-     * @param r the random number generator to use.
-     * @return the code.
+     * @return a code.
      */
     private static char[] generateRandomAlphanumericCode( int codeSize, java.util.Random r )
     {
