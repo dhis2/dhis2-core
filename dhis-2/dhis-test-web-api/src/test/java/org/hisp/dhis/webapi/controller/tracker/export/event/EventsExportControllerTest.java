@@ -263,7 +263,7 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         this.switchContextToUser( user );
 
         assertTrue( GET( "/tracker/events/{id}", from.getUid() )
-            .error( HttpStatus.CONFLICT ).getMessage()
+            .error( HttpStatus.FORBIDDEN ).getMessage()
             .contains( "OWNERSHIP_ACCESS_DENIED" ) );
     }
 

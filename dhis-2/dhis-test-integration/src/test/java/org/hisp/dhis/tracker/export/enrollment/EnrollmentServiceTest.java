@@ -42,9 +42,10 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentQueryParams;
@@ -218,6 +219,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWhenUserHasReadWriteAccessToProgramAndAccessToOrgUnit()
+        throws ForbiddenException,
+        NotFoundException
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ_WRITE );
         manager.updateNoAcl( programA );
@@ -231,6 +234,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWhenUserHasReadAccessToProgramAndAccessToOrgUnit()
+        throws ForbiddenException,
+        NotFoundException
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
@@ -244,6 +249,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWithEventsWhenUserHasAccessToEvent()
+        throws ForbiddenException,
+        NotFoundException
     {
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withEnrollmentEventsParams( EnrollmentEventsParams.TRUE );
@@ -257,6 +264,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWithoutEventsWhenUserHasNoAccessToProgramStage()
+        throws ForbiddenException,
+        NotFoundException
     {
         programStageA.getSharing().setOwner( admin );
         programStageA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
@@ -273,6 +282,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWithRelationshipsWhenUserHasAccessToThem()
+        throws ForbiddenException,
+        NotFoundException
     {
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeRelationships( true );
@@ -285,6 +296,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWithoutRelationshipsWhenUserHasAccessToThem()
+        throws ForbiddenException,
+        NotFoundException
     {
         relationshipTypeA.getSharing().setOwner( admin );
         relationshipTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
@@ -300,6 +313,8 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentWithAttributesWhenUserHasAccessToThem()
+        throws ForbiddenException,
+        NotFoundException
     {
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeAttributes( true );
@@ -317,7 +332,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( trackedEntityTypeA );
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "access to tracked entity type", exception.getMessage() );
     }
@@ -330,7 +345,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         injectSecurityContext( userWithoutOrgUnit );
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
@@ -343,7 +358,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         injectSecurityContext( userWithoutOrgUnit );
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
@@ -354,13 +369,14 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( programA );
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
         assertContains( "access to program", exception.getMessage() );
     }
 
     @Test
     void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
+        throws ForbiddenException
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
@@ -378,6 +394,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
+        throws ForbiddenException
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
@@ -408,7 +425,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         params.setTrackedEntityUid( trackedEntityA.getUid() );
         params.setUser( user );
 
-        IllegalQueryException exception = assertThrows( IllegalQueryException.class,
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollments( params ) );
         assertContains( "access to tracked entity type", exception.getMessage() );
     }

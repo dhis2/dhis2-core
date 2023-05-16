@@ -76,14 +76,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Maps query parameters from {@link TrackedEntitiesExportController} stored in
- * {@link TrackedEntityCriteria} to {@link TrackedEntityQueryParams} which is
- * used to fetch tracked entities from the DB.
+ * {@link RequestParams} to {@link TrackedEntityQueryParams} which is used to
+ * fetch tracked entities from the DB.
  *
  * @author Luciano Fiandesio
  */
-@Component( "org.hisp.dhis.webapi.controller.tracker.export.trackedentity.EntityCriteriaMapper" )
+@Component
 @RequiredArgsConstructor
-public class TrackedEntityCriteriaMapper
+public class TrackedEntityParamsMapper
 {
     @Nonnull
     private final CurrentUserService currentUserService;
@@ -104,75 +104,75 @@ public class TrackedEntityCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     @Transactional( readOnly = true )
-    public TrackedEntityQueryParams map( TrackedEntityCriteria criteria )
+    public TrackedEntityQueryParams map( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
-        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
-        validateProgram( criteria.getProgram(), program );
-        ProgramStage programStage = validateProgramStage( criteria, program );
+        Program program = applyIfNonEmpty( programService::getProgram, requestParams.getProgram() );
+        validateProgram( requestParams.getProgram(), program );
+        ProgramStage programStage = validateProgramStage( requestParams, program );
 
         TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            criteria.getTrackedEntityType() );
-        validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
+            requestParams.getTrackedEntityType() );
+        validateTrackedEntityType( requestParams.getTrackedEntityType(), trackedEntityType );
 
-        Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
+        Set<String> assignedUserIds = parseAndFilterUids( requestParams.getAssignedUser() );
 
         User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
+        Set<String> orgUnitIds = parseUids( requestParams.getOrgUnit() );
         Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
-        if ( criteria.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
+        if ( requestParams.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             orgUnits.addAll( user.getOrganisationUnits() );
         }
 
-        QueryFilter queryFilter = parseQueryFilter( criteria.getQuery() );
+        QueryFilter queryFilter = parseQueryFilter( requestParams.getQuery() );
 
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
             .stream().collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
 
-        List<QueryItem> attributeItems = parseAttributeQueryItems( criteria.getAttribute(), attributes );
+        List<QueryItem> attributeItems = parseAttributeQueryItems( requestParams.getAttribute(), attributes );
 
-        List<QueryItem> filters = parseAttributeQueryItems( criteria.getFilter(), attributes );
+        List<QueryItem> filters = parseAttributeQueryItems( requestParams.getFilter(), attributes );
 
         validateDuplicatedAttributeFilters( filters );
 
-        List<OrderParam> orderParams = toOrderParams( criteria.getOrder() );
+        List<OrderParam> orderParams = toOrderParams( requestParams.getOrder() );
         validateOrderParams( orderParams, attributes );
 
-        Set<String> trackedEntities = parseUids( criteria.getTrackedEntity() );
+        Set<String> trackedEntities = parseUids( requestParams.getTrackedEntity() );
 
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setQuery( queryFilter )
             .setProgram( program )
             .setProgramStage( programStage )
-            .setProgramStatus( criteria.getProgramStatus() )
-            .setFollowUp( criteria.getFollowUp() )
-            .setLastUpdatedStartDate( criteria.getUpdatedAfter() )
-            .setLastUpdatedEndDate( criteria.getUpdatedBefore() )
-            .setLastUpdatedDuration( criteria.getUpdatedWithin() )
-            .setProgramEnrollmentStartDate( criteria.getEnrollmentEnrolledAfter() )
-            .setProgramEnrollmentEndDate( criteria.getEnrollmentEnrolledBefore() )
-            .setProgramIncidentStartDate( criteria.getEnrollmentOccurredAfter() )
-            .setProgramIncidentEndDate( criteria.getEnrollmentOccurredBefore() )
+            .setProgramStatus( requestParams.getProgramStatus() )
+            .setFollowUp( requestParams.getFollowUp() )
+            .setLastUpdatedStartDate( requestParams.getUpdatedAfter() )
+            .setLastUpdatedEndDate( requestParams.getUpdatedBefore() )
+            .setLastUpdatedDuration( requestParams.getUpdatedWithin() )
+            .setProgramEnrollmentStartDate( requestParams.getEnrollmentEnrolledAfter() )
+            .setProgramEnrollmentEndDate( requestParams.getEnrollmentEnrolledBefore() )
+            .setProgramIncidentStartDate( requestParams.getEnrollmentOccurredAfter() )
+            .setProgramIncidentEndDate( requestParams.getEnrollmentOccurredBefore() )
             .setTrackedEntityType( trackedEntityType )
             .addOrganisationUnits( orgUnits )
-            .setOrganisationUnitMode( criteria.getOuMode() )
-            .setEventStatus( criteria.getEventStatus() )
-            .setEventStartDate( criteria.getEventOccurredAfter() )
-            .setEventEndDate( criteria.getEventOccurredBefore() )
-            .setUserWithAssignedUsers( criteria.getAssignedUserMode(), user, assignedUserIds )
+            .setOrganisationUnitMode( requestParams.getOuMode() )
+            .setEventStatus( requestParams.getEventStatus() )
+            .setEventStartDate( requestParams.getEventOccurredAfter() )
+            .setEventEndDate( requestParams.getEventOccurredBefore() )
+            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, assignedUserIds )
             .setTrackedEntityUids( trackedEntities )
             .setAttributes( attributeItems )
             .setFilters( filters )
-            .setSkipMeta( criteria.isSkipMeta() )
-            .setPage( criteria.getPage() )
-            .setPageSize( criteria.getPageSize() )
-            .setTotalPages( criteria.isTotalPages() )
-            .setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) )
-            .setIncludeDeleted( criteria.isIncludeDeleted() )
-            .setIncludeAllAttributes( criteria.isIncludeAllAttributes() )
-            .setPotentialDuplicate( criteria.getPotentialDuplicate() )
+            .setSkipMeta( requestParams.isSkipMeta() )
+            .setPage( requestParams.getPage() )
+            .setPageSize( requestParams.getPageSize() )
+            .setTotalPages( requestParams.isTotalPages() )
+            .setSkipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
+            .setIncludeDeleted( requestParams.isIncludeDeleted() )
+            .setIncludeAllAttributes( requestParams.isIncludeAllAttributes() )
+            .setPotentialDuplicate( requestParams.getPotentialDuplicate() )
             .setOrders( orderParams );
 
         return params;
@@ -254,11 +254,11 @@ public class TrackedEntityCriteriaMapper
         }
     }
 
-    private ProgramStage validateProgramStage( TrackedEntityCriteria criteria, Program program )
+    private ProgramStage validateProgramStage( RequestParams requestParams, Program program )
         throws BadRequestException
     {
 
-        final String programStage = criteria.getProgramStage();
+        final String programStage = requestParams.getProgramStage();
 
         ProgramStage ps = programStage != null ? getProgramStageFromProgram( program, programStage ) : null;
 

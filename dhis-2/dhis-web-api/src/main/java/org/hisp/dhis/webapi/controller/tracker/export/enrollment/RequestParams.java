@@ -25,92 +25,67 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 
 /**
- * Represents query parameters sent to {@link EventsExportController}.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
+@OpenApi.Property
 @Data
 @NoArgsConstructor
-class EventCriteria extends PagingAndSortingCriteriaAdapter
+public class RequestParams extends PagingAndSortingCriteriaAdapter
 {
-    private String program;
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-    private String programStage;
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
+    private String orgUnit;
+
+    private OrganisationUnitSelectionMode ouMode;
+
+    @OpenApi.Property( { UID.class, Program.class } )
+    private String program;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
-    private String trackedEntity;
-
-    private String orgUnit;
-
-    private OrganisationUnitSelectionMode ouMode;
-
-    private AssignedUserSelectionMode assignedUserMode;
-
-    private String assignedUser;
-
-    private Date occurredAfter;
-
-    private Date occurredBefore;
-
-    private Date scheduledAfter;
-
-    private Date scheduledBefore;
-
     private Date updatedAfter;
-
-    private Date updatedBefore;
 
     private String updatedWithin;
 
-    private Date enrollmentEnrolledBefore;
+    private Date enrolledAfter;
 
-    private Date enrollmentEnrolledAfter;
+    private Date enrolledBefore;
 
-    private Date enrollmentOccurredBefore;
+    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
+    private String trackedEntityType;
 
-    private Date enrollmentOccurredAfter;
+    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
+    private String trackedEntity;
 
-    private EventStatus status;
-
-    private String attributeCc;
-
-    private String attributeCos;
-
-    private boolean skipMeta;
-
-    private String attachment;
+    @OpenApi.Property( { UID[].class, Enrollment.class } )
+    private String enrollment;
 
     private boolean includeDeleted;
 
-    private String event;
-
-    private Boolean skipEventId;
-
-    private Set<String> filter = new HashSet<>();
-
-    private Set<String> filterAttributes = new HashSet<>();
-
-    private Set<String> enrollments = new HashSet<>();
-
-    private IdSchemes idSchemes = new IdSchemes();
+    @OpenApi.Property( name = "fields", value = String[].class )
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

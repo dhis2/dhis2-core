@@ -38,12 +38,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
@@ -77,23 +80,28 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
 
     @Override
     public Enrollment getEnrollment( String uid, EnrollmentParams params )
+        throws NotFoundException,
+        ForbiddenException
     {
         Enrollment enrollment = enrollmentService.getEnrollment( uid );
-        return enrollment != null ? getEnrollment( enrollment, params ) : null;
+
+        if ( enrollment == null )
+        {
+            throw new NotFoundException( Enrollment.class, uid );
+        }
+
+        return getEnrollment( enrollment, params );
     }
 
     @Override
-    public Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params )
+    public Enrollment getEnrollment( @Nonnull Enrollment enrollment, EnrollmentParams params )
+        throws ForbiddenException
     {
-        return getEnrollment( currentUserService.getCurrentUser(), enrollment, params );
-    }
-
-    private Enrollment getEnrollment( User user, Enrollment enrollment, EnrollmentParams params )
-    {
+        User user = currentUserService.getCurrentUser();
         List<String> errors = trackerAccessManager.canRead( user, enrollment, false );
         if ( !errors.isEmpty() )
         {
-            throw new IllegalQueryException( errors.toString() );
+            throw new ForbiddenException( errors.toString() );
         }
 
         Enrollment result = new Enrollment();
@@ -194,6 +202,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
 
     @Override
     public Enrollments getEnrollments( EnrollmentQueryParams params )
+        throws ForbiddenException
     {
         Enrollments enrollments = new Enrollments();
 
@@ -263,6 +272,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     }
 
     private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments )
+        throws ForbiddenException
     {
         List<Enrollment> enrollmentList = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
@@ -272,7 +282,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             if ( enrollment != null && trackerOwnershipAccessManager
                 .hasAccess( user, enrollment.getTrackedEntity(), enrollment.getProgram() ) )
             {
-                enrollmentList.add( getEnrollment( user, enrollment, EnrollmentParams.FALSE ) );
+                enrollmentList.add( getEnrollment( enrollment, EnrollmentParams.FALSE ) );
             }
         }
 
