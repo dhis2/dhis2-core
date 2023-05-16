@@ -25,92 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.event;
+package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserSelectionMode;
-import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
- * Represents query parameters sent to {@link EventsExportController}.
- *
- * @author Giuseppe Nespolino <g.nespolino@gmail.com>
+ * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
 @Data
 @NoArgsConstructor
-class EventCriteria extends PagingAndSortingCriteriaAdapter
+public class RequestParams extends PagingAndSortingCriteriaAdapter
 {
-    private String program;
-
-    private String programStage;
-
-    private ProgramStatus programStatus;
-
-    private Boolean followUp;
-
-    private String trackedEntity;
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
     private String orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+    private String program;
 
-    private String assignedUser;
+    private ProgramStatus programStatus;
 
-    private Date occurredAfter;
-
-    private Date occurredBefore;
-
-    private Date scheduledAfter;
-
-    private Date scheduledBefore;
+    private Boolean followUp;
 
     private Date updatedAfter;
 
-    private Date updatedBefore;
-
     private String updatedWithin;
 
-    private Date enrollmentEnrolledBefore;
+    private Date enrolledAfter;
 
-    private Date enrollmentEnrolledAfter;
+    private Date enrolledBefore;
 
-    private Date enrollmentOccurredBefore;
+    private String trackedEntityType;
 
-    private Date enrollmentOccurredAfter;
+    private String trackedEntity;
 
-    private EventStatus status;
-
-    private String attributeCc;
-
-    private String attributeCos;
-
-    private boolean skipMeta;
-
-    private String attachment;
+    private String enrollment;
 
     private boolean includeDeleted;
 
-    private String event;
-
-    private Boolean skipEventId;
-
-    private Set<String> filter = new HashSet<>();
-
-    private Set<String> filterAttributes = new HashSet<>();
-
-    private Set<String> enrollments = new HashSet<>();
-
-    private IdSchemes idSchemes = new IdSchemes();
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

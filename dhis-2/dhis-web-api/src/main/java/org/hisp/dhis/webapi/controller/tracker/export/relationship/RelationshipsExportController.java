@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -78,8 +79,6 @@ import com.google.common.collect.ImmutableMap;
 public class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
-
-    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
@@ -144,27 +143,26 @@ public class RelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<ObjectNode> getInstances(
-        RelationshipCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getRelationships( RequestParams requestParams )
         throws NotFoundException,
         BadRequestException,
         ForbiddenException
     {
         List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships = tryGetRelationshipFrom(
-            criteria.getIdentifierClass(), criteria.getIdentifierParam(), criteria.getIdentifierName(), criteria );
+            requestParams.getIdentifierClass(), requestParams.getIdentifierParam(), requestParams.getIdentifierName(),
+            requestParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-        if ( criteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager(
                 PagingWrapper.Pager.builder()
-                    .page( criteria.getPage() )
-                    .pageSize( criteria.getPageSize() )
+                    .page( requestParams.getPage() )
+                    .pageSize( requestParams.getPageSize() )
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 

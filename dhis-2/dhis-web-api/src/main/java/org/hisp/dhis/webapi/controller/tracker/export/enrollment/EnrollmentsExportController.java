@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.ArrayList;
@@ -70,11 +71,9 @@ public class EnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
-
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final EnrollmentParamsMapper paramsMapper;
 
     private final EnrollmentService enrollmentService;
 
@@ -83,9 +82,7 @@ public class EnrollmentsExportController
     private final EnrollmentFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances(
-        EnrollmentCriteria enrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException,
         NotFoundException
@@ -94,26 +91,26 @@ public class EnrollmentsExportController
 
         List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( requestParams.getFields() )
+            .withIncludeDeleted( requestParams.isIncludeDeleted() );
 
-        if ( enrollmentCriteria.getEnrollment() == null )
+        if ( requestParams.getEnrollment() == null )
         {
-            EnrollmentQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
+            EnrollmentQueryParams params = paramsMapper.map( requestParams );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
-            if ( enrollmentCriteria.isPagingRequest() )
+            if ( requestParams.isPagingRequest() )
             {
                 pagingWrapper = pagingWrapper.withPager(
-                    PagingWrapper.Pager.fromLegacy( enrollmentCriteria, enrollments.getPager() ) );
+                    PagingWrapper.Pager.fromLegacy( requestParams, enrollments.getPager() ) );
             }
 
             enrollmentList = enrollments.getEnrollments();
         }
         else
         {
-            Set<String> enrollmentUids = Set.of( enrollmentCriteria.getEnrollment().split( TextUtils.SEMICOLON ) );
+            Set<String> enrollmentUids = Set.of( requestParams.getEnrollment().split( TextUtils.SEMICOLON ) );
 
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
             for ( String e : enrollmentUids )
@@ -124,7 +121,7 @@ public class EnrollmentsExportController
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), fields );
+            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
