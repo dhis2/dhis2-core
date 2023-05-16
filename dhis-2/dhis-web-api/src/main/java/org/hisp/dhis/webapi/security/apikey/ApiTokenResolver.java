@@ -48,12 +48,15 @@ import com.google.common.net.HttpHeaders;
 @Setter
 public final class ApiTokenResolver
 {
+
     private static final Pattern AUTHORIZATION_PATTERN = Pattern.compile( "^ApiToken (?<token>[a-z0-9-._~+/]+=*)$",
         Pattern.CASE_INSENSITIVE );
 
     public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
 
     public static final String REQUEST_PARAMETER_NAME = "api_token";
+
+    public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
     private boolean allowFormEncodedBodyParameter = false;
 
@@ -150,7 +153,7 @@ public final class ApiTokenResolver
             if ( !validateChecksum( token ) )
             {
                 throw new ApiTokenAuthenticationException( ApiTokenErrors
-                    .invalidRequest( "Checksum validation failed" ) );
+                    .invalidRequest( CHECKSUM_VALIDATION_FAILED ) );
             }
         }
         catch ( ApiTokenAuthenticationException e )
@@ -160,7 +163,7 @@ public final class ApiTokenResolver
         catch ( Exception e )
         {
             throw new ApiTokenAuthenticationException( ApiTokenErrors
-                .invalidRequest( "Checksum validation failed" ) );
+                .invalidRequest( CHECKSUM_VALIDATION_FAILED ) );
         }
     }
 

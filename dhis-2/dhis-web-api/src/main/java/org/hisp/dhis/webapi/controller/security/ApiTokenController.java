@@ -150,10 +150,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
         {
             token.setExpire( System.currentTimeMillis() + DEFAULT_TOKEN_EXPIRE );
         }
-        if ( token.getExpire() < System.currentTimeMillis() )
-        {
-            throw new IllegalArgumentException( "Token expire timestamp must be in the future" );
-        }
         if ( token.getIpAllowedList() != null )
         {
             token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );

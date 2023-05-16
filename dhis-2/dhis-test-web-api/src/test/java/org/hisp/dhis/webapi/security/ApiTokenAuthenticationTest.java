@@ -54,6 +54,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
     public static final String URI = "/me?fields=settings,id";
 
+    public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
+
     @Autowired
     private ApiTokenService apiTokenService;
 
@@ -85,7 +87,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     void testInvalidKeyTypeNotResolveable()
     {
         String errorMessage = GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Checksum validation failed", errorMessage );
+        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
     }
 
     @Test
@@ -93,7 +95,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
             HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Checksum validation failed", errorMessage );
+        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
     }
 
     @Test
@@ -101,7 +103,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tXXXXXWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
             HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Checksum validation failed", errorMessage );
+        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
     }
 
     @Test
