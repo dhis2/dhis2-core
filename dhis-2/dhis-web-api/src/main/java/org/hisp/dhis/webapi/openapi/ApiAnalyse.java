@@ -186,13 +186,20 @@ final class ApiAnalyse
         whenAnnotated( source, RequestMapping.class, a -> controller.getPaths().addAll( List.of( a.value() ) ) );
         whenAnnotated( source, OpenApi.Tags.class, a -> controller.getTags().addAll( List.of( a.value() ) ) );
 
-        stream( source.getMethods() )
+        methodsIn( source )
             .map( ApiAnalyse::getMapping )
             .filter( Objects::nonNull )
             .map( mapping -> analyseEndpoint( controller, mapping ) )
             .forEach( endpoint -> controller.getEndpoints().add( endpoint ) );
 
         return controller;
+    }
+
+    private static Stream<Method> methodsIn( Class<?> source )
+    {
+        return source == null || source == Object.class
+            ? Stream.empty()
+            : Stream.concat( stream( source.getDeclaredMethods() ), methodsIn( source.getSuperclass() ) );
     }
 
     private static Api.Endpoint analyseEndpoint( Api.Controller controller, Mapping mapping )

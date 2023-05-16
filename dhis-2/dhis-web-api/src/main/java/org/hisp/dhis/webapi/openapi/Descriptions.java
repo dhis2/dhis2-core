@@ -28,21 +28,20 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
 
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
 
 /**
  * Reads CommonMark markdown files into key-value pairs.
@@ -77,7 +76,13 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 final class Descriptions
 {
-    private static final Map<Class<?>, Descriptions> SHARED_DESCRIPTIONS = new ConcurrentHashMap<>();
+    /**
+     * Note: This needs to use {@link ConcurrentSkipListMap} instead of the
+     * usual {@link ConcurrentHashMap} map that does not support inserting a key
+     * while in the function to compute the value for another insert.
+     */
+    private static final Map<Class<?>, Descriptions> CACHE = new ConcurrentSkipListMap<>(
+        comparing( Class::getCanonicalName ) );
 
     private final Class<?> target;
 
@@ -85,31 +90,33 @@ final class Descriptions
 
     static Descriptions of( Class<?> target )
     {
-        if ( Modifier.isAbstract( target.getModifiers() )
-            || !AbstractCrudController.class.isAssignableFrom( target ) )
-        {
-            return SHARED_DESCRIPTIONS.computeIfAbsent( target, Descriptions::ofNew );
-        }
-        return ofNew( target );
+        return CACHE.computeIfAbsent( target, Descriptions::ofUncached );
     }
 
-    static Descriptions ofNew( Class<?> target )
+    static Descriptions ofUncached( Class<?> target )
     {
         Descriptions res = new Descriptions( target );
+        // most abstract are "global" descriptions
+        if ( target != Descriptions.class )
+        {
+            res.entries.putAll( of( Descriptions.class ).entries );
+        }
+        // next are all super-classes starting with the base class by doing parent first
         Class<?> parent = target.getSuperclass();
-        if ( parent != null && AbstractCrudController.class.isAssignableFrom( parent ) )
+        if ( parent != null && parent != Object.class )
         {
             // inherit texts from parent
             res.entries.putAll( of( parent ).entries );
         }
-        res.read();
+        // finally adding all specific to only the target type
+        res.read( target.getSimpleName() );
         return res;
     }
 
-    void read()
+    private void read( String filename )
     {
-        String filename = "/openapi/" + target.getCanonicalName() + ".openapi.md";
-        InputStream is = target.getResourceAsStream( filename );
+        String file = "/openapi/" + filename + ".openapi.md";
+        InputStream is = target.getResourceAsStream( file );
         if ( is == null )
         {
             return;
