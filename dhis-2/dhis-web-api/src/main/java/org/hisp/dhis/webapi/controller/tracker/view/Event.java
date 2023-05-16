@@ -38,6 +38,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.locationtech.jts.geom.Geometry;
 
@@ -52,6 +54,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class Event
 {
+    @OpenApi.Property( { UID.class, Event.class } )
     @JsonProperty
     private String event;
 
@@ -65,9 +68,11 @@ public class Event
     @JsonProperty
     private String programStage;
 
+    @OpenApi.Property( { UID.class, Enrollment.class } )
     @JsonProperty
     private String enrollment;
 
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     @JsonProperty
     private String trackedEntity;
 

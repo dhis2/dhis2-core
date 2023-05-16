@@ -34,6 +34,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
+import org.hisp.dhis.relationship.RelationshipType;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -45,12 +49,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class Relationship
 {
+    @OpenApi.Property( { UID.class, Relationship.class } )
     @JsonProperty
     private String relationship;
 
     @JsonProperty
     private String relationshipName;
 
+    @OpenApi.Property( { UID.class, RelationshipType.class } )
     @JsonProperty
     private String relationshipType;
 

@@ -36,9 +36,12 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -62,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.EntityType( Enrollment.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS )
@@ -81,8 +85,23 @@ public class EnrollmentsExportController
 
     private final EnrollmentFieldsParamMapper fieldsMapper;
 
+    @Value
+    @OpenApi.Property
+    @OpenApi.Shared( value = false )
+    private static class ObjectListResponse
+    {
+        Integer page = 1;
+
+        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+
+        Long total;
+
+        List<Enrollment> instances;
+    }
+
+    @OpenApi.Response( status = Status.OK, value = ObjectListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
+    public PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException,
         NotFoundException
@@ -125,16 +144,16 @@ public class EnrollmentsExportController
         return pagingWrapper.withInstances( objectNodes );
     }
 
-    @GetMapping( value = "{uid}" )
-    public ResponseEntity<ObjectNode> getEnrollment(
-        @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    @OpenApi.Response( OpenApi.EntityType.class )
+    @GetMapping( value = "/{uid}" )
+    public ResponseEntity<ObjectNode> getEnrollmentByUid(
+        @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable String uid,
+        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
         Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( uid, enrollmentParams ) );
-
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }
