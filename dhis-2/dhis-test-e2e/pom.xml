@@ -115,7 +115,7 @@
     <dependency>
       <groupId>com.github.javafaker</groupId>
       <artifactId>javafaker</artifactId>
-      <version>0.16</version>
+      <version>1.0.2</version>
     </dependency>
     <dependency>
       <groupId>com.opencsv</groupId>
