@@ -135,7 +135,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Nonnull
-    public Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes )
+    public Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire )
     {
         ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
 
@@ -144,7 +144,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
         final ApiToken token = ApiToken.builder().type( type )
             .version( type.getVersion() )
             .attributes( tokenAttributes == null ? new ArrayList<>() : tokenAttributes )
-            .expire( System.currentTimeMillis() + type.getTtl() )
+            .expire( expire )
             .key( ApiTokenType.hashToken( plaintextToken ) )
             .build();
 

@@ -32,6 +32,7 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -68,7 +69,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags( { "user", "login" } )
 @Controller
-@RequestMapping( value = { ApiTokenSchemaDescriptor.API_ENDPOINT1, ApiTokenSchemaDescriptor.API_ENDPOINT2 } )
+@RequestMapping( value = { ApiTokenSchemaDescriptor.API_ENDPOINT_OLD, ApiTokenSchemaDescriptor.API_ENDPOINT_NEW } )
 @RequiredArgsConstructor
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 public class ApiTokenController extends AbstractCrudController<ApiToken>
@@ -76,6 +77,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
     private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
+
+    public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis( 30 );
 
     private final ApiTokenService apiTokenService;
 
@@ -105,7 +108,8 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
         }
 
-        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes() );
+        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes(),
+            inputToken.getExpire() );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
             .setImportReportMode( ImportReportMode.FULL )
@@ -142,6 +146,14 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
 
     private void validateTokenAttributes( ApiToken token )
     {
+        if ( token.getExpire() == null )
+        {
+            token.setExpire( System.currentTimeMillis() + DEFAULT_TOKEN_EXPIRE );
+        }
+        if ( token.getExpire() < System.currentTimeMillis() )
+        {
+            throw new IllegalArgumentException( "Token expire timestamp must be in the future" );
+        }
         if ( token.getIpAllowedList() != null )
         {
             token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );

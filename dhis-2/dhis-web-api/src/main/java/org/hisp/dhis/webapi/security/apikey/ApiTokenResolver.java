@@ -93,7 +93,7 @@ public final class ApiTokenResolver
         Matcher matcher = AUTHORIZATION_PATTERN.matcher( authorization );
         if ( !matcher.matches() )
         {
-            throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidToken( "Api token is malformed" ) );
+            throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidRequest( "Api token is malformed" ) );
         }
 
         return matcher.group( "token" ).toCharArray();
@@ -103,7 +103,7 @@ public final class ApiTokenResolver
     {
         if ( authorizationHeaderToken.length > 0 )
         {
-            resolveAndChecksum( authorizationHeaderToken );
+            checksum( authorizationHeaderToken );
 
             if ( parameterToken.length > 0 )
             {
@@ -137,18 +137,21 @@ public final class ApiTokenResolver
     {
         if ( parameterToken.length > 0 && isParameterTokenSupportedForRequest( request ) )
         {
-            resolveAndChecksum( parameterToken );
-
+            checksum( parameterToken );
             return true;
         }
         return false;
     }
 
-    private static void resolveAndChecksum( char[] token )
+    private static void checksum( char[] token )
     {
         try
         {
-            checksum( token );
+            if ( !validateChecksum( token ) )
+            {
+                throw new ApiTokenAuthenticationException( ApiTokenErrors
+                    .invalidRequest( "Checksum validation failed" ) );
+            }
         }
         catch ( ApiTokenAuthenticationException e )
         {
@@ -157,16 +160,7 @@ public final class ApiTokenResolver
         catch ( Exception e )
         {
             throw new ApiTokenAuthenticationException( ApiTokenErrors
-                .invalidRequest( "Could not resolve token type" ) );
-        }
-    }
-
-    private static void checksum( char[] token )
-    {
-        if ( !validateChecksum( token ) )
-        {
-            throw new ApiTokenAuthenticationException( ApiTokenErrors
-                .invalidRequest( "Checksum validation failed for token" ) );
+                .invalidRequest( "Checksum validation failed" ) );
         }
     }
 

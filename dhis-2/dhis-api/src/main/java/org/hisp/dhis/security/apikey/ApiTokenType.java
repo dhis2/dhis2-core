@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.util.concurrent.TimeUnit;
-
 import lombok.Getter;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -39,7 +37,7 @@ import org.hisp.dhis.common.CodeGenerator;
 @Getter
 public enum ApiTokenType
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, TimeUnit.DAYS.toMillis( 30 ), "SHA-256", "CRC32" );
+    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" );
 
     private final String prefix;
 
@@ -47,18 +45,15 @@ public enum ApiTokenType
 
     private final int length;
 
-    private final long ttl;
-
     private final String hashType;
 
     private final String checksumType;
 
-    ApiTokenType( int version, String prefix, int length, long ttl, String hashType, String checksumType )
+    ApiTokenType( int version, String prefix, int length, String hashType, String checksumType )
     {
         this.prefix = prefix;
         this.length = length;
         this.version = version;
-        this.ttl = ttl;
         this.hashType = hashType;
         this.checksumType = checksumType;
     }

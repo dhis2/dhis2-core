@@ -35,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.tuple.Pair;
@@ -82,7 +83,8 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
 
     public ApiToken createAndSaveToken()
     {
-        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null );
+        long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
+        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
         apiTokenStore.save( apiTokenPair.getRight() );
         return apiTokenPair.getRight();
     }

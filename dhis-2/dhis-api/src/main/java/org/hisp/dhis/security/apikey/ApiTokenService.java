@@ -62,5 +62,5 @@ public interface ApiTokenService
     ApiToken getWithKey( @Nonnull String key );
 
     @Nonnull
-    Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes );
+    Pair<char[], ApiToken> generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire );
 }

@@ -31,6 +31,8 @@ import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.concurrent.TimeUnit;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
@@ -73,7 +75,8 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 
     private Pair<char[], ApiToken> createNewToken()
     {
-        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null );
+        long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
+        Pair<char[], ApiToken> apiTokenPair = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
         apiTokenStore.save( apiTokenPair.getRight() );
         return apiTokenPair;
     }
@@ -82,7 +85,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     void testInvalidKeyTypeNotResolveable()
     {
         String errorMessage = GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Could not resolve token type", errorMessage );
+        assertEquals( "Checksum validation failed", errorMessage );
     }
 
     @Test
@@ -90,7 +93,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
             HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Checksum validation failed for token", errorMessage );
+        assertEquals( "Checksum validation failed", errorMessage );
     }
 
     @Test
@@ -98,7 +101,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     {
         String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tXXXXXWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
             HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( "Could not resolve token type", errorMessage );
+        assertEquals( "Checksum validation failed", errorMessage );
     }
 
     @Test
