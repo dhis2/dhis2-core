@@ -27,6 +27,10 @@
  */
 package org.hisp.dhis.webapi.openapi;
 
+import static java.lang.String.format;
+
+import java.lang.reflect.Member;
+import java.util.List;
 import java.util.function.UnaryOperator;
 
 import lombok.AccessLevel;
@@ -71,35 +75,38 @@ final class ApiDescribe
         controller.getEndpoints().forEach( endpoint -> {
             String name = endpoint.getSource().getName();
             UnaryOperator<String> subst = desc -> desc.replace( "{entityType}", endpoint.getEntityTypeName() );
-            endpoint.getDescription().setValue( descriptions.get( name + ".description", subst ) );
+            endpoint.getDescription().setValue( descriptions.get( subst,
+                format( "%s.description", name ) ) );
             endpoint.getParameters().values().forEach( parameter -> {
-                Api.Maybe<String> description = parameter.getDescription();
-                String paramName = parameter.isShared() ? parameter.getGlobalName() : parameter.getName();
-                String key = name + ".parameter." + paramName + ".description";
-                description.setValue( descriptions.get( key, subst ) );
-                if ( !description.isPresent() )
-                {
-                    key = "*" + key.substring( key.indexOf( '.' ) );
-                    description.setValue( descriptions.get( key, subst ) );
-                }
+                List<String> keys = parameter.isShared()
+                    ? List.of(
+                        format( "%s.parameter.%s.description", name, parameter.getGlobalName() ),
+                        format( "%s.parameter.%s.description", name, getDeclaringTypeGlobalName( parameter ) ),
+                        format( "*.parameter.%s.description", parameter.getGlobalName() ),
+                        format( "*.parameter.%s.description", getDeclaringTypeGlobalName( parameter ) ) )
+                    : List.of(
+                        format( "%s.parameter.%s.description", name, parameter.getName() ),
+                        format( "*.parameter.%s.description", parameter.getName() ) );
+                parameter.getDescription().setValue( descriptions.get( subst, keys ) );
             } );
             if ( endpoint.getRequestBody().isPresent() )
             {
                 Api.Maybe<String> description = endpoint.getRequestBody().getValue().getDescription();
-                String key = name + "request.description";
-                description.setValue( descriptions.get( key, subst ) );
+                String key = format( "%s.request.description", name );
+                description.setValue( descriptions.get( subst, key ) );
             }
             endpoint.getResponses().values().forEach( response -> {
-                String key = name + ".response." + response.getStatus().value() + ".description";
-                Api.Maybe<String> description = response.getDescription();
-                description.setValue( descriptions.get( key, subst ) );
-                if ( !description.isPresent() )
-                {
-                    key = "*" + key.substring( key.indexOf( '.' ) );
-                    description.setValue( descriptions.get( key, subst ) );
-                }
+                int statusCode = response.getStatus().value();
+                List<String> keys = List.of(
+                    format( "%s.response.%d.description", name, statusCode ),
+                    format( "*.response.%d.description", statusCode ) );
+                response.getDescription().setValue( descriptions.get( subst, keys ) );
             } );
         } );
     }
 
+    private static String getDeclaringTypeGlobalName( Api.Parameter p )
+    {
+        return ((Member) p.getSource()).getDeclaringClass().getSimpleName() + "." + p.getName();
+    }
 }

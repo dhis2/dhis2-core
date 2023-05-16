@@ -32,6 +32,7 @@ import static java.util.Comparator.comparing;
 
 import java.io.InputStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,6 +40,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
+
+import javax.annotation.CheckForNull;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -205,14 +208,82 @@ final class Descriptions
         return entries.get( key ) != null;
     }
 
+    /**
+     * Lookup a description text by key.
+     * <p>
+     * {@link Descriptions} are per controller.
+     * <p>
+     * All text relevant for a specific controller are obtained by using
+     * {@link #of(Class)} with the controller class as target.
+     * <p>
+     * The entries will include (in order or least to highest precedence):
+     * <ol>
+     * <li>All entries in <code>Descriptions.openapi.md</code> ("global"
+     * texts)</li>
+     * <li>All entries in any superclass of the provided target class found in
+     * <code><i>{SimpleClassName}.openapi.md</i></code> starting from the base
+     * type's simple name</li>
+     * <li>All entries in target class found in
+     * <code><i>{SimpleClassName}.openapi.md</i></code></li>
+     * </ol>
+     *
+     * Within a file entries are using the endpoint method name as a namespace.
+     * <p>
+     * Key patterns are:
+     * <ul>
+     * <li><code><i>{method-name}</i>.parameter.<i>{name}</i>.description</code></li>
+     * <li><code><i>{method-name}</i>.request.description</code></li>
+     * <li><code><i>{method-name}</i>.response.<i>{http-status-code}</i>.description</code></li>
+     * </ul>
+     * OBS! The <code>.description</code> suffix is not stated in the markdown
+     * file!
+     * <p>
+     * Fallbacks to provide descriptions applying to any endpoint methods use
+     * the patterns:
+     * <ul>
+     * <li><code>*.parameter.<i>{name}</i>.description</code></li>
+     * <li><code>*.response.<i>{http-status-code}</i>.description</code></li>
+     * </ul>
+     *
+     * Shared parameters add the simple class name of the parameters class and
+     * are used as:
+     * <ul>
+     * <li><code>*.parameter.<i>{simple-class-name}</i>.</i>{name}</i>.description</code></li>
+     * </ul>
+     *
+     * @param key the complete key
+     * @return the value for the provided key
+     */
+    @CheckForNull
     String get( String key )
     {
         return entries.get( key );
     }
 
-    String get( String key, UnaryOperator<String> transformer )
+    String get( UnaryOperator<String> transformer, String... keys )
     {
-        String value = get( key );
-        return value == null ? null : transformer.apply( value );
+        return get( transformer, List.of( keys ) );
     }
+
+    /**
+     * Returns the first non-null value transformed by the provided transformer.
+     * Keys are tried in the order given.
+     *
+     * @param transformer transformer for a non-null value
+     * @param keys keys to try
+     * @return the first non-null value transformed
+     */
+    String get( UnaryOperator<String> transformer, List<String> keys )
+    {
+        for ( String key : keys )
+        {
+            String value = get( key );
+            if ( value != null )
+            {
+                return transformer.apply( value );
+            }
+        }
+        return null;
+    }
+
 }
