@@ -153,23 +153,23 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     protected static char[] generatePlainTextToken( ApiTokenType type )
     {
-        char[] secureCode = CodeGenerator.generateSecureCode( type.getLength() );
+        char[] code = CodeGenerator.generateSecureCode( type.getLength() );
 
-        Preconditions.checkArgument( secureCode.length == type.getLength(),
+        Preconditions.checkArgument( code.length == type.getLength(),
             "Could not create new token, please try again." );
 
-        char[] paddedChecksum = generateChecksum( type, secureCode );
+        char[] checksum = generateChecksum( type, code );
 
         char[] prefix = type.getPrefix().toCharArray();
         char[] underscore = new char[] { '_' };
 
-        // Concatenate prefix, underscore, secureCode, and checksum
-        char[] token = new char[prefix.length + underscore.length + secureCode.length + paddedChecksum.length];
+        // Concatenate prefix, underscore, code, and checksum
+        char[] token = new char[prefix.length + underscore.length + code.length + checksum.length];
         System.arraycopy( prefix, 0, token, 0, prefix.length );
         System.arraycopy( underscore, 0, token, prefix.length, underscore.length );
-        System.arraycopy( secureCode, 0, token, prefix.length + underscore.length, secureCode.length );
-        System.arraycopy( paddedChecksum, 0, token, prefix.length + underscore.length + secureCode.length,
-            paddedChecksum.length );
+        System.arraycopy( code, 0, token, prefix.length + underscore.length, code.length );
+        System.arraycopy( checksum, 0, token, prefix.length + underscore.length + code.length,
+            checksum.length );
 
         return token;
     }
