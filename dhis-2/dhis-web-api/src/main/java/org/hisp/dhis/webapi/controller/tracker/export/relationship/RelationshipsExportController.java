@@ -45,6 +45,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
@@ -79,7 +80,9 @@ public class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
 
-    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+    private static final String DEFAULT_FIELDS_PARAM_STRING = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
+
+    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
@@ -144,34 +147,34 @@ public class RelationshipsExportController
     }
 
     @GetMapping
-    PagingWrapper<ObjectNode> getInstances(
-        RelationshipCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getRelationships(
+        RequestParams requestParams )
         throws NotFoundException,
         BadRequestException,
         ForbiddenException
     {
         List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships = tryGetRelationshipFrom(
-            criteria.getIdentifierClass(), criteria.getIdentifierParam(), criteria.getIdentifierName(), criteria );
+            requestParams.getIdentifierClass(), requestParams.getIdentifierParam(), requestParams.getIdentifierName(),
+            requestParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-        if ( criteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager(
                 PagingWrapper.Pager.builder()
-                    .page( criteria.getPage() )
-                    .pageSize( criteria.getPageSize() )
+                    .page( requestParams.getPage() )
+                    .pageSize( requestParams.getPageSize() )
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getRelationship(
         @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

@@ -51,6 +51,7 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.event.EventParams;
@@ -81,7 +82,9 @@ public class EventsExportController
 {
     protected static final String EVENTS = "events";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
+    private static final String DEFAULT_FIELDS_PARAM_STRING = "*,!relationships";
+
+    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
@@ -89,7 +92,7 @@ public class EventsExportController
     private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
-    private final EventCriteriaMapper requestToSearchParams;
+    private final EventParamsMapper requestToSearchParams;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
@@ -101,14 +104,13 @@ public class EventsExportController
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     public PagingWrapper<ObjectNode> getEvents(
-        EventCriteria eventCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
         {
             return new PagingWrapper<ObjectNode>().withInstances( Collections.emptyList() );
         }
@@ -117,20 +119,20 @@ public class EventsExportController
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        if ( eventCriteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
+                PagingWrapper.Pager.fromLegacy( requestParams, events.getPager() ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
     public void getCsvEvents(
-        EventCriteria eventCriteria,
+        RequestParams requestParams,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         HttpServletRequest request )
@@ -138,9 +140,9 @@ public class EventsExportController
         BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
         {
             return;
         }
@@ -162,16 +164,16 @@ public class EventsExportController
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
     }
 
-    private boolean areAllEnrollmentsInvalid( EventCriteria eventCriteria, EventSearchParams eventSearchParams )
+    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventSearchParams eventSearchParams )
     {
-        return !CollectionUtils.isEmpty( eventCriteria.getEnrollments() ) &&
+        return !CollectionUtils.isEmpty( requestParams.getEnrollments() ) &&
             CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getEvent(
         @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

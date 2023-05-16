@@ -83,7 +83,9 @@ public class TrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+    private static final String DEFAULT_FIELDS_PARAM_STRING = "*,!relationships,!enrollments,!events,!programOwners";
+
+    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     /**
      * Fields we need to fetch from the DB to fulfill requests for CSV. CSV
@@ -98,7 +100,7 @@ public class TrackedEntitiesExportController
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
     @Nonnull
-    private final TrackedEntityCriteriaMapper criteriaMapper;
+    private final TrackedEntityParamsMapper paramsMapper;
 
     @Nonnull
     private final TrackedEntityService trackedEntityService;
@@ -112,25 +114,25 @@ public class TrackedEntitiesExportController
     private final TrackedEntityFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getTrackedEntities( TrackedEntityCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getTrackedEntities( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
+        TrackedEntityQueryParams queryParams = paramsMapper.map( requestParams );
 
-        TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields, criteria.isIncludeDeleted() );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( requestParams.getFields(),
+            requestParams.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntities = TRACKED_ENTITY_MAPPER
             .fromCollection( trackedEntityService.getTrackedEntities( queryParams, trackedEntityParams ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        if ( criteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
 
-            Long count = criteria.isTotalPages()
+            Long count = requestParams.isTotalPages()
                 ? (long) trackedEntityService.getTrackedEntityCount( queryParams, true, true )
                 : null;
 
@@ -142,12 +144,12 @@ public class TrackedEntitiesExportController
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntities, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntities, requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_CSV_ZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvTrackedEntities( TrackedEntityCriteria criteria,
+    public void getCsvTrackedEntities( RequestParams requestParams,
         HttpServletResponse response,
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
@@ -156,8 +158,8 @@ public class TrackedEntitiesExportController
         ForbiddenException,
         NotFoundException
     {
-        TrackedEntityQueryParams queryParams = criteriaMapper.map( criteria );
-        TrackedEntityParams trackedEntityParams = fieldsMapper.map( CSV_FIELDS, criteria.isIncludeDeleted() );
+        TrackedEntityQueryParams queryParams = paramsMapper.map( requestParams );
+        TrackedEntityParams trackedEntityParams = fieldsMapper.map( CSV_FIELDS, requestParams.isIncludeDeleted() );
 
         List<TrackedEntity> trackedEntities = TRACKED_ENTITY_MAPPER
             .fromCollection(
@@ -193,7 +195,7 @@ public class TrackedEntitiesExportController
     @GetMapping( value = "{uid}" )
     public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable String uid,
         @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
         throws ForbiddenException,
         NotFoundException
     {

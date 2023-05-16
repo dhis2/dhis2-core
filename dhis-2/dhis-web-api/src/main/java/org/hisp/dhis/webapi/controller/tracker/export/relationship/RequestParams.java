@@ -27,12 +27,15 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import java.util.List;
+
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
@@ -40,7 +43,7 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
-class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
+class RequestParams extends PagingAndSortingCriteriaAdapter
 {
 
     private String trackedEntity;
@@ -56,6 +59,18 @@ class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
     private String identifierName;
 
     private Class<?> identifierClass;
+
+    private List<FieldPath> fields = RelationshipsExportController.DEFAULT_FIELDS_PARAMS;
+
+    public List<FieldPath> getFields()
+    {
+        return this.fields;
+    }
+
+    public void setFields( List<FieldPath> fields )
+    {
+        this.fields = fields;
+    }
 
     public void setTei( String tei )
     {

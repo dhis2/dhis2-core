@@ -42,6 +42,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.EnrollmentQueryParams;
@@ -70,11 +71,13 @@ public class EnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
+    private static final String DEFAULT_FIELDS_PARAM_STRING = "*,!relationships,!events,!attributes";
+
+    static final List<FieldPath> DEFAULT_FIELDS_PARAMS = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM_STRING );
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final EnrollmentParamsMapper enrollmentParamsMapper;
 
     private final EnrollmentService enrollmentService;
 
@@ -83,9 +86,8 @@ public class EnrollmentsExportController
     private final EnrollmentFieldsParamMapper fieldsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances(
-        EnrollmentCriteria enrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getEnrollments(
+        RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException,
         NotFoundException
@@ -94,26 +96,26 @@ public class EnrollmentsExportController
 
         List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( requestParams.getFields() )
+            .withIncludeDeleted( requestParams.isIncludeDeleted() );
 
-        if ( enrollmentCriteria.getEnrollment() == null )
+        if ( requestParams.getEnrollment() == null )
         {
-            EnrollmentQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
+            EnrollmentQueryParams params = enrollmentParamsMapper.map( requestParams );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
-            if ( enrollmentCriteria.isPagingRequest() )
+            if ( requestParams.isPagingRequest() )
             {
                 pagingWrapper = pagingWrapper.withPager(
-                    PagingWrapper.Pager.fromLegacy( enrollmentCriteria, enrollments.getPager() ) );
+                    PagingWrapper.Pager.fromLegacy( requestParams, enrollments.getPager() ) );
             }
 
             enrollmentList = enrollments.getEnrollments();
         }
         else
         {
-            Set<String> enrollmentUids = Set.of( enrollmentCriteria.getEnrollment().split( TextUtils.SEMICOLON ) );
+            Set<String> enrollmentUids = Set.of( requestParams.getEnrollment().split( TextUtils.SEMICOLON ) );
 
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
             for ( String e : enrollmentUids )
@@ -124,14 +126,14 @@ public class EnrollmentsExportController
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), fields );
+            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( value = "{uid}" )
     public ResponseEntity<ObjectNode> getEnrollment(
         @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM_STRING ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

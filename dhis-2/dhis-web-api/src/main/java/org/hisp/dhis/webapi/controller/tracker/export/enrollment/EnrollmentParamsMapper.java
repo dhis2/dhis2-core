@@ -61,12 +61,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Maps query parameters from {@link EnrollmentsExportController} stored in
- * {@link EnrollmentCriteria} to {@link EnrollmentQueryParams} which is used to
- * fetch enrollments from the DB.
+ * {@link RequestParams} to {@link EnrollmentQueryParams} which is used to fetch
+ * enrollments from the DB.
  */
-@Service( "org.hisp.dhis.webapi.controller.tracker.export.EnrollmentCriteriaMapper" )
+@Service( "org.hisp.dhis.webapi.controller.tracker.export.EnrollmentParamsMapper" )
 @RequiredArgsConstructor
-public class EnrollmentCriteriaMapper
+public class EnrollmentParamsMapper
 {
 
     @Nonnull
@@ -88,45 +88,45 @@ public class EnrollmentCriteriaMapper
     private final TrackerAccessManager trackerAccessManager;
 
     @Transactional( readOnly = true )
-    public EnrollmentQueryParams map( EnrollmentCriteria criteria )
+    public EnrollmentQueryParams map( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
-        Program program = applyIfNonEmpty( programService::getProgram, criteria.getProgram() );
-        validateProgram( criteria.getProgram(), program );
+        Program program = applyIfNonEmpty( programService::getProgram, requestParams.getProgram() );
+        validateProgram( requestParams.getProgram(), program );
 
         TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            criteria.getTrackedEntityType() );
-        validateTrackedEntityType( criteria.getTrackedEntityType(), trackedEntityType );
+            requestParams.getTrackedEntityType() );
+        validateTrackedEntityType( requestParams.getTrackedEntityType(), trackedEntityType );
 
         TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
-            criteria.getTrackedEntity() );
-        validateTrackedEntity( criteria.getTrackedEntity(), trackedEntity );
+            requestParams.getTrackedEntity() );
+        validateTrackedEntity( requestParams.getTrackedEntity(), trackedEntity );
 
         User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( criteria.getOrgUnit() );
+        Set<String> orgUnitIds = parseUids( requestParams.getOrgUnit() );
         Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( program );
-        params.setProgramStatus( criteria.getProgramStatus() );
-        params.setFollowUp( criteria.getFollowUp() );
-        params.setLastUpdated( criteria.getUpdatedAfter() );
-        params.setLastUpdatedDuration( criteria.getUpdatedWithin() );
-        params.setProgramStartDate( criteria.getEnrolledAfter() );
-        params.setProgramEndDate( criteria.getEnrolledBefore() );
+        params.setProgramStatus( requestParams.getProgramStatus() );
+        params.setFollowUp( requestParams.getFollowUp() );
+        params.setLastUpdated( requestParams.getUpdatedAfter() );
+        params.setLastUpdatedDuration( requestParams.getUpdatedWithin() );
+        params.setProgramStartDate( requestParams.getEnrolledAfter() );
+        params.setProgramEndDate( requestParams.getEnrolledBefore() );
         params.setTrackedEntityType( trackedEntityType );
         params.setTrackedEntityUid(
             Optional.ofNullable( trackedEntity ).map( IdentifiableObject::getUid ).orElse( null ) );
         params.addOrganisationUnits( orgUnits );
-        params.setOrganisationUnitMode( criteria.getOuMode() );
-        params.setPage( criteria.getPage() );
-        params.setPageSize( criteria.getPageSize() );
-        params.setTotalPages( criteria.isTotalPages() );
-        params.setSkipPaging( toBooleanDefaultIfNull( criteria.isSkipPaging(), false ) );
-        params.setIncludeDeleted( criteria.isIncludeDeleted() );
+        params.setOrganisationUnitMode( requestParams.getOuMode() );
+        params.setPage( requestParams.getPage() );
+        params.setPageSize( requestParams.getPageSize() );
+        params.setTotalPages( requestParams.isTotalPages() );
+        params.setSkipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) );
+        params.setIncludeDeleted( requestParams.isIncludeDeleted() );
         params.setUser( user );
-        params.setOrder( toOrderParams( criteria.getOrder() ) );
+        params.setOrder( toOrderParams( requestParams.getOrder() ) );
 
         return params;
     }
