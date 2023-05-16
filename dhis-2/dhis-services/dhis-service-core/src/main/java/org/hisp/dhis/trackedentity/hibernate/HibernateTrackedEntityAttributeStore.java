@@ -131,7 +131,7 @@ public class HibernateTrackedEntityAttributeStore
                 final String encodedFilter = filter
                     .getSqlFilter( statementBuilder.encode( StringUtils.lowerCase( filter.getFilter() ), false ) );
 
-                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.entityInstance=tei";
+                hql += hlp.whereAnd() + " exists (from TrackedEntityAttributeValue teav where teav.trackedEntity=tei";
                 hql += " and teav.attribute.uid='" + item.getItemId() + "'";
 
                 if ( item.isNumeric() )
