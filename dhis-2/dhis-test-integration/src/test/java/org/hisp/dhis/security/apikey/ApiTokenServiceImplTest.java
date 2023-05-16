@@ -27,7 +27,16 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import static org.hisp.dhis.security.apikey.ApiTokenType.hashToken;
+import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.List;
+import java.util.regex.Pattern;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
@@ -42,15 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.List;
-import java.util.regex.Pattern;
-
-import static org.hisp.dhis.security.apikey.ApiTokenType.hashToken;
-import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -74,8 +75,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
 
     @BeforeEach
     final void setup()
-        throws
-        Exception
+        throws Exception
     {
         userService = _userService;
     }
