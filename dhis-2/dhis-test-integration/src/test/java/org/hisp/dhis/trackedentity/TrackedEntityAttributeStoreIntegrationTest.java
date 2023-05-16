@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -212,5 +213,21 @@ class TrackedEntityAttributeStoreIntegrationTest
 
         assertNotNull( attributeIds );
         assertTrue( attributeIds.contains( attributeW.getId() ) );
+    }
+
+    @Test
+    void shouldValidateUniquenessWhenAttributeIsUnique()
+    {
+        attributeService.addTrackedEntityAttribute( attributeW );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'K' );
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( attributeW );
+        trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        assertNull( attributeService.validateAttributeUniquenessWithinScope( attributeW, "some_non_unique_value", null,
+            null ) );
     }
 }
