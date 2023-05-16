@@ -169,7 +169,7 @@ public class SchedulerStart extends AbstractStartupRoutine
                 {
                     Date expectedFutureExecutionTime = jobConfig.nextExecutionTimeAfter( Clock.fixed(
                         lastExecuted.toInstant().plusSeconds( 1 ), ZoneId.systemDefault() ) );
-                    if ( expectedFutureExecutionTime.before( now ) )
+                    if ( expectedFutureExecutionTime != null && expectedFutureExecutionTime.before( now ) )
                     {
                         unexecutedJobs.add( "\nJob [" + jobConfig.getUid() + ", " + jobConfig.getName()
                             + "] has status failed or was scheduled in server downtime. Actual execution time was supposed to be: "
