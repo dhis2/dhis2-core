@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import lombok.Data;
@@ -37,6 +38,8 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.fieldfiltering.FieldFilterParser;
+import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
@@ -47,8 +50,10 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-class TrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
+class RequestParams extends PagingAndSortingCriteriaAdapter
 {
+    static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
+
     private String query;
 
     private Set<String> attribute = new HashSet<>();
@@ -185,4 +190,6 @@ class TrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
      * is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
+
+    private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

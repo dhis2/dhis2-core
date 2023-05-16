@@ -36,14 +36,14 @@ import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.junit.jupiter.api.Test;
 
-class RelationshipCriteriaTest
+class RequestParamsTest
 {
     @Test
     void getIdentifierParamIfTrackedEntityIsSet()
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -55,7 +55,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -66,7 +66,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
@@ -77,7 +77,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
@@ -88,7 +88,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
 
         assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
@@ -99,7 +99,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTei( "Hq3Kc6HK4OZ" );
 
         assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
@@ -110,7 +110,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -121,7 +121,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( "enrollment", criteria.getIdentifierName() );
@@ -132,7 +132,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
         assertEquals( Enrollment.class, criteria.getIdentifierClass() );
@@ -143,7 +143,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
@@ -154,7 +154,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( "event", criteria.getIdentifierName() );
@@ -165,7 +165,7 @@ class RelationshipCriteriaTest
         throws BadRequestException
     {
 
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 
         assertEquals( Event.class, criteria.getIdentifierClass() );
@@ -174,7 +174,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfNoParamsIsSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
@@ -185,7 +185,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierNameThrowsIfNoParamsIsSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierName );
 
@@ -196,7 +196,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfAllParamsAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -211,7 +211,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierNameThrowsIfAllParamsAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -226,7 +226,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfAllParamsAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
@@ -241,7 +241,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -254,7 +254,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfTeiAndEnrollmentAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -267,7 +267,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -280,7 +280,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierClassThrowsIfTeiAndEnrollmentAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setTei( "Hq3Kc6HK4OZ" );
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
 
@@ -293,7 +293,7 @@ class RelationshipCriteriaTest
     @Test
     void getIdentifierParamThrowsIfEnrollmentAndEventAreSet()
     {
-        RelationshipCriteria criteria = new RelationshipCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEnrollment( "Hq3Kc6HK4OZ" );
         criteria.setEvent( "Hq3Kc6HK4OZ" );
 

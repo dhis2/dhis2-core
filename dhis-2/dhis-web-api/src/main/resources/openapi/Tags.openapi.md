@@ -29,6 +29,9 @@ Groups endpoints about general system administration.
 ## Tag `tracker`
 Groups endpoints that are tracker related.
 
+### `externalDocs`
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/tracker.html
+
 ## Tag `ui`
 Groups endpoints that are UI related.
 

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.event.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV_GZIP;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_TEXT_CSV;
@@ -81,15 +82,13 @@ public class EventsExportController
 {
     protected static final String EVENTS = "events";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
-
     private static final EventMapper EVENTS_MAPPER = Mappers.getMapper( EventMapper.class );
 
     @Nonnull
     private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
-    private final EventCriteriaMapper requestToSearchParams;
+    private final EventParamsMapper requestToSearchParams;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
@@ -100,15 +99,13 @@ public class EventsExportController
     private final EventFieldsParamMapper eventsMapper;
 
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public PagingWrapper<ObjectNode> getEvents(
-        EventCriteria eventCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    public PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
         {
             return new PagingWrapper<ObjectNode>().withInstances( Collections.emptyList() );
         }
@@ -117,20 +114,20 @@ public class EventsExportController
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        if ( eventCriteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.fromLegacy( eventCriteria, events.getPager() ) );
+                PagingWrapper.Pager.fromLegacy( requestParams, events.getPager() ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), fields );
+            .toObjectNodes( EVENTS_MAPPER.fromCollection( events.getEvents() ), requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
     public void getCsvEvents(
-        EventCriteria eventCriteria,
+        RequestParams requestParams,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         HttpServletRequest request )
@@ -138,9 +135,9 @@ public class EventsExportController
         BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( eventCriteria );
+        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( eventCriteria, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
         {
             return;
         }
@@ -162,9 +159,9 @@ public class EventsExportController
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
     }
 
-    private boolean areAllEnrollmentsInvalid( EventCriteria eventCriteria, EventSearchParams eventSearchParams )
+    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventSearchParams eventSearchParams )
     {
-        return !CollectionUtils.isEmpty( eventCriteria.getEnrollments() ) &&
+        return !CollectionUtils.isEmpty( requestParams.getEnrollments() ) &&
             CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 

@@ -151,7 +151,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
 
     private TrackedEntityInstance teiFemaleA;
 
-    private TrackedEntityAttribute uniqueIdAttribute;
+    private TrackedEntityAttribute generatedAttribute;
 
     private TrackedEntityAttribute trackedEntityAttributeB;
 
@@ -169,20 +169,20 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         organisationUnitA = createOrganisationUnit( 'A' );
         organisationUnitB = createOrganisationUnit( 'B' );
         organisationUnitB.setParent( organisationUnitA );
-        uniqueIdAttribute = createTrackedEntityAttribute( 'A' );
-        uniqueIdAttribute.setGenerated( true );
+        generatedAttribute = createTrackedEntityAttribute( 'A' );
+        generatedAttribute.setGenerated( true );
         // uniqueIdAttribute.setPattern( "RANDOM(#####)" );
         TextPattern textPattern = new TextPattern(
             List.of( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#####)" ) ) );
         textPattern.setOwnerObject( Objects.TRACKEDENTITYATTRIBUTE );
-        textPattern.setOwnerUid( uniqueIdAttribute.getUid() );
-        uniqueIdAttribute.setTextPattern( textPattern );
-        trackedEntityAttributeService.addTrackedEntityAttribute( uniqueIdAttribute );
+        textPattern.setOwnerUid( generatedAttribute.getUid() );
+        generatedAttribute.setTextPattern( textPattern );
+        trackedEntityAttributeService.addTrackedEntityAttribute( generatedAttribute );
         trackedEntityAttributeB = createTrackedEntityAttribute( 'B' );
         trackedEntityAttributeService.addTrackedEntityAttribute( trackedEntityAttributeB );
         trackedEntityType = createTrackedEntityType( 'A' );
         TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
-        trackedEntityTypeAttribute.setTrackedEntityAttribute( uniqueIdAttribute );
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( generatedAttribute );
         trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
         trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
@@ -191,7 +191,7 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         femaleA = createTrackedEntity( organisationUnitA );
         femaleB = createTrackedEntity( organisationUnitB );
         dateConflictsMaleA = createTrackedEntity( organisationUnitA );
-        TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, uniqueIdAttribute );
+        TrackedEntityAttributeValue uniqueId = createTrackedEntityAttributeValue( 'A', maleA, generatedAttribute );
         uniqueId.setValue( "12345" );
         maleA.setTrackedEntityType( trackedEntityType );
         maleA.setTrackedEntityAttributeValues( Set.of( uniqueId ) );
@@ -306,8 +306,8 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
             List.of( new TextPatternSegment( TextPatternMethod.RANDOM, "RANDOM(#######)" ) ) );
         textPattern.setOwnerUid( "owneruid" );
         textPattern.setOwnerObject( Objects.CONSTANT );
-        uniqueIdAttribute.setTextPattern( textPattern );
-        trackedEntityAttributeService.updateTrackedEntityAttribute( uniqueIdAttribute );
+        generatedAttribute.setTextPattern( textPattern );
+        trackedEntityAttributeService.updateTrackedEntityAttribute( generatedAttribute );
         enrollment2.setEnrollmentDate( new Date() );
         enrollment2.setOrgUnit( organisationUnitA.getUid() );
         enrollment2.setProgram( programA.getUid() );
@@ -497,6 +497,34 @@ class TrackedEntityServiceTest extends TransactionalIntegrationTest
         trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
         trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
         trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+        ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
+            null );
+        assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
+    }
+
+    @Test
+    void shouldCreateTeiWhenValidateUniqueAttribute()
+    {
+        TrackedEntityAttribute uniqueEntityAttribute = createTrackedEntityAttribute( 'Z' );
+        uniqueEntityAttribute.setUnique( true );
+        trackedEntityAttributeService.addTrackedEntityAttribute( uniqueEntityAttribute );
+
+        TrackedEntityType trackedEntityType = createTrackedEntityType( 'Z' );
+        TrackedEntityTypeAttribute trackedEntityTypeAttribute = new TrackedEntityTypeAttribute();
+        trackedEntityTypeAttribute.setTrackedEntityAttribute( uniqueEntityAttribute );
+        trackedEntityTypeAttribute.setTrackedEntityType( trackedEntityType );
+        trackedEntityType.setTrackedEntityTypeAttributes( List.of( trackedEntityTypeAttribute ) );
+        trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
+
+        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
+        trackedEntityInstance.setTrackedEntityInstance( CodeGenerator.generateUid() );
+        trackedEntityInstance.setOrgUnit( organisationUnitA.getUid() );
+        trackedEntityInstance.setTrackedEntityType( trackedEntityType.getUid() );
+
+        Attribute attribute = new Attribute( uniqueEntityAttribute.getUid() );
+        attribute.setAttribute( uniqueEntityAttribute.getUid() );
+        trackedEntityInstance.getAttributes().add( attribute );
+
         ImportSummary importSummary = trackedEntityInstanceService.addTrackedEntityInstance( trackedEntityInstance,
             null );
         assertEquals( ImportStatus.SUCCESS, importSummary.getStatus() );
