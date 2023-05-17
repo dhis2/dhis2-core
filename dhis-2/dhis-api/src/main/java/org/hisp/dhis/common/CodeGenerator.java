@@ -38,14 +38,11 @@ import java.util.zip.CRC32;
 
 import javax.annotation.Nonnull;
 
-import lombok.extern.slf4j.Slf4j;
-
 import com.google.common.hash.Hashing;
 
 /**
  * @author bobj
  */
-@Slf4j
 public class CodeGenerator
 {
     private CodeGenerator()
