@@ -84,7 +84,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     }
 
     @Test
-    void testInvalidKeyTypeNotResolveable()
+    void testInvalidKeyTypeNotResolvable()
     {
         String errorMessage = GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.BAD_REQUEST ).getMessage();
         assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
