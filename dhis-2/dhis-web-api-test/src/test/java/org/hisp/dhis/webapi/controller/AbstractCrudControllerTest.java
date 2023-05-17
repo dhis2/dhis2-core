@@ -46,11 +46,13 @@ import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -58,6 +60,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonStats;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
@@ -771,6 +774,32 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/metadata", Body( "dashboard/create_dashboard.json" ) ).content( HttpStatus.OK );
         assertWebMessage( "OK", 200, "OK", null, DELETE( "/dashboards/f1OijtLnf8a" ).content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void testCreateObjectWithInvalidUid()
+    {
+        JsonImportSummary response = POST( "/dataSets/",
+            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" )
+                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
+        assertEquals( "Invalid UID `11111111111` for property `DataSet`",
+            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014 ).getMessage() );
+    }
+
+    @Test
+    void testUpdateObjectWithInvalidUid()
+    {
+        DataSet dataSet = createDataSet( 'A' );
+        dataSet.setPeriodType( PeriodType.getPeriodTypeByName( "Monthly" ) );
+        dataSet.setUid( "11111111111" );
+        manager.save( dataSet );
+
+        PUT( "/dataSets/11111111111",
+            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" )
+                .content( HttpStatus.OK );
+
+        JsonIdentifiableObject response = GET( "/dataSets/11111111111" ).content().as( JsonIdentifiableObject.class );
+        assertEquals( "My data set", response.getName() );
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
