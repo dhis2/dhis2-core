@@ -37,7 +37,6 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -118,7 +117,7 @@ final class Descriptions
 
     private void read( String filename )
     {
-        String file = "/openapi/" + filename + ".openapi.md";
+        String file = "/openapi/" + filename + ".md";
         InputStream is = target.getResourceAsStream( file );
         if ( is == null )
         {
@@ -126,39 +125,28 @@ final class Descriptions
         }
         try ( Scanner in = new Scanner( is ) )
         {
-            String rootKey = null;
             String key = null;
             StringBuilder value = new StringBuilder();
-            Consumer<String> addText = prefix -> {
-                if ( prefix != null )
-                {
-                    entries.put( prefix + ".description", trimText( value.toString() ) );
-                    value.setLength( 0 );
-                }
-            };
             while ( in.hasNextLine() )
             {
                 String line = in.nextLine();
-                if ( line.startsWith( "# " ) )
+                if ( line.startsWith( "#" ) )
                 {
-                    rootKey = null;
+                    if ( key != null && value.length() > 0 )
+                    {
+                        entries.put( key + ".description", trimText( value.toString() ) );
+                    }
                     key = null;
+                    value.setLength( 0 );
                 }
-                else if ( line.startsWith( "## " ) )
+                if ( line.startsWith( "### " ) )
                 {
-                    addText.accept( key );
-                    rootKey = toKey( line.substring( 3 ) );
-                    key = rootKey;
-                }
-                else if ( line.startsWith( "### " ) )
-                {
-                    addText.accept( key );
-                    key = rootKey + "." + toKey( line.substring( 4 ) );
+                    key = toKey( line.substring( 4 ) );
                 }
                 else
                 {
-                    if ( key != null && value.length() == 0 && (line.startsWith( "http://" ) || line.startsWith(
-                        "https://" )) )
+                    if ( key != null && value.length() == 0
+                        && (line.startsWith( "http://" ) || line.startsWith( "https://" )) )
                     {
                         entries.put( key + ".url", line.trim() );
                     }
@@ -169,7 +157,10 @@ final class Descriptions
                     }
                 }
             }
-            addText.accept( key );
+            if ( key != null && value.length() > 0 )
+            {
+                entries.put( key + ".description", trimText( value.toString() ) );
+            }
         }
     }
 
@@ -189,7 +180,7 @@ final class Descriptions
 
     private static String toKey( String line )
     {
-        return stream( line.split( ":" ) )
+        return stream( line.split( " " ) )
             .map( String::trim )
             .map( Descriptions::toKeySegment )
             .collect( Collectors.joining( "." ) );
@@ -218,13 +209,12 @@ final class Descriptions
      * <p>
      * The entries will include (in order or least to highest precedence):
      * <ol>
-     * <li>All entries in <code>Descriptions.openapi.md</code> ("global"
-     * texts)</li>
+     * <li>All entries in <code>Descriptions.md</code> ("global" texts)</li>
      * <li>All entries in any superclass of the provided target class found in
-     * <code><i>{SimpleClassName}.openapi.md</i></code> starting from the base
-     * type's simple name</li>
+     * <code><i>{SimpleClassName}.md</i></code> starting from the base type's
+     * simple name</li>
      * <li>All entries in target class found in
-     * <code><i>{SimpleClassName}.openapi.md</i></code></li>
+     * <code><i>{SimpleClassName}.md</i></code></li>
      * </ol>
      *
      * Within a file entries are using the endpoint method name as a namespace.
