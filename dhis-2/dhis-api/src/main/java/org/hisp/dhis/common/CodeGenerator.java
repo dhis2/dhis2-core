@@ -32,20 +32,20 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.util.Base64;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Pattern;
 import java.util.zip.CRC32;
 
 import javax.annotation.Nonnull;
 
-import org.springframework.util.Base64Utils;
+import lombok.extern.slf4j.Slf4j;
 
 import com.google.common.hash.Hashing;
 
 /**
  * @author bobj
  */
+@Slf4j
 public class CodeGenerator
 {
     private CodeGenerator()
@@ -53,19 +53,44 @@ public class CodeGenerator
         throw new IllegalStateException( "Utility class" );
     }
 
-    public static final String LETTERS = "abcdefghijklmnopqrstuvwxyz"
-        + "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    public static final String NUMERIC_CHARS = "0123456789";
 
-    public static final String ALPHANUMERIC_CHARS = "0123456789" + LETTERS;
+    public static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+    public static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+
+    public static final String LETTERS = LOWERCASE_LETTERS + UPPERCASE_LETTERS;
+
+    public static final String SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;':,./<>?©®™¢£¥€";
+
+    public static final String ALPHANUMERIC_CHARS = NUMERIC_CHARS + LETTERS;
+
+    public static final String NUMERIC_AND_SPECIAL_CHARS = NUMERIC_CHARS + SPECIAL_CHARS;
+
+    public static final String ALL_CHARS = NUMERIC_CHARS + LETTERS + SPECIAL_CHARS;
 
     public static final int UID_CODE_SIZE = 11;
 
     private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z][a-zA-Z0-9]{10}$" );
 
     /**
-     * 192 bit must be dividable by 3 to avoid padding "=".
+     * The required minimum length of a random alphanumeric string, with the
+     * first character always being a letter, will need to be so that we have at
+     * least 256-bits of entropy.
+     * <p>
+     * <ol>
+     * <li>Alphanumeric char = log2(62) = 5.954196310386875</li>
+     * <li>Letter only char = log2(52) = 5.700439718141092</li>
+     * <li>256 bits - 5.7 bits (first char) = 250.3 bits (total minus first
+     * char)</li>
+     * <li>250.3 bits / 5.95 bits ≈ 42.1 characters ≈ 43 characters (can't have
+     * a fraction of a character)</li>
+     * <li>43 + 1 (first char, we subtracted) = 44 characters</li>
+     * </ol>
+     * We add one extra character to ensure we have at least 256 bits of
+     * entropy.
      */
-    private static final int URL_RANDOM_TOKEN_LENGTH = 24;
+    public static final int SECURE_RANDOM_TOKEN_MIN_LENGTH = 44;
 
     /*
      * The random number generator used by this class to create random based
@@ -108,16 +133,30 @@ public class CodeGenerator
     /**
      * Generates a string of random alphanumeric characters. Uses a
      * {@link SecureRandom} instance and is slower than
-     * {@link #generateCode(int)}, this should only be used for security
-     * purposes.
+     * {@link #generateCode(int)}, this should be used for security-related
+     * purposes only.
      *
      * @param codeSize the number of characters in the code.
      * @return the code.
      */
-    public static char[] generateSecureCode( int codeSize )
+    public static char[] generateSecureRandomCode( int codeSize )
     {
-        SecureRandom r = SecureRandomHolder.GENERATOR;
-        return generateRandomAlphanumericCode( codeSize, r );
+        SecureRandom sr = SecureRandomHolder.GENERATOR;
+        return generateRandomAlphanumericCode( codeSize, sr );
+    }
+
+    /**
+     * Generates a random secure 44-character(≈256-bits) token.
+     * <p>
+     * The token is generated using {@link SecureRandom} and should be used for
+     * security-related purposes only.
+     *
+     * @return a token.
+     */
+    public static String getRandomSecureToken()
+    {
+        SecureRandom sr = SecureRandomHolder.GENERATOR;
+        return new String( generateRandomAlphanumericCode( SECURE_RANDOM_TOKEN_MIN_LENGTH, sr ) );
     }
 
     /**
@@ -143,36 +182,6 @@ public class CodeGenerator
         }
 
         return randomChars;
-    }
-
-    /**
-     * Generates a cryptographically strong random token encoded in Base64
-     *
-     * @param lengthInBytes length in bytes of the token
-     * @return a Base64 encoded string of the token
-     */
-    public static String getRandomSecureToken( int lengthInBytes )
-    {
-        SecureRandom sr = SecureRandomHolder.GENERATOR;
-        byte[] tokenBytes = new byte[lengthInBytes];
-        sr.nextBytes( tokenBytes );
-
-        Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-        return encoder.encodeToString( tokenBytes );
-    }
-
-    /**
-     * Generates a random 32-character token to be used in URLs.
-     *
-     * @return a token.
-     */
-    public static String getRandomUrlToken()
-    {
-        SecureRandom sr = SecureRandomHolder.GENERATOR;
-        byte[] tokenBytes = new byte[URL_RANDOM_TOKEN_LENGTH];
-        sr.nextBytes( tokenBytes );
-
-        return Base64Utils.encodeToUrlSafeString( tokenBytes );
     }
 
     /**
@@ -285,7 +294,116 @@ public class CodeGenerator
             return false;
         }
 
-        // SHA-256 hexadecimal strings are exactly 64 characters long
+        // SHA-256 in hexadecimal are exactly 64 characters long
         return s.length() == 64;
+    }
+
+    private static char generateRandomCharacter( String charSet )
+    {
+        SecureRandom sr = SecureRandomHolder.GENERATOR;
+        return charSet.charAt( sr.nextInt( charSet.length() ) );
+    }
+
+    /**
+     * Generates a random password with the given size, has to be minimum 4
+     * characters long.
+     * <p>
+     * The password will contain at least one digit, one special character, one
+     * uppercase letter and one lowercase letter.
+     * <p>
+     * The password will not contain more than 2 consecutive letters to avoid
+     * generating words.
+     *
+     * @param passwordSize the size of the password.
+     * @return a random password.
+     */
+    public static char[] generateValidPassword( int passwordSize )
+    {
+        if ( passwordSize < 4 )
+        {
+            throw new IllegalArgumentException( "Password must be at least 4 characters long" );
+        }
+
+        char[] randomChars = new char[passwordSize];
+
+        randomChars[0] = generateRandomCharacter( NUMERIC_CHARS );
+        randomChars[1] = generateRandomCharacter( SPECIAL_CHARS );
+        randomChars[2] = generateRandomCharacter( UPPERCASE_LETTERS );
+        randomChars[3] = generateRandomCharacter( LOWERCASE_LETTERS );
+
+        int consecutiveLetterCount = 2; // the last 2 characters are letters
+        for ( int i = 4; i < passwordSize; ++i )
+        {
+            if ( consecutiveLetterCount >= 2 )
+            {
+                // After 2 consecutive letters, the next character should be a number or a special character
+                randomChars[i] = generateRandomCharacter( NUMERIC_AND_SPECIAL_CHARS );
+                consecutiveLetterCount = 0;
+            }
+            else
+            {
+                randomChars[i] = generateRandomCharacter( ALL_CHARS );
+                if ( LETTERS.indexOf( randomChars[i] ) >= 0 )
+                {
+                    // If the character is a letter, increment the counter
+                    consecutiveLetterCount++;
+                }
+                else
+                {
+                    // If the character is not a letter, reset the counter
+                    consecutiveLetterCount = 0;
+                }
+            }
+        }
+
+        return randomChars;
+    }
+
+    public static boolean containsDigit( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= '0' && c <= '9' )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsSpecialCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( SPECIAL_CHARS.indexOf( c ) >= 0 )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsUppercaseCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= 'A' && c <= 'Z' )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsLowercaseCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= 'a' && c <= 'z' )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

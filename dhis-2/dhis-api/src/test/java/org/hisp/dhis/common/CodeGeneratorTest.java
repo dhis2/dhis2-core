@@ -34,12 +34,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import lombok.extern.slf4j.Slf4j;
 
 import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
+@Slf4j
 class CodeGeneratorTest
 {
 
@@ -74,12 +79,12 @@ class CodeGeneratorTest
     @Test
     void testGetRandomUrlToken()
     {
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_LENGTH, (CodeGenerator.getRandomSecureToken()).length() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_LENGTH, (CodeGenerator.getRandomSecureToken()).length() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_LENGTH, (CodeGenerator.getRandomSecureToken()).length() );
     }
 
     @Test
@@ -152,5 +157,30 @@ class CodeGeneratorTest
 
         assertEquals( expectedChecksum, actualChecksum,
             "The calculated SHA512 checksum does not match the expected value." );
+    }
+
+    @Test
+    void testValidPasswordGeneration()
+    {
+        for ( int i = 0; i < 100; i++ )
+        {
+            char[] password = CodeGenerator.generateValidPassword( 12 );
+            testPassword( password );
+        }
+    }
+
+    private static void testPassword( char[] password )
+    {
+        String passwordString = new String( password );
+        log.error( passwordString );
+
+        boolean containsDigit = CodeGenerator.containsDigit( password );
+        boolean containsSpecial = CodeGenerator.containsSpecialCharacter( password );
+        boolean hasUppercase = CodeGenerator.containsUppercaseCharacter( password );
+        boolean hasLowercase = CodeGenerator.containsLowercaseCharacter( password );
+        assertTrue( containsSpecial && containsDigit && hasUppercase && hasLowercase );
+
+        Matcher threeConsecutiveLetters = Pattern.compile( "[a-zA-Z][a-zA-Z][a-zA-Z]+" ).matcher( passwordString );
+        assertFalse( threeConsecutiveLetters.find() );
     }
 }

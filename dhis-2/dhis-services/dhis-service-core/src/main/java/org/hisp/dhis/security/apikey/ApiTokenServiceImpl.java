@@ -152,7 +152,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     protected static char[] generatePlainTextToken( ApiTokenType type )
     {
-        char[] code = CodeGenerator.generateSecureCode( type.getLength() );
+        char[] code = CodeGenerator.generateSecureRandomCode( type.getLength() );
 
         Preconditions.checkArgument( code.length == type.getLength(),
             "Could not create new token, please try again." );
