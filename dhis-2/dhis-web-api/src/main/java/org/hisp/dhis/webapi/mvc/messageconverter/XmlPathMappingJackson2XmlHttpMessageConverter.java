@@ -70,6 +70,11 @@ public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackso
     public boolean canWrite( Class<?> clazz, MediaType mediaType )
     {
         HttpServletRequest request = ContextUtils.getRequest();
+        if ( request == null )
+        {
+            return false;
+        }
+
         String pathInfo = request.getPathInfo();
 
         for ( var pathPattern : WebMvcConfig.XML_PATTERNS )

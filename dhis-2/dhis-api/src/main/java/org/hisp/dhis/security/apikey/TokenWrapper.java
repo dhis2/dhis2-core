@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,39 +27,15 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import java.util.List;
-
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-
-import org.hisp.dhis.user.User;
+import lombok.Value;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface ApiTokenService
+@Value
+public class TokenWrapper
 {
-    void save( @Nonnull ApiToken apiToken );
+    char[] plaintextToken;
 
-    void update( @Nonnull ApiToken apiToken );
-
-    void delete( @Nonnull ApiToken apiToken );
-
-    @Nonnull
-    List<ApiToken> getAll();
-
-    @Nonnull
-    List<ApiToken> getAllOwning( @Nonnull User user );
-
-    @CheckForNull
-    ApiToken getByUid( @Nonnull String uid );
-
-    @CheckForNull
-    ApiToken getByKey( @Nonnull String key, @Nonnull User user );
-
-    @CheckForNull
-    ApiToken getByKey( @Nonnull String key );
-
-    @Nonnull
-    TokenWrapper generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire );
+    ApiToken apiToken;
 }

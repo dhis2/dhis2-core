@@ -745,7 +745,7 @@ public class OpenApiGenerator extends JsonGenerator
      */
     private static String generateUid( Class<?> fromType )
     {
-        char[] chars = CodeGenerator.ALLOWED_CHARS.toCharArray();
+        char[] chars = CodeGenerator.ALPHANUMERIC_CHARS.toCharArray();
         String key = fromType.getSimpleName();
         key = key.repeat( (11 / key.length()) + 1 );
         StringBuilder uid = new StringBuilder( 11 );
