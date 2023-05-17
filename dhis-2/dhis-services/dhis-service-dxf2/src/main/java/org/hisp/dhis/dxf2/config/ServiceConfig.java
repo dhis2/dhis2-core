@@ -105,6 +105,7 @@ import org.hisp.dhis.dxf2.metadata.objectbundle.validation.ReferencesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SchemaCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.SecurityCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.TranslationsCheck;
+import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UidFormatCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueAttributesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniqueMultiPropertiesCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.UniquenessCheck;
@@ -223,7 +224,8 @@ public class ServiceConfig
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
                 getValidationCheckByClass( GeoJsonAttributesCheck.class ),
-                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ),
+                getValidationCheckByClass( UidFormatCheck.class ) ),
             CREATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
@@ -238,7 +240,8 @@ public class ServiceConfig
                 getValidationCheckByClass( NotOwnerReferencesCheck.class ),
                 getValidationCheckByClass( TranslationsCheck.class ),
                 getValidationCheckByClass( GeoJsonAttributesCheck.class ),
-                getValidationCheckByClass( MetadataAttributeCheck.class ) ),
+                getValidationCheckByClass( MetadataAttributeCheck.class ),
+                getValidationCheckByClass( UidFormatCheck.class ) ),
             UPDATE, newArrayList(
                 getValidationCheckByClass( DuplicateIdsCheck.class ),
                 getValidationCheckByClass( ValidationHooksCheck.class ),
