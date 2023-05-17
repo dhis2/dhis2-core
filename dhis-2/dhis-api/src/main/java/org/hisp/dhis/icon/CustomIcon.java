@@ -27,8 +27,7 @@
  */
 package org.hisp.dhis.icon;
 
-import javax.annotation.Nonnull;
-
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -40,10 +39,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class CustomIcon implements Icon
 {
-    private long id;
-
     private String key;
 
     private String description;
@@ -53,14 +51,4 @@ public class CustomIcon implements Icon
     private String fileResourceUid;
 
     private String createdByUserUid;
-
-    public CustomIcon( @Nonnull String key, String description, String[] keywords, @Nonnull String fileResourceUid,
-        String createdByUserUid )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-        this.fileResourceUid = fileResourceUid;
-        this.createdByUserUid = createdByUserUid;
-    }
 }
