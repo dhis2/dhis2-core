@@ -249,6 +249,8 @@ public enum ErrorCode
     E4053( "Program stage `{0}` must reference a program" ),
     E4057( "The Program Rule name {0} already exist in Program {1}" ),
 
+    E4058( "Program Rule `{0}` with Action Type `{1}` has irrelevant reference objects" ),
+
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
     E4061(
@@ -290,7 +292,7 @@ public enum ErrorCode
     E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
-    E6000( "Program `{0}` has more than one program instance" ),
+    E6000( "Program `{0}` has more than one Enrollment" ),
     E6001( "Program stage `{0}` has invalid next event scheduling property `{1}`" +
         "This property need to be data element of value type date and belong the program stage" ),
     E6002( "Class name {0} is not supported" ),

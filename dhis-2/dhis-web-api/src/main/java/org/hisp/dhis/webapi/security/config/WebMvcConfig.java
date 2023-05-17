@@ -102,12 +102,12 @@ public class WebMvcConfig extends DelegatingWebMvcConfiguration
         Pattern.compile( "/(\\d\\d/)?relationships(.xml)?(.+)?" ),
         Pattern.compile( "/(\\d\\d/)?enrollments(.xml)?(.+)?" ),
         Pattern.compile( "/(\\d\\d/)?events(.xml)?(.+)?" ),
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?" ),
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances(.xml)?(.+)?" ), // TODO(tracker): remove with old tracker
         Pattern.compile( "/(\\d\\d/)?dataValueSets(.xml)?(.+)?" ),
         Pattern.compile( "/(\\d\\d/)?completeDataSetRegistrations(.xml)?(.+)?" ) );
 
     public static final List<Pattern> CSV_PATTERNS = List.of(
-        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances.csv(.+)?" ) );
+        Pattern.compile( "/(\\d\\d/)?trackedEntityInstances.csv(.+)?" ) ); // TODO(tracker): remove with old tracker
 
     @Autowired
     public CurrentUserHandlerMethodArgumentResolver currentUserHandlerMethodArgumentResolver;

@@ -52,15 +52,14 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -367,12 +366,13 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.TRACKED_ENTITY, "uid" ) );
 
-        TrackedEntityInstance tei = new TrackedEntityInstance();
+        TrackedEntity tei = new TrackedEntity();
         tei.setUid( "uid" );
         preheat.putTrackedEntities( List.of( tei ) );
 
         assertTrue( preheat.exists( TrackerType.TRACKED_ENTITY, "uid" ) );
-        assertTrue( preheat.exists( TrackedEntity.builder().trackedEntity( "uid" ).build() ) );
+        assertTrue( preheat
+            .exists( org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder().trackedEntity( "uid" ).build() ) );
     }
 
     @Test
@@ -380,9 +380,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
 
-        ProgramInstance pi = new ProgramInstance();
-        pi.setUid( "uid" );
-        preheat.putEnrollments( List.of( pi ) );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( "uid" );
+        preheat.putEnrollments( List.of( enrollment ) );
 
         assertTrue( preheat.exists( TrackerType.ENROLLMENT, "uid" ) );
     }
@@ -392,9 +392,9 @@ class TrackerPreheatTest extends DhisConvenienceTest
     {
         assertFalse( preheat.exists( TrackerType.EVENT, "uid" ) );
 
-        ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setUid( "uid" );
-        preheat.putEvents( List.of( psi ) );
+        Event event = new Event();
+        event.setUid( "uid" );
+        preheat.putEvents( List.of( event ) );
 
         assertTrue( preheat.exists( TrackerType.EVENT, "uid" ) );
     }

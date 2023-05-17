@@ -39,10 +39,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
 import org.hisp.dhis.sms.command.code.SMSCode;
@@ -52,9 +52,9 @@ import org.hisp.dhis.sms.incoming.SmsMessageStatus;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
 import org.hisp.dhis.system.util.SmsUtils;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.CurrentUserService;
@@ -77,31 +77,27 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
 
     private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
-
-    private final ProgramInstanceService programInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
     private final ProgramService programService;
 
     public TrackedEntityRegistrationSMSListener( ProgramService programService,
-        ProgramInstanceService programInstanceService,
-        CategoryService dataElementCategoryService, ProgramStageInstanceService programStageInstanceService,
+        EnrollmentService enrollmentService,
+        CategoryService dataElementCategoryService, EventService eventService,
         UserService userService, CurrentUserService currentUserService, IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, SMSCommandService smsCommandService,
-        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityInstanceService trackedEntityInstanceService )
+        TrackedEntityTypeService trackedEntityTypeService, TrackedEntityService trackedEntityService )
     {
-        super( programInstanceService, dataElementCategoryService, programStageInstanceService, userService,
+        super( enrollmentService, dataElementCategoryService, eventService, userService,
             currentUserService, incomingSmsService, smsSender );
 
         checkNotNull( smsCommandService );
         checkNotNull( trackedEntityTypeService );
-        checkNotNull( trackedEntityInstanceService );
-        checkNotNull( programInstanceService );
+        checkNotNull( trackedEntityService );
 
         this.smsCommandService = smsCommandService;
         this.trackedEntityTypeService = trackedEntityTypeService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
+        this.trackedEntityService = trackedEntityService;
         this.programService = programService;
     }
 
@@ -129,22 +125,22 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
             throw new SMSParserException( SMSCommand.NO_OU_FOR_PROGRAM );
         }
 
-        TrackedEntityInstance trackedEntityInstance = new TrackedEntityInstance();
-        trackedEntityInstance.setOrganisationUnit( orgUnit );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityTypeService
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setOrganisationUnit( orgUnit );
+        trackedEntity.setTrackedEntityType( trackedEntityTypeService
             .getTrackedEntityByName( smsCommand.getProgram().getTrackedEntityType().getName() ) );
         Set<TrackedEntityAttributeValue> patientAttributeValues = new HashSet<>();
 
         smsCommand.getCodes().stream().filter( code -> parsedMessage.containsKey( code.getCode() ) ).forEach( code -> {
             TrackedEntityAttributeValue trackedEntityAttributeValue = this
-                .createTrackedEntityAttributeValue( parsedMessage, code, trackedEntityInstance );
+                .createTrackedEntityAttributeValue( parsedMessage, code, trackedEntity );
             patientAttributeValues.add( trackedEntityAttributeValue );
         } );
 
-        long trackedEntityInstanceId = 0;
+        long trackedEntityId = 0;
         if ( patientAttributeValues.size() > 0 )
         {
-            trackedEntityInstanceId = trackedEntityInstanceService.createTrackedEntityInstance( trackedEntityInstance,
+            trackedEntityId = trackedEntityService.createTrackedEntity( trackedEntity,
                 patientAttributeValues );
         }
         else
@@ -152,9 +148,9 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
             sendFeedback( "No TrackedEntityAttribute found", senderPhoneNumber, WARNING );
         }
 
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstanceId );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityId );
 
-        programInstanceService.enrollTrackedEntityInstance( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
+        enrollmentService.enrollTrackedEntity( tei, smsCommand.getProgram(), new Date(), date, orgUnit );
 
         sendFeedback( StringUtils.defaultIfBlank( smsCommand.getSuccessMessage(), SUCCESS_MESSAGE + tei.getUid() ),
             senderPhoneNumber, INFO );
@@ -170,14 +166,14 @@ public class TrackedEntityRegistrationSMSListener extends CommandSMSListener
     }
 
     private TrackedEntityAttributeValue createTrackedEntityAttributeValue( Map<String, String> parsedMessage,
-        SMSCode code, TrackedEntityInstance trackedEntityInstance )
+        SMSCode code, TrackedEntity trackedEntity )
     {
         String value = parsedMessage.get( code.getCode() );
         TrackedEntityAttribute trackedEntityAttribute = code.getTrackedEntityAttribute();
 
         TrackedEntityAttributeValue trackedEntityAttributeValue = new TrackedEntityAttributeValue();
         trackedEntityAttributeValue.setAttribute( trackedEntityAttribute );
-        trackedEntityAttributeValue.setEntityInstance( trackedEntityInstance );
+        trackedEntityAttributeValue.setTrackedEntity( trackedEntity );
         trackedEntityAttributeValue.setValue( value );
         return trackedEntityAttributeValue;
     }

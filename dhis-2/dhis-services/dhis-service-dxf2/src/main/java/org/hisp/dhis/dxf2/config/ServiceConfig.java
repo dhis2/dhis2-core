@@ -28,12 +28,12 @@
 package org.hisp.dhis.dxf2.config;
 
 import static com.google.common.collect.Lists.newArrayList;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_POST;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.DELETE_PRE;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_POST;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.INSERT_PRE;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_POST;
-import static org.hisp.dhis.dxf2.events.importer.EventProcessorPhase.UPDATE_PRE;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.DELETE_POST;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.DELETE_PRE;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.INSERT_POST;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.INSERT_PRE;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.UPDATE_POST;
+import static org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase.UPDATE_PRE;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE;
 import static org.hisp.dhis.importexport.ImportStrategy.CREATE_AND_UPDATE;
 import static org.hisp.dhis.importexport.ImportStrategy.DELETE;
@@ -48,51 +48,51 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.tuple.Pair;
-import org.hisp.dhis.dxf2.events.importer.Checker;
-import org.hisp.dhis.dxf2.events.importer.EventProcessorExecutor;
-import org.hisp.dhis.dxf2.events.importer.EventProcessorPhase;
-import org.hisp.dhis.dxf2.events.importer.ImportStrategyUtils;
-import org.hisp.dhis.dxf2.events.importer.Processor;
-import org.hisp.dhis.dxf2.events.importer.delete.postprocess.EventDeleteAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.postprocess.EventInsertAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.EventGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramInstancePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.ProgramStagePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.preprocess.UserInfoInsertPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.AttributeOptionComboAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.DataValueAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventCreationAclCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.EventDateCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.OrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramInstanceRepeatableStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramOrgUnitCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.ProgramStageCheck;
-import org.hisp.dhis.dxf2.events.importer.insert.validation.TrackedEntityInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.postprocess.EventFileResourcePostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.postprocess.ProgramNotificationPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.EventStoredByPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.ImportOptionsPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.preprocess.SharedEventStatusPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.AttributeOptionComboDateCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.DataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventBaseCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.EventGeometryCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.FilteredDataValueCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.ProgramInstanceCheck;
-import org.hisp.dhis.dxf2.events.importer.shared.validation.SharedProgramCheck;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.EventUpdateAuditPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.postprocess.PublishEventPostProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramInstanceGeometryPreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.preprocess.UserInfoUpdatePreProcessor;
-import org.hisp.dhis.dxf2.events.importer.update.validation.EventSimpleCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ExpirationDaysCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceAuthCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.ProgramStageInstanceBasicCheck;
-import org.hisp.dhis.dxf2.events.importer.update.validation.UpdateProgramStageInstanceAclCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorExecutor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.EventProcessorPhase;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.ImportStrategyUtils;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.Processor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.delete.postprocess.EventDeleteAuditPostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.delete.validation.DeleteProgramStageInstanceAclCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.postprocess.EventInsertAuditPostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess.EnrollmentPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess.EventGeometryPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess.ProgramStagePreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.preprocess.UserInfoInsertPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.AttributeOptionComboAclCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.DataValueAclCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.EnrollmentRepeatableStageCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.EventCreationAclCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.EventDateCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.OrgUnitCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.ProgramOrgUnitCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.ProgramStageCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.insert.validation.TrackedEntityInstanceCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.postprocess.EventFileResourcePostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.postprocess.ProgramNotificationPostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.preprocess.EventStoredByPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.preprocess.FilteringOutUndeclaredDataElementsProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.preprocess.ImportOptionsPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.preprocess.SharedEventStatusPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.AttributeOptionComboCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.AttributeOptionComboDateCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.DataValueCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.EnrollmentCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.EventBaseCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.EventGeometryCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.FilteredDataValueCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.validation.SharedProgramCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.postprocess.EventUpdateAuditPostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.postprocess.PublishEventPostProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.preprocess.EnrollmentGeometryPreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.preprocess.ProgramStageInstanceUpdatePreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.preprocess.UserInfoUpdatePreProcessor;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation.EventSimpleCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation.ExpirationDaysCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation.ProgramStageInstanceAuthCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation.ProgramStageInstanceBasicCheck;
+import org.hisp.dhis.dxf2.deprecated.tracker.importer.update.validation.UpdateProgramStageInstanceAclCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.CreationCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DashboardCheck;
 import org.hisp.dhis.dxf2.metadata.objectbundle.validation.DeletionCheck;
@@ -272,8 +272,8 @@ public class ServiceConfig
             getCheckerByClass( SharedProgramCheck.class ),
             getCheckerByClass( ProgramStageCheck.class ),
             getCheckerByClass( TrackedEntityInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
-            getCheckerByClass( ProgramInstanceRepeatableStageCheck.class ),
+            getCheckerByClass( EnrollmentCheck.class ),
+            getCheckerByClass( EnrollmentRepeatableStageCheck.class ),
             getCheckerByClass( ProgramOrgUnitCheck.class ),
             getCheckerByClass( EventGeometryCheck.class ),
             getCheckerByClass( EventCreationAclCheck.class ),
@@ -296,7 +296,7 @@ public class ServiceConfig
             getCheckerByClass( ProgramStageInstanceBasicCheck.class ),
             getCheckerByClass( UpdateProgramStageInstanceAclCheck.class ),
             getCheckerByClass( SharedProgramCheck.class ),
-            getCheckerByClass( ProgramInstanceCheck.class ),
+            getCheckerByClass( EnrollmentCheck.class ),
             getCheckerByClass( ProgramStageInstanceAuthCheck.class ),
             getCheckerByClass( AttributeOptionComboCheck.class ),
             getCheckerByClass( AttributeOptionComboDateCheck.class ),
@@ -369,7 +369,7 @@ public class ServiceConfig
                 getProcessorByClass( ImportOptionsPreProcessor.class ),
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
-                getProcessorByClass( ProgramInstancePreProcessor.class ),
+                getProcessorByClass( EnrollmentPreProcessor.class ),
                 getProcessorByClass( ProgramStagePreProcessor.class ),
                 getProcessorByClass( EventGeometryPreProcessor.class ),
                 getProcessorByClass( FilteringOutUndeclaredDataElementsProcessor.class ),
@@ -385,7 +385,7 @@ public class ServiceConfig
                 getProcessorByClass( EventStoredByPreProcessor.class ),
                 getProcessorByClass( SharedEventStatusPreProcessor.class ),
                 getProcessorByClass( ProgramStageInstanceUpdatePreProcessor.class ),
-                getProcessorByClass( ProgramInstanceGeometryPreProcessor.class ),
+                getProcessorByClass( EnrollmentGeometryPreProcessor.class ),
                 getProcessorByClass( UserInfoUpdatePreProcessor.class ) ),
             UPDATE_POST, newArrayList(
                 getProcessorByClass( PublishEventPostProcessor.class ),

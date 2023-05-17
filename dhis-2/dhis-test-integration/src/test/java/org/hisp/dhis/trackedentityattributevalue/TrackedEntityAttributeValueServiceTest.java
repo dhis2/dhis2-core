@@ -40,10 +40,10 @@ import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -57,7 +57,7 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     private TrackedEntityAttributeValueService attributeValueService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -74,13 +74,13 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
 
     private TrackedEntityAttribute attributeC;
 
-    private TrackedEntityInstance entityInstanceA;
+    private TrackedEntity entityInstanceA;
 
-    private TrackedEntityInstance entityInstanceB;
+    private TrackedEntity entityInstanceB;
 
-    private TrackedEntityInstance entityInstanceC;
+    private TrackedEntity entityInstanceC;
 
-    private TrackedEntityInstance entityInstanceD;
+    private TrackedEntity entityInstanceD;
 
     private TrackedEntityAttributeValue attributeValueA;
 
@@ -93,14 +93,14 @@ class TrackedEntityAttributeValueServiceTest extends TransactionalIntegrationTes
     {
         OrganisationUnit organisationUnit = createOrganisationUnit( 'A' );
         organisationUnitService.addOrganisationUnit( organisationUnit );
-        entityInstanceA = createTrackedEntityInstance( organisationUnit );
-        entityInstanceB = createTrackedEntityInstance( organisationUnit );
-        entityInstanceC = createTrackedEntityInstance( organisationUnit );
-        entityInstanceD = createTrackedEntityInstance( organisationUnit );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceC );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceD );
+        entityInstanceA = createTrackedEntity( organisationUnit );
+        entityInstanceB = createTrackedEntity( organisationUnit );
+        entityInstanceC = createTrackedEntity( organisationUnit );
+        entityInstanceD = createTrackedEntity( organisationUnit );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
+        entityInstanceService.addTrackedEntity( entityInstanceC );
+        entityInstanceService.addTrackedEntity( entityInstanceD );
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeB = createTrackedEntityAttribute( 'B' );
         attributeC = createTrackedEntityAttribute( 'C' );

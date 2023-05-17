@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.io.IOException;
 import java.util.HashSet;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.AtomicMode;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -57,7 +57,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class TrackedEntityImportValidationTest extends TrackerTest
 {
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -220,12 +220,12 @@ class TrackedEntityImportValidationTest extends TrackerTest
     }
 
     @Test
-    void testDeleteCascadeProgramInstances()
+    void testDeleteCascadeEnrollments()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
         assertNoErrors( trackerImportService.importTracker( params ) );
-        importProgramInstances();
+        importEnrollments();
         manager.flush();
         manager.clear();
         params = fromJson( "tracker/validations/enrollments_te_te-data.json" );
@@ -258,7 +258,7 @@ class TrackedEntityImportValidationTest extends TrackerTest
         assertEquals( 1, importReportDelete.getStats().getDeleted() );
     }
 
-    protected void importProgramInstances()
+    protected void importEnrollments()
         throws IOException
     {
         TrackerImportParams params = fromJson( "tracker/validations/enrollments_te_enrollments-data.json" );

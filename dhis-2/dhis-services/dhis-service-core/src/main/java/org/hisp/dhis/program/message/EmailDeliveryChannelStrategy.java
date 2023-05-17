@@ -33,7 +33,7 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -61,7 +61,7 @@ public class EmailDeliveryChannelStrategy
 
         OrganisationUnit orgUnit = getOrganisationUnit( message );
 
-        TrackedEntityInstance tei = getTrackedEntityInstance( message );
+        TrackedEntity tei = getTrackedEntity( message );
 
         if ( orgUnit != null )
         {
@@ -71,7 +71,7 @@ public class EmailDeliveryChannelStrategy
         if ( tei != null )
         {
             message.getRecipients().getEmailAddresses()
-                .add( getTrackedEntityInstanceRecipient( tei, ValueType.EMAIL ) );
+                .add( getTrackedEntityRecipient( tei, ValueType.EMAIL ) );
         }
 
         return message;
@@ -86,7 +86,7 @@ public class EmailDeliveryChannelStrategy
 
         if ( message.getDeliveryChannels().contains( DeliveryChannel.EMAIL ) )
         {
-            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntityInstance()
+            if ( !recipient.hasOrganisationUnit() && !recipient.hasTrackedEntity()
                 && recipient.getEmailAddresses().isEmpty() )
             {
                 violation = "No destination found for delivery channel " + DeliveryChannel.EMAIL;

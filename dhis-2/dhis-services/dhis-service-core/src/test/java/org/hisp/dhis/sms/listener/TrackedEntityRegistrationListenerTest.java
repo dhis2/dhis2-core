@@ -46,10 +46,10 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.command.SMSCommand;
 import org.hisp.dhis.sms.command.SMSCommandService;
@@ -58,9 +58,9 @@ import org.hisp.dhis.sms.incoming.IncomingSms;
 import org.hisp.dhis.sms.incoming.IncomingSmsService;
 import org.hisp.dhis.sms.parse.ParserType;
 import org.hisp.dhis.sms.parse.SMSParserException;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -92,13 +92,13 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private static final String SUCCESS_MESSAGE = "Command has been processed successfully";
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private CategoryService dataElementCategoryService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private UserService userService;
@@ -119,7 +119,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Mock
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Mock
     private ProgramService programService;
@@ -128,7 +128,7 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -157,11 +157,11 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @BeforeEach
     public void initTest()
     {
-        subject = new TrackedEntityRegistrationSMSListener( programService, programInstanceService,
+        subject = new TrackedEntityRegistrationSMSListener( programService, enrollmentService,
             dataElementCategoryService,
-            programStageInstanceService, userService, currentUserService, incomingSmsService, smsSender,
+            eventService, userService, currentUserService, incomingSmsService, smsSender,
             smsCommandService,
-            trackedEntityTypeService, trackedEntityInstanceService );
+            trackedEntityTypeService, trackedEntityService );
 
         setUpInstances();
 
@@ -185,9 +185,9 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
     @Test
     void testTeiRegistration()
     {
-        // Mock for trackedEntityInstanceService
-        when( trackedEntityInstanceService.createTrackedEntityInstance( any(), any() ) ).thenReturn( 1L );
-        when( trackedEntityInstanceService.getTrackedEntityInstance( anyLong() ) ).thenReturn( trackedEntityInstance );
+        // Mock for trackedEntityService
+        when( trackedEntityService.createTrackedEntity( any(), any() ) ).thenReturn( 1L );
+        when( trackedEntityService.getTrackedEntity( anyLong() ) ).thenReturn( trackedEntity );
         when( programService.hasOrgUnit( program, organisationUnit ) ).thenReturn( true );
 
         // Mock for incomingSmsService
@@ -234,11 +234,11 @@ class TrackedEntityRegistrationListenerTest extends DhisConvenienceTest
         program.getOrganisationUnits().add( organisationUnit );
         program.setTrackedEntityType( trackedEntityType );
 
-        trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
-        trackedEntityInstance.setOrganisationUnit( organisationUnit );
+        trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance,
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 

@@ -30,6 +30,7 @@ package org.hisp.dhis.predictor;
 import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.String.format;
 import static java.util.Collections.emptySet;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.hisp.dhis.common.OrganisationUnitDescendants.DESCENDANTS;
 import static org.hisp.dhis.expression.MissingValueStrategy.NEVER_SKIP;
 import static org.hisp.dhis.expression.ParseType.PREDICTOR_EXPRESSION;
@@ -37,6 +38,7 @@ import static org.hisp.dhis.expression.ParseType.PREDICTOR_SKIP_TEST;
 import static org.hisp.dhis.predictor.PredictionDataFilter.filter;
 import static org.hisp.dhis.predictor.PredictionFormatter.formatPrediction;
 import static org.hisp.dhis.scheduling.JobProgress.FailurePolicy.SKIP_ITEM_OUTLIER;
+import static org.hisp.dhis.util.DateUtils.addDays;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -47,10 +49,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.CheckForNull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataType;
@@ -81,7 +84,6 @@ import org.hisp.dhis.scheduling.JobProgress;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.hisp.quick.BatchHandlerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
@@ -132,9 +134,16 @@ public class DefaultPredictionService
     @Override
     public PredictionSummary predictJob( PredictorJobParameters params, JobProgress progress )
     {
-        Date startDate = DateUtils.addDays( new Date(), params.getRelativeStart() );
-        Date endDate = DateUtils.addDays( new Date(), params.getRelativeEnd() );
-
+        Date startDate = addDays( new Date(), params.getRelativeStart() );
+        Date endDate = addDays( new Date(), params.getRelativeEnd() );
+        if ( params.getStartDate() != null )
+        {
+            startDate = params.getStartDate();
+        }
+        if ( params.getEndDate() != null )
+        {
+            endDate = params.getEndDate();
+        }
         return predictTask( startDate, endDate, params.getPredictors(), params.getPredictorGroups(), progress );
     }
 
@@ -174,20 +183,21 @@ public class DefaultPredictionService
         return summary;
     }
 
-    private List<Predictor> fetchPredictors( List<String> predictors, List<String> predictorGroups )
+    private List<Predictor> fetchPredictors( @CheckForNull List<String> predictors,
+        @CheckForNull List<String> predictorGroups )
     {
-        if ( CollectionUtils.isEmpty( predictors ) && CollectionUtils.isEmpty( predictorGroups ) )
+        if ( isEmpty( predictors ) && isEmpty( predictorGroups ) )
         {
             return predictorService.getAllPredictors();
         }
 
         List<Predictor> predictorList = new ArrayList<>();
-        if ( !CollectionUtils.isEmpty( predictors ) )
+        if ( !isEmpty( predictors ) )
         {
             predictorList.addAll( idObjectManager.getByUid( Predictor.class, predictors ) );
         }
 
-        if ( !CollectionUtils.isEmpty( predictorGroups ) )
+        if ( !isEmpty( predictorGroups ) )
         {
             for ( PredictorGroup predictorGroup : idObjectManager.getByUid( PredictorGroup.class, predictorGroups ) )
             {
@@ -246,10 +256,11 @@ public class DefaultPredictionService
         ExpressionInfo exInfo = new ExpressionInfo();
         ExpressionParams baseExParams = getBaseExParams( predictor, exInfo );
         CategoryOptionCombo defaultCategoryOptionCombo = categoryService.getDefaultCategoryOptionCombo();
-        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, baseExParams.getItemMap().values() );
+        PredictionDisaggregator preDis = new PredictionDisaggregator( predictor, baseExParams.getItemMap().values(),
+            defaultCategoryOptionCombo );
         Set<DimensionalItemObject> items = preDis.getDisaggregatedItems();
         DataElementOperand outputDataElementOperand = new DataElementOperand( predictor.getOutput(),
-            predictor.getOutputCombo() );
+            preDis.getOutputCombo() );
 
         List<Period> outputPeriods = getPeriodsBetweenDates( predictor.getPeriodType(), startDate, endDate );
         Set<Period> existingOutputPeriods = getExistingPeriods( outputPeriods );
@@ -294,7 +305,7 @@ public class DefaultPredictionService
                 List<DataValue> predictions = new ArrayList<>();
 
                 List<PredictionContext> contexts = PredictionContextGenerator.getContexts(
-                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, predictor.getOutputCombo(), preDis );
+                    outputPeriods, data.getValues(), defaultCategoryOptionCombo, preDis );
 
                 for ( PredictionContext c : contexts )
                 {

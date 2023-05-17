@@ -36,6 +36,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,6 +51,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @AllArgsConstructor
 public class Enrollment
 {
+    @OpenApi.Property( { UID.class, Enrollment.class } )
     @JsonProperty
     private String enrollment;
 
@@ -64,6 +67,7 @@ public class Enrollment
     @JsonProperty
     private Instant updatedAtClient;
 
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     @JsonProperty
     private String trackedEntity;
 

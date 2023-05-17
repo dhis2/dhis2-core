@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.hisp.dhis.eventdatavalue.EventDataValue;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
@@ -45,23 +45,22 @@ public interface EventStore
     /**
      * Key: enrollment uid -> Value: Event
      *
-     * @param enrollmentsId a List of Program Instance Primary Keys
+     * @param enrollmentsId a List of Enrollment Primary Keys
      * @param ctx the {@see Context}
-     * @return A Map, where the key is a Program Instance Primary Key, and the
-     *         value is a List of {@see Event}
+     * @return A Map, where the key is a Enrollment Primary Key, and the value
+     *         is a List of {@see Event}
      */
-    Multimap<String, ProgramStageInstance> getEventsByEnrollmentIds( List<Long> enrollmentsId, Context ctx );
+    Multimap<String, Event> getEventsByEnrollmentIds( List<Long> enrollmentsId, Context ctx );
 
     /**
      *
      * Key: event uid -> Value: List<DataValue>
      *
-     * @param programStageInstanceId a List of Program Stage Instance Primary
-     *        Keys
-     * @return A Map, where the key is a Program Stage Instance Primary Key, and
-     *         the value is a List of {@see DataValue}
+     * @param eventIds a List of event primary keys
+     * @return A Map, where the key is an event primary key, and the value is a
+     *         List of {@see DataValue}
      */
-    Map<String, List<EventDataValue>> getDataValues( List<Long> programStageInstanceId );
+    Map<String, List<EventDataValue>> getDataValues( List<Long> eventIds );
 
     /**
      * Fetches all the relationships having the Program Stage Instance id

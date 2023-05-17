@@ -155,11 +155,7 @@
     <param name="clazz">org.hisp.dhis.program.UserInfoSnapshot</param>
   </typedef>
 
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SafeJsonBinaryType" name="jbProgramStageInstanceUserInfo">
-    <param name="clazz">org.hisp.dhis.program.ProgramStageInstanceUserInfo</param>
-  </typedef>
-
-  <typedef class="org.hisp.dhis.hibernate.jsonb.type.JsonBinaryType" name="jsbObjectSharing">
+  <typedef class="org.hisp.dhis.hibernate.jsonb.type.SharingJsonBinaryType" name="jsbObjectSharing">
     <param name="clazz">org.hisp.dhis.user.sharing.Sharing</param>
   </typedef>
 

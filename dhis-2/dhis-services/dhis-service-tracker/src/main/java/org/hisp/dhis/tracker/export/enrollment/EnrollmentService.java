@@ -27,14 +27,20 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
 
 public interface EnrollmentService
 {
-    ProgramInstance getEnrollment( String uid, EnrollmentParams params );
+    Enrollment getEnrollment( String uid, EnrollmentParams params )
+        throws NotFoundException,
+        ForbiddenException;
 
-    ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params );
+    Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params )
+        throws ForbiddenException;
 
-    Enrollments getEnrollments( ProgramInstanceQueryParams params );
+    Enrollments getEnrollments( EnrollmentQueryParams params )
+        throws ForbiddenException;
 }

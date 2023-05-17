@@ -38,14 +38,14 @@ import java.util.Map;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.User;
@@ -72,10 +72,10 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramService programService;
@@ -98,34 +98,34 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
 
         TrackedEntityType trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
+        trackedEntityService.addTrackedEntity( original );
+        trackedEntityService.addTrackedEntity( duplicate );
         Program program = createProgram( 'A' );
         Program program1 = createProgram( 'B' );
         programService.addProgram( program );
         programService.addProgram( program1 );
-        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
-        ProgramInstance programInstance2 = createProgramInstance( program1, duplicate, ou );
-        programInstanceService.addProgramInstance( programInstance1 );
-        programInstanceService.addProgramInstance( programInstance2 );
-        original.getProgramInstances().add( programInstance1 );
-        duplicate.getProgramInstances().add( programInstance2 );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
-        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
+        original.getEnrollments().add( enrollment1 );
+        duplicate.getEnrollments().add( enrollment2 );
+        trackedEntityService.updateTrackedEntity( original );
+        trackedEntityService.updateTrackedEntity( duplicate );
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
             .potentialDuplicate( potentialDuplicate ).original( original ).duplicate( duplicate ).build();
-        Date lastUpdatedOriginal = trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() )
+        Date lastUpdatedOriginal = trackedEntityService.getTrackedEntity( original.getUid() )
             .getLastUpdated();
         deduplicationService.autoMerge( deduplicationMergeParams );
         assertEquals( deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(),
             DeduplicationStatus.MERGED );
-        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() ).getLastUpdated()
+        assertTrue( trackedEntityService.getTrackedEntity( original.getUid() ).getLastUpdated()
             .getTime() > lastUpdatedOriginal.getTime() );
     }
 
@@ -143,38 +143,38 @@ class DeduplicationServiceMergeIntegrationTest extends IntegrationTestBase
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
         trackedEntityType.setSharing( sharing );
         trackedEntityTypeService.updateTrackedEntityType( trackedEntityType );
-        TrackedEntityInstance original = createTrackedEntityInstance( ou );
-        TrackedEntityInstance duplicate = createTrackedEntityInstance( ou );
+        TrackedEntity original = createTrackedEntity( ou );
+        TrackedEntity duplicate = createTrackedEntity( ou );
         original.setTrackedEntityType( trackedEntityType );
         duplicate.setTrackedEntityType( trackedEntityType );
-        trackedEntityInstanceService.addTrackedEntityInstance( original );
-        trackedEntityInstanceService.addTrackedEntityInstance( duplicate );
+        trackedEntityService.addTrackedEntity( original );
+        trackedEntityService.addTrackedEntity( duplicate );
         Program program = createProgram( 'A' );
         Program program1 = createProgram( 'B' );
         programService.addProgram( program );
         programService.addProgram( program1 );
         program.setSharing( sharing );
         program1.setSharing( sharing );
-        ProgramInstance programInstance1 = createProgramInstance( program, original, ou );
-        ProgramInstance programInstance2 = createProgramInstance( program1, duplicate, ou );
-        programInstanceService.addProgramInstance( programInstance1 );
-        programInstanceService.addProgramInstance( programInstance2 );
-        programInstanceService.updateProgramInstance( programInstance1 );
-        programInstanceService.updateProgramInstance( programInstance2 );
-        original.getProgramInstances().add( programInstance1 );
-        duplicate.getProgramInstances().add( programInstance2 );
-        trackedEntityInstanceService.updateTrackedEntityInstance( original );
-        trackedEntityInstanceService.updateTrackedEntityInstance( duplicate );
+        Enrollment enrollment1 = createEnrollment( program, original, ou );
+        Enrollment enrollment2 = createEnrollment( program1, duplicate, ou );
+        enrollmentService.addEnrollment( enrollment1 );
+        enrollmentService.addEnrollment( enrollment2 );
+        enrollmentService.updateEnrollment( enrollment1 );
+        enrollmentService.updateEnrollment( enrollment2 );
+        original.getEnrollments().add( enrollment1 );
+        duplicate.getEnrollments().add( enrollment2 );
+        trackedEntityService.updateTrackedEntity( original );
+        trackedEntityService.updateTrackedEntity( duplicate );
         PotentialDuplicate potentialDuplicate = new PotentialDuplicate( original.getUid(), duplicate.getUid() );
         deduplicationService.addPotentialDuplicate( potentialDuplicate );
         DeduplicationMergeParams deduplicationMergeParams = DeduplicationMergeParams.builder()
             .potentialDuplicate( potentialDuplicate ).original( original ).duplicate( duplicate ).build();
-        Date lastUpdatedOriginal = trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() )
+        Date lastUpdatedOriginal = trackedEntityService.getTrackedEntity( original.getUid() )
             .getLastUpdated();
         deduplicationService.autoMerge( deduplicationMergeParams );
         assertEquals( deduplicationService.getPotentialDuplicateByUid( potentialDuplicate.getUid() ).getStatus(),
             DeduplicationStatus.MERGED );
-        assertTrue( trackedEntityInstanceService.getTrackedEntityInstance( original.getUid() ).getLastUpdated()
+        assertTrue( trackedEntityService.getTrackedEntity( original.getUid() ).getLastUpdated()
             .getTime() > lastUpdatedOriginal.getTime() );
     }
 

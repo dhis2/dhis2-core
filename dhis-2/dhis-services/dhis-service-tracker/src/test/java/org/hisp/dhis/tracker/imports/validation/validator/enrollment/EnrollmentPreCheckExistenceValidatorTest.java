@@ -35,11 +35,10 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
@@ -84,7 +83,8 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationSuccessWhenIsCreateAndEnrollmentIsNotPresent()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( NOT_PRESENT_ENROLLMENT_UID )
             .build();
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.CREATE );
@@ -97,10 +97,12 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationSuccessWhenEnrollmentIsNotPresent()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( NOT_PRESENT_ENROLLMENT_UID )
             .build();
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -110,11 +112,13 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationSuccessWhenIsUpdate()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( ENROLLMENT_UID )
             .build();
         when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -124,11 +128,13 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationFailsWhenIsSoftDeleted()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( SOFT_DELETED_ENROLLMENT_UID )
             .build();
         when( preheat.getEnrollment( SOFT_DELETED_ENROLLMENT_UID ) ).thenReturn( getSoftDeletedEnrollment() );
-        when( bundle.getStrategy( any( Enrollment.class ) ) ).thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
+        when( bundle.getStrategy( any( org.hisp.dhis.tracker.imports.domain.Enrollment.class ) ) )
+            .thenReturn( TrackerImportStrategy.CREATE_AND_UPDATE );
 
         validator.validate( reporter, bundle, enrollment );
 
@@ -138,7 +144,8 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationFailsWhenIsCreateAndEnrollmentIsAlreadyPresent()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( ENROLLMENT_UID )
             .build();
         when( preheat.getEnrollment( ENROLLMENT_UID ) ).thenReturn( getEnrollment() );
@@ -152,7 +159,8 @@ class EnrollmentPreCheckExistenceValidatorTest
     @Test
     void verifyEnrollmentValidationFailsWhenIsUpdateAndEnrollmentIsNotPresent()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( NOT_PRESENT_ENROLLMENT_UID )
             .build();
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
@@ -162,19 +170,19 @@ class EnrollmentPreCheckExistenceValidatorTest
         assertHasError( reporter, enrollment, E1081 );
     }
 
-    private ProgramInstance getSoftDeletedEnrollment()
+    private Enrollment getSoftDeletedEnrollment()
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( SOFT_DELETED_ENROLLMENT_UID );
-        programInstance.setDeleted( true );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( SOFT_DELETED_ENROLLMENT_UID );
+        enrollment.setDeleted( true );
+        return enrollment;
     }
 
-    private ProgramInstance getEnrollment()
+    private Enrollment getEnrollment()
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( ENROLLMENT_UID );
-        programInstance.setDeleted( false );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( ENROLLMENT_UID );
+        enrollment.setDeleted( false );
+        return enrollment;
     }
 }

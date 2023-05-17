@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -57,7 +57,7 @@ public class ProgramOwnershipHistory implements Serializable
 
     private String createdBy;
 
-    private TrackedEntityInstance entityInstance;
+    private TrackedEntity trackedEntity;
 
     private OrganisationUnit organisationUnit;
 
@@ -69,7 +69,7 @@ public class ProgramOwnershipHistory implements Serializable
     {
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+    public ProgramOwnershipHistory( Program program, TrackedEntity trackedEntity,
         OrganisationUnit organisationUnit, Date startDate,
         String createdBy )
     {
@@ -77,11 +77,11 @@ public class ProgramOwnershipHistory implements Serializable
         this.startDate = startDate;
         this.createdBy = createdBy;
         this.endDate = new Date();
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
         this.organisationUnit = organisationUnit;
     }
 
-    public ProgramOwnershipHistory( Program program, TrackedEntityInstance entityInstance,
+    public ProgramOwnershipHistory( Program program, TrackedEntity trackedEntity,
         OrganisationUnit organisationUnit, Date startDate, Date endDate,
         String createdBy )
     {
@@ -89,14 +89,14 @@ public class ProgramOwnershipHistory implements Serializable
         this.startDate = startDate;
         this.createdBy = createdBy;
         this.endDate = endDate;
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
         this.organisationUnit = organisationUnit;
     }
 
     @Override
     public int hashCode()
     {
-        return Objects.hash( program, entityInstance, startDate, createdBy, endDate );
+        return Objects.hash( program, trackedEntity, startDate, createdBy, endDate );
     }
 
     @Override
@@ -116,7 +116,7 @@ public class ProgramOwnershipHistory implements Serializable
 
         return Objects.equals( this.program, other.program ) && Objects.equals( this.startDate, other.startDate )
             && Objects.equals( this.createdBy, other.createdBy ) && Objects.equals( this.endDate, other.endDate )
-            && Objects.equals( this.entityInstance, other.entityInstance );
+            && Objects.equals( this.trackedEntity, other.trackedEntity );
     }
 
     // -------------------------------------------------------------------------
@@ -147,14 +147,14 @@ public class ProgramOwnershipHistory implements Serializable
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public TrackedEntityInstance getEntityInstance()
+    public TrackedEntity getTrackedEntity()
     {
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public void setEntityInstance( TrackedEntityInstance entityInstance )
+    public void setTrackedEntity( TrackedEntity trackedEntity )
     {
-        this.entityInstance = entityInstance;
+        this.trackedEntity = trackedEntity;
     }
 
     @JsonProperty

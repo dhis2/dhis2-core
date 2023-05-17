@@ -44,20 +44,19 @@ import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -143,9 +142,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifyValidationSuccessForEnrollmentWhenProgramInstanceHasNoOrgUnitAssigned()
+    void verifyValidationSuccessForEnrollmentWhenEnrollmentHasNoOrgUnitAssigned()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -155,11 +155,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.UPDATE );
 
-        ProgramInstance programInstance = getEnrollment( enrollment.getEnrollment() );
-        programInstance.setOrganisationUnit( null );
+        Enrollment preheatEnrollment = getEnrollment( enrollment.getEnrollment() );
+        preheatEnrollment.setOrganisationUnit( null );
 
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
-            .thenReturn( programInstance );
+            .thenReturn( preheatEnrollment );
         when( aclService.canDataWrite( user, program ) ).thenReturn( true );
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
 
@@ -179,7 +179,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForEnrollment()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -200,7 +201,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyCaptureScopeIsCheckedForEnrollmentCreation()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -225,7 +227,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyCaptureScopeIsCheckedForEnrollmentDeletion()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -251,7 +254,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -274,7 +278,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForEnrollmentWithoutEventsUsingDeleteStrategy()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -283,7 +288,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -299,7 +304,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForEnrollmentUsingDeleteStrategyAndUserWithCascadeAuthority()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -309,7 +315,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
         when( bundle.getUser() ).thenReturn( deleteEnrollmentAuthorisedUser() );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
@@ -326,7 +332,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForEnrollmentWithoutEventsUsingDeleteStrategyAndUserNotInOrgUnitHierarchy()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -335,7 +342,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() ).thenReturn( Collections.emptyList() );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -351,7 +358,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForEnrollmentUsingDeleteStrategyAndUserWithoutCascadeAuthority()
     {
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -360,7 +368,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( enrollment ) ).thenReturn( TrackerImportStrategy.DELETE );
-        when( preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent() )
+        when( preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent() )
             .thenReturn( Collections.singletonList( enrollment.getEnrollment() ) );
         when( preheat.getEnrollment( enrollment.getEnrollment() ) )
             .thenReturn( getEnrollment( enrollment.getEnrollment() ) );
@@ -378,7 +386,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationFailsForEnrollmentDeletionAndUserWithoutProgramWriteAccess()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -403,7 +412,8 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationFailsForEnrollmentDeletionAndUserWithoutTrackedEntityTypeReadAccess()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Enrollment enrollment = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .trackedEntity( TEI_ID )
@@ -424,29 +434,29 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertHasError( reporter, enrollment, E1104 );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntity getTEIWithNoEnrollments()
     {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet() );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    private ProgramInstance getEnrollment( String enrollmentUid )
+    private Enrollment getEnrollment( String enrollmentUid )
     {
         if ( StringUtils.isEmpty( enrollmentUid ) )
         {
             enrollmentUid = CodeGenerator.generateUid();
         }
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( enrollmentUid );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEntityInstance( getTEIWithNoProgramInstances() );
-        programInstance.setProgram( program );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( enrollmentUid );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setTrackedEntity( getTEIWithNoEnrollments() );
+        enrollment.setProgram( program );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        return enrollment;
     }
 
     private User deleteEnrollmentAuthorisedUser()

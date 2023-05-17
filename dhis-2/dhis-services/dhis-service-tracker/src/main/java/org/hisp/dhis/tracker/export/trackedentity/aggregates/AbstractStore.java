@@ -158,15 +158,15 @@ abstract class AbstractStore
 
     protected String applySortOrder( String sql, String sortOrderIds )
     {
-        String trackedentityinstanceid = "trackedentityinstanceid";
+        String trackedentityid = "trackedentityinstanceid";
         return "select * from (" +
             sql +
             ") as t JOIN unnest('{" +
             sortOrderIds +
             "}'::bigint[]) WITH ORDINALITY s(" +
-            trackedentityinstanceid +
+            trackedentityid +
             ", sortorder) USING (" +
-            trackedentityinstanceid +
+            trackedentityid +
             ")ORDER  BY s.sortorder";
     }
 

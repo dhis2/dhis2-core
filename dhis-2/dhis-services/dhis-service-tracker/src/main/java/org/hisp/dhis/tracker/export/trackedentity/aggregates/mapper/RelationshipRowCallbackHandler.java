@@ -33,12 +33,12 @@ import java.sql.SQLException;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Luciano Fiandesio
@@ -69,17 +69,17 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
 
     private String extractUid( RelationshipItem relationshipItem )
     {
-        if ( relationshipItem.getTrackedEntityInstance() != null )
+        if ( relationshipItem.getTrackedEntity() != null )
         {
-            return relationshipItem.getTrackedEntityInstance().getUid();
+            return relationshipItem.getTrackedEntity().getUid();
         }
-        else if ( relationshipItem.getProgramInstance() != null )
+        else if ( relationshipItem.getEnrollment() != null )
         {
-            return relationshipItem.getProgramInstance().getUid();
+            return relationshipItem.getEnrollment().getUid();
         }
-        else if ( relationshipItem.getProgramStageInstance() != null )
+        else if ( relationshipItem.getEvent() != null )
         {
-            return relationshipItem.getProgramStageInstance().getUid();
+            return relationshipItem.getEvent().getUid();
         }
         throw new IllegalStateException( "RelationshipItem must have one of trackedEntity, enrollment or event set" );
     }
@@ -111,11 +111,11 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
     /**
      * The SQL query that generates the ResultSet used by this
      * {@see RowCallbackHandler} fetches both sides of a relationship: since
-     * each side can be a Tracked Entity Instance, a Program Instance or a
-     * Program Stage Instance, the query adds a "hint" to the final result to
-     * help this Handler to correctly associate the type to the left or right
-     * side of the relationship. The "typeWithUid" variable contains the UID of
-     * the object and a string representing the type. E.g.
+     * each side can be a Tracked Entity Instance, a Enrollment or a Program
+     * Stage Instance, the query adds a "hint" to the final result to help this
+     * Handler to correctly associate the type to the left or right side of the
+     * relationship. The "typeWithUid" variable contains the UID of the object
+     * and a string representing the type. E.g.
      *
      * tei|dj3382832 psi|332983893
      *
@@ -141,19 +141,19 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<RelationshipI
         switch ( type )
         {
         case "tei":
-            TrackedEntityInstance tei = new TrackedEntityInstance();
+            TrackedEntity tei = new TrackedEntity();
             tei.setUid( uid );
-            ri.setTrackedEntityInstance( tei );
+            ri.setTrackedEntity( tei );
             break;
         case "pi":
-            ProgramInstance pi = new ProgramInstance();
-            pi.setUid( uid );
-            ri.setProgramInstance( pi );
+            Enrollment enrollment = new Enrollment();
+            enrollment.setUid( uid );
+            ri.setEnrollment( enrollment );
             break;
         case "psi":
-            ProgramStageInstance psi = new ProgramStageInstance();
-            psi.setUid( uid );
-            ri.setProgramStageInstance( psi );
+            Event event = new Event();
+            event.setUid( uid );
+            ri.setEvent( event );
             break;
         default:
             log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );

@@ -333,9 +333,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
         // Do not allow changing UIDs
         ((BaseIdentifiableObject) patchedObject).setUid( persistedObject.getUid() );
 
-        // Only support new sharing format
-        ((BaseIdentifiableObject) patchedObject).clearLegacySharingCollections();
-
         prePatchEntity( persistedObject, patchedObject );
 
         Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();

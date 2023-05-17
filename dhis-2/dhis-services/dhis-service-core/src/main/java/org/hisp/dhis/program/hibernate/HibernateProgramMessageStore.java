@@ -108,14 +108,14 @@ public class HibernateProgramMessageStore
 
         String hql = " select distinct pm from ProgramMessage pm ";
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
-            hql += helper.whereAnd() + "pm.programInstance = :programInstance";
+            hql += helper.whereAnd() + "pm.enrollment = :enrollment";
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            hql += helper.whereAnd() + "pm.programStageInstance = :programStageInstance";
+            hql += helper.whereAnd() + "pm.event = :event";
         }
 
         hql += params.getMessageStatus() != null
@@ -130,14 +130,14 @@ public class HibernateProgramMessageStore
 
         Query<ProgramMessage> query = getQuery( hql );
 
-        if ( params.hasProgramInstance() )
+        if ( params.hasEnrollment() )
         {
-            query.setParameter( "programInstance", params.getProgramInstance() );
+            query.setParameter( "enrollment", params.getEnrollment() );
         }
 
-        if ( params.hasProgramStageInstance() )
+        if ( params.hasEvent() )
         {
-            query.setParameter( "programStageInstance", params.getProgramStageInstance() );
+            query.setParameter( "event", params.getEvent() );
         }
 
         if ( params.getMessageStatus() != null )

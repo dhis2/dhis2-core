@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudit;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAuditQueryParams;
@@ -83,11 +83,11 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         assertNoErrors(
             trackerImportService.importTracker( fromJson( "tracker/te_program_with_tea_data.json" ) ) );
 
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
-        assertEquals( 1, trackedEntityInstances.size() );
-        TrackedEntityInstance trackedEntityInstance = trackedEntityInstances.get( 0 );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
+        assertEquals( 1, trackedEntities.size() );
+        TrackedEntity trackedEntity = trackedEntities.get( 0 );
         List<TrackedEntityAttributeValue> attributeValues = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( trackedEntityInstance );
+            .getTrackedEntityAttributeValues( trackedEntity );
         assertEquals( 5, attributeValues.size() );
 
         List<TrackedEntityAttribute> attributes = attributeValues.stream()
@@ -95,7 +95,7 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes )
-                .setTrackedEntityInstances( trackedEntityInstances )
+                .setTrackedEntities( trackedEntities )
                 .setAuditTypes( List.of( AuditType.CREATE ) ) );
         assertEquals( 5, attributeValueAudits.size() );
     }
@@ -109,25 +109,25 @@ class TrackedEntityAttributeValueAuditTest extends TrackerTest
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
         List<TrackedEntityAttributeValue> attributeValues1 = trackedEntityAttributeValueService
-            .getTrackedEntityAttributeValues( manager.getAll( TrackedEntityInstance.class ).get( 0 ) );
+            .getTrackedEntityAttributeValues( manager.getAll( TrackedEntity.class ).get( 0 ) );
         List<TrackedEntityAttribute> attributes1 = attributeValues1.stream()
             .map( TrackedEntityAttributeValue::getAttribute ).collect( Collectors.toList() );
         trackerImportParams = fromJson( "tracker/te_program_with_tea_null_data.json" );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE_AND_UPDATE );
         importReport = trackerImportService.importTracker( trackerImportParams );
         assertNoErrors( importReport );
-        List<TrackedEntityInstance> trackedEntityInstances = manager.getAll( TrackedEntityInstance.class );
+        List<TrackedEntity> trackedEntities = manager.getAll( TrackedEntity.class );
         List<TrackedEntityAttributeValueAudit> attributeValueAudits = attributeValueAuditService
             .getTrackedEntityAttributeValueAudits( new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes1 )
-                .setTrackedEntityInstances( trackedEntityInstances )
+                .setTrackedEntities( trackedEntities )
                 .setAuditTypes( List.of( AuditType.DELETE ) ) );
         assertEquals( 1, attributeValueAudits.size() );
 
         attributeValueAudits = attributeValueAuditService.getTrackedEntityAttributeValueAudits(
             new TrackedEntityAttributeValueAuditQueryParams()
                 .setTrackedEntityAttributes( attributes1 )
-                .setTrackedEntityInstances( trackedEntityInstances )
+                .setTrackedEntities( trackedEntities )
                 .setAuditTypes( List.of( AuditType.UPDATE ) ) );
         assertEquals( 1, attributeValueAudits.size() );
     }

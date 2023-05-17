@@ -32,30 +32,34 @@ import java.util.Optional;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 public interface RelationshipService
 {
-    List<Relationship> getRelationshipsByTrackedEntityInstance( TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter criteria )
-        throws ForbiddenException,
-        NotFoundException;
-
-    List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter criteria )
-        throws ForbiddenException,
-        NotFoundException;
-
-    List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+    Relationship getRelationship( String id )
         throws ForbiddenException,
         NotFoundException;
 
     Optional<Relationship> findRelationshipByUid( String id )
+        throws ForbiddenException,
+        NotFoundException;
+
+    List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
+        PagingAndSortingCriteriaAdapter criteria )
+        throws ForbiddenException,
+        NotFoundException;
+
+    List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
+        PagingAndSortingCriteriaAdapter criteria )
+        throws ForbiddenException,
+        NotFoundException;
+
+    List<Relationship> getRelationshipsByEvent( Event event,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
         throws ForbiddenException,
         NotFoundException;
 }

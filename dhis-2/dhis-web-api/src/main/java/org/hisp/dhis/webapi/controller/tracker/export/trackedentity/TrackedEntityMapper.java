@@ -27,14 +27,13 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.ProgramOwnerMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.UserMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.enrollment.EnrollmentMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.relationship.RelationshipMapper;
 import org.hisp.dhis.webapi.controller.tracker.view.InstantMapper;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -46,7 +45,8 @@ import org.mapstruct.Mapping;
     ProgramOwnerMapper.class,
     RelationshipMapper.class,
     UserMapper.class } )
-interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedEntity>
+interface TrackedEntityMapper
+    extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity>
 {
     @Mapping( target = "trackedEntity", source = "uid" )
     @Mapping( target = "trackedEntityType", source = "trackedEntityType.uid" )
@@ -59,7 +59,6 @@ interface TrackedEntityMapper extends ViewMapper<TrackedEntityInstance, TrackedE
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "relationships", source = "relationshipItems" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    @Mapping( target = "enrollments", source = "programInstances" )
     @Override
-    TrackedEntity from( TrackedEntityInstance trackedEntityInstance );
+    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from( TrackedEntity trackedEntity );
 }

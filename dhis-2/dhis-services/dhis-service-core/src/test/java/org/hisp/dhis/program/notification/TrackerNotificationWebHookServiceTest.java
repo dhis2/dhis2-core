@@ -47,16 +47,16 @@ import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -100,9 +100,9 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
 
     private ProgramStage programStageA;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private ProgramNotificationTemplate programNotification;
 
@@ -111,10 +111,10 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     private ResponseEntity<String> responseEntity;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Mock
     private ProgramNotificationTemplateService templateService;
@@ -137,34 +137,34 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         programA = createProgram( 'A', new HashSet<>(), organisationUnitA );
         programTrackedEntityAttribute = createProgramTrackedEntityAttribute( programA, trackedEntityAttribute );
         programA.getProgramAttributes().add( programTrackedEntityAttribute );
-        TrackedEntityInstance tei = createTrackedEntityInstance( organisationUnitA );
+        TrackedEntity tei = createTrackedEntity( organisationUnitA );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'I', tei, trackedEntityAttribute );
         tei.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
 
         programStageA = createProgramStage( 'A', programA );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( programA );
-        programInstance.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
-        programInstance.setEntityInstance( tei );
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
+        enrollment.setProgram( programA );
+        enrollment.setOrganisationUnit( organisationUnitA );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
+        enrollment.setTrackedEntity( tei );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
-        programStageInstance.setProgramStage( programStageA );
-        programStageInstance.setOrganisationUnit( organisationUnitA );
-        programInstance.setEnrollmentDate( new Date() );
-        programStageInstance.setExecutionDate( new Date() );
-        programStageInstance.setDueDate( new Date() );
-        programStageInstance.setProgramInstance( programInstance );
+        event = new Event();
+        event.setAutoFields();
+        event.setProgramStage( programStageA );
+        event.setOrganisationUnit( organisationUnitA );
+        enrollment.setEnrollmentDate( new Date() );
+        event.setExecutionDate( new Date() );
+        event.setDueDate( new Date() );
+        event.setEnrollment( enrollment );
 
         dataValue = new EventDataValue();
         dataValue.setValue( "dataValue123" );
         dataValue.setDataElement( dataElement.getUid() );
         dataValue.setAutoFields();
-        programStageInstance.getEventDataValues().add( dataValue );
+        event.getEventDataValues().add( dataValue );
 
         programNotification = new ProgramNotificationTemplate();
         programNotification.setNotificationRecipient( ProgramNotificationRecipient.WEB_HOOK );
@@ -187,7 +187,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEnrollmentNotificationWebHook()
     {
-        when( programInstanceService.getProgramInstance( anyString() ) ).thenReturn( programInstance );
+        when( enrollmentService.getEnrollment( anyString() ) ).thenReturn( enrollment );
         when( templateService.isProgramLinkedToWebHookNotification( any( Program.class ) ) ).thenReturn( true );
         when( templateService.getProgramLinkedToWebHookNotifications( any( Program.class ) ) )
             .thenReturn( Lists.newArrayList( programNotification ) );
@@ -200,7 +200,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
         ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
-        subject.handleEnrollment( programInstance.getUid() );
+        subject.handleEnrollment( enrollment.getUid() );
 
         verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
         verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),
@@ -218,7 +218,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
     @Test
     void testTrackerEventNotificationWebHook()
     {
-        when( programStageInstanceService.getProgramStageInstance( anyString() ) ).thenReturn( programStageInstance );
+        when( eventService.getEvent( anyString() ) ).thenReturn( event );
         when( templateService.isProgramStageLinkedToWebHookNotification( any( ProgramStage.class ) ) )
             .thenReturn( true );
         when( templateService.getProgramStageLinkedToWebHookNotifications( any( ProgramStage.class ) ) )
@@ -232,7 +232,7 @@ class TrackerNotificationWebHookServiceTest extends DhisConvenienceTest
         ArgumentCaptor<HttpEntity<?>> httpEntityCaptor = ArgumentCaptor.forClass( HttpEntity.class );
         ArgumentCaptor<Map<?, ?>> bodyCaptor = ArgumentCaptor.forClass( Map.class );
 
-        subject.handleEvent( programStageInstance.getUid() );
+        subject.handleEvent( event.getUid() );
 
         verify( renderService, times( 1 ) ).toJsonAsString( bodyCaptor.capture() );
         verify( restTemplate, times( 1 ) ).exchange( urlCaptor.capture(),

@@ -33,25 +33,20 @@ import static org.hisp.dhis.scheduling.JobType.PREDICTOR;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
-
 import lombok.AllArgsConstructor;
 
-import org.hisp.dhis.common.AsyncTaskExecutor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.feedback.Status;
-import org.hisp.dhis.message.MessageService;
 import org.hisp.dhis.predictor.PredictionService;
 import org.hisp.dhis.predictor.PredictionSummary;
-import org.hisp.dhis.predictor.PredictionTask;
-import org.hisp.dhis.scheduling.ControlledJobProgress;
 import org.hisp.dhis.scheduling.JobConfiguration;
-import org.hisp.dhis.scheduling.JobProgress;
-import org.hisp.dhis.scheduling.NotifierJobProgress;
-import org.hisp.dhis.system.notification.Notifier;
-import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.scheduling.NoopJobProgress;
+import org.hisp.dhis.scheduling.SchedulingManager;
+import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
+import org.hisp.dhis.user.CurrentUser;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -66,22 +61,14 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @OpenApi.Tags( "analytics" )
 @Controller
-@RequestMapping( value = PredictionController.RESOURCE_PATH )
+@RequestMapping( value = "/predictions" )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @AllArgsConstructor
 public class PredictionController
 {
-    public static final String RESOURCE_PATH = "/predictions";
-
-    private final CurrentUserService currentUserService;
-
-    private final AsyncTaskExecutor taskExecutor;
-
     private final PredictionService predictionService;
 
-    private final Notifier notifier;
-
-    private final MessageService messageService;
+    private final SchedulingManager schedulingManager;
 
     @RequestMapping( method = { RequestMethod.POST, RequestMethod.PUT } )
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PREDICTOR_RUN')" )
@@ -92,23 +79,28 @@ public class PredictionController
         @RequestParam( value = "predictor", required = false ) List<String> predictors,
         @RequestParam( value = "predictorGroup", required = false ) List<String> predictorGroups,
         @RequestParam( defaultValue = "false", required = false ) boolean async,
-        HttpServletRequest request )
+        @CurrentUser User currentUser )
     {
-        JobConfiguration jobId = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
-            currentUserService.getCurrentUser().getUid(), true );
 
-        JobProgress progress = new ControlledJobProgress( messageService, jobId,
-            new NotifierJobProgress( notifier, jobId ), true );
         if ( async )
         {
-            taskExecutor.executeTask(
-                new PredictionTask( startDate, endDate, predictors, predictorGroups, predictionService, progress ) );
+            JobConfiguration prediction = new JobConfiguration( "inMemoryPrediction", PREDICTOR,
+                currentUser.getUid(), true );
+            PredictorJobParameters params = PredictorJobParameters.builder()
+                .startDate( startDate )
+                .endDate( endDate )
+                .predictors( predictors )
+                .predictorGroups( predictorGroups )
+                .build();
+            prediction.setJobParameters( params );
 
-            return jobConfigurationReport( jobId )
+            schedulingManager.executeNow( prediction );
+
+            return jobConfigurationReport( prediction )
                 .setLocation( "/system/tasks/" + PREDICTOR );
         }
         PredictionSummary predictionSummary = predictionService.predictTask( startDate, endDate, predictors,
-            predictorGroups, progress );
+            predictorGroups, NoopJobProgress.INSTANCE );
 
         return new WebMessage( Status.OK, HttpStatus.OK )
             .setResponse( predictionSummary )

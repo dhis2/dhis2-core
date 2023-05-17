@@ -41,17 +41,15 @@ import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -90,9 +88,9 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
 
     private TrackedEntityAttribute uniqueAttribute;
 
-    private TrackedEntityInstance tei;
+    private TrackedEntity tei;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private TrackedEntityAttributeValue trackedEntityAttributeValue;
 
@@ -106,11 +104,11 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
         Program program = createProgram( 'A' );
         Attribute attribute = createAttribute( 'A' );
         AttributeValue attributeValue = createAttributeValue( attribute, UNIQUE_VALUE );
-        tei = createTrackedEntityInstance( 'A', orgUnit );
+        tei = createTrackedEntity( 'A', orgUnit );
         tei.setUid( TEI_UID );
         tei.setAttributeValues( Collections.singleton( attributeValue ) );
-        programInstance = createProgramInstance( program, tei, orgUnit );
-        programInstance.setAttributeValues( Collections.singleton( attributeValue ) );
+        enrollment = createEnrollment( program, tei, orgUnit );
+        enrollment.setAttributeValues( Collections.singleton( attributeValue ) );
         trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', tei, uniqueAttribute );
     }
 
@@ -208,35 +206,35 @@ class UniqueAttributeSupplierTest extends DhisConvenienceTest
         assertThat( preheat.getUniqueAttributeValues().get( 0 ).getTeiUid(), is( TEI_UID ) );
     }
 
-    private List<TrackedEntity> sameUniqueAttributeTrackedEntities()
+    private List<org.hisp.dhis.tracker.imports.domain.TrackedEntity> sameUniqueAttributeTrackedEntities()
     {
         return Lists.newArrayList( trackedEntity(),
-            TrackedEntity.builder()
+            org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
                 .trackedEntity( ANOTHER_TEI_UID )
                 .attributes( Collections.singletonList( uniqueAttribute() ) ).build() );
     }
 
-    private TrackedEntity trackedEntity()
+    private org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity()
     {
 
-        return TrackedEntity.builder()
+        return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity( TEI_UID )
             .attributes( Collections.singletonList( uniqueAttribute() ) )
             .build();
     }
 
-    private TrackedEntity anotherTrackedEntity()
+    private org.hisp.dhis.tracker.imports.domain.TrackedEntity anotherTrackedEntity()
     {
 
-        return TrackedEntity.builder()
+        return org.hisp.dhis.tracker.imports.domain.TrackedEntity.builder()
             .trackedEntity( ANOTHER_TEI_UID )
             .attributes( Collections.singletonList( uniqueAttribute() ) )
             .build();
     }
 
-    private Enrollment enrollment( String teiUid )
+    private org.hisp.dhis.tracker.imports.domain.Enrollment enrollment( String teiUid )
     {
-        return Enrollment.builder()
+        return org.hisp.dhis.tracker.imports.domain.Enrollment.builder()
             .trackedEntity( teiUid )
             .enrollment( "ENROLLMENT" )
             .attributes( Collections.singletonList( uniqueAttribute() ) )

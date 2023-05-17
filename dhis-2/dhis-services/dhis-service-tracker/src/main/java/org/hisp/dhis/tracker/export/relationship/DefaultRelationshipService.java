@@ -36,12 +36,12 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.relationship.RelationshipType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
@@ -73,48 +73,25 @@ public class DefaultRelationshipService implements RelationshipService
     private final EventService eventService;
 
     @Override
-    public List<Relationship> getRelationshipsByTrackedEntityInstance(
-        TrackedEntityInstance tei,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+    public Relationship getRelationship( String uid )
         throws ForbiddenException,
         NotFoundException
     {
+        Relationship relationship = relationshipStore.getByUid( uid );
 
-        List<Relationship> relationships = relationshipStore
-            .getByTrackedEntityInstance( tei, pagingAndSortingCriteriaAdapter )
-            .stream()
-            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
-            .collect( Collectors.toList() );
-        return map( relationships );
-    }
+        if ( relationship == null )
+        {
+            throw new NotFoundException( Relationship.class, uid );
+        }
 
-    @Override
-    public List<Relationship> getRelationshipsByProgramInstance( ProgramInstance pi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
-        throws ForbiddenException,
-        NotFoundException
-    {
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, relationship );
+        if ( !errors.isEmpty() )
+        {
+            throw new ForbiddenException( errors.toString() );
+        }
 
-        List<Relationship> relationships = relationshipStore
-            .getByProgramInstance( pi, pagingAndSortingCriteriaAdapter ).stream()
-            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
-            .collect( Collectors.toList() );
-        return map( relationships );
-    }
-
-    @Override
-    public List<Relationship> getRelationshipsByProgramStageInstance( ProgramStageInstance psi,
-        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
-        throws ForbiddenException,
-        NotFoundException
-    {
-
-        List<Relationship> relationships = relationshipStore
-            .getByProgramStageInstance( psi, pagingAndSortingCriteriaAdapter )
-            .stream()
-            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
-            .collect( Collectors.toList() );
-        return map( relationships );
+        return map( relationship );
     }
 
     @Override
@@ -138,6 +115,50 @@ public class DefaultRelationshipService implements RelationshipService
         }
 
         return Optional.of( map( relationship ) );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByTrackedEntity(
+        TrackedEntity trackedEntity,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+        throws ForbiddenException,
+        NotFoundException
+    {
+
+        List<Relationship> relationships = relationshipStore
+            .getByTrackedEntity( trackedEntity, pagingAndSortingCriteriaAdapter )
+            .stream()
+            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
+            .collect( Collectors.toList() );
+        return map( relationships );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByEnrollment( Enrollment enrollment,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+        throws ForbiddenException,
+        NotFoundException
+    {
+
+        List<Relationship> relationships = relationshipStore
+            .getByEnrollment( enrollment, pagingAndSortingCriteriaAdapter ).stream()
+            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
+            .collect( Collectors.toList() );
+        return map( relationships );
+    }
+
+    @Override
+    public List<Relationship> getRelationshipsByEvent( Event event,
+        PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        List<Relationship> relationships = relationshipStore
+            .getByEvent( event, pagingAndSortingCriteriaAdapter )
+            .stream()
+            .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
+            .collect( Collectors.toList() );
+        return map( relationships );
     }
 
     /**
@@ -181,25 +202,25 @@ public class DefaultRelationshipService implements RelationshipService
         RelationshipItem result = new RelationshipItem();
 
         // the call to the individual services is to detach and apply some logic like filtering out attribute values
-        // for tracked entity type attributes from programInstance.entityInstance. Enrollment attributes are actually
-        // owned by the TEI and cannot be set on the ProgramInstance. When returning enrollments in our API an enrollment
+        // for tracked entity type attributes from enrollment.trackedEntity. Enrollment attributes are actually
+        // owned by the TEI and cannot be set on the Enrollment. When returning enrollments in our API an enrollment
         // should only have the program tracked entity attributes.
-        if ( item.getTrackedEntityInstance() != null )
+        if ( item.getTrackedEntity() != null )
         {
-            result.setTrackedEntityInstance( trackedEntityService
-                .getTrackedEntity( item.getTrackedEntityInstance(),
+            result.setTrackedEntity( trackedEntityService
+                .getTrackedEntity( item.getTrackedEntity(),
                     TrackedEntityParams.TRUE.withIncludeRelationships( false ) ) );
         }
-        else if ( item.getProgramInstance() != null )
+        else if ( item.getEnrollment() != null )
         {
-            result.setProgramInstance(
-                enrollmentService.getEnrollment( item.getProgramInstance(),
+            result.setEnrollment(
+                enrollmentService.getEnrollment( item.getEnrollment(),
                     EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
         }
-        else if ( item.getProgramStageInstance() != null )
+        else if ( item.getEvent() != null )
         {
-            result.setProgramStageInstance(
-                eventService.getEvent( item.getProgramStageInstance(),
+            result.setEvent(
+                eventService.getEvent( item.getEvent(),
                     EventParams.TRUE.withIncludeRelationships( false ) ) );
         }
 

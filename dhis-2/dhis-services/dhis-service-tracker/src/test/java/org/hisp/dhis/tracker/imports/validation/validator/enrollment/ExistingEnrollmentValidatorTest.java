@@ -39,13 +39,12 @@ import static org.mockito.Mockito.when;
 import java.util.Collections;
 import java.util.HashMap;
 
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
 import org.hisp.dhis.tracker.imports.domain.EnrollmentStatus;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
@@ -66,7 +65,7 @@ class ExistingEnrollmentValidatorTest
     private ExistingEnrollmentValidator validator;
 
     @Mock
-    Enrollment enrollment;
+    org.hisp.dhis.tracker.imports.domain.Enrollment enrollment;
 
     @Mock
     TrackerBundle bundle;
@@ -75,13 +74,13 @@ class ExistingEnrollmentValidatorTest
     private TrackerPreheat preheat;
 
     @Mock
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private Reporter reporter;
 
     private static final String programUid = "program";
 
-    private static final String trackedEntity = "trackedEntity";
+    private static final String trackedEntitUid = "trackedEntity";
 
     private static final String enrollmentUid = "enrollment";
 
@@ -93,14 +92,14 @@ class ExistingEnrollmentValidatorTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( preheat.getIdSchemes() ).thenReturn( TrackerIdSchemeParams.builder().build() );
         when( enrollment.getProgram() ).thenReturn( MetadataIdentifier.ofUid( programUid ) );
-        when( enrollment.getTrackedEntity() ).thenReturn( trackedEntity );
+        when( enrollment.getTrackedEntity() ).thenReturn( trackedEntitUid );
         when( enrollment.getStatus() ).thenReturn( EnrollmentStatus.ACTIVE );
         when( enrollment.getEnrollment() ).thenReturn( enrollmentUid );
         when( enrollment.getUid() ).thenReturn( enrollmentUid );
         when( enrollment.getTrackerType() ).thenCallRealMethod();
 
-        when( preheat.getTrackedEntity( trackedEntity ) ).thenReturn( trackedEntityInstance );
-        when( trackedEntityInstance.getUid() ).thenReturn( trackedEntity );
+        when( preheat.getTrackedEntity( trackedEntitUid ) ).thenReturn( trackedEntity );
+        when( trackedEntity.getUid() ).thenReturn( trackedEntitUid );
 
         Program program = new Program();
         program.setOnlyEnrollOnce( false );
@@ -280,29 +279,30 @@ class ExistingEnrollmentValidatorTest
 
     private void setTeiInDb( ProgramStatus programStatus )
     {
-        when( preheat.getTrackedEntityToProgramInstanceMap() ).thenReturn( new HashMap<>()
+        when( preheat.getTrackedEntityToEnrollmentMap() ).thenReturn( new HashMap<>()
         {
             {
-                ProgramInstance programInstance = new ProgramInstance();
+                Enrollment enrollment = new Enrollment();
 
                 Program program = new Program();
                 program.setUid( programUid );
 
-                programInstance.setUid( "another_enrollment" );
-                programInstance.setStatus( programStatus );
-                programInstance.setProgram( program );
+                enrollment.setUid( "another_enrollment" );
+                enrollment.setStatus( programStatus );
+                enrollment.setProgram( program );
 
-                put( trackedEntity, Collections.singletonList( programInstance ) );
+                put( trackedEntitUid, Collections.singletonList( enrollment ) );
             }
         } );
     }
 
     private void setEnrollmentInPayload( EnrollmentStatus enrollmentStatus )
     {
-        Enrollment enrollmentInBundle = Enrollment.builder()
+        org.hisp.dhis.tracker.imports.domain.Enrollment enrollmentInBundle = org.hisp.dhis.tracker.imports.domain.Enrollment
+            .builder()
             .enrollment( "another_enrollment" )
             .program( MetadataIdentifier.ofUid( programUid ) )
-            .trackedEntity( trackedEntity )
+            .trackedEntity( trackedEntitUid )
             .status( enrollmentStatus )
             .build();
 

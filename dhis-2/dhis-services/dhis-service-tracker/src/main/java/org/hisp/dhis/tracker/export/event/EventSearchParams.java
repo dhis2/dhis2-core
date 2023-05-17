@@ -48,7 +48,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
@@ -119,7 +119,7 @@ public class EventSearchParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private TrackedEntityInstance trackedEntity;
+    private TrackedEntity trackedEntity;
 
     private Date startDate;
 
@@ -203,7 +203,7 @@ public class EventSearchParams
      */
     private Date skipChangedBefore;
 
-    private Set<String> programInstances;
+    private Set<String> enrollments;
 
     @Getter
     private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
@@ -423,12 +423,12 @@ public class EventSearchParams
         return this;
     }
 
-    public TrackedEntityInstance getTrackedEntity()
+    public TrackedEntity getTrackedEntity()
     {
         return trackedEntity;
     }
 
-    public EventSearchParams setTrackedEntity( TrackedEntityInstance trackedEntity )
+    public EventSearchParams setTrackedEntity( TrackedEntity trackedEntity )
     {
         this.trackedEntity = trackedEntity;
         return this;
@@ -814,14 +814,14 @@ public class EventSearchParams
         return this;
     }
 
-    public Set<String> getProgramInstances()
+    public Set<String> getEnrollments()
     {
-        return programInstances;
+        return enrollments;
     }
 
-    public EventSearchParams setProgramInstances( Set<String> programInstances )
+    public EventSearchParams setEnrollments( Set<String> enrollments )
     {
-        this.programInstances = programInstances;
+        this.enrollments = enrollments;
         return this;
     }
 

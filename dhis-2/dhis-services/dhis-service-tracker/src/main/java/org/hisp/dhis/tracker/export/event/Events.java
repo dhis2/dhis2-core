@@ -33,7 +33,7 @@ import java.util.Map;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Event;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -49,9 +49,9 @@ public class Events
 {
     private String program;
 
-    private String programInstance;
+    private String enrollment;
 
-    private List<ProgramStageInstance> events = new ArrayList<>();
+    private List<Event> events = new ArrayList<>();
 
     private Map<Object, Object> metaData;
 
@@ -75,25 +75,25 @@ public class Events
 
     @JsonProperty
     @JacksonXmlProperty( isAttribute = true )
-    public String getProgramInstance()
+    public String getEnrollment()
     {
-        return programInstance;
+        return enrollment;
     }
 
-    public void setProgramInstance( String programInstance )
+    public void setEnrollment( String enrollment )
     {
-        this.programInstance = programInstance;
+        this.enrollment = enrollment;
     }
 
     @JsonProperty
     @JacksonXmlElementWrapper( localName = "events", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "event", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramStageInstance> getEvents()
+    public List<Event> getEvents()
     {
         return events;
     }
 
-    public void setEvents( List<ProgramStageInstance> events )
+    public void setEvents( List<Event> events )
     {
         this.events = events;
     }
@@ -129,7 +129,7 @@ public class Events
     {
         return "Events{" +
             "program='" + program + '\'' +
-            ", programInstance='" + programInstance + '\'' +
+            ", enrollment='" + enrollment + '\'' +
             ", events=" + events +
             '}';
     }

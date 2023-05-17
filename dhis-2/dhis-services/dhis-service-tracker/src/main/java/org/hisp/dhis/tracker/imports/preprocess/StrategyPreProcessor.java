@@ -27,15 +27,12 @@
  */
 package org.hisp.dhis.tracker.imports.preprocess;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.Relationship;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.springframework.stereotype.Component;
 
 /**
@@ -59,11 +56,11 @@ public class StrategyPreProcessor
 
     public void preProcessTrackedEntities( TrackerBundle bundle )
     {
-        for ( TrackedEntity tei : bundle.getTrackedEntities() )
+        for ( org.hisp.dhis.tracker.imports.domain.TrackedEntity tei : bundle.getTrackedEntities() )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            TrackedEntityInstance existingTei = bundle.getPreheat().getTrackedEntity(
+            TrackedEntity existingTei = bundle.getPreheat().getTrackedEntity(
                 tei.getTrackedEntity() );
 
             if ( importStrategy.isCreateAndUpdate() )
@@ -86,11 +83,11 @@ public class StrategyPreProcessor
 
     public void preProcessEnrollments( TrackerBundle bundle )
     {
-        for ( Enrollment enrollment : bundle.getEnrollments() )
+        for ( org.hisp.dhis.tracker.imports.domain.Enrollment enrollment : bundle.getEnrollments() )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            ProgramInstance existingPI = bundle.getPreheat().getEnrollment(
+            Enrollment existingPI = bundle.getPreheat().getEnrollment(
                 enrollment.getEnrollment() );
 
             if ( importStrategy.isCreateAndUpdate() )
@@ -113,15 +110,15 @@ public class StrategyPreProcessor
 
     public void preProcessEvents( TrackerBundle bundle )
     {
-        for ( Event event : bundle.getEvents() )
+        for ( org.hisp.dhis.tracker.imports.domain.Event event : bundle.getEvents() )
         {
             TrackerImportStrategy importStrategy = bundle.getImportStrategy();
 
-            ProgramStageInstance existingPsi = bundle.getPreheat().getEvent( event.getEvent() );
+            Event existingEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
             if ( importStrategy.isCreateAndUpdate() )
             {
-                if ( existingPsi == null )
+                if ( existingEvent == null )
                 {
                     bundle.setStrategy( event, TrackerImportStrategy.CREATE );
                 }

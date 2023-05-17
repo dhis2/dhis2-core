@@ -188,7 +188,6 @@ public class DebeziumService
                 + "public.programstageinstancecomments,"
                 + "public.messageconversation_usermessages,"
                 + "public.messageconversation_messages,"
-                + "public.oauth2clientgranttypes,"
                 + "public.trackedentityinstanceaudit,"
                 + excludeList );
 

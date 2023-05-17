@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.tracker.imports.preheat.mappers;
 
-import org.hisp.dhis.user.UserGroupAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 import org.mapstruct.BeanMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -39,7 +39,9 @@ public interface UserGroupAccessMapper extends PreheatMapper<UserGroupAccess>
     UserGroupAccessMapper INSTANCE = Mappers.getMapper( UserGroupAccessMapper.class );
 
     @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "uid" )
-    @Mapping( target = "userGroup" )
+    @Mapping( target = "id" )
+    @Mapping( target = "access" )
+    @Mapping( target = "displayName" )
     UserGroupAccess map( UserGroupAccess userGroupAccess );
+
 }

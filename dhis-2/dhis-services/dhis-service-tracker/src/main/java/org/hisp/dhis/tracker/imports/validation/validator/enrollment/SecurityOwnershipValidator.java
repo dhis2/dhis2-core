@@ -103,7 +103,7 @@ class SecurityOwnershipValidator
 
         if ( strategy.isDelete() )
         {
-            boolean hasNonDeletedEvents = programInstanceHasEvents( preheat, enrollment.getEnrollment() );
+            boolean hasNonDeletedEvents = enrollmentHasEvents( preheat, enrollment.getEnrollment() );
             boolean hasNotCascadeDeleteAuthority = !user
                 .isAuthorized( Authorities.F_ENROLLMENT_CASCADE_DELETE.getAuthority() );
 
@@ -130,9 +130,9 @@ class SecurityOwnershipValidator
         }
     }
 
-    private boolean programInstanceHasEvents( TrackerPreheat preheat, String programInstanceUid )
+    private boolean enrollmentHasEvents( TrackerPreheat preheat, String enrollmentUid )
     {
-        return preheat.getProgramInstanceWithOneOrMoreNonDeletedEvent().contains( programInstanceUid );
+        return preheat.getEnrollmentsWithOneOrMoreNonDeletedEvent().contains( enrollmentUid );
     }
 
     private void checkEnrollmentOrgUnit( Reporter reporter, TrackerBundle bundle,
@@ -147,7 +147,7 @@ class SecurityOwnershipValidator
 
             if ( enrollmentOrgUnit == null )
             {
-                log.warn( "ProgramInstance " + enrollment.getEnrollment()
+                log.warn( "Enrollment " + enrollment.getEnrollment()
                     + ORG_UNIT_NO_USER_ASSIGNED );
                 return;
             }
@@ -189,14 +189,14 @@ class SecurityOwnershipValidator
 
     private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
-        String trackedEntityInstance,
+        String trackedEntity,
         OrganisationUnit ownerOrganisationUnit,
         Program program )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
@@ -204,10 +204,10 @@ class SecurityOwnershipValidator
         }
 
         if ( ownerOrganisationUnit != null
-            && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
+            && !ownershipAccessManager.hasAccess( user, trackedEntity, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntity, program );
         }
     }
 
@@ -225,7 +225,7 @@ class SecurityOwnershipValidator
         if ( program.isRegistration() )
         {
             String trackedEntity = bundle.getStrategy( enrollment ).isDelete()
-                ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() ).getEntityInstance().getUid()
+                ? bundle.getPreheat().getEnrollment( enrollment.getEnrollment() ).getTrackedEntity().getUid()
                 : enrollment.getTrackedEntity();
 
             checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );

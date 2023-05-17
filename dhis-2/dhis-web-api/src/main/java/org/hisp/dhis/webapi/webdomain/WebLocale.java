@@ -29,51 +29,41 @@ package org.hisp.dhis.webapi.webdomain;
 
 import java.util.Locale;
 
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 
 /**
+ * Class that represents a Locale for the web
+ *
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "locale" )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
+@Getter
 public class WebLocale
 {
-    private String locale;
-
-    private String name;
-
-    public static WebLocale fromLocale( Locale locale )
-    {
-        WebLocale loc = new WebLocale();
-
-        loc.setLocale( locale.toString() );
-        loc.setName( locale.getDisplayName() );
-
-        return loc;
-    }
+    @JsonProperty
+    private final String locale;
 
     @JsonProperty
-    @JacksonXmlProperty
-    public String getLocale()
-    {
-        return locale;
-    }
-
-    public void setLocale( String locale )
-    {
-        this.locale = locale;
-    }
+    private final String name;
 
     @JsonProperty
-    @JacksonXmlProperty
-    public String getName()
+    private final String displayName;
+
+    /**
+     *
+     * @param locale any locale, used to display the locale property, and name
+     *        in its own language
+     * @param userLocale a user-specific locale used to format the language in
+     *        the displayName property
+     * @return A WebLocale instance
+     */
+    public static WebLocale fromLocale( Locale locale, Locale userLocale )
     {
-        return name;
+        return new WebLocale( locale.toString(), locale.getDisplayName( locale ), locale.getDisplayName( userLocale ) );
     }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
 }

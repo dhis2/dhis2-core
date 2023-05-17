@@ -144,8 +144,8 @@ public class ProgramIndicator
     }
 
     /**
-     * Returns aggregation type (for example for aggregation function supported
-     * by postgres), if not exists returns AVERAGE.
+     * Returns aggregation type supported by postgres or by analytics code, if
+     * not exists returns AVERAGE.
      */
     public AggregationType getAggregationTypeFallback()
     {
@@ -156,18 +156,11 @@ public class ProgramIndicator
 
         switch ( aggregationType )
         {
-        case AVERAGE_SUM_ORG_UNIT:
-        case FIRST:
-        case LAST:
-        case LAST_IN_PERIOD:
-        case MAX_SUM_ORG_UNIT:
-        case MIN_SUM_ORG_UNIT:
+        case AVERAGE_SUM_ORG_UNIT, LAST_IN_PERIOD, MAX_SUM_ORG_UNIT, MIN_SUM_ORG_UNIT:
             return AggregationType.SUM;
-        case FIRST_AVERAGE_ORG_UNIT:
-        case LAST_AVERAGE_ORG_UNIT:
-        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
-        case DEFAULT:
+        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT, DEFAULT:
             return AggregationType.AVERAGE;
+        case FIRST, LAST, FIRST_AVERAGE_ORG_UNIT, LAST_AVERAGE_ORG_UNIT:
         default:
             return aggregationType;
         }

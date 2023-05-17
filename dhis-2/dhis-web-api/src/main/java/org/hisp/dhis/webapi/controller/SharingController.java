@@ -158,9 +158,9 @@ public class SharingController
         sharing.getObject().setId( object.getUid() );
         sharing.getObject().setName( object.getDisplayName() );
         sharing.getObject().setDisplayName( object.getDisplayName() );
-        sharing.getObject().setExternalAccess( object.getExternalAccess() );
+        sharing.getObject().setExternalAccess( object.getSharing().isExternal() );
 
-        if ( object.getPublicAccess() == null )
+        if ( object.getSharing().getPublicAccess() == null )
         {
             String access;
 
@@ -178,7 +178,7 @@ public class SharingController
         }
         else
         {
-            sharing.getObject().setPublicAccess( object.getPublicAccess() );
+            sharing.getObject().setPublicAccess( object.getSharing().getPublicAccess() );
         }
 
         if ( object.getCreatedBy() != null )
@@ -187,8 +187,7 @@ public class SharingController
             sharing.getObject().getUser().setName( object.getCreatedBy().getDisplayName() );
         }
 
-        for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : SharingUtils
-            .getDtoUserGroupAccesses( object.getUserGroupAccesses(), object.getSharing() ) )
+        for ( UserGroupAccess userGroupAccess : object.getSharing().getUserGroups().values() )
         {
             String userGroupDisplayName = userGroupService.getDisplayName( userGroupAccess.getId() );
 
@@ -206,10 +205,9 @@ public class SharingController
             sharing.getObject().getUserGroupAccesses().add( sharingUserGroupAccess );
         }
 
-        for ( org.hisp.dhis.user.UserAccess userAccess : SharingUtils.getDtoUserAccesses( object.getUserAccesses(),
-            object.getSharing() ) )
+        for ( UserAccess userAccess : object.getSharing().getUsers().values() )
         {
-            String userDisplayName = userService.getDisplayName( userAccess.getUid() );
+            String userDisplayName = userService.getDisplayName( userAccess.getId() );
 
             if ( userDisplayName == null )
                 continue;
@@ -282,7 +280,7 @@ public class SharingController
 
         if ( aclService.canMakeExternal( user, object ) )
         {
-            object.setExternalAccess( sharing.getObject().hasExternalAccess() );
+            object.getSharing().setExternal( sharing.getObject().hasExternalAccess() );
         }
 
         // ---------------------------------------------------------------------
@@ -293,7 +291,7 @@ public class SharingController
 
         if ( aclService.canMakePublic( user, object ) )
         {
-            object.setPublicAccess( sharing.getObject().getPublicAccess() );
+            object.getSharing().setPublicAccess( sharing.getObject().getPublicAccess() );
         }
 
         if ( !schema.isDataShareable() )
@@ -384,7 +382,7 @@ public class SharingController
                 sharing.getObject().getUserAccesses(), sharing.getObject().getUserGroupAccesses() );
         }
 
-        log.info( sharingToString( object ) );
+        log.info( SharingUtils.sharingToString( object, currentUserService.getCurrentUsername() ) );
 
         return ok( "Access control set" );
     }
@@ -452,45 +450,6 @@ public class SharingController
     // -------------------------------------------------------------------------
     // Supportive methods
     // -------------------------------------------------------------------------
-
-    private String sharingToString( BaseIdentifiableObject object )
-    {
-        StringBuilder builder = new StringBuilder()
-            .append( "'" ).append( currentUserService.getCurrentUsername() ).append( "'" )
-            .append( " update sharing on " ).append( object.getClass().getName() )
-            .append( ", uid: " ).append( object.getUid() )
-            .append( ", name: " ).append( object.getName() )
-            .append( ", publicAccess: " ).append( object.getPublicAccess() )
-            .append( ", externalAccess: " ).append( object.getExternalAccess() );
-
-        if ( !object.getUserGroupAccesses().isEmpty() )
-        {
-            builder.append( ", userGroupAccesses: " );
-
-            for ( org.hisp.dhis.user.UserGroupAccess userGroupAccess : object.getUserGroupAccesses() )
-            {
-                builder.append( "{uid: " ).append( userGroupAccess.getUserGroup().getUid() )
-                    .append( ", name: " ).append( userGroupAccess.getUserGroup().getName() )
-                    .append( ", access: " ).append( userGroupAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        if ( !object.getUserAccesses().isEmpty() )
-        {
-            builder.append( ", userAccesses: " );
-
-            for ( org.hisp.dhis.user.UserAccess userAccess : object.getUserAccesses() )
-            {
-                builder.append( "{uid: " ).append( userAccess.getUser().getUid() )
-                    .append( ", name: " ).append( userAccess.getUser().getName() )
-                    .append( ", access: " ).append( userAccess.getAccess() )
-                    .append( "} " );
-            }
-        }
-
-        return builder.toString();
-    }
 
     private void syncSharingForEventProgram( Program program )
     {

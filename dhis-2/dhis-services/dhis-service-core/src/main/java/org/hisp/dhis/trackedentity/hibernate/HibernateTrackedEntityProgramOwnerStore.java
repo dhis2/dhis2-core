@@ -64,7 +64,7 @@ public class HibernateTrackedEntityProgramOwnerStore
     {
         Query<TrackedEntityProgramOwner> query = getQuery(
             "from TrackedEntityProgramOwner tepo where " +
-                "tepo.entityInstance.id= :teiId and " +
+                "tepo.trackedEntity.id= :teiId and " +
                 "tepo.program.id= :programId" );
 
         query.setParameter( "teiId", teiId );
@@ -75,7 +75,7 @@ public class HibernateTrackedEntityProgramOwnerStore
     @Override
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds )
     {
-        String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
+        String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
         Query<TrackedEntityProgramOwner> q = getQuery( hql );
         q.setParameterList( "teiIds", teiIds );
         return q.list();
@@ -84,7 +84,7 @@ public class HibernateTrackedEntityProgramOwnerStore
     @Override
     public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId )
     {
-        String hql = "from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
+        String hql = "from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds) and tepo.program.id=(:programId) ";
         Query<TrackedEntityProgramOwner> q = getQuery( hql );
         q.setParameterList( "teiIds", teiIds );
         q.setParameter( "programId", programId );
@@ -95,7 +95,7 @@ public class HibernateTrackedEntityProgramOwnerStore
     public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId )
     {
         List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds(tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit.uid) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds) and tepo.program.id=(:programId) ";
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds(tepo.trackedEntity.uid, tepo.program.uid, tepo.organisationUnit.uid) from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds) and tepo.program.id=(:programId) ";
         Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
 
         List<TrackedEntityProgramOwnerIds> trackedEntityProgramOwnerIds = new ArrayList<>();
@@ -120,7 +120,7 @@ public class HibernateTrackedEntityProgramOwnerStore
 
         Iterable<List<Long>> teiIdsPartitions = Iterables.partition( teiIds, 20000 );
 
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.entityInstance.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.entityInstance.id in (:teiIds)";
+        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit( tepo.trackedEntity.uid, tepo.program.uid, tepo.organisationUnit) from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds)";
 
         Query<TrackedEntityProgramOwnerOrgUnit> q = getQuery( hql, TrackedEntityProgramOwnerOrgUnit.class );
 

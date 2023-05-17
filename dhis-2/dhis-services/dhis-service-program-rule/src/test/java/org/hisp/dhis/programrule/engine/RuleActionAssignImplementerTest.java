@@ -30,7 +30,7 @@ package org.hisp.dhis.programrule.engine;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,9 +42,9 @@ import org.junit.jupiter.api.Test;
 
 class RuleActionAssignImplementerTest extends DhisConvenienceTest
 {
-    public static final String PI_UI = "pi-uid";
+    public static final String ENROLLMENT_UID = "enrollment-uid";
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     private RuleVariableInMemoryMap inMemoryMap;
 
@@ -53,8 +53,8 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     @BeforeEach
     public void initTest()
     {
-        programInstance = new ProgramInstance();
-        programInstance.setUid( PI_UI );
+        enrollment = new Enrollment();
+        enrollment.setUid( ENROLLMENT_UID );
 
         inMemoryMap = new RuleVariableInMemoryMap();
         assignValueImplementer = new RuleActionAssignValueImplementer( inMemoryMap );
@@ -64,53 +64,53 @@ class RuleActionAssignImplementerTest extends DhisConvenienceTest
     void testRuleActionAssignRegex1()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field" ) );
     }
 
     @Test
     void testRuleActionAssignRegex2()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "field123" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "field123" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "field123" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "field123" ) );
     }
 
     @Test
     void testRuleActionAssignRegex3()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name-field" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "name-field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name-field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name-field" ) );
     }
 
     @Test
     void testRuleActionAssignRegex4()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name field" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "name field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name field" ) );
     }
 
     @Test
     void testRuleActionAssignRegex5()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "name.field" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "name.field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "name.field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "name.field" ) );
     }
 
     @Test
     void testRuleActionAssignRegex6()
     {
         assignValueImplementer.implement( RuleEffect.create( "ruleId1",
-            RuleActionAssign.create( "content", "action-data", "first name field" ), "field-data" ), programInstance );
+            RuleActionAssign.create( "content", "action-data", "first name field" ), "field-data" ), enrollment );
 
-        assertTrue( inMemoryMap.get( PI_UI ).containsKey( "first name field" ) );
+        assertTrue( inMemoryMap.get( ENROLLMENT_UID ).containsKey( "first name field" ) );
     }
 }

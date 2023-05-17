@@ -32,7 +32,6 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1083;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.EVENT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.ORGANISATION_UNIT_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_CANT_BE_NULL;
-import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_INSTANCE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.PROGRAM_STAGE_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_CANT_BE_NULL;
 import static org.hisp.dhis.tracker.imports.validation.validator.TrackerImporterAssertErrors.TRACKED_ENTITY_TYPE_CANT_BE_NULL;
@@ -50,18 +49,16 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -79,7 +76,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Slf4j
 class SecurityOwnershipValidator
-    implements Validator<Event>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Event>
 {
     @Nonnull
     private final AclService aclService;
@@ -93,7 +90,7 @@ class SecurityOwnershipValidator
     private static final String ORG_UNIT_NO_USER_ASSIGNED = " has no organisation unit assigned, so we skip user validation";
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, Event event )
+    public void validate( Reporter reporter, TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( event );
         TrackerPreheat preheat = bundle.getPreheat();
@@ -102,18 +99,17 @@ class SecurityOwnershipValidator
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        ProgramStageInstance programStageInstance = bundle.getPreheat().getEvent( event.getEvent() );
+        Event preheatEvent = bundle.getPreheat().getEvent( event.getEvent() );
 
         ProgramStage programStage = bundle.getPreheat().getProgramStage( event.getProgramStage() );
-        Program program = strategy.isUpdateOrDelete() ? programStageInstance.getProgramStage()
+        Program program = strategy.isUpdateOrDelete() ? preheatEvent.getProgramStage()
             .getProgram() : bundle.getPreheat().getProgram( event.getProgram() );
 
         OrganisationUnit organisationUnit;
 
         if ( strategy.isUpdateOrDelete() )
         {
-            organisationUnit = programStageInstance
-                .getOrganisationUnit();
+            organisationUnit = preheatEvent.getOrganisationUnit();
         }
         else
         {
@@ -127,7 +123,7 @@ class SecurityOwnershipValidator
         {
             if ( organisationUnit == null )
             {
-                log.warn( "ProgramStageInstance " + event.getEvent()
+                log.warn( "Event " + event.getEvent()
                     + ORG_UNIT_NO_USER_ASSIGNED );
             }
             else
@@ -144,8 +140,8 @@ class SecurityOwnershipValidator
         // Check acting user is allowed to change existing/write event
         if ( strategy.isUpdateOrDelete() )
         {
-            TrackedEntityInstance entityInstance = programStageInstance.getProgramInstance().getEntityInstance();
-            validateUpdateAndDeleteEvent( reporter, bundle, event, programStageInstance,
+            TrackedEntity entityInstance = preheatEvent.getEnrollment().getTrackedEntity();
+            validateUpdateAndDeleteEvent( reporter, bundle, event, preheatEvent,
                 entityInstance == null ? null : entityInstance.getUid(), ownerOrgUnit );
         }
         else
@@ -160,7 +156,8 @@ class SecurityOwnershipValidator
         }
     }
 
-    private void validateCreateEvent( Reporter reporter, TrackerBundle bundle, Event event,
+    private void validateCreateEvent( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.Event event,
         User actingUser,
         CategoryOptionCombo categoryOptionCombo, ProgramStage programStage, String teiUid,
         OrganisationUnit organisationUnit, OrganisationUnit ownerOrgUnit, Program program,
@@ -180,50 +177,52 @@ class SecurityOwnershipValidator
             teiUid, isCreatableInSearchScope );
     }
 
-    private void validateUpdateAndDeleteEvent( Reporter reporter, TrackerBundle bundle, Event event,
-        ProgramStageInstance programStageInstance,
+    private void validateUpdateAndDeleteEvent( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.Event event,
+        Event preheatEvent,
         String teiUid, OrganisationUnit ownerOrgUnit )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( event );
         User user = bundle.getUser();
 
         checkNotNull( user, USER_CANT_BE_NULL );
-        checkNotNull( programStageInstance, PROGRAM_INSTANCE_CANT_BE_NULL );
+        checkNotNull( preheatEvent, EVENT_CANT_BE_NULL );
         checkNotNull( event, EVENT_CANT_BE_NULL );
 
-        checkEventWriteAccess( reporter, bundle, event, programStageInstance.getProgramStage(),
-            programStageInstance.getOrganisationUnit(), ownerOrgUnit,
-            programStageInstance.getAttributeOptionCombo(),
-            teiUid, programStageInstance.isCreatableInSearchScope() );
+        checkEventWriteAccess( reporter, bundle, event, preheatEvent.getProgramStage(),
+            preheatEvent.getOrganisationUnit(), ownerOrgUnit,
+            preheatEvent.getAttributeOptionCombo(),
+            teiUid, preheatEvent.isCreatableInSearchScope() );
 
         if ( strategy.isUpdate()
-            && EventStatus.COMPLETED == programStageInstance.getStatus()
-            && event.getStatus() != programStageInstance.getStatus()
+            && EventStatus.COMPLETED == preheatEvent.getStatus()
+            && event.getStatus() != preheatEvent.getStatus()
             && (!user.isSuper() && !user.isAuthorized( "F_UNCOMPLETE_EVENT" )) )
         {
             reporter.addError( event, E1083, user );
         }
     }
 
-    private String getTeiUidFromEvent( TrackerBundle bundle, Event event, Program program )
+    private String getTeiUidFromEvent( TrackerBundle bundle, org.hisp.dhis.tracker.imports.domain.Event event,
+        Program program )
     {
         if ( program.isWithoutRegistration() )
         {
             return null;
         }
 
-        ProgramInstance programInstance = bundle.getPreheat().getEnrollment( event.getEnrollment() );
+        Enrollment enrollment = bundle.getPreheat().getEnrollment( event.getEnrollment() );
 
-        if ( programInstance == null )
+        if ( enrollment == null )
         {
             return bundle
                 .findEnrollmentByUid( event.getEnrollment() )
-                .map( Enrollment::getTrackedEntity )
+                .map( org.hisp.dhis.tracker.imports.domain.Enrollment::getTrackedEntity )
                 .orElse( null );
         }
         else
         {
-            return programInstance.getEntityInstance().getUid();
+            return enrollment.getTrackedEntity().getUid();
         }
     }
 
@@ -263,14 +262,14 @@ class SecurityOwnershipValidator
 
     private void checkTeiTypeAndTeiProgramAccess( Reporter reporter, TrackerDto dto,
         User user,
-        String trackedEntityInstance,
+        String trackedEntity,
         OrganisationUnit ownerOrganisationUnit,
         Program program )
     {
         checkNotNull( user, USER_CANT_BE_NULL );
         checkNotNull( program, PROGRAM_CANT_BE_NULL );
         checkNotNull( program.getTrackedEntityType(), TRACKED_ENTITY_TYPE_CANT_BE_NULL );
-        checkNotNull( trackedEntityInstance, TRACKED_ENTITY_CANT_BE_NULL );
+        checkNotNull( trackedEntity, TRACKED_ENTITY_CANT_BE_NULL );
 
         if ( !aclService.canDataRead( user, program.getTrackedEntityType() ) )
         {
@@ -278,14 +277,15 @@ class SecurityOwnershipValidator
         }
 
         if ( ownerOrganisationUnit != null
-            && !ownershipAccessManager.hasAccess( user, trackedEntityInstance, ownerOrganisationUnit,
+            && !ownershipAccessManager.hasAccess( user, trackedEntity, ownerOrganisationUnit,
                 program ) )
         {
-            reporter.addError( dto, ValidationCode.E1102, user, trackedEntityInstance, program );
+            reporter.addError( dto, ValidationCode.E1102, user, trackedEntity, program );
         }
     }
 
-    private void checkEventWriteAccess( Reporter reporter, TrackerBundle bundle, Event event,
+    private void checkEventWriteAccess( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.Event event,
         ProgramStage programStage,
         OrganisationUnit eventOrgUnit, OrganisationUnit ownerOrgUnit,
         CategoryOptionCombo categoryOptionCombo,
@@ -325,13 +325,13 @@ class SecurityOwnershipValidator
         }
     }
 
-    private void checkEventOrgUnitWriteAccess( Reporter reporter, Event event,
+    private void checkEventOrgUnitWriteAccess( Reporter reporter, org.hisp.dhis.tracker.imports.domain.Event event,
         OrganisationUnit eventOrgUnit,
         boolean isCreatableInSearchScope, User user )
     {
         if ( eventOrgUnit == null )
         {
-            log.warn( "ProgramStageInstance " + event.getUid()
+            log.warn( "Event " + event.getUid()
                 + ORG_UNIT_NO_USER_ASSIGNED );
         }
         else if ( isCreatableInSearchScope

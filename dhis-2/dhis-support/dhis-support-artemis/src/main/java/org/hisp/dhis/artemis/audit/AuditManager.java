@@ -170,8 +170,8 @@ public class AuditManager
         if ( value instanceof RelationshipItem )
         {
             RelationshipItem ri = (RelationshipItem) value;
-            return ObjectUtils.firstNonNull( ri.getTrackedEntityInstance(), ri.getProgramInstance(),
-                ri.getProgramStageInstance() ).getUid();
+            return ObjectUtils.firstNonNull( ri.getTrackedEntity(), ri.getEnrollment(),
+                ri.getEvent() ).getUid();
         }
 
         return value;

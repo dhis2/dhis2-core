@@ -32,8 +32,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Collections;
 
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -64,15 +64,15 @@ class EventStatusPreProcessorTest
         event.setStatus( EventStatus.VISITED );
         event.setProgramStage( MetadataIdentifier.ofUid( "programStageUid" ) );
         TrackerBundle bundle = TrackerBundle.builder().events( Collections.singletonList( event ) ).build();
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( "programInstanceUid" );
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( "enrollmentUid" );
         Program program = new Program();
         program.setUid( "programUid" );
         ProgramStage programStage = new ProgramStage();
         programStage.setUid( "programStageUid" );
         programStage.setProgram( program );
         TrackerPreheat preheat = new TrackerPreheat();
-        preheat.putProgramInstancesWithoutRegistration( "programUid", programInstance );
+        preheat.putEnrollmentsWithoutRegistration( "programUid", enrollment );
         preheat.put( programStage );
         bundle.setPreheat( preheat );
         // When

@@ -36,7 +36,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -73,7 +73,7 @@ public class TrackerOwnershipController
     protected ContextService contextService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramService programService;
@@ -93,7 +93,7 @@ public class TrackerOwnershipController
         @RequestParam String ou )
     {
         trackerOwnershipAccessManager.transferOwnership(
-            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
             programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
         return ok( "Ownership transferred" );
     }
@@ -104,7 +104,7 @@ public class TrackerOwnershipController
         @RequestParam String program )
     {
         trackerOwnershipAccessManager.grantTemporaryOwnership(
-            trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
             programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
         return ok( "Temporary Ownership granted" );

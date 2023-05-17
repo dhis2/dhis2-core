@@ -27,14 +27,14 @@
  */
 package org.hisp.dhis.programrule.engine;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
+import org.hamcrest.Matchers;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.ValueType;
@@ -42,19 +42,23 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementDomain;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
+import org.hisp.dhis.option.Option;
+import org.hisp.dhis.option.OptionService;
+import org.hisp.dhis.option.OptionSet;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeStore;
@@ -75,10 +79,10 @@ import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.programrule.ProgramRuleVariableSourceType;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueService;
 import org.joda.time.DateTime;
@@ -113,6 +117,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
 
     private ProgramRule programRuleS;
 
+    private ProgramRule programRuleToTestOptionSet;
+
     private DataElement dataElementA;
 
     private DataElement dataElementB;
@@ -127,9 +133,19 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
 
     private DataElement assignedDataElement;
 
+    private DataElement dataElementWithOptionSet;
+
+    private OptionSet optionSet;
+
+    private Option option1;
+
+    private Option option2;
+
     private EventDataValue eventDataValueDate;
 
     private EventDataValue eventDataValueAge;
+
+    private EventDataValue eventDataValueWithOptionSet;
 
     private TrackedEntityAttribute attributeA;
 
@@ -178,10 +194,10 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     private ProgramRuleVariableService programRuleVariableService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
-    private TrackedEntityInstanceService entityInstanceService;
+    private TrackedEntityService entityInstanceService;
 
     @Autowired
     private OrganisationUnitService organisationUnitService;
@@ -193,7 +209,7 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     private ProgramStageService programStageService;
 
     @Autowired
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
@@ -219,10 +235,22 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     @Autowired
     private NotificationLoggingService notificationLoggingService;
 
+    @Autowired
+    private OptionService optionService;
+
     @Override
     public void setUpTest()
-        throws ParseException
+        throws ParseException,
+        ConflictException
     {
+        optionSet = new OptionSet( "optionSetName", ValueType.TEXT );
+        option1 = new Option( "optionName1", "optionCode1" );
+        option2 = new Option( "optionName2", "optionCode2" );
+        optionSet.addOption( option1 );
+        optionSet.addOption( option2 );
+
+        optionService.saveOptionSet( optionSet );
+
         dataElementA = createDataElement( 'A', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementB = createDataElement( 'B', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementC = createDataElement( 'C', ValueType.INTEGER, AggregationType.NONE, DataElementDomain.TRACKER );
@@ -230,9 +258,14 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         dataElementDate = createDataElement( 'T', ValueType.DATE, AggregationType.NONE, DataElementDomain.TRACKER );
         dataElementAge = createDataElement( 'G', ValueType.AGE, AggregationType.NONE, DataElementDomain.TRACKER );
         assignedDataElement = createDataElement( 'K', ValueType.TEXT, AggregationType.NONE, DataElementDomain.TRACKER );
+        dataElementWithOptionSet = createDataElement( 'L', ValueType.TEXT, AggregationType.NONE,
+            DataElementDomain.TRACKER );
+        dataElementWithOptionSet.setOptionSet( optionSet );
+
         attributeA = createTrackedEntityAttribute( 'A' );
         attributeB = createTrackedEntityAttribute( 'B' );
         attributeEmail = createTrackedEntityAttribute( 'E' );
+
         dataElementService.addDataElement( dataElementA );
         dataElementService.addDataElement( dataElementB );
         dataElementService.addDataElement( dataElementC );
@@ -240,6 +273,8 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         dataElementService.addDataElement( dataElementDate );
         dataElementService.addDataElement( dataElementAge );
         dataElementService.addDataElement( assignedDataElement );
+        dataElementService.addDataElement( dataElementWithOptionSet );
+
         attributeService.addTrackedEntityAttribute( attributeA );
         attributeService.addTrackedEntityAttribute( attributeB );
         attributeService.addTrackedEntityAttribute( attributeEmail );
@@ -255,12 +290,12 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEnrollment()
     {
         ProgramRule programRule = setUpSendMessageForEnrollment();
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet(),
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-P1" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( enrollment, Sets.newHashSet(),
             List.of( programRule ) );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, ruleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
@@ -269,15 +304,15 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEnrollmentAndEvents()
     {
         ProgramRule programRule = setUpSendMessageForEnrollment();
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P1" );
-        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( programInstance,
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-P1" );
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( enrollment,
             Sets.newHashSet(), Lists.newArrayList() );
         assertEquals( 1, ruleEffects.size() );
         RuleEffects enrollmentRuleEffects = ruleEffects.get( 0 );
         assertTrue( enrollmentRuleEffects.isEnrollment() );
         assertEquals( "UID-P1", enrollmentRuleEffects.getTrackerObjectUid() );
         RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, ruleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
     }
@@ -286,12 +321,12 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testNotificationWhenUsingD2HasValueWithTEA()
     {
         ProgramRule programRule = setUpNotificationForD2HasValue();
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programInstance, Sets.newHashSet(),
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-P2" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( enrollment, Sets.newHashSet(),
             List.of( programRule ) );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, ruleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
         assertEquals( "PNT-2", ruleActionSendMessage.notification() );
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
@@ -305,15 +340,15 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testNotificationWhenUsingD2HasValueWithTEAForEnrollmentAndEvents()
     {
         setUpNotificationForD2HasValue();
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-P2" );
-        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( programInstance,
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-P2" );
+        List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents( enrollment,
             Sets.newHashSet(), Lists.newArrayList() );
         assertEquals( 1, ruleEffects.size() );
         RuleEffects enrollmentRuleEffects = ruleEffects.get( 0 );
         assertTrue( enrollmentRuleEffects.isEnrollment() );
         assertEquals( "UID-P2", enrollmentRuleEffects.getTrackerObjectUid() );
         RuleAction ruleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, ruleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
         assertEquals( "PNT-2", ruleActionSendMessage.notification() );
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-2" );
@@ -327,12 +362,12 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEvent()
     {
         ProgramRule programRule = setUpSendMessageForEnrollment();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS1" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, ruleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleAction;
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
@@ -346,17 +381,17 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSendMessageForEnrollmentAndEvent()
     {
         setUpSendMessageForEnrollment();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS1" );
+        Event event = eventService.getEvent( "UID-PS1" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
+            event.getEnrollment(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertEquals( 2, ruleEffects.size() );
         RuleEffects enrollmentRuleEffects = ruleEffects.stream().filter( RuleEffects::isEnrollment ).findFirst().get();
         RuleEffects eventRuleEffects = ruleEffects.stream().filter( RuleEffects::isEvent ).findFirst().get();
         assertEquals( "UID-PS1", eventRuleEffects.getTrackerObjectUid() );
         RuleAction eventRuleAction = eventRuleEffects.getRuleEffects().get( 0 ).ruleAction();
         RuleAction enrollmentRuleAction = enrollmentRuleEffects.getRuleEffects().get( 0 ).ruleAction();
-        assertTrue( eventRuleAction instanceof RuleActionSendMessage );
-        assertTrue( enrollmentRuleAction instanceof RuleActionSendMessage );
+        assertInstanceOf( RuleActionSendMessage.class, eventRuleAction );
+        assertInstanceOf( RuleActionSendMessage.class, enrollmentRuleAction );
         RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) eventRuleAction;
         assertEquals( "PNT-1", ruleActionSendMessage.notification() );
         ProgramNotificationTemplate template = programNotificationTemplateStore.getByUid( "PNT-1" );
@@ -370,25 +405,25 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testSchedulingByProgramRule()
     {
         setUpScheduleMessage();
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-PS" );
         List<RuleEffect> ruleEffects = programRuleEngineService
-            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+            .evaluateEnrollmentAndRunEffects( enrollment.getId() );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionScheduleMessage );
+        assertInstanceOf( RuleActionScheduleMessage.class, ruleAction );
         RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
         assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
         assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
         // For duplication detection
         List<RuleEffect> ruleEffects2 = programRuleEngineService
-            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+            .evaluateEnrollmentAndRunEffects( enrollment.getId() );
         assertNotNull( ruleEffects2.get( 0 ) );
-        assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof RuleActionScheduleMessage );
+        assertInstanceOf( RuleActionScheduleMessage.class, ruleEffects2.get( 0 ).ruleAction() );
         RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 )
             .ruleAction();
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
         assertEquals( 1, programNotificationInstanceService.getProgramNotificationInstances(
-            ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() ).size() );
+            ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() ).size() );
     }
 
     @Test
@@ -396,25 +431,25 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     {
         setUpScheduleMessage();
         pnt.setSendRepeatable( true );
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( "UID-PS" );
+        Enrollment enrollment = enrollmentService.getEnrollment( "UID-PS" );
         List<RuleEffect> ruleEffects = programRuleEngineService
-            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+            .evaluateEnrollmentAndRunEffects( enrollment.getId() );
         assertEquals( 1, ruleEffects.size() );
         RuleAction ruleAction = ruleEffects.get( 0 ).ruleAction();
-        assertTrue( ruleAction instanceof RuleActionScheduleMessage );
+        assertInstanceOf( RuleActionScheduleMessage.class, ruleAction );
         RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleAction;
         assertEquals( "PNT-1-SCH", ruleActionScheduleMessage.notification() );
         assertEquals( scheduledDate, ruleEffects.get( 0 ).data() );
         List<RuleEffect> ruleEffects2 = programRuleEngineService
-            .evaluateEnrollmentAndRunEffects( programInstance.getId() );
+            .evaluateEnrollmentAndRunEffects( enrollment.getId() );
         assertNotNull( ruleEffects2.get( 0 ) );
-        assertTrue( ruleEffects2.get( 0 ).ruleAction() instanceof RuleActionScheduleMessage );
+        assertInstanceOf( RuleActionScheduleMessage.class, ruleEffects2.get( 0 ).ruleAction() );
         RuleActionScheduleMessage ruleActionScheduleMessage2 = (RuleActionScheduleMessage) ruleEffects2.get( 0 )
             .ruleAction();
         assertNotNull( programNotificationTemplateStore.getByUid( ruleActionScheduleMessage2.notification() ) );
         List<ProgramNotificationInstance> instances = programNotificationInstanceService
             .getProgramNotificationInstances(
-                ProgramNotificationInstanceParam.builder().programInstance( programInstance ).build() );
+                ProgramNotificationInstanceParam.builder().enrollment( enrollment ).build() );
         assertEquals( 2, instances.size() );
         assertEquals( instances.get( 0 ).getProgramNotificationTemplateId(),
             instances.get( 1 ).getProgramNotificationTemplateId() );
@@ -426,9 +461,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeDate()
     {
         ProgramRule programRule = setUpAssignValueDate();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS12" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
     }
@@ -437,9 +472,9 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeDateEnrollmentAndEvent()
     {
         setUpAssignValueDate();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS12" );
+        Event event = eventService.getEvent( "UID-PS12" );
         List<RuleEffects> ruleEffects = programRuleEngine.evaluateEnrollmentAndEvents(
-            programStageInstance.getProgramInstance(), Sets.newHashSet( programStageInstance ), Lists.newArrayList() );
+            event.getEnrollment(), Sets.newHashSet( event ), Lists.newArrayList() );
         assertNotNull( ruleEffects );
         assertEquals( 2, ruleEffects.size() );
         assertTrue( ruleEffects.stream().filter( e -> e.isEnrollment() ).findFirst().get().getRuleEffects().isEmpty() );
@@ -451,11 +486,39 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
     void testAssignValueTypeAge()
     {
         ProgramRule programRule = setUpAssignValueAge();
-        ProgramStageInstance programStageInstance = programStageInstanceService.getProgramStageInstance( "UID-PS13" );
-        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( programStageInstance.getProgramInstance(),
-            programStageInstance, Sets.newHashSet(), List.of( programRule ) );
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
+            event, Sets.newHashSet(), List.of( programRule ) );
         assertNotNull( ruleEffects );
         assertEquals( ruleEffects.get( 0 ).data(), "10" );
+    }
+
+    @Test
+    void testAssignOptionSetName()
+    {
+        setUpRuleActionForOptionSetName();
+
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
+            event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
+
+        assertNotNull( ruleEffects );
+        assertInstanceOf( RuleActionShowWarning.class, ruleEffects.get( 0 ).ruleAction() );
+        assertThat( ruleEffects.get( 0 ).data(), Matchers.is( option1.getName() ) );
+    }
+
+    @Test
+    void testAssignOptionSetCode()
+    {
+        setUpRuleActionForOptionSetCode();
+
+        Event event = eventService.getEvent( "UID-PS13" );
+        List<RuleEffect> ruleEffects = programRuleEngine.evaluate( event.getEnrollment(),
+            event, Sets.newHashSet(), List.of( programRuleToTestOptionSet ) );
+
+        assertNotNull( ruleEffects );
+        assertInstanceOf( RuleActionShowError.class, ruleEffects.get( 0 ).ruleAction() );
+        assertThat( ruleEffects.get( 0 ).data(), Matchers.is( option1.getCode() ) );
     }
 
     private void setupEvents()
@@ -503,18 +566,25 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
             dataElementDate, 5 );
         ProgramStageDataElement programStageDataElementAge = createProgramStageDataElement( programStageAge,
             dataElementAge, 6 );
+
+        ProgramStageDataElement programStageDEWithOptionSet = createProgramStageDataElement( programStageAge,
+            dataElementWithOptionSet, 6 );
+
         programStageDataElementService.addProgramStageDataElement( programStageDataElementA );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementB );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementC );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementD );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementDate );
         programStageDataElementService.addProgramStageDataElement( programStageDataElementAge );
+
+        programStageDataElementService.addProgramStageDataElement( programStageDEWithOptionSet );
         programStageA.setSortOrder( 1 );
         programStageB.setSortOrder( 2 );
         programStageC.setSortOrder( 3 );
         programStageA.setProgramStageDataElements(
             Sets.newHashSet( programStageDataElementA, programStageDataElementB, programStageDataElementDate ) );
-        programStageAge.setProgramStageDataElements( Sets.newHashSet( programStageDataElementDate ) );
+        programStageAge
+            .setProgramStageDataElements( Sets.newHashSet( programStageDataElementDate, programStageDEWithOptionSet ) );
         programStageB
             .setProgramStageDataElements( Sets.newHashSet( programStageDataElementA, programStageDataElementB ) );
         programStageC
@@ -525,14 +595,14 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programStageService.updateProgramStage( programStageAge );
         programA.setProgramStages( Sets.newHashSet( programStageA, programStageB, programStageC, programStageAge ) );
         programService.updateProgram( programA );
-        TrackedEntityInstance entityInstanceA = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceA );
-        TrackedEntityInstance entityInstanceB = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceB );
-        TrackedEntityInstance entityInstanceS = createTrackedEntityInstance( organisationUnitB );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceS );
-        TrackedEntityInstance entityInstanceE = createTrackedEntityInstance( organisationUnitA );
-        entityInstanceService.addTrackedEntityInstance( entityInstanceE );
+        TrackedEntity entityInstanceA = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceA );
+        TrackedEntity entityInstanceB = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceB );
+        TrackedEntity entityInstanceS = createTrackedEntity( organisationUnitB );
+        entityInstanceService.addTrackedEntity( entityInstanceS );
+        TrackedEntity entityInstanceE = createTrackedEntity( organisationUnitA );
+        entityInstanceService.addTrackedEntity( entityInstanceE );
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue( attributeA, entityInstanceA,
             "test" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValue );
@@ -545,13 +615,13 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
             entityInstanceE, "zubair@dhis2.org" );
         trackedEntityAttributeValueService.addTrackedEntityAttributeValue( attributeValueS );
         entityInstanceA.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValue ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceA );
+        entityInstanceService.updateTrackedEntity( entityInstanceA );
         entityInstanceB.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueB ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceB );
+        entityInstanceService.updateTrackedEntity( entityInstanceB );
         entityInstanceS.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueS ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceS );
+        entityInstanceService.updateTrackedEntity( entityInstanceS );
         entityInstanceE.setTrackedEntityAttributeValues( Sets.newHashSet( attributeValueEmail ) );
-        entityInstanceService.updateTrackedEntityInstance( entityInstanceE );
+        entityInstanceService.updateTrackedEntity( entityInstanceE );
         DateTime testDate1 = DateTime.now();
         testDate1.withTimeAtStartOfDay();
         testDate1 = testDate1.minusDays( 70 );
@@ -559,56 +629,63 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         DateTime testDate2 = DateTime.now();
         testDate2.withTimeAtStartOfDay();
         Date enrollmentDate = testDate2.toDate();
-        ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( entityInstanceA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( entityInstanceA,
             programA, enrollmentDate, incidentDate, organisationUnitA );
-        programInstanceA.setUid( "UID-P1" );
-        programInstanceService.updateProgramInstance( programInstanceA );
-        ProgramInstance programInstanceE = programInstanceService.enrollTrackedEntityInstance( entityInstanceE,
+        enrollmentA.setUid( "UID-P1" );
+        enrollmentService.updateEnrollment( enrollmentA );
+        Enrollment enrollmentE = enrollmentService.enrollTrackedEntity( entityInstanceE,
             programB, enrollmentDate, incidentDate, organisationUnitA );
-        programInstanceE.setUid( "UID-P2" );
-        programInstanceService.updateProgramInstance( programInstanceE );
-        ProgramInstance programInstanceS = programInstanceService.enrollTrackedEntityInstance( entityInstanceS,
+        enrollmentE.setUid( "UID-P2" );
+        enrollmentService.updateEnrollment( enrollmentE );
+        Enrollment enrollmentS = enrollmentService.enrollTrackedEntity( entityInstanceS,
             programS, enrollmentDate, incidentDate, organisationUnitB );
-        programInstanceS.setUid( "UID-PS" );
-        programInstanceService.updateProgramInstance( programInstanceS );
-        ProgramStageInstance programStageInstanceA = new ProgramStageInstance( programInstanceA, programStageA );
-        programStageInstanceA.setDueDate( enrollmentDate );
-        programStageInstanceA.setExecutionDate( new Date() );
-        programStageInstanceA.setUid( "UID-PS1" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceA );
+        enrollmentS.setUid( "UID-PS" );
+        enrollmentService.updateEnrollment( enrollmentS );
+        Event eventA = new Event( enrollmentA, programStageA );
+        eventA.setDueDate( enrollmentDate );
+        eventA.setExecutionDate( new Date() );
+        eventA.setUid( "UID-PS1" );
+        eventService.addEvent( eventA );
         eventDataValueDate = new EventDataValue();
         eventDataValueDate.setDataElement( dataElementDate.getUid() );
         eventDataValueDate.setAutoFields();
         eventDataValueDate.setValue( dob );
+
         eventDataValueAge = new EventDataValue();
         eventDataValueAge.setDataElement( dataElementAge.getUid() );
         eventDataValueAge.setAutoFields();
         eventDataValueAge.setValue( dob );
-        ProgramStageInstance programStageInstanceDate = new ProgramStageInstance( programInstanceA, programStageAge );
-        programStageInstanceDate.setDueDate( enrollmentDate );
-        programStageInstanceDate.setExecutionDate( psEventDate );
-        programStageInstanceDate.setUid( "UID-PS12" );
-        programStageInstanceDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceDate );
-        ProgramStageInstance programStageInstanceAge = new ProgramStageInstance( programInstanceA, programStageAge );
-        programStageInstanceAge.setDueDate( enrollmentDate );
-        programStageInstanceAge.setExecutionDate( psEventDate );
-        programStageInstanceAge.setUid( "UID-PS13" );
-        programStageInstanceAge.setEventDataValues( Sets.newHashSet( eventDataValueAge ) );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceAge );
-        ProgramStageInstance programStageInstanceB = new ProgramStageInstance( programInstanceA, programStageB );
-        programStageInstanceB.setDueDate( enrollmentDate );
-        programStageInstanceB.setExecutionDate( new Date() );
-        programStageInstanceB.setUid( "UID-PS2" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceB );
-        ProgramStageInstance programStageInstanceC = new ProgramStageInstance( programInstanceA, programStageC );
-        programStageInstanceC.setDueDate( enrollmentDate );
-        programStageInstanceC.setExecutionDate( new Date() );
-        programStageInstanceC.setUid( "UID-PS3" );
-        programStageInstanceService.addProgramStageInstance( programStageInstanceC );
-        programInstanceA.getProgramStageInstances().addAll( Sets.newHashSet( programStageInstanceA,
-            programStageInstanceB, programStageInstanceC, programStageInstanceAge ) );
-        programInstanceService.updateProgramInstance( programInstanceA );
+
+        eventDataValueWithOptionSet = new EventDataValue();
+        eventDataValueWithOptionSet.setDataElement( dataElementWithOptionSet.getUid() );
+        eventDataValueWithOptionSet.setAutoFields();
+        eventDataValueWithOptionSet.setValue( option1.getCode() );
+
+        Event eventDate = new Event( enrollmentA, programStageAge );
+        eventDate.setDueDate( enrollmentDate );
+        eventDate.setExecutionDate( psEventDate );
+        eventDate.setUid( "UID-PS12" );
+        eventDate.setEventDataValues( Sets.newHashSet( eventDataValueDate ) );
+        eventService.addEvent( eventDate );
+        Event eventAge = new Event( enrollmentA, programStageAge );
+        eventAge.setDueDate( enrollmentDate );
+        eventAge.setExecutionDate( psEventDate );
+        eventAge.setUid( "UID-PS13" );
+        eventAge.setEventDataValues( Sets.newHashSet( eventDataValueAge, eventDataValueWithOptionSet ) );
+        eventService.addEvent( eventAge );
+        Event eventB = new Event( enrollmentA, programStageB );
+        eventB.setDueDate( enrollmentDate );
+        eventB.setExecutionDate( new Date() );
+        eventB.setUid( "UID-PS2" );
+        eventService.addEvent( eventB );
+        Event eventC = new Event( enrollmentA, programStageC );
+        eventC.setDueDate( enrollmentDate );
+        eventC.setExecutionDate( new Date() );
+        eventC.setUid( "UID-PS3" );
+        eventService.addEvent( eventC );
+        enrollmentA.getEvents().addAll( Sets.newHashSet( eventA,
+            eventB, eventC, eventAge ) );
+        enrollmentService.updateEnrollment( enrollmentA );
     }
 
     private void setupProgramRuleEngine()
@@ -628,6 +705,11 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         programRuleS = createProgramRule( 'S', programS );
         programRuleS.setCondition( expressionS );
         programRuleService.addProgramRule( programRuleS );
+
+        programRuleToTestOptionSet = createProgramRule( 'O', programA );
+        programRuleToTestOptionSet.setCondition( "true" );
+        programRuleService.addProgramRule( programRuleToTestOptionSet );
+
         ProgramRuleVariable programRuleVariableEmail = createProgramRuleVariableWithTEA( 'E', programB,
             attributeEmail );
         programRuleVariableEmail.setName( "attribute_email" );
@@ -645,6 +727,18 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         ProgramRuleVariable programRuleVariableAge = createProgramRuleVariableWithDataElement( 'K', programA,
             dataElementAge );
         programRuleVariableAge.setName( "AGE" );
+
+        ProgramRuleVariable programRuleVariableWithDeOpName = createProgramRuleVariableWithDataElement( 'O', programA,
+            dataElementWithOptionSet );
+        programRuleVariableWithDeOpName.setName( "prv-de-option-set-name" );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableWithDeOpName );
+
+        ProgramRuleVariable programRuleVariableWithDeOpCode = createProgramRuleVariableWithDataElement( 'L', programA,
+            dataElementWithOptionSet );
+        programRuleVariableWithDeOpCode.setName( "prv-de-option-set-code" );
+        programRuleVariableWithDeOpCode.setUseCodeForOptionSet( true );
+        programRuleVariableService.addProgramRuleVariable( programRuleVariableWithDeOpCode );
+
         programRuleVariableService.addProgramRuleVariable( programRuleVariableAge );
         ProgramRuleVariable programRuleVariableD = createProgramRuleVariableWithTEA( 'D', programA, attributeB );
         programRuleVariableService.addProgramRuleVariable( programRuleVariableD );
@@ -763,5 +857,31 @@ class ProgramRuleEngineTest extends TransactionalIntegrationTest
         pnt.setAutoFields();
         pnt.setUid( "PNT-1-SCH" );
         return pnt;
+    }
+
+    private void setUpRuleActionForOptionSetName()
+    {
+        ProgramRuleAction programRuleAction = createProgramRuleAction( 'X', programRuleToTestOptionSet );
+        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SHOWWARNING );
+        programRuleAction.setData( "#{prv-de-option-set-name}" );
+
+        programRuleActionService.addProgramRuleAction( programRuleAction );
+        programRuleToTestOptionSet.getProgramRuleActions().clear();
+        programRuleToTestOptionSet.getProgramRuleActions().add( programRuleAction );
+
+        programRuleService.updateProgramRule( programRuleToTestOptionSet );
+    }
+
+    private void setUpRuleActionForOptionSetCode()
+    {
+        ProgramRuleAction programRuleAction = createProgramRuleAction( 'Z', programRuleToTestOptionSet );
+        programRuleAction.setProgramRuleActionType( ProgramRuleActionType.SHOWERROR );
+        programRuleAction.setData( "#{prv-de-option-set-code}" );
+
+        programRuleActionService.addProgramRuleAction( programRuleAction );
+        programRuleToTestOptionSet.getProgramRuleActions().clear();
+        programRuleToTestOptionSet.getProgramRuleActions().add( programRuleAction );
+
+        programRuleService.updateProgramRule( programRuleToTestOptionSet );
     }
 }

@@ -17,15 +17,15 @@
                      foreign-key="fk_relationshipitem_relationshipid"
                         cascade="delete"/>
 
-        <many-to-one name="trackedEntityInstance" class="org.hisp.dhis.trackedentity.TrackedEntityInstance"
+        <many-to-one name="trackedEntity" class="org.hisp.dhis.trackedentity.TrackedEntity"
                      column="trackedentityinstanceid"
                      foreign-key="fk_relationshipitem_trackedentityinstanceid"/>
 
-        <many-to-one name="programInstance" class="org.hisp.dhis.program.ProgramInstance"
+        <many-to-one name="enrollment" class="org.hisp.dhis.program.Enrollment"
                      column="programinstanceid"
                      foreign-key="fk_relationshipitem_programinstanceid"/>
 
-        <many-to-one name="programStageInstance" class="org.hisp.dhis.program.ProgramStageInstance"
+        <many-to-one name="event" class="org.hisp.dhis.program.Event"
                      column="programstageinstanceid"
                      foreign-key="fk_relationshipitem_programstageinstanceid"/>
     </class>

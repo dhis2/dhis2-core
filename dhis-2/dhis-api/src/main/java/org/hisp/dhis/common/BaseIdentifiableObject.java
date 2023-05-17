@@ -29,6 +29,8 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -61,7 +63,8 @@ import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserSettingKey;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.hisp.dhis.util.SharingUtils;
+import org.hisp.dhis.user.sharing.UserAccess;
+import org.hisp.dhis.user.sharing.UserGroupAccess;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -135,31 +138,11 @@ public class BaseIdentifiableObject
     private Map<String, String> translationCache = new ConcurrentHashMap<>();
 
     /**
-     * This object is available as external read-only.
-     */
-    protected transient Boolean externalAccess;
-
-    /**
-     * Access string for public access.
-     */
-    protected transient String publicAccess;
-
-    /**
      * User who created this object. This field is immutable and must not be
      * updated.
      */
     @Immutable
     protected User createdBy;
-
-    /**
-     * Access for user groups.
-     */
-    protected transient Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses = new HashSet<>();
-
-    /**
-     * Access for users.
-     */
-    protected transient Set<org.hisp.dhis.user.UserAccess> userAccesses = new HashSet<>();
 
     /**
      * Access information for this object. Applies to current user.
@@ -481,65 +464,6 @@ public class BaseIdentifiableObject
     }
 
     @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @PropertyRange( min = 8, max = 8 )
-    public String getPublicAccess()
-    {
-        return SharingUtils.getDtoPublicAccess( publicAccess, getSharing() );
-    }
-
-    public void setPublicAccess( String publicAccess )
-    {
-        this.publicAccess = publicAccess;
-        getSharing().setPublicAccess( publicAccess );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean getExternalAccess()
-    {
-        return SharingUtils.getDtoExternalAccess( externalAccess, getSharing() );
-    }
-
-    public void setExternalAccess( boolean externalAccess )
-    {
-        this.externalAccess = externalAccess;
-        getSharing().setExternal( externalAccess );
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "userGroupAccesses", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userGroupAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<org.hisp.dhis.user.UserGroupAccess> getUserGroupAccesses()
-    {
-        return SharingUtils.getDtoUserGroupAccesses( userGroupAccesses, getSharing() );
-    }
-
-    public void setUserGroupAccesses( Set<org.hisp.dhis.user.UserGroupAccess> userGroupAccesses )
-    {
-        getSharing().setDtoUserGroupAccesses( userGroupAccesses );
-        this.userGroupAccesses = userGroupAccesses;
-    }
-
-    @Override
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "userAccesses", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "userAccess", namespace = DxfNamespaces.DXF_2_0 )
-    public Set<org.hisp.dhis.user.UserAccess> getUserAccesses()
-    {
-        return SharingUtils.getDtoUserAccesses( userAccesses, getSharing() );
-    }
-
-    public void setUserAccesses( Set<org.hisp.dhis.user.UserAccess> userAccesses )
-    {
-        getSharing().setDtoUserAccesses( userAccesses );
-        this.userAccesses = userAccesses;
-    }
-
-    @Override
     @Gist( included = Include.FALSE )
     @JsonProperty
     @JacksonXmlProperty( localName = "access", namespace = DxfNamespaces.DXF_2_0 )
@@ -725,14 +649,58 @@ public class BaseIdentifiableObject
         return null;
     }
 
-    /**
-     * Set legacy sharing collections to null so that the ImportService will
-     * import current object with new Sharing format.
-     */
-    public void clearLegacySharingCollections()
+    // -------------------------------------------------------------------------
+    // Sharing helpers
+    // -------------------------------------------------------------------------
+
+    public void setExternalAccess( boolean externalAccess )
     {
-        this.userAccesses = null;
-        this.userGroupAccesses = null;
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
+        sharing.setExternal( externalAccess );
+    }
+
+    public void setPublicAccess( String access )
+    {
+        if ( sharing == null )
+        {
+            sharing = new Sharing();
+        }
+
+        sharing.setPublicAccess( access );
+    }
+
+    public String getPublicAccess()
+    {
+        if ( sharing != null )
+        {
+            return sharing.getPublicAccess();
+        }
+
+        return null;
+    }
+
+    public Collection<UserAccess> getUserAccesses()
+    {
+        if ( sharing == null || getSharing().getUsers() == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return getSharing().getUsers().values();
+    }
+
+    public Collection<UserGroupAccess> getUserGroupAccesses()
+    {
+        if ( sharing == null || getSharing().getUserGroups() == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return getSharing().getUserGroups().values();
     }
 
     @Override

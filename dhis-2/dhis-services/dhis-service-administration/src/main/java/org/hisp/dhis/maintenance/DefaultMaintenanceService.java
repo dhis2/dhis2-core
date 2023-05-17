@@ -114,9 +114,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramStageInstances()
+    public int deleteSoftDeletedEvents()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramStageInstances();
+        int result = maintenanceStore.deleteSoftDeletedEvents();
 
         log.info( "Permanently deleted soft deleted events: " + result );
 
@@ -134,9 +134,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedProgramInstances()
+    public int deleteSoftDeletedEnrollments()
     {
-        int result = maintenanceStore.deleteSoftDeletedProgramInstances();
+        int result = maintenanceStore.deleteSoftDeletedEnrollments();
 
         log.info( "Permanently deleted soft deleted enrollments: " + result );
 
@@ -144,9 +144,9 @@ public class DefaultMaintenanceService
     }
 
     @Override
-    public int deleteSoftDeletedTrackedEntityInstances()
+    public int deleteSoftDeletedTrackedEntities()
     {
-        int result = maintenanceStore.deleteSoftDeletedTrackedEntityInstances();
+        int result = maintenanceStore.deleteSoftDeletedTrackedEntities();
 
         log.info( "Permanently deleted soft deleted tracked entity instances: " + result );
 

@@ -52,9 +52,9 @@ import java.util.stream.Stream;
 import lombok.SneakyThrows;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -74,10 +74,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EventImportValidationTest extends TrackerTest
 {
     @Autowired
-    protected TrackedEntityInstanceService trackedEntityInstanceService;
+    protected TrackedEntityService trackedEntityService;
 
     @Autowired
-    private ProgramStageInstanceService programStageServiceInstance;
+    private EventService programStageServiceInstance;
 
     @Autowired
     private TrackerImportService trackerImportService;
@@ -173,7 +173,8 @@ class EventImportValidationTest extends TrackerTest
 
         ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
-        assertHasOnlyErrors( importReport, ValidationCode.E1099, ValidationCode.E1104 );
+        assertHasOnlyErrors( importReport, ValidationCode.E1096, ValidationCode.E1099, ValidationCode.E1104,
+            ValidationCode.E1095 );
     }
 
     @Test
@@ -312,11 +313,11 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = createEvent( "tracker/validations/events-with-notes-data.json" );
         // Then
         // Fetch the UID of the newly created event
-        final ProgramStageInstance programStageInstance = getEventFromReport( importReport );
-        assertThat( programStageInstance.getComments(), hasSize( 3 ) );
+        final Event event = getEventFromReport( importReport );
+        assertThat( event.getComments(), hasSize( 3 ) );
         // Validate note content
         Stream.of( "first note", "second note", "third note" ).forEach( t -> {
-            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            TrackedEntityComment comment = getByComment( event.getComments(), t );
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
@@ -336,11 +337,11 @@ class EventImportValidationTest extends TrackerTest
         ImportReport importReport = createEvent(
             "tracker/validations/events-with-notes-update-data.json" );
         // Then
-        final ProgramStageInstance programStageInstance = getEventFromReport( importReport );
-        assertThat( programStageInstance.getComments(), hasSize( 6 ) );
+        final Event event = getEventFromReport( importReport );
+        assertThat( event.getComments(), hasSize( 6 ) );
         // validate note content
         Stream.of( "first note", "second note", "third note", "4th note", "5th note", "6th note" ).forEach( t -> {
-            TrackedEntityComment comment = getByComment( programStageInstance.getComments(), t );
+            TrackedEntityComment comment = getByComment( event.getComments(), t );
             assertTrue( CodeGenerator.isValidUid( comment.getUid() ) );
             assertTrue( comment.getCreated().getTime() > now.getTime() );
             assertTrue( comment.getLastUpdated().getTime() > now.getTime() );
@@ -366,10 +367,10 @@ class EventImportValidationTest extends TrackerTest
     {
         // Given -> Creates an event
         createEvent( "tracker/validations/events-with-notes-data.json" );
-        ProgramStageInstance event = programStageServiceInstance.getProgramStageInstance( "uLxFbxfYDQE" );
+        Event event = programStageServiceInstance.getEvent( "uLxFbxfYDQE" );
         assertNotNull( event );
         // When -> Soft-delete the event
-        programStageServiceInstance.deleteProgramStageInstance( event );
+        programStageServiceInstance.deleteEvent( event );
         TrackerImportParams trackerBundleParams = fromJson(
             "tracker/validations/events-with-notes-data.json" );
         trackerBundleParams.setImportStrategy( importStrategy );
@@ -429,11 +430,11 @@ class EventImportValidationTest extends TrackerTest
         return null;
     }
 
-    private ProgramStageInstance getEventFromReport( ImportReport importReport )
+    private Event getEventFromReport( ImportReport importReport )
     {
         final Map<TrackerType, TrackerTypeReport> typeReportMap = importReport.getPersistenceReport()
             .getTypeReportMap();
         String newEvent = typeReportMap.get( TrackerType.EVENT ).getEntityReportMap().get( 0 ).getUid();
-        return programStageServiceInstance.getProgramStageInstance( newEvent );
+        return programStageServiceInstance.getEvent( newEvent );
     }
 }

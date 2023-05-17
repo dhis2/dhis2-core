@@ -88,11 +88,11 @@ public class RelationshipTrackerConverterService
     private RelationshipItem convertRelationshipType( org.hisp.dhis.relationship.RelationshipItem from )
     {
         RelationshipItem relationshipItem = new RelationshipItem();
-        relationshipItem.setEnrollment( from.getProgramInstance() != null ? from.getProgramInstance().getUid() : null );
+        relationshipItem.setEnrollment( from.getEnrollment() != null ? from.getEnrollment().getUid() : null );
         relationshipItem
-            .setEvent( from.getProgramStageInstance() != null ? from.getProgramStageInstance().getUid() : null );
+            .setEvent( from.getEvent() != null ? from.getEvent().getUid() : null );
         relationshipItem.setTrackedEntity(
-            from.getTrackedEntityInstance() != null ? from.getTrackedEntityInstance().getUid() : null );
+            from.getTrackedEntity() != null ? from.getTrackedEntity().getUid() : null );
         return relationshipItem;
     }
 
@@ -144,18 +144,18 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            fromItem.setTrackedEntityInstance( preheat.getTrackedEntity(
+            fromItem.setTrackedEntity( preheat.getTrackedEntity(
                 fromRelationship.getFrom().getTrackedEntity() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
-            fromItem.setProgramInstance(
+            fromItem.setEnrollment(
                 preheat.getEnrollment(
                     fromRelationship.getFrom().getEnrollment() ) );
         }
         else if ( relationshipType.getFromConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-            fromItem.setProgramStageInstance(
+            fromItem.setEvent(
                 preheat.getEvent( fromRelationship.getFrom().getEvent() ) );
         }
 
@@ -164,18 +164,18 @@ public class RelationshipTrackerConverterService
 
         if ( relationshipType.getToConstraint().getRelationshipEntity().equals( TRACKED_ENTITY_INSTANCE ) )
         {
-            toItem.setTrackedEntityInstance( preheat.getTrackedEntity(
+            toItem.setTrackedEntity( preheat.getTrackedEntity(
                 fromRelationship.getTo().getTrackedEntity() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_INSTANCE ) )
         {
-            toItem.setProgramInstance(
+            toItem.setEnrollment(
                 preheat.getEnrollment(
                     fromRelationship.getTo().getEnrollment() ) );
         }
         else if ( relationshipType.getToConstraint().getRelationshipEntity().equals( PROGRAM_STAGE_INSTANCE ) )
         {
-            toItem.setProgramStageInstance(
+            toItem.setEvent(
                 preheat.getEvent( fromRelationship.getTo().getEvent() ) );
         }
 

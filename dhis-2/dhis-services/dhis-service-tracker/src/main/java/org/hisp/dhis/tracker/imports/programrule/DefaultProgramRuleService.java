@@ -39,19 +39,17 @@ import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.ListUtils;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.engine.ProgramRuleEngine;
 import org.hisp.dhis.rules.models.RuleEffects;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.converter.RuleEngineConverterService;
 import org.hisp.dhis.tracker.imports.converter.TrackerConverterService;
 import org.hisp.dhis.tracker.imports.domain.Attribute;
-import org.hisp.dhis.tracker.imports.domain.Enrollment;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -68,9 +66,9 @@ class DefaultProgramRuleService
     @Qualifier( "serviceTrackerRuleEngine" )
     private final ProgramRuleEngine programRuleEngine;
 
-    private final RuleEngineConverterService<Enrollment, ProgramInstance> enrollmentTrackerConverterService;
+    private final RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Enrollment, Enrollment> enrollmentTrackerConverterService;
 
-    private final RuleEngineConverterService<Event, ProgramStageInstance> eventTrackerConverterService;
+    private final RuleEngineConverterService<org.hisp.dhis.tracker.imports.domain.Event, Event> eventTrackerConverterService;
 
     private final TrackerConverterService<Attribute, TrackedEntityAttributeValue> attributeValueTrackerConverterService;
 
@@ -101,11 +99,11 @@ class DefaultProgramRuleService
         return bundle.getEnrollments()
             .stream()
             .flatMap( e -> {
-                ProgramInstance programInstance = enrollmentTrackerConverterService.fromForRuleEngine( preheat, e );
+                Enrollment enrollment = enrollmentTrackerConverterService.fromForRuleEngine( preheat, e );
 
                 return programRuleEngine
-                    .evaluateEnrollmentAndEvents( programInstance,
-                        getEventsFromEnrollment( programInstance.getUid(), bundle, preheat ),
+                    .evaluateEnrollmentAndEvents( enrollment,
+                        getEventsFromEnrollment( enrollment.getUid(), bundle, preheat ),
                         getAttributes( e.getEnrollment(), e.getTrackedEntity(), bundle, preheat ) )
                     .stream();
             } )
@@ -114,26 +112,26 @@ class DefaultProgramRuleService
 
     private List<RuleEffects> calculateTrackerEventRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
     {
-        Set<ProgramInstance> programInstances = bundle.getEvents()
+        Set<Enrollment> enrollments = bundle.getEvents()
             .stream()
             .filter( event -> bundle.findEnrollmentByUid( event.getEnrollment() ).isEmpty() )
             .filter( event -> preheat.getProgram( event.getProgram() ).isRegistration() )
             .map( event -> preheat.getEnrollment( event.getEnrollment() ) )
             .collect( Collectors.toSet() );
 
-        return programInstances
+        return enrollments
             .stream()
             .flatMap( enrollment -> programRuleEngine.evaluateEnrollmentAndEvents(
                 enrollment,
                 getEventsFromEnrollment( enrollment.getUid(), bundle, preheat ),
-                getAttributes( enrollment.getUid(), enrollment.getEntityInstance().getUid(), bundle, preheat ) )
+                getAttributes( enrollment.getUid(), enrollment.getTrackedEntity().getUid(), bundle, preheat ) )
                 .stream() )
             .collect( Collectors.toList() );
     }
 
     private List<RuleEffects> calculateProgramEventRuleEffects( TrackerBundle bundle, TrackerPreheat preheat )
     {
-        Map<Program, List<Event>> programEvents = bundle.getEvents()
+        Map<Program, List<org.hisp.dhis.tracker.imports.domain.Event>> programEvents = bundle.getEvents()
             .stream()
             .filter( event -> preheat.getProgram( event.getProgram() ).isWithoutRegistration() )
             .collect( Collectors.groupingBy( event -> preheat.getProgram( event.getProgram() ) ) );
@@ -142,10 +140,10 @@ class DefaultProgramRuleService
             .entrySet()
             .stream()
             .flatMap( entry -> {
-                List<ProgramStageInstance> programStageInstances = eventTrackerConverterService
+                List<Event> events = eventTrackerConverterService
                     .fromForRuleEngine( preheat, entry.getValue() );
 
-                return programRuleEngine.evaluateProgramEvents( new HashSet<>( programStageInstances ),
+                return programRuleEngine.evaluateProgramEvents( new HashSet<>( events ),
                     entry.getKey() )
                     .stream();
             } )
@@ -159,7 +157,7 @@ class DefaultProgramRuleService
         TrackerPreheat preheat )
     {
         List<TrackedEntityAttributeValue> attributeValues = bundle.findEnrollmentByUid( enrollmentUid )
-            .map( Enrollment::getAttributes )
+            .map( org.hisp.dhis.tracker.imports.domain.Enrollment::getAttributes )
             .map( attributes -> attributeValueTrackerConverterService.from( preheat, attributes ) )
             .orElse( new ArrayList<>() );
 
@@ -169,7 +167,7 @@ class DefaultProgramRuleService
             .orElse( Collections.emptyList() );
         attributeValues.addAll( payloadAttributeValues );
 
-        TrackedEntityInstance trackedEntity = preheat.getTrackedEntity( teiUid );
+        TrackedEntity trackedEntity = preheat.getTrackedEntity( teiUid );
 
         if ( trackedEntity != null )
         {
@@ -188,20 +186,19 @@ class DefaultProgramRuleService
     // Get all the events linked to enrollment from the payload and the DB,
     // using the one from payload
     // if they are present in both places
-    private Set<ProgramStageInstance> getEventsFromEnrollment( String enrollmentUid, TrackerBundle bundle,
-        TrackerPreheat preheat )
+    private Set<Event> getEventsFromEnrollment( String enrollmentUid, TrackerBundle bundle, TrackerPreheat preheat )
     {
-        Stream<ProgramStageInstance> programStageInstances = preheat.getEvents().values()
+        Stream<Event> events = preheat.getEvents().values()
             .stream()
-            .filter( e -> e.getProgramInstance().getUid().equals( enrollmentUid ) )
+            .filter( e -> e.getEnrollment().getUid().equals( enrollmentUid ) )
             .filter( e -> bundle.findEventByUid( e.getUid() ).isEmpty() );
 
-        Stream<ProgramStageInstance> bundleEvents = bundle.getEvents()
+        Stream<Event> bundleEvents = bundle.getEvents()
             .stream()
             .filter( e -> e.getEnrollment().equals( enrollmentUid ) )
             .map( event -> eventTrackerConverterService.fromForRuleEngine( preheat, event ) );
 
-        return Stream.concat( programStageInstances, bundleEvents ).collect( Collectors.toSet() );
+        return Stream.concat( events, bundleEvents ).collect( Collectors.toSet() );
 
     }
 }

@@ -39,7 +39,7 @@ public interface TrackerObjectDeletionService
 
     TrackerTypeReport deleteEvents( TrackerBundle bundle );
 
-    TrackerTypeReport deleteTrackedEntityInstances( TrackerBundle bundle );
+    TrackerTypeReport deleteTrackedEntity( TrackerBundle bundle );
 
-    TrackerTypeReport deleteRelationShips( TrackerBundle bundle );
+    TrackerTypeReport deleteRelationships( TrackerBundle bundle );
 }

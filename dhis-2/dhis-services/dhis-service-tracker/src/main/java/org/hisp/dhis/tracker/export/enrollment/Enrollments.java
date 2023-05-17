@@ -33,7 +33,7 @@ import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.Pager;
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
@@ -43,7 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "enrollments", namespace = DxfNamespaces.DXF_2_0 )
 public class Enrollments
 {
-    private List<ProgramInstance> enrollments = new ArrayList<>();
+    private List<Enrollment> enrollments = new ArrayList<>();
 
     private Pager pager;
 
@@ -54,12 +54,12 @@ public class Enrollments
     @JsonProperty( "enrollments" )
     @JacksonXmlElementWrapper( localName = "enrollments", useWrapping = false, namespace = DxfNamespaces.DXF_2_0 )
     @JacksonXmlProperty( localName = "enrollment", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ProgramInstance> getEnrollments()
+    public List<Enrollment> getEnrollments()
     {
         return enrollments;
     }
 
-    public void setEnrollments( List<ProgramInstance> enrollments )
+    public void setEnrollments( List<Enrollment> enrollments )
     {
         this.enrollments = enrollments;
     }

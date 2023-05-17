@@ -32,7 +32,7 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Value;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceQueryParams;
+import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 
 /**
@@ -90,5 +90,5 @@ class Context
     /**
      * The query parameters to filter teis
      */
-    TrackedEntityInstanceQueryParams queryParams;
+    TrackedEntityQueryParams queryParams;
 }

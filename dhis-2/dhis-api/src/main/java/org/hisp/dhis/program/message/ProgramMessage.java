@@ -41,8 +41,8 @@ import lombok.Setter;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DeliveryChannel;
 import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -67,11 +67,11 @@ public class ProgramMessage
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
     @JsonProperty
     @JsonSerialize( as = BaseIdentifiableObject.class )
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     @JsonProperty
     private ProgramMessageRecipients recipients;
@@ -101,14 +101,14 @@ public class ProgramMessage
     // Logic
     // -------------------------------------------------------------------------
 
-    public boolean hasProgramInstance()
+    public boolean hasEnrollment()
     {
-        return this.programInstance != null;
+        return this.enrollment != null;
     }
 
-    public boolean hasProgramStageInstance()
+    public boolean hasEvent()
     {
-        return this.programStageInstance != null;
+        return this.event != null;
     }
 
     @JsonPOJOBuilder( withPrefix = "" )
@@ -121,8 +121,8 @@ public class ProgramMessage
     {
         return MoreObjects.toStringHelper( this )
             .add( "uid", uid )
-            .add( "program stage instance", programStageInstance )
-            .add( "program instance", programInstance )
+            .add( "event", event )
+            .add( "enrollment", enrollment )
             .add( "recipients", recipients )
             .add( "delivery channels", deliveryChannels )
             .add( "subject", subject )

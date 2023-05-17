@@ -46,8 +46,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -117,7 +117,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -215,7 +215,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
             .thenReturn(
-                programInstance( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
+                enrollment( ENROLLMENT_ID, programWithRegistration( CodeGenerator.generateUid(), orgUnit ) ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -251,7 +251,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
 
         CategoryCombo defaultCC = defaultCategoryCombo();
         program.setCategoryCombo( defaultCC );
@@ -802,12 +802,12 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         return programStage;
     }
 
-    private ProgramInstance programInstance( String uid, Program program )
+    private Enrollment enrollment( String uid, Program program )
     {
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( uid );
-        programInstance.setProgram( program );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( uid );
+        enrollment.setProgram( program );
+        return enrollment;
     }
 
     private Program setupProgram( OrganisationUnit orgUnit )
@@ -820,7 +820,7 @@ class DataRelationsValidatorTest extends DhisConvenienceTest
         when( preheat.getProgramStage( MetadataIdentifier.ofUid( PROGRAM_STAGE_ID ) ) )
             .thenReturn( programStage( PROGRAM_STAGE_ID, program ) );
         when( preheat.getEnrollment( ENROLLMENT_ID ) )
-            .thenReturn( programInstance( ENROLLMENT_ID, program ) );
+            .thenReturn( enrollment( ENROLLMENT_ID, program ) );
         return program;
     }
 

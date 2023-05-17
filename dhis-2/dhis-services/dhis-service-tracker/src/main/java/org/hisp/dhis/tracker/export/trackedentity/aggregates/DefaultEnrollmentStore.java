@@ -29,7 +29,7 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
 import java.util.List;
 
-import org.hisp.dhis.program.ProgramInstance;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 import org.hisp.dhis.tracker.export.trackedentity.aggregates.mapper.EnrollmentRowCallbackHandler;
@@ -70,20 +70,20 @@ public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentS
     }
 
     @Override
-    public Multimap<String, ProgramInstance> getEnrollmentsByTrackedEntityInstanceIds( List<Long> ids,
+    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds( List<Long> ids,
         Context ctx )
     {
         List<List<Long>> teiIds = Lists.partition( ids, PARITITION_SIZE );
 
-        Multimap<String, ProgramInstance> enrollmentMultimap = ArrayListMultimap.create();
+        Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
 
         teiIds.forEach( partition -> enrollmentMultimap
-            .putAll( getEnrollmentsByTrackedEntityInstanceIdsPartitioned( partition, ctx ) ) );
+            .putAll( getEnrollmentsByTrackedEntityIdsPartitioned( partition, ctx ) ) );
 
         return enrollmentMultimap;
     }
 
-    private Multimap<String, ProgramInstance> getEnrollmentsByTrackedEntityInstanceIdsPartitioned( List<Long> ids,
+    private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIdsPartitioned( List<Long> ids,
         Context ctx )
     {
         EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();

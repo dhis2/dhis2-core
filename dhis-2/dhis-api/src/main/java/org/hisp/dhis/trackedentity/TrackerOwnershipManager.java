@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.dxf2.events.event.EventContext;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -49,7 +49,7 @@ public interface TrackerOwnershipManager
      * @param skipAccessValidation whether ownership access validation has to be
      *        skipped or not.
      */
-    void transferOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit orgUnit,
+    void transferOwnership( TrackedEntity entityInstance, Program program, OrganisationUnit orgUnit,
         boolean skipAccessValidation, boolean createIfNotExists );
 
     /**
@@ -57,7 +57,7 @@ public interface TrackerOwnershipManager
      * @param program The program object
      * @param organisationUnit The org unit that has to become the owner
      */
-    void assignOwnership( TrackedEntityInstance entityInstance, Program program, OrganisationUnit organisationUnit,
+    void assignOwnership( TrackedEntity entityInstance, Program program, OrganisationUnit organisationUnit,
         boolean skipAccessValidation, boolean overwriteIfExists );
 
     /**
@@ -69,11 +69,11 @@ public interface TrackerOwnershipManager
      * @param program The program.
      * @return true if the user has access, false otherwise.
      */
-    boolean hasAccess( User user, TrackedEntityInstance entityInstance, Program program );
+    boolean hasAccess( User user, TrackedEntity entityInstance, Program program );
 
     boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
-    boolean hasAccessUsingContext( User user, String trackedEntityInstanceUid, String programUid,
+    boolean hasAccessUsingContext( User user, String trackedEntityUid, String programUid,
         EventContext eventContext );
 
     /**
@@ -85,7 +85,7 @@ public interface TrackerOwnershipManager
      * @param user The user for which temporary access is granted.
      * @param reason The reason for requesting temporary ownership
      */
-    void grantTemporaryOwnership( TrackedEntityInstance entityInstance, Program program, User user, String reason );
+    void grantTemporaryOwnership( TrackedEntity entityInstance, Program program, User user, String reason );
 
     /**
      * Ownership check can be skipped if the user is super user or if the

@@ -38,20 +38,24 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceQueryParams;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.feedback.ForbiddenException;
+import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.hibernate.HibernateEnrollmentStore;
 import org.hisp.dhis.relationship.RelationshipItem;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -62,9 +66,9 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @RequiredArgsConstructor
 @Service( "org.hisp.dhis.tracker.export.enrollment.EnrollmentService" )
-public class DefaultEnrollmentService implements EnrollmentService
+public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.enrollment.EnrollmentService
 {
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     private final TrackerOwnershipManager trackerOwnershipAccessManager;
 
@@ -75,92 +79,96 @@ public class DefaultEnrollmentService implements EnrollmentService
     private final TrackerAccessManager trackerAccessManager;
 
     @Override
-    public ProgramInstance getEnrollment( String uid, EnrollmentParams params )
+    public Enrollment getEnrollment( String uid, EnrollmentParams params )
+        throws NotFoundException,
+        ForbiddenException
     {
-        ProgramInstance programInstance = programInstanceService.getProgramInstance( uid );
-        return programInstance != null ? getEnrollment( programInstance, params ) : null;
+        Enrollment enrollment = enrollmentService.getEnrollment( uid );
+
+        if ( enrollment == null )
+        {
+            throw new NotFoundException( Enrollment.class, uid );
+        }
+
+        return getEnrollment( enrollment, params );
     }
 
     @Override
-    public ProgramInstance getEnrollment( ProgramInstance enrollment, EnrollmentParams params )
+    public Enrollment getEnrollment( @Nonnull Enrollment enrollment, EnrollmentParams params )
+        throws ForbiddenException
     {
-        return getEnrollment( currentUserService.getCurrentUser(), enrollment, params );
-    }
-
-    private ProgramInstance getEnrollment( User user, ProgramInstance programInstance, EnrollmentParams params )
-    {
-        List<String> errors = trackerAccessManager.canRead( user, programInstance, false );
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, enrollment, false );
         if ( !errors.isEmpty() )
         {
-            throw new IllegalQueryException( errors.toString() );
+            throw new ForbiddenException( errors.toString() );
         }
 
-        ProgramInstance result = new ProgramInstance();
-        result.setUid( programInstance.getUid() );
+        Enrollment result = new Enrollment();
+        result.setUid( enrollment.getUid() );
 
-        if ( programInstance.getEntityInstance() != null )
+        if ( enrollment.getTrackedEntity() != null )
         {
-            TrackedEntityInstance trackedEntity = new TrackedEntityInstance();
-            trackedEntity.setUid( programInstance.getEntityInstance().getUid() );
-            result.setEntityInstance( trackedEntity );
+            TrackedEntity trackedEntity = new TrackedEntity();
+            trackedEntity.setUid( enrollment.getTrackedEntity().getUid() );
+            result.setTrackedEntity( trackedEntity );
         }
-        result.setOrganisationUnit( programInstance.getOrganisationUnit() );
-        result.setGeometry( programInstance.getGeometry() );
-        result.setCreated( programInstance.getCreated() );
-        result.setCreatedAtClient( programInstance.getCreatedAtClient() );
-        result.setLastUpdated( programInstance.getLastUpdated() );
-        result.setLastUpdatedAtClient( programInstance.getLastUpdatedAtClient() );
-        result.setProgram( programInstance.getProgram() );
-        result.setStatus( programInstance.getStatus() );
-        result.setEnrollmentDate( programInstance.getEnrollmentDate() );
-        result.setIncidentDate( programInstance.getIncidentDate() );
-        result.setFollowup( programInstance.getFollowup() );
-        result.setEndDate( programInstance.getEndDate() );
-        result.setCompletedBy( programInstance.getCompletedBy() );
-        result.setStoredBy( programInstance.getStoredBy() );
-        result.setCreatedByUserInfo( programInstance.getCreatedByUserInfo() );
-        result.setLastUpdatedByUserInfo( programInstance.getLastUpdatedByUserInfo() );
-        result.setDeleted( programInstance.isDeleted() );
-        result.setComments( programInstance.getComments() );
+        result.setOrganisationUnit( enrollment.getOrganisationUnit() );
+        result.setGeometry( enrollment.getGeometry() );
+        result.setCreated( enrollment.getCreated() );
+        result.setCreatedAtClient( enrollment.getCreatedAtClient() );
+        result.setLastUpdated( enrollment.getLastUpdated() );
+        result.setLastUpdatedAtClient( enrollment.getLastUpdatedAtClient() );
+        result.setProgram( enrollment.getProgram() );
+        result.setStatus( enrollment.getStatus() );
+        result.setEnrollmentDate( enrollment.getEnrollmentDate() );
+        result.setIncidentDate( enrollment.getIncidentDate() );
+        result.setFollowup( enrollment.getFollowup() );
+        result.setEndDate( enrollment.getEndDate() );
+        result.setCompletedBy( enrollment.getCompletedBy() );
+        result.setStoredBy( enrollment.getStoredBy() );
+        result.setCreatedByUserInfo( enrollment.getCreatedByUserInfo() );
+        result.setLastUpdatedByUserInfo( enrollment.getLastUpdatedByUserInfo() );
+        result.setDeleted( enrollment.isDeleted() );
+        result.setComments( enrollment.getComments() );
         if ( params.isIncludeEvents() )
         {
-            result.setProgramStageInstances( getProgramStageInstances( user, programInstance, params ) );
+            result.setEvents( getEvents( user, enrollment, params ) );
         }
         if ( params.isIncludeRelationships() )
         {
-            result.setRelationshipItems( getRelationshipItems( user, programInstance, params ) );
+            result.setRelationshipItems( getRelationshipItems( user, enrollment, params ) );
         }
         if ( params.isIncludeAttributes() )
         {
-            result.getEntityInstance()
-                .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( user, programInstance ) );
+            result.getTrackedEntity()
+                .setTrackedEntityAttributeValues( getTrackedEntityAttributeValues( user, enrollment ) );
         }
 
         return result;
     }
 
-    private Set<ProgramStageInstance> getProgramStageInstances( User user, ProgramInstance programInstance,
-        EnrollmentParams params )
+    private Set<Event> getEvents( User user, Enrollment enrollment, EnrollmentParams params )
     {
-        Set<ProgramStageInstance> programStageInstances = new HashSet<>();
+        Set<Event> events = new HashSet<>();
 
-        for ( ProgramStageInstance programStageInstance : programInstance.getProgramStageInstances() )
+        for ( Event event : enrollment.getEvents() )
         {
-            if ( (params.isIncludeDeleted() || !programStageInstance.isDeleted())
-                && trackerAccessManager.canRead( user, programStageInstance, true ).isEmpty() )
+            if ( (params.isIncludeDeleted() || !event.isDeleted())
+                && trackerAccessManager.canRead( user, event, true ).isEmpty() )
             {
-                programStageInstances.add( programStageInstance );
+                events.add( event );
             }
         }
-        return programStageInstances;
+        return events;
     }
 
-    private Set<RelationshipItem> getRelationshipItems( User user, ProgramInstance programInstance,
+    private Set<RelationshipItem> getRelationshipItems( User user, Enrollment enrollment,
         EnrollmentParams params )
     {
         Set<RelationshipItem> relationshipItems = new HashSet<>();
 
-        for ( RelationshipItem relationshipItem : programInstance.getRelationshipItems() )
+        for ( RelationshipItem relationshipItem : enrollment.getRelationshipItems() )
         {
             org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
             if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
@@ -174,13 +182,13 @@ public class DefaultEnrollmentService implements EnrollmentService
     }
 
     private Set<TrackedEntityAttributeValue> getTrackedEntityAttributeValues( User user,
-        ProgramInstance programInstance )
+        Enrollment enrollment )
     {
         Set<TrackedEntityAttribute> readableAttributes = trackedEntityAttributeService
-            .getAllUserReadableTrackedEntityAttributes( user, List.of( programInstance.getProgram() ), null );
+            .getAllUserReadableTrackedEntityAttributes( user, List.of( enrollment.getProgram() ), null );
         Set<TrackedEntityAttributeValue> attributeValues = new LinkedHashSet<>();
 
-        for ( TrackedEntityAttributeValue trackedEntityAttributeValue : programInstance.getEntityInstance()
+        for ( TrackedEntityAttributeValue trackedEntityAttributeValue : enrollment.getTrackedEntity()
             .getTrackedEntityAttributeValues() )
         {
             if ( readableAttributes.contains( trackedEntityAttributeValue.getAttribute() ) )
@@ -193,7 +201,8 @@ public class DefaultEnrollmentService implements EnrollmentService
     }
 
     @Override
-    public Enrollments getEnrollments( ProgramInstanceQueryParams params )
+    public Enrollments getEnrollments( EnrollmentQueryParams params )
+        throws ForbiddenException
     {
         Enrollments enrollments = new Enrollments();
 
@@ -202,26 +211,26 @@ public class DefaultEnrollmentService implements EnrollmentService
             params.setDefaultPaging();
         }
 
-        List<ProgramInstance> programInstances = new ArrayList<>(
-            programInstanceService.getProgramInstances( params ) );
+        List<Enrollment> enrollmentList = new ArrayList<>(
+            enrollmentService.getEnrollments( params ) );
         if ( !params.isSkipPaging() )
         {
             Pager pager;
 
             if ( params.isTotalPages() )
             {
-                int count = programInstanceService.countProgramInstances( params );
+                int count = enrollmentService.countEnrollments( params );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
             {
-                pager = handleLastPageFlag( params, programInstances );
+                pager = handleLastPageFlag( params, enrollmentList );
             }
 
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( programInstances ) );
+        enrollments.setEnrollments( getEnrollments( enrollmentList ) );
 
         return enrollments;
     }
@@ -229,7 +238,7 @@ public class DefaultEnrollmentService implements EnrollmentService
     /**
      * This method will apply the logic related to the parameter
      * 'totalPages=false'. This works in conjunction with the method:
-     * {@link org.hisp.dhis.program.hibernate.HibernateProgramInstanceStore#getProgramInstances(ProgramInstanceQueryParams)}
+     * {@link HibernateEnrollmentStore#getEnrollments(EnrollmentQueryParams)}
      *
      * This is needed because we need to query (pageSize + 1) at DB level. The
      * resulting query will allow us to evaluate if we are in the last page or
@@ -237,45 +246,46 @@ public class DefaultEnrollmentService implements EnrollmentService
      * object.
      *
      * @param params the request params
-     * @param programInstances the reference to the list of ProgramInstance
+     * @param enrollments the reference to the list of Enrollment
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( ProgramInstanceQueryParams params,
-        List<ProgramInstance> programInstances )
+    private Pager handleLastPageFlag( EnrollmentQueryParams params,
+        List<Enrollment> enrollments )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
         boolean isLastPage = false;
 
-        if ( isNotEmpty( programInstances ) )
+        if ( isNotEmpty( enrollments ) )
         {
-            isLastPage = programInstances.size() <= originalPageSize;
+            isLastPage = enrollments.size() <= originalPageSize;
             if ( !isLastPage )
             {
                 // Get the same number of elements of the pageSize, forcing
                 // the removal of the last additional element added at querying
                 // time.
-                programInstances.retainAll( programInstances.subList( 0, originalPageSize ) );
+                enrollments.retainAll( enrollments.subList( 0, originalPageSize ) );
             }
         }
 
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<ProgramInstance> getEnrollments( Iterable<ProgramInstance> programInstances )
+    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments )
+        throws ForbiddenException
     {
-        List<ProgramInstance> enrollments = new ArrayList<>();
+        List<Enrollment> enrollmentList = new ArrayList<>();
         User user = currentUserService.getCurrentUser();
 
-        for ( ProgramInstance programInstance : programInstances )
+        for ( Enrollment enrollment : enrollments )
         {
-            if ( programInstance != null && trackerOwnershipAccessManager
-                .hasAccess( user, programInstance.getEntityInstance(), programInstance.getProgram() ) )
+            if ( enrollment != null && trackerOwnershipAccessManager
+                .hasAccess( user, enrollment.getTrackedEntity(), enrollment.getProgram() ) )
             {
-                enrollments.add( getEnrollment( user, programInstance, EnrollmentParams.FALSE ) );
+                enrollmentList.add( getEnrollment( enrollment, EnrollmentParams.FALSE ) );
             }
         }
 
-        return enrollments;
+        return enrollmentList;
     }
 }

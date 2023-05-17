@@ -144,14 +144,14 @@ import org.hisp.dhis.predictor.PredictorGroup;
 import org.hisp.dhis.program.AnalyticsPeriodBoundary;
 import org.hisp.dhis.program.AnalyticsPeriodBoundaryType;
 import org.hisp.dhis.program.AnalyticsType;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
@@ -175,13 +175,13 @@ import org.hisp.dhis.relationship.RelationshipType;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewType;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeAttribute;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentityfilter.EntityQueryCriteria;
-import org.hisp.dhis.trackedentityfilter.TrackedEntityInstanceFilter;
+import org.hisp.dhis.trackedentityfilter.TrackedEntityFilter;
 import org.hisp.dhis.trackerdataview.TrackerDataView;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
@@ -1683,42 +1683,42 @@ public abstract class DhisConvenienceTest
         return program;
     }
 
-    public static ProgramInstance createProgramInstance( Program program, TrackedEntityInstance tei,
+    public static Enrollment createEnrollment( Program program, TrackedEntity tei,
         OrganisationUnit organisationUnit )
     {
-        ProgramInstance programInstance = new ProgramInstance( program, tei, organisationUnit );
-        programInstance.setAutoFields();
+        Enrollment enrollment = new Enrollment( program, tei, organisationUnit );
+        enrollment.setAutoFields();
 
-        programInstance.setProgram( program );
-        programInstance.setEntityInstance( tei );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEnrollmentDate( new Date() );
-        programInstance.setIncidentDate( new Date() );
+        enrollment.setProgram( program );
+        enrollment.setTrackedEntity( tei );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setEnrollmentDate( new Date() );
+        enrollment.setIncidentDate( new Date() );
 
-        return programInstance;
+        return enrollment;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramStage programStage,
-        ProgramInstance pi, OrganisationUnit organisationUnit )
+    public static Event createEvent( ProgramStage programStage,
+        Enrollment enrollment, OrganisationUnit organisationUnit )
     {
-        ProgramStageInstance psi = new ProgramStageInstance();
-        psi.setAutoFields();
+        Event event = new Event();
+        event.setAutoFields();
 
-        psi.setProgramStage( programStage );
-        psi.setProgramInstance( pi );
-        psi.setOrganisationUnit( organisationUnit );
+        event.setProgramStage( programStage );
+        event.setEnrollment( enrollment );
+        event.setOrganisationUnit( organisationUnit );
 
-        return psi;
+        return event;
     }
 
-    public static ProgramStageInstance createProgramStageInstance( ProgramInstance programInstance,
+    public static Event createEvent( Enrollment enrollment,
         ProgramStage programStage, OrganisationUnit organisationUnit, Set<EventDataValue> dataValues )
     {
-        ProgramStageInstance psi = createProgramStageInstance( programStage, programInstance, organisationUnit );
-        psi.setExecutionDate( new Date() );
-        psi.setStatus( EventStatus.ACTIVE );
-        psi.setEventDataValues( dataValues );
-        return psi;
+        Event event = createEvent( programStage, enrollment, organisationUnit );
+        event.setExecutionDate( new Date() );
+        event.setStatus( EventStatus.ACTIVE );
+        event.setEventDataValues( dataValues );
+        return event;
     }
 
     public static ProgramRule createProgramRule( char uniqueCharacter, Program parentProgram )
@@ -1963,10 +1963,10 @@ public abstract class DhisConvenienceTest
         Program program,
         TrackedEntityType trackedEntityType )
     {
-        RelationshipConstraint psiConstraint = new RelationshipConstraint();
-        psiConstraint.setProgram( program );
-        psiConstraint.setTrackedEntityType( trackedEntityType );
-        psiConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
+        RelationshipConstraint eventConstraint = new RelationshipConstraint();
+        eventConstraint.setProgram( program );
+        eventConstraint.setTrackedEntityType( trackedEntityType );
+        eventConstraint.setRelationshipEntity( RelationshipEntity.PROGRAM_STAGE_INSTANCE );
         RelationshipConstraint teiConstraint = new RelationshipConstraint();
         teiConstraint.setProgram( program );
         teiConstraint.setTrackedEntityType( trackedEntityType );
@@ -1974,20 +1974,20 @@ public abstract class DhisConvenienceTest
         RelationshipType relationshipType = createRelationshipType( uniqueCharacter );
         relationshipType.setName( "Malaria case linked to person" );
         relationshipType.setBidirectional( true );
-        relationshipType.setFromConstraint( psiConstraint );
+        relationshipType.setFromConstraint( eventConstraint );
         relationshipType.setToConstraint( teiConstraint );
         return relationshipType;
     }
 
-    public static Relationship createTeiToTeiRelationship( TrackedEntityInstance from, TrackedEntityInstance to,
+    public static Relationship createTeiToTeiRelationship( TrackedEntity from, TrackedEntity to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
-        riTo.setTrackedEntityInstance( to );
+        riFrom.setTrackedEntity( from );
+        riTo.setTrackedEntity( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );
@@ -2000,15 +2000,15 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramInstanceRelationship( TrackedEntityInstance from, ProgramInstance to,
+    public static Relationship createTeiToEnrollmentRelationship( TrackedEntity from, Enrollment to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramInstance( to );
+        riFrom.setTrackedEntity( from );
+        riTo.setEnrollment( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );
@@ -2021,16 +2021,16 @@ public abstract class DhisConvenienceTest
         return relationship;
     }
 
-    public static Relationship createTeiToProgramStageInstanceRelationship( TrackedEntityInstance from,
-        ProgramStageInstance to,
+    public static Relationship createTeiToEventRelationship( TrackedEntity from,
+        Event to,
         RelationshipType relationshipType )
     {
         Relationship relationship = new Relationship();
         RelationshipItem riFrom = new RelationshipItem();
         RelationshipItem riTo = new RelationshipItem();
 
-        riFrom.setTrackedEntityInstance( from );
-        riTo.setProgramStageInstance( to );
+        riFrom.setTrackedEntity( from );
+        riTo.setEvent( to );
 
         relationship.setRelationshipType( relationshipType );
         relationship.setFrom( riFrom );
@@ -2120,15 +2120,15 @@ public abstract class DhisConvenienceTest
         return relationshipType;
     }
 
-    public static TrackedEntityInstanceFilter createTrackedEntityInstanceFilter( char uniqueChar, Program program )
+    public static TrackedEntityFilter createTrackedEntityFilter( char uniqueChar, Program program )
     {
-        TrackedEntityInstanceFilter trackedEntityInstanceFilter = new TrackedEntityInstanceFilter();
-        trackedEntityInstanceFilter.setAutoFields();
-        trackedEntityInstanceFilter.setName( "TrackedEntityType" + uniqueChar );
-        trackedEntityInstanceFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
-        trackedEntityInstanceFilter.setProgram( program );
-        trackedEntityInstanceFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
-        return trackedEntityInstanceFilter;
+        TrackedEntityFilter trackedEntityFilter = new TrackedEntityFilter();
+        trackedEntityFilter.setAutoFields();
+        trackedEntityFilter.setName( "TrackedEntityType" + uniqueChar );
+        trackedEntityFilter.setDescription( "TrackedEntityType" + uniqueChar + " description" );
+        trackedEntityFilter.setProgram( program );
+        trackedEntityFilter.setEntityQueryCriteria( new EntityQueryCriteria() );
+        return trackedEntityFilter;
     }
 
     public static TrackedEntityType createTrackedEntityType( char uniqueChar )
@@ -2141,48 +2141,48 @@ public abstract class DhisConvenienceTest
         return trackedEntityType;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( OrganisationUnit organisationUnit )
+    public static TrackedEntity createTrackedEntity( OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar,
+    public static TrackedEntity createTrackedEntity( char uniqueChar,
         OrganisationUnit organisationUnit )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
-        entityInstance.setUid( BASE_TEI_UID + uniqueChar );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
+        trackedEntity.setUid( BASE_TEI_UID + uniqueChar );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
-    public static TrackedEntityInstance createTrackedEntityInstance( char uniqueChar, OrganisationUnit organisationUnit,
+    public static TrackedEntity createTrackedEntity( char uniqueChar, OrganisationUnit organisationUnit,
         TrackedEntityAttribute attribute )
     {
-        TrackedEntityInstance entityInstance = new TrackedEntityInstance();
-        entityInstance.setAutoFields();
-        entityInstance.setOrganisationUnit( organisationUnit );
+        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity.setAutoFields();
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
         attributeValue.setAttribute( attribute );
-        attributeValue.setEntityInstance( entityInstance );
+        attributeValue.setTrackedEntity( trackedEntity );
         attributeValue.setValue( "Attribute" + uniqueChar );
-        entityInstance.getTrackedEntityAttributeValues().add( attributeValue );
+        trackedEntity.getTrackedEntityAttributeValues().add( attributeValue );
 
-        return entityInstance;
+        return trackedEntity;
     }
 
     public static TrackedEntityAttributeValue createTrackedEntityAttributeValue( char uniqueChar,
-        TrackedEntityInstance entityInstance,
+        TrackedEntity entityInstance,
         TrackedEntityAttribute attribute )
     {
         TrackedEntityAttributeValue attributeValue = new TrackedEntityAttributeValue();
-        attributeValue.setEntityInstance( entityInstance );
+        attributeValue.setTrackedEntity( entityInstance );
         attributeValue.setAttribute( attribute );
         attributeValue.setValue( "Attribute" + uniqueChar );
 

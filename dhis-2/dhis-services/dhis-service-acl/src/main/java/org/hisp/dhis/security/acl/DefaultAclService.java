@@ -38,7 +38,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -53,7 +52,6 @@ import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.user.sharing.UserGroupAccess;
-import org.hisp.dhis.util.SharingUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -141,8 +139,8 @@ public class DefaultAclService implements AclService
                 return checkOptionComboSharingPermission( user, object, Permission.READ );
             }
 
-            if ( !schema.isShareable() || object.getPublicAccess() == null
-                || checkSharingPermission( user, object, Permission.READ ) )
+            if ( !schema.isShareable() || object.getSharing().getPublicAccess() == null
+                || checkMetadataSharingPermission( user, object, Permission.READ ) )
             {
                 return true;
             }
@@ -305,7 +303,7 @@ public class DefaultAclService implements AclService
             return writeCommonCheck( schema, user, object, objType );
         }
         else if ( schema.isImplicitPrivateAuthority() && checkSharingAccess( user, object, objType )
-            && (checkSharingPermission( user, object, Permission.WRITE )) )
+            && (checkMetadataSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -340,19 +338,19 @@ public class DefaultAclService implements AclService
 
         if ( canAccess( user, anyAuthorities ) )
         {
-            if ( !schema.isShareable() || object.getPublicAccess() == null )
+            if ( !schema.isShareable() || object.getSharing().getPublicAccess() == null )
             {
                 return true;
             }
 
             if ( checkSharingAccess( user, object, objType ) &&
-                (checkSharingPermission( user, object, Permission.WRITE )) )
+                (checkMetadataSharingPermission( user, object, Permission.WRITE )) )
             {
                 return true;
             }
         }
         else if ( schema.isImplicitPrivateAuthority()
-            && (checkSharingPermission( user, object, Permission.WRITE )) )
+            && (checkMetadataSharingPermission( user, object, Permission.WRITE )) )
         {
             return true;
         }
@@ -527,21 +525,21 @@ public class DefaultAclService implements AclService
             return;
         }
 
-        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.setExternalAccess( false );
+        Sharing sharing = object.getSharing();
+        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
+        sharing.setExternal( false );
 
         if ( object.getSharing().getOwner() == null )
         {
-            baseIdentifiableObject.setOwner( user.getUid() );
+            sharing.setOwner( user.getUid() );
         }
 
         if ( canMakePublic( user, object ) && defaultPublic( object ) )
         {
-            baseIdentifiableObject.setPublicAccess( AccessStringHelper.READ_WRITE );
+            sharing.setPublicAccess( AccessStringHelper.READ_WRITE );
         }
-
-        SharingUtils.resetAccessCollections( baseIdentifiableObject );
+        sharing.resetUserAccesses();
+        sharing.resetUserGroupAccesses();
     }
 
     @Override
@@ -552,11 +550,12 @@ public class DefaultAclService implements AclService
             return;
         }
 
-        BaseIdentifiableObject baseIdentifiableObject = (BaseIdentifiableObject) object;
-        baseIdentifiableObject.setUser( user );
-        baseIdentifiableObject.setPublicAccess( AccessStringHelper.DEFAULT );
-        baseIdentifiableObject.setExternalAccess( false );
-        SharingUtils.resetAccessCollections( baseIdentifiableObject );
+        Sharing sharing = object.getSharing();
+        sharing.setOwner( user );
+        sharing.setPublicAccess( AccessStringHelper.DEFAULT );
+        sharing.setExternal( false );
+        sharing.resetUserAccesses();
+        sharing.resetUserGroupAccesses();
     }
 
     @Override
@@ -571,7 +570,8 @@ public class DefaultAclService implements AclService
 
         if ( !AccessStringHelper.isValid( object.getSharing().getPublicAccess() ) )
         {
-            errorReports.add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getPublicAccess() ) );
+            errorReports
+                .add( new ErrorReport( object.getClass(), ErrorCode.E3010, object.getSharing().getPublicAccess() ) );
             return errorReports;
         }
 
@@ -617,7 +617,7 @@ public class DefaultAclService implements AclService
         boolean canMakePrivate = canMakePrivate( user, object );
         boolean canMakeExternal = canMakeExternal( user, object );
 
-        if ( object.getExternalAccess() )
+        if ( object.getSharing().isExternal() )
         {
             if ( !canMakeExternal )
             {
@@ -628,7 +628,7 @@ public class DefaultAclService implements AclService
 
         errorReports.addAll( verifyImplicitSharing( user, object ) );
 
-        if ( AccessStringHelper.DEFAULT.equals( object.getPublicAccess() ) )
+        if ( AccessStringHelper.DEFAULT.equals( object.getSharing().getPublicAccess() ) )
         {
             if ( canMakePublic || canMakePrivate )
             {
@@ -658,7 +658,7 @@ public class DefaultAclService implements AclService
         List<ErrorReport> errorReports = new ArrayList<>();
         Schema schema = schemaService.getSchema( HibernateProxyUtils.getRealClass( object ) );
 
-        if ( !schema.isImplicitPrivateAuthority() || checkSharingPermission( user, object, Permission.WRITE ) )
+        if ( !schema.isImplicitPrivateAuthority() || checkMetadataSharingPermission( user, object, Permission.WRITE ) )
         {
             return errorReports;
         }
@@ -688,13 +688,13 @@ public class DefaultAclService implements AclService
     }
 
     /**
-     * Should user be allowed access to this object.
+     * Should user be allowed access to this object as the owner.
      *
      * @param user User to check against
      * @param object Object to check against
      * @return true/false depending on if access should be allowed
      */
-    private boolean checkUser( User user, IdentifiableObject object )
+    private boolean checkOwner( User user, IdentifiableObject object )
     {
         return user == null || object.getSharing().getOwner() == null ||
             user.getUid().equals( object.getSharing().getOwner() );
@@ -731,12 +731,27 @@ public class DefaultAclService implements AclService
             }
         }
 
-        if ( object.getExternalAccess() && !canMakeExternal )
+        if ( object.getSharing().isExternal() && !canMakeExternal )
         {
             return false;
         }
 
         return true;
+    }
+
+    /**
+     * Check if given user allowed to access given object using the permission
+     * given. If user is the owner of the given metadata object then user has
+     * both READ and WRITE permission by default.
+     *
+     * @param user
+     * @param object
+     * @param permission
+     * @return
+     */
+    private boolean checkMetadataSharingPermission( User user, IdentifiableObject object, Permission permission )
+    {
+        return checkOwner( user, object ) || checkSharingPermission( user, object, permission );
     }
 
     /**
@@ -752,11 +767,6 @@ public class DefaultAclService implements AclService
     {
         Sharing sharing = object.getSharing();
         if ( AccessStringHelper.isEnabled( sharing.getPublicAccess(), permission ) )
-        {
-            return true;
-        }
-
-        if ( checkUser( user, object ) )
         {
             return true;
         }
@@ -834,7 +844,7 @@ public class DefaultAclService implements AclService
         }
 
         return checkSharingAccess( user, object, objType )
-            && (checkSharingPermission( user, object, Permission.WRITE ));
+            && (checkMetadataSharingPermission( user, object, Permission.WRITE ));
     }
 
     private boolean hasUserGroupAccess( Set<UserGroup> userGroups, String userGroupUid )

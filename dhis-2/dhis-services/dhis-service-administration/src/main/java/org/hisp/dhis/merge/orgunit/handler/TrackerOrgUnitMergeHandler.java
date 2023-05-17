@@ -55,19 +55,19 @@ public class TrackerOrgUnitMergeHandler
     }
 
     @Transactional
-    public void mergeProgramInstances( OrgUnitMergeRequest request )
+    public void mergeEnrollments( OrgUnitMergeRequest request )
     {
-        migrate( "update ProgramStageInstance psi " +
+        migrate( "update Event psi " +
             "set psi.organisationUnit = :target " +
             "where psi.organisationUnit.id in (:sources)", request );
 
-        migrate( "update ProgramInstance pi " +
+        migrate( "update Enrollment pi " +
             "set pi.organisationUnit = :target " +
             "where pi.organisationUnit.id in (:sources)", request );
     }
 
     @Transactional
-    public void mergeTrackedEntityInstances( OrgUnitMergeRequest request )
+    public void mergeTrackedEntities( OrgUnitMergeRequest request )
     {
         migrate( "update ProgramOwnershipHistory poh " +
             "set poh.organisationUnit = :target " +
@@ -77,7 +77,7 @@ public class TrackerOrgUnitMergeHandler
             "set tpo.organisationUnit = :target " +
             "where tpo.organisationUnit.id in (:sources)", request );
 
-        migrate( "update TrackedEntityInstance tei " +
+        migrate( "update TrackedEntity tei " +
             "set tei.organisationUnit = :target " +
             "where tei.organisationUnit.id in (:sources)", request );
     }

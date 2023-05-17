@@ -29,7 +29,7 @@ package org.hisp.dhis.trackedentityattributevalue;
 
 import java.util.List;
 
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -43,5 +43,5 @@ public interface TrackedEntityAttributeValueAuditService
 
     int countTrackedEntityAttributeValueAudits( TrackedEntityAttributeValueAuditQueryParams params );
 
-    void deleteTrackedEntityAttributeValueAudits( TrackedEntityInstance trackedEntityInstance );
+    void deleteTrackedEntityAttributeValueAudits( TrackedEntity trackedEntity );
 }

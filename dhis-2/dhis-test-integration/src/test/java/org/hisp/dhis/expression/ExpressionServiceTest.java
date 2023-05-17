@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.expression;
 
+import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonList;
 import static org.hisp.dhis.analytics.AggregationType.LAST;
 import static org.hisp.dhis.analytics.DataType.BOOLEAN;
@@ -102,6 +103,7 @@ import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramDataElementDimensionItem;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramTrackedEntityAttributeDimensionItem;
+import org.hisp.dhis.subexpression.SubexpressionDimensionItem;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.junit.jupiter.api.Test;
@@ -678,9 +680,7 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         {
             valueString = "Class " + value.getClass().getName() + " " + value.toString();
         }
-        List<String> itemNames = items.stream().map( this::itemNameAndSubexpression ).sorted()
-            .collect( Collectors.toList() );
-        String itemsString = String.join( " ", itemNames );
+        String itemsString = getItemNames( items );
         if ( itemsString.length() != 0 )
         {
             itemsString = " " + itemsString;
@@ -688,11 +688,24 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         return valueString + itemsString;
     }
 
-    private String itemNameAndSubexpression( DimensionalItemObject item )
+    private String getItemNames( Collection<DimensionalItemObject> items )
     {
-        return item.getName() + ((item.getQueryMods() != null && item.getQueryMods().getSubExpression() != null)
-            ? ":[" + item.getQueryMods().getSubExpression() + "]"
-            : "");
+        return items.stream().map( this::itemNameOrSubexpression ).sorted()
+            .collect( Collectors.joining( " " ) );
+    }
+
+    private String itemNameOrSubexpression( DimensionalItemObject item )
+    {
+        String name = (item instanceof SubexpressionDimensionItem subex )
+            ? getItemNames( subex.getItems() ) + " [" + subex.getSubexSql() + "]::"
+                + subex.getQueryMods().getValueType().name()
+            : item.getName();
+
+        String typeOverride = (item.getQueryMods() != null && item.getQueryMods().getAggregationType() != null)
+        ? ".aggregationType(" + item.getQueryMods().getAggregationType().name() + ")"
+        : "";
+
+        return name + typeOverride;
     }
 
     /**
@@ -1162,70 +1175,57 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         dataElementX.setName( "DeX" );
         dataElementService.addDataElement( dataElementX );
 
-        DataElement dataElementX1 = (DataElement) clone( dataElementX );
-        dataElementX1.setQueryMods( QueryModifiers.builder()
-            .subExpression( " case when value > 99 then 1 else 2 end" )
-            .valueType( ValueType.NUMBER ).build() );
-
-        DataElement dataElementX2 = (DataElement) clone( dataElementX );
-        dataElementX2.setQueryMods( QueryModifiers.builder()
-            .subExpression( " case when value > 0 and value < 3 then value else 3 end" )
-            .valueType( ValueType.NUMBER ).build() );
-
-        DataElement dataElementX3 = (DataElement) clone( dataElementX );
-        dataElementX3.setQueryMods( QueryModifiers.builder()
-            .subExpression( " case when value > 99 then 'a' else 'b' end" )
-            .valueType( ValueType.TEXT ).build() );
-
-        DataElement dataElementY = createDataElement( 'Y', ValueType.TEXT, AggregationType.NONE );
+        DataElement dataElementY = createDataElement( 'Y', ValueType.NUMBER, AggregationType.SUM );
         dataElementY.setUid( "dataElemenY" );
         dataElementY.setName( "DeY" );
         dataElementService.addDataElement( dataElementY );
 
-        DataElement dataElementY1 = (DataElement) clone( dataElementY );
-        dataElementY1.setQueryMods( QueryModifiers.builder()
-            .subExpression( " case when textvalue != 'a' then 1 else 2 end" )
-            .valueType( ValueType.NUMBER ).build() );
+        DataElement dataElementZ = createDataElement( 'Z', ValueType.TEXT, AggregationType.NONE );
+        dataElementZ.setUid( "dataElemenZ" );
+        dataElementZ.setName( "DeZ" );
+        dataElementService.addDataElement( dataElementZ );
 
-        DataElement dataElementY2 = (DataElement) clone( dataElementY );
-        dataElementY2.setQueryMods( QueryModifiers.builder()
-            .subExpression( " case when textvalue != 'a' and textvalue != 'b' then 'c' else 'd' end" )
-            .valueType( ValueType.TEXT ).build() );
+        Map<DimensionalItemObject, Object> valueMap = emptyMap();
 
-        QueryModifiers mods = QueryModifiers.builder()
-            .subExpression( " case when value > 99 then 10 else 11 end" )
-            .valueType( ValueType.NUMBER ).build();
-        DataElement dataElementX9 = (DataElement) clone( dataElementX );
-        dataElementX9.setQueryMods( mods );
-        DataElementOperand dataElementOperandX = new DataElementOperand( dataElementX9, categoryOptionComboA );
-        dataElementOperandX.setQueryMods( mods );
-
-        Map<DimensionalItemObject, Object> valueMap = Map.of(
-            dataElementX1, 2.0,
-            dataElementX2, 3.0,
-            dataElementX3, 5.0,
-            dataElementY1, 7.0,
-            dataElementY2, 9.0,
-            dataElementOperandX, 11.0 );
-
-        assertEquals( "2 DeX:[ case when value > 99 then 1 else 2 end]",
+        assertEquals( "0 DeX [ case when \"dataElemenX\" > 99 then 1 else 2 end]::NUMBER",
             evalIndicator( "subExpression(if(#{dataElemenX}>99,1,2))", valueMap ) );
 
-        assertEquals( "3 DeX:[ case when value > 0 and value < 3 then value else 3 end]",
+        assertEquals(
+            "0 DeX [ case when \"dataElemenX\" > 0 and \"dataElemenX\" < 3 then \"dataElemenX\" else 3 end]::NUMBER",
             evalIndicator( "subExpression(if(#{dataElemenX}>0 && #{dataElemenX}<3,#{dataElemenX},3))", valueMap ) );
 
-        assertEquals( "5 DeX:[ case when value > 99 then 'a' else 'b' end]",
+        assertEquals( "5 DeX [ case when \"dataElemenX\" > 99 then 'a' else 'b' end]::TEXT",
             evalIndicator( "if( subExpression(if(#{dataElemenX}>99,'a','b')) == 'a', 4, 5)", valueMap ) );
 
-        assertEquals( "7 DeY:[ case when textvalue != 'a' then 1 else 2 end]",
-            evalIndicator( "if( subExpression(if(#{dataElemenY} != 'a', 1, 2)) == 2, 6, 7)", valueMap ) );
+        assertEquals( "7 DeZ [ case when \"dataElemenZ\" != 'a' then 1 else 2 end]::NUMBER",
+            evalIndicator( "if( subExpression(if(#{dataElemenZ} != 'a', 1, 2)) == 2, 6, 7)", valueMap ) );
 
-        assertEquals( "9 DeY:[ case when textvalue != 'a' and textvalue != 'b' then 'c' else 'd' end]",
+        assertEquals(
+            "9 DeZ [ case when \"dataElemenZ\" != 'a' and \"dataElemenZ\" != 'b' then 'c' else 'd' end]::TEXT",
             evalIndicator(
-                "if(subExpression(if(#{dataElemenY}!='a'&&#{dataElemenY}!='b','c','d')) == 'd',8,9)", valueMap ) );
+                "if(subExpression(if(#{dataElemenZ}!='a'&&#{dataElemenZ}!='b','c','d')) == 'd',8,9)", valueMap ) );
 
-        assertEquals( "11 DeX CocA:[ case when value > 99 then 10 else 11 end]",
+        assertEquals( "0 DeX CocA [ case when \"dataElemenX_catOptCombA\" > 99 then 10 else 11 end]::NUMBER",
             evalIndicator( "subExpression( if( #{dataElemenX.catOptCombA} > 99, 10, 11 ) )", valueMap ) );
+
+        assertEquals( "0 DeX DeY [\"dataElemenX\" / \"dataElemenY\"]::NUMBER",
+            evalIndicator( "subExpression( #{dataElemenX} / #{dataElemenY} )", valueMap ) );
+
+        assertEquals( "0 DeX DeY [\"dataElemenX\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+            evalIndicator( "subExpression( #{dataElemenX} / #{dataElemenY} ).aggregationType(MAX)",
+                valueMap ) );
+
+        assertEquals(
+            "0 DeX.aggregationType(AVERAGE) DeY [\"dataElemenXAVERAGE\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+            evalIndicator(
+                "subExpression( #{dataElemenX}.aggregationType(AVERAGE) / #{dataElemenY} ).aggregationType(MAX)",
+                valueMap ) );
+
+        assertEquals(
+            "0 DeX DeX.aggregationType(AVERAGE) DeY [\"dataElemenX\" + \"dataElemenXAVERAGE\" / \"dataElemenY\"]::NUMBER.aggregationType(MAX)",
+            evalIndicator(
+                "subExpression( #{dataElemenX} + #{dataElemenX}.aggregationType(AVERAGE) / #{dataElemenY} ).aggregationType(MAX)",
+                valueMap ) );
     }
 
     @Test
@@ -1412,9 +1412,9 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
         indicatorB.setDenominator( null );
         List<Indicator> indicators = Arrays.asList( indicatorA, indicatorB );
         DimensionalItemId id1 = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, dataElementA.getUid(),
-            categoryOptionComboB.getUid() );
+            categoryOptionComboB.getUid(), null, "#{dataElemenA.catOptCombB}" );
         DimensionalItemId id2 = new DimensionalItemId( DimensionItemType.DATA_ELEMENT_OPERAND, dataElementB.getUid(),
-            categoryOptionComboA.getUid() );
+            categoryOptionComboA.getUid(), null, "#{dataElemenB.catOptCombA}" );
         DimensionalItemId id3 = new DimensionalItemId( DimensionItemType.REPORTING_RATE, dataSetA.getUid(),
             "REPORTING_RATE" );
         DimensionalItemId id4 = new DimensionalItemId( DimensionItemType.PROGRAM_ATTRIBUTE, programA.getUid(),
@@ -1483,31 +1483,31 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
     {
         DimensionalItemId id;
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             (QueryModifiers) null );
         assertEquals( id, parseItemId( "#{dataElemenA}" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().aggregationType( LAST ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.aggregationType(LAST)" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().periodOffset( 10 ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(10)" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().periodOffset( -5 ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(-2).periodOffset(-3)" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().minDate( parseDate( "2020-01-01" ) ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.minDate(2020-1-1)" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().maxDate( parseDate( "2021-12-31" ) ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.maxDate(2021-12-31)" ) );
 
-        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA",
+        id = new DimensionalItemId( DATA_ELEMENT, "dataElemenA", null, null, "#{dataElemenA}",
             QueryModifiers.builder().periodOffset( -3 ).minDate( parseDate( "2021-04-01" ) )
                 .maxDate( parseDate( "2021-04-30" ) ).build() );
         assertEquals( id, parseItemId( "#{dataElemenA}.periodOffset(-3).minDate(2021-04-1).maxDate(2021-4-30)" ) );

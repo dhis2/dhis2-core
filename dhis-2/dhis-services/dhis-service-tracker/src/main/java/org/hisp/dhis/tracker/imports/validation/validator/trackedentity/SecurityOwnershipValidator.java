@@ -42,11 +42,10 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.TrackedEntity;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.ValidationCode;
@@ -61,7 +60,7 @@ import org.springframework.stereotype.Component;
 @Component( "org.hisp.dhis.tracker.imports.validation.validator.trackedentity.SecurityOwnershipValidator" )
 @RequiredArgsConstructor
 class SecurityOwnershipValidator
-    implements Validator<TrackedEntity>
+    implements Validator<org.hisp.dhis.tracker.imports.domain.TrackedEntity>
 {
     @Nonnull
     private final AclService aclService;
@@ -70,7 +69,8 @@ class SecurityOwnershipValidator
     private final OrganisationUnitService organisationUnitService;
 
     @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
+    public void validate( Reporter reporter, TrackerBundle bundle,
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity )
     {
         TrackerImportStrategy strategy = bundle.getStrategy( trackedEntity );
         User user = bundle.getUser();
@@ -101,9 +101,9 @@ class SecurityOwnershipValidator
 
         if ( strategy.isDelete() )
         {
-            TrackedEntityInstance tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
+            TrackedEntity tei = bundle.getPreheat().getTrackedEntity( trackedEntity.getTrackedEntity() );
 
-            if ( tei.getProgramInstances().stream().anyMatch( pi -> !pi.isDeleted() )
+            if ( tei.getEnrollments().stream().anyMatch( e -> !e.isDeleted() )
                 && !user.isAuthorized( Authorities.F_TEI_CASCADE_DELETE.getAuthority() ) )
             {
                 reporter.addError( trackedEntity, E1100, user, tei );
@@ -114,7 +114,7 @@ class SecurityOwnershipValidator
     }
 
     private void checkTeiTypeWriteAccess( Reporter reporter, TrackerBundle bundle,
-        TrackedEntity trackedEntity,
+        org.hisp.dhis.tracker.imports.domain.TrackedEntity trackedEntity,
         TrackedEntityType trackedEntityType )
     {
         User user = bundle.getUser();

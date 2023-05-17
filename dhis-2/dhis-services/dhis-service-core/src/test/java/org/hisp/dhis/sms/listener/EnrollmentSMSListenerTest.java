@@ -51,13 +51,13 @@ import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.sms.incoming.IncomingSms;
@@ -70,10 +70,10 @@ import org.hisp.dhis.smscompression.models.GeoPoint;
 import org.hisp.dhis.smscompression.models.SmsAttributeValue;
 import org.hisp.dhis.smscompression.models.SmsDataValue;
 import org.hisp.dhis.smscompression.models.SmsEvent;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
@@ -125,15 +125,15 @@ class EnrollmentSMSListenerTest
     private ProgramStageService programStageService;
 
     @Mock
-    private ProgramStageInstanceService programStageInstanceService;
+    private EventService eventService;
 
     // Needed for this test
 
     @Mock
-    private TrackedEntityInstanceService teiService;
+    private TrackedEntityService teiService;
 
     @Mock
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Mock
     private TrackedEntityAttributeValueService attributeValueService;
@@ -173,9 +173,9 @@ class EnrollmentSMSListenerTest
 
     private ProgramStage programStage;
 
-    private ProgramInstance programInstance;
+    private Enrollment enrollment;
 
-    private ProgramStageInstance programStageInstance;
+    private Event event;
 
     private TrackedEntityAttribute trackedEntityAttribute;
 
@@ -183,7 +183,7 @@ class EnrollmentSMSListenerTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityInstance trackedEntityInstance;
+    private TrackedEntity trackedEntity;
 
     private CategoryOptionCombo categoryOptionCombo;
 
@@ -195,7 +195,7 @@ class EnrollmentSMSListenerTest
     {
         subject = new EnrollmentSMSListener( incomingSmsService, smsSender, userService, trackedEntityTypeService,
             trackedEntityAttributeService, programService, organisationUnitService, categoryService, dataElementService,
-            programStageService, programStageInstanceService, attributeValueService, teiService, programInstanceService,
+            programStageService, eventService, attributeValueService, teiService, enrollmentService,
             identifiableObjectManager );
 
         setUpInstances();
@@ -210,8 +210,8 @@ class EnrollmentSMSListenerTest
         when( organisationUnitService.getOrganisationUnit( anyString() ) ).thenReturn( organisationUnit );
         when( programService.getProgram( anyString() ) ).thenReturn( program );
         when( trackedEntityTypeService.getTrackedEntityType( anyString() ) ).thenReturn( trackedEntityType );
-        when( programInstanceService.enrollTrackedEntityInstance( any(), any(), any(), any(), any(), any() ) )
-            .thenReturn( programInstance );
+        when( enrollmentService.enrollTrackedEntity( any(), any(), any(), any(), any(), any() ) )
+            .thenReturn( enrollment );
         when( programService.hasOrgUnit( any( Program.class ), any( OrganisationUnit.class ) ) ).thenReturn( true );
 
         doAnswer( invocation -> {
@@ -358,18 +358,18 @@ class EnrollmentSMSListenerTest
         stages.add( programStage );
         program.setProgramStages( stages );
 
-        programInstance = new ProgramInstance();
-        programInstance.setAutoFields();
-        programInstance.setProgram( program );
+        enrollment = new Enrollment();
+        enrollment.setAutoFields();
+        enrollment.setProgram( program );
 
-        programStageInstance = new ProgramStageInstance();
-        programStageInstance.setAutoFields();
+        event = new Event();
+        event.setAutoFields();
 
-        trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
-        trackedEntityInstance.setOrganisationUnit( organisationUnit );
+        trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.getTrackedEntityAttributeValues().add( trackedEntityAttributeValue );
+        trackedEntity.setOrganisationUnit( organisationUnit );
 
-        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntityInstance,
+        trackedEntityAttributeValue = createTrackedEntityAttributeValue( 'A', trackedEntity,
             trackedEntityAttribute );
         trackedEntityAttributeValue.setValue( ATTRIBUTE_VALUE );
 
@@ -392,8 +392,8 @@ class EnrollmentSMSListenerTest
         subm.setOrgUnit( organisationUnit.getUid() );
         subm.setTrackerProgram( program.getUid() );
         subm.setTrackedEntityType( trackedEntityType.getUid() );
-        subm.setTrackedEntityInstance( trackedEntityInstance.getUid() );
-        subm.setEnrollment( programInstance.getUid() );
+        subm.setTrackedEntityInstance( trackedEntity.getUid() );
+        subm.setEnrollment( enrollment.getUid() );
         subm.setEnrollmentDate( new Date() );
         subm.setIncidentDate( new Date() );
         subm.setEnrollmentStatus( SmsEnrollmentStatus.ACTIVE );
@@ -422,7 +422,7 @@ class EnrollmentSMSListenerTest
         event.setOrgUnit( organisationUnit.getUid() );
         event.setProgramStage( programStage.getUid() );
         event.setAttributeOptionCombo( categoryOptionCombo.getUid() );
-        event.setEvent( programStageInstance.getUid() );
+        event.setEvent( this.event.getUid() );
         event.setEventStatus( SmsEventStatus.COMPLETED );
         event.setEventDate( new Date() );
         event.setDueDate( new Date() );

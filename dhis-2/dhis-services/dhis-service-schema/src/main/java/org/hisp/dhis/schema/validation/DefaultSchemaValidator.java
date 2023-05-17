@@ -39,6 +39,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.validator.GenericValidator;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -49,6 +50,9 @@ import org.hisp.dhis.schema.Schema;
 import org.hisp.dhis.schema.SchemaService;
 import org.hisp.dhis.system.util.ReflectionUtils;
 import org.hisp.dhis.system.util.ValidationUtils;
+import org.hisp.dhis.user.CredentialsInfo;
+import org.hisp.dhis.user.PasswordValidationResult;
+import org.hisp.dhis.user.PasswordValidationService;
 import org.springframework.stereotype.Service;
 
 /**
@@ -61,10 +65,13 @@ public class DefaultSchemaValidator implements SchemaValidator
 
     private final SchemaService schemaService;
 
-    public DefaultSchemaValidator( SchemaService schemaService )
+    private final PasswordValidationService passwordValidationService;
+
+    public DefaultSchemaValidator( SchemaService schemaService, PasswordValidationService passwordValidationService )
     {
         checkNotNull( schemaService );
         this.schemaService = schemaService;
+        this.passwordValidationService = passwordValidationService;
     }
 
     @Override
@@ -170,7 +177,11 @@ public class DefaultSchemaValidator implements SchemaValidator
             errorReports.add( createNameMinMaxReport( ErrorCode.E4002, klass, property, value.length() ) );
         }
 
-        if ( isInvalidEmail( property, value ) )
+        if ( isInvalidUid( property, value ) )
+        {
+            errorReports.add( new ErrorReport( klass, ErrorCode.E4014, value, property.getFieldName() ) );
+        }
+        else if ( isInvalidEmail( property, value ) )
         {
             errorReports.add( createNameReport( ErrorCode.E4003, klass, property, value ) );
         }
@@ -203,6 +214,11 @@ public class DefaultSchemaValidator implements SchemaValidator
         return errorReports;
     }
 
+    private boolean isInvalidUid( Property property, String value )
+    {
+        return property.getFieldName().equals( "uid" ) && !CodeGenerator.isValidUid( value );
+    }
+
     private boolean isInvalidColor( Property property, String value )
     {
         return PropertyType.COLOR == property.getPropertyType() && !ValidationUtils.isValidHexColor( value );
@@ -211,7 +227,17 @@ public class DefaultSchemaValidator implements SchemaValidator
     private boolean isInvalidPassword( Property property, String value )
     {
         return !BCRYPT_PATTERN.matcher( value ).matches() && PropertyType.PASSWORD == property.getPropertyType()
-            && !ValidationUtils.passwordIsValid( value );
+            && !passwordIsValid( value );
+    }
+
+    private boolean passwordIsValid( String value )
+    {
+        CredentialsInfo credentialsInfo = new CredentialsInfo( "USERNAME", value,
+            "", true );
+
+        PasswordValidationResult result = passwordValidationService.validate( credentialsInfo );
+
+        return result.isValid();
     }
 
     private boolean isInvalidUsername( Property property, String value )

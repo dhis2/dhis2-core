@@ -36,10 +36,10 @@ import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
 import org.hisp.dhis.notification.logging.NotificationTriggerEvent;
 import org.hisp.dhis.notification.logging.NotificationValidationResult;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.program.notification.ProgramNotificationInstanceService;
 import org.hisp.dhis.program.notification.ProgramNotificationTemplate;
@@ -71,13 +71,13 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
         NotificationLoggingService notificationLoggingService,
-        ProgramInstanceService programInstanceService,
-        ProgramStageInstanceService programStageInstanceService,
+        EnrollmentService enrollmentService,
+        EventService eventService,
         ProgramNotificationInstanceService programNotificationInstanceService,
         NotificationTemplateService notificationTemplateService )
     {
-        super( programNotificationTemplateService, notificationLoggingService, programInstanceService,
-            programStageInstanceService );
+        super( programNotificationTemplateService, notificationLoggingService, enrollmentService,
+            eventService );
         this.programNotificationInstanceService = programNotificationInstanceService;
         this.notificationTemplateService = notificationTemplateService;
     }
@@ -90,9 +90,9 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     @Override
     @Transactional
-    public void implement( RuleEffect ruleEffect, ProgramInstance programInstance )
+    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
     {
-        NotificationValidationResult result = validate( ruleEffect, programInstance );
+        NotificationValidationResult result = validate( ruleEffect, enrollment );
 
         if ( !result.isValid() )
         {
@@ -101,7 +101,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationTemplate template = result.getTemplate();
 
-        String key = generateKey( template, programInstance );
+        String key = generateKey( template, enrollment );
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
@@ -112,8 +112,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
-        notificationInstance.setProgramStageInstance( null );
-        notificationInstance.setProgramInstance( programInstance );
+        notificationInstance.setEvent( null );
+        notificationInstance.setEnrollment( enrollment );
 
         programNotificationInstanceService.save( notificationInstance );
 
@@ -133,16 +133,16 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
     @Override
     @Transactional
-    public void implement( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    public void implement( RuleEffect ruleEffect, Event event )
     {
-        checkNotNull( programStageInstance, "ProgramStageInstance cannot be null" );
+        checkNotNull( event, "Event cannot be null" );
 
-        NotificationValidationResult result = validate( ruleEffect, programStageInstance.getProgramInstance() );
+        NotificationValidationResult result = validate( ruleEffect, event.getEnrollment() );
 
         // For program without registration
-        if ( programStageInstance.getProgramStage().getProgram().isWithoutRegistration() )
+        if ( event.getProgramStage().getProgram().isWithoutRegistration() )
         {
-            handleSingleEvent( ruleEffect, programStageInstance );
+            handleSingleEvent( ruleEffect, event );
             return;
         }
 
@@ -151,11 +151,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
             return;
         }
 
-        ProgramInstance pi = programStageInstance.getProgramInstance();
-
         ProgramNotificationTemplate template = result.getTemplate();
-
-        String key = generateKey( template, pi );
+        String key = generateKey( template, event.getEnrollment() );
 
         String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
 
@@ -166,8 +163,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
-        notificationInstance.setProgramStageInstance( programStageInstance );
-        notificationInstance.setProgramInstance( null );
+        notificationInstance.setEvent( event );
+        notificationInstance.setEnrollment( null );
 
         programNotificationInstanceService.save( notificationInstance );
 
@@ -190,7 +187,7 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
     // Supportive Methods
     // -------------------------------------------------------------------------
 
-    private void handleSingleEvent( RuleEffect ruleEffect, ProgramStageInstance programStageInstance )
+    private void handleSingleEvent( RuleEffect ruleEffect, Event event )
     {
         ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
 
@@ -208,8 +205,8 @@ public class RuleActionScheduleMessageImplementer extends NotificationRuleAction
 
         ProgramNotificationInstance notificationInstance = notificationTemplateService
             .createNotificationInstance( template, date );
-        notificationInstance.setProgramStageInstance( programStageInstance );
-        notificationInstance.setProgramInstance( null );
+        notificationInstance.setEvent( event );
+        notificationInstance.setEnrollment( null );
 
         programNotificationInstanceService.save( notificationInstance );
 

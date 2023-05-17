@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.export.AttributeMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.DataValueMapper;
 import org.hisp.dhis.webapi.controller.tracker.export.NoteMapper;
@@ -54,9 +57,6 @@ import org.mapstruct.Mapping;
 interface RelationshipItemMapper
     extends ViewMapper<org.hisp.dhis.relationship.RelationshipItem, RelationshipItem>
 {
-    @Mapping( target = "trackedEntity", source = "trackedEntityInstance" )
-    @Mapping( target = "enrollment", source = "programInstance" )
-    @Mapping( target = "event", source = "programStageInstance" )
     @Override
     RelationshipItem from( org.hisp.dhis.relationship.RelationshipItem relationshipItem );
 
@@ -70,15 +70,14 @@ interface RelationshipItemMapper
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    @Mapping( target = "enrollments", source = "programInstances" )
-    RelationshipItem.TrackedEntity from( org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityInstance );
+    RelationshipItem.TrackedEntity from( TrackedEntity trackedEntity );
 
     @Mapping( target = "enrollment", source = "uid" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
     @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "trackedEntity", source = "entityInstance.uid" )
+    @Mapping( target = "trackedEntity", source = "trackedEntity.uid" )
     @Mapping( target = "program", source = "program.uid" )
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
@@ -88,10 +87,9 @@ interface RelationshipItemMapper
     @Mapping( target = "completedAt", source = "endDate" )
     @Mapping( target = "createdBy", source = "createdByUserInfo" )
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "events", source = "programStageInstances" )
-    @Mapping( target = "attributes", source = "entityInstance.trackedEntityAttributeValues" )
+    @Mapping( target = "attributes", source = "trackedEntity.trackedEntityAttributeValues" )
     @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Enrollment from( org.hisp.dhis.program.ProgramInstance enrollment );
+    RelationshipItem.Enrollment from( Enrollment enrollment );
 
     default EnrollmentStatus from( ProgramStatus programStatus )
     {
@@ -99,14 +97,14 @@ interface RelationshipItemMapper
     }
 
     @Mapping( target = "event", source = "uid" )
-    @Mapping( target = "program", source = "programInstance.program.uid" )
+    @Mapping( target = "program", source = "enrollment.program.uid" )
     @Mapping( target = "programStage", source = "programStage.uid" )
-    @Mapping( target = "enrollment", source = "programInstance.uid" )
+    @Mapping( target = "enrollment", source = "enrollment.uid" )
     @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
     @Mapping( target = "orgUnitName", source = "organisationUnit.name" )
     @Mapping( target = "occurredAt", source = "executionDate" )
     @Mapping( target = "scheduledAt", source = "dueDate" )
-    @Mapping( target = "followup", source = "programInstance.followup" )
+    @Mapping( target = "followup", source = "enrollment.followup" )
     @Mapping( target = "createdAt", source = "created" )
     @Mapping( target = "createdAtClient", source = "createdAtClient" )
     @Mapping( target = "updatedAt", source = "lastUpdated" )
@@ -118,7 +116,7 @@ interface RelationshipItemMapper
     @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
     @Mapping( target = "dataValues", source = "eventDataValues" )
     @Mapping( target = "notes", source = "comments" )
-    RelationshipItem.Event from( org.hisp.dhis.program.ProgramStageInstance event );
+    RelationshipItem.Event from( Event event );
 
     @Mapping( target = "displayName", source = "name" )
     User from( org.hisp.dhis.user.User user );

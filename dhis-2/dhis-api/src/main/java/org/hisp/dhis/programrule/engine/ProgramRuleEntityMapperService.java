@@ -31,8 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramStageInstance;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.programrule.ProgramRule;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.rules.DataItem;
@@ -70,24 +70,23 @@ public interface ProgramRuleEntityMapperService
     List<RuleVariable> toMappedProgramRuleVariables( List<ProgramRuleVariable> programRuleVariables );
 
     /**
-     * @param programStageInstances list of events
-     * @param psiToEvaluate event to filter out from the resulting list.
+     * @param events list of events
+     * @param eventToEvaluate event to filter out from the resulting list.
      *
      * @return A list of mapped events for the list of DHIS events.
      */
-    List<RuleEvent> toMappedRuleEvents( Set<ProgramStageInstance> programStageInstances,
-        ProgramStageInstance psiToEvaluate );
+    List<RuleEvent> toMappedRuleEvents( Set<Event> events, Event eventToEvaluate );
 
     /**
-     * @param psiToEvaluate event to converted.
+     * @param eventToEvaluate event to converted.
      * @return A mapped event for corresponding DHIS event.
      */
-    RuleEvent toMappedRuleEvent( ProgramStageInstance psiToEvaluate );
+    RuleEvent toMappedRuleEvent( Event eventToEvaluate );
 
     /**
-     * @return A mapped RuleEnrollment for DHIS enrollment i.e ProgramInstance.
+     * @return A mapped RuleEnrollment for DHIS enrollment.
      */
-    RuleEnrollment toMappedRuleEnrollment( ProgramInstance programInstance,
+    RuleEnrollment toMappedRuleEnrollment( Enrollment enrollment,
         List<TrackedEntityAttributeValue> trackedEntityAttributeValues );
 
     /**

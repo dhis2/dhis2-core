@@ -34,11 +34,11 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.message.MessageSender;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
+import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStageInstance;
-import org.hisp.dhis.program.ProgramStageInstanceService;
 import org.hisp.dhis.relationship.Relationship;
 import org.hisp.dhis.relationship.RelationshipEntity;
 import org.hisp.dhis.relationship.RelationshipItem;
@@ -52,9 +52,9 @@ import org.hisp.dhis.smscompression.SmsResponse;
 import org.hisp.dhis.smscompression.models.RelationshipSmsSubmission;
 import org.hisp.dhis.smscompression.models.SmsSubmission;
 import org.hisp.dhis.smscompression.models.Uid;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
-import org.hisp.dhis.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.user.UserService;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -75,27 +75,27 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
     private final RelationshipTypeService relationshipTypeService;
 
-    private final TrackedEntityInstanceService trackedEntityInstanceService;
+    private final TrackedEntityService trackedEntityService;
 
-    private final ProgramInstanceService programInstanceService;
+    private final EnrollmentService enrollmentService;
 
     public RelationshipSMSListener( IncomingSmsService incomingSmsService,
         @Qualifier( "smsMessageSender" ) MessageSender smsSender, UserService userService,
         TrackedEntityTypeService trackedEntityTypeService, TrackedEntityAttributeService trackedEntityAttributeService,
         ProgramService programService, OrganisationUnitService organisationUnitService, CategoryService categoryService,
-        DataElementService dataElementService, ProgramStageInstanceService programStageInstanceService,
+        DataElementService dataElementService, EventService eventService,
         RelationshipService relationshipService, RelationshipTypeService relationshipTypeService,
-        TrackedEntityInstanceService trackedEntityInstanceService, ProgramInstanceService programInstanceService,
+        TrackedEntityService trackedEntityService, EnrollmentService enrollmentService,
         IdentifiableObjectManager identifiableObjectManager )
     {
         super( incomingSmsService, smsSender, userService, trackedEntityTypeService, trackedEntityAttributeService,
-            programService, organisationUnitService, categoryService, dataElementService, programStageInstanceService,
+            programService, organisationUnitService, categoryService, dataElementService, eventService,
             identifiableObjectManager );
 
         this.relationshipService = relationshipService;
         this.relationshipTypeService = relationshipTypeService;
-        this.trackedEntityInstanceService = trackedEntityInstanceService;
-        this.programInstanceService = programInstanceService;
+        this.trackedEntityService = trackedEntityService;
+        this.enrollmentService = enrollmentService;
     }
 
     @Override
@@ -150,30 +150,30 @@ public class RelationshipSMSListener extends CompressionSMSListener
         switch ( relEnt )
         {
         case TRACKED_ENTITY_INSTANCE:
-            TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( objId.getUid() );
+            TrackedEntity tei = trackedEntityService.getTrackedEntity( objId.getUid() );
             if ( tei == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
             }
-            relItem.setTrackedEntityInstance( tei );
+            relItem.setTrackedEntity( tei );
             break;
 
         case PROGRAM_INSTANCE:
-            ProgramInstance progInst = programInstanceService.getProgramInstance( objId.getUid() );
+            Enrollment progInst = enrollmentService.getEnrollment( objId.getUid() );
             if ( progInst == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
             }
-            relItem.setProgramInstance( progInst );
+            relItem.setEnrollment( progInst );
             break;
 
         case PROGRAM_STAGE_INSTANCE:
-            ProgramStageInstance stageInst = programStageInstanceService.getProgramStageInstance( objId.getUid() );
-            if ( stageInst == null )
+            Event event = eventService.getEvent( objId.getUid() );
+            if ( event == null )
             {
                 throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
             }
-            relItem.setProgramStageInstance( stageInst );
+            relItem.setEvent( event );
             break;
 
         }

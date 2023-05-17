@@ -44,21 +44,20 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
-import org.hisp.dhis.tracker.imports.domain.Event;
 import org.hisp.dhis.tracker.imports.domain.MetadataIdentifier;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -151,7 +150,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingDeleteStrategy()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -160,12 +159,12 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.DELETE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
 
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
             .thenReturn( true );
@@ -183,7 +182,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -193,9 +192,9 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.CREATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
         when( preheat.getProgram( MetadataIdentifier.ofUid( PROGRAM_ID ) ) ).thenReturn( program );
         when( preheat.getOrganisationUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) ) ).thenReturn( organisationUnit );
         when( organisationUnitService.isInUserHierarchyCached( user, organisationUnit ) )
@@ -210,7 +209,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackerEventCreation()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -237,7 +236,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationSuccessForTrackerEventUpdate()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -265,7 +264,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingUpdateStrategy()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -276,11 +275,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
@@ -296,7 +295,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     {
         String enrollmentUid = CodeGenerator.generateUid();
         String eventUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( eventUid )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -308,11 +307,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
         when( preheat.getProgramOwner() )
             .thenReturn( Collections.singletonMap( TEI_ID, Collections.singletonMap( PROGRAM_ID,
                 new TrackedEntityProgramOwnerOrgUnit( TEI_ID, PROGRAM_ID, organisationUnit ) ) ) );
@@ -337,7 +336,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationSuccessForEventUsingUpdateStrategyAndUserWithAuthority()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
             .programStage( MetadataIdentifier.ofUid( PS_ID ) )
@@ -348,12 +347,12 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
         when( bundle.getUser() ).thenReturn( changeCompletedEventAuthorisedUser() );
         when( preheat.getProgramStage( event.getProgramStage() ) ).thenReturn( programStage );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
@@ -367,7 +366,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForTrackerEventCreationAndUserNotInOrgUnitCaptureScope()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -395,7 +394,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     @Test
     void verifyValidationFailsForEventCreationThatIsCreatableInSearchScopeAndUserNotInOrgUnitSearchHierarchy()
     {
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( CodeGenerator.generateUid() )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -425,7 +424,7 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     void verifyValidationFailsForEventUsingUpdateStrategyAndUserWithoutAuthority()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -435,11 +434,11 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
@@ -451,10 +450,10 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
     }
 
     @Test
-    void verifySuccessEventValidationWhenProgramStageInstanceHasNoOrgUnitAssigned()
+    void verifySuccessEventValidationWhenEventHasNoOrgUnitAssigned()
     {
         String enrollmentUid = CodeGenerator.generateUid();
-        Event event = Event.builder()
+        org.hisp.dhis.tracker.imports.domain.Event event = org.hisp.dhis.tracker.imports.domain.Event.builder()
             .event( CodeGenerator.generateUid() )
             .enrollment( enrollmentUid )
             .orgUnit( MetadataIdentifier.ofUid( ORG_UNIT_ID ) )
@@ -465,14 +464,14 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
 
         when( bundle.getPreheat() ).thenReturn( preheat );
         when( bundle.getStrategy( event ) ).thenReturn( TrackerImportStrategy.UPDATE );
-        ProgramInstance programInstance = getEnrollment( enrollmentUid );
+        Enrollment enrollment = getEnrollment( enrollmentUid );
 
-        ProgramStageInstance programStageInstance = getEvent();
-        programStageInstance.setProgramInstance( programInstance );
-        programStageInstance.setOrganisationUnit( null );
+        Event preheatEvent = getEvent();
+        preheatEvent.setEnrollment( enrollment );
+        preheatEvent.setOrganisationUnit( null );
 
-        when( preheat.getEvent( event.getEvent() ) ).thenReturn( programStageInstance );
-        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( programInstance );
+        when( preheat.getEvent( event.getEvent() ) ).thenReturn( preheatEvent );
+        when( preheat.getEnrollment( event.getEnrollment() ) ).thenReturn( enrollment );
 
         when( aclService.canDataRead( user, program.getTrackedEntityType() ) ).thenReturn( true );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
@@ -485,39 +484,39 @@ class SecurityOwnershipValidatorTest extends DhisConvenienceTest
         assertIsEmpty( reporter.getErrors() );
     }
 
-    private TrackedEntityInstance getTEIWithNoProgramInstances()
+    private TrackedEntity getTEIWithNoEnrollments()
     {
-        TrackedEntityInstance trackedEntityInstance = createTrackedEntityInstance( organisationUnit );
-        trackedEntityInstance.setUid( TEI_ID );
-        trackedEntityInstance.setProgramInstances( Sets.newHashSet() );
-        trackedEntityInstance.setTrackedEntityType( trackedEntityType );
+        TrackedEntity trackedEntity = createTrackedEntity( organisationUnit );
+        trackedEntity.setUid( TEI_ID );
+        trackedEntity.setEnrollments( Sets.newHashSet() );
+        trackedEntity.setTrackedEntityType( trackedEntityType );
 
-        return trackedEntityInstance;
+        return trackedEntity;
     }
 
-    private ProgramInstance getEnrollment( String enrollmentUid )
+    private Enrollment getEnrollment( String enrollmentUid )
     {
         if ( StringUtils.isEmpty( enrollmentUid ) )
         {
             enrollmentUid = CodeGenerator.generateUid();
         }
-        ProgramInstance programInstance = new ProgramInstance();
-        programInstance.setUid( enrollmentUid );
-        programInstance.setOrganisationUnit( organisationUnit );
-        programInstance.setEntityInstance( getTEIWithNoProgramInstances() );
-        programInstance.setProgram( program );
-        programInstance.setStatus( ProgramStatus.ACTIVE );
-        return programInstance;
+        Enrollment enrollment = new Enrollment();
+        enrollment.setUid( enrollmentUid );
+        enrollment.setOrganisationUnit( organisationUnit );
+        enrollment.setTrackedEntity( getTEIWithNoEnrollments() );
+        enrollment.setProgram( program );
+        enrollment.setStatus( ProgramStatus.ACTIVE );
+        return enrollment;
     }
 
-    private ProgramStageInstance getEvent()
+    private Event getEvent()
     {
-        ProgramStageInstance programStageInstance = new ProgramStageInstance();
-        programStageInstance.setProgramStage( programStage );
-        programStageInstance.setOrganisationUnit( organisationUnit );
-        programStageInstance.setProgramInstance( new ProgramInstance() );
-        programStageInstance.setStatus( EventStatus.COMPLETED );
-        return programStageInstance;
+        Event event = new Event();
+        event.setProgramStage( programStage );
+        event.setOrganisationUnit( organisationUnit );
+        event.setEnrollment( new Enrollment() );
+        event.setStatus( EventStatus.COMPLETED );
+        return event;
     }
 
     private User changeCompletedEventAuthorisedUser()

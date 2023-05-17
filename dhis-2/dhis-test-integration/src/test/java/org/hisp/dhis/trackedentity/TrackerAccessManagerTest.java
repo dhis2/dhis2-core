@@ -45,13 +45,13 @@ import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramInstance;
-import org.hisp.dhis.program.ProgramInstanceService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageDataElementService;
-import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.security.acl.AccessStringHelper;
 import org.hisp.dhis.test.integration.TransactionalIntegrationTest;
@@ -78,13 +78,13 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     private TrackedEntityTypeService trackedEntityTypeService;
 
     @Autowired
-    private TrackedEntityInstanceService trackedEntityInstanceService;
+    private TrackedEntityService trackedEntityService;
 
     @Autowired
     private ProgramStageDataElementService programStageDataElementService;
 
     @Autowired
-    private ProgramInstanceService programInstanceService;
+    private EnrollmentService enrollmentService;
 
     @Autowired
     private IdentifiableObjectManager manager;
@@ -92,7 +92,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
     @Autowired
     private UserService _userService;
 
-    private org.hisp.dhis.trackedentity.TrackedEntityInstance trackedEntityA;
+    private TrackedEntity trackedEntityA;
 
     private OrganisationUnit orgUnitA;
 
@@ -106,9 +106,9 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
 
     private TrackedEntityType trackedEntityType;
 
-    private ProgramStageInstance programStageInstanceA;
+    private Event eventA;
 
-    private ProgramStageInstance programStageInstanceB;
+    private Event eventB;
 
     @Override
     protected void setUpTest()
@@ -155,10 +155,10 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         trackedEntityType = createTrackedEntityType( 'A' );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         trackedEntityTypeService.addTrackedEntityType( trackedEntityType );
-        trackedEntityA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntityInstance trackedEntityB = createTrackedEntityInstance( orgUnitB );
-        TrackedEntityInstance femaleA = createTrackedEntityInstance( orgUnitA );
-        TrackedEntityInstance femaleB = createTrackedEntityInstance( orgUnitB );
+        trackedEntityA = createTrackedEntity( orgUnitA );
+        TrackedEntity trackedEntityB = createTrackedEntity( orgUnitB );
+        TrackedEntity femaleA = createTrackedEntity( orgUnitA );
+        TrackedEntity femaleB = createTrackedEntity( orgUnitB );
         trackedEntityA.setTrackedEntityType( trackedEntityType );
         trackedEntityB.setTrackedEntityType( trackedEntityType );
         femaleA.setTrackedEntityType( trackedEntityType );
@@ -168,25 +168,25 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.save( femaleA );
         manager.save( femaleB );
 
-        ProgramInstance programInstanceA = programInstanceService.enrollTrackedEntityInstance( trackedEntityA, programA,
+        Enrollment enrollmentA = enrollmentService.enrollTrackedEntity( trackedEntityA, programA,
             new Date(),
             new Date(),
             orgUnitA );
-        programStageInstanceA = new ProgramStageInstance();
-        programStageInstanceA.setProgramInstance( programInstanceA );
-        programStageInstanceA.setProgramStage( programStageA );
-        programStageInstanceA.setOrganisationUnit( orgUnitA );
-        programStageInstanceA.setStatus( EventStatus.COMPLETED );
-        programStageInstanceA.setExecutionDate( new Date() );
-        manager.save( programStageInstanceA, false );
+        eventA = new Event();
+        eventA.setEnrollment( enrollmentA );
+        eventA.setProgramStage( programStageA );
+        eventA.setOrganisationUnit( orgUnitA );
+        eventA.setStatus( EventStatus.COMPLETED );
+        eventA.setExecutionDate( new Date() );
+        manager.save( eventA, false );
 
-        programStageInstanceB = new ProgramStageInstance();
-        programStageInstanceB.setProgramInstance( programInstanceA );
-        programStageInstanceB.setProgramStage( programStageB );
-        programStageInstanceB.setOrganisationUnit( orgUnitB );
-        programStageInstanceB.setStatus( EventStatus.SCHEDULE );
-        programStageInstanceB.setDueDate( DateUtils.addDays( new Date(), 10 ) );
-        manager.save( programStageInstanceB, false );
+        eventB = new Event();
+        eventB.setEnrollment( enrollmentA );
+        eventB.setProgramStage( programStageB );
+        eventB.setOrganisationUnit( orgUnitB );
+        eventB.setStatus( EventStatus.SCHEDULE );
+        eventB.setDueDate( DateUtils.addDays( new Date(), 10 ) );
+        manager.save( eventB, false );
     }
 
     @Test
@@ -197,7 +197,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
         // Can read tei
         assertNoErrors( trackerAccessManager.canRead( user, tei ) );
         // can write tei
@@ -213,7 +213,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
         // Can Read
         assertNoErrors( trackerAccessManager.canRead( user, tei ) );
         // Can write
@@ -228,7 +228,7 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitB ) );
         trackedEntityType.setPublicAccess( AccessStringHelper.FULL );
         manager.update( trackedEntityType );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
         // Cannot Read
         assertHasError( trackerAccessManager.canRead( user, tei ), "User has no read access to organisation unit:" );
         // Cannot write
@@ -244,32 +244,32 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
+        Enrollment enrollment = tei.getEnrollments().iterator().next();
         // Can create enrollment
-        assertNoErrors( trackerAccessManager.canCreate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canCreate( user, enrollment, false ) );
         // Can update enrollment
-        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, enrollment, false ) );
         // Cannot delete enrollment
-        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, enrollment, false ) );
         // Can read enrollment
-        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, enrollment, false ) );
         // Cannot create enrollment if enrollmentOU is outside capture scope
         // even if user is owner.
-        pi.setOrganisationUnit( orgUnitB );
-        assertHasError( trackerAccessManager.canCreate( user, pi, false ),
+        enrollment.setOrganisationUnit( orgUnitB );
+        assertHasError( trackerAccessManager.canCreate( user, enrollment, false ),
             "User has no create access to organisation unit:" );
-        pi.setOrganisationUnit( orgUnitA );
+        enrollment.setOrganisationUnit( orgUnitA );
         // Transferring ownership to orgUnitB. user is no longer owner
         trackerOwnershipManager.transferOwnership( tei, programA, orgUnitB, true, true );
         // Cannot create enrollment if not owner
-        assertHasError( trackerAccessManager.canCreate( user, pi, false ), "OWNERSHIP_ACCESS_DENIED" );
+        assertHasError( trackerAccessManager.canCreate( user, enrollment, false ), "OWNERSHIP_ACCESS_DENIED" );
         // Cannot update enrollment if not owner
-        assertHasError( trackerAccessManager.canUpdate( user, pi, false ), "OWNERSHIP_ACCESS_DENIED" );
+        assertHasError( trackerAccessManager.canUpdate( user, enrollment, false ), "OWNERSHIP_ACCESS_DENIED" );
         // Cannot delete enrollment if not owner
-        assertHasError( trackerAccessManager.canDelete( user, pi, false ), "OWNERSHIP_ACCESS_DENIED" );
+        assertHasError( trackerAccessManager.canDelete( user, enrollment, false ), "OWNERSHIP_ACCESS_DENIED" );
         // Cannot read enrollment if not owner
-        assertHasError( trackerAccessManager.canRead( user, pi, false ), "OWNERSHIP_ACCESS_DENIED" );
+        assertHasError( trackerAccessManager.canRead( user, enrollment, false ), "OWNERSHIP_ACCESS_DENIED" );
     }
 
     @Test
@@ -282,17 +282,17 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitA ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
-        pi.setOrganisationUnit( null );
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
+        Enrollment enrollment = tei.getEnrollments().iterator().next();
+        enrollment.setOrganisationUnit( null );
         // Can create enrollment
-        assertNoErrors( trackerAccessManager.canCreate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canCreate( user, enrollment, false ) );
         // Can update enrollment
-        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, enrollment, false ) );
         // Cannot delete enrollment
-        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, enrollment, false ) );
         // Can read enrollment
-        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, enrollment, false ) );
     }
 
     @Test
@@ -305,40 +305,40 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
         User user = createUserWithAuth( "user1" ).setOrganisationUnits( Sets.newHashSet( orgUnitB ) );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
-        TrackedEntityInstance tei = trackedEntityInstanceService.getTrackedEntityInstance( trackedEntityA.getUid() );
-        ProgramInstance pi = tei.getProgramInstances().iterator().next();
+        TrackedEntity tei = trackedEntityService.getTrackedEntity( trackedEntityA.getUid() );
+        Enrollment enrollment = tei.getEnrollments().iterator().next();
         // Cannot create enrollment if enrollmentOU falls outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, pi, false ) );
+        assertHasError( trackerAccessManager.canCreate( user, enrollment, false ) );
         // Can update enrollment if ownerOU falls inside search scope
-        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, enrollment, false ) );
         // Can delete enrollment if ownerOU falls inside search scope
-        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, enrollment, false ) );
         // Can read enrollment if ownerOU falls inside search scope
-        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, enrollment, false ) );
         // Transferring ownership to orgUnitB. user is now owner
         trackerOwnershipManager.transferOwnership( tei, programA, orgUnitB, true, true );
         // Cannot create enrollment if enrollmentOU falls outside capture scope,
         // even if user is owner
-        assertHasError( trackerAccessManager.canCreate( user, pi, false ),
+        assertHasError( trackerAccessManager.canCreate( user, enrollment, false ),
             "User has no create access to organisation unit:" );
         // Can update enrollment
-        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, enrollment, false ) );
         // Can delete enrollment
-        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, enrollment, false ) );
         // Can read enrollment
-        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, enrollment, false ) );
         // Transferring ownership to orgUnitB. user is now owner
         trackerOwnershipManager.transferOwnership( tei, programA, orgUnitA, true, true );
         user.setTeiSearchOrganisationUnits( Sets.newHashSet( orgUnitA, orgUnitB ) );
         // Cannot create enrollment if enrollment OU is outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, pi, false ),
+        assertHasError( trackerAccessManager.canCreate( user, enrollment, false ),
             "User has no create access to organisation unit:" );
         // Can update enrollment if ownerOU is in search scope
-        assertNoErrors( trackerAccessManager.canUpdate( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, enrollment, false ) );
         // Can delete enrollment if ownerOU is in search scope
-        assertNoErrors( trackerAccessManager.canDelete( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, enrollment, false ) );
         // Can read enrollment if ownerOU is in search scope
-        assertNoErrors( trackerAccessManager.canRead( user, pi, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, enrollment, false ) );
     }
 
     @Test
@@ -356,31 +356,31 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
 
         // Can create scheduled events outside capture scope if user is owner
-        assertNoErrors( trackerAccessManager.canCreate( user, programStageInstanceB, false ) );
+        assertNoErrors( trackerAccessManager.canCreate( user, eventB, false ) );
         // Cannot create regular events outside capture scope even if user is
         // owner
-        programStageInstanceB.setStatus( EventStatus.ACTIVE );
-        assertHasError( trackerAccessManager.canCreate( user, programStageInstanceB, false ),
+        eventB.setStatus( EventStatus.ACTIVE );
+        assertHasError( trackerAccessManager.canCreate( user, eventB, false ),
             "User has no create access to organisation unit:" );
         // Can read events if user is owner irrespective of eventOU
-        assertNoErrors( trackerAccessManager.canRead( user, programStageInstanceB, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, eventB, false ) );
         // Can update events if user is owner irrespective of eventOU
-        assertNoErrors( trackerAccessManager.canUpdate( user, programStageInstanceB, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, eventB, false ) );
         // Can delete events if user is owner irrespective of eventOU
-        assertNoErrors( trackerAccessManager.canDelete( user, programStageInstanceB, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, eventB, false ) );
         trackerOwnershipManager.transferOwnership( trackedEntityA, programA, orgUnitB, true, true );
         // Cannot create events anywhere if user is not owner
-        assertHasErrors( 2, trackerAccessManager.canCreate( user, programStageInstanceB, false ) );
+        assertHasErrors( 2, trackerAccessManager.canCreate( user, eventB, false ) );
         // Cannot read events if user is not owner (OwnerOU falls into capture
         // scope)
-        assertHasError( trackerAccessManager.canRead( user, programStageInstanceB, false ), "OWNERSHIP_ACCESS_DENIED" );
+        assertHasError( trackerAccessManager.canRead( user, eventB, false ), "OWNERSHIP_ACCESS_DENIED" );
         // Cannot update events if user is not owner (OwnerOU falls into capture
         // scope)
-        assertHasError( trackerAccessManager.canUpdate( user, programStageInstanceB, false ),
+        assertHasError( trackerAccessManager.canUpdate( user, eventB, false ),
             "OWNERSHIP_ACCESS_DENIED" );
         // Cannot delete events if user is not owner (OwnerOU falls into capture
         // scope)
-        assertHasError( trackerAccessManager.canDelete( user, programStageInstanceB, false ),
+        assertHasError( trackerAccessManager.canDelete( user, eventB, false ),
             "OWNERSHIP_ACCESS_DENIED" );
     }
 
@@ -400,26 +400,26 @@ class TrackerAccessManagerTest extends TransactionalIntegrationTest
         manager.update( trackedEntityType );
 
         // Cannot create events with event ou outside capture scope
-        assertHasError( trackerAccessManager.canCreate( user, programStageInstanceA, false ),
+        assertHasError( trackerAccessManager.canCreate( user, eventA, false ),
             "User has no create access to organisation unit:" );
         // Can read events if ownerOu falls into users search scope
-        assertNoErrors( trackerAccessManager.canRead( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, eventA, false ) );
         // Can update events if ownerOu falls into users search scope
-        assertNoErrors( trackerAccessManager.canUpdate( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, eventA, false ) );
         // Can delete events if ownerOu falls into users search scope
-        assertNoErrors( trackerAccessManager.canDelete( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, eventA, false ) );
         trackerOwnershipManager.transferOwnership( trackedEntityA, programA, orgUnitB, true, true );
         // Cannot create events with eventOu outside capture scope, even if
         // ownerOu is
         // also in capture scope
-        assertHasError( trackerAccessManager.canCreate( user, programStageInstanceA, false ),
+        assertHasError( trackerAccessManager.canCreate( user, eventA, false ),
             "User has no create access to organisation unit:" );
         // Can read events if ownerOu falls into users capture scope
-        assertNoErrors( trackerAccessManager.canRead( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canRead( user, eventA, false ) );
         // Can update events if ownerOu falls into users capture scope
-        assertNoErrors( trackerAccessManager.canUpdate( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canUpdate( user, eventA, false ) );
         // Can delete events if ownerOu falls into users capture scope
-        assertNoErrors( trackerAccessManager.canDelete( user, programStageInstanceA, false ) );
+        assertNoErrors( trackerAccessManager.canDelete( user, eventA, false ) );
     }
 
     private void assertNoErrors( List<String> errors )

@@ -31,6 +31,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.stream.Collectors;
@@ -54,7 +55,7 @@ public abstract class EmbeddedJettyBase
 {
     private String resourceBase = "./dhis-web/dhis-web-portal/target/dhis";
 
-    public EmbeddedJettyBase()
+    protected EmbeddedJettyBase()
     {
         Thread.currentThread().setUncaughtExceptionHandler( EmbeddedJettyUncaughtExceptionHandler.systemExit( log ) );
     }
@@ -93,8 +94,8 @@ public abstract class EmbeddedJettyBase
             getServletContextHandler(), new DefaultHandler() } );
         server.setHandler( handlers );
 
-        final HttpConfiguration http_config = getHttpConfiguration();
-        addHttpConnector( server, http_config );
+        final HttpConfiguration httpConfig = getHttpConfiguration();
+        addHttpConnector( server, httpConfig );
 
         server.setStopAtShutdown( true );
         server.setStopTimeout( 5000 );
@@ -107,10 +108,10 @@ public abstract class EmbeddedJettyBase
         log.info( "DHIS2 Server stopped!" );
     }
 
-    private void addHttpConnector( Server server, HttpConfiguration http_config )
+    private void addHttpConnector( Server server, HttpConfiguration httpConfig )
     {
         setDefaultPropertyValue( "jetty.port", System.getProperty( "jetty.http.port" ) );
-        server.addConnector( setupHTTPConnector( server, http_config ) );
+        server.addConnector( setupHTTPConnector( server, httpConfig ) );
     }
 
     private HttpConfiguration getHttpConfiguration()
@@ -125,13 +126,13 @@ public abstract class EmbeddedJettyBase
         return httpConfig;
     }
 
-    private Connector setupHTTPConnector( Server server, HttpConfiguration http_config )
+    private Connector setupHTTPConnector( Server server, HttpConfiguration httpConfig )
     {
         ServerConnector httpConnector = new ServerConnector(
             server,
             getIntSystemProperty( "jetty.http.acceptors", -1 ),
             getIntSystemProperty( "jetty.http.selectors", -1 ),
-            new HttpConnectionFactory( http_config ) );
+            new HttpConnectionFactory( httpConfig ) );
 
         httpConnector.setHost( getStringSystemProperty( "jetty.host", null ) );
         httpConnector.setPort( getIntSystemProperty( "jetty.http.port", -1 ) );
@@ -145,7 +146,7 @@ public abstract class EmbeddedJettyBase
         String msg = "Starting: " + name;
         try (
             final InputStream resourceStream = new ClassPathResource( "banner.txt" ).getInputStream();
-            final InputStreamReader inputStreamReader = new InputStreamReader( resourceStream, "UTF-8" );
+            final InputStreamReader inputStreamReader = new InputStreamReader( resourceStream, StandardCharsets.UTF_8 );
             final BufferedReader bufferedReader = new BufferedReader( inputStreamReader ) )
         {
             final String banner = bufferedReader
@@ -155,6 +156,7 @@ public abstract class EmbeddedJettyBase
         }
         catch ( IllegalArgumentException | IOException ignored )
         {
+            // Ignore
         }
         log.info( msg );
     }
