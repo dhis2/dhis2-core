@@ -39,8 +39,7 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Stream;
 
-import joptsimple.internal.Strings;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.deprecated.tracker.EventActions;
@@ -270,7 +269,7 @@ public class EventsTests
         List<String> category = program
             .extractList( "programs[0].categoryCombo.categories.categoryOptions.id.flatten()" );
 
-        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
+        Assumptions.assumeFalse( StringUtils.isEmpty( programId ) );
 
         JsonObject object = new EventDataBuilder()
             .setProgram( programId )
