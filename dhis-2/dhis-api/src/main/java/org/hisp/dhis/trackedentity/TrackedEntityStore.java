@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectStore;
-import org.hisp.dhis.dxf2.events.event.EventContext;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.user.User;
 
 /**

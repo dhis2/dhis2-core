@@ -30,6 +30,10 @@ package org.hisp.dhis.security.apikey;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -44,86 +48,46 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Getter
+@Setter
+@Builder( toBuilder = true )
 @JacksonXmlRootElement( localName = "apiToken", namespace = DxfNamespaces.DXF_2_0 )
 public class ApiToken extends BaseIdentifiableObject implements MetadataObject
 {
     public ApiToken()
     {
-        /*
-         * This constructor is only used by Hibernate
-         */
     }
 
-    private String key;
-
-    private Integer version;
-
-    private ApiTokenType type;
-
-    private Long expire;
-
-    private List<ApiTokenAttribute> attributes = new ArrayList<>();
-
-    @JsonIgnore
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
+    public ApiToken( String key, Integer version, ApiTokenType type, Long expire,
+        List<ApiTokenAttribute> attributes )
     {
         this.key = key;
+        this.version = version;
+        this.type = type;
+        this.expire = expire;
+        this.attributes = attributes;
     }
+
+    @JsonIgnore
+    private String key;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( PropertyType.INTEGER )
-    public Integer getVersion()
-    {
-        return version;
-    }
-
-    public void setVersion( Integer version )
-    {
-        this.version = version;
-    }
+    private Integer version;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public ApiTokenType getType()
-    {
-        return type;
-    }
-
-    public void setType( ApiTokenType type )
-    {
-        this.type = type;
-    }
+    private ApiTokenType type;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
     @Property( PropertyType.NUMBER )
-    public Long getExpire()
-    {
-        return expire;
-    }
-
-    public void setExpire( Long expire )
-    {
-        this.expire = expire;
-    }
+    private Long expire;
 
     @JsonProperty
     @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public List<ApiTokenAttribute> getAttributes()
-    {
-        return attributes;
-    }
-
-    public void setAttributes( List<ApiTokenAttribute> attributes )
-    {
-        this.attributes = attributes;
-    }
+    private List<ApiTokenAttribute> attributes = new ArrayList<>();
 
     private ApiTokenAttribute findApiTokenAttribute( Class<? extends ApiTokenAttribute> attributeClass )
     {
@@ -134,7 +98,6 @@ public class ApiToken extends BaseIdentifiableObject implements MetadataObject
                 return attribute;
             }
         }
-
         return null;
     }
 

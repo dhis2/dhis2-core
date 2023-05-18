@@ -348,6 +348,12 @@ public class Api
 
         Boolean required;
 
+        /**
+         * OBS! This cannot be included in {@link #toString()} because it might
+         * be a circular with the {@link Schema} containing the
+         * {@link Property}.
+         */
+        @ToString.Exclude
         Schema type;
     }
 

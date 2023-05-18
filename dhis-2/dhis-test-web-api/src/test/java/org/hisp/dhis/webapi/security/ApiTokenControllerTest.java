@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.render.RenderService;
-import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
@@ -84,7 +83,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     void testCreate()
     {
         final JsonObject jsonObject = assertApiTokenCreatedResponse(
-            POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" ) );
+            POST( "/apiTokens/", "{}" ) );
         final String uid = jsonObject.getString( "uid" ).string();
         final String rawKey = jsonObject.getString( "key" ).string();
         assertNotNull( uid );
@@ -119,7 +118,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         createNewTokenWithAttributes();
         createNewTokenWithAttributes();
         createNewTokenWithAttributes();
-        final JsonList<JsonApiToken> apiTokens = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" ).content()
+        final JsonList<JsonApiToken> apiTokens = GET( "/apiTokens/" ).content()
             .getList( "apiToken", JsonApiToken.class );
         assertEquals( 3, apiTokens.size() );
     }
@@ -132,7 +131,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         createNewTokenWithAttributes();
         switchToNewUser( "anonymous" );
         createNewTokenWithAttributes();
-        final JsonList<JsonApiToken> apiTokens = GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" ).content()
+        final JsonList<JsonApiToken> apiTokens = GET( "/apiTokens/" ).content()
             .getList( "apiToken", JsonApiToken.class );
         assertEquals( 1, apiTokens.size() );
     }
@@ -143,7 +142,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final String uid = createNewTokenWithAttributes();
         final ApiToken apiToken1 = fetchAsEntity( uid );
         assertEquals( 1, (int) apiToken1.getVersion() );
-        assertStatus( HttpStatus.OK, PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
+        assertStatus( HttpStatus.OK, PATCH( "/apiTokens/{id}",
             uid + "?importReportMode=ERRORS", Body( "[{'op': 'replace', 'path': '/version', 'value': 333}]" ) ) );
         final ApiToken apiToken2 = fetchAsEntity( uid );
         assertEquals( 333, (int) apiToken2.getVersion() );
@@ -158,7 +157,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         assertTrue( apiToken1.getIpAllowedList().getAllowedIps().contains( "1.1.1.1" ) );
         assertFalse( apiToken1.getIpAllowedList().getAllowedIps().contains( "8.8.8.8" ) );
         assertStatus( HttpStatus.OK,
-            PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}", uid + "?importReportMode=ERRORS", Body(
+            PATCH( "/apiTokens/{id}", uid + "?importReportMode=ERRORS", Body(
                 "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','allowedIps':['8.8.8.8']}]}]" ) ) );
         final ApiToken apiToken2 = fetchAsEntity( uid );
         assertEquals( 1, apiToken2.getIpAllowedList().getAllowedIps().size() );
@@ -170,112 +169,48 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     void testCantModifyKeyPatch()
     {
         final ApiToken newToken = createNewEmptyToken();
-        PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
+        PATCH( "/apiTokens/{id}",
             newToken.getUid() + "?importReportMode=ERRORS",
             Body( "[{'op':'replace','path':'/key','value':'MY NEW VALUE'}]" ) );
-        final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );
+        final ApiToken afterPatched = apiTokenService.getByUid( newToken.getUid() );
         assertEquals( newToken.getKey(), afterPatched.getKey() );
     }
 
     @Test
     void testCantAddInvalidIp()
     {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+        final HttpResponse post = POST( "/apiTokens/",
             "{'attributes':[{'type': 'IpAllowedList','allowedIps':['X.1.1.1','2.2.2.2','3.3.3.3']}]}" );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", post.error().getMessage() );
-    }
-
-    @Test
-    void testCantAddInvalidIpPut()
-    {
-        final ApiToken token = createNewEmptyToken();
-        token.addIpToAllowedList( "X.1.1.1" );
-        final HttpResponse put = PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}", token.getUid(),
-            Body( renderService.toJsonAsString( token ) ) );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", put.error().getMessage() );
-    }
-
-    @Test
-    void testCantAddInvalidIpPatch()
-    {
-        final ApiToken token = createNewEmptyToken();
-        final HttpResponse patch = PATCH( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
-            token.getUid() + "?importReportMode=ERRORS", Body(
-                "[{'op':'replace','path':'/attributes','value':[{'type':'IpAllowedList','allowedIps':['X.1.1.1']}]}]" ) );
-        assertEquals( "Not a valid ip address, value=X.1.1.1", patch.error().getMessage() );
+        assertEquals( "Failed to validate the token's attributes, message: Not a valid ip address, value=X.1.1.1",
+            post.error().getMessage() );
     }
 
     @Test
     void testCantAddInvalidMethod()
     {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+        final HttpResponse post = POST( "/apiTokens/",
             "{'attributes':[" + "{'type':'MethodAllowedList','allowedMethods':['POST','X','PATCH']}" + "]}" );
-        assertEquals( "Not a valid http method, value=X", post.error().getMessage() );
+        assertEquals( "Failed to validate the token's attributes, message: Not a valid http method, value=X",
+            post.error().getMessage() );
     }
 
     @Test
     void testCantAddInvalidReferrer()
     {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{'attributes':["
+        final HttpResponse post = POST( "/apiTokens/", "{'attributes':["
             + "{'type':'RefererAllowedList','allowedReferrers':['http:XXX//hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
-        assertEquals( "Not a valid referrer url, value=http:XXX//hostname3.com", post.error().getMessage() );
-    }
-
-    @Test
-    void testCanModifyWithPut()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.addReferrerToAllowedList( "http://hostname1.com" );
-        apiToken1.addMethodToAllowedList( "GET" );
-        apiToken1.addIpToAllowedList( "2.2.2.2" );
-        assertStatus( HttpStatus.OK, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) ) );
-        final ApiToken apiToken2 = fetchAsEntity( newToken.getUid() );
-        assertTrue( apiToken2.getIpAllowedList().getAllowedIps().contains( "2.2.2.2" ) );
-        assertTrue( apiToken2.getMethodAllowedList().getAllowedMethods().contains( "GET" ) );
-        assertTrue( apiToken2.getRefererAllowedList().getAllowedReferrers().contains( "http://hostname1.com" ) );
-        apiToken2.getIpAllowedList().getAllowedIps().remove( "2.2.2.2" );
-        apiToken2.getMethodAllowedList().getAllowedMethods().remove( "GET" );
-        apiToken2.getRefererAllowedList().getAllowedReferrers().remove( "http://hostname1.com" );
-        assertStatus( HttpStatus.OK, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken2 ) ) ) );
-        final ApiToken apiToken3 = fetchAsEntity( newToken.getUid() );
-        assertFalse( apiToken3.getIpAllowedList().getAllowedIps().contains( "2.2.2.2" ) );
-        assertFalse( apiToken3.getMethodAllowedList().getAllowedMethods().contains( "GET" ) );
-        assertFalse( apiToken3.getRefererAllowedList().getAllowedReferrers().contains( "http://hostname1.com" ) );
-    }
-
-    @Test
-    void testCantModifyKeyPut()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.setKey( "x" );
-        final HttpResponse put = PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) );
-        final ApiToken afterPatched = apiTokenService.getWithUid( newToken.getUid() );
-        assertEquals( newToken.getKey(), afterPatched.getKey() );
-    }
-
-    @Test
-    void testCantModifyOthers()
-    {
-        final ApiToken newToken = createNewEmptyToken();
-        final ApiToken apiToken1 = fetchAsEntity( newToken.getUid() );
-        apiToken1.setKey( "x" );
-        switchToNewUser( "anonymous" );
-        assertStatus( HttpStatus.NOT_FOUND, PUT( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{id}",
-            newToken.getUid() + "?importReportMode=ERRORS", Body( renderService.toJsonAsString( apiToken1 ) ) ) );
+        assertEquals(
+            "Failed to validate the token's attributes, message: Not a valid referrer url, value=http:XXX//hostname3.com",
+            post.error().getMessage() );
     }
 
     @Test
     void testDelete()
     {
         final ApiToken newToken = createNewEmptyToken();
-        assertStatus( HttpStatus.OK, DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" + newToken.getUid() ) );
+        assertStatus( HttpStatus.OK, DELETE( "/apiTokens/" + newToken.getUid() ) );
         assertStatus( HttpStatus.NOT_FOUND,
-            GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{uid}", newToken.getUid() ) );
+            GET( "/apiTokens" + "/{uid}", newToken.getUid() ) );
     }
 
     @Test
@@ -283,7 +218,8 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final ApiToken newToken = createNewEmptyToken();
         switchContextToUser( userB );
-        assertStatus( HttpStatus.NOT_FOUND, DELETE( ApiTokenSchemaDescriptor.API_ENDPOINT + "/" + newToken.getUid() ) );
+        assertStatus( HttpStatus.NOT_FOUND,
+            DELETE( "/apiTokens" + "/" + newToken.getUid() ) );
     }
 
     @Test
@@ -291,7 +227,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
     {
         final long ONE_HOUR_FROM_NOW = System.currentTimeMillis() + 3600000;
         assertStatus( HttpStatus.CREATED,
-            POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{'expire': " + ONE_HOUR_FROM_NOW + "}" ) );
+            POST( "/apiTokens/", "{'expire': " + ONE_HOUR_FROM_NOW + "}" ) );
     }
 
     @Test
@@ -300,21 +236,21 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
         final ApiToken newToken = createNewEmptyToken();
         switchToNewUser( "anonymous" );
         assertStatus( HttpStatus.NOT_FOUND,
-            GET( ApiTokenSchemaDescriptor.API_ENDPOINT + "/{uid}", newToken.getUid() ) );
+            GET( "/apiTokens/{uid}", newToken.getUid() ) );
         switchToSuperuser();
         fetchAsEntity( newToken.getUid() );
     }
 
     private ApiToken createNewEmptyToken()
     {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/", "{}" );
+        final HttpResponse post = POST( "/apiTokens/", "{}" );
         final String uid = assertStatus( HttpStatus.CREATED, post );
-        return apiTokenService.getWithUid( uid );
+        return apiTokenService.getByUid( uid );
     }
 
     private String createNewTokenWithAttributes()
     {
-        final HttpResponse post = POST( ApiTokenSchemaDescriptor.API_ENDPOINT + "/",
+        final HttpResponse post = POST( "/apiTokens/",
             "{'attributes':[{'type': 'IpAllowedList','allowedIps':['1.1.1.1','2.2.2.2','3.3.3.3']},"
                 + "{'type':'MethodAllowedList','allowedMethods':['POST','GET','PATCH']},"
                 + "{'type':'RefererAllowedList','allowedReferrers':['http://hostname3.com','http://hostname2.com','http://hostname1.com']}]}" );
@@ -323,7 +259,7 @@ class ApiTokenControllerTest extends DhisControllerConvenienceTest
 
     private ApiToken fetchAsEntity( String uid )
     {
-        return apiTokenService.getWithUid( uid );
+        return apiTokenService.getByUid( uid );
     }
 
     public static JsonObject assertApiTokenCreatedResponse( HttpResponse actual )

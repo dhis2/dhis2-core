@@ -28,28 +28,32 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
+import lombok.Value;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Response.Status;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +65,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.EntityType( Enrollment.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS )
@@ -70,11 +75,9 @@ public class EnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
-    private static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
-
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final EnrollmentCriteriaMapper enrollmentCriteriaMapper;
+    private final EnrollmentParamsMapper paramsMapper;
 
     private final EnrollmentService enrollmentService;
 
@@ -82,63 +85,75 @@ public class EnrollmentsExportController
 
     private final EnrollmentFieldsParamMapper fieldsMapper;
 
+    @Value
+    @OpenApi.Property
+    @OpenApi.Shared( value = false )
+    private static class ObjectListResponse
+    {
+        Integer page = 1;
+
+        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
+
+        Long total;
+
+        List<Enrollment> instances;
+    }
+
+    @OpenApi.Response( status = Status.OK, value = ObjectListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    PagingWrapper<ObjectNode> getInstances(
-        EnrollmentCriteria enrollmentCriteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    public PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
         throws BadRequestException,
-        ForbiddenException
+        ForbiddenException,
+        NotFoundException
     {
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        List<Enrollment> enrollmentList;
+        List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( fields )
-            .withIncludeDeleted( enrollmentCriteria.isIncludeDeleted() );
+        EnrollmentParams enrollmentParams = fieldsMapper.map( requestParams.getFields() )
+            .withIncludeDeleted( requestParams.isIncludeDeleted() );
 
-        if ( enrollmentCriteria.getEnrollment() == null )
+        if ( requestParams.getEnrollment() == null )
         {
-            EnrollmentQueryParams params = enrollmentCriteriaMapper.map( enrollmentCriteria );
+            EnrollmentQueryParams params = paramsMapper.map( requestParams );
 
             Enrollments enrollments = enrollmentService.getEnrollments( params );
 
-            if ( enrollmentCriteria.isPagingRequest() )
+            if ( requestParams.isPagingRequest() )
             {
                 pagingWrapper = pagingWrapper.withPager(
-                    PagingWrapper.Pager.fromLegacy( enrollmentCriteria, enrollments.getPager() ) );
+                    PagingWrapper.Pager.fromLegacy( requestParams, enrollments.getPager() ) );
             }
 
             enrollmentList = enrollments.getEnrollments();
         }
         else
         {
-            Set<String> enrollmentIds = TextUtils.splitToSet( enrollmentCriteria.getEnrollment(),
-                TextUtils.SEMICOLON );
-            enrollmentList = enrollmentIds != null
-                ? enrollmentIds.stream().map( e -> enrollmentService.getEnrollment( e, enrollmentParams ) )
-                    .toList()
-                : Collections.emptyList();
+            Set<String> enrollmentUids = Set.of( requestParams.getEnrollment().split( TextUtils.SEMICOLON ) );
+
+            List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
+            for ( String e : enrollmentUids )
+            {
+                list.add( enrollmentService.getEnrollment( e, enrollmentParams ) );
+            }
+            enrollmentList = list;
         }
 
         List<ObjectNode> objectNodes = fieldFilterService
-            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), fields );
+            .toObjectNodes( ENROLLMENT_MAPPER.fromCollection( enrollmentList ), requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
-    @GetMapping( value = "{id}" )
-    public ResponseEntity<ObjectNode> getEnrollmentById(
-        @PathVariable String id,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws NotFoundException
+    @OpenApi.Response( OpenApi.EntityType.class )
+    @GetMapping( value = "/{uid}" )
+    public ResponseEntity<ObjectNode> getEnrollmentByUid(
+        @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable String uid,
+        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        throws NotFoundException,
+        ForbiddenException
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
-
-        org.hisp.dhis.webapi.controller.tracker.view.Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( id, enrollmentParams ) );
-        if ( enrollment == null )
-        {
-            throw new NotFoundException( org.hisp.dhis.webapi.controller.tracker.view.Enrollment.class, id );
-        }
+        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( uid, enrollmentParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }

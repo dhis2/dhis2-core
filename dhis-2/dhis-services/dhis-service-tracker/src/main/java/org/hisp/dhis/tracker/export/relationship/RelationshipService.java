@@ -40,6 +40,14 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
 
 public interface RelationshipService
 {
+    Relationship getRelationship( String id )
+        throws ForbiddenException,
+        NotFoundException;
+
+    Optional<Relationship> findRelationshipByUid( String id )
+        throws ForbiddenException,
+        NotFoundException;
+
     List<Relationship> getRelationshipsByTrackedEntity( TrackedEntity tei,
         PagingAndSortingCriteriaAdapter criteria )
         throws ForbiddenException,
@@ -52,10 +60,6 @@ public interface RelationshipService
 
     List<Relationship> getRelationshipsByEvent( Event event,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
-        throws ForbiddenException,
-        NotFoundException;
-
-    Optional<Relationship> findRelationshipByUid( String id )
         throws ForbiddenException,
         NotFoundException;
 }
