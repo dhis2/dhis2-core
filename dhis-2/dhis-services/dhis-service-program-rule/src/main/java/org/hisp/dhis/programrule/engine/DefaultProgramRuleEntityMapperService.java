@@ -47,6 +47,7 @@ import org.hisp.dhis.program.ProgramStageInstance;
 import org.hisp.dhis.programrule.*;
 import org.hisp.dhis.rules.DataItem;
 import org.hisp.dhis.rules.ItemValueType;
+import org.hisp.dhis.rules.Option;
 import org.hisp.dhis.rules.models.*;
 import org.hisp.dhis.rules.utils.RuleEngineUtils;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
@@ -106,22 +107,24 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>> VARIABLE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, RuleVariable>>()
         .put( ProgramRuleVariableSourceType.CALCULATED_VALUE,
-            prv -> RuleVariableCalculatedValue.create( prv.getName(), prv.getUid(), toMappedValueType( prv ) ) )
+            prv -> RuleVariableCalculatedValue.create( prv.getName(), prv.getUid(), toMappedValueType( prv ),
+                prv.getUseCodeForOptionSet(), List.of() ) )
         .put( ProgramRuleVariableSourceType.TEI_ATTRIBUTE,
             prv -> RuleVariableAttribute.create( prv.getName(), prv.getAttribute().getUid(),
-                toMappedValueType( prv ) ) )
+                toMappedValueType( prv ), prv.getUseCodeForOptionSet(), getOptions( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_CURRENT_EVENT,
             prv -> RuleVariableCurrentEvent.create( prv.getName(), prv.getDataElement().getUid(),
-                toMappedValueType( prv ) ) )
+                toMappedValueType( prv ), prv.getUseCodeForOptionSet(), getOptions( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_PREVIOUS_EVENT,
             prv -> RuleVariablePreviousEvent.create( prv.getName(), prv.getDataElement().getUid(),
-                toMappedValueType( prv ) ) )
+                toMappedValueType( prv ), prv.getUseCodeForOptionSet(), getOptions( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM,
             prv -> RuleVariableNewestEvent.create( prv.getName(), prv.getDataElement().getUid(),
-                toMappedValueType( prv ) ) )
+                toMappedValueType( prv ), prv.getUseCodeForOptionSet(), getOptions( prv ) ) )
         .put( ProgramRuleVariableSourceType.DATAELEMENT_NEWEST_EVENT_PROGRAM_STAGE,
             prv -> RuleVariableNewestStageEvent.create( prv.getName(), prv.getDataElement().getUid(),
-                prv.getProgramStage().getUid(), toMappedValueType( prv ) ) )
+                prv.getProgramStage().getUid(), toMappedValueType( prv ), prv.getUseCodeForOptionSet(),
+                getOptions( prv ) ) )
         .build();
 
     private final ImmutableMap<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>> VALUE_TYPE_MAPPER = new ImmutableMap.Builder<ProgramRuleVariableSourceType, Function<ProgramRuleVariable, ValueType>>()
@@ -550,5 +553,28 @@ public class DefaultProgramRuleEntityMapperService implements ProgramRuleEntityM
                 dataElement.getName() ) )
             .valueType( getItemValueType( dataElement.getValueType() ) )
             .build();
+    }
+
+    private List<Option> getOptions( ProgramRuleVariable prv )
+    {
+        if ( prv.getUseCodeForOptionSet() )
+        {
+            return List.of();
+        }
+
+        if ( prv.hasDataElement() && prv.getDataElement().hasOptionSet() )
+        {
+            return prv.getDataElement().getOptionSet().getOptions().stream()
+                .map( op -> new Option( op.getName(), op.getCode() ) )
+                .collect( Collectors.toList() );
+        }
+        else if ( prv.hasTrackedEntityAttribute() && prv.getAttribute().hasOptionSet() )
+        {
+            return prv.getAttribute().getOptionSet().getOptions().stream()
+                .map( op -> new Option( op.getName(), op.getCode() ) )
+                .collect( Collectors.toList() );
+        }
+
+        return List.of();
     }
 }
