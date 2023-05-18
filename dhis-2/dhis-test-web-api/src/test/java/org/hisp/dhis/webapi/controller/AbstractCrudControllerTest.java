@@ -61,6 +61,7 @@ import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonGeoMap;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
+import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonStats;
 import org.hisp.dhis.webapi.json.domain.JsonTranslation;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
