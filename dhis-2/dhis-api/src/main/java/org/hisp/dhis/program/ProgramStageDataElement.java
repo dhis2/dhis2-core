@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import java.util.Objects;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
@@ -291,5 +292,32 @@ public class ProgramStageDataElement
             ", allowFutureDate=" + allowFutureDate +
             ", renderOptionsAsRadio=" + renderOptionsAsRadio +
             '}';
+    }
+
+    public static ProgramStageDataElement copyOf( ProgramStageDataElement original, ProgramStage newProgramStage )
+    {
+        ProgramStageDataElement copy = new ProgramStageDataElement();
+        copy.setProgramStage( newProgramStage ); //TODO should this be the newly-create ProgramStage instance?
+        setShallowCopyValues( copy, original );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramStageDataElement copy, ProgramStageDataElement original )
+    {
+        copy.setAllowFutureDate( original.getAllowFutureDate() );
+        copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
+        copy.setAutoFields(); // TODO this is required here as when ProgramStage is being saved, this ProgramStageDataElement doesn't have a uid
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCompulsory( original.isCompulsory() );
+        copy.setDataElement( original.getDataElement() );
+        copy.setDisplayInReports( original.getDisplayInReports() );
+        //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
+        copy.setName( original.getName() + "clone" );
+        copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSharing( original.getSharing() );
+        copy.setSkipAnalytics( original.getSkipAnalytics() );
+        copy.setSkipSynchronization( original.getSkipSynchronization() );
+        copy.setSortOrder( original.getSortOrder() );
     }
 }

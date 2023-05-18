@@ -28,7 +28,7 @@
 
     <property name="repeatable" column="repeatable" not-null="true" />
 
-    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan">
+    <set name="programStageDataElements" order-by="sort_order" cascade="all-delete-orphan, save-update">
       <key column="programstageid"/>
       <one-to-many class="org.hisp.dhis.program.ProgramStageDataElement"/>
     </set>
@@ -38,7 +38,7 @@
 
     <property name="standardInterval"/>
 
-    <set name="programStageSections" order-by="sortOrder" cascade="delete-orphan">
+    <set name="programStageSections" order-by="sortOrder" cascade="delete-orphan, save-update">
       <key column="programstageid"/>
       <one-to-many class="org.hisp.dhis.program.ProgramStageSection"/>
     </set>

@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -583,5 +584,67 @@ public class ProgramStage
     public void setReferral( boolean referral )
     {
         this.referral = referral;
+    }
+
+    public static ProgramStage copyOf( ProgramStage original, Program newProgram )
+    {
+        ProgramStage copy = new ProgramStage();
+        copy.setProgram( newProgram ); //TODO should this be the newly-created Program instance?
+        setShallowCopyValues( copy, original );
+        setDeepCopyValues( copy, original );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original )
+    {
+        copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
+        copy.setAutoFields(); // TODO this is required here as when Program is being saved, this ProgramStage doesn't have a uid
+        copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
+        copy.setBlockEntryForm( original.getBlockEntryForm() );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setDataEntryForm( original.getDataEntryForm() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayGenerateEventBox( original.getDisplayGenerateEventBox() );
+        copy.setDueDateLabel( original.getDueDateLabel() );
+        copy.setEnableUserAssignment( original.isEnableUserAssignment() );
+        copy.setExecutionDateLabel( original.getExecutionDateLabel() );
+        copy.setFeatureType( original.getFeatureType() );
+        copy.setFormName( original.getFormName() );
+        copy.setGeneratedByEnrollmentDate( original.getGeneratedByEnrollmentDate() );
+        copy.setHideDueDate( original.getHideDueDate() );
+        //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
+        copy.setMinDaysFromStart( original.getMinDaysFromStart() );
+        copy.setNextScheduleDate( original.getNextScheduleDate() );
+        copy.setName( original.getName() + "_" + CodeGenerator.generateUid() );
+        copy.setNotificationTemplates( new HashSet<>( original.getNotificationTemplates() ) );
+        copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
+        copy.setPeriodType( original.getPeriodType() );
+        copy.setPreGenerateUID( original.getPreGenerateUID() );
+        copy.setReferral( original.isReferral() );
+        copy.setRemindCompleted( original.getRemindCompleted() );
+        copy.setRepeatable( original.getRepeatable() );
+        copy.setReportDateToUse( original.getReportDateToUse() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() + "clone" );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setStandardInterval( original.getStandardInterval() );
+        copy.setStyle( original.getStyle() );
+        copy.setValidationStrategy( original.getValidationStrategy() );
+    }
+
+    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original )
+    {
+        copy.setProgramStageDataElements( original.getProgramStageDataElements().stream()
+            .map( psde -> ProgramStageDataElement.copyOf( psde, copy ) )
+            .collect( Collectors.toSet() ) );
+
+        copy.setProgramStageSections( original.getProgramStageSections().stream()
+            .map( pss -> ProgramStageSection.copyOf( pss, copy ) )
+            .collect( Collectors.toSet() ) );
+    }
+
+    private static Program copyOrNull( Program relatedProgram )
+    {
+        return relatedProgram != null ? Program.copyOf( relatedProgram ) : null;
     }
 }

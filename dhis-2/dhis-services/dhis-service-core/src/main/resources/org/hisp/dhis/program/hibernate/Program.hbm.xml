@@ -29,7 +29,7 @@
 
     <property name="incidentDateLabel" column="incidentdatelabel" type="text" />
 
-    <set name="programStages" order-by="sortOrder">
+    <set name="programStages" order-by="sortOrder" cascade="save-update">
       <key column="programid" />
       <one-to-many class="org.hisp.dhis.program.ProgramStage" />
     </set>

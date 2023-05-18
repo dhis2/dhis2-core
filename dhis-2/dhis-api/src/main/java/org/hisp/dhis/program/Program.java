@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static java.util.stream.Collectors.toSet;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,6 +41,7 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -280,7 +283,7 @@ public class Program
     {
         return programStages.stream()
             .flatMap( ps -> ps.getDataElements().stream() )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -295,7 +298,7 @@ public class Program
             .filter( Objects::nonNull )
             .filter( psde -> !psde.getSkipAnalytics() )
             .map( ProgramStageDataElement::getDataElement )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -306,7 +309,7 @@ public class Program
     {
         return getAnalyticsDataElements().stream()
             .filter( de -> de.hasLegendSet() && de.isNumericType() )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -903,5 +906,71 @@ public class Program
     public void setAccessLevel( AccessLevel accessLevel )
     {
         this.accessLevel = accessLevel;
+    }
+
+    public static Program copyOf( Program programToCopy )
+    {
+        Program newProgram = new Program();
+        setShallowCopyValues( newProgram, programToCopy );
+        setDeepCopyValues( newProgram, programToCopy );
+        return newProgram;
+    }
+
+    private static void setShallowCopyValues( Program newProgram, Program programToCopy )
+    {
+        newProgram.setAccessLevel( programToCopy.getAccessLevel() );
+        newProgram.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) ); //TODO should this be a new unique code? set at service level
+        newProgram.setCompleteEventsExpiryDays( programToCopy.getCompleteEventsExpiryDays() );
+        newProgram.setDescription( programToCopy.getDescription() );
+        newProgram.setDisplayIncidentDate( programToCopy.getDisplayIncidentDate() );
+        newProgram.setDisplayFrontPageList( programToCopy.getDisplayFrontPageList() );
+        newProgram.setEnrollmentDateLabel( programToCopy.getEnrollmentDateLabel() );
+        newProgram.setExpiryDays( programToCopy.getExpiryDays() );
+        newProgram.setFeatureType( programToCopy.getFeatureType() );
+        newProgram.setFormName( programToCopy.getFormName() );
+        newProgram.setIgnoreOverdueEvents( programToCopy.getIgnoreOverdueEvents() );
+        newProgram.setIncidentDateLabel( programToCopy.getIncidentDateLabel() );
+        newProgram.setMaxTeiCountToReturn( programToCopy.getMaxTeiCountToReturn() );
+        newProgram.setMinAttributesRequiredToSearch( programToCopy.getMinAttributesRequiredToSearch() );
+        newProgram.setName( programToCopy.getName() + "_" + CodeGenerator.generateUid() ); //TODO add 'clone' suffix?
+        newProgram.setOnlyEnrollOnce( programToCopy.getOnlyEnrollOnce() );
+        newProgram.setOpenDaysAfterCoEndDate( programToCopy.getOpenDaysAfterCoEndDate() );
+        newProgram.setProgramType( programToCopy.getProgramType() );
+        newProgram.setSharing( programToCopy.getSharing() );
+        newProgram.setShortName( programToCopy.getShortName() + "_clone" ); //TODO add 'clone' suffix?
+        newProgram.setSelectEnrollmentDatesInFuture( programToCopy.getSelectEnrollmentDatesInFuture() );
+        newProgram.setSelectIncidentDatesInFuture( programToCopy.getSelectIncidentDatesInFuture() );
+        newProgram.setSkipOffline( programToCopy.isSkipOffline() );
+        newProgram.setUseFirstStageDuringRegistration( programToCopy.getUseFirstStageDuringRegistration() );
+        newProgram.setCategoryCombo( programToCopy.getCategoryCombo() );
+        newProgram.setDataEntryForm( programToCopy.getDataEntryForm() );
+        newProgram.setExpiryPeriodType( programToCopy.getExpiryPeriodType() );
+        newProgram.setNotificationTemplates( newSet( programToCopy.getNotificationTemplates() ) );
+        newProgram.setOrganisationUnits( newSet( programToCopy.getOrganisationUnits() ) );
+        newProgram.setProgramAttributes( new ArrayList<>( programToCopy.getProgramAttributes() ) );
+        newProgram.setProgramIndicators( newSet( programToCopy.getProgramIndicators() ) );
+        newProgram.setProgramRuleVariables( newSet( programToCopy.getProgramRuleVariables() ) );
+        newProgram.setProgramSections( newSet( programToCopy.getProgramSections() ) );
+        newProgram.setRelatedProgram( copyOrNull( programToCopy.getRelatedProgram() ) );
+        newProgram.setStyle( programToCopy.getStyle() );
+        newProgram.setTrackedEntityType( programToCopy.getTrackedEntityType() );
+        newProgram.setUserRoles( newSet( programToCopy.getUserRoles() ) );
+    }
+
+    private static void setDeepCopyValues( Program newProgram, Program programToCopy )
+    {
+        newProgram.setProgramStages( programToCopy.getProgramStages().stream()
+            .map( original -> ProgramStage.copyOf( original, newProgram ) )
+            .collect( toSet() ) );
+    }
+
+    private static Set newSet( Set<?> set )
+    {
+        return new HashSet<>( set );
+    }
+
+    private static Program copyOrNull( Program relatedProgram )
+    {
+        return relatedProgram != null ? copyOf( relatedProgram ) : null;
     }
 }

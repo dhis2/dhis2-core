@@ -35,9 +35,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.fieldfilter.Defaults;
@@ -50,11 +53,11 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -67,11 +70,13 @@ import com.google.common.collect.Lists;
 @OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramSchemaDescriptor.API_ENDPOINT )
+@RequiredArgsConstructor
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
+
+    private final CopyService copyService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -123,6 +128,13 @@ public class ProgramController
         exportParams.setObjectExportWithDependencies( program );
 
         return ResponseEntity.ok( exportParams );
+    }
+
+    @PostMapping( "/{uid}/copy" )
+    public ResponseEntity<String> copyProgram( @PathVariable( "uid" ) String pvUid )
+    {
+        Program copy = copyService.copyProgram( pvUid );
+        return ResponseEntity.ok( copy.getUid() );
     }
 
     @ResponseBody
