@@ -31,12 +31,13 @@ import java.util.Arrays;
 import java.util.Collection;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
- * This class represents icons that are pre-installed with the application and
- * are not possible to modify.
+ * Default icons are pre-installed immutable icons.
  */
 @Getter
+@RequiredArgsConstructor
 public class DefaultIcon implements Icon
 {
     private final String key;
@@ -44,13 +45,6 @@ public class DefaultIcon implements Icon
     private final String description;
 
     private final String[] keywords;
-
-    public DefaultIcon( String key, String description, String[] keywords )
-    {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-    }
 
     public enum Icons
     {

@@ -28,7 +28,6 @@
 package org.hisp.dhis.icon;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Set;
 
 import org.hisp.dhis.feedback.BadRequestException;
@@ -48,8 +47,7 @@ public interface IconService
     Collection<Icon> getIcons();
 
     /**
-     * Gets info about the icons in the system tagged with all the keywords in a
-     * collection
+     * Gets icons tagged with all given keywords.
      *
      * @param keywords collection of keywords
      * @return a collection of matching icons
@@ -84,7 +82,7 @@ public interface IconService
      * @return the icon resource
      * @throws NotFoundException if no default icon exists with the provided key
      */
-    Optional<Resource> getIconResource( String key )
+    Resource getIconResource( String key )
         throws NotFoundException;
 
     /**

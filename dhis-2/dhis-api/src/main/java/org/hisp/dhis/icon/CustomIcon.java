@@ -28,18 +28,19 @@
 package org.hisp.dhis.icon;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
- * This class represents icons that are uploaded by users and are possible to
- * modify and delete later on.
+ * Custom icons are uploaded by users and can be modified and deleted.
  */
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class CustomIcon implements Icon
 {
     private String key;

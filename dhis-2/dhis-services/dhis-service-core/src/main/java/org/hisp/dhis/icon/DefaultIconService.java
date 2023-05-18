@@ -100,16 +100,8 @@ public class DefaultIconService
         {
             return defaultIcons.get( key );
         }
-        else
-        {
-            CustomIcon customIcon = customIconStore.getIconByKey( key );
-            if ( customIcon == null )
-            {
-                throw new NotFoundException( String.format( "Icon not found: %s", key ) );
-            }
 
-            return customIcon;
-        }
+        return getCustomIcon( key );
     }
 
     @Override
@@ -120,20 +112,19 @@ public class DefaultIconService
         CustomIcon customIcon = customIconStore.getIconByKey( key );
         if ( customIcon == null )
         {
-            throw new NotFoundException( String.format( "Custom icon not found: %s", key ) );
+            throw new NotFoundException( String.format( "Icon not found: %s", key ) );
         }
 
         return customIcon;
     }
 
     @Override
-    public Optional<Resource> getIconResource( String key )
+    public Resource getIconResource( String key )
         throws NotFoundException
     {
         if ( defaultIcons.containsKey( key ) )
         {
-            return Optional
-                .of( new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icons.SUFFIX ) ) );
+            return new ClassPathResource( String.format( "%s/%s.%s", ICON_PATH, key, DefaultIcon.Icons.SUFFIX ) );
         }
 
         throw new NotFoundException( String.format( "No default icon found with key %s.", key ) );
@@ -161,7 +152,7 @@ public class DefaultIconService
         throws BadRequestException,
         NotFoundException
     {
-        validateIconExists( customIcon.getKey() );
+        validateIconDoesNotExists( customIcon.getKey() );
         FileResource fileResource = getFileResource( customIcon.getFileResourceUid() );
         customIconStore.save( customIcon, fileResource, currentUserService.getCurrentUser() );
     }
@@ -204,7 +195,7 @@ public class DefaultIconService
         customIconStore.delete( key );
     }
 
-    private void validateIconExists( String key )
+    private void validateIconDoesNotExists( String key )
         throws BadRequestException
     {
         validateIconKeyNotNullOrEmpty( key );

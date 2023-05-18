@@ -36,7 +36,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
-public class IconDto
+class IconDto
 {
 
     @JsonProperty

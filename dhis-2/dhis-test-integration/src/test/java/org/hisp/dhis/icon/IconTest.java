@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.icon;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertGreaterOrEqual;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -80,9 +81,8 @@ class IconTest extends TrackerTest
         throws IOException
     {
         FileResource fileResource = createAndPersistFileResource( 'A' );
-        String iconKey = "iconKey";
         iconService.addCustomIcon(
-            new CustomIcon( iconKey, "description", keywords, fileResource.getUid(),
+            new CustomIcon( "iconKey", "description", keywords, fileResource.getUid(),
                 currentUserService.getCurrentUser().getUid() ) );
     }
 
@@ -120,7 +120,7 @@ class IconTest extends TrackerTest
     }
 
     @Test
-    void shouldGetIconsFilteredByKeywordWhenRequested()
+    void shouldGetAllIconsFilteredByKeywordWhenRequested()
         throws BadRequestException,
         NotFoundException
     {
@@ -133,32 +133,34 @@ class IconTest extends TrackerTest
         }
 
         String keyword = defaultIcon.get().getKeywords()[0];
-
-        FileResource fileResourceB = createAndPersistFileResource( 'B' );
-        iconService
-            .addCustomIcon(
-                new CustomIcon( "iconKeyB", "description", new String[] { "k4", "k5", "k6" }, fileResourceB.getUid(),
-                    currentUserService.getCurrentUser().getUid() ) );
-        FileResource fileResourceC = createAndPersistFileResource( 'C' );
-        iconService
-            .addCustomIcon(
-                new CustomIcon( "iconKeyC", "description", new String[] { "k6", "k7", "k8" }, fileResourceC.getUid(),
-                    currentUserService.getCurrentUser().getUid() ) );
         FileResource fileResourceD = createAndPersistFileResource( 'D' );
         iconService
             .addCustomIcon( new CustomIcon( "iconKeyD", "description", new String[] { keyword }, fileResourceD.getUid(),
                 currentUserService.getCurrentUser().getUid() ) );
 
-        assertEquals( 1, iconService.getIcons( new String[] { "k4", "k5", "k6" } ).size(),
-            "Expected one icon containing the keys k4, k5 and k6, but found "
-                + iconService.getIcons( new String[] { "k4", "k5", "k6" } ).size() );
-        assertEquals( 1, iconService.getIcons( new String[] { "k6", "k7" } ).size(),
-            "Expected one icon containing the keys k6 and k7, but found "
-                + iconService.getIcons( new String[] { "k6", "k7" } ).size() );
-        assertEquals( 2, iconService.getIcons( new String[] { "k6" } ).size(),
-            "Expected two icons containing the key k6, but found "
-                + iconService.getIcons( new String[] { "k6" } ).size() );
         assertGreaterOrEqual( 2, iconService.getIcons( new String[] { keyword } ).size() );
+    }
+
+    @Test
+    void shouldGetCustomIconsFilteredByKeywordWhenRequested()
+        throws BadRequestException,
+        NotFoundException
+    {
+
+        FileResource fileResourceB = createAndPersistFileResource( 'B' );
+        CustomIcon iconB = new CustomIcon( "iconKeyB", "description", new String[] { "k4", "k5", "k6" },
+            fileResourceB.getUid(),
+            currentUserService.getCurrentUser().getUid() );
+        iconService.addCustomIcon( iconB );
+        FileResource fileResourceC = createAndPersistFileResource( 'C' );
+        CustomIcon iconC = new CustomIcon( "iconKeyC", "description", new String[] { "k6", "k7", "k8" },
+            fileResourceC.getUid(),
+            currentUserService.getCurrentUser().getUid() );
+        iconService.addCustomIcon( iconC );
+
+        assertContainsOnly( List.of( iconB ), iconService.getIcons( new String[] { "k4", "k5", "k6" } ) );
+        assertContainsOnly( List.of( iconC ), iconService.getIcons( new String[] { "k6", "k7" } ) );
+        assertContainsOnly( List.of( iconB, iconC ), iconService.getIcons( new String[] { "k6" } ) );
     }
 
     @Test
@@ -168,10 +170,9 @@ class IconTest extends TrackerTest
     {
         String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse( null );
 
-        Optional<Resource> iconResource = iconService.getIconResource( defaultIconKey );
+        Resource iconResource = iconService.getIconResource( defaultIconKey );
 
-        assertTrue( iconResource.isPresent() );
-        assertNotNull( iconResource.get().getURL() );
+        assertNotNull( iconResource.getURL() );
     }
 
     @Test
@@ -180,8 +181,7 @@ class IconTest extends TrackerTest
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.getIconResource( "madeUpIconKey" ) );
 
-        String expectedMessage = "No default icon found with key madeUpIconKey.";
-        assertEquals( expectedMessage, exception.getMessage() );
+        assertEquals( "No default icon found with key madeUpIconKey.", exception.getMessage() );
     }
 
     @Test

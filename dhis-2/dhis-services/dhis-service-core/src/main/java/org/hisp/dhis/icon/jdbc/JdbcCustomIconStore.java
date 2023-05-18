@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.icon.jdbc;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -38,7 +37,7 @@ import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowCallbackHandler;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -50,8 +49,6 @@ public class JdbcCustomIconStore implements CustomIconStore
 
     @Override
     public CustomIcon getIconByKey(String key) {
-        List<CustomIcon> customIcons = new ArrayList<>();
-
         final String sql = """
                     select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
                     from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
@@ -59,15 +56,13 @@ public class JdbcCustomIconStore implements CustomIconStore
                     where key = ?
                     """;
 
-        jdbcTemplate.query(sql, getRowCallbackHandler(customIcons), key);
+        List<CustomIcon> customIcons = jdbcTemplate.query(sql, customIconRowMapper, key);
 
         return customIcons.isEmpty() ? null : customIcons.get(0);
     }
 
     @Override
     public List<CustomIcon> getIconsByKeywords(String[] keywords) {
-        List<CustomIcon> customIcons = new ArrayList<>();
-
         final String sql = """
                     select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
                     from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
@@ -75,24 +70,18 @@ public class JdbcCustomIconStore implements CustomIconStore
                     where keywords @> string_to_array(?,',')
                     """;
 
-        jdbcTemplate.query(sql, getRowCallbackHandler(customIcons), String.join(",", keywords));
-
-        return customIcons;
+        return jdbcTemplate.query(sql, customIconRowMapper, String.join(",", keywords));
     }
 
     @Override
     public List<CustomIcon> getAllIcons() {
-        List<CustomIcon> customIcons = new ArrayList<>();
-
         final String sql = """
                     select c.key as iconkey, c.description as icondescription, c.keywords as keywords, f.uid as fileresourceuid, u.uid as useruid
                     from customicon c join fileresource f on f.fileresourceid = c.fileresourceid
                     join userinfo u on u.userinfoid = c.createdby
                     """;
 
-        jdbcTemplate.query(sql, getRowCallbackHandler(customIcons));
-
-        return customIcons;
+        return jdbcTemplate.query(sql, customIconRowMapper);
     }
 
     @Override
@@ -123,16 +112,15 @@ public class JdbcCustomIconStore implements CustomIconStore
             customIcon.getDescription(), customIcon.getKeywords(), customIcon.getKey() );
     }
 
-    private static RowCallbackHandler getRowCallbackHandler( List<CustomIcon> customIcons )
-    {
-        return rs -> {
-            CustomIcon customIcon = new CustomIcon();
-            customIcon.setKey( rs.getString( "iconkey" ) );
-            customIcon.setDescription( rs.getString( "icondescription" ) );
-            customIcon.setKeywords( (String[]) rs.getArray( "keywords" ).getArray() );
-            customIcon.setFileResourceUid( rs.getString( "fileresourceuid" ) );
-            customIcon.setCreatedByUserUid( rs.getString( "useruid" ) );
-            customIcons.add( customIcon );
-        };
-    }
+    private final RowMapper<CustomIcon> customIconRowMapper = ( rs, rowNum ) -> {
+        CustomIcon customIcon = new CustomIcon();
+
+        customIcon.setKey( rs.getString( "iconkey" ) );
+        customIcon.setDescription( rs.getString( "icondescription" ) );
+        customIcon.setKeywords( (String[]) rs.getArray( "keywords" ).getArray() );
+        customIcon.setFileResourceUid( rs.getString( "fileresourceuid" ) );
+        customIcon.setCreatedByUserUid( rs.getString( "useruid" ) );
+
+        return customIcon;
+    };
 }

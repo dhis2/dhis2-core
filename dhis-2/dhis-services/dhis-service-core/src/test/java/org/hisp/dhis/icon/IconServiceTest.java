@@ -184,7 +184,7 @@ class IconServiceTest
         Exception exception = assertThrows( NotFoundException.class,
             () -> iconService.updateCustomIcon( key, "new description", null ) );
 
-        String expectedMessage = String.format( "Custom icon not found: %s", key );
+        String expectedMessage = String.format( "Icon not found: %s", key );
         assertEquals( expectedMessage, exception.getMessage() );
     }
 
@@ -238,7 +238,7 @@ class IconServiceTest
 
         Exception exception = assertThrows( NotFoundException.class, () -> iconService.deleteCustomIcon( key ) );
 
-        String expectedMessage = String.format( "Custom icon not found: %s", key );
+        String expectedMessage = String.format( "Icon not found: %s", key );
         assertEquals( expectedMessage, exception.getMessage() );
     }
 }

@@ -27,12 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
-
 import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -44,12 +41,10 @@ import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.commons.util.StreamUtils;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.fileresource.FileResourceService;
-import org.hisp.dhis.icon.CustomIcon;
 import org.hisp.dhis.icon.Icon;
 import org.hisp.dhis.icon.IconResponse;
 import org.hisp.dhis.icon.IconService;
@@ -91,38 +86,24 @@ public class IconController
 
     @GetMapping( "/{iconKey}" )
     public @ResponseBody IconResponse getIcon( @PathVariable String iconKey )
-        throws WebMessageException,
-        NotFoundException
+        throws NotFoundException
     {
         Icon icon = iconService.getIcon( iconKey );
-
-        if ( icon == null )
-        {
-            throw new WebMessageException(
-                notFound( String.format( "Icon not found: '%s", iconKey ) ) );
-        }
 
         return iconMapper.from( icon );
     }
 
     @GetMapping( "/{iconKey}/icon.svg" )
     public void getIconData( HttpServletResponse response, @PathVariable String iconKey )
-        throws WebMessageException,
-        IOException,
+        throws IOException,
         NotFoundException
     {
-        Optional<Resource> icon = iconService.getIconResource( iconKey );
-
-        if ( icon.isEmpty() )
-        {
-            throw new WebMessageException(
-                notFound( String.format( "Icon resource not found: '%s", iconKey ) ) );
-        }
+        Resource icon = iconService.getIconResource( iconKey );
 
         response.setHeader( "Cache-Control", CacheControl.maxAge( TTL, TimeUnit.DAYS ).getHeaderValue() );
         response.setContentType( MediaType.SVG_UTF_8.toString() );
 
-        StreamUtils.copyThenCloseInputStream( icon.get().getInputStream(), response.getOutputStream() );
+        StreamUtils.copyThenCloseInputStream( icon.getInputStream(), response.getOutputStream() );
     }
 
     @GetMapping
@@ -176,8 +157,6 @@ public class IconController
         throws BadRequestException,
         NotFoundException
     {
-        CustomIcon icon = iconService.getCustomIcon( iconKey );
-        fileResourceService.getFileResource( icon.getFileResourceUid() ).setAssigned( false );
         iconService.deleteCustomIcon( iconKey );
 
         WebMessage webMessage = new WebMessage( Status.OK, HttpStatus.OK );
