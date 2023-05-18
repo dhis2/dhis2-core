@@ -926,7 +926,7 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "---user----"
+          "id": "IIc7RL27ed9"
         }
       ],
       "name": "morten morten",
@@ -979,7 +979,7 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "---user----"
+          "id": "IIc7RL27ed9"
         }
       ],
       "name": "nils nilsen",
@@ -1032,7 +1032,7 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "---user----"
+          "id": "IIc7RL27ed9"
         }
       ],
       "name": "admin admin",
@@ -1082,7 +1082,7 @@
       "disabled": false,
       "userRoles": [
         {
-          "id": "---user----"
+          "id": "IIc7RL27ed9"
         }
       ],
       "name": "USER5 USER5",
@@ -1462,7 +1462,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_INSTANCE_ADD"
       ],
-      "id": "---user----",
+      "id": "IIc7RL27ed9",
       "userGroupAccesses": [],
       "publicAccess": "--------"
     },
@@ -1506,7 +1506,7 @@
         "F_APPROVE_DATA_LOWER_LEVELS",
         "F_TRACKED_ENTITY_INSTANCE_ADD"
       ],
-      "id": "user__role2",
+      "id": "hQIFfnE8ENH",
       "userGroupAccesses": [],
       "publicAccess": "--------"
     }
