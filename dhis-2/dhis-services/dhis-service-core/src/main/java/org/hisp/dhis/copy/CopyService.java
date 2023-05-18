@@ -29,6 +29,7 @@ package org.hisp.dhis.copy;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.springframework.stereotype.Service;
@@ -41,10 +42,15 @@ public class CopyService
     private final ProgramService programService;
 
     public Program copyProgram( String fromUid )
+        throws NotFoundException
     {
         Program original = programService.getProgram( fromUid );
-        Program copy = Program.copyOf( original );
-        programService.addProgram( copy );
-        return copy;
+        if ( original != null )
+        {
+            Program copy = Program.copyOf( original );
+            programService.addProgram( copy );
+            return copy;
+        }
+        throw new NotFoundException( "No Program with uid %s found".formatted( fromUid ) );
     }
 }

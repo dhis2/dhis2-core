@@ -28,9 +28,26 @@
 package org.hisp.dhis.program;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Collections;
+import java.util.Set;
+
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.common.AccessLevel;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DataDimensionType;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataentryform.DataEntryForm;
+import org.hisp.dhis.organisationunit.FeatureType;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.period.PeriodType;
+import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -62,5 +79,138 @@ class ProgramTest
         assertTrue( prA.getDataElements().contains( deB ) );
         assertEquals( 1, prA.getAnalyticsDataElements().size() );
         assertTrue( prA.getDataElements().contains( deA ) );
+    }
+
+    @Test
+    void testCopyOfWithPropertyValuesSet()
+    {
+        Program original = getNewProgramWithNoNulls();
+        Program copy = Program.copyOf( original );
+
+        assertNotSame( original, copy );
+        assertNotEquals( original, copy );
+        assertEquals( original.getOrganisationUnits(), copy.getOrganisationUnits() );
+        assertNotSame( original.getOrganisationUnits(), copy.getOrganisationUnits() );
+        assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
+        assertEquals( original.getDescription(), copy.getDescription() );
+        assertNotEquals( original.getName(), copy.getName() );
+        assertNotSame( original.getProgramStages(), copy.getProgramStages() );
+        assertNotEquals( original.getProgramStages(), copy.getProgramStages() );
+        assertEquals( original.getSelectIncidentDatesInFuture(), copy.getSelectIncidentDatesInFuture() );
+    }
+
+    @Test
+    void testCopyOfWithNulls()
+    {
+        Program original = getNewProgramWithNulls();
+        Program copy = Program.copyOf( original );
+
+        assertNotSame( original, copy );
+        assertNotEquals( original, copy );
+        assertTrue( copy.getOrganisationUnits().isEmpty() );
+        assertTrue( copy.getOrganisationUnits().isEmpty() );
+        assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
+        assertEquals( original.getDescription(), copy.getDescription() );
+        assertNotEquals( original.getName(), copy.getName() );
+        assertTrue( copy.getProgramStages().isEmpty() );
+        assertTrue( copy.getProgramAttributes().isEmpty() );
+        assertTrue( copy.getProgramIndicators().isEmpty() );
+        assertTrue( copy.getUserRoles().isEmpty() );
+    }
+
+    private Program getNewProgramWithNoNulls()
+    {
+        Program program = new Program();
+        program.setAccessLevel( AccessLevel.OPEN );
+        program.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        program.setCompleteEventsExpiryDays( 22 );
+        program.setDescription( "Program description" );
+        program.setDisplayIncidentDate( true );
+        program.setDisplayFrontPageList( true );
+        program.setEnrollmentDateLabel( "enroll date" );
+        program.setExpiryDays( 33 );
+        program.setFeatureType( FeatureType.NONE );
+        program.setFormName( "Form name" );
+        program.setIgnoreOverdueEvents( true );
+        program.setIncidentDateLabel( "incident date" );
+        program.setMaxTeiCountToReturn( 2 );
+        program.setMinAttributesRequiredToSearch( 3 );
+        program.setName( "Name" + CodeGenerator.generateUid() );
+        program.setOnlyEnrollOnce( true );
+        program.setOpenDaysAfterCoEndDate( 20 );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        program.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        program.setShortName( "short name" );
+        program.setSelectEnrollmentDatesInFuture( true );
+        program.setSelectIncidentDatesInFuture( false );
+        program.setSkipOffline( true );
+        program.setUseFirstStageDuringRegistration( false );
+        program.setCategoryCombo( new CategoryCombo( "cat combo", DataDimensionType.ATTRIBUTE ) );
+        program.setDataEntryForm( new DataEntryForm( "entry form" ) );
+        program.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
+        program.setNotificationTemplates( Collections.emptySet() );
+        program.setOrganisationUnits( Set.of( new OrganisationUnit( "Org One" ) ) );
+        program.setProgramAttributes( Collections.emptyList() );
+        program.setProgramIndicators( Collections.emptySet() );
+        program.setProgramRuleVariables( Collections.emptySet() );
+        program.setProgramSections( Collections.emptySet() );
+        program.setProgramStages( getProgramStages() );
+        program.setRelatedProgram( new Program( "Related Program" ) );
+        program.setStyle( new ObjectStyle() );
+        program.setTrackedEntityType( new TrackedEntityType( "TET", "description" ) );
+        program.setUserRoles( Collections.emptySet() );
+        return program;
+    }
+
+    private Program getNewProgramWithNulls()
+    {
+        Program program = new Program();
+        program.setAccessLevel( null );
+        program.setCode( null );
+        program.setCompleteEventsExpiryDays( 0 );
+        program.setDescription( null );
+        program.setDisplayIncidentDate( false );
+        program.setDisplayFrontPageList( false );
+        program.setEnrollmentDateLabel( null );
+        program.setExpiryDays( 0 );
+        program.setFeatureType( null );
+        program.setFormName( null );
+        program.setIgnoreOverdueEvents( true );
+        program.setIncidentDateLabel( null );
+        program.setMaxTeiCountToReturn( 2 );
+        program.setMinAttributesRequiredToSearch( 3 );
+        program.setName( null );
+        program.setOnlyEnrollOnce( true );
+        program.setOpenDaysAfterCoEndDate( 20 );
+        program.setProgramType( null );
+        program.setSharing( null );
+        program.setShortName( null );
+        program.setSelectEnrollmentDatesInFuture( true );
+        program.setSelectIncidentDatesInFuture( false );
+        program.setSkipOffline( true );
+        program.setUseFirstStageDuringRegistration( false );
+        program.setCategoryCombo( null );
+        program.setDataEntryForm( null );
+        program.setExpiryPeriodType( null );
+        program.setNotificationTemplates( null );
+        program.setOrganisationUnits( null );
+        program.setProgramAttributes( null );
+        program.setProgramIndicators( null );
+        program.setProgramRuleVariables( null );
+        program.setProgramSections( null );
+        program.setProgramStages( null );
+        program.setRelatedProgram( null );
+        program.setStyle( null );
+        program.setTrackedEntityType( null );
+        program.setUserRoles( null );
+        return program;
+    }
+
+    private Set<ProgramStage> getProgramStages()
+    {
+        ProgramStage stage = new ProgramStage();
+        stage.setAutoFields();
+        stage.setName( "stage one" );
+        return Set.of( stage );
     }
 }

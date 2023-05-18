@@ -616,7 +616,7 @@ public class ProgramStage
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
         copy.setName( original.getName() + "_" + CodeGenerator.generateUid() );
-        copy.setNotificationTemplates( new HashSet<>( original.getNotificationTemplates() ) );
+        copy.setNotificationTemplates( newSet( original.getNotificationTemplates() ) );
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );
         copy.setPreGenerateUID( original.getPreGenerateUID() );
@@ -634,17 +634,31 @@ public class ProgramStage
 
     private static void setDeepCopyValues( ProgramStage copy, ProgramStage original )
     {
-        copy.setProgramStageDataElements( original.getProgramStageDataElements().stream()
-            .map( psde -> ProgramStageDataElement.copyOf( psde, copy ) )
-            .collect( Collectors.toSet() ) );
+        if ( original.getProgramStageDataElements() != null )
+        {
+            copy.setProgramStageDataElements( original.getProgramStageDataElements().stream()
+                .map( element -> ProgramStageDataElement.copyOf( element, copy ) )
+                .collect( Collectors.toSet() ) );
+        }
+        else
+        {
+            copy.setProgramStageDataElements( new HashSet<>() );
+        }
 
-        copy.setProgramStageSections( original.getProgramStageSections().stream()
-            .map( pss -> ProgramStageSection.copyOf( pss, copy ) )
-            .collect( Collectors.toSet() ) );
+        if ( original.getProgramStageSections() != null )
+        {
+            copy.setProgramStageSections( original.getProgramStageSections().stream()
+                .map( section -> ProgramStageSection.copyOf( section, copy ) )
+                .collect( Collectors.toSet() ) );
+        }
+        else
+        {
+            copy.setProgramStageSections( new HashSet<>() );
+        }
     }
 
-    private static Program copyOrNull( Program relatedProgram )
+    private static Set newSet( Set<?> set )
     {
-        return relatedProgram != null ? Program.copyOf( relatedProgram ) : null;
+        return set != null ? new HashSet<>( set ) : new HashSet<>();
     }
 }

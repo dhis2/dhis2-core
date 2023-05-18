@@ -43,6 +43,7 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -132,6 +133,7 @@ public class ProgramController
 
     @PostMapping( "/{uid}/copy" )
     public ResponseEntity<String> copyProgram( @PathVariable( "uid" ) String pvUid )
+        throws NotFoundException
     {
         Program copy = copyService.copyProgram( pvUid );
         return ResponseEntity.ok( copy.getUid() );
