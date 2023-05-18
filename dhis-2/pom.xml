@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.0.47</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.7</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -133,7 +133,6 @@
     <htmllexer.version>2.1</htmllexer.version>
     <poi.version>5.2.2</poi.version>
     <itext.version>2.1.7</itext.version>
-    <antlr.version>4.9.3</antlr.version>
 
     <!-- GIS -->
     <batik-transcoder.version>1.16</batik-transcoder.version>
@@ -722,6 +721,7 @@
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
+              <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.junit.jupiter:junit-jupiter-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
@@ -1048,10 +1048,6 @@
           <exclusion>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>org.hisp.dhis.parser</groupId>
-            <artifactId>dhis-antlr-expression-parser</artifactId>
           </exclusion>
           <exclusion>
             <groupId>org.slf4j</groupId>
@@ -1725,13 +1721,6 @@
         <groupId>org.apache.jclouds.provider</groupId>
         <artifactId>aws-s3</artifactId>
         <version>${jclouds.version}</version>
-      </dependency>
-
-      <!-- ExpressionParser -->
-      <dependency>
-        <groupId>org.antlr</groupId>
-        <artifactId>antlr4-runtime</artifactId>
-        <version>${antlr.version}</version>
       </dependency>
 
       <!-- Reporting -->
