@@ -74,6 +74,8 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.webapi.common.UIDParamEditor;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -135,6 +137,7 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
         binder.registerCustomEditor( TrackerIdSchemeParam.class, new IdSchemeParamEditor() );
+        binder.registerCustomEditor( UID.class, new UIDParamEditor() );
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )

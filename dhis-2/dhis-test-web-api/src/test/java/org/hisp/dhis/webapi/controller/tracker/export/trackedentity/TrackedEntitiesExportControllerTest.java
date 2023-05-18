@@ -378,6 +378,16 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void shouldReturnABadRequestErrorWhenInvalidUidIsPassedInThePath()
+    {
+        assertEquals(
+            "Value invalidUid is not valid for parameter uid. UID must be an alphanumeric string of 11 characters",
+            GET( "/tracker/trackedEntities/invalidUid" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
     void getTrackedEntityReturnsCsvFormat()
     {
         WebClient.HttpResponse response = GET( "/tracker/trackedEntities.csv?program={programId}&orgUnit={orgUnitId}",

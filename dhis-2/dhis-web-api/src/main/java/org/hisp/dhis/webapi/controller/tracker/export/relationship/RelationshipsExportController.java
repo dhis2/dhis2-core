@@ -55,6 +55,7 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
@@ -168,12 +169,12 @@ public class RelationshipsExportController
 
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getRelationship(
-        @PathVariable String uid,
+        @PathVariable UID uid,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
-        Relationship relationship = RELATIONSHIP_MAPPER.from( relationshipService.getRelationship( uid ) );
+        Relationship relationship = RELATIONSHIP_MAPPER.from( relationshipService.getRelationship( uid.getValue() ) );
 
         return ResponseEntity.ok( fieldFilterService.toObjectNode( relationship, fields ) );
     }
