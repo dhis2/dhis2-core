@@ -90,8 +90,8 @@ public class CodeGenerator
     public static final int SECURE_RANDOM_TOKEN_MIN_LENGTH = 44;
 
     /*
-     * The random number generator used by this class to create random based
-     * codes. In a holder class to defer initialization until needed.
+     * The secure random number generator used by this class to create random
+     * based codes. In a holder class to defer initialization until needed.
      */
     private static class SecureRandomHolder
     {

@@ -37,9 +37,7 @@ import org.hisp.dhis.common.CodeGenerator;
 @Getter
 public enum ApiTokenType
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" ),
-    PERSONAL_ACCESS_TOKEN_V2( 2, "d2pat-2",
-        CodeGenerator.SECURE_RANDOM_TOKEN_MIN_LENGTH, "SHA-256", "CRC32" );
+    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" );
 
     private final String prefix;
 
@@ -62,7 +60,7 @@ public enum ApiTokenType
 
     public static ApiTokenType getDefault()
     {
-        return PERSONAL_ACCESS_TOKEN_V2;
+        return PERSONAL_ACCESS_TOKEN_V1;
     }
 
     private static ApiTokenType fromToken( char[] token )

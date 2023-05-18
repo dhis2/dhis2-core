@@ -30,6 +30,7 @@ package org.hisp.dhis.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
@@ -160,6 +161,25 @@ class CodeGeneratorTest
     }
 
     @Test
+    void testValidPasswordGenerationToSmall()
+    {
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> CodeGenerator.generateValidPassword( 3 ) );
+
+        String expectedMessage = "Password must be at least 4 characters long";
+        String actualMessage = exception.getMessage();
+
+        assertTrue( actualMessage.contains( expectedMessage ) );
+    }
+
+    @Test
+    void testValidPasswordGenerationMinLength()
+    {
+        char[] chars = CodeGenerator.generateValidPassword( 4 );
+        assertEquals( 4, chars.length );
+    }
+
+    @Test
     void testValidPasswordGeneration()
     {
         for ( int i = 0; i < 100; i++ )
@@ -172,7 +192,6 @@ class CodeGeneratorTest
     private static void testPassword( char[] password )
     {
         String passwordString = new String( password );
-        log.error( passwordString );
 
         boolean containsDigit = CodeGenerator.containsDigit( password );
         boolean containsSpecial = CodeGenerator.containsSpecialCharacter( password );
