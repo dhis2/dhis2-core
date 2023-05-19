@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.webapi.controller.icon;
 
-import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-/**
- * @author Kristian Wærstad
- */
-public class IconSchemaDescriptor implements SchemaDescriptor
+import com.fasterxml.jackson.annotation.JsonProperty;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+class IconDto
 {
-    public static final String SINGULAR = "icon";
 
-    public static final String PLURAL = "icons";
+    @JsonProperty
+    private String key;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    @JsonProperty
+    private String description;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( IconResponse.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+    @JsonProperty
+    private String[] keywords;
 
-        return schema;
-    }
+    @JsonProperty
+    private String fileResourceUid;
+
 }

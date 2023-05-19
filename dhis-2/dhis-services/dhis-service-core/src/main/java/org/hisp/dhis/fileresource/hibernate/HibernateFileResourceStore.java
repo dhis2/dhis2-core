@@ -105,6 +105,15 @@ public class HibernateFileResourceStore
     }
 
     @Override
+    public Optional<FileResource> findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain )
+    {
+        return getSession()
+            .createNativeQuery( "select * from fileresource where uid = :uid and domain = :domain", FileResource.class )
+            .setParameter( "uid", uid ).setParameter( "domain", domain.name() )
+            .getResultList().stream().findFirst();
+    }
+
+    @Override
     public List<String> findOrganisationUnitsByImageFileResource( @Nonnull String uid )
     {
         String sql = "select o.uid from organisationunit o left join fileresource fr on fr.fileresourceid = o.image where fr.uid = :uid";

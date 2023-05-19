@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,29 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.schema.descriptors;
+package org.hisp.dhis.icon;
 
-import org.hisp.dhis.icon.IconResponse;
-import org.hisp.dhis.schema.Schema;
-import org.hisp.dhis.schema.SchemaDescriptor;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 /**
- * @author Kristian Wærstad
+ * Custom icons are uploaded by users and can be modified and deleted.
  */
-public class IconSchemaDescriptor implements SchemaDescriptor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class CustomIcon implements Icon
 {
-    public static final String SINGULAR = "icon";
+    private String key;
 
-    public static final String PLURAL = "icons";
+    private String description;
 
-    public static final String API_ENDPOINT = "/" + PLURAL;
+    private String[] keywords;
 
-    @Override
-    public Schema getSchema()
-    {
-        Schema schema = new Schema( IconResponse.class, SINGULAR, PLURAL );
-        schema.setRelativeApiEndpoint( API_ENDPOINT );
+    private String fileResourceUid;
 
-        return schema;
-    }
+    private String createdByUserUid;
 }

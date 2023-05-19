@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,55 +27,47 @@
  */
 package org.hisp.dhis.icon;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Kristian Wærstad
+ * This class is the API response representation of the Icon class. It is used
+ * to serialize and deserialize Icon objects. Ideally it should live in the
+ * dhis-web-api module, but it is not possible to do so because we need to use
+ * it in IconSchemaDescriptor, which is in the dhis-service-schema module.
  */
-public class IconData
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class IconResponse
 {
+
+    @JsonProperty
     private String key;
 
+    @JsonProperty
     private String description;
 
+    @JsonProperty
     private String[] keywords;
 
+    @JsonProperty
+    private String fileResourceUid;
+
+    @JsonProperty
+    private String userUid;
+
+    @JsonProperty( "href" )
     private String reference;
 
-    IconData( String key, String description, String[] keywords )
+    public IconResponse( String key, String description, String[] keywords, String reference )
     {
         this.key = key;
         this.description = description;
         this.keywords = keywords;
-    }
-
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    @JsonProperty
-    public String[] getKeywords()
-    {
-        return keywords;
-    }
-
-    @JsonProperty( "href" )
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
-        return this;
+        this.reference = reference;
     }
 }
