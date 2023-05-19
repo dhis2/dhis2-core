@@ -147,7 +147,7 @@ public class EnrollmentsExportController
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( value = "/{uid}" )
     public ResponseEntity<ObjectNode> getEnrollmentByUid(
-        @OpenApi.Param( { Enrollment.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { org.hisp.dhis.common.UID.class, Enrollment.class } ) @PathVariable UID uid,
         @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
