@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.icon;
 
 import java.io.IOException;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
@@ -98,7 +97,7 @@ public class IconController
         throws IOException,
         NotFoundException
     {
-        Resource icon = iconService.getIconResource( iconKey );
+        Resource icon = iconService.getDefaultIconResource( iconKey );
 
         response.setHeader( "Cache-Control", CacheControl.maxAge( TTL, TimeUnit.DAYS ).getHeaderValue() );
         response.setContentType( MediaType.SVG_UTF_8.toString() );
@@ -109,7 +108,7 @@ public class IconController
     @GetMapping
     public @ResponseBody List<IconResponse> getAllIcons( @RequestParam( required = false ) String[] keywords )
     {
-        Collection<Icon> icons;
+        List<Icon> icons;
 
         if ( keywords == null )
         {

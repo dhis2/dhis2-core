@@ -60,9 +60,12 @@ class IconControllerTest extends DhisControllerIntegrationTest
     void shouldCreateCustomIconWhenFileResourceExist()
         throws IOException
     {
-        String message = createIcon( createFileResource() );
+        JsonWebMessage message = POST( "/icons/",
+            "{'key':'" + iconKey + "', 'description':'" + description + "', 'fileResourceUid':'" + createFileResource()
+                + "', 'keywords':" + keywords + "}" )
+                    .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
 
-        assertEquals( String.format( "Icon %s created", iconKey ), message );
+        assertEquals( String.format( "Icon %s created", iconKey ), message.getMessage() );
     }
 
     @Test

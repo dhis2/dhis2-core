@@ -76,14 +76,14 @@ public class DefaultIconService
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Icon> getIcons()
+    public List<Icon> getIcons()
     {
         return Stream.concat( defaultIcons.values().stream(), customIconStore.getAllIcons().stream() ).toList();
     }
 
     @Override
     @Transactional( readOnly = true )
-    public Collection<Icon> getIcons( String[] keywords )
+    public List<Icon> getIcons( String[] keywords )
     {
         return Stream.concat( defaultIcons.values().stream()
             .filter( icon -> Set.of( icon.getKeywords() ).containsAll( List.of( keywords ) ) ).toList().stream(),
@@ -119,7 +119,7 @@ public class DefaultIconService
     }
 
     @Override
-    public Resource getIconResource( String key )
+    public Resource getDefaultIconResource( String key )
         throws NotFoundException
     {
         if ( defaultIcons.containsKey( key ) )

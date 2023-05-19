@@ -28,6 +28,7 @@
 package org.hisp.dhis.icon.jdbc;
 
 import java.util.List;
+import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -46,6 +48,20 @@ import org.springframework.stereotype.Repository;
 public class JdbcCustomIconStore implements CustomIconStore
 {
     private final JdbcTemplate jdbcTemplate;
+
+    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+    private static final RowMapper<CustomIcon> customIconRowMapper = ( rs, rowNum ) -> {
+        CustomIcon customIcon = new CustomIcon();
+
+        customIcon.setKey( rs.getString( "iconkey" ) );
+        customIcon.setDescription( rs.getString( "icondescription" ) );
+        customIcon.setKeywords( (String[]) rs.getArray( "keywords" ).getArray() );
+        customIcon.setFileResourceUid( rs.getString( "fileresourceuid" ) );
+        customIcon.setCreatedByUserUid( rs.getString( "useruid" ) );
+
+        return customIcon;
+    };
 
     @Override
     public CustomIcon getIconByKey(String key) {
@@ -85,9 +101,10 @@ public class JdbcCustomIconStore implements CustomIconStore
     }
 
     @Override
-    public List<String> getKeywords()
+    public Set<String> getKeywords()
     {
-        return jdbcTemplate.queryForList( "select distinct unnest(keywords) from customicon", String.class );
+        return Set
+            .copyOf( jdbcTemplate.queryForList( "select distinct unnest(keywords) from customicon", String.class ) );
     }
 
     @Override
@@ -111,16 +128,4 @@ public class JdbcCustomIconStore implements CustomIconStore
         jdbcTemplate.update( "update customicon set description = ?, keywords = ? where key = ?",
             customIcon.getDescription(), customIcon.getKeywords(), customIcon.getKey() );
     }
-
-    private final RowMapper<CustomIcon> customIconRowMapper = ( rs, rowNum ) -> {
-        CustomIcon customIcon = new CustomIcon();
-
-        customIcon.setKey( rs.getString( "iconkey" ) );
-        customIcon.setDescription( rs.getString( "icondescription" ) );
-        customIcon.setKeywords( (String[]) rs.getArray( "keywords" ).getArray() );
-        customIcon.setFileResourceUid( rs.getString( "fileresourceuid" ) );
-        customIcon.setCreatedByUserUid( rs.getString( "useruid" ) );
-
-        return customIcon;
-    };
 }

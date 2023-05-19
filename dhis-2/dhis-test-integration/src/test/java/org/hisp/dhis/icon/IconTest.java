@@ -170,7 +170,7 @@ class IconTest extends TrackerTest
     {
         String defaultIconKey = getAllDefaultIcons().keySet().stream().findAny().orElse( null );
 
-        Resource iconResource = iconService.getIconResource( defaultIconKey );
+        Resource iconResource = iconService.getDefaultIconResource( defaultIconKey );
 
         assertNotNull( iconResource.getURL() );
     }
@@ -179,7 +179,7 @@ class IconTest extends TrackerTest
     void shouldFailWhenGettingIconDataOfNonDefaultIcon()
     {
         Exception exception = assertThrows( NotFoundException.class,
-            () -> iconService.getIconResource( "madeUpIconKey" ) );
+            () -> iconService.getDefaultIconResource( "madeUpIconKey" ) );
 
         assertEquals( "No default icon found with key madeUpIconKey.", exception.getMessage() );
     }

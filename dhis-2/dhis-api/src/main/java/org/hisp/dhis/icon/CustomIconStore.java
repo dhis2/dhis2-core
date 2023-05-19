@@ -28,6 +28,7 @@
 package org.hisp.dhis.icon;
 
 import java.util.List;
+import java.util.Set;
 
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.user.User;
@@ -62,7 +63,7 @@ public interface CustomIconStore
      *
      * @return a list with all the custom icon keywords
      */
-    List<String> getKeywords();
+    Set<String> getKeywords();
 
     /**
      * Persists a custom icon to the database
