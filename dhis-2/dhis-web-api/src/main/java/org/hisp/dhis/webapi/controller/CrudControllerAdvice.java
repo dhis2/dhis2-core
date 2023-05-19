@@ -74,6 +74,8 @@ import org.hisp.dhis.query.QueryParserException;
 import org.hisp.dhis.schema.SchemaPathException;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParam;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.common.UID;
+import org.hisp.dhis.webapi.common.UIDParamEditor;
 import org.hisp.dhis.webapi.controller.exception.MetadataImportConflictException;
 import org.hisp.dhis.webapi.controller.exception.MetadataSyncException;
 import org.hisp.dhis.webapi.controller.exception.MetadataVersionException;
@@ -98,6 +100,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpServerErrorException;
@@ -135,6 +138,7 @@ public class CrudControllerAdvice
         binder.registerCustomEditor( IdentifiableProperty.class, new FromTextPropertyEditor( String::toUpperCase ) );
         this.enumClasses.forEach( c -> binder.registerCustomEditor( c, new ConvertEnum( c ) ) );
         binder.registerCustomEditor( TrackerIdSchemeParam.class, new IdSchemeParamEditor() );
+        binder.registerCustomEditor( UID.class, new UIDParamEditor() );
     }
 
     @ExceptionHandler( org.hisp.dhis.feedback.BadRequestException.class )
@@ -193,7 +197,9 @@ public class CrudControllerAdvice
     public WebMessage methodArgumentTypeMismatchException( MethodArgumentTypeMismatchException ex )
     {
         Class<?> requiredType = ex.getRequiredType();
-        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getName() );
+        PathVariable pathVariableAnnotation = ex.getParameter().getParameterAnnotation( PathVariable.class );
+        String notValidValueMessage = getNotValidValueMessage( ex.getValue(), ex.getName(),
+            pathVariableAnnotation != null );
 
         String customErrorMessage;
         if ( requiredType == null )
@@ -267,11 +273,19 @@ public class CrudControllerAdvice
 
     private String getNotValidValueMessage( Object value, String field )
     {
-        if ( value == null || (value instanceof String && ((String) value).isEmpty()) )
+        return getNotValidValueMessage( value, field, false );
+    }
+
+    private String getNotValidValueMessage( Object value, String field, boolean isPathVariable )
+    {
+        if ( value == null || (value instanceof String stringValue && stringValue.isEmpty()) )
         {
             return MessageFormat.format( "{0} cannot be empty.", field );
         }
-        return MessageFormat.format( "Value {0} is not valid for parameter {1}.", value, field );
+        if (isPathVariable){
+            return String.format( "Value '%s' is not valid for path parameter %s.", value, field );
+        }
+        return String.format( "Value '%s' is not valid for parameter %s.", value, field );
     }
 
     private String getFormattedBadRequestMessage( Object value, String field, String customMessage )

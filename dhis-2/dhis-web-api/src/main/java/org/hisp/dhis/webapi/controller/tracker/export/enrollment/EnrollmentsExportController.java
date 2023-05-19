@@ -41,7 +41,6 @@ import lombok.Value;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -52,6 +51,7 @@ import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -147,13 +147,14 @@ public class EnrollmentsExportController
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( value = "/{uid}" )
     public ResponseEntity<ObjectNode> getEnrollmentByUid(
-        @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable String uid,
+        @OpenApi.Param( { org.hisp.dhis.common.UID.class, Enrollment.class } ) @PathVariable UID uid,
         @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
-        Enrollment enrollment = ENROLLMENT_MAPPER.from( enrollmentService.getEnrollment( uid, enrollmentParams ) );
+        Enrollment enrollment = ENROLLMENT_MAPPER
+            .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }
