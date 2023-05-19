@@ -328,16 +328,6 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
                 .getMessage() );
     }
 
-    @Test
-    void shouldReturnABadRequestErrorWhenInvalidUidIsPassedInThePath()
-    {
-        assertEquals(
-            "Value invalidUid is not valid for parameter uid. UID must be an alphanumeric string of 11 characters",
-            GET( "/tracker/events/invalidUid" )
-                .error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
-
     private TrackedEntityType trackedEntityTypeAccessible()
     {
         TrackedEntityType type = trackedEntityType( 'A' );

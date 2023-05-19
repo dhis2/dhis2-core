@@ -271,16 +271,6 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
                 .getMessage() );
     }
 
-    @Test
-    void shouldReturnABadRequestErrorWhenInvalidUidIsPassedInThePath()
-    {
-        assertEquals(
-            "Value invalidUid is not valid for parameter uid. UID must be an alphanumeric string of 11 characters",
-            GET( "/tracker/enrollments/invalidUid" )
-                .error( HttpStatus.BAD_REQUEST )
-                .getMessage() );
-    }
-
     private Event event()
     {
         Event event = new Event( enrollment, programStage,

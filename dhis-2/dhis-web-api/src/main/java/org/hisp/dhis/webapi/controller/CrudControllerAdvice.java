@@ -270,11 +270,11 @@ public class CrudControllerAdvice
 
     private String getNotValidValueMessage( Object value, String field )
     {
-        if ( value == null || (value instanceof String && ((String) value).isEmpty()) )
+        if ( value == null || (value instanceof String stringValue && stringValue.isEmpty()) )
         {
             return MessageFormat.format( "{0} cannot be empty.", field );
         }
-        return MessageFormat.format( "Value {0} is not valid for parameter {1}.", value, field );
+        return String.format( "Value '%s' is not valid for parameter %s.", value, field );
     }
 
     private String getFormattedBadRequestMessage( Object value, String field, String customMessage )

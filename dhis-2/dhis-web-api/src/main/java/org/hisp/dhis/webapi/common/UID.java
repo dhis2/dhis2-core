@@ -27,17 +27,20 @@
  */
 package org.hisp.dhis.webapi.common;
 
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.hisp.dhis.common.CodeGenerator;
 
 /**
- * UID represents an alphanumeric string of 11 characters.
+ * UID represents an alphanumeric string of 11 characters starting with a
+ * letter.
  */
 @Getter
+@EqualsAndHashCode
 public final class UID
 {
-    private static final String VALID_UID_FORMAT = "UID must be an alphanumeric string of 11 characters";
+    private static final String VALID_UID_FORMAT = "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
     private final String value;
 
