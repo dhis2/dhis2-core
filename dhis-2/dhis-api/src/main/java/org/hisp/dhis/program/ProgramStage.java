@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -616,7 +618,7 @@ public class ProgramStage
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
         copy.setName( original.getName() + "_" + CodeGenerator.generateUid() );
-        copy.setNotificationTemplates( newSet( original.getNotificationTemplates() ) );
+        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );
         copy.setPreGenerateUID( original.getPreGenerateUID() );
@@ -655,10 +657,5 @@ public class ProgramStage
         {
             copy.setProgramStageSections( new HashSet<>() );
         }
-    }
-
-    private static Set newSet( Set<?> set )
-    {
-        return set != null ? new HashSet<>( set ) : new HashSet<>();
     }
 }

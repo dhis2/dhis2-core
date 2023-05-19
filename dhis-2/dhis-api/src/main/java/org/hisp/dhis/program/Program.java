@@ -28,6 +28,8 @@
 package org.hisp.dhis.program;
 
 import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
+import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -945,16 +947,16 @@ public class Program
         newProgram.setCategoryCombo( programToCopy.getCategoryCombo() );
         newProgram.setDataEntryForm( programToCopy.getDataEntryForm() );
         newProgram.setExpiryPeriodType( programToCopy.getExpiryPeriodType() );
-        newProgram.setNotificationTemplates( newSet( programToCopy.getNotificationTemplates() ) );
-        newProgram.setOrganisationUnits( newSet( programToCopy.getOrganisationUnits() ) );
-        newProgram.setProgramAttributes( newList( programToCopy.getProgramAttributes() ) );
-        newProgram.setProgramIndicators( newSet( programToCopy.getProgramIndicators() ) );
-        newProgram.setProgramRuleVariables( newSet( programToCopy.getProgramRuleVariables() ) );
-        newProgram.setProgramSections( newSet( programToCopy.getProgramSections() ) );
+        newProgram.setNotificationTemplates( newSetFromObjectOrEmpty( programToCopy.getNotificationTemplates() ) );
+        newProgram.setOrganisationUnits( newSetFromObjectOrEmpty( programToCopy.getOrganisationUnits() ) );
+        newProgram.setProgramAttributes( newListFromObjectOrEmpty( programToCopy.getProgramAttributes() ) );
+        newProgram.setProgramIndicators( newSetFromObjectOrEmpty( programToCopy.getProgramIndicators() ) );
+        newProgram.setProgramRuleVariables( newSetFromObjectOrEmpty( programToCopy.getProgramRuleVariables() ) );
+        newProgram.setProgramSections( newSetFromObjectOrEmpty( programToCopy.getProgramSections() ) );
         newProgram.setRelatedProgram( copyOrNull( programToCopy.getRelatedProgram() ) ); //TODO null/copy/ref?
         newProgram.setStyle( programToCopy.getStyle() );
         newProgram.setTrackedEntityType( programToCopy.getTrackedEntityType() );
-        newProgram.setUserRoles( newSet( programToCopy.getUserRoles() ) );
+        newProgram.setUserRoles( newSetFromObjectOrEmpty( programToCopy.getUserRoles() ) );
     }
 
     private static void setDeepCopyValues( Program newProgram, Program programToCopy )
@@ -969,16 +971,6 @@ public class Program
         {
             newProgram.setProgramStages( new HashSet<>() );
         }
-    }
-
-    private static Set newSet( Set set )
-    {
-        return set != null ? new HashSet<>( set ) : new HashSet<>();
-    }
-
-    private static List newList( List list )
-    {
-        return list != null ? new ArrayList<>( list ) : new ArrayList<>();
     }
 
     private static Program copyOrNull( Program relatedProgram )
