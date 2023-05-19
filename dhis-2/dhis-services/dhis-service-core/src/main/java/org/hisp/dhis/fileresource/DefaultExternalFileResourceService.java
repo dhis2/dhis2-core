@@ -58,7 +58,7 @@ public class DefaultExternalFileResourceService
         Assert.notNull( externalFileResource, "External file resource cannot be null" );
         Assert.notNull( externalFileResource.getFileResource(), "External file resource entity cannot be null" );
 
-        externalFileResource.setAccessToken( CodeGenerator.getRandomUrlToken() );
+        externalFileResource.setAccessToken( CodeGenerator.getRandomSecureToken() );
 
         externalFileResourceStore.save( externalFileResource );
 
