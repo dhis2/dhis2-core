@@ -34,14 +34,14 @@ import java.util.List;
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
+import lombok.Value;
+
 import org.hisp.dhis.common.Base62Utils;
 import org.hisp.dhis.common.CRC32Utils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.HashUtils;
 
 import com.google.common.base.Preconditions;
-
-import lombok.Value;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>

@@ -31,11 +31,11 @@ import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePlainTe
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.common.Base62Utils;
 import org.hisp.dhis.common.CRC32Utils;
 import org.junit.jupiter.api.Test;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
