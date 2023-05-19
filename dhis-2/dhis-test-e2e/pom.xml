@@ -11,7 +11,7 @@
   <properties>
     <rootDir>..</rootDir>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <speedy-spotless-maven-plugin.version>0.1.3</speedy-spotless-maven-plugin.version>
+    <spotless.version>2.36.0</spotless.version>
     <maven-compiler-plugin.version>3.11.0</maven-compiler-plugin.version>
 
     <junit.version>5.9.3</junit.version>
@@ -225,35 +225,35 @@
           </configuration>
         </plugin>
         <plugin>
-          <groupId>io.committed</groupId>
-          <artifactId>speedy-spotless-maven-plugin</artifactId>
-          <version>${speedy-spotless-maven-plugin.version}</version>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless.version}</version>
           <executions>
-            <execution>
-              <id>install-formatter-hook</id>
-              <goals>
-                <goal>install-hooks</goal>
-              </goals>
-            </execution>
+              <execution>
+                  <id>install-formatter-hook</id>
+                  <goals>
+                      <goal>install-hooks</goal>
+                  </goals>
+              </execution>
           </executions>
           <configuration>
-            <java>
-              <eclipse>
-                <file>${rootDir}/DHISFormatter.xml</file>
-                <version>4.9.0</version>
-              </eclipse>
-              <trimTrailingWhitespace />
-              <removeUnusedImports />
-              <importOrder>
-                <order>
-                  java,javax,org,com
-                </order>
-              </importOrder>
-              <licenseHeader>
-                <file>${rootDir}/license-header</file>
-              </licenseHeader>
-            </java>
-            <lineEndings>UNIX</lineEndings>
+              <java>
+                  <eclipse>
+                      <file>${rootDir}/DHISFormatter.xml</file>
+                      <version>4.9</version>
+                  </eclipse>
+                  <trimTrailingWhitespace />
+                  <removeUnusedImports />
+                  <importOrder>
+                      <order>
+                          java,javax,lombok,net,org,com
+                      </order>
+                  </importOrder>
+                  <licenseHeader>
+                      <file>${rootDir}/license-header</file>
+                  </licenseHeader>
+              </java>
+              <lineEndings>UNIX</lineEndings>
           </configuration>
         </plugin>
       </plugins>
