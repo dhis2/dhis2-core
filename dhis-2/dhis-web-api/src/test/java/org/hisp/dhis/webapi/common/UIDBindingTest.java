@@ -52,6 +52,8 @@ class UIDBindingTest
 
     private static final String ERROR_MESSAGE = "Value 'invalidUid' is not valid for parameter uid. UID must be an alphanumeric string of 11 characters";
 
+    private static final String ERROR_MESSAGE_FOR_PATH_PARAM = "Value 'invalidUid' is not valid for path parameter uid. UID must be an alphanumeric string of 11 characters";
+
     private static final String BINDING_OBJECT_ERROR_MESSAGE = "Value 'invalidUid' is not valid for parameter uidInRequestParams. UID must be an alphanumeric string of 11 characters";
 
     private final static String ENDPOINT = "/uid";
@@ -101,7 +103,7 @@ class UIDBindingTest
         throws Exception
     {
         mockMvc.perform( get( ENDPOINT + "/" + INVALID_UID ) )
-            .andExpect( content().string( containsString( ERROR_MESSAGE ) ) );
+            .andExpect( content().string( containsString( ERROR_MESSAGE_FOR_PATH_PARAM ) ) );
     }
 
     @Test
