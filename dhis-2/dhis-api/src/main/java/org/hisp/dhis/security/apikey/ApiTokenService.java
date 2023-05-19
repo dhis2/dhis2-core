@@ -59,7 +59,4 @@ public interface ApiTokenService
 
     @CheckForNull
     ApiToken getByKey( @Nonnull String key );
-
-    @Nonnull
-    TokenWrapper generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire );
 }
