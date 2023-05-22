@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,30 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.webapi.controller.icon;
 
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+class IconDto
 {
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
-    private final Renderable field;
+    @JsonProperty
+    private String key;
 
-    private final Renderable values;
+    @JsonProperty
+    private String description;
 
-    @Override
-    public String render()
-    {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
+    @JsonProperty
+    private String[] keywords;
 
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
+    @JsonProperty
+    private String fileResourceUid;
 
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
-    }
 }

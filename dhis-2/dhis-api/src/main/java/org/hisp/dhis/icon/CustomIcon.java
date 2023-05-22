@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-import java.util.List;
-import java.util.function.BiFunction;
-
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+/**
+ * Custom icons are uploaded by users and can be modified and deleted.
+ */
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@EqualsAndHashCode
+public class CustomIcon implements Icon
 {
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
+    private String key;
 
-    private final Renderable field;
+    private String description;
 
-    private final Renderable values;
+    private String[] keywords;
 
-    @Override
-    public String render()
-    {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
+    private String fileResourceUid;
 
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
-    }
+    private String createdByUserUid;
 }

@@ -57,6 +57,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.tracker.export.event.EventParams;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.Events;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -167,13 +168,13 @@ public class EventsExportController
 
     @GetMapping( "{uid}" )
     public ResponseEntity<ObjectNode> getEvent(
-        @PathVariable String uid,
+        @PathVariable UID uid,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
         EventParams eventParams = eventsMapper.map( fields );
-        Event event = EVENTS_MAPPER.from( eventService.getEvent( uid, eventParams ) );
+        Event event = EVENTS_MAPPER.from( eventService.getEvent( uid.getValue(), eventParams ) );
 
         return ResponseEntity.ok( fieldFilterService.toObjectNode( event, fields ) );
     }

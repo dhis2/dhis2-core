@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,15 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.webapi.common;
 
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
+import java.beans.PropertyEditorSupport;
 
-import java.util.List;
-import java.util.function.BiFunction;
-
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+public class UIDParamEditor extends PropertyEditorSupport
 {
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
-
-    private final Renderable field;
-
-    private final Renderable values;
-
     @Override
-    public String render()
+    public void setAsText( String source )
     {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
-
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
+        setValue( UID.of( source ) );
     }
 }

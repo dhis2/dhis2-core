@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
+import org.hisp.dhis.common.CodeGenerator;
 
 /**
- * @author Kristian Wærstad
+ * UID represents an alphanumeric string of 11 characters starting with a
+ * letter.
  */
-public class IconData
+@Getter
+@EqualsAndHashCode
+public final class UID
 {
-    private String key;
+    private static final String VALID_UID_FORMAT = "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
-    private String description;
+    private final String value;
 
-    private String[] keywords;
-
-    private String reference;
-
-    IconData( String key, String description, String[] keywords )
+    private UID( String value )
     {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
+        if ( !CodeGenerator.isValidUid( value ) )
+        {
+            throw new IllegalArgumentException( VALID_UID_FORMAT );
+        }
+        this.value = value;
     }
 
-    @JsonProperty
-    public String getKey()
+    public static UID of( String value )
     {
-        return key;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    @JsonProperty
-    public String[] getKeywords()
-    {
-        return keywords;
-    }
-
-    @JsonProperty( "href" )
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
-        return this;
+        return new UID( value );
     }
 }

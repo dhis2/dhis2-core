@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,45 +25,49 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.analytics.common.query;
+package org.hisp.dhis.icon;
 
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasMultipleValues;
-import static org.hisp.dhis.analytics.common.query.ConstantValuesRenderer.hasNullValue;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.function.BiFunction;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.RequiredArgsConstructor;
-
-@RequiredArgsConstructor( staticName = "of" )
-public class NullValueAwareConditionRenderer extends BaseRenderable
+/**
+ * This class is the API response representation of the Icon class. It is used
+ * to serialize and deserialize Icon objects. Ideally it should live in the
+ * dhis-web-api module, but it is not possible to do so because we need to use
+ * it in IconSchemaDescriptor, which is in the dhis-service-schema module.
+ */
+@NoArgsConstructor
+@AllArgsConstructor
+@Getter
+public class IconResponse
 {
-    private final BiFunction<Renderable, Renderable, Renderable> realConditionBuilder;
 
-    private final Renderable field;
+    @JsonProperty
+    private String key;
 
-    private final Renderable values;
+    @JsonProperty
+    private String description;
 
-    @Override
-    public String render()
+    @JsonProperty
+    private String[] keywords;
+
+    @JsonProperty
+    private String fileResourceUid;
+
+    @JsonProperty
+    private String userUid;
+
+    @JsonProperty( "href" )
+    private String reference;
+
+    public IconResponse( String key, String description, String[] keywords, String reference )
     {
-        Renderable fieldIsNullCondition = IsNullConditionRenderer.of( field, true );
-        Renderable realCondition = realConditionBuilder.apply( field, values );
-
-        if ( !hasNullValue( values ) )
-        {
-            return realCondition.render();
-        }
-
-        if ( !hasMultipleValues( values ) )
-        {
-            return fieldIsNullCondition.render();
-        }
-
-        return OrCondition.of(
-            List.of(
-                fieldIsNullCondition,
-                realCondition ) )
-            .render();
+        this.key = key;
+        this.description = description;
+        this.keywords = keywords;
+        this.reference = reference;
     }
 }
