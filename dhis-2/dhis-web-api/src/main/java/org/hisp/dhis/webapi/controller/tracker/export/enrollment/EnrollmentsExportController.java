@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
@@ -53,6 +52,7 @@ import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -85,23 +85,9 @@ public class EnrollmentsExportController
 
     private final EnrollmentFieldsParamMapper fieldsMapper;
 
-    @Value
-    @OpenApi.Property
-    @OpenApi.Shared( value = false )
-    private static class ObjectListResponse
-    {
-        Integer page = 1;
-
-        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
-
-        Long total;
-
-        List<Enrollment> instances;
-    }
-
-    @OpenApi.Response( status = Status.OK, value = ObjectListResponse.class )
+    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
+    PagingWrapper<ObjectNode> getEnrollments( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException,
         NotFoundException

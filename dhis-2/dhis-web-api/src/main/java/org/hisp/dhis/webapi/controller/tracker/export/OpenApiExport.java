@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,54 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.view;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.time.Instant;
+import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
-import org.hisp.dhis.dataelement.DataElement;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
+ * OpenAPI specifications used across tracker export endpoints.
  */
-@OpenApi.Shared
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class DataValue
+public class OpenApiExport
 {
-    @JsonProperty
-    private Instant createdAt;
+    private OpenApiExport()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
 
-    @JsonProperty
-    private Instant updatedAt;
+    @Value
+    @OpenApi.Property
+    @OpenApi.Shared( value = false )
+    public static class ListResponse
+    {
+        Integer page = 1;
 
-    @JsonProperty
-    private String storedBy;
+        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 
-    @JsonProperty
-    private boolean providedElsewhere;
+        Long total;
 
-    @OpenApi.Property( { UID.class, DataElement.class } )
-    @JsonProperty
-    @Builder.Default
-    private String dataElement = "";
-
-    @JsonProperty
-    private String value;
-
-    @JsonProperty
-    private User createdBy;
-
-    @JsonProperty
-    private User updatedBy;
+        @OpenApi.Property( value = OpenApi.EntityType[].class )
+        List<Object> instances;
+    }
 }

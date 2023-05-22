@@ -35,25 +35,31 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
+@OpenApi.Property
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     private String trackedEntity;
 
+    @OpenApi.Property( { UID.class, Enrollment.class } )
     @Setter
     private String enrollment;
 
+    @OpenApi.Property( { UID.class, Event.class } )
     @Setter
     private String event;
 
@@ -63,6 +69,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Class<?> identifierClass;
 
+    @OpenApi.Property( name = "fields", value = String[].class )
     @Getter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
@@ -80,6 +87,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         this.trackedEntity = trackedEntity;
     }
 
+    @OpenApi.Ignore
     public String getIdentifierParam()
         throws BadRequestException
     {
@@ -93,21 +101,21 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         {
             this.identifier = this.trackedEntity;
             this.identifierName = "trackedEntity";
-            this.identifierClass = TrackedEntity.class;
+            this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
             count++;
         }
         if ( !StringUtils.isBlank( this.enrollment ) )
         {
             this.identifier = this.enrollment;
             this.identifierName = "enrollment";
-            this.identifierClass = Enrollment.class;
+            this.identifierClass = org.hisp.dhis.program.Enrollment.class;
             count++;
         }
         if ( !StringUtils.isBlank( this.event ) )
         {
             this.identifier = this.event;
             this.identifierName = "event";
-            this.identifierClass = Event.class;
+            this.identifierClass = org.hisp.dhis.program.Event.class;
             count++;
         }
 
@@ -123,6 +131,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         return this.identifier;
     }
 
+    @OpenApi.Ignore
     public String getIdentifierName()
         throws BadRequestException
     {
@@ -133,6 +142,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         return this.identifierName;
     }
 
+    @OpenApi.Ignore
     public Class<?> getIdentifierClass()
         throws BadRequestException
     {
