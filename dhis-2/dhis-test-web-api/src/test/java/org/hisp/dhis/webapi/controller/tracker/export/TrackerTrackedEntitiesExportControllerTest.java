@@ -139,7 +139,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
 
     @Disabled( "Disabled to avoid blocking and continue to investigate in separate PR" )
     @Test
-    @Ignore("failed on 38, need investigation")
+    @Ignore( "failed on 38, need investigation" )
     void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
     {
         this.switchContextToUser( user );
