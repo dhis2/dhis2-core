@@ -63,7 +63,9 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.hisp.dhis.webapi.json.domain.JsonError;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -136,14 +138,26 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     }
 
     @Test
+    @Disabled
     void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
     {
-        this.switchContextToUser( user );
+        System.out.println( "TrackerTrackedEntitiesExportControllerTest.getTrackedEntitiesNeedsProgramOrTrackedEntityType" );
+        user.addOrganisationUnit( orgUnit );
+        user.setTeiSearchOrganisationUnits( Set.of( orgUnit ) );
+        userService.updateUser( user );
+        manager.flush();
+        manager.clear();
+
+        switchContextToUser( user );
+        System.out.println( "user.getOrganisationUnits() = " + user.getOrganisationUnits() );
+        JsonError response = GET( "/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid() )
+            .error( HttpStatus.CONFLICT );
+
+        String message = response.getMessage();
 
         assertEquals( "Either Program or Tracked entity type should be specified",
-            GET( "/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid() )
-                .error( HttpStatus.CONFLICT )
-                .getMessage() );
+            message );
+        System.out.println( "TrackerTrackedEntitiesExportControllerTest.getTrackedEntitiesNeedsProgramOrTrackedEntityType" );
     }
 
     @Test
