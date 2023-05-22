@@ -745,7 +745,7 @@ class RequestParamsMapperTest
         combo.setUid( "uid" );
         when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
             true ) )
-                .thenReturn( combo );
+            .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,

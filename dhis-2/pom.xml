@@ -663,7 +663,7 @@
               <java>
                   <eclipse>
                       <file>${rootDir}/DHISFormatter.xml</file>
-                      <version>4.9</version>
+                      <version>4.27</version>
                   </eclipse>
                   <trimTrailingWhitespace />
                   <removeUnusedImports />

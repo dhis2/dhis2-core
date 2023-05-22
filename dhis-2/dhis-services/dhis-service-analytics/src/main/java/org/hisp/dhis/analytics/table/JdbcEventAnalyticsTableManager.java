@@ -556,7 +556,7 @@ public class JdbcEventAnalyticsTableManager
                 "ou.geometry from organisationunit ou where ou.uid = (select value", dataClause );
             columns.add( new AnalyticsTableColumn( quote( attribute.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                 ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
+                .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
         }
 
         // Add org unit name column
@@ -582,7 +582,7 @@ public class JdbcEventAnalyticsTableManager
 
             columns.add( new AnalyticsTableColumn( quote( dataElement.getUid() + OU_GEOMETRY_COL_SUFFIX ),
                 ColumnDataType.GEOMETRY, geoSql )
-                    .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
+                .withSkipIndex( false ).withIndexType( IndexType.GIST ) );
         }
 
         // Add org unit name column

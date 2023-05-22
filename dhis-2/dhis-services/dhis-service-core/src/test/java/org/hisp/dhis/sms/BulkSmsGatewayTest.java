@@ -133,7 +133,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
-                .thenReturn( successResponse );
+            .thenReturn( successResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 
@@ -148,7 +148,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
-                .thenReturn( successResponse );
+            .thenReturn( successResponse );
 
         List<OutboundMessageResponse> responses = bulkSmsGateway.sendBatch( batch, smsGatewayConfig );
 
@@ -163,7 +163,7 @@ class BulkSmsGatewayTest extends DhisConvenienceTest
 
         when( restTemplate.exchange( any( String.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
-                .thenReturn( errorResponse );
+            .thenReturn( errorResponse );
 
         OutboundMessageResponse status = bulkSmsGateway.send( SUBJECT, MESSAGE, recipients, smsGatewayConfig );
 

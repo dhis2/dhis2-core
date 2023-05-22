@@ -84,7 +84,7 @@ public class DimensionFilteringAndPagingService
 
         List<DimensionResponse> filteredDimensions = filterStream( dimensionResponses.stream(),
             dimensionsCriteria )
-                .collect( Collectors.toList() );
+            .collect( Collectors.toList() );
 
         FieldFilterParams<DimensionResponse> filterParams = FieldFilterParams
             .of( sortedAndPagedStream( filteredDimensions.stream(), dimensionsCriteria )

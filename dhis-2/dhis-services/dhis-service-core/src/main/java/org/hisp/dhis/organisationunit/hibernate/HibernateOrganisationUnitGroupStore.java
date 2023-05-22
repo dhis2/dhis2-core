@@ -74,9 +74,9 @@ public class HibernateOrganisationUnitGroupStore
     {
         return getQuery(
             "select g from OrganisationUnitGroup g inner join g.groupSets gs where gs = :groupSet and g in :groups" )
-                .setParameter( "groupSet", groupSet )
-                .setParameter( "groups", groups )
-                .setMaxResults( 1 )
-                .uniqueResult();
+            .setParameter( "groupSet", groupSet )
+            .setParameter( "groups", groups )
+            .setMaxResults( 1 )
+            .uniqueResult();
     }
 }

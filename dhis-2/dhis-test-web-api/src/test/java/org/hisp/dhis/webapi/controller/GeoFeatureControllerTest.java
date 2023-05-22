@@ -54,7 +54,7 @@ public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
 
                 + "],"
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
-                    .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
             .content( HttpStatus.OK );

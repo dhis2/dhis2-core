@@ -636,7 +636,7 @@ class DataValueSetImportValidatorTest
             .strategy( ImportStrategy.DELETE ).build();
         when( dataValueService.getDataValue( any( DataElement.class ), any( Period.class ),
             any( OrganisationUnit.class ), any( CategoryOptionCombo.class ), any( CategoryOptionCombo.class ) ) )
-                .thenReturn( null );
+            .thenReturn( null );
         assertTrue( validator.skipDataValue( dataValue, context, dataSetContext, valueContext ) );
         assertConflict( ErrorCode.E7645,
             "No data value for file resource exist for the given combination for data element: `<object1>`", context,

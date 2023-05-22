@@ -179,9 +179,9 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
         return switch ( checksumType )
         {
-            case "CRC32" -> generateCrc32Checksum( secureCode );
+        case "CRC32" -> generateCrc32Checksum( secureCode );
 
-            default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
+        default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
         };
 
     }

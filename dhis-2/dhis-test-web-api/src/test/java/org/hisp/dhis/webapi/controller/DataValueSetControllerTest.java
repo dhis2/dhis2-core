@@ -163,7 +163,7 @@ class DataValueSetControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage response = GET(
             "/dataValueSets/?inputOrgUnitIdScheme=code&idScheme=name&orgUnit={ou}&period=2022-01&dataSet={ds}", "OU1",
             dsId )
-                .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
+            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertEquals( String.format( "User is not allowed to view org unit: `%s`", ouId ), response.getMessage() );
     }
 }

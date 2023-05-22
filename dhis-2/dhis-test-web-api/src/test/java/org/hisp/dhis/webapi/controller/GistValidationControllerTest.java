@@ -89,7 +89,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest
             "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
             GET(
                 "/users/gist?filter=username:like:admin&filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST )
-                    .getMessage() );
+                .getMessage() );
     }
 
     @Test

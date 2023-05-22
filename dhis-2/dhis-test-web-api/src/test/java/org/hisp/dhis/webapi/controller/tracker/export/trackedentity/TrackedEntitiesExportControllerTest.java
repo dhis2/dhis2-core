@@ -255,7 +255,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonAttribute> attributes = GET( "/tracker/trackedEntities/{id}?fields=attributes[attribute,value]",
             trackedEntity.getUid() )
-                .content( HttpStatus.OK ).getList( "attributes", JsonAttribute.class );
+            .content( HttpStatus.OK ).getList( "attributes", JsonAttribute.class );
 
         assertAll( "include tracked entity type attributes only if no program query param is given",
             () -> assertEquals( 1, attributes.size(),
@@ -275,7 +275,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonAttribute> attributes = GET(
             "/tracker/trackedEntities/{id}?program={id}&fields=attributes[attribute,value]", trackedEntity.getUid(),
             program.getUid() )
-                .content( HttpStatus.OK ).getList( "attributes", JsonAttribute.class );
+            .content( HttpStatus.OK ).getList( "attributes", JsonAttribute.class );
 
         assertContainsAll( List.of( tea.getUid(), tea2.getUid() ), attributes, JsonAttribute::getAttribute );
         assertContainsAll( List.of( "12", "24" ), attributes, JsonAttribute::getValue );
@@ -308,7 +308,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/trackedEntities/{id}?fields=relationships",
             from.getUid() )
-                .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
         assertEquals( 0, relationships.size(), "user needs access to relationship type to access the relationship" );
     }
@@ -323,7 +323,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonRelationship> relationships = GET( "/tracker/trackedEntities/{id}?fields=relationships",
             from.getUid() )
-                .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
         assertEquals( 0, relationships.size(), "user needs access to from and to items to access the relationship" );
     }
@@ -427,7 +427,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
             trackedEntity.getUid() )
-                .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
+            .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
 
         JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse( json, enrollment );
 
@@ -451,7 +451,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
             trackedEntity.getUid() )
-                .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
+            .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
 
         JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse( json, enrollment );
         assertTrue( jsonEnrollment.getArray( "relationships" ).isEmpty() );
@@ -478,7 +478,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonEnrollment> json = GET( "/tracker/trackedEntities/{id}?fields=enrollments",
             trackedEntity.getUid() )
-                .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
+            .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
 
         JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse( json, enrollment );
         assertTrue( jsonEnrollment.getAttributes().isEmpty() );
@@ -511,7 +511,7 @@ class TrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
         JsonList<JsonEnrollment> json = GET(
             "/tracker/trackedEntities/{id}?fields=enrollments[*,events[!relationships]]",
             trackedEntity.getUid() )
-                .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
+            .content( HttpStatus.OK ).getList( "enrollments", JsonEnrollment.class );
 
         JsonEnrollment jsonEnrollment = assertDefaultEnrollmentResponse( json, enrollment );
         assertTrue( jsonEnrollment.getAttributes().isEmpty() );

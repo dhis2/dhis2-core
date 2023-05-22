@@ -64,7 +64,7 @@ public class UpdateCheck implements ObjectValidationCheck
             {
                 ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setErrorProperty( "id" ).setMainId( identifiableObject.getUid() );
+                    .setErrorProperty( "id" ).setMainId( identifiableObject.getUid() );
 
                 addReports.accept( createObjectReport( errorReport, object, bundle ) );
                 ctx.markForRemoval( object );

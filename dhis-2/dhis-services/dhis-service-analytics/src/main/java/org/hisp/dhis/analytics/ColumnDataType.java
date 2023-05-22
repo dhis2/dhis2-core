@@ -47,6 +47,7 @@ public enum ColumnDataType
     GEOMETRY( "geometry" ),
     GEOMETRY_POINT( "geometry(Point, 4326)" ),
     JSONB( "jsonb" );
+
     String value;
 
     ColumnDataType( String value )
