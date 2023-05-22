@@ -50,6 +50,14 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
     Optional<FileResource> findByStorageKey( @Nonnull String storageKey );
 
     /**
+     * @param uid of the file resource
+     * @param domain of the file resource
+     * @return the file resource with the given uid and domain or null if no
+     *         such file resource exists
+     */
+    Optional<FileResource> findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain );
+
+    /**
      * Returns the organisation unit UID(s) with an image that links to the
      * {@link FileResource} with the provided uid.
      *

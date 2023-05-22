@@ -59,6 +59,7 @@ import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
@@ -190,7 +191,7 @@ public class TrackedEntitiesExportController
     }
 
     @GetMapping( value = "{uid}" )
-    public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable String uid,
+    public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable UID uid,
         @RequestParam( required = false ) String program,
         @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws ForbiddenException,
@@ -198,7 +199,7 @@ public class TrackedEntitiesExportController
     {
         TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields );
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER
-            .from( trackedEntityService.getTrackedEntity( uid, program, trackedEntityParams ) );
+            .from( trackedEntityService.getTrackedEntity( uid.getValue(), program, trackedEntityParams ) );
 
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }

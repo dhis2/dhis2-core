@@ -46,6 +46,15 @@ public interface FileResourceService
 {
     FileResource getFileResource( String uid );
 
+    /**
+     * Lookup a {@link FileResource} by uid and {@link FileResourceDomain}.
+     *
+     * @param uid file resource uid to lookup
+     * @param domain file resource domain to lookup
+     * @return the {@link FileResource} associated with the given uid and domain
+     */
+    Optional<FileResource> getFileResource( String uid, FileResourceDomain domain );
+
     List<FileResource> getFileResources( @Nonnull List<String> uids );
 
     List<FileResource> getOrphanedFileResources();
