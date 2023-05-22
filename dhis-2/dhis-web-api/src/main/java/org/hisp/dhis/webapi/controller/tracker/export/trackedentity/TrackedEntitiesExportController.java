@@ -199,7 +199,7 @@ public class TrackedEntitiesExportController
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( value = "/{uid}" )
     ResponseEntity<ObjectNode> getTrackedEntityByUid(
-        @OpenApi.Param( { org.hisp.dhis.common.UID.class, TrackedEntity.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { UID.class, TrackedEntity.class } ) @PathVariable UID uid,
         @OpenApi.Param( { UID.class, Program.class } ) @RequestParam( required = false ) String program,
         @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws ForbiddenException,
