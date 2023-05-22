@@ -72,7 +72,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Semicolon-delimited list of organisation unit UIDs.
      *
-     * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
+     * @deprecated use {@link #orgUnits} instead which is comma instead of
+     *             semicolon separated.
      */
     @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
@@ -82,7 +83,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<UID> orgUnits = new HashSet<>();
 
     /**
-     * Selection mode for the specified organisation units, default is ACCESSIBLE.
+     * Selection mode for the specified organisation units, default is
+     * ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode ouMode;
 
@@ -93,12 +95,14 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private String program;
 
     /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given program.
+     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
+     * program.
      */
     private ProgramStatus programStatus;
 
     /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for the specified Program.
+     * Indicates whether the Tracked Entity Instance is marked for follow up for
+     * the specified Program.
      */
     private Boolean followUp;
 
@@ -146,7 +150,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
      *
-     * @deprecated use {@link #trackedEntities} instead which is comma instead of semicolon separated.
+     * @deprecated use {@link #trackedEntities} instead which is comma instead
+     *             of semicolon separated.
      */
     @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, TrackedEntity.class } )
@@ -161,9 +166,11 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
+     * Semicolon-delimited list of user UIDs to filter based on events assigned
+     * to the users.
      *
-     * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of
+     *             semicolon separated.
      */
     @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, User.class } )
@@ -173,7 +180,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<UID> assignedUsers = new HashSet<>();
 
     /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program Stage
+     * Program Stage UID, used for filtering TEIs based on the selected Program
+     * Stage
      */
     @OpenApi.Property( { UID.class, ProgramStage.class } )
     private String programStage;
@@ -214,7 +222,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private String attachment;
 
     /**
-     * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a potentialDuplicate or not
+     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
+     * is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
 

@@ -28,7 +28,9 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -56,8 +58,18 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
+    /**
+     * Semicolon-delimited list of organisation unit UIDs.
+     *
+     * @deprecated use {@link #orgUnits} instead which is comma instead of
+     *             semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
     private String orgUnit;
+
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
+    private Set<UID> orgUnits = new HashSet<>();
 
     private OrganisationUnitSelectionMode ouMode;
 
@@ -82,8 +94,17 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
     private String trackedEntity;
 
+    /**
+     * Semicolon-delimited list of enrollment UIDs.
+     *
+     * @deprecated use {@link #enrollments} instead which is comma instead of
+     *             semicolon separated.
+     */
     @OpenApi.Property( { UID[].class, Enrollment.class } )
     private String enrollment;
+
+    @OpenApi.Property( { UID[].class, Enrollment.class } )
+    private Set<UID> enrollments = new HashSet<>();
 
     private boolean includeDeleted;
 

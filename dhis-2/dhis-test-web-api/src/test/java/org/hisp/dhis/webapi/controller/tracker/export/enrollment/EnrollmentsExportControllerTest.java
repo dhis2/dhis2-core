@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -268,6 +269,15 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
         assertEquals( "Enrollment with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/enrollments/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
+    }
+
+    @Test
+    void getEnrollmentsFailsIfGivenEnrollmentAndEnrollmentsParameters()
+    {
+        assertStartsWith( "Only one parameter of 'enrollment' (deprecated",
+            GET( "/tracker/enrollments?enrollment=IsdLBTOBzMi&enrollments=IsdLBTOBzMi" )
+                .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
 
