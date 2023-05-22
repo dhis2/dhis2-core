@@ -75,19 +75,19 @@ public class TrackerIdSchemeParam
     {
         switch ( idScheme )
         {
-        case UID:
-            return object.getUid();
-        case CODE:
-            return object.getCode();
-        case NAME:
-            return object.getName();
-        case ATTRIBUTE:
-            return object.getAttributeValues()
-                .stream()
-                .filter( av -> av.getAttribute().getUid().equals( attributeUid ) )
-                .map( AttributeValue::getValue )
-                .findFirst()
-                .orElse( null );
+            case UID:
+                return object.getUid();
+            case CODE:
+                return object.getCode();
+            case NAME:
+                return object.getName();
+            case ATTRIBUTE:
+                return object.getAttributeValues()
+                    .stream()
+                    .filter( av -> av.getAttribute().getUid().equals( attributeUid ) )
+                    .map( AttributeValue::getValue )
+                    .findFirst()
+                    .orElse( null );
         }
 
         throw new RuntimeException( "Unhandled identifier type." );

@@ -300,17 +300,17 @@ public class TrackerBundle
 
         switch ( type )
         {
-        case TRACKED_ENTITY:
-            return findTrackedEntityByUid( uid ).isPresent();
-        case ENROLLMENT:
-            return findEnrollmentByUid( uid ).isPresent();
-        case EVENT:
-            return findEventByUid( uid ).isPresent();
-        case RELATIONSHIP:
-            return findRelationshipByUid( uid ).isPresent();
-        default:
-            // only reached if a new TrackerDto implementation is added
-            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
+            case TRACKED_ENTITY:
+                return findTrackedEntityByUid( uid ).isPresent();
+            case ENROLLMENT:
+                return findEnrollmentByUid( uid ).isPresent();
+            case EVENT:
+                return findEventByUid( uid ).isPresent();
+            case RELATIONSHIP:
+                return findRelationshipByUid( uid ).isPresent();
+            default:
+                // only reached if a new TrackerDto implementation is added
+                throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
         }
     }
 }

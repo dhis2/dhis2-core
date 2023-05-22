@@ -105,28 +105,28 @@ public class DefaultCascadeSharingService
 
             switch ( dashboardItem.getType() )
             {
-            case MAP:
-                handleMapObject( dashboard.getSharing(), dashboardItem.getMap(), itemCanMergeObjects, parameters );
-                break;
-            case VISUALIZATION:
-                handleVisualization( dashboard.getSharing(), dashboardItem.getVisualization(), itemCanMergeObjects,
-                    parameters );
-                break;
-            case EVENT_REPORT:
-                handleEventReport( dashboard.getSharing(), dashboardItem.getEventReport(), itemCanMergeObjects,
-                    parameters );
-                break;
-            case EVENT_CHART:
-                handleEventChart( dashboard.getSharing(), dashboardItem.getEventChart(), itemCanMergeObjects,
-                    parameters );
-                break;
-            case EVENT_VISUALIZATION:
-                handleEventVisualization( dashboard.getSharing(), dashboardItem.getEventVisualization(),
-                    itemCanMergeObjects,
-                    parameters );
-                break;
-            default:
-                break;
+                case MAP:
+                    handleMapObject( dashboard.getSharing(), dashboardItem.getMap(), itemCanMergeObjects, parameters );
+                    break;
+                case VISUALIZATION:
+                    handleVisualization( dashboard.getSharing(), dashboardItem.getVisualization(), itemCanMergeObjects,
+                        parameters );
+                    break;
+                case EVENT_REPORT:
+                    handleEventReport( dashboard.getSharing(), dashboardItem.getEventReport(), itemCanMergeObjects,
+                        parameters );
+                    break;
+                case EVENT_CHART:
+                    handleEventChart( dashboard.getSharing(), dashboardItem.getEventChart(), itemCanMergeObjects,
+                        parameters );
+                    break;
+                case EVENT_VISUALIZATION:
+                    handleEventVisualization( dashboard.getSharing(), dashboardItem.getEventVisualization(),
+                        itemCanMergeObjects,
+                        parameters );
+                    break;
+                default:
+                    break;
             }
 
             if ( !CollectionUtils.isEmpty( itemCanMergeObjects ) )

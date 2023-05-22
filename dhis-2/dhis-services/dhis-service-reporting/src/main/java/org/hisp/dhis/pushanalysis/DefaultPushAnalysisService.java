@@ -304,15 +304,15 @@ public class DefaultPushAnalysisService
     {
         switch ( item.getType() )
         {
-        case MAP:
-            return generateMapHtml( item.getMap(), user );
-        case VISUALIZATION:
-            return generateVisualizationHtml( item.getVisualization(), user );
-        default:
-            // TODO: Add support for EventCharts
-            // TODO: Add support for EventReports
-            log.warn( "Dashboard item of type '" + item.getType() + "' not supported. Skipping." );
-            return "";
+            case MAP:
+                return generateMapHtml( item.getMap(), user );
+            case VISUALIZATION:
+                return generateVisualizationHtml( item.getVisualization(), user );
+            default:
+                // TODO: Add support for EventCharts
+                // TODO: Add support for EventReports
+                log.warn( "Dashboard item of type '" + item.getType() + "' not supported. Skipping." );
+                return "";
         }
     }
 
@@ -322,14 +322,14 @@ public class DefaultPushAnalysisService
 
         switch ( item.getType() )
         {
-        case MAP:
-            result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
-            break;
-        case VISUALIZATION:
-            result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
-            break;
-        default:
-            break;
+            case MAP:
+                result += "/dhis-web-maps/index.html?id=" + item.getMap().getUid();
+                break;
+            case VISUALIZATION:
+                result += "/dhis-web-data-visualizer/index.html?id=" + item.getVisualization().getUid();
+                break;
+            default:
+                break;
         }
 
         return result;
@@ -371,10 +371,10 @@ public class DefaultPushAnalysisService
     {
         switch ( visualization.getType() )
         {
-        case PIVOT_TABLE:
-            return generateReportTableHtml( visualization, user );
-        default:
-            return generateChartHtml( visualization, user );
+            case PIVOT_TABLE:
+                return generateReportTableHtml( visualization, user );
+            default:
+                return generateChartHtml( visualization, user );
         }
     }
 

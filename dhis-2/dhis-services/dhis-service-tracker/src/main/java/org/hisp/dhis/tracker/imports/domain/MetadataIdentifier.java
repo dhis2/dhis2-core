@@ -236,19 +236,19 @@ public class MetadataIdentifier
     {
         switch ( idScheme )
         {
-        case UID:
-            return metadata.getUid();
-        case CODE:
-            return metadata.getCode();
-        case NAME:
-            return metadata.getName();
-        case ATTRIBUTE:
-            return metadata.getAttributeValues()
-                .stream()
-                .filter( av -> av.getAttribute().getUid().equals( this.identifier ) )
-                .map( AttributeValue::getValue )
-                .findFirst()
-                .orElse( null );
+            case UID:
+                return metadata.getUid();
+            case CODE:
+                return metadata.getCode();
+            case NAME:
+                return metadata.getName();
+            case ATTRIBUTE:
+                return metadata.getAttributeValues()
+                    .stream()
+                    .filter( av -> av.getAttribute().getUid().equals( this.identifier ) )
+                    .map( AttributeValue::getValue )
+                    .findFirst()
+                    .orElse( null );
         }
 
         throw new RuntimeException( "Unhandled identifier type." );

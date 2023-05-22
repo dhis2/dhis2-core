@@ -75,14 +75,14 @@ public interface ValidationExecutor<T> extends RuleActionExecutor<T>
 
         switch ( getIssueType() )
         {
-        case WARNING:
-            return Optional.of( warning( ruleAction.getRuleUid(), ValidationCode.E1300,
-                validationMessage.toString() ) );
-        case ERROR:
-            return Optional.of(
-                error( ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString() ) );
-        default:
-            return Optional.empty();
+            case WARNING:
+                return Optional.of( warning( ruleAction.getRuleUid(), ValidationCode.E1300,
+                    validationMessage.toString() ) );
+            case ERROR:
+                return Optional.of(
+                    error( ruleAction.getRuleUid(), ValidationCode.E1300, validationMessage.toString() ) );
+            default:
+                return Optional.empty();
         }
     }
 }

@@ -777,17 +777,17 @@ public class TrackerPreheat
 
         switch ( type )
         {
-        case TRACKED_ENTITY:
-            return getTrackedEntity( uid ) != null;
-        case ENROLLMENT:
-            return getEnrollment( uid ) != null;
-        case EVENT:
-            return getEvent( uid ) != null;
-        case RELATIONSHIP:
-            return getRelationship( uid ) != null;
-        default:
-            // only reached if a new TrackerDto implementation is added
-            throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
+            case TRACKED_ENTITY:
+                return getTrackedEntity( uid ) != null;
+            case ENROLLMENT:
+                return getEnrollment( uid ) != null;
+            case EVENT:
+                return getEvent( uid ) != null;
+            case RELATIONSHIP:
+                return getRelationship( uid ) != null;
+            default:
+                // only reached if a new TrackerDto implementation is added
+                throw new IllegalStateException( "TrackerType " + type.getName() + " not yet supported." );
         }
     }
 

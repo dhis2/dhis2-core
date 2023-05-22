@@ -298,26 +298,26 @@ public class DefaultEventService implements EventService
 
         switch ( selectedOuMode )
         {
-        case ALL:
-            violation = userCanSearchOuModeALL( user ) ? null
-                : "Current user is not authorized to query across all organisation units";
-            break;
-        case ACCESSIBLE:
-            violation = getAccessibleScopeValidation( user, params );
-            break;
-        case CAPTURE:
-            violation = getCaptureScopeValidation( user );
-            break;
-        case CHILDREN:
-        case SELECTED:
-        case DESCENDANTS:
-            violation = params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-            break;
-        default:
-            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-            break;
+            case ALL:
+                violation = userCanSearchOuModeALL( user ) ? null
+                    : "Current user is not authorized to query across all organisation units";
+                break;
+            case ACCESSIBLE:
+                violation = getAccessibleScopeValidation( user, params );
+                break;
+            case CAPTURE:
+                violation = getCaptureScopeValidation( user );
+                break;
+            case CHILDREN:
+            case SELECTED:
+            case DESCENDANTS:
+                violation = params.getOrgUnit() == null
+                    ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+                    : null;
+                break;
+            default:
+                violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
+                break;
         }
 
         return violation;

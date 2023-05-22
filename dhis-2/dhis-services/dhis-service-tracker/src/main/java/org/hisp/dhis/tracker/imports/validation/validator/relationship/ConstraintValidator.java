@@ -70,17 +70,17 @@ public class ConstraintValidator implements Validator<Relationship>
     {
         switch ( constraint.getRelationshipEntity() )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityRelationship( reporter, bundle, relationship, item, relSide, constraint );
-            break;
-        case PROGRAM_INSTANCE:
-            validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
-            break;
-        case PROGRAM_STAGE_INSTANCE:
-            validateEventRelationship( reporter, bundle, relationship, item, relSide );
-            break;
-        default:
-            break;
+            case TRACKED_ENTITY_INSTANCE:
+                validateTrackedEntityRelationship( reporter, bundle, relationship, item, relSide, constraint );
+                break;
+            case PROGRAM_INSTANCE:
+                validateEnrollmentRelationship( reporter, bundle, relationship, item, relSide );
+                break;
+            case PROGRAM_STAGE_INSTANCE:
+                validateEventRelationship( reporter, bundle, relationship, item, relSide );
+                break;
+            default:
+                break;
         }
     }
 

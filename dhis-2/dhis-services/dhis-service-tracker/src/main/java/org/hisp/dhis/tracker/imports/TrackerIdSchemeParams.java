@@ -109,20 +109,20 @@ public class TrackerIdSchemeParams
     {
         switch ( klazz.getSimpleName() )
         {
-        case "CategoryOptionCombo":
-            return categoryOptionComboIdScheme;
-        case "OrganisationUnit":
-            return orgUnitIdScheme;
-        case "CategoryOption":
-            return categoryOptionIdScheme;
-        case "DataElement":
-            return dataElementIdScheme;
-        case "Program":
-            return programIdScheme;
-        case "ProgramStage":
-            return programStageIdScheme;
-        default:
-            return idScheme;
+            case "CategoryOptionCombo":
+                return categoryOptionComboIdScheme;
+            case "OrganisationUnit":
+                return orgUnitIdScheme;
+            case "CategoryOption":
+                return categoryOptionIdScheme;
+            case "DataElement":
+                return dataElementIdScheme;
+            case "Program":
+                return programIdScheme;
+            case "ProgramStage":
+                return programStageIdScheme;
+            default:
+                return idScheme;
         }
 
     }
