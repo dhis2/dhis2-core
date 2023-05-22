@@ -140,6 +140,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private IdSchemes idSchemes = new IdSchemes();
 
-    @OpenApi.Property( name = "fields", value = String[].class )
+    @OpenApi.Property( value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

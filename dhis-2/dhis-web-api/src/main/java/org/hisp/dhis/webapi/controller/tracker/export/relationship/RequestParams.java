@@ -69,7 +69,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Class<?> identifierClass;
 
-    @OpenApi.Property( name = "fields", value = String[].class )
+    @OpenApi.Property( value = String[].class )
     @Getter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
@@ -89,7 +89,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public String getIdentifierParam()
-        throws BadRequestException
+        throws
+        BadRequestException
     {
         if ( this.identifier != null )
         {
@@ -133,7 +134,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public String getIdentifierName()
-        throws BadRequestException
+        throws
+        BadRequestException
     {
         if ( this.identifierName == null )
         {
@@ -144,7 +146,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public Class<?> getIdentifierClass()
-        throws BadRequestException
+        throws
+        BadRequestException
     {
         if ( this.identifierClass == null )
         {
