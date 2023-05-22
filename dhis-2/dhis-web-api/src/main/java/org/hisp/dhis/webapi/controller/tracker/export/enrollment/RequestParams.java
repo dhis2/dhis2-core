@@ -35,13 +35,13 @@ import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;

@@ -36,10 +36,10 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -89,8 +89,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public String getIdentifierParam()
-        throws
-        BadRequestException
+        throws BadRequestException
     {
         if ( this.identifier != null )
         {
@@ -134,8 +133,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public String getIdentifierName()
-        throws
-        BadRequestException
+        throws BadRequestException
     {
         if ( this.identifierName == null )
         {
@@ -146,8 +144,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     @OpenApi.Ignore
     public Class<?> getIdentifierClass()
-        throws
-        BadRequestException
+        throws BadRequestException
     {
         if ( this.identifierClass == null )
         {

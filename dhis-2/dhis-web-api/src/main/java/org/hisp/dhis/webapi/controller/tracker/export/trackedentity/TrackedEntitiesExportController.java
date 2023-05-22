@@ -90,10 +90,11 @@ public class TrackedEntitiesExportController
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
     /**
-     * Fields we need to fetch from the DB to fulfill requests for CSV. CSV cannot be filtered using the
-     * {@link FieldFilterService} so
+     * Fields we need to fetch from the DB to fulfill requests for CSV. CSV
+     * cannot be filtered using the {@link FieldFilterService} so
      * <code>fields</code> query parameter is ignored when CSV is requested.
-     * Make sure this is kept in sync with the columns we promise to return in the CSV. See
+     * Make sure this is kept in sync with the columns we promise to return in
+     * the CSV. See
      * {@link org.hisp.dhis.webapi.controller.tracker.export.trackedentity.CsvTrackedEntity}.
      */
     private static final List<FieldPath> CSV_FIELDS = FieldFilterParser.parse(
@@ -118,8 +119,7 @@ public class TrackedEntitiesExportController
     @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getTrackedEntities( RequestParams requestParams )
-        throws
-        BadRequestException,
+        throws BadRequestException,
         ForbiddenException,
         NotFoundException
     {
@@ -157,8 +157,7 @@ public class TrackedEntitiesExportController
         HttpServletResponse response,
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
-        throws
-        IOException,
+        throws IOException,
         BadRequestException,
         ForbiddenException,
         NotFoundException
@@ -200,11 +199,10 @@ public class TrackedEntitiesExportController
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( value = "/{uid}" )
     ResponseEntity<ObjectNode> getTrackedEntityByUid(
-        @OpenApi.Param( { org.hisp.dhis.common.UID.class, TrackedEntity.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { UID.class, TrackedEntity.class } ) @PathVariable UID uid,
         @OpenApi.Param( { UID.class, Program.class } ) @RequestParam( required = false ) String program,
         @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws
-        ForbiddenException,
+        throws ForbiddenException,
         NotFoundException
     {
         TrackedEntityParams trackedEntityParams = fieldsMapper.map( fields );
@@ -219,8 +217,7 @@ public class TrackedEntitiesExportController
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         @OpenApi.Param( { UID.class, Program.class } ) @RequestParam( required = false ) String program )
-        throws
-        IOException,
+        throws IOException,
         ForbiddenException,
         NotFoundException
     {

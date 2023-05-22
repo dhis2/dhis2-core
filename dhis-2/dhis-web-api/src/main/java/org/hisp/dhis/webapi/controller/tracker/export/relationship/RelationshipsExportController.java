@@ -108,8 +108,7 @@ public class RelationshipsExportController
     interface CheckedBiFunction<T, U, R>
     {
         R apply( T t, U u )
-            throws
-            ForbiddenException,
+            throws ForbiddenException,
             NotFoundException;
     }
 
@@ -150,8 +149,7 @@ public class RelationshipsExportController
     @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping
     PagingWrapper<ObjectNode> getRelationships( RequestParams requestParams )
-        throws
-        NotFoundException,
+        throws NotFoundException,
         BadRequestException,
         ForbiddenException
     {
@@ -175,10 +173,9 @@ public class RelationshipsExportController
 
     @GetMapping( "/{uid}" )
     ResponseEntity<ObjectNode> getRelationshipByUid(
-        @OpenApi.Param( { org.hisp.dhis.common.UID.class, Relationship.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { UID.class, Relationship.class } ) @PathVariable UID uid,
         @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws
-        NotFoundException,
+        throws NotFoundException,
         ForbiddenException
     {
         Relationship relationship = RELATIONSHIP_MAPPER.from( relationshipService.getRelationship( uid.getValue() ) );
@@ -189,8 +186,7 @@ public class RelationshipsExportController
     private List<Relationship> tryGetRelationshipFrom(
         Class<?> type, String identifier, String identifierName,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteria )
-        throws
-        NotFoundException,
+        throws NotFoundException,
         ForbiddenException
     {
         Object object = getObjectRetriever( type ).apply( identifier );

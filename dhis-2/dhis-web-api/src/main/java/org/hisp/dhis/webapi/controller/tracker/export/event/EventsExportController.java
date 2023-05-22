@@ -105,8 +105,7 @@ public class EventsExportController
     @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
-        throws
-        BadRequestException,
+        throws BadRequestException,
         ForbiddenException
     {
         EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
@@ -137,8 +136,7 @@ public class EventsExportController
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
         HttpServletRequest request )
-        throws
-        IOException,
+        throws IOException,
         BadRequestException,
         ForbiddenException
     {
@@ -175,10 +173,9 @@ public class EventsExportController
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( "/{uid}" )
     ResponseEntity<ObjectNode> getEventByUid(
-        @OpenApi.Param( { org.hisp.dhis.common.UID.class, Event.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { UID.class, Event.class } ) @PathVariable UID uid,
         @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
-        throws
-        NotFoundException,
+        throws NotFoundException,
         ForbiddenException
     {
         EventParams eventParams = eventsMapper.map( fields );
