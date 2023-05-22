@@ -29,16 +29,14 @@ package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.user.User;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,11 +51,14 @@ public class ApiTokenServiceImpl implements ApiTokenService
 {
     private final ApiTokenStore apiTokenStore;
 
-    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
+    private final ApplicationEventPublisher applicationEventPublisher;
+
+    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore, ApplicationEventPublisher applicationEventPublisher )
     {
         checkNotNull( apiTokenStore );
 
         this.apiTokenStore = apiTokenStore;
+        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
@@ -120,8 +121,6 @@ public class ApiTokenServiceImpl implements ApiTokenService
         checkNotNull( apiToken.getVersion(), "Token must have an version value" );
 
         apiTokenStore.update( apiToken );
-
-        // Invalidate cache here or let cache expire?
     }
 
     @Override
@@ -129,75 +128,6 @@ public class ApiTokenServiceImpl implements ApiTokenService
     public void delete( @Nonnull ApiToken apiToken )
     {
         apiTokenStore.delete( apiToken );
-        // Invalidate cache here or let cache expire?
-    }
-
-    @Override
-    @Nonnull
-    public TokenWrapper generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire )
-    {
-        ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
-
-        char[] plaintextToken = generatePlainTextToken( type );
-
-        final ApiToken token = ApiToken.builder().type( type )
-            .version( type.getVersion() )
-            .attributes( tokenAttributes == null ? new ArrayList<>() : tokenAttributes )
-            .expire( expire )
-            .key( ApiTokenType.hashToken( plaintextToken ) )
-            .build();
-
-        return new TokenWrapper( plaintextToken, token );
-    }
-
-    protected static char[] generatePlainTextToken( ApiTokenType type )
-    {
-        char[] code = CodeGenerator.generateSecureRandomCode( type.getLength() );
-
-        Preconditions.checkArgument( code.length == type.getLength(),
-            "Could not create new token, please try again." );
-
-        char[] checksum = generateChecksum( type, code );
-
-        char[] prefix = type.getPrefix().toCharArray();
-        char[] underscore = new char[] { '_' };
-
-        // Concatenate prefix, underscore, code, and checksum
-        char[] token = new char[prefix.length + underscore.length + code.length + checksum.length];
-        System.arraycopy( prefix, 0, token, 0, prefix.length );
-        System.arraycopy( underscore, 0, token, prefix.length, underscore.length );
-        System.arraycopy( code, 0, token, prefix.length + underscore.length, code.length );
-        System.arraycopy( checksum, 0, token, prefix.length + underscore.length + code.length,
-            checksum.length );
-
-        return token;
-    }
-
-    private static char[] generateChecksum( ApiTokenType type, char[] secureCode )
-    {
-        String checksumType = type.getChecksumType();
-
-        return switch ( checksumType )
-        {
-        case "CRC32" -> generateCrc32Checksum( secureCode );
-
-        default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
-        };
-
-    }
-
-    private static char[] generateCrc32Checksum( char[] secureCode )
-    {
-        long checksum = CodeGenerator.generateCrc32Checksum( secureCode );
-
-        // Convert checksum to a char array
-        char[] checksumChars = Long.toString( checksum ).toCharArray();
-
-        // Padding CRC32 checksum to 10 digits
-        int paddingLength = 10 - checksumChars.length;
-        char[] paddedChecksum = new char[10];
-        Arrays.fill( paddedChecksum, '0' );
-        System.arraycopy( checksumChars, 0, paddedChecksum, paddingLength, checksumChars.length );
-        return paddedChecksum;
+        applicationEventPublisher.publishEvent( new ApiTokenDeletedEvent( this, apiToken.getKey() ) );
     }
 }

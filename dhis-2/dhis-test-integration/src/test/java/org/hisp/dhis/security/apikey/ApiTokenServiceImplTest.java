@@ -27,9 +27,10 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static org.hisp.dhis.common.CodeGenerator.isValidSHA256HexFormat;
-import static org.hisp.dhis.security.apikey.ApiTokenType.hashToken;
-import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePlainTextToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.hashToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -38,6 +39,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.common.HashUtils;
 import org.hisp.dhis.hibernate.exception.DeleteAccessDeniedException;
 import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
@@ -83,7 +85,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     public ApiToken createAndSaveToken()
     {
         long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
-        TokenWrapper apiTokenPair = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
+        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePatToken( null, thirtyDaysInTheFuture );
         apiTokenStore.save( apiTokenPair.getApiToken() );
         return apiTokenPair.getApiToken();
     }
@@ -222,15 +224,15 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateChecksums()
     {
-        char[] token = ApiTokenServiceImpl.generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
-        assertTrue( validateChecksum( token ) );
+        char[] token = generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        assertTrue( isValidTokenChecksum( token ) );
     }
 
     @Test
     void testHashingToken()
     {
-        char[] token = ApiTokenServiceImpl.generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        char[] token = generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
         String hashedToken = hashToken( token );
-        assertTrue( isValidSHA256HexFormat( hashedToken ) );
+        assertTrue( HashUtils.isValidSHA256HexFormat( hashedToken ) );
     }
 }

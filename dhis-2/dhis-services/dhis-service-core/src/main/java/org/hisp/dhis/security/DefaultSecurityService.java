@@ -46,6 +46,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PasswordGeneratorUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -245,7 +246,7 @@ public class DefaultSecurityService
         }
 
         int minPasswordLength = systemSettingManager.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH );
-        char[] plaintextPassword = CodeGenerator.generateValidPassword( minPasswordLength );
+        char[] plaintextPassword = PasswordGeneratorUtils.generateValidPassword( minPasswordLength );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );

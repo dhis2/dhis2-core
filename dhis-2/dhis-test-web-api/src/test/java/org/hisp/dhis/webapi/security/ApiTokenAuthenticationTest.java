@@ -27,16 +27,17 @@
  */
 package org.hisp.dhis.webapi.security;
 
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
 import static org.hisp.dhis.web.WebClient.ApiTokenHeader;
 import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
 
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.ApiTokenStore;
-import org.hisp.dhis.security.apikey.TokenWrapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerWithApiTokenAuthTest;
@@ -75,10 +76,11 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         super.setup();
     }
 
-    private TokenWrapper createNewToken()
+    private ApiKeyTokenGenerator.TokenWrapper createNewToken()
     {
         long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
-        TokenWrapper tokenWrapper = apiTokenService.generatePatToken( null, thirtyDaysInTheFuture );
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = generatePatToken( null, thirtyDaysInTheFuture );
+
         apiTokenStore.save( tokenWrapper.getApiToken() );
         return tokenWrapper;
     }
@@ -118,7 +120,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Test
     void testAllowedIpRule()
     {
-        TokenWrapper tokenWrapper = createNewToken();
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
         final String plaintextToken = new String( tokenWrapper.getPlaintextToken() );
         final ApiToken apiToken = tokenWrapper.getApiToken();
 
@@ -139,7 +141,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Test
     void testAllowedMethodRule()
     {
-        TokenWrapper tokenWrapper = createNewToken();
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
         final String plaintextToken = new String( tokenWrapper.getPlaintextToken() );
         final ApiToken apiToken = tokenWrapper.getApiToken();
 
@@ -158,7 +160,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Test
     void testAllowedReferrerRule()
     {
-        TokenWrapper tokenWrapper = createNewToken();
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
         final String plaintextToken = new String( tokenWrapper.getPlaintextToken() );
         final ApiToken apiToken = tokenWrapper.getApiToken();
 
@@ -178,7 +180,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Test
     void testExpiredToken()
     {
-        TokenWrapper tokenWrapper = createNewToken();
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
         final String plaintextToken = new String( tokenWrapper.getPlaintextToken() );
         final ApiToken apiToken = tokenWrapper.getApiToken();
 
@@ -191,7 +193,7 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
     @Test
     void testAuthWithDisabledUser()
     {
-        TokenWrapper tokenWrapper = createNewToken();
+        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
         final String plaintextToken = new String( tokenWrapper.getPlaintextToken() );
 
         User user = adminUser;

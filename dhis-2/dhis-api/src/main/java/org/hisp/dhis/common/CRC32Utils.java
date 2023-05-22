@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,66 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.common;
 
-import lombok.Getter;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.CRC32;
+
+import javax.annotation.Nonnull;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-public enum ApiTokenType
+public class CRC32Utils
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" ),
-    PERSONAL_ACCESS_TOKEN_V2( 2, "d2p", 44, "SHA-256", "CRC32B62" );
-
-    private final String prefix;
-
-    private final int version;
-
-    private final int length;
-
-    private final String hashType;
-
-    private final String checksumType;
-
-    ApiTokenType( int version, String prefix, int length, String hashType, String checksumType )
+    /**
+     * Calculates a checksum for the given input string.
+     *
+     * @param input the input char array.
+     * @return the checksum.
+     */
+    public static long generateCrc32Checksum( @Nonnull char[] input )
     {
-        this.prefix = prefix;
-        this.length = length;
-        this.version = version;
-        this.hashType = hashType;
-        this.checksumType = checksumType;
+        Charset charset = StandardCharsets.UTF_8;
+        CharBuffer charBuffer = CharBuffer.wrap( input );
+        ByteBuffer byteBuffer = charset.encode( charBuffer );
+        byte[] bytes = byteBuffer.array();
+
+        CRC32 crc = new CRC32();
+        crc.update( bytes, 0, bytes.length );
+        return crc.getValue();
     }
 
-    public static ApiTokenType getDefaultPatType()
+    /**
+     * Tests whether the given input string generates the same checksum.
+     *
+     * @param input the input string to checksum.
+     * @param checksum the checksum to compare against.
+     * @return true if they match.
+     */
+    public static boolean isMatchingCrc32Checksum( @Nonnull char[] input, @Nonnull String checksum )
     {
-        return PERSONAL_ACCESS_TOKEN_V2;
-    }
+        long s1 = CRC32Utils.generateCrc32Checksum( input );
+        long s2 = Long.parseLong( checksum );
 
-    public static ApiTokenType fromToken( char[] token )
-    {
-        String tokenType = getTokenTypePrefix( token );
-
-        for ( ApiTokenType type : ApiTokenType.values() )
-        {
-            if ( tokenType.equals( type.getPrefix() ) )
-            {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException( "No ApiTokenType found in token" );
-    }
-
-    private static String getTokenTypePrefix( char[] token )
-    {
-        for ( int i = 0; i < token.length; i++ )
-        {
-            if ( token[i] == '_' )
-            {
-                return new String( token, 0, i );
-            }
-        }
-        throw new IllegalArgumentException( "No ApiTokenType prefix found in token" );
+        return s1 == s2;
     }
 }

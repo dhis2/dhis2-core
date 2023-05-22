@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,9 +53,9 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.security.apikey.TokenWrapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -109,7 +110,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
         }
 
-        TokenWrapper apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes(),
+        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePatToken( inputToken.getAttributes(),
             inputToken.getExpire() );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
