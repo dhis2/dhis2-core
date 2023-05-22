@@ -93,8 +93,8 @@ public class AtomicModeTests
     {
         JsonObject object = new JsonFileReader(
             new File( "src/test/resources/tracker/importer/teis/teisAndRelationship.json" ) )
-                .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
-                .get( JsonObject.class );
+            .replaceStringsWithIds( "JjZ2Nwds92v", "JjZ2Nwds93v" )
+            .get( JsonObject.class );
 
         object = JsonObjectBuilder.jsonObject( object )
             .addPropertyByJsonPath( "trackedEntities[0].trackedEntityType", "" )
