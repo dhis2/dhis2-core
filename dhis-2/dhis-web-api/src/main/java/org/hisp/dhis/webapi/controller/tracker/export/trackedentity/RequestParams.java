@@ -41,6 +41,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
@@ -69,13 +70,19 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<String> filter = new HashSet<>();
 
     /**
-     * Semicolon-delimited list of Organizational Unit UIDs
+     * Semicolon-delimited list of organisation unit UIDs.
+     *
+     * @deprecated use {@link #orgUnits} instead which is comma instead of semicolon separated.
      */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
     private String orgUnit;
 
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
+    private Set<UID> orgUnits = new HashSet<>();
+
     /**
-     * Selection mode for the specified organisation units, default is
-     * ACCESSIBLE.
+     * Selection mode for the specified organisation units, default is ACCESSIBLE.
      */
     private OrganisationUnitSelectionMode ouMode;
 
@@ -86,14 +93,12 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private String program;
 
     /**
-     * The {@see ProgramStatus} of the Tracked Entity Instance in the given
-     * program.
+     * The {@see ProgramStatus} of the Tracked Entity Instance in the given program.
      */
     private ProgramStatus programStatus;
 
     /**
-     * Indicates whether the Tracked Entity Instance is marked for follow up for
-     * the specified Program.
+     * Indicates whether the Tracked Entity Instance is marked for follow up for the specified Program.
      */
     private Boolean followUp;
 
@@ -140,9 +145,15 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
+     *
+     * @deprecated use {@link #trackedEntities} instead which is comma instead of semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, TrackedEntity.class } )
     private String trackedEntity;
+
+    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
+    private Set<UID> trackedEntities = new HashSet<>();
 
     /**
      * Selection mode for user assignment of events.
@@ -150,15 +161,19 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private AssignedUserSelectionMode assignedUserMode;
 
     /**
-     * Semicolon-delimited list of user UIDs to filter based on events assigned
-     * to the users.
+     * Semicolon-delimited list of user UIDs to filter based on events assigned to the users.
+     *
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
 
+    @OpenApi.Property( { UID[].class, User.class } )
+    private Set<UID> assignedUsers = new HashSet<>();
+
     /**
-     * Program Stage UID, used for filtering TEIs based on the selected Program
-     * Stage
+     * Program Stage UID, used for filtering TEIs based on the selected Program Stage
      */
     @OpenApi.Property( { UID.class, ProgramStage.class } )
     private String programStage;
@@ -199,8 +214,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private String attachment;
 
     /**
-     * Potential Duplicate value for TEI. If null, we don't check whether a TEI
-     * is a potentialDuplicate or not
+     * Potential Duplicate value for TEI. If null, we don't check whether a TEI is a potentialDuplicate or not
      */
     private Boolean potentialDuplicate;
 

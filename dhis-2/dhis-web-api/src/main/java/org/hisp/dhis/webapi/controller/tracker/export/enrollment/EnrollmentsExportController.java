@@ -134,7 +134,7 @@ public class EnrollmentsExportController
     @GetMapping( value = "/{uid}" )
     public ResponseEntity<ObjectNode> getEnrollmentByUid(
         @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable UID uid,
-        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
