@@ -676,7 +676,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     }
 
     @Test
-    void shouldCreateQueryFilterWhenCriteriaFilterHasMultipleOperatorAndText()
+    void shouldCreateQueryFilterWhenCriteriaFilterHasMultipleOperatorAndTextRange()
         throws ForbiddenException,
         BadRequestException
     {
@@ -690,6 +690,23 @@ class TrackerTrackedEntityCriteriaMapperTest
         assertContainsOnly( List.of(
             new QueryFilter( QueryOperator.SW, "project:x" ),
             new QueryFilter( QueryOperator.EW, "project:le:" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithComma()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        criteria
+            .setFilter( TEA_1_UID + ":like:value\\,with\\,comma" + "," + TEA_2_UID + ":eq:value" );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "value\\,with\\,comma" ),
+            new QueryFilter( QueryOperator.EQ, "value" ) ), actualFilters );
     }
 
     @Test
