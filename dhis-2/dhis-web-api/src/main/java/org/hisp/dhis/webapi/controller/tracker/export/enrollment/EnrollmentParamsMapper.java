@@ -160,29 +160,29 @@ public class EnrollmentParamsMapper
         }
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<UID> orgUnitIds, Program program )
+    private Set<OrganisationUnit> validateOrgUnits( User user, Set<UID> orgUnitUids, Program program )
         throws BadRequestException,
         ForbiddenException
     {
         Set<OrganisationUnit> orgUnits = new HashSet<>();
-        if ( orgUnitIds != null )
+        if ( orgUnitUids != null )
         {
-            for ( UID orgUnitUid : orgUnitIds )
+            for ( UID orgUnitUid : orgUnitUids )
             {
-                OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit(
+                OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(
                     orgUnitUid.getValue() );
 
-                if ( organisationUnit == null )
+                if ( orgUnit == null )
                 {
                     throw new BadRequestException( "Organisation unit does not exist: " + orgUnitUid.getValue() );
                 }
 
-                if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
+                if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
                 {
                     throw new ForbiddenException(
-                        "User does not have access to organisation unit: " + organisationUnit.getUid() );
+                        "User does not have access to organisation unit: " + orgUnit.getUid() );
                 }
-                orgUnits.add( organisationUnit );
+                orgUnits.add( orgUnit );
             }
         }
 

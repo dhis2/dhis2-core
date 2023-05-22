@@ -87,8 +87,19 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private AssignedUserSelectionMode assignedUserMode;
 
+    /**
+     * Semicolon-delimited list of user UIDs to filter based on events assigned
+     * to the users.
+     *
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of
+     *             semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
+
+    @OpenApi.Property( { UID[].class, User.class } )
+    private Set<UID> assignedUsers = new HashSet<>();
 
     private Date occurredAfter;
 
@@ -126,8 +137,17 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private boolean includeDeleted;
 
+    /**
+     * Semicolon-delimited list of event UIDs.
+     *
+     * @deprecated use {@link #events} instead which is comma instead of
+     *             semicolon separated.
+     */
     @OpenApi.Property( { UID[].class, Event.class } )
     private String event;
+
+    @OpenApi.Property( { UID[].class, Event.class } )
+    private Set<UID> events = new HashSet<>();
 
     private Boolean skipEventId;
 

@@ -28,7 +28,16 @@ Get events using given organisation unit selection mode.
 
 ### `getEvents.parameter.assignedUserMode`
 
+### `getEvents.parameter.assignedUsers`
+
+`<user1-uid>[,<user2-uid>...]`
+
+Get events that are assigned to the given user(s). Specifying `assignedUsers` is only valid if `assignedUserMode` is
+either `PROVIDED` or not specified.
+
 ### `getEvents.parameter.assignedUser`
+
+**DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by comma!
 
 `<user1-uid>[;<user2-uid>...]`
 

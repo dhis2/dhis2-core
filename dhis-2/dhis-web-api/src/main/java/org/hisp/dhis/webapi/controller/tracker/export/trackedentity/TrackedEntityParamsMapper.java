@@ -166,10 +166,8 @@ public class TrackedEntityParamsMapper
             .setEventStatus( requestParams.getEventStatus() )
             .setEventStartDate( requestParams.getEventOccurredAfter() )
             .setEventEndDate( requestParams.getEventOccurredBefore() )
-            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user,
-                assignedUsers.stream().map( UID::getValue ).collect(
-                    Collectors.toSet() ) )
-            .setTrackedEntityUids( trackedEntities.stream().map( UID::getValue ).collect( Collectors.toSet() ) )
+            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, UID.toValueSet( assignedUsers ) )
+            .setTrackedEntityUids( UID.toValueSet( trackedEntities ) )
             .setAttributes( attributeItems )
             .setFilters( filters )
             .setSkipMeta( requestParams.isSkipMeta() )

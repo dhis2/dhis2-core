@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -70,6 +70,7 @@ import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -135,10 +136,14 @@ class EventParamsMapper
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        Set<String> eventIds = parseAndFilterUids( requestParams.getEvent() );
-        validateFilter( requestParams.getFilter(), eventIds, requestParams.getProgramStage(), programStage );
+        Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
+            "events",
+            requestParams.getEvents() );
+        validateFilter( requestParams.getFilter(), eventUids, requestParams.getProgramStage(), programStage );
 
-        Set<String> assignedUserIds = parseAndFilterUids( requestParams.getAssignedUser() );
+        Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
+            "assignedUsers",
+            requestParams.getAssignedUsers() );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
 
@@ -172,7 +177,7 @@ class EventParamsMapper
             .setTrackedEntity( trackedEntity )
             .setProgramStatus( requestParams.getProgramStatus() ).setFollowUp( requestParams.getFollowUp() )
             .setOrgUnitSelectionMode( requestParams.getOuMode() )
-            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, assignedUserIds )
+            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, UID.toValueSet( assignedUsers ) )
             .setStartDate( requestParams.getOccurredAfter() ).setEndDate( requestParams.getOccurredBefore() )
             .setScheduleAtStartDate( requestParams.getScheduledAfter() )
             .setScheduleAtEndDate( requestParams.getScheduledBefore() )
@@ -194,7 +199,8 @@ class EventParamsMapper
             .addOrders( getOrderParams( requestParams.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setEnrollments( enrollments )
+            .setEvents( UID.toValueSet( eventUids ) )
+            .setEnrollments( enrollments )
             .setIncludeDeleted( requestParams.isIncludeDeleted() );
     }
 
@@ -260,7 +266,7 @@ class EventParamsMapper
         }
     }
 
-    private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
+    private static void validateFilter( Set<String> filters, Set<UID> eventIds, String programStage,
         ProgramStage ps )
         throws BadRequestException
     {

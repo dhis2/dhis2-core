@@ -157,8 +157,6 @@ public class RequestParamUtils
     public static Set<UID> validateDeprecatedUidsParameter( String deprecatedParamName, String deprecatedParamUids,
         String newParamName, Set<UID> newParamUids )
     {
-        Set<UID> result;
-
         Set<String> deprecatedParamParsedUids = parseUids( deprecatedParamUids );
         if ( !deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty() )
         {
@@ -167,16 +165,10 @@ public class RequestParamUtils
                     "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
                     deprecatedParamName, newParamName, newParamName, deprecatedParamName ) );
         }
-        if ( !deprecatedParamParsedUids.isEmpty() )
-        {
-            result = deprecatedParamParsedUids.stream().map( UID::of ).collect( Collectors.toSet() );
-        }
-        else
-        {
-            result = newParamUids;
-        }
 
-        return result;
+        return !deprecatedParamParsedUids.isEmpty()
+            ? deprecatedParamParsedUids.stream().map( UID::of ).collect( Collectors.toSet() )
+            : newParamUids;
     }
 
     /**
