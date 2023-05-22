@@ -2252,24 +2252,24 @@ public class JdbcEventStore implements EventStore
 
         switch ( orgUnitSelectionMode )
         {
-        case ALL:
-            orgUnitSql = null;
-            break;
-        case CHILDREN:
-            orgUnitSql = getChildrenOrgUnitsPath( params, ouTable );
-            break;
-        case DESCENDANTS:
-            orgUnitSql = getDescendantOrgUnitsPath( params, ouTable );
-            break;
-        case CAPTURE:
-            orgUnitSql = getCaptureOrgUnitsPath( user, ouTable );
-            break;
-        case SELECTED:
-            orgUnitSql = getSelectedOrgUnitsPath( params, ouTable );
-            break;
-        default:
-            orgUnitSql = getAccessibleOrgUnitsPath( params, user, ouTable );
-            break;
+            case ALL:
+                orgUnitSql = null;
+                break;
+            case CHILDREN:
+                orgUnitSql = getChildrenOrgUnitsPath( params, ouTable );
+                break;
+            case DESCENDANTS:
+                orgUnitSql = getDescendantOrgUnitsPath( params, ouTable );
+                break;
+            case CAPTURE:
+                orgUnitSql = getCaptureOrgUnitsPath( user, ouTable );
+                break;
+            case SELECTED:
+                orgUnitSql = getSelectedOrgUnitsPath( params, ouTable );
+                break;
+            default:
+                orgUnitSql = getAccessibleOrgUnitsPath( params, user, ouTable );
+                break;
         }
 
         return orgUnitSql;

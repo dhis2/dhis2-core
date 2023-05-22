@@ -536,39 +536,39 @@ public class ValidationUtils
         // Value type checks
         switch ( valueType )
         {
-        case LETTER:
-            return !isValidLetter( value ) ? "value_not_valid_letter" : null;
-        case NUMBER:
-            return !isNumeric( value ) ? "value_not_numeric" : null;
-        case UNIT_INTERVAL:
-            return !isUnitInterval( value ) ? "value_not_unit_interval" : null;
-        case PERCENTAGE:
-            return !isPercentage( value ) ? "value_not_percentage" : null;
-        case INTEGER:
-            return !isInteger( value ) ? "value_not_integer" : null;
-        case INTEGER_POSITIVE:
-            return !isPositiveInteger( value ) ? "value_not_positive_integer" : null;
-        case INTEGER_NEGATIVE:
-            return !isNegativeInteger( value ) ? "value_not_negative_integer" : null;
-        case INTEGER_ZERO_OR_POSITIVE:
-            return !isZeroOrPositiveInteger( value ) ? "value_not_zero_or_positive_integer" : null;
-        case BOOLEAN:
-            return !isBool( value.toLowerCase() ) ? "value_not_bool" : null;
-        case TRUE_ONLY:
-            return !TRUE.equalsIgnoreCase( value ) ? "value_not_true_only" : null;
-        case DATE:
-            return !dateIsValid( value ) ? "value_not_valid_date" : null;
-        case DATETIME:
-            return !dateTimeIsValid( value ) ? "value_not_valid_datetime" : null;
-        case COORDINATE:
-            return !isCoordinate( value ) ? "value_not_coordinate" : null;
-        case URL:
-            return !urlIsValid( value ) ? "value_not_url" : null;
-        case FILE_RESOURCE:
-        case IMAGE:
-            return !isValidUid( value ) ? "value_not_valid_file_resource_uid" : null;
-        default:
-            return null;
+            case LETTER:
+                return !isValidLetter( value ) ? "value_not_valid_letter" : null;
+            case NUMBER:
+                return !isNumeric( value ) ? "value_not_numeric" : null;
+            case UNIT_INTERVAL:
+                return !isUnitInterval( value ) ? "value_not_unit_interval" : null;
+            case PERCENTAGE:
+                return !isPercentage( value ) ? "value_not_percentage" : null;
+            case INTEGER:
+                return !isInteger( value ) ? "value_not_integer" : null;
+            case INTEGER_POSITIVE:
+                return !isPositiveInteger( value ) ? "value_not_positive_integer" : null;
+            case INTEGER_NEGATIVE:
+                return !isNegativeInteger( value ) ? "value_not_negative_integer" : null;
+            case INTEGER_ZERO_OR_POSITIVE:
+                return !isZeroOrPositiveInteger( value ) ? "value_not_zero_or_positive_integer" : null;
+            case BOOLEAN:
+                return !isBool( value.toLowerCase() ) ? "value_not_bool" : null;
+            case TRUE_ONLY:
+                return !TRUE.equalsIgnoreCase( value ) ? "value_not_true_only" : null;
+            case DATE:
+                return !dateIsValid( value ) ? "value_not_valid_date" : null;
+            case DATETIME:
+                return !dateTimeIsValid( value ) ? "value_not_valid_datetime" : null;
+            case COORDINATE:
+                return !isCoordinate( value ) ? "value_not_coordinate" : null;
+            case URL:
+                return !urlIsValid( value ) ? "value_not_url" : null;
+            case FILE_RESOURCE:
+            case IMAGE:
+                return !isValidUid( value ) ? "value_not_valid_file_resource_uid" : null;
+            default:
+                return null;
         }
     }
 
@@ -592,38 +592,38 @@ public class ValidationUtils
         // Value type grouped checks.
         switch ( valueType )
         {
-        case INTEGER:
-        case INTEGER_POSITIVE:
-        case INTEGER_NEGATIVE:
-        case INTEGER_ZERO_OR_POSITIVE:
-            return isInteger( trim( value ) );
-        case NUMBER:
-        case UNIT_INTERVAL:
-        case PERCENTAGE:
-            return isValidDouble( parseDouble( trim( value ) ) );
-        case BOOLEAN:
-        case TRUE_ONLY:
-            return isBool( defaultIfBlank( BOOLEAN_VALUES.get( lowerCase( trim( value ) ) ), EMPTY ) );
-        case DATE:
-            return dateIsValid( trim( value ) );
-        case TIME:
-            return timeIsValid( trim( value ) );
-        case DATETIME:
-            return dateTimeIsValid( trim( value ) );
-        case LONG_TEXT:
-        case MULTI_TEXT:
-        case PHONE_NUMBER:
-        case EMAIL:
-        case TEXT:
-        case LETTER:
-        case COORDINATE:
-        case URL:
-        case FILE_RESOURCE:
-        case IMAGE:
-        case USERNAME:
-        case GEOJSON:
-        default:
-            return true;
+            case INTEGER:
+            case INTEGER_POSITIVE:
+            case INTEGER_NEGATIVE:
+            case INTEGER_ZERO_OR_POSITIVE:
+                return isInteger( trim( value ) );
+            case NUMBER:
+            case UNIT_INTERVAL:
+            case PERCENTAGE:
+                return isValidDouble( parseDouble( trim( value ) ) );
+            case BOOLEAN:
+            case TRUE_ONLY:
+                return isBool( defaultIfBlank( BOOLEAN_VALUES.get( lowerCase( trim( value ) ) ), EMPTY ) );
+            case DATE:
+                return dateIsValid( trim( value ) );
+            case TIME:
+                return timeIsValid( trim( value ) );
+            case DATETIME:
+                return dateTimeIsValid( trim( value ) );
+            case LONG_TEXT:
+            case MULTI_TEXT:
+            case PHONE_NUMBER:
+            case EMAIL:
+            case TEXT:
+            case LETTER:
+            case COORDINATE:
+            case URL:
+            case FILE_RESOURCE:
+            case IMAGE:
+            case USERNAME:
+            case GEOJSON:
+            default:
+                return true;
         }
     }
 

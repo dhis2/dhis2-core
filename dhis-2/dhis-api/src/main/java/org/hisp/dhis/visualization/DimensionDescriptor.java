@@ -113,19 +113,19 @@ public class DimensionDescriptor
     {
         switch ( getType() )
         {
-        case ATTRIBUTE_OPTION_COMBO:
-            return ATTRIBUTEOPTIONCOMBO_DIM_ID;
-        case CATEGORY_OPTION_COMBO:
-            return CATEGORYOPTIONCOMBO_DIM_ID;
-        case DATA_X:
-            return DATA_X_DIM_ID;
-        case ORGANISATION_UNIT:
-        case ORGANISATION_UNIT_GROUP_SET:
-            return ORGUNIT_DIM_ID;
-        case PERIOD:
-            return PERIOD_DIM_ID;
-        default:
-            return EMPTY;
+            case ATTRIBUTE_OPTION_COMBO:
+                return ATTRIBUTEOPTIONCOMBO_DIM_ID;
+            case CATEGORY_OPTION_COMBO:
+                return CATEGORYOPTIONCOMBO_DIM_ID;
+            case DATA_X:
+                return DATA_X_DIM_ID;
+            case ORGANISATION_UNIT:
+            case ORGANISATION_UNIT_GROUP_SET:
+                return ORGUNIT_DIM_ID;
+            case PERIOD:
+                return PERIOD_DIM_ID;
+            default:
+                return EMPTY;
         }
     }
 }

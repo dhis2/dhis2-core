@@ -183,11 +183,11 @@ class RelationshipTypeJoinGeneratorTest
     {
         switch ( relationshipEntity )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            return TEI_JOIN_START;
-        case PROGRAM_STAGE_INSTANCE:
-        case PROGRAM_INSTANCE:
-            return (programIndicatorType.equals( AnalyticsType.EVENT ) ? PSI_JOIN_START : PI_JOIN_START);
+            case TRACKED_ENTITY_INSTANCE:
+                return TEI_JOIN_START;
+            case PROGRAM_STAGE_INSTANCE:
+            case PROGRAM_INSTANCE:
+                return (programIndicatorType.equals( AnalyticsType.EVENT ) ? PSI_JOIN_START : PI_JOIN_START);
         }
         return "";
     }
@@ -196,12 +196,12 @@ class RelationshipTypeJoinGeneratorTest
     {
         switch ( relationshipEntity )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            return TEI_RELTO_JOIN;
-        case PROGRAM_STAGE_INSTANCE:
-            return PSI_RELTO_JOIN;
-        case PROGRAM_INSTANCE:
-            return PI_RELTO_JOIN;
+            case TRACKED_ENTITY_INSTANCE:
+                return TEI_RELTO_JOIN;
+            case PROGRAM_STAGE_INSTANCE:
+                return PSI_RELTO_JOIN;
+            case PROGRAM_INSTANCE:
+                return PI_RELTO_JOIN;
         }
         return "";
     }

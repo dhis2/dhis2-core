@@ -56,27 +56,27 @@ public enum CacheStrategy
     {
         switch ( this )
         {
-        case CACHE_1_MINUTE:
-            return MINUTES.toSeconds( 1 );
-        case CACHE_5_MINUTES:
-            return MINUTES.toSeconds( 5 );
-        case CACHE_10_MINUTES:
-            return MINUTES.toSeconds( 10 );
-        case CACHE_15_MINUTES:
-            return MINUTES.toSeconds( 15 );
-        case CACHE_30_MINUTES:
-            return MINUTES.toSeconds( 30 );
-        case CACHE_1_HOUR:
-            return HOURS.toSeconds( 1 );
-        case CACHE_TWO_WEEKS:
-            return DAYS.toSeconds( 14 );
-        case CACHE_6AM_TOMORROW:
-            return getSecondsUntilTomorrow( 6 );
-        case NO_CACHE:
-            return 0l;
-        case RESPECT_SYSTEM_SETTING:
-        default:
-            throw new UnsupportedOperationException();
+            case CACHE_1_MINUTE:
+                return MINUTES.toSeconds( 1 );
+            case CACHE_5_MINUTES:
+                return MINUTES.toSeconds( 5 );
+            case CACHE_10_MINUTES:
+                return MINUTES.toSeconds( 10 );
+            case CACHE_15_MINUTES:
+                return MINUTES.toSeconds( 15 );
+            case CACHE_30_MINUTES:
+                return MINUTES.toSeconds( 30 );
+            case CACHE_1_HOUR:
+                return HOURS.toSeconds( 1 );
+            case CACHE_TWO_WEEKS:
+                return DAYS.toSeconds( 14 );
+            case CACHE_6AM_TOMORROW:
+                return getSecondsUntilTomorrow( 6 );
+            case NO_CACHE:
+                return 0l;
+            case RESPECT_SYSTEM_SETTING:
+            default:
+                throw new UnsupportedOperationException();
         }
     }
 

@@ -59,12 +59,12 @@ public class DefaultAuditObjectFactory implements AuditObjectFactory
     {
         switch ( auditScope )
         {
-        case METADATA:
-            return handleMetadataAudit( object );
-        case TRACKER:
-            return handleTracker( object );
-        case AGGREGATE:
-            return handleAggregate( object );
+            case METADATA:
+                return handleMetadataAudit( object );
+            case TRACKER:
+                return handleTracker( object );
+            case AGGREGATE:
+                return handleAggregate( object );
         }
         return null;
     }

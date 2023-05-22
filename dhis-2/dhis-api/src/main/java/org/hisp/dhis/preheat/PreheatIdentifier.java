@@ -54,10 +54,10 @@ public enum PreheatIdentifier
     {
         switch ( this )
         {
-        case UID:
-            return object.getUid();
-        case CODE:
-            return object.getCode();
+            case UID:
+                return object.getUid();
+            case CODE:
+                return object.getCode();
         }
         throw new RuntimeException( "Unhandled identifier type." );
     }
@@ -66,10 +66,10 @@ public enum PreheatIdentifier
     {
         switch ( this )
         {
-        case UID:
-            return singletonList( object.getUid() );
-        case CODE:
-            return singletonList( object.getCode() );
+            case UID:
+                return singletonList( object.getUid() );
+            case CODE:
+                return singletonList( object.getCode() );
         }
         return emptyList();
     }

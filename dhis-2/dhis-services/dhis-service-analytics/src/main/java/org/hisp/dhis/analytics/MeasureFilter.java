@@ -52,18 +52,18 @@ public enum MeasureFilter
     {
         switch ( this )
         {
-        case EQ:
-            return Double.compare( x, y ) == 0;
-        case GT:
-            return Double.compare( x, y ) > 0;
-        case GE:
-            return Double.compare( x, y ) >= 0;
-        case LT:
-            return Double.compare( x, y ) < 0;
-        case LE:
-            return Double.compare( x, y ) <= 0;
-        default:
-            return false;
+            case EQ:
+                return Double.compare( x, y ) == 0;
+            case GT:
+                return Double.compare( x, y ) > 0;
+            case GE:
+                return Double.compare( x, y ) >= 0;
+            case LT:
+                return Double.compare( x, y ) < 0;
+            case LE:
+                return Double.compare( x, y ) <= 0;
+            default:
+                return false;
         }
     }
 }

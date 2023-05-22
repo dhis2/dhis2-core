@@ -342,20 +342,20 @@ public abstract class CompressionSMSListener
     {
         switch ( eventStatus )
         {
-        case ACTIVE:
-            return EventStatus.ACTIVE;
-        case COMPLETED:
-            return EventStatus.COMPLETED;
-        case VISITED:
-            return EventStatus.VISITED;
-        case SCHEDULE:
-            return EventStatus.SCHEDULE;
-        case OVERDUE:
-            return EventStatus.OVERDUE;
-        case SKIPPED:
-            return EventStatus.SKIPPED;
-        default:
-            return null;
+            case ACTIVE:
+                return EventStatus.ACTIVE;
+            case COMPLETED:
+                return EventStatus.COMPLETED;
+            case VISITED:
+                return EventStatus.VISITED;
+            case SCHEDULE:
+                return EventStatus.SCHEDULE;
+            case OVERDUE:
+                return EventStatus.OVERDUE;
+            case SKIPPED:
+                return EventStatus.SKIPPED;
+            default:
+                return null;
         }
     }
 
@@ -363,14 +363,14 @@ public abstract class CompressionSMSListener
     {
         switch ( enrollmentStatus )
         {
-        case ACTIVE:
-            return ProgramStatus.ACTIVE;
-        case COMPLETED:
-            return ProgramStatus.COMPLETED;
-        case CANCELLED:
-            return ProgramStatus.CANCELLED;
-        default:
-            return null;
+            case ACTIVE:
+                return ProgramStatus.ACTIVE;
+            case COMPLETED:
+                return ProgramStatus.COMPLETED;
+            case CANCELLED:
+                return ProgramStatus.CANCELLED;
+            default:
+                return null;
         }
     }
 

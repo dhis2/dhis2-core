@@ -193,12 +193,12 @@ public class DefaultGeoJsonService implements GeoJsonService
     {
         switch ( params.getIdType() )
         {
-        case CODE:
-            return OrganisationUnit::getCode;
-        case NAME:
-            return OrganisationUnit::getName;
-        default:
-            return OrganisationUnit::getUid;
+            case CODE:
+                return OrganisationUnit::getCode;
+            case NAME:
+                return OrganisationUnit::getName;
+            default:
+                return OrganisationUnit::getUid;
         }
     }
 
@@ -207,12 +207,12 @@ public class DefaultGeoJsonService implements GeoJsonService
     {
         switch ( params.getIdType() )
         {
-        case CODE:
-            return organisationUnitStore.getByCode( ouIdentifiers, params.getUser() );
-        case NAME:
-            return organisationUnitStore.getByName( ouIdentifiers, params.getUser() );
-        default:
-            return organisationUnitStore.getByUid( ouIdentifiers, params.getUser() );
+            case CODE:
+                return organisationUnitStore.getByCode( ouIdentifiers, params.getUser() );
+            case NAME:
+                return organisationUnitStore.getByName( ouIdentifiers, params.getUser() );
+            default:
+                return organisationUnitStore.getByUid( ouIdentifiers, params.getUser() );
         }
     }
 

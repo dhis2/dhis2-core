@@ -228,14 +228,14 @@ public class DefaultOutlierDetectionService
     {
         switch ( request.getAlgorithm() )
         {
-        case Z_SCORE:
-        case MOD_Z_SCORE:
-            return zScoreOutlierDetection.getOutlierValues( request );
-        case MIN_MAX:
-            return minMaxOutlierDetection.getOutlierValues( request );
-        default:
-            throw new IllegalStateException( String.format(
-                "Outlier detection algorithm not supported: %s", request.getAlgorithm() ) );
+            case Z_SCORE:
+            case MOD_Z_SCORE:
+                return zScoreOutlierDetection.getOutlierValues( request );
+            case MIN_MAX:
+                return minMaxOutlierDetection.getOutlierValues( request );
+            default:
+                throw new IllegalStateException( String.format(
+                    "Outlier detection algorithm not supported: %s", request.getAlgorithm() ) );
         }
     }
 }

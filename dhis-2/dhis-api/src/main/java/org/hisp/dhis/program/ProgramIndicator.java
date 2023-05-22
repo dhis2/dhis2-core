@@ -156,13 +156,13 @@ public class ProgramIndicator
 
         switch ( aggregationType )
         {
-        case AVERAGE_SUM_ORG_UNIT, LAST_IN_PERIOD, MAX_SUM_ORG_UNIT, MIN_SUM_ORG_UNIT:
-            return AggregationType.SUM;
-        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT, DEFAULT:
-            return AggregationType.AVERAGE;
-        case FIRST, LAST, FIRST_AVERAGE_ORG_UNIT, LAST_AVERAGE_ORG_UNIT:
-        default:
-            return aggregationType;
+            case AVERAGE_SUM_ORG_UNIT, LAST_IN_PERIOD, MAX_SUM_ORG_UNIT, MIN_SUM_ORG_UNIT:
+                return AggregationType.SUM;
+            case LAST_IN_PERIOD_AVERAGE_ORG_UNIT, DEFAULT:
+                return AggregationType.AVERAGE;
+            case FIRST, LAST, FIRST_AVERAGE_ORG_UNIT, LAST_AVERAGE_ORG_UNIT:
+            default:
+                return aggregationType;
         }
     }
 

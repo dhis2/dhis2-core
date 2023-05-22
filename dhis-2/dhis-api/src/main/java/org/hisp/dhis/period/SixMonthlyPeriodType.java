@@ -84,12 +84,12 @@ public class SixMonthlyPeriodType
 
         switch ( month )
         {
-        case 1:
-            return dateTimeUnit.getYear() + "S1";
-        case 7:
-            return dateTimeUnit.getYear() + "S2";
-        default:
-            throw new IllegalArgumentException( String.format( "Month not valid [1,7]: %d", month ) );
+            case 1:
+                return dateTimeUnit.getYear() + "S1";
+            case 7:
+                return dateTimeUnit.getYear() + "S2";
+            default:
+                throw new IllegalArgumentException( String.format( "Month not valid [1,7]: %d", month ) );
         }
     }
 

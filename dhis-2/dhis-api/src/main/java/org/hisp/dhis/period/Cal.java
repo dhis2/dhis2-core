@@ -116,18 +116,18 @@ public class Cal
     {
         switch ( field )
         {
-        case Calendar.YEAR:
-            dateTimeUnit = getCalendar().plusYears( dateTimeUnit, amount );
-            break;
-        case Calendar.MONTH:
-            dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
-            break;
-        case Calendar.DAY_OF_MONTH: // fallthrough
-        case Calendar.DAY_OF_YEAR:
-            dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
-            break;
-        default:
-            throw new UnsupportedOperationException();
+            case Calendar.YEAR:
+                dateTimeUnit = getCalendar().plusYears( dateTimeUnit, amount );
+                break;
+            case Calendar.MONTH:
+                dateTimeUnit = getCalendar().plusMonths( dateTimeUnit, amount );
+                break;
+            case Calendar.DAY_OF_MONTH: // fallthrough
+            case Calendar.DAY_OF_YEAR:
+                dateTimeUnit = getCalendar().plusDays( dateTimeUnit, amount );
+                break;
+            default:
+                throw new UnsupportedOperationException();
         }
 
         return this;
@@ -143,18 +143,18 @@ public class Cal
     {
         switch ( field )
         {
-        case Calendar.YEAR:
-            dateTimeUnit = getCalendar().minusYears( dateTimeUnit, amount );
-            break;
-        case Calendar.MONTH:
-            dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
-            break;
-        case Calendar.DAY_OF_MONTH: // fallthrough
-        case Calendar.DAY_OF_YEAR:
-            dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );
-            break;
-        default:
-            throw new UnsupportedOperationException();
+            case Calendar.YEAR:
+                dateTimeUnit = getCalendar().minusYears( dateTimeUnit, amount );
+                break;
+            case Calendar.MONTH:
+                dateTimeUnit = getCalendar().minusMonths( dateTimeUnit, amount );
+                break;
+            case Calendar.DAY_OF_MONTH: // fallthrough
+            case Calendar.DAY_OF_YEAR:
+                dateTimeUnit = getCalendar().minusDays( dateTimeUnit, amount );
+                break;
+            default:
+                throw new UnsupportedOperationException();
         }
 
         return this;

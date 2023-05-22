@@ -112,11 +112,11 @@ public class OpenApiTool implements ToolProvider
             {
                 switch ( arg )
                 {
-                case "--group":
-                    group = true;
-                    break;
-                default:
-                    err.println( "Unknown option: " + arg );
+                    case "--group":
+                        group = true;
+                        break;
+                    default:
+                        err.println( "Unknown option: " + arg );
                 }
             }
             else if ( arg.startsWith( "/" ) )

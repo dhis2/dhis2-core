@@ -64,14 +64,14 @@ public enum FeatureType
     {
         switch ( type )
         {
-        case "Point":
-            return POINT;
-        case "Polygon":
-            return POLYGON;
-        case "MultiPolygon":
-            return MULTI_POLYGON;
-        default:
-            return NONE;
+            case "Point":
+                return POINT;
+            case "Polygon":
+                return POLYGON;
+            case "MultiPolygon":
+                return MULTI_POLYGON;
+            default:
+                return NONE;
         }
     }
 }

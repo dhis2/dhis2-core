@@ -59,21 +59,21 @@ public abstract class LogOnceLogger
         {
             switch ( level )
             {
-            case ERROR:
-                log.error( logString );
-                break;
-            case WARN:
-                log.warn( logString );
-                break;
-            case INFO:
-                log.info( logString );
-                break;
-            case DEBUG:
-                log.debug( logString );
-                break;
-            case TRACE:
-                log.trace( logString );
-                break;
+                case ERROR:
+                    log.error( logString );
+                    break;
+                case WARN:
+                    log.warn( logString );
+                    break;
+                case INFO:
+                    log.info( logString );
+                    break;
+                case DEBUG:
+                    log.debug( logString );
+                    break;
+                case TRACE:
+                    log.trace( logString );
+                    break;
             }
             logged.add( logString );
         }

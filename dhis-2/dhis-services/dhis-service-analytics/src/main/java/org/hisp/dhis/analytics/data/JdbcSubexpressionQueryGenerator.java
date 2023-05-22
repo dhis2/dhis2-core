@@ -332,9 +332,9 @@ public class JdbcSubexpressionQueryGenerator
     {
         return switch ( aggType )
         {
-        case AVERAGE -> "avg";
-        case MAX, MIN, COUNT, STDDEV, VARIANCE -> aggType.name().toLowerCase();
-        default -> "sum";
+            case AVERAGE -> "avg";
+            case MAX, MIN, COUNT, STDDEV, VARIANCE -> aggType.name().toLowerCase();
+            default -> "sum";
         };
     }
 }

@@ -160,16 +160,16 @@ public abstract class Operator<T extends Comparable<? super T>>
     {
         switch ( matchMode )
         {
-        case EXACT:
-            return org.hibernate.criterion.MatchMode.EXACT;
-        case START:
-            return org.hibernate.criterion.MatchMode.START;
-        case END:
-            return org.hibernate.criterion.MatchMode.END;
-        case ANYWHERE:
-            return org.hibernate.criterion.MatchMode.ANYWHERE;
-        default:
-            return null;
+            case EXACT:
+                return org.hibernate.criterion.MatchMode.EXACT;
+            case START:
+                return org.hibernate.criterion.MatchMode.START;
+            case END:
+                return org.hibernate.criterion.MatchMode.END;
+            case ANYWHERE:
+                return org.hibernate.criterion.MatchMode.ANYWHERE;
+            default:
+                return null;
         }
     }
 
@@ -177,16 +177,16 @@ public abstract class Operator<T extends Comparable<? super T>>
     {
         switch ( matchMode )
         {
-        case EXACT:
-            return JpaQueryUtils.StringSearchMode.EQUALS;
-        case START:
-            return JpaQueryUtils.StringSearchMode.STARTING_LIKE;
-        case END:
-            return JpaQueryUtils.StringSearchMode.ENDING_LIKE;
-        case ANYWHERE:
-            return JpaQueryUtils.StringSearchMode.ANYWHERE;
-        default:
-            return null;
+            case EXACT:
+                return JpaQueryUtils.StringSearchMode.EQUALS;
+            case START:
+                return JpaQueryUtils.StringSearchMode.STARTING_LIKE;
+            case END:
+                return JpaQueryUtils.StringSearchMode.ENDING_LIKE;
+            case ANYWHERE:
+                return JpaQueryUtils.StringSearchMode.ANYWHERE;
+            default:
+                return null;
         }
     }
 
@@ -201,16 +201,16 @@ public abstract class Operator<T extends Comparable<? super T>>
     {
         switch ( matchMode )
         {
-        case EXACT:
-            return JpaQueryUtils.StringSearchMode.NOT_EQUALS;
-        case START:
-            return JpaQueryUtils.StringSearchMode.NOT_STARTING_LIKE;
-        case END:
-            return JpaQueryUtils.StringSearchMode.NOT_ENDING_LIKE;
-        case ANYWHERE:
-            return JpaQueryUtils.StringSearchMode.NOT_ANYWHERE;
-        default:
-            return null;
+            case EXACT:
+                return JpaQueryUtils.StringSearchMode.NOT_EQUALS;
+            case START:
+                return JpaQueryUtils.StringSearchMode.NOT_STARTING_LIKE;
+            case END:
+                return JpaQueryUtils.StringSearchMode.NOT_ENDING_LIKE;
+            case ANYWHERE:
+                return JpaQueryUtils.StringSearchMode.NOT_ANYWHERE;
+            default:
+                return null;
         }
     }
 

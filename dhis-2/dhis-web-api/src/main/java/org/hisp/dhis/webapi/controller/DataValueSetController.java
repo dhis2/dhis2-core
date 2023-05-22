@@ -127,17 +127,17 @@ public class DataValueSetController
     {
         switch ( format )
         {
-        case "xml":
-            getDataValueSetXml( params, attachment, compression, response );
-            break;
-        case "adx+xml":
-            getDataValueSetXmlAdx( params, attachment, compression, response );
-            break;
-        case "csv":
-            getDataValueSetCsv( params, attachment, compression, response );
-            break;
-        default:
-            getDataValueSetJson( params, attachment, compression, response );
+            case "xml":
+                getDataValueSetXml( params, attachment, compression, response );
+                break;
+            case "adx+xml":
+                getDataValueSetXmlAdx( params, attachment, compression, response );
+                break;
+            case "csv":
+                getDataValueSetCsv( params, attachment, compression, response );
+                break;
+            default:
+                getDataValueSetJson( params, attachment, compression, response );
         }
     }
 

@@ -48,14 +48,14 @@ public class JsonMessageConverter extends AbstractRootNodeMessageConverter
 
         switch ( getCompression() )
         {
-        case NONE:
-            setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
+            case NONE:
+                setSupportedMediaTypes( JSON_SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( JSON_GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( JSON_ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 }

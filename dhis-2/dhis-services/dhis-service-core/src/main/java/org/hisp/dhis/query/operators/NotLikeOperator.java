@@ -100,16 +100,16 @@ public class NotLikeOperator<T extends Comparable<? super T>> extends Operator<T
 
             switch ( jpaMatchMode )
             {
-            case NOT_EQUALS:
-                return !s2.equals( s1 );
-            case NOT_STARTING_LIKE:
-                return !s2.startsWith( s1 );
-            case NOT_ENDING_LIKE:
-                return !s2.endsWith( s1 );
-            case NOT_ANYWHERE:
-                return !s2.contains( s1 );
-            default:
-                return false;
+                case NOT_EQUALS:
+                    return !s2.equals( s1 );
+                case NOT_STARTING_LIKE:
+                    return !s2.startsWith( s1 );
+                case NOT_ENDING_LIKE:
+                    return !s2.endsWith( s1 );
+                case NOT_ANYWHERE:
+                    return !s2.contains( s1 );
+                default:
+                    return false;
             }
         }
 

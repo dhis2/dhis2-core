@@ -403,21 +403,21 @@ public class EventManager
 
                 switch ( importStrategy )
                 {
-                case CREATE:
-                    is.incrementImported();
-                    break;
+                    case CREATE:
+                        is.incrementImported();
+                        break;
 
-                case UPDATE:
-                    is.incrementUpdated();
-                    break;
+                    case UPDATE:
+                        is.incrementUpdated();
+                        break;
 
-                case DELETE:
-                    is.incrementDeleted();
-                    is.setDescription( "Deletion of event " + event.getUid() + " was successful" );
-                    break;
+                    case DELETE:
+                        is.incrementDeleted();
+                        is.setDescription( "Deletion of event " + event.getUid() + " was successful" );
+                        break;
 
-                default:
-                    log.warn( "Invalid Import Strategy during summary increment, ignoring" );
+                    default:
+                        log.warn( "Invalid Import Strategy during summary increment, ignoring" );
                 }
 
                 importSummaries.addImportSummary( is );

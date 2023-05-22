@@ -132,43 +132,45 @@ public class AnalyticsAggregationType
 
         switch ( aggregationType )
         {
-        case AVERAGE_SUM_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
-            break;
-        case LAST:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
-            break;
-        case LAST_AVERAGE_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.LAST );
-            break;
-        case LAST_LAST_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
-            break;
-        case LAST_IN_PERIOD:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM,
-                AggregationType.LAST_IN_PERIOD );
-            break;
-        case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE,
-                AggregationType.LAST_IN_PERIOD );
-            break;
-        case FIRST:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.FIRST );
-            break;
-        case FIRST_AVERAGE_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE, AggregationType.FIRST );
-            break;
-        case FIRST_FIRST_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
-            break;
-        case MAX_SUM_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MAX );
-            break;
-        case MIN_SUM_ORG_UNIT:
-            analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MIN );
-            break;
-        default:
-            analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );
+            case AVERAGE_SUM_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.AVERAGE );
+                break;
+            case LAST:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.LAST );
+                break;
+            case LAST_AVERAGE_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE,
+                    AggregationType.LAST );
+                break;
+            case LAST_LAST_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.LAST, AggregationType.LAST );
+                break;
+            case LAST_IN_PERIOD:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM,
+                    AggregationType.LAST_IN_PERIOD );
+                break;
+            case LAST_IN_PERIOD_AVERAGE_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE,
+                    AggregationType.LAST_IN_PERIOD );
+                break;
+            case FIRST:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.FIRST );
+                break;
+            case FIRST_AVERAGE_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.AVERAGE,
+                    AggregationType.FIRST );
+                break;
+            case FIRST_FIRST_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.FIRST, AggregationType.FIRST );
+                break;
+            case MAX_SUM_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MAX );
+                break;
+            case MIN_SUM_ORG_UNIT:
+                analyticsAggregationType = new AnalyticsAggregationType( AggregationType.SUM, AggregationType.MIN );
+                break;
+            default:
+                analyticsAggregationType = new AnalyticsAggregationType( aggregationType, aggregationType );
         }
 
         return analyticsAggregationType;

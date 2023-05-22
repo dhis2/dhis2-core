@@ -141,20 +141,20 @@ public final class CoordinatesUtils
         StringBuilder asPairs = new StringBuilder();
         switch ( dimensions )
         {
-        case 1:
-            coordinatesAsPairsDim1( coordinates, asPairs );
-            break;
-        case 2:
-            coordinatesAsPairsDim2( coordinates, asPairs );
-            break;
-        case 3:
-            coordinatesAsPairsDim3( coordinates, asPairs );
-            break;
-        case 4:
-            coordinatesAsPairsDim4( coordinates, asPairs );
-            break;
-        default:
-            throw new UnsupportedOperationException( "Coordinates format not supported" );
+            case 1:
+                coordinatesAsPairsDim1( coordinates, asPairs );
+                break;
+            case 2:
+                coordinatesAsPairsDim2( coordinates, asPairs );
+                break;
+            case 3:
+                coordinatesAsPairsDim3( coordinates, asPairs );
+                break;
+            case 4:
+                coordinatesAsPairsDim4( coordinates, asPairs );
+                break;
+            default:
+                throw new UnsupportedOperationException( "Coordinates format not supported" );
         }
         return asPairs.toString();
     }

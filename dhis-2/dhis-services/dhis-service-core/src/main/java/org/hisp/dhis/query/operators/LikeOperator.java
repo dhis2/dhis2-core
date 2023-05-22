@@ -111,14 +111,14 @@ public class LikeOperator<T extends Comparable<? super T>> extends Operator<T>
 
             switch ( jpaMatchMode )
             {
-            case EQUALS:
-                return s2.equals( s1 );
-            case STARTING_LIKE:
-                return s2.startsWith( s1 );
-            case ENDING_LIKE:
-                return s2.endsWith( s1 );
-            case ANYWHERE:
-                return s2.contains( s1 );
+                case EQUALS:
+                    return s2.equals( s1 );
+                case STARTING_LIKE:
+                    return s2.startsWith( s1 );
+                case ENDING_LIKE:
+                    return s2.endsWith( s1 );
+                case ANYWHERE:
+                    return s2.contains( s1 );
             }
         }
 

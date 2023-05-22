@@ -1309,14 +1309,14 @@ public abstract class AbstractJdbcEventAnalyticsManager
                 // Specific handling for null and empty values
                 switch ( filter.getOperator() )
                 {
-                case NEQ:
-                case NE:
-                case NIEQ:
-                case NLIKE:
-                case NILIKE:
-                    return nullAndEmptyMatcher( item, filter, field );
-                default:
-                    break;
+                    case NEQ:
+                    case NE:
+                    case NIEQ:
+                    case NLIKE:
+                    case NILIKE:
+                        return nullAndEmptyMatcher( item, filter, field );
+                    default:
+                        break;
                 }
             }
 

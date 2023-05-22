@@ -730,20 +730,20 @@ public class TextUtils
             final char c = glob.charAt( i );
             switch ( c )
             {
-            case '*':
-                out.append( ".*" );
-                break;
-            case '?':
-                out.append( '.' );
-                break;
-            case '.':
-                out.append( "\\." );
-                break;
-            case '\\':
-                out.append( "\\\\" );
-                break;
-            default:
-                out.append( c );
+                case '*':
+                    out.append( ".*" );
+                    break;
+                case '?':
+                    out.append( '.' );
+                    break;
+                case '.':
+                    out.append( "\\." );
+                    break;
+                case '\\':
+                    out.append( "\\\\" );
+                    break;
+                default:
+                    out.append( c );
             }
         }
 

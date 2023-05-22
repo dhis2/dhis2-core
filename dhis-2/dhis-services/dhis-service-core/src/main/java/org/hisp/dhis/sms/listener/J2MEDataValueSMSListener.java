@@ -400,18 +400,18 @@ public class J2MEDataValueSMSListener extends CommandSMSListener
 
             switch ( periodName.substring( 0, periodName.indexOf( " " ) ) )
             {
-            case "Jan":
-                month = 1;
-                break;
-            case "Apr":
-                month = 4;
-                break;
-            case "Jul":
-                month = 6;
-                break;
-            case "Oct":
-                month = 10;
-                break;
+                case "Jan":
+                    month = 1;
+                    break;
+                case "Apr":
+                    month = 4;
+                    break;
+                case "Jul":
+                    month = 6;
+                    break;
+                case "Oct":
+                    month = 10;
+                    break;
             }
 
             int year = Integer.parseInt( periodName.substring( periodName.lastIndexOf( " " ) + 1 ) );

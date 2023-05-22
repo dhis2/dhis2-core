@@ -77,33 +77,33 @@ public class ProgramElementsAndAttributesCollecter
 
         switch ( ctx.it.getType() )
         {
-        case HASH_BRACE:
-            assumeStageElementSyntax( ctx );
+            case HASH_BRACE:
+                assumeStageElementSyntax( ctx );
 
-            String programStageId = ctx.uid0.getText();
-            String dataElementId = ctx.uid1.getText();
+                String programStageId = ctx.uid0.getText();
+                String dataElementId = ctx.uid1.getText();
 
-            if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
-            {
-                items.add( programStageId + "_" + dataElementId );
-            }
-            else
-            {
-                items.add( dataElementId );
-            }
-            break;
+                if ( AnalyticsType.ENROLLMENT.equals( analyticsType ) )
+                {
+                    items.add( programStageId + "_" + dataElementId );
+                }
+                else
+                {
+                    items.add( dataElementId );
+                }
+                break;
 
-        case A_BRACE:
-            assumeProgramExpressionProgramAttribute( ctx );
+            case A_BRACE:
+                assumeProgramExpressionProgramAttribute( ctx );
 
-            String attributeId = ctx.uid0.getText();
+                String attributeId = ctx.uid0.getText();
 
-            items.add( attributeId );
+                items.add( attributeId );
 
-            break;
+                break;
 
-        default:
-            break;
+            default:
+                break;
         }
     }
 }

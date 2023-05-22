@@ -260,11 +260,11 @@ public class DefaultEventQueryValidator
     {
         switch ( valueType )
         {
-        case TIME:
-        case DATETIME:
-            return replaceDateTimeSeparators( filterValue );
-        default:
-            return filterValue;
+            case TIME:
+            case DATETIME:
+                return replaceDateTimeSeparators( filterValue );
+            default:
+                return filterValue;
         }
     }
 

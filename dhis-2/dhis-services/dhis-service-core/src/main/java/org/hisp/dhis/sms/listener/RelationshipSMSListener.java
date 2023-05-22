@@ -149,32 +149,32 @@ public class RelationshipSMSListener extends CompressionSMSListener
 
         switch ( relEnt )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            TrackedEntity tei = trackedEntityService.getTrackedEntity( objId.getUid() );
-            if ( tei == null )
-            {
-                throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
-            }
-            relItem.setTrackedEntity( tei );
-            break;
+            case TRACKED_ENTITY_INSTANCE:
+                TrackedEntity tei = trackedEntityService.getTrackedEntity( objId.getUid() );
+                if ( tei == null )
+                {
+                    throw new SMSProcessingException( SmsResponse.INVALID_TEI.set( objId ) );
+                }
+                relItem.setTrackedEntity( tei );
+                break;
 
-        case PROGRAM_INSTANCE:
-            Enrollment progInst = enrollmentService.getEnrollment( objId.getUid() );
-            if ( progInst == null )
-            {
-                throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
-            }
-            relItem.setEnrollment( progInst );
-            break;
+            case PROGRAM_INSTANCE:
+                Enrollment progInst = enrollmentService.getEnrollment( objId.getUid() );
+                if ( progInst == null )
+                {
+                    throw new SMSProcessingException( SmsResponse.INVALID_ENROLL.set( objId ) );
+                }
+                relItem.setEnrollment( progInst );
+                break;
 
-        case PROGRAM_STAGE_INSTANCE:
-            Event event = eventService.getEvent( objId.getUid() );
-            if ( event == null )
-            {
-                throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
-            }
-            relItem.setEvent( event );
-            break;
+            case PROGRAM_STAGE_INSTANCE:
+                Event event = eventService.getEvent( objId.getUid() );
+                if ( event == null )
+                {
+                    throw new SMSProcessingException( SmsResponse.INVALID_EVENT.set( objId ) );
+                }
+                relItem.setEvent( event );
+                break;
 
         }
 

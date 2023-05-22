@@ -217,28 +217,28 @@ public class DefaultInterpretationService
 
         switch ( notificationType )
         {
-        case INTERPRETATION_CREATE:
-            actionString = i18n.getString( "notification_interpretation_create" );
-            details = interpretation.getText();
-            break;
-        case INTERPRETATION_UPDATE:
-            actionString = i18n.getString( "notification_interpretation_update" );
-            details = interpretation.getText();
-            break;
-        case INTERPRETATION_LIKE:
-            actionString = i18n.getString( "notification_interpretation_like" );
-            details = "";
-            break;
-        case COMMENT_CREATE:
-            actionString = i18n.getString( "notification_comment_create" );
-            details = comment.getText();
-            break;
-        case COMMENT_UPDATE:
-            actionString = i18n.getString( "notification_comment_update" );
-            details = comment.getText();
-            break;
-        default:
-            throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
+            case INTERPRETATION_CREATE:
+                actionString = i18n.getString( "notification_interpretation_create" );
+                details = interpretation.getText();
+                break;
+            case INTERPRETATION_UPDATE:
+                actionString = i18n.getString( "notification_interpretation_update" );
+                details = interpretation.getText();
+                break;
+            case INTERPRETATION_LIKE:
+                actionString = i18n.getString( "notification_interpretation_like" );
+                details = "";
+                break;
+            case COMMENT_CREATE:
+                actionString = i18n.getString( "notification_comment_create" );
+                details = comment.getText();
+                break;
+            case COMMENT_UPDATE:
+                actionString = i18n.getString( "notification_comment_update" );
+                details = comment.getText();
+                break;
+            default:
+                throw new IllegalArgumentException( "Unknown notification type: " + notificationType );
         }
 
         String subject = String.join( " ", Arrays.asList(
@@ -317,29 +317,30 @@ public class DefaultInterpretationService
 
         switch ( interpretation.getType() )
         {
-        case MAP:
-            path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
-                + interpretation.getUid();
-            break;
-        case VISUALIZATION:
-            path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
-                + "/interpretation/" + interpretation.getUid();
-            break;
-        case EVENT_REPORT:
-            path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        case EVENT_VISUALIZATION:
-            path = "/api/apps/line-listing/#/" + interpretation.getEventVisualization().getUid() + "?interpretationId="
-                + interpretation.getUid();
-            break;
-        case EVENT_CHART:
-            path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
-                + "&interpretationid=" + interpretation.getUid();
-            break;
-        default:
-            path = "";
-            break;
+            case MAP:
+                path = "/dhis-web-maps/index.html?id=" + interpretation.getMap().getUid() + "&interpretationid="
+                    + interpretation.getUid();
+                break;
+            case VISUALIZATION:
+                path = "/dhis-web-data-visualizer/index.html#/" + interpretation.getVisualization().getUid()
+                    + "/interpretation/" + interpretation.getUid();
+                break;
+            case EVENT_REPORT:
+                path = "/dhis-web-event-reports/index.html?id=" + interpretation.getEventReport().getUid()
+                    + "&interpretationid=" + interpretation.getUid();
+                break;
+            case EVENT_VISUALIZATION:
+                path = "/api/apps/line-listing/#/" + interpretation.getEventVisualization().getUid()
+                    + "?interpretationId="
+                    + interpretation.getUid();
+                break;
+            case EVENT_CHART:
+                path = "/dhis-web-event-visualizer/index.html?id=" + interpretation.getEventChart().getUid()
+                    + "&interpretationid=" + interpretation.getUid();
+                break;
+            default:
+                path = "";
+                break;
         }
         return configurationProvider.getServerBaseUrl() + path;
     }

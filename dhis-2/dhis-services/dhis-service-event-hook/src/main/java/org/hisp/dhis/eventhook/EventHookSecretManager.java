@@ -94,24 +94,24 @@ public class EventHookSecretManager
 
         switch ( auth.getType() )
         {
-        case HttpBasicAuth.TYPE:
-            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
+            case HttpBasicAuth.TYPE:
+                HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
 
-            if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
-            {
-                httpBasicAuth.setPassword( callback.apply( httpBasicAuth.getPassword() ) );
-            }
-            break;
-        case ApiTokenAuth.TYPE:
-            ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
+                if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
+                {
+                    httpBasicAuth.setPassword( callback.apply( httpBasicAuth.getPassword() ) );
+                }
+                break;
+            case ApiTokenAuth.TYPE:
+                ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
 
-            if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
-            {
-                apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
-            }
-            break;
-        default:
-            break;
+                if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
+                {
+                    apiTokenAuth.setToken( callback.apply( apiTokenAuth.getToken() ) );
+                }
+                break;
+            default:
+                break;
         }
     }
 

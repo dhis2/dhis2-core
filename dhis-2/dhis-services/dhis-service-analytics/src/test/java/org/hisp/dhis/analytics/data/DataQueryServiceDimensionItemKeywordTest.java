@@ -564,15 +564,15 @@ class DataQueryServiceDimensionItemKeywordTest
 
         switch ( userOrgUnitType )
         {
-        case DATA_CAPTURE:
-            user.setOrganisationUnits( orgUnits );
-            break;
-        case DATA_OUTPUT:
-            user.setDataViewOrganisationUnits( orgUnits );
-            break;
-        case TEI_SEARCH:
-            user.setTeiSearchOrganisationUnits( orgUnits );
-            break;
+            case DATA_CAPTURE:
+                user.setOrganisationUnits( orgUnits );
+                break;
+            case DATA_OUTPUT:
+                user.setDataViewOrganisationUnits( orgUnits );
+                break;
+            case TEI_SEARCH:
+                user.setTeiSearchOrganisationUnits( orgUnits );
+                break;
         }
 
         DataQueryRequest request = DataQueryRequest.newBuilder().userOrgUnitType( userOrgUnitType ).build();

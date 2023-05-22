@@ -265,16 +265,16 @@ public class DefaultDataQueryService
         {
             switch ( params.getUserOrgUnitType() )
             {
-            case DATA_CAPTURE:
-                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case DATA_OUTPUT:
-                units.addAll(
-                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case TEI_SEARCH:
-                units.addAll( currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
+                case DATA_CAPTURE:
+                    units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
+                    break;
+                case DATA_OUTPUT:
+                    units.addAll(
+                        currentUser.getDataViewOrganisationUnits().stream().sorted().collect( toList() ) );
+                    break;
+                case TEI_SEARCH:
+                    units.addAll( currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( toList() ) );
+                    break;
             }
         }
         else if ( currentUser != null )

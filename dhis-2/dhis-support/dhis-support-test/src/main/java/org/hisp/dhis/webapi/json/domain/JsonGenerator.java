@@ -132,55 +132,55 @@ public class JsonGenerator
     {
         switch ( property.getPropertyType() )
         {
-        case COMPLEX:
-            JsonSchema schema = schemasByKlass.get( property.getString( "klass" ).string() );
-            if ( schema == null )
-            {
-                json.append( "null" );
-            }
-            else
-            {
-                json.append( createObject( schema, false, emptyMap() ) );
-            }
-            break;
-        case TEXT:
-            json.append( '"' ).append( generateString( property ) ).append( '"' );
-            break;
-        case DATE:
-            json.append( '"' ).append( generateDateString() ).append( '"' );
-            break;
-        case CONSTANT:
-            json.append( '"' ).append( property.getConstants().get( 0 ) ).append( '"' );
-            break;
-        case BOOLEAN:
-            json.append( "true" );
-            break;
-        case INTEGER:
-        case NUMBER:
-            json.append( getSmallestPositiveValue( property ) );
-            break;
-        case IDENTIFIER:
-            json.append( '"' ).append( generateId( property ) ).append( '"' );
-            break;
-        case REFERENCE:
-            String object = objects.get( property.getRelativeApiEndpoint() );
-            if ( object == null )
-            {
-                schema = schemasByEndpoint.get( property.getRelativeApiEndpoint() );
-                object = addObject( schema, true, objects );
-            }
-            if ( object.isEmpty() )
-            {
-                // we are already trying to compute an object of this type
-                json.append( "null" );
-                return;
-            }
-            int idStart = object.indexOf( "\"id\":" ) + 6;
-            int idEnd = object.indexOf( '"', idStart );
-            json.append( "{\"id\":\"" ).append( object, idStart, idEnd ).append( "\"}" );
-            break;
-        default:
-            throw new IllegalArgumentException( property.getName() + " " + property.getPropertyType() );
+            case COMPLEX:
+                JsonSchema schema = schemasByKlass.get( property.getString( "klass" ).string() );
+                if ( schema == null )
+                {
+                    json.append( "null" );
+                }
+                else
+                {
+                    json.append( createObject( schema, false, emptyMap() ) );
+                }
+                break;
+            case TEXT:
+                json.append( '"' ).append( generateString( property ) ).append( '"' );
+                break;
+            case DATE:
+                json.append( '"' ).append( generateDateString() ).append( '"' );
+                break;
+            case CONSTANT:
+                json.append( '"' ).append( property.getConstants().get( 0 ) ).append( '"' );
+                break;
+            case BOOLEAN:
+                json.append( "true" );
+                break;
+            case INTEGER:
+            case NUMBER:
+                json.append( getSmallestPositiveValue( property ) );
+                break;
+            case IDENTIFIER:
+                json.append( '"' ).append( generateId( property ) ).append( '"' );
+                break;
+            case REFERENCE:
+                String object = objects.get( property.getRelativeApiEndpoint() );
+                if ( object == null )
+                {
+                    schema = schemasByEndpoint.get( property.getRelativeApiEndpoint() );
+                    object = addObject( schema, true, objects );
+                }
+                if ( object.isEmpty() )
+                {
+                    // we are already trying to compute an object of this type
+                    json.append( "null" );
+                    return;
+                }
+                int idStart = object.indexOf( "\"id\":" ) + 6;
+                int idEnd = object.indexOf( '"', idStart );
+                json.append( "{\"id\":\"" ).append( object, idStart, idEnd ).append( "\"}" );
+                break;
+            default:
+                throw new IllegalArgumentException( property.getName() + " " + property.getPropertyType() );
         }
     }
 
@@ -188,13 +188,13 @@ public class JsonGenerator
     {
         switch ( property.getName() )
         {
-        case "id":
-        case "uid":
-        case "code":
-        case "cid":
-            return CodeGenerator.generateUid();
-        default:
-            throw new UnsupportedOperationException( "id type not supported: " + property.getName() );
+            case "id":
+            case "uid":
+            case "code":
+            case "cid":
+                return CodeGenerator.generateUid();
+            default:
+                throw new UnsupportedOperationException( "id type not supported: " + property.getName() );
         }
     }
 
@@ -207,20 +207,20 @@ public class JsonGenerator
     {
         switch ( property.getName() )
         {
-        case "url":
-            return "http://example.com";
-        case "cronExpression":
-            return "* * * * * *";
-        case "periodType":
-            return PeriodType.PERIOD_TYPES.get( 0 ).getName();
+            case "url":
+                return "http://example.com";
+            case "cronExpression":
+                return "* * * * * *";
+            case "periodType":
+                return PeriodType.PERIOD_TYPES.get( 0 ).getName();
 
-        case "name":
-        case "shortName":
-            // there are often unique constrains on TEXT attributes called name,
-            // so...
-            return getUniqueString( property );
-        default:
-            return getRandomString( property );
+            case "name":
+            case "shortName":
+                // there are often unique constrains on TEXT attributes called name,
+                // so...
+                return getUniqueString( property );
+            default:
+                return getRandomString( property );
         }
     }
 

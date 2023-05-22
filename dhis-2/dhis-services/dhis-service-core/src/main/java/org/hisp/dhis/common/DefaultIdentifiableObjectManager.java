@@ -918,15 +918,15 @@ public class DefaultIdentifiableObjectManager implements IdentifiableObjectManag
 
         switch ( property )
         {
-        case UID:
-            return store.getByUid( identifiers );
-        case CODE:
-            return store.getByCode( identifiers );
-        case NAME:
-            return store.getByName( identifiers );
-        default:
-            throw new InvalidIdentifierReferenceException(
-                "Invalid identifiable property / class combination: " + property );
+            case UID:
+                return store.getByUid( identifiers );
+            case CODE:
+                return store.getByCode( identifiers );
+            case NAME:
+                return store.getByName( identifiers );
+            default:
+                throw new InvalidIdentifierReferenceException(
+                    "Invalid identifiable property / class combination: " + property );
         }
     }
 

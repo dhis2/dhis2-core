@@ -257,10 +257,10 @@ public class JpaCriteriaQueryEngine<T extends IdentifiableObject>
     {
         switch ( type )
         {
-        case AND:
-            return builder.conjunction();
-        case OR:
-            return builder.disjunction();
+            case AND:
+                return builder.conjunction();
+            case OR:
+                return builder.disjunction();
         }
 
         return builder.conjunction();

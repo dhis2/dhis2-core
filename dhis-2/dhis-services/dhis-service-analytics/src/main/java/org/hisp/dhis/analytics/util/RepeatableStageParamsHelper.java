@@ -111,37 +111,40 @@ public class RepeatableStageParamsHelper
 
         switch ( pattern.toString() )
         {
-        case PS_ASTERISK_REGEX:
+            case PS_ASTERISK_REGEX:
 
-            return getRepeatableStageParams( 0, Integer.MAX_VALUE );
-        case PS_INDEX_COUNT_REGEX:
-            tokens = getMatchedRepeatableStageParamTokens( matcher, 2 );
+                return getRepeatableStageParams( 0, Integer.MAX_VALUE );
+            case PS_INDEX_COUNT_REGEX:
+                tokens = getMatchedRepeatableStageParamTokens( matcher, 2 );
 
-            return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ), Integer.parseInt( tokens.get( 1 ) ) );
-        case PS_INDEX_REGEX:
+                return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ),
+                    Integer.parseInt( tokens.get( 1 ) ) );
+            case PS_INDEX_REGEX:
 
-            return getRepeatableStageParams( Integer.parseInt( getDefaultIndex( matcher ) ), 1 );
-        case PS_INDEX_COUNT_START_DATE_END_DATE_REGEX:
-            tokens = getMatchedRepeatableStageParamTokens( matcher, 4 );
+                return getRepeatableStageParams( Integer.parseInt( getDefaultIndex( matcher ) ), 1 );
+            case PS_INDEX_COUNT_START_DATE_END_DATE_REGEX:
+                tokens = getMatchedRepeatableStageParamTokens( matcher, 4 );
 
-            return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ), Integer.parseInt( tokens.get( 1 ) ),
-                DateUtils.parseDate( tokens.get( 2 ) ), DateUtils.parseDate( tokens.get( 3 ) ) );
-        case PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX:
-            tokens = getMatchedRepeatableStageParamTokens( matcher, 3 );
+                return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ),
+                    Integer.parseInt( tokens.get( 1 ) ),
+                    DateUtils.parseDate( tokens.get( 2 ) ), DateUtils.parseDate( tokens.get( 3 ) ) );
+            case PS_INDEX_COUNT_RELATIVE_PERIOD_REGEX:
+                tokens = getMatchedRepeatableStageParamTokens( matcher, 3 );
 
-            return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ), Integer.parseInt( tokens.get( 1 ) ),
-                getRelativePeriods( tokens.get( 2 ) ) );
-        case PS_START_DATE_END_DATE_REGEX:
-            tokens = getMatchedRepeatableStageParamTokens( matcher, 2 );
+                return getRepeatableStageParams( Integer.parseInt( tokens.get( 0 ) ),
+                    Integer.parseInt( tokens.get( 1 ) ),
+                    getRelativePeriods( tokens.get( 2 ) ) );
+            case PS_START_DATE_END_DATE_REGEX:
+                tokens = getMatchedRepeatableStageParamTokens( matcher, 2 );
 
-            return getRepeatableStageParams( DateUtils.parseDate( tokens.get( 0 ) ),
-                DateUtils.parseDate( tokens.get( 1 ).trim() ) );
-        case PS_RELATIVE_PERIOD_REGEX:
-            tokens = getMatchedRepeatableStageParamTokens( matcher, 1 );
+                return getRepeatableStageParams( DateUtils.parseDate( tokens.get( 0 ) ),
+                    DateUtils.parseDate( tokens.get( 1 ).trim() ) );
+            case PS_RELATIVE_PERIOD_REGEX:
+                tokens = getMatchedRepeatableStageParamTokens( matcher, 1 );
 
-            return getRepeatableStageParams( getRelativePeriods( tokens.get( 0 ) ) );
-        default:
-            return new RepeatableStageParams();
+                return getRepeatableStageParams( getRelativePeriods( tokens.get( 0 ) ) );
+            default:
+                return new RepeatableStageParams();
         }
     }
 

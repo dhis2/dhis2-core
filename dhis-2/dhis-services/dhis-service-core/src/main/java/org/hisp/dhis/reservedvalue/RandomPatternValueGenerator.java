@@ -91,20 +91,20 @@ public class RandomPatternValueGenerator
                 char c;
                 switch ( p )
                 {
-                case 'x':
-                    c = (char) ('a' + rnd.nextInt( 26 ));
-                    break;
-                case 'X':
-                    c = (char) ('A' + rnd.nextInt( 26 ));
-                    break;
-                case '#':
-                    c = (char) ('0' + rnd.nextInt( 10 ));
-                    break;
-                case '*':
-                    c = STAR.charAt( rnd.nextInt( STAR.length() ) );
-                    break;
-                default:
-                    throw new IllegalArgumentException( "Not a valid pattern symbol: " + p );
+                    case 'x':
+                        c = (char) ('a' + rnd.nextInt( 26 ));
+                        break;
+                    case 'X':
+                        c = (char) ('A' + rnd.nextInt( 26 ));
+                        break;
+                    case '#':
+                        c = (char) ('0' + rnd.nextInt( 10 ));
+                        break;
+                    case '*':
+                        c = STAR.charAt( rnd.nextInt( STAR.length() ) );
+                        break;
+                    default:
+                        throw new IllegalArgumentException( "Not a valid pattern symbol: " + p );
                 }
                 digitsRandom.append( c );
                 if ( multiDigit )

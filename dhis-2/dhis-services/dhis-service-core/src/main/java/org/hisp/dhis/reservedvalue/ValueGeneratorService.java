@@ -54,12 +54,12 @@ public class ValueGeneratorService
     {
         switch ( segment.getMethod() )
         {
-        case SEQUENTIAL:
-            return generateSequentialValues( segment, textPattern, key, numberOfValues );
-        case RANDOM:
-            return generateRandomValues( segment, numberOfValues );
-        default:
-            return List.of();
+            case SEQUENTIAL:
+                return generateSequentialValues( segment, textPattern, key, numberOfValues );
+            case RANDOM:
+                return generateRandomValues( segment, numberOfValues );
+            default:
+                return List.of();
         }
     }
 

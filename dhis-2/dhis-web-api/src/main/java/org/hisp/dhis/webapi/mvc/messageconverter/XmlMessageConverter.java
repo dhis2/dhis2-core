@@ -74,14 +74,14 @@ public class XmlMessageConverter extends AbstractRootNodeMessageConverter
 
         switch ( getCompression() )
         {
-        case NONE:
-            setSupportedMediaTypes( XML_SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( XML_GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( XML_ZIP_SUPPORTED_MEDIA_TYPES );
+            case NONE:
+                setSupportedMediaTypes( XML_SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( XML_GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( XML_ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 }

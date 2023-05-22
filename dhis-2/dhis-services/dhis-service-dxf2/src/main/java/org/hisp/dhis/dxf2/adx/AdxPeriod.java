@@ -106,84 +106,84 @@ public class AdxPeriod
 
             switch ( duration )
             {
-            case P1D:
-                periodType = new DailyPeriodType();
-                break;
-            case P7D:
-                switch ( cal.get( Calendar.DAY_OF_WEEK ) )
-                {
-                case MONDAY:
-                    periodType = new WeeklyPeriodType();
+                case P1D:
+                    periodType = new DailyPeriodType();
                     break;
-                case WEDNESDAY:
-                    periodType = new WeeklyWednesdayPeriodType();
+                case P7D:
+                    switch ( cal.get( Calendar.DAY_OF_WEEK ) )
+                    {
+                        case MONDAY:
+                            periodType = new WeeklyPeriodType();
+                            break;
+                        case WEDNESDAY:
+                            periodType = new WeeklyWednesdayPeriodType();
+                            break;
+                        case THURSDAY:
+                            periodType = new WeeklyThursdayPeriodType();
+                            break;
+                        case SATURDAY:
+                            periodType = new WeeklySaturdayPeriodType();
+                            break;
+                        case SUNDAY:
+                            periodType = new WeeklySundayPeriodType();
+                            break;
+                        default:
+                            throw new AdxException( periodString + " is invalid weekly type" );
+                    }
                     break;
-                case THURSDAY:
-                    periodType = new WeeklyThursdayPeriodType();
+                case P14D:
+                    periodType = new BiWeeklyPeriodType();
                     break;
-                case SATURDAY:
-                    periodType = new WeeklySaturdayPeriodType();
+                case P1M:
+                    periodType = new MonthlyPeriodType();
                     break;
-                case SUNDAY:
-                    periodType = new WeeklySundayPeriodType();
+                case P2M:
+                    periodType = new BiMonthlyPeriodType();
                     break;
-                default:
-                    throw new AdxException( periodString + " is invalid weekly type" );
-                }
-                break;
-            case P14D:
-                periodType = new BiWeeklyPeriodType();
-                break;
-            case P1M:
-                periodType = new MonthlyPeriodType();
-                break;
-            case P2M:
-                periodType = new BiMonthlyPeriodType();
-                break;
-            case P3M:
-                periodType = new QuarterlyPeriodType();
-                break;
-            case P6M:
-                switch ( cal.get( Calendar.MONTH ) )
-                {
-                case JANUARY:
-                case JULY:
-                    periodType = new SixMonthlyPeriodType();
+                case P3M:
+                    periodType = new QuarterlyPeriodType();
                     break;
-                case APRIL:
-                case OCTOBER:
-                    periodType = new SixMonthlyAprilPeriodType();
+                case P6M:
+                    switch ( cal.get( Calendar.MONTH ) )
+                    {
+                        case JANUARY:
+                        case JULY:
+                            periodType = new SixMonthlyPeriodType();
+                            break;
+                        case APRIL:
+                        case OCTOBER:
+                            periodType = new SixMonthlyAprilPeriodType();
+                            break;
+                        case NOVEMBER:
+                        case MAY:
+                            periodType = new SixMonthlyNovemberPeriodType();
+                            break;
+                        default:
+                            throw new AdxException( periodString + " is invalid sixmonthly type" );
+                    }
                     break;
-                case NOVEMBER:
-                case MAY:
-                    periodType = new SixMonthlyNovemberPeriodType();
+                case P1Y:
+                    switch ( cal.get( Calendar.MONTH ) )
+                    {
+                        case JANUARY:
+                            periodType = new YearlyPeriodType();
+                            break;
+                        case APRIL:
+                            periodType = new FinancialAprilPeriodType();
+                            break;
+                        case JULY:
+                            periodType = new FinancialJulyPeriodType();
+                            break;
+                        case OCTOBER:
+                            periodType = new FinancialOctoberPeriodType();
+                            break;
+                        case NOVEMBER:
+                            periodType = new FinancialNovemberPeriodType();
+                            break;
+                        default:
+                            throw new AdxException( periodString + " is invalid yearly type" );
+                    }
                     break;
-                default:
-                    throw new AdxException( periodString + " is invalid sixmonthly type" );
-                }
-                break;
-            case P1Y:
-                switch ( cal.get( Calendar.MONTH ) )
-                {
-                case JANUARY:
-                    periodType = new YearlyPeriodType();
-                    break;
-                case APRIL:
-                    periodType = new FinancialAprilPeriodType();
-                    break;
-                case JULY:
-                    periodType = new FinancialJulyPeriodType();
-                    break;
-                case OCTOBER:
-                    periodType = new FinancialOctoberPeriodType();
-                    break;
-                case NOVEMBER:
-                    periodType = new FinancialNovemberPeriodType();
-                    break;
-                default:
-                    throw new AdxException( periodString + " is invalid yearly type" );
-                }
-                break;
             }
 
             if ( periodType != null )

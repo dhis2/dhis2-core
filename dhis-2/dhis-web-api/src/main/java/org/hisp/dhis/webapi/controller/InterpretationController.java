@@ -182,14 +182,14 @@ public class InterpretationController extends AbstractCrudController<Interpretat
          */
         switch ( eventVisualization.getType() )
         {
-        case LINE_LIST:
-        case PIVOT_TABLE:
-            final EventReport eventReport = idObjectManager.get( EventReport.class,
-                eventVisualization.getUid() );
-            return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
-        default:
-            final EventChart eventChart = idObjectManager.get( EventChart.class, eventVisualization.getUid() );
-            return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
+            case LINE_LIST:
+            case PIVOT_TABLE:
+                final EventReport eventReport = idObjectManager.get( EventReport.class,
+                    eventVisualization.getUid() );
+                return createInterpretation( new Interpretation( eventVisualization, eventReport, orgUnit, text ) );
+            default:
+                final EventChart eventChart = idObjectManager.get( EventChart.class, eventVisualization.getUid() );
+                return createInterpretation( new Interpretation( eventVisualization, eventChart, orgUnit, text ) );
         }
     }
 

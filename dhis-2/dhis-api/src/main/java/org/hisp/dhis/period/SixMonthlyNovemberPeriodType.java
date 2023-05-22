@@ -109,12 +109,12 @@ public class SixMonthlyNovemberPeriodType
 
         switch ( month )
         {
-        case 11:
-            return dateTimeUnit.getYear() + 1 + "NovS1";
-        case 5:
-            return dateTimeUnit.getYear() + "NovS2";
-        default:
-            throw new IllegalArgumentException( "Month not valid [11,5]" );
+            case 11:
+                return dateTimeUnit.getYear() + 1 + "NovS1";
+            case 5:
+                return dateTimeUnit.getYear() + "NovS2";
+            default:
+                throw new IllegalArgumentException( "Month not valid [11,5]" );
         }
     }
 

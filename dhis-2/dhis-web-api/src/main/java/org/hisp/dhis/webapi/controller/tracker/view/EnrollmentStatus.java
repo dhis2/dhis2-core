@@ -62,12 +62,12 @@ public enum EnrollmentStatus
     {
         switch ( programStatus )
         {
-        case ACTIVE:
-            return ACTIVE;
-        case CANCELLED:
-            return CANCELLED;
-        case COMPLETED:
-            return COMPLETED;
+            case ACTIVE:
+                return ACTIVE;
+            case CANCELLED:
+                return CANCELLED;
+            case COMPLETED:
+                return COMPLETED;
         }
 
         throw new IllegalArgumentException( "Enum value not found: " + programStatus );

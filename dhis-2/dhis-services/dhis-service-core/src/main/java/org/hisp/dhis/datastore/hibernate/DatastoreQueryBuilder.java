@@ -149,19 +149,19 @@ public class DatastoreQueryBuilder
     {
         switch ( filter.getOperator() )
         {
-        case EMPTY:
-        case NOT_EMPTY:
-            return createEmptinessFilterHQL( filter );
-        case NULL:
-        case NOT_NULL:
-            return createNullnessFilterHQL( filter );
-        case IN:
-        case NOT_IN:
-            return createInFilterHQL( filter, id );
-        default:
-            return filter.isNullValue()
-                ? createNullnessFilterHQL( filter )
-                : createBinaryFilterHQL( filter, id );
+            case EMPTY:
+            case NOT_EMPTY:
+                return createEmptinessFilterHQL( filter );
+            case NULL:
+            case NOT_NULL:
+                return createNullnessFilterHQL( filter );
+            case IN:
+            case NOT_IN:
+                return createInFilterHQL( filter, id );
+            default:
+                return filter.isNullValue()
+                    ? createNullnessFilterHQL( filter )
+                    : createBinaryFilterHQL( filter, id );
         }
     }
 
@@ -182,14 +182,14 @@ public class DatastoreQueryBuilder
         }
         switch ( deriveNodeType( filter ) )
         {
-        case "string":
-            return filter.getOperator().isCaseInsensitive()
-                ? "(jsonb_typeof(%1$s) = 'string' and lower(%5$s) %3$s %4$s)"
-                : "(jsonb_typeof(%1$s) = 'string' and %5$s %3$s %4$s)";
-        case "":
-            return "%1$s %3$s to_jsonb(%4$s)";
-        default:
-            return "(jsonb_typeof(%1$s) = '%2$s' and %1$s %3$s to_jsonb(%4$s))";
+            case "string":
+                return filter.getOperator().isCaseInsensitive()
+                    ? "(jsonb_typeof(%1$s) = 'string' and lower(%5$s) %3$s %4$s)"
+                    : "(jsonb_typeof(%1$s) = 'string' and %5$s %3$s %4$s)";
+            case "":
+                return "%1$s %3$s to_jsonb(%4$s)";
+            default:
+                return "(jsonb_typeof(%1$s) = '%2$s' and %1$s %3$s to_jsonb(%4$s))";
         }
     }
 
@@ -224,37 +224,37 @@ public class DatastoreQueryBuilder
     {
         switch ( op )
         {
-        case LESS_THAN:
-            return "<";
-        case LESS_THAN_OR_EQUAL:
-            return "<=";
-        case GREATER_THAN:
-            return ">";
-        case GREATER_THAN_OR_EQUAL:
-            return ">=";
-        case LIKE:
-        case ILIKE:
-        case STARTS_LIKE:
-        case ENDS_LIKE:
-        case STARTS_WITH:
-        case ENDS_WITH:
-            return "like";
-        case NOT_LIKE:
-        case NOT_ILIKE:
-        case NOT_STARTS_LIKE:
-        case NOT_ENDS_LIKE:
-        case NOT_STARTS_WITH:
-        case NOT_ENDS_WITH:
-            return "not like";
-        case IN:
-            return "in";
-        case NOT_IN:
-            return "not in";
-        case NOT_NULL:
-        case NOT_EQUAL:
-            return "!=";
-        default:
-            return "=";
+            case LESS_THAN:
+                return "<";
+            case LESS_THAN_OR_EQUAL:
+                return "<=";
+            case GREATER_THAN:
+                return ">";
+            case GREATER_THAN_OR_EQUAL:
+                return ">=";
+            case LIKE:
+            case ILIKE:
+            case STARTS_LIKE:
+            case ENDS_LIKE:
+            case STARTS_WITH:
+            case ENDS_WITH:
+                return "like";
+            case NOT_LIKE:
+            case NOT_ILIKE:
+            case NOT_STARTS_LIKE:
+            case NOT_ENDS_LIKE:
+            case NOT_STARTS_WITH:
+            case NOT_ENDS_WITH:
+                return "not like";
+            case IN:
+                return "in";
+            case NOT_IN:
+                return "not in";
+            case NOT_NULL:
+            case NOT_EQUAL:
+                return "!=";
+            default:
+                return "=";
         }
     }
 
@@ -263,22 +263,22 @@ public class DatastoreQueryBuilder
         String value = filter.getValue();
         switch ( value )
         {
-        case "true":
-        case "false":
-            return "boolean";
-        case "":
-        case "null":
-            return "";
-        default:
-            if ( value.startsWith( "{" ) && value.endsWith( "}" ) )
-            {
-                return "object";
-            }
-            else if ( value.startsWith( "[" ) && value.endsWith( "]" ) )
-            {
-                return "array";
-            }
-            return value.matches( "[0-9]+(\\.[0-9]*)?" ) ? "number" : "string";
+            case "true":
+            case "false":
+                return "boolean";
+            case "":
+            case "null":
+                return "";
+            default:
+                if ( value.startsWith( "{" ) && value.endsWith( "}" ) )
+                {
+                    return "object";
+                }
+                else if ( value.startsWith( "[" ) && value.endsWith( "]" ) )
+                {
+                    return "array";
+                }
+                return value.matches( "[0-9]+(\\.[0-9]*)?" ) ? "number" : "string";
         }
     }
 
@@ -287,19 +287,19 @@ public class DatastoreQueryBuilder
         String value = filter.getValue();
         switch ( deriveNodeType( filter ) )
         {
-        case "boolean":
-            return parseBoolean( value );
-        case "number":
-            double doubleValue = parseDouble( value );
-            return doubleValue % 1 == 0d ? (int) doubleValue : doubleValue;
-        case "array":
-            return filter.getOperator().isIn()
-                ? asList( value.substring( 1, value.length() - 1 ).split( "," ) )
-                : value;
-        case "object":
-            return value;
-        default:
-            return toTextPatternArgument( filter, value );
+            case "boolean":
+                return parseBoolean( value );
+            case "number":
+                double doubleValue = parseDouble( value );
+                return doubleValue % 1 == 0d ? (int) doubleValue : doubleValue;
+            case "array":
+                return filter.getOperator().isIn()
+                    ? asList( value.substring( 1, value.length() - 1 ).split( "," ) )
+                    : value;
+            case "object":
+                return value;
+            default:
+                return toTextPatternArgument( filter, value );
         }
     }
 

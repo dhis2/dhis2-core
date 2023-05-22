@@ -81,14 +81,14 @@ public class RelationshipTypeJoinGenerator
         String sql = "LEFT JOIN ";
         switch ( relationshipEntity )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            return sql + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
-        case PROGRAM_STAGE_INSTANCE:
-            return sql + "programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
-        case PROGRAM_INSTANCE:
-            return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
-        default:
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
+            case TRACKED_ENTITY_INSTANCE:
+                return sql + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
+            case PROGRAM_STAGE_INSTANCE:
+                return sql + "programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+            case PROGRAM_INSTANCE:
+                return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
+            default:
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
         }
     }
 
@@ -97,11 +97,12 @@ public class RelationshipTypeJoinGenerator
     {
         switch ( relationshipEntity )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            return getTei( alias );
-        case PROGRAM_STAGE_INSTANCE:
-        case PROGRAM_INSTANCE:
-            return (programIndicatorType.equals( AnalyticsType.EVENT ) ? getEvent( alias ) : getEnrollment( alias ));
+            case TRACKED_ENTITY_INSTANCE:
+                return getTei( alias );
+            case PROGRAM_STAGE_INSTANCE:
+            case PROGRAM_INSTANCE:
+                return (programIndicatorType.equals( AnalyticsType.EVENT ) ? getEvent( alias )
+                    : getEnrollment( alias ));
         }
         throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
     }
@@ -133,14 +134,14 @@ public class RelationshipTypeJoinGenerator
 
         switch ( relationshipEntity )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            return sql + "tei.uid = ax.tei ";
-        case PROGRAM_STAGE_INSTANCE:
-            return sql + "psi.uid = ax.psi ";
-        case PROGRAM_INSTANCE:
-            return sql + "pi.uid = ax.pi ";
-        default:
-            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
+            case TRACKED_ENTITY_INSTANCE:
+                return sql + "tei.uid = ax.tei ";
+            case PROGRAM_STAGE_INSTANCE:
+                return sql + "psi.uid = ax.psi ";
+            case PROGRAM_INSTANCE:
+                return sql + "pi.uid = ax.pi ";
+            default:
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7227, relationshipEntity.name() ) );
         }
     }
 }

@@ -133,27 +133,27 @@ public class RelationshipRowCallbackHandler extends AbstractMapper<Relationship>
 
         switch ( type )
         {
-        case "tei":
+            case "tei":
 
-            TrackedEntityInstance tei = new TrackedEntityInstance();
-            tei.clear();
-            tei.setTrackedEntityInstance( uid );
-            ri.setTrackedEntityInstance( tei );
-            break;
-        case "pi":
+                TrackedEntityInstance tei = new TrackedEntityInstance();
+                tei.clear();
+                tei.setTrackedEntityInstance( uid );
+                ri.setTrackedEntityInstance( tei );
+                break;
+            case "pi":
 
-            Enrollment enrollment = new Enrollment();
-            enrollment.setEnrollment( uid );
-            ri.setEnrollment( enrollment );
-            break;
-        case "psi":
+                Enrollment enrollment = new Enrollment();
+                enrollment.setEnrollment( uid );
+                ri.setEnrollment( enrollment );
+                break;
+            case "psi":
 
-            Event psi = new Event();
-            psi.setEvent( uid );
-            ri.setEvent( psi );
-            break;
-        default:
-            log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );
+                Event psi = new Event();
+                psi.setEvent( uid );
+                ri.setEvent( psi );
+                break;
+            default:
+                log.warn( "Expecting tei|psi|pi as type when fetching a relationship, got: " + type );
         }
 
         return ri;

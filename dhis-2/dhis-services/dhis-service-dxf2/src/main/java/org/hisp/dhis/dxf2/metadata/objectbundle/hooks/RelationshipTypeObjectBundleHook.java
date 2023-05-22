@@ -176,15 +176,15 @@ public class RelationshipTypeObjectBundleHook
     {
         switch ( constraint.getRelationshipEntity() )
         {
-        case TRACKED_ENTITY_INSTANCE:
-            validateTrackedEntityInstance( constraint, addReports, constraint.getTrackerDataView() );
-            break;
-        case PROGRAM_INSTANCE:
-            validateProgramInstance( constraint, addReports, constraint.getTrackerDataView() );
-            break;
-        case PROGRAM_STAGE_INSTANCE:
-            validateProgramStageInstance( constraint, addReports, constraint.getTrackerDataView() );
-            break;
+            case TRACKED_ENTITY_INSTANCE:
+                validateTrackedEntityInstance( constraint, addReports, constraint.getTrackerDataView() );
+                break;
+            case PROGRAM_INSTANCE:
+                validateProgramInstance( constraint, addReports, constraint.getTrackerDataView() );
+                break;
+            case PROGRAM_STAGE_INSTANCE:
+                validateProgramStageInstance( constraint, addReports, constraint.getTrackerDataView() );
+                break;
         }
     }
 

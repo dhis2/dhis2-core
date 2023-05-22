@@ -653,36 +653,36 @@ public class DefaultExpressionService
 
         switch ( params.getMissingValueStrategy() )
         {
-        case SKIP_IF_ANY_VALUE_MISSING:
-            if ( itemValuesFound < itemsFound )
-            {
-                return null;
-            }
-            break;
+            case SKIP_IF_ANY_VALUE_MISSING:
+                if ( itemValuesFound < itemsFound )
+                {
+                    return null;
+                }
+                break;
 
-        case SKIP_IF_ALL_VALUES_MISSING:
-            if ( itemsFound != 0 && itemValuesFound == 0 )
-            {
-                return null;
-            }
-            break;
+            case SKIP_IF_ALL_VALUES_MISSING:
+                if ( itemsFound != 0 && itemValuesFound == 0 )
+                {
+                    return null;
+                }
+                break;
 
-        case NEVER_SKIP:
-            break;
+            case NEVER_SKIP:
+                break;
         }
 
         if ( value == null && state.isReplaceNulls() )
         {
             switch ( params.getDataType() )
             {
-            case NUMERIC:
-                return 0d;
+                case NUMERIC:
+                    return 0d;
 
-            case BOOLEAN:
-                return FALSE;
+                case BOOLEAN:
+                    return FALSE;
 
-            case TEXT:
-                return "";
+                case TEXT:
+                    return "";
             }
         }
 
@@ -788,14 +788,14 @@ public class DefaultExpressionService
 
             switch ( dataType )
             {
-            case NUMERIC:
-                return castDouble( result );
+                case NUMERIC:
+                    return castDouble( result );
 
-            case BOOLEAN:
-                return castBoolean( result );
+                case BOOLEAN:
+                    return castBoolean( result );
 
-            case TEXT:
-                return castString( result );
+                case TEXT:
+                    return castString( result );
             }
         }
         catch ( ParserException ex )

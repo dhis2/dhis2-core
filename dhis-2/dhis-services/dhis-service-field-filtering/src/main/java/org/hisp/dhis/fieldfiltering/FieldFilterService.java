@@ -446,16 +446,16 @@ public class FieldFilterService
             {
                 switch ( fieldPathTransformer.getName() )
                 {
-                case "rename" -> fieldTransformers.add( new RenameFieldTransformer( fieldPathTransformer ) );
-                case "size" -> fieldTransformers.add( SizeFieldTransformer.INSTANCE );
-                case "isEmpty" -> fieldTransformers.add( IsEmptyFieldTransformer.INSTANCE );
-                case "isNotEmpty" -> fieldTransformers.add( IsNotEmptyFieldTransformer.INSTANCE );
-                case "pluck" -> fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
-                case "keyBy" -> fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
-                default ->
-                {
-                    // invalid transformer
-                }
+                    case "rename" -> fieldTransformers.add( new RenameFieldTransformer( fieldPathTransformer ) );
+                    case "size" -> fieldTransformers.add( SizeFieldTransformer.INSTANCE );
+                    case "isEmpty" -> fieldTransformers.add( IsEmptyFieldTransformer.INSTANCE );
+                    case "isNotEmpty" -> fieldTransformers.add( IsNotEmptyFieldTransformer.INSTANCE );
+                    case "pluck" -> fieldTransformers.add( new PluckFieldTransformer( fieldPathTransformer ) );
+                    case "keyBy" -> fieldTransformers.add( new KeyByFieldTransformer( fieldPathTransformer ) );
+                    default ->
+                    {
+                        // invalid transformer
+                    }
                 }
             }
 

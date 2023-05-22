@@ -377,60 +377,60 @@ class ExpressionService2Test extends DhisConvenienceTest
 
         switch ( type )
         {
-        case DATA_ELEMENT:
-            String deItem = "#{" + o.getUid() + "}";
-            return new DimensionalItemId( type, o.getUid(), null, null, deItem );
+            case DATA_ELEMENT:
+                String deItem = "#{" + o.getUid() + "}";
+                return new DimensionalItemId( type, o.getUid(), null, null, deItem );
 
-        case DATA_ELEMENT_OPERAND:
-            DataElementOperand deo = (DataElementOperand) o;
+            case DATA_ELEMENT_OPERAND:
+                DataElementOperand deo = (DataElementOperand) o;
 
-            String deoItem = "#{" + deo.getDataElement().getUid() +
-                ((deo.getCategoryOptionCombo() != null)
-                    ? "." + deo.getCategoryOptionCombo().getUid()
-                    : "")
-                +
-                ((deo.getCategoryOptionCombo() == null && deo.getAttributeOptionCombo() != null)
-                    ? ".*"
-                    : "")
-                +
-                ((deo.getAttributeOptionCombo() != null)
-                    ? "." + deo.getAttributeOptionCombo().getUid()
-                    : "")
-                +
-                "}";
+                String deoItem = "#{" + deo.getDataElement().getUid() +
+                    ((deo.getCategoryOptionCombo() != null)
+                        ? "." + deo.getCategoryOptionCombo().getUid()
+                        : "")
+                    +
+                    ((deo.getCategoryOptionCombo() == null && deo.getAttributeOptionCombo() != null)
+                        ? ".*"
+                        : "")
+                    +
+                    ((deo.getAttributeOptionCombo() != null)
+                        ? "." + deo.getAttributeOptionCombo().getUid()
+                        : "")
+                    +
+                    "}";
 
-            return new DimensionalItemId( type,
-                deo.getDataElement().getUid(),
-                deo.getCategoryOptionCombo() == null ? null : deo.getCategoryOptionCombo().getUid(),
-                deo.getAttributeOptionCombo() == null ? null : deo.getAttributeOptionCombo().getUid(),
-                deoItem );
+                return new DimensionalItemId( type,
+                    deo.getDataElement().getUid(),
+                    deo.getCategoryOptionCombo() == null ? null : deo.getCategoryOptionCombo().getUid(),
+                    deo.getAttributeOptionCombo() == null ? null : deo.getAttributeOptionCombo().getUid(),
+                    deoItem );
 
-        case REPORTING_RATE:
-            ReportingRate rr = (ReportingRate) o;
+            case REPORTING_RATE:
+                ReportingRate rr = (ReportingRate) o;
 
-            return new DimensionalItemId( type,
-                rr.getDataSet().getUid(),
-                rr.getMetric().name() );
+                return new DimensionalItemId( type,
+                    rr.getDataSet().getUid(),
+                    rr.getMetric().name() );
 
-        case PROGRAM_DATA_ELEMENT:
-            ProgramDataElementDimensionItem pde = (ProgramDataElementDimensionItem) o;
+            case PROGRAM_DATA_ELEMENT:
+                ProgramDataElementDimensionItem pde = (ProgramDataElementDimensionItem) o;
 
-            return new DimensionalItemId( type,
-                pde.getProgram().getUid(),
-                pde.getDataElement().getUid() );
+                return new DimensionalItemId( type,
+                    pde.getProgram().getUid(),
+                    pde.getDataElement().getUid() );
 
-        case PROGRAM_ATTRIBUTE:
-            ProgramTrackedEntityAttributeDimensionItem pa = (ProgramTrackedEntityAttributeDimensionItem) o;
+            case PROGRAM_ATTRIBUTE:
+                ProgramTrackedEntityAttributeDimensionItem pa = (ProgramTrackedEntityAttributeDimensionItem) o;
 
-            return new DimensionalItemId( type,
-                pa.getProgram().getUid(),
-                pa.getAttribute().getUid() );
+                return new DimensionalItemId( type,
+                    pa.getProgram().getUid(),
+                    pa.getAttribute().getUid() );
 
-        case PROGRAM_INDICATOR:
-            return new DimensionalItemId( type, o.getUid() );
+            case PROGRAM_INDICATOR:
+                return new DimensionalItemId( type, o.getUid() );
 
-        default:
-            return null;
+            default:
+                return null;
         }
     }
 

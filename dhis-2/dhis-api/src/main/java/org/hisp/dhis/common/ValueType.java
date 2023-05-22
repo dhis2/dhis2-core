@@ -300,25 +300,25 @@ public enum ValueType
     {
         switch ( type )
         {
-        case Types.INTEGER:
-            return ValueType.INTEGER;
-        case Types.DECIMAL:
-        case Types.DOUBLE:
-        case Types.NUMERIC:
-        case Types.BIGINT:
-        case Types.FLOAT:
-            return ValueType.NUMBER;
-        case Types.BOOLEAN:
-            return ValueType.BOOLEAN;
-        case Types.DATE:
-            return ValueType.DATE;
-        case Types.TIMESTAMP_WITH_TIMEZONE:
-            return ValueType.DATETIME;
-        case Types.TIME:
-        case Types.TIME_WITH_TIMEZONE:
-            return ValueType.TIME;
-        default:
-            return ValueType.TEXT;
+            case Types.INTEGER:
+                return ValueType.INTEGER;
+            case Types.DECIMAL:
+            case Types.DOUBLE:
+            case Types.NUMERIC:
+            case Types.BIGINT:
+            case Types.FLOAT:
+                return ValueType.NUMBER;
+            case Types.BOOLEAN:
+                return ValueType.BOOLEAN;
+            case Types.DATE:
+                return ValueType.DATE;
+            case Types.TIMESTAMP_WITH_TIMEZONE:
+                return ValueType.DATETIME;
+            case Types.TIME:
+            case Types.TIME_WITH_TIMEZONE:
+                return ValueType.TIME;
+            default:
+                return ValueType.TEXT;
         }
     }
 

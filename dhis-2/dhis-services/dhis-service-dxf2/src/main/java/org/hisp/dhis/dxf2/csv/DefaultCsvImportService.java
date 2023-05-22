@@ -132,59 +132,59 @@ public class DefaultCsvImportService
 
         switch ( options.getImportClass() )
         {
-        case DATA_ELEMENT:
-            metadata.setDataElements( dataElementsFromCsv( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP:
-            metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
-            break;
-        case DATA_ELEMENT_GROUP_MEMBERSHIP:
-            metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
-            break;
-        case INDICATOR_GROUP_MEMBERSHIP:
-            metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION:
-            metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
-            break;
-        case CATEGORY:
-            metadata.setCategories( categoriesFromCsv( reader ) );
-            break;
-        case CATEGORY_COMBO:
-            metadata.setCategoryCombos( categoryCombosFromCsv( reader ) );
-            break;
-        case CATEGORY_OPTION_GROUP:
-            metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT:
-            metadata.setOrganisationUnits( orgUnitsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT_GROUP:
-            metadata.setOrganisationUnitGroups( orgUnitGroupsFromCsv( reader ) );
-            break;
-        case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
-            metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
-            break;
-        case VALIDATION_RULE:
-            metadata.setValidationRules( validationRulesFromCsv( reader ) );
-            break;
-        case OPTION_SET:
-            setOptionSetsFromCsv( reader, metadata );
-            break;
-        case OPTION_GROUP:
-            setOptionGroupsFromCsv( reader, metadata );
-            break;
-        case OPTION_GROUP_SET:
-            metadata.setOptionGroupSets( setOptionGroupSetFromCsv( reader ) );
-            break;
-        case OPTION_GROUP_SET_MEMBERSHIP:
-            metadata.setOptionGroupSets( optionGroupSetMembersFromCsv( reader ) );
-            break;
-        case INDICATOR:
-            metadata.setIndicators( indicatorsFromCsv( reader ) );
-            break;
-        default:
-            break;
+            case DATA_ELEMENT:
+                metadata.setDataElements( dataElementsFromCsv( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP:
+                metadata.setDataElementGroups( dataElementGroupsFromCsv( reader ) );
+                break;
+            case DATA_ELEMENT_GROUP_MEMBERSHIP:
+                metadata.setDataElementGroups( dataElementGroupMembersFromCsv( reader ) );
+                break;
+            case INDICATOR_GROUP_MEMBERSHIP:
+                metadata.setIndicatorGroups( indicatorGroupMembersFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION:
+                metadata.setCategoryOptions( categoryOptionsFromCsv( reader ) );
+                break;
+            case CATEGORY:
+                metadata.setCategories( categoriesFromCsv( reader ) );
+                break;
+            case CATEGORY_COMBO:
+                metadata.setCategoryCombos( categoryCombosFromCsv( reader ) );
+                break;
+            case CATEGORY_OPTION_GROUP:
+                metadata.setCategoryOptionGroups( categoryOptionGroupsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT:
+                metadata.setOrganisationUnits( orgUnitsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP:
+                metadata.setOrganisationUnitGroups( orgUnitGroupsFromCsv( reader ) );
+                break;
+            case ORGANISATION_UNIT_GROUP_MEMBERSHIP:
+                metadata.setOrganisationUnitGroups( orgUnitGroupMembersFromCsv( reader ) );
+                break;
+            case VALIDATION_RULE:
+                metadata.setValidationRules( validationRulesFromCsv( reader ) );
+                break;
+            case OPTION_SET:
+                setOptionSetsFromCsv( reader, metadata );
+                break;
+            case OPTION_GROUP:
+                setOptionGroupsFromCsv( reader, metadata );
+                break;
+            case OPTION_GROUP_SET:
+                metadata.setOptionGroupSets( setOptionGroupSetFromCsv( reader ) );
+                break;
+            case OPTION_GROUP_SET_MEMBERSHIP:
+                metadata.setOptionGroupSets( optionGroupSetMembersFromCsv( reader ) );
+                break;
+            case INDICATOR:
+                metadata.setIndicators( indicatorsFromCsv( reader ) );
+                break;
+            default:
+                break;
         }
 
         return metadata;

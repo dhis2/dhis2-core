@@ -85,14 +85,14 @@ public class CsvMessageConverter extends AbstractRootNodeMessageConverter
         super( nodeService, "text/csv", "csv", compression );
         switch ( getCompression() )
         {
-        case NONE:
-            setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
-            break;
-        case GZIP:
-            setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
-            break;
-        case ZIP:
-            setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
+            case NONE:
+                setSupportedMediaTypes( SUPPORTED_MEDIA_TYPES );
+                break;
+            case GZIP:
+                setSupportedMediaTypes( GZIP_SUPPORTED_MEDIA_TYPES );
+                break;
+            case ZIP:
+                setSupportedMediaTypes( ZIP_SUPPORTED_MEDIA_TYPES );
         }
     }
 }

@@ -72,20 +72,20 @@ public class IdSchemeParamEditor extends PropertyEditorSupport
 
         switch ( idScheme )
         {
-        case UID:
-            setValue( TrackerIdSchemeParam.UID );
-            break;
-        case NAME:
-            setValue( TrackerIdSchemeParam.NAME );
-            break;
-        case CODE:
-            setValue( TrackerIdSchemeParam.CODE );
-            break;
-        case ATTRIBUTE:
-            setValue( TrackerIdSchemeParam.ofAttribute( attributeUid ) );
-            break;
-        default:
-            throw new IllegalArgumentException( VALID_VALUES );
+            case UID:
+                setValue( TrackerIdSchemeParam.UID );
+                break;
+            case NAME:
+                setValue( TrackerIdSchemeParam.NAME );
+                break;
+            case CODE:
+                setValue( TrackerIdSchemeParam.CODE );
+                break;
+            case ATTRIBUTE:
+                setValue( TrackerIdSchemeParam.ofAttribute( attributeUid ) );
+                break;
+            default:
+                throw new IllegalArgumentException( VALID_VALUES );
         }
     }
 }

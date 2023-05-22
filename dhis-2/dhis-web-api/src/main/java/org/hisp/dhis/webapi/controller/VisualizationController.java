@@ -172,17 +172,17 @@ public class VisualizationController
 
                     switch ( ei.getDimensionItemType() )
                     {
-                    case DATA_ELEMENT:
-                        dataDimensionItem.setDataElement( (DataElement) ei );
-                        dataDimensionItems.add( dataDimensionItem );
-                        break;
-                    case DATA_ELEMENT_OPERAND:
-                        dataDimensionItem.setDataElementOperand( (DataElementOperand) ei );
-                        dataDimensionItems.add( dataDimensionItem );
-                        break;
-                    default:
-                        //ignore
-                        break;
+                        case DATA_ELEMENT:
+                            dataDimensionItem.setDataElement( (DataElement) ei );
+                            dataDimensionItems.add( dataDimensionItem );
+                            break;
+                        case DATA_ELEMENT_OPERAND:
+                            dataDimensionItem.setDataElementOperand( (DataElementOperand) ei );
+                            dataDimensionItems.add( dataDimensionItem );
+                            break;
+                        default:
+                            //ignore
+                            break;
                     }
                 } );
             } );

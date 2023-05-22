@@ -623,27 +623,27 @@ final class GistBuilder
         Transform transform = field.getTransformation();
         switch ( transform )
         {
-        default:
-        case AUTO:
-        case NONE:
-            return HQL_NULL;
-        case SIZE:
-            return createSizeTransformerHQL( index, field, property, "" );
-        case IS_EMPTY:
-            return createSizeTransformerHQL( index, field, property, "=0" );
-        case IS_NOT_EMPTY:
-            return createSizeTransformerHQL( index, field, property, ">0" );
-        case NOT_MEMBER:
-            return createHasMemberTransformerHQL( index, field, property, "=0" );
-        case MEMBER:
-            return createHasMemberTransformerHQL( index, field, property, ">0" );
-        case ID_OBJECTS:
-            addTransformer( row -> row[index] = toIdObjects( row[index] ) );
-            return createIdsTransformerHQL( index, field, property );
-        case IDS:
-            return createIdsTransformerHQL( index, field, property );
-        case PLUCK:
-            return createPluckTransformerHQL( index, field, property );
+            default:
+            case AUTO:
+            case NONE:
+                return HQL_NULL;
+            case SIZE:
+                return createSizeTransformerHQL( index, field, property, "" );
+            case IS_EMPTY:
+                return createSizeTransformerHQL( index, field, property, "=0" );
+            case IS_NOT_EMPTY:
+                return createSizeTransformerHQL( index, field, property, ">0" );
+            case NOT_MEMBER:
+                return createHasMemberTransformerHQL( index, field, property, "=0" );
+            case MEMBER:
+                return createHasMemberTransformerHQL( index, field, property, ">0" );
+            case ID_OBJECTS:
+                addTransformer( row -> row[index] = toIdObjects( row[index] ) );
+                return createIdsTransformerHQL( index, field, property );
+            case IDS:
+                return createIdsTransformerHQL( index, field, property );
+            case PLUCK:
+                return createPluckTransformerHQL( index, field, property );
         }
     }
 
@@ -947,17 +947,17 @@ final class GistBuilder
     {
         switch ( filter.getOperator() )
         {
-        default:
-        case CAN_READ:
-            return AclService.LIKE_READ_METADATA;
-        case CAN_WRITE:
-            return AclService.LIKE_WRITE_METADATA;
-        case CAN_DATA_READ:
-            return AclService.LIKE_READ_DATA;
-        case CAN_DATA_WRITE:
-            return AclService.LIKE_WRITE_DATA;
-        case CAN_ACCESS:
-            return filter.getValue()[1];
+            default:
+            case CAN_READ:
+                return AclService.LIKE_READ_METADATA;
+            case CAN_WRITE:
+                return AclService.LIKE_WRITE_METADATA;
+            case CAN_DATA_READ:
+                return AclService.LIKE_READ_DATA;
+            case CAN_DATA_WRITE:
+                return AclService.LIKE_WRITE_DATA;
+            case CAN_ACCESS:
+                return filter.getValue()[1];
         }
     }
 
@@ -972,47 +972,47 @@ final class GistBuilder
     {
         switch ( operator )
         {
-        case NULL:
-            return "is null";
-        case NOT_NULL:
-            return "is not null";
-        case EQ:
-        case IEQ:
-            return "=";
-        case NE:
-            return "!=";
-        case LT:
-            return "<";
-        case GT:
-            return ">";
-        case LE:
-            return "<=";
-        case GE:
-            return ">=";
-        case IN:
-            return "in (";
-        case NOT_IN:
-            return "not in (";
-        case EMPTY:
-            return "= 0";
-        case NOT_EMPTY:
-            return "> 0";
-        case LIKE:
-        case STARTS_LIKE:
-        case ENDS_LIKE:
-        case ILIKE:
-        case STARTS_WITH:
-        case ENDS_WITH:
-            return "like";
-        case NOT_LIKE:
-        case NOT_STARTS_LIKE:
-        case NOT_ENDS_LIKE:
-        case NOT_ILIKE:
-        case NOT_STARTS_WITH:
-        case NOT_ENDS_WITH:
-            return "not like";
-        default:
-            return "";
+            case NULL:
+                return "is null";
+            case NOT_NULL:
+                return "is not null";
+            case EQ:
+            case IEQ:
+                return "=";
+            case NE:
+                return "!=";
+            case LT:
+                return "<";
+            case GT:
+                return ">";
+            case LE:
+                return "<=";
+            case GE:
+                return ">=";
+            case IN:
+                return "in (";
+            case NOT_IN:
+                return "not in (";
+            case EMPTY:
+                return "= 0";
+            case NOT_EMPTY:
+                return "> 0";
+            case LIKE:
+            case STARTS_LIKE:
+            case ENDS_LIKE:
+            case ILIKE:
+            case STARTS_WITH:
+            case ENDS_WITH:
+                return "like";
+            case NOT_LIKE:
+            case NOT_STARTS_LIKE:
+            case NOT_ENDS_LIKE:
+            case NOT_ILIKE:
+            case NOT_STARTS_WITH:
+            case NOT_ENDS_WITH:
+                return "not like";
+            default:
+                return "";
         }
     }
 
@@ -1020,11 +1020,11 @@ final class GistBuilder
     {
         switch ( operator )
         {
-        case NOT_IN:
-        case IN:
-            return ")";
-        default:
-            return "";
+            case NOT_IN:
+            case IN:
+                return ")";
+            default:
+                return "";
         }
     }
 
@@ -1138,23 +1138,23 @@ final class GistBuilder
     {
         switch ( operator )
         {
-        case LIKE:
-        case ILIKE:
-        case NOT_ILIKE:
-        case NOT_LIKE:
-            return sqlLikeExpressionOf( value );
-        case STARTS_LIKE:
-        case STARTS_WITH:
-        case NOT_STARTS_LIKE:
-        case NOT_STARTS_WITH:
-            return value + "%";
-        case ENDS_LIKE:
-        case ENDS_WITH:
-        case NOT_ENDS_LIKE:
-        case NOT_ENDS_WITH:
-            return "%" + value;
-        default:
-            return value;
+            case LIKE:
+            case ILIKE:
+            case NOT_ILIKE:
+            case NOT_LIKE:
+                return sqlLikeExpressionOf( value );
+            case STARTS_LIKE:
+            case STARTS_WITH:
+            case NOT_STARTS_LIKE:
+            case NOT_STARTS_WITH:
+                return value + "%";
+            case ENDS_LIKE:
+            case ENDS_WITH:
+            case NOT_ENDS_LIKE:
+            case NOT_ENDS_WITH:
+                return "%" + value;
+            default:
+                return value;
         }
     }
 

@@ -68,18 +68,18 @@ public class TextPatternMethodUtils
         {
             switch ( c )
             {
-            case '*':
-                result.append( all.get( random.nextInt( all.size() ) ) );
-                break;
-            case '#':
-                result.append( digits.get( random.nextInt( digits.size() ) ) );
-                break;
-            case 'X':
-                result.append( uppercase.get( random.nextInt( uppercase.size() ) ) );
-                break;
-            case 'x':
-                result.append( lowercase.get( random.nextInt( lowercase.size() ) ) );
-                break;
+                case '*':
+                    result.append( all.get( random.nextInt( all.size() ) ) );
+                    break;
+                case '#':
+                    result.append( digits.get( random.nextInt( digits.size() ) ) );
+                    break;
+                case 'X':
+                    result.append( uppercase.get( random.nextInt( uppercase.size() ) ) );
+                    break;
+                case 'x':
+                    result.append( lowercase.get( random.nextInt( lowercase.size() ) ) );
+                    break;
             }
         }
 

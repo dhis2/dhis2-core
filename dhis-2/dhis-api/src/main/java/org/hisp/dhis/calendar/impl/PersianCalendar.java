@@ -144,16 +144,16 @@ public class PersianCalendar extends AbstractCalendar
     {
         switch ( type )
         {
-        case ISO8601_YEAR:
-            return toYearIsoInterval( dateTimeUnit, offset, length );
-        case ISO8601_MONTH:
-            return toMonthIsoInterval( dateTimeUnit, offset, length );
-        case ISO8601_WEEK:
-            return toWeekIsoInterval( dateTimeUnit, offset, length );
-        case ISO8601_DAY:
-            return toDayIsoInterval( dateTimeUnit, offset, length );
-        default:
-            return null;
+            case ISO8601_YEAR:
+                return toYearIsoInterval( dateTimeUnit, offset, length );
+            case ISO8601_MONTH:
+                return toMonthIsoInterval( dateTimeUnit, offset, length );
+            case ISO8601_WEEK:
+                return toWeekIsoInterval( dateTimeUnit, offset, length );
+            case ISO8601_DAY:
+                return toDayIsoInterval( dateTimeUnit, offset, length );
+            default:
+                return null;
         }
     }
 

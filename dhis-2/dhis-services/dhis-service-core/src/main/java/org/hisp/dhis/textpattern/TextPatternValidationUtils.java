@@ -71,20 +71,20 @@ public class TextPatternValidationUtils
                 {
                     switch ( c )
                     {
-                    case '*':
-                        res = res * 62;
-                        break;
-                    case '#':
-                        res = res * 10;
-                        break;
-                    case 'X':
-                        res = res * 26;
-                        break;
-                    case 'x':
-                        res = res * 26;
-                        break;
-                    default:
-                        break;
+                        case '*':
+                            res = res * 62;
+                            break;
+                        case '#':
+                            res = res * 10;
+                            break;
+                        case 'X':
+                            res = res * 26;
+                            break;
+                        case 'x':
+                            res = res * 26;
+                            break;
+                        default:
+                            break;
                     }
                 }
             }

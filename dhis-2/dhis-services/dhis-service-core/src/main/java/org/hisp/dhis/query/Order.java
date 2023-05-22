@@ -167,16 +167,16 @@ public class Order
     {
         switch ( direction )
         {
-        case "asc":
-            return Order.asc( property );
-        case "iasc":
-            return Order.iasc( property );
-        case "desc":
-            return Order.desc( property );
-        case "idesc":
-            return Order.idesc( property );
-        default:
-            return Order.asc( property );
+            case "asc":
+                return Order.asc( property );
+            case "iasc":
+                return Order.iasc( property );
+            case "desc":
+                return Order.desc( property );
+            case "idesc":
+                return Order.idesc( property );
+            default:
+                return Order.asc( property );
         }
     }
 

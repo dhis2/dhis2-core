@@ -174,13 +174,13 @@ public class DefaultMetadataWorkflowService implements MetadataWorkflowService
         }
         switch ( type )
         {
-        default:
-        case ADD:
-            return acceptAdd( proposal, mode );
-        case REMOVE:
-            return acceptRemove( proposal, mode );
-        case UPDATE:
-            return acceptUpdate( proposal, mode );
+            default:
+            case ADD:
+                return acceptAdd( proposal, mode );
+            case REMOVE:
+                return acceptRemove( proposal, mode );
+            case UPDATE:
+                return acceptUpdate( proposal, mode );
         }
     }
 

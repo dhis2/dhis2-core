@@ -136,20 +136,21 @@ class RandomPatternValueGeneratorTest
                 char actual = actualValue.charAt( i );
                 switch ( expected )
                 {
-                case 'x':
-                    assertTrue( isLowerCaseLetter( actual ) );
-                    break;
-                case 'X':
-                    assertTrue( isUpperCaseLetter( actual ) );
-                    break;
-                case '#':
-                    assertTrue( isDigit( actual ) );
-                    break;
-                case '*':
-                    assertTrue( isDigit( actual ) || isLowerCaseLetter( actual ) || isUpperCaseLetter( actual ) );
-                    break;
-                default:
-                    throw new IllegalArgumentException( "expected pattern contains invalid character: " + expected );
+                    case 'x':
+                        assertTrue( isLowerCaseLetter( actual ) );
+                        break;
+                    case 'X':
+                        assertTrue( isUpperCaseLetter( actual ) );
+                        break;
+                    case '#':
+                        assertTrue( isDigit( actual ) );
+                        break;
+                    case '*':
+                        assertTrue( isDigit( actual ) || isLowerCaseLetter( actual ) || isUpperCaseLetter( actual ) );
+                        break;
+                    default:
+                        throw new IllegalArgumentException(
+                            "expected pattern contains invalid character: " + expected );
                 }
             }
         }

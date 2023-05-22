@@ -89,30 +89,30 @@ public class PdfFormFontSettings
 
         switch ( fontType )
         {
-        case FONTTYPE_BODY:
-            font.setSize( FONTSIZE_BODY );
-            font.setColor( Color.BLACK );
-            break;
-        case FONTTYPE_TITLE:
-            font.setSize( FONTSIZE_TITLE );
-            font.setStyle( java.awt.Font.BOLD );
-            font.setColor( new Color( 0, 0, 128 ) ); // Navy Color
-            break;
-        case FONTTYPE_DESCRIPTION:
-            font.setSize( FONTSIZE_DESCRIPTION );
-            font.setColor( Color.DARK_GRAY );
-            break;
-        case FONTTYPE_SECTIONHEADER:
-            font.setSize( FONTSIZE_SECTIONHEADER );
-            font.setStyle( java.awt.Font.BOLD );
-            font.setColor( new Color( 70, 130, 180 ) ); // Steel Blue Color
-            break;
-        case FONTTYPE_FOOTER:
-            font.setSize( FONTSIZE_FOOTER );
-            break;
-        default:
-            font.setSize( FONTSIZE_BODY );
-            break;
+            case FONTTYPE_BODY:
+                font.setSize( FONTSIZE_BODY );
+                font.setColor( Color.BLACK );
+                break;
+            case FONTTYPE_TITLE:
+                font.setSize( FONTSIZE_TITLE );
+                font.setStyle( java.awt.Font.BOLD );
+                font.setColor( new Color( 0, 0, 128 ) ); // Navy Color
+                break;
+            case FONTTYPE_DESCRIPTION:
+                font.setSize( FONTSIZE_DESCRIPTION );
+                font.setColor( Color.DARK_GRAY );
+                break;
+            case FONTTYPE_SECTIONHEADER:
+                font.setSize( FONTSIZE_SECTIONHEADER );
+                font.setStyle( java.awt.Font.BOLD );
+                font.setColor( new Color( 70, 130, 180 ) ); // Steel Blue Color
+                break;
+            case FONTTYPE_FOOTER:
+                font.setSize( FONTSIZE_FOOTER );
+                break;
+            default:
+                font.setSize( FONTSIZE_BODY );
+                break;
         }
 
         return font;

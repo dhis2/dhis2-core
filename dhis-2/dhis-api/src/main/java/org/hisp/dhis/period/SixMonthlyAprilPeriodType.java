@@ -84,12 +84,12 @@ public class SixMonthlyAprilPeriodType
 
         switch ( month )
         {
-        case 4:
-            return dateTimeUnit.getYear() + "AprilS1";
-        case 10:
-            return dateTimeUnit.getYear() + "AprilS2";
-        default:
-            throw new IllegalArgumentException( "Month not valid [4,10]" );
+            case 4:
+                return dateTimeUnit.getYear() + "AprilS1";
+            case 10:
+                return dateTimeUnit.getYear() + "AprilS2";
+            default:
+                throw new IllegalArgumentException( "Month not valid [4,10]" );
         }
     }
 

@@ -101,16 +101,17 @@ public class QuarterlyNovemberPeriodType
 
         switch ( newUnit.getMonth() )
         {
-        case 11:
-            return newUnit.getYear() + 1 + "NovQ1";
-        case 2:
-            return newUnit.getYear() + "NovQ2";
-        case 5:
-            return newUnit.getYear() + "NovQ3";
-        case 8:
-            return newUnit.getYear() + "NovQ4";
-        default:
-            throw new IllegalArgumentException( "Month not valid [11,2,5,8], was given " + dateTimeUnit.getMonth() );
+            case 11:
+                return newUnit.getYear() + 1 + "NovQ1";
+            case 2:
+                return newUnit.getYear() + "NovQ2";
+            case 5:
+                return newUnit.getYear() + "NovQ3";
+            case 8:
+                return newUnit.getYear() + "NovQ4";
+            default:
+                throw new IllegalArgumentException(
+                    "Month not valid [11,2,5,8], was given " + dateTimeUnit.getMonth() );
         }
     }
 

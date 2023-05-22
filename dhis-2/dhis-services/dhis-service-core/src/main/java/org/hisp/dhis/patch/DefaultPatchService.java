@@ -257,28 +257,28 @@ public class DefaultPatchService implements PatchService
 
         switch ( node.getNodeType() )
         {
-        case OBJECT:
-            List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
+            case OBJECT:
+                List<String> fieldNames = Lists.newArrayList( node.fieldNames() );
 
-            for ( String fieldName : fieldNames )
-            {
-                mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
-            }
+                for ( String fieldName : fieldNames )
+                {
+                    mutations.addAll( calculateMutations( path + "." + fieldName, node.get( fieldName ) ) );
+                }
 
-            break;
-        case ARRAY:
-            Collection<Object> identifiers = new ArrayList<>();
+                break;
+            case ARRAY:
+                Collection<Object> identifiers = new ArrayList<>();
 
-            for ( JsonNode jsonNode : node )
-            {
-                identifiers.add( getValue( jsonNode ) );
-            }
+                for ( JsonNode jsonNode : node )
+                {
+                    identifiers.add( getValue( jsonNode ) );
+                }
 
-            mutations.add( new Mutation( path, identifiers ) );
-            break;
-        default:
-            mutations.add( new Mutation( path, getValue( node ) ) );
-            break;
+                mutations.add( new Mutation( path, identifiers ) );
+                break;
+            default:
+                mutations.add( new Mutation( path, getValue( node ) ) );
+                break;
         }
 
         return mutations;
@@ -288,14 +288,14 @@ public class DefaultPatchService implements PatchService
     {
         switch ( node.getNodeType() )
         {
-        case BOOLEAN:
-            return node.booleanValue();
-        case NUMBER:
-            return node.numberValue();
-        case STRING:
-            return node.textValue();
-        case NULL:
-            return null;
+            case BOOLEAN:
+                return node.booleanValue();
+            case NUMBER:
+                return node.numberValue();
+            case STRING:
+                return node.textValue();
+            case NULL:
+                return null;
         }
 
         return null;

@@ -165,15 +165,15 @@ public abstract class AbstractNodeSerializer implements NodeSerializer
     {
         switch ( node.getType() )
         {
-        case SIMPLE:
-            writeSimpleNode( (SimpleNode) node );
-            break;
-        case COMPLEX:
-            writeComplexNode( (ComplexNode) node );
-            break;
-        case COLLECTION:
-            writeCollectionNode( (CollectionNode) node );
-            break;
+            case SIMPLE:
+                writeSimpleNode( (SimpleNode) node );
+                break;
+            case COMPLEX:
+                writeComplexNode( (ComplexNode) node );
+                break;
+            case COLLECTION:
+                writeCollectionNode( (CollectionNode) node );
+                break;
         }
     }
 }

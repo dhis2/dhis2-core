@@ -83,15 +83,15 @@ public class TokenUtils
     {
         switch ( mode )
         {
-        case EXACT:
-            return valueTokens.stream().anyMatch( token -> token.equals( searchToken ) );
-        case START:
-            return valueTokens.stream().anyMatch( token -> token.startsWith( searchToken ) );
-        case END:
-            return valueTokens.stream().anyMatch( token -> token.endsWith( searchToken ) );
-        default:
-        case ANYWHERE:
-            return valueTokens.stream().anyMatch( token -> token.contains( searchToken ) );
+            case EXACT:
+                return valueTokens.stream().anyMatch( token -> token.equals( searchToken ) );
+            case START:
+                return valueTokens.stream().anyMatch( token -> token.startsWith( searchToken ) );
+            case END:
+                return valueTokens.stream().anyMatch( token -> token.endsWith( searchToken ) );
+            default:
+            case ANYWHERE:
+                return valueTokens.stream().anyMatch( token -> token.contains( searchToken ) );
         }
     }
 }

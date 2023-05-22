@@ -128,29 +128,29 @@ public class JpaQueryUtils
 
         switch ( searchMode )
         {
-        case EQUALS:
-            return builder.equal( path, attrValue );
-        case NOT_EQUALS:
-            return builder.notEqual( path, attrValue );
-        case ENDING_LIKE:
-            return builder.like( path, "%" + attrValue );
-        case NOT_ENDING_LIKE:
-            return builder.notLike( path, "%" + attrValue );
-        case STARTING_LIKE:
-            return builder.like( path, attrValue + "%" );
-        case NOT_STARTING_LIKE:
-            return builder.notLike( path, attrValue + "%" );
-        case ANYWHERE:
-            return builder.like( path, "%" + attrValue + "%" );
-        case NOT_ANYWHERE:
-            return builder.notLike( path, "%" + attrValue + "%" );
-        case LIKE:
-            // Assumes user provides wildcards
-            return builder.like( path, (String) attrValue );
-        case NOT_LIKE:
-            return builder.notLike( path, (String) attrValue );
-        default:
-            throw new IllegalStateException( "expecting a search mode!" );
+            case EQUALS:
+                return builder.equal( path, attrValue );
+            case NOT_EQUALS:
+                return builder.notEqual( path, attrValue );
+            case ENDING_LIKE:
+                return builder.like( path, "%" + attrValue );
+            case NOT_ENDING_LIKE:
+                return builder.notLike( path, "%" + attrValue );
+            case STARTING_LIKE:
+                return builder.like( path, attrValue + "%" );
+            case NOT_STARTING_LIKE:
+                return builder.notLike( path, attrValue + "%" );
+            case ANYWHERE:
+                return builder.like( path, "%" + attrValue + "%" );
+            case NOT_ANYWHERE:
+                return builder.notLike( path, "%" + attrValue + "%" );
+            case LIKE:
+                // Assumes user provides wildcards
+                return builder.like( path, (String) attrValue );
+            case NOT_LIKE:
+                return builder.notLike( path, (String) attrValue );
+            default:
+                throw new IllegalStateException( "expecting a search mode!" );
         }
     }
 
@@ -205,13 +205,13 @@ public class JpaQueryUtils
     {
         switch ( operator )
         {
-        case "in":
-            return path.in( (Collection<?>) QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
-        case "eq":
-            return builder.equal( path,
-                property.getKlass().cast( QueryUtils.parseValue( property.getKlass(), value ) ) );
-        default:
-            throw new QueryParserException( "Query operator is not supported : " + operator );
+            case "in":
+                return path.in( (Collection<?>) QueryUtils.parseValue( Collection.class, property.getKlass(), value ) );
+            case "eq":
+                return builder.equal( path,
+                    property.getKlass().cast( QueryUtils.parseValue( property.getKlass(), value ) ) );
+            default:
+                throw new QueryParserException( "Query operator is not supported : " + operator );
         }
     }
 

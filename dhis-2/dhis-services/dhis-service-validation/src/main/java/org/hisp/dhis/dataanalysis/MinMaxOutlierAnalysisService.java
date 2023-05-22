@@ -128,13 +128,13 @@ public class MinMaxOutlierAnalysisService
 
                     switch ( dataElement.getValueType() )
                     {
-                    case INTEGER_POSITIVE:
-                    case INTEGER_ZERO_OR_POSITIVE:
-                        min = Math.max( 0, min ); // Cannot be < 0
-                        break;
-                    case INTEGER_NEGATIVE:
-                        max = Math.min( 0, max ); // Cannot be > 0
-                        break;
+                        case INTEGER_POSITIVE:
+                        case INTEGER_ZERO_OR_POSITIVE:
+                            min = Math.max( 0, min ); // Cannot be < 0
+                            break;
+                        case INTEGER_NEGATIVE:
+                            max = Math.min( 0, max ); // Cannot be > 0
+                            break;
                     }
 
                     OrganisationUnit orgUnit = new OrganisationUnit();
