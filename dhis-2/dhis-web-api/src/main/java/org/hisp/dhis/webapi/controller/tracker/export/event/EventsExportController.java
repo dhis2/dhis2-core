@@ -174,7 +174,7 @@ public class EventsExportController
     @GetMapping( "/{uid}" )
     ResponseEntity<ObjectNode> getEventByUid(
         @OpenApi.Param( { UID.class, Event.class } ) @PathVariable UID uid,
-        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
