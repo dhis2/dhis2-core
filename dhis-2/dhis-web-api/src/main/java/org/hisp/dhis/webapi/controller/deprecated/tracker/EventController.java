@@ -809,7 +809,7 @@ public class EventController
             throw new WebMessageException( conflict(
                 "The content is being processed and is not available yet. Try again later.",
                 "The content requested is in transit to the file store and will be available at a later time." )
-                    .setResponse( new FileResourceWebMessageResponse( fileResource ) ) );
+                .setResponse( new FileResourceWebMessageResponse( fileResource ) ) );
         }
 
         FileResourceUtils.setImageFileDimensions( fileResource,

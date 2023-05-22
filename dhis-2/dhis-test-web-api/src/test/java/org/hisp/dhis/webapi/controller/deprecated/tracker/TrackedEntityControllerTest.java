@@ -77,7 +77,7 @@ class TrackedEntityControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "OK", 200, "OK", "Import was successful.",
             POST( "/trackedEntityInstances",
                 "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
     }
 
     @Test
@@ -86,7 +86,7 @@ class TrackedEntityControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "OK", 200, "OK", "Initiated inMemoryEventImport",
             POST( "/trackedEntityInstances?async=true",
                 "{'name':'A', 'trackedEntityType':'" + tetId + "', 'orgUnit':'" + ouId + "'}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
     }
 
     @Test

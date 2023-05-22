@@ -56,12 +56,17 @@ public class IconMapper
 
     private ContextService contextService;
 
-    public IconResponse from(Icon icon) {
-        if (icon instanceof CustomIcon ci) {
-            return new IconResponse(icon.getKey(), icon.getDescription(), icon.getKeywords(),
-                    ci.getFileResourceUid(), ci.getCreatedByUserUid(), getCustomIconReference(ci.getFileResourceUid()));
-        } else {
-            return new IconResponse(icon.getKey(), icon.getDescription(), icon.getKeywords(), getDefaultIconReference(icon.getKey()));
+    public IconResponse from( Icon icon )
+    {
+        if ( icon instanceof CustomIcon ci )
+        {
+            return new IconResponse( icon.getKey(), icon.getDescription(), icon.getKeywords(),
+                ci.getFileResourceUid(), ci.getCreatedByUserUid(), getCustomIconReference( ci.getFileResourceUid() ) );
+        }
+        else
+        {
+            return new IconResponse( icon.getKey(), icon.getDescription(), icon.getKeywords(),
+                getDefaultIconReference( icon.getKey() ) );
         }
     }
 

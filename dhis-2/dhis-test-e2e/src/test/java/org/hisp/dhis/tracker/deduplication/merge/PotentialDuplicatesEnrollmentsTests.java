@@ -118,7 +118,7 @@ public class PotentialDuplicatesEnrollmentsTests
         TrackerApiResponse duplicateTeiResponse = trackerImportExportActions.postAndGetJobReport(
             new JsonFileReader(
                 new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
-                    .get() );
+                .get() );
 
         String teiB = duplicateTeiResponse.extractImportedTeis().get( 0 );
         String enrollmentB = duplicateTeiResponse.extractImportedEnrollments().get( 0 );

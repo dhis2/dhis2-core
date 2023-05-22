@@ -70,8 +70,8 @@ public class FilteredDataValueCheck implements Checker
 
             Set<String> filteredEventDataValuesUids = getFilteredDataValues( event.getDataValues(),
                 getDataElementUidsFromProgramStage( event.getProgramStage(), ctx ) ).stream()
-                    .map( DataValue::getDataElement )
-                    .collect( Collectors.toSet() );
+                .map( DataValue::getDataElement )
+                .collect( Collectors.toSet() );
 
             Set<String> ignoredDataValues = eventDataValuesUids.stream()
                 .filter( uid -> !filteredEventDataValuesUids.contains( uid ) )

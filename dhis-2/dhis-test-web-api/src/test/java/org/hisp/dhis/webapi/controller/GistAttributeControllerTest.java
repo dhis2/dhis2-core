@@ -184,7 +184,7 @@ class GistAttributeControllerTest extends AbstractGistControllerTest
         String geoGroupId = postNewUserGroupWithAttributeValue( "gg", geoAttrId, geoJsonValue.replace( "'", "\\\"" ) );
         JsonObject group = GET( "/userGroups/{uid}/gist?fields=id,name,{attr}::rename(geo)::pluck", geoGroupId,
             geoAttrId )
-                .content();
+            .content();
         assertTrue( group.get( "geo" ).isObject() );
         assertEquals( "MultiPolygon", group.getString( "geo.type" ).string() );
     }

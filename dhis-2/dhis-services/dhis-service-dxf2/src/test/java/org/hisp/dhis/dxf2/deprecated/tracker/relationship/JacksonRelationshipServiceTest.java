@@ -154,7 +154,7 @@ class JacksonRelationshipServiceTest
 
         when(
             relationshipService.getRelationshipByRelationship( any( org.hisp.dhis.relationship.Relationship.class ) ) )
-                .thenReturn( Optional.of( daoRelationship ) );
+            .thenReturn( Optional.of( daoRelationship ) );
 
         ImportSummary importSummary = subject.addRelationship( relationship, rnd.nextObject( ImportOptions.class ) );
 

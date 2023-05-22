@@ -107,9 +107,9 @@ public class MetadataSyncPostProcessor
         ImportReport importReport = metadataSyncSummary.getImportReport();
         StringBuilder text = new StringBuilder(
             "Successful Import Report for the scheduler run for Metadata synchronization \n\n" )
-                .append( "Imported Version Details \n " )
-                .append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" )
-                .append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
+            .append( "Imported Version Details \n " )
+            .append( "Version Name: " + metadataSyncSummary.getMetadataVersion().getName() + "\n" )
+            .append( "Version Type: " + metadataSyncSummary.getMetadataVersion().getType() + "\n" );
 
         if ( importReport.getTypeReportCount() == 0 )
         {

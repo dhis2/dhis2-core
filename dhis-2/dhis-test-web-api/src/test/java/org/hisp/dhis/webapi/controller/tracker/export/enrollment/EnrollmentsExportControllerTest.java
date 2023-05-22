@@ -212,7 +212,7 @@ class EnrollmentsExportControllerTest extends DhisControllerConvenienceTest
     {
         JsonList<JsonRelationship> relationships = GET( "/tracker/enrollments/{id}?fields=relationships",
             enrollment.getUid() )
-                .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
+            .content( HttpStatus.OK ).getList( "relationships", JsonRelationship.class );
 
         JsonRelationship jsonRelationship = relationships.get( 0 );
         assertEquals( relationship.getUid(), jsonRelationship.getRelationship() );

@@ -422,7 +422,7 @@ public abstract class AbstractFullReadOnlyController<T extends IdentifiableObjec
 
             throw new ConflictException(
                 "Invalid property selected. Make sure all properties are either simple or collections of refs / simple." )
-                    .setDevMessage( ex.getMessage() );
+                .setDevMessage( ex.getMessage() );
         }
     }
 

@@ -66,7 +66,7 @@ abstract class AbstractDataValueControllerTest
             Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         categoryComboId = ccDefault.getString( "id" ).string();
         categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
         dataElementId = addDataElement( "My data element", "DE1", ValueType.INTEGER, null, categoryComboId );

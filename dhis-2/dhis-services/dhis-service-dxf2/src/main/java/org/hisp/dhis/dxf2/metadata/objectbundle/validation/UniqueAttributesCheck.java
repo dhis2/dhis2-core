@@ -115,7 +115,7 @@ public class UniqueAttributesCheck implements ObjectValidationCheck
                 {
                     errorReports.add( new ErrorReport( Attribute.class, ErrorCode.E4009,
                         IdentifiableObjectUtils.getDisplayName( attribute ), attributeValue.getValue() )
-                            .setMainId( attribute.getUid() ).setErrorProperty( "value" ) );
+                        .setMainId( attribute.getUid() ).setErrorProperty( "value" ) );
                 }
                 else
                 {

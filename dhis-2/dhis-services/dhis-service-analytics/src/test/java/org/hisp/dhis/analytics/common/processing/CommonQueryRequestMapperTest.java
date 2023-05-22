@@ -365,7 +365,7 @@ class CommonQueryRequestMapperTest
             aCommonQueryRequest.getDisplayProperty(), UID )) ).thenReturn( null );
         when( eventDataQueryService.getQueryItem( deDimensionIdentifier.getDimension().getUid(),
             deDimensionIdentifier.getProgram().getElement(), TRACKED_ENTITY_INSTANCE ) )
-                .thenReturn( anyQueryItem );
+            .thenReturn( anyQueryItem );
 
         // When
         CommonParams params = new CommonQueryRequestMapper( dataQueryService, eventDataQueryService, programService,

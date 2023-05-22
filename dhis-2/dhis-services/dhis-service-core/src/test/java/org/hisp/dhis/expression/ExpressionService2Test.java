@@ -620,23 +620,23 @@ class ExpressionService2Test extends DhisConvenienceTest
 
         when( dimensionService.getNoAclDataDimensionalItemObjectMap( (Set<DimensionalItemId>) argThat(
             containsInAnyOrder( getId( opA ), getId( deB ), getId( reportingRate ), getId( pdeA ) ) ) ) )
-                .thenReturn( Map.of(
-                    getId( opA ), opA,
-                    getId( deB ), deB,
-                    getId( reportingRate ), reportingRate,
-                    getId( pdeA ), pdeA ) );
+            .thenReturn( Map.of(
+                getId( opA ), opA,
+                getId( deB ), deB,
+                getId( reportingRate ), reportingRate,
+                getId( pdeA ), pdeA ) );
 
         when( idObjectManager.getNoAcl( eq( OrganisationUnitGroup.class ), (java.util.Collection<String>) argThat(
             containsInAnyOrder( groupA.getUid(), groupB.getUid() ) ) ) )
-                .thenReturn( List.of( groupA, groupB ) );
+            .thenReturn( List.of( groupA, groupB ) );
 
         when( idObjectManager.getNoAcl( eq( DataSet.class ), (java.util.Collection<String>) argThat(
             containsInAnyOrder( dataSetA.getUid(), dataSetB.getUid() ) ) ) )
-                .thenReturn( List.of( dataSetA, dataSetB ) );
+            .thenReturn( List.of( dataSetA, dataSetB ) );
 
         when( idObjectManager.getNoAcl( eq( Program.class ), (java.util.Collection<String>) argThat(
             containsInAnyOrder( programA.getUid(), programB.getUid() ) ) ) )
-                .thenReturn( List.of( programA, programB ) );
+            .thenReturn( List.of( programA, programB ) );
 
         ExpressionParams baseParams = target.getBaseExpressionParams( info );
 
