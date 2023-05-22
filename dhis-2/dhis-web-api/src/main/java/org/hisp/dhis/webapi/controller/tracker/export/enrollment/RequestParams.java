@@ -44,6 +44,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
 /**
  * Represents query parameters sent to {@link EnrollmentsExportController}.
@@ -78,7 +79,7 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     @OpenApi.Property( { UID.class, TrackedEntityType.class } )
     private String trackedEntityType;
 
-    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     private String trackedEntity;
 
     @OpenApi.Property( { UID[].class, Enrollment.class } )

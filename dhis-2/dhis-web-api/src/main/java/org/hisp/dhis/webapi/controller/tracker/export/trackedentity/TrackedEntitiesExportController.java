@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.trackedentity.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -56,12 +57,14 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityParams;
 import org.hisp.dhis.tracker.export.trackedentity.TrackedEntityService;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -76,6 +79,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.EntityType( TrackedEntity.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackedEntitiesExportController.TRACKED_ENTITIES )
@@ -90,7 +94,8 @@ public class TrackedEntitiesExportController
      * cannot be filtered using the {@link FieldFilterService} so
      * <code>fields</code> query parameter is ignored when CSV is requested.
      * Make sure this is kept in sync with the columns we promise to return in
-     * the CSV. See {@link org.hisp.dhis.webapi.controller.tracker.export.csv}.
+     * the CSV. See
+     * {@link org.hisp.dhis.webapi.controller.tracker.export.trackedentity.CsvTrackedEntity}.
      */
     private static final List<FieldPath> CSV_FIELDS = FieldFilterParser.parse(
         "trackedEntity,trackedEntityType,createdAt,createdAtClient,updatedAt,updatedAtClient,orgUnit,inactive,deleted,potentialDuplicate,geometry,storedBy,createdBy,updatedBy,attributes" );
@@ -111,6 +116,7 @@ public class TrackedEntitiesExportController
 
     private final TrackedEntityFieldsParamMapper fieldsMapper;
 
+    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     PagingWrapper<ObjectNode> getTrackedEntities( RequestParams requestParams )
         throws BadRequestException,
@@ -147,7 +153,7 @@ public class TrackedEntitiesExportController
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_CSV_ZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvTrackedEntities( RequestParams requestParams,
+    void getTrackedEntitiesAsCsv( RequestParams requestParams,
         HttpServletResponse response,
         HttpServletRequest request,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader )
@@ -190,10 +196,12 @@ public class TrackedEntitiesExportController
         csvEventService.write( outputStream, trackedEntities, !skipHeader );
     }
 
-    @GetMapping( value = "{uid}" )
-    public ResponseEntity<ObjectNode> getTrackedEntity( @PathVariable UID uid,
-        @RequestParam( required = false ) String program,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    @OpenApi.Response( OpenApi.EntityType.class )
+    @GetMapping( value = "/{uid}" )
+    ResponseEntity<ObjectNode> getTrackedEntityByUid(
+        @OpenApi.Param( { org.hisp.dhis.common.UID.class, TrackedEntity.class } ) @PathVariable UID uid,
+        @OpenApi.Param( { UID.class, Program.class } ) @RequestParam( required = false ) String program,
+        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws ForbiddenException,
         NotFoundException
     {
@@ -204,11 +212,11 @@ public class TrackedEntitiesExportController
         return ResponseEntity.ok( fieldFilterService.toObjectNode( trackedEntity, fields ) );
     }
 
-    @GetMapping( value = "{id}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvTrackedEntityById( @PathVariable String id,
+    @GetMapping( value = "/{uid}", produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
+    void getTrackedEntityByUidAsCsv( @PathVariable String uid,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
-        @RequestParam( required = false ) String program )
+        @OpenApi.Param( { UID.class, Program.class } ) @RequestParam( required = false ) String program )
         throws IOException,
         ForbiddenException,
         NotFoundException
@@ -216,7 +224,7 @@ public class TrackedEntitiesExportController
         TrackedEntityParams trackedEntityParams = fieldsMapper.map( CSV_FIELDS );
 
         TrackedEntity trackedEntity = TRACKED_ENTITY_MAPPER.from(
-            trackedEntityService.getTrackedEntity( id, program, trackedEntityParams ) );
+            trackedEntityService.getTrackedEntity( uid, program, trackedEntityParams ) );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
