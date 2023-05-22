@@ -68,7 +68,9 @@ public class CodeGenerator
 
     public static final int UID_CODE_SIZE = 11;
 
-    private static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z][a-zA-Z0-9]{10}$" );
+    public static final String UID_PATTERN = "^[a-zA-Z][a-zA-Z0-9]{10}$";
+
+    private static final Pattern CODE_PATTERN = Pattern.compile( UID_PATTERN );
 
     /**
      * The required minimum length of a random alphanumeric string, with the
