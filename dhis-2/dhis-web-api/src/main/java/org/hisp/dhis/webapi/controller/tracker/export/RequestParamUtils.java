@@ -30,10 +30,11 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Stack;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,8 +64,17 @@ public class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
+    /**
+     * Negative lookahead to avoid wrong split when filter value contains colon.
+     * It skip colon escaped by backslash
+     */
     private static final String FILTER_ITEM_SPLIT = "(?<!\\\\)" + DIMENSION_NAME_SEP;
 
+    /**
+     * Negative lookahead to avoid wrong split of comma-separated list of
+     * filters when one or more filter value contain comma. It skip comma
+     * escaped by backslash
+     */
     private static final String FILTER_LIST_SPLIT = "(?<!\\\\),";
 
     /**
@@ -217,7 +227,7 @@ public class RequestParamUtils
         if ( filters.length == 2 )
         {
             queryItem.getFilters()
-                .add( parseSingleOperatorValueFilter( filters[0], filters[1], items ) );
+                .add( singleOperatorValueQueryFilter( filters[0], filters[1], items ) );
         }
         // multiple operator
         else if ( filters.length == 4 )
@@ -225,7 +235,7 @@ public class RequestParamUtils
             for ( int i = 0; i < filters.length; i += 2 )
             {
                 queryItem.getFilters()
-                    .add( parseSingleOperatorValueFilter( filters[i], filters[i + 1], items ) );
+                    .add( singleOperatorValueQueryFilter( filters[i], filters[i + 1], items ) );
             }
         }
         else
@@ -258,10 +268,10 @@ public class RequestParamUtils
             return new QueryFilter( QueryOperator.EQ, filter );
         }
 
-        return parseSingleOperatorValueFilter( filter.split( FILTER_ITEM_SPLIT ), filter );
+        return singleOperatorValueQueryFilter( filter.split( FILTER_ITEM_SPLIT ), filter );
     }
 
-    private static QueryFilter parseSingleOperatorValueFilter( String[] operatorValue, String filter )
+    private static QueryFilter singleOperatorValueQueryFilter( String[] operatorValue, String filter )
         throws BadRequestException
     {
         if ( null == operatorValue || operatorValue.length < 2 )
@@ -269,10 +279,10 @@ public class RequestParamUtils
             throw new BadRequestException( "Query item or filter is invalid: " + filter );
         }
 
-        return parseSingleOperatorValueFilter( operatorValue[0], operatorValue[1], filter );
+        return singleOperatorValueQueryFilter( operatorValue[0], operatorValue[1], filter );
     }
 
-    private static QueryFilter parseSingleOperatorValueFilter( String operator, String value, String filter )
+    private static QueryFilter singleOperatorValueQueryFilter( String operator, String value, String filter )
         throws BadRequestException
     {
         if ( StringUtils.isEmpty( operator ) || StringUtils.isEmpty( value ) )
@@ -282,10 +292,10 @@ public class RequestParamUtils
 
         try
         {
-            return new QueryFilter( queryOperator( operator ), escapedFilterValue( value ) );
+            return new QueryFilter( QueryOperator.fromString( operator ), escapedFilterValue( value ) );
 
         }
-        catch ( Exception exception )
+        catch ( IllegalArgumentException exception )
         {
             throw new BadRequestException( "Query item or filter is invalid: " + filter );
         }
@@ -299,7 +309,7 @@ public class RequestParamUtils
      */
     private static String escapedFilterValue( String value )
     {
-        Stack<Character> stack = new Stack<>();
+        Deque<Character> stack = new LinkedList<>();
 
         for ( int i = 0; i < value.length(); i++ )
         {
@@ -311,11 +321,5 @@ public class RequestParamUtils
         }
 
         return stack.stream().map( Object::toString ).collect( Collectors.joining( "" ) );
-    }
-
-    private static QueryOperator queryOperator(
-        String itemOperator )
-    {
-        return QueryOperator.fromString( itemOperator );
     }
 }
