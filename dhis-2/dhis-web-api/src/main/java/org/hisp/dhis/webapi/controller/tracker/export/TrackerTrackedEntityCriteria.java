@@ -28,17 +28,15 @@
 package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Represents query parameters sent to
@@ -52,9 +50,9 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
-    private Set<String> attribute = new HashSet<>();
+    private String attribute;
 
-    private Set<String> filter = new HashSet<>();
+    private String filter;
 
     /**
      * Semicolon-delimited list of Organizational Unit UIDs
