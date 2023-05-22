@@ -68,6 +68,7 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.scheduling.JobParameters;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 import org.locationtech.jts.geom.Geometry;
 import org.springframework.http.HttpStatus;
@@ -227,6 +228,8 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( URL.class, schema -> schema.type( "string" ).format( "url" ).nullable( true ) );
         addSimpleType( UUID.class, schema -> schema.type( "string" ).format( "uuid" ).nullable( true )
             .pattern( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" ) );
+        addSimpleType( UID.class, schema -> schema.type( "string" ).format( "uid" ).nullable( true )
+            .pattern( CodeGenerator.UID_PATTERN ) );
         addSimpleType( Locale.class, schema -> schema.type( "string" ).nullable( true ) );
         addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
         addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );
