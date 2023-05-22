@@ -45,6 +45,7 @@ import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
@@ -151,7 +152,7 @@ public class ApiResponse
 
     public JsonResponse getBodyAsJson()
     {
-        return new JsonResponse( raw.asString() );
+        return new JsonResponse( raw.asString(), JsonTypedAccess.GLOBAL );
     }
 
     public boolean isEntityCreated()

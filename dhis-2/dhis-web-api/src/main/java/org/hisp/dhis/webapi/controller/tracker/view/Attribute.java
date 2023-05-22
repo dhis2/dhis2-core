@@ -35,8 +35,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.webapi.common.UID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
