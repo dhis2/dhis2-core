@@ -608,7 +608,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         {
             ImportSummary is = new ImportSummary( ImportStatus.ERROR,
                 "Tracked entity instance " + foundTeiUid + " already exists or was deleted earlier" )
-                    .setReference( foundTeiUid ).incrementIgnored();
+                .setReference( foundTeiUid ).incrementIgnored();
 
             importSummaries.addImportSummary( is );
         }
@@ -633,7 +633,7 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
             return new ImportSummary( ImportStatus.ERROR,
                 "Tracked entity instance " + dtoEntityInstance.getTrackedEntityInstance()
                     + " already exists or was deleted earlier" )
-                        .setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
+                .setReference( dtoEntityInstance.getTrackedEntityInstance() ).incrementIgnored();
         }
 
         importOptions = updateImportOptions( importOptions );

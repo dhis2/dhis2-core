@@ -47,7 +47,7 @@ class MessageConversationControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", "Message conversation created",
             POST( "/messageConversations/",
                 "{'subject':'Subject','text':'Text','users':[{'id':'" + getSuperuserUid() + "'}]}" )
-                    .content( HttpStatus.CREATED ) );
+                .content( HttpStatus.CREATED ) );
     }
 
     @Test

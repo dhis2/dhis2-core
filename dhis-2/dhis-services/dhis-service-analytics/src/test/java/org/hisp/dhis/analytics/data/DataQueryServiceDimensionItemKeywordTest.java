@@ -376,7 +376,7 @@ class DataQueryServiceDimensionItemKeywordTest
 
         when( organisationUnitService.getOrganisationUnits( Lists.newArrayList( groupOu ),
             Lists.newArrayList( rootOu ) ) )
-                .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
+            .thenReturn( Lists.newArrayList( ou1Group, ou2Group ) );
 
         rb.addOuFilter( "LEVEL-wjP19dkFeIk;OU_GROUP-tDZVQ1WtwpA;ImspTQPwCqd" );
         rb.addDimension( concatenateUuid( DATA_ELEMENT_1, DATA_ELEMENT_2, DATA_ELEMENT_3 ) );

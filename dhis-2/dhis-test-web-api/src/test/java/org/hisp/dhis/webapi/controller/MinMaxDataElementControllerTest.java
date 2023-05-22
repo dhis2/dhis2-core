@@ -47,7 +47,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
             POST( "/minMaxDataElements/",
                 "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'" + dataElementId + "'},"
                     + "'optionCombo':{'id':'" + categoryOptionComboId + "'}," + "'min':1," + "'max':42" + "}" )
-                        .content( HttpStatus.CREATED ) );
+                .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -60,7 +60,7 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
         assertWebMessage( "OK", 200, "OK", "MinMaxDataElement deleted.",
             DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
                 + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionComboId + "'}" + "}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
     }
 
     @Test
@@ -69,6 +69,6 @@ class MinMaxDataElementControllerTest extends AbstractDataValueControllerTest
         assertWebMessage( "Not Found", 404, "ERROR", "Can not find MinMaxDataElement.",
             DELETE( "/minMaxDataElements/", "{" + "'source':{'id':'" + orgUnitId + "'}," + "'dataElement':{'id':'"
                 + dataElementId + "'}," + "'optionCombo':{'id':'" + categoryOptionComboId + "'}" + "}" )
-                    .content( HttpStatus.NOT_FOUND ) );
+                .content( HttpStatus.NOT_FOUND ) );
     }
 }

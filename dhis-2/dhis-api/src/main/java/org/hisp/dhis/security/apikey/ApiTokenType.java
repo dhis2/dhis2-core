@@ -103,9 +103,9 @@ public enum ApiTokenType
 
         return switch ( tokenChecksumType )
         {
-            case "CRC32" -> validateCrc32Checksum( plaintextToken );
+        case "CRC32" -> validateCrc32Checksum( plaintextToken );
 
-            default -> throw new IllegalArgumentException( "Unsupported checksum type: " + tokenChecksumType );
+        default -> throw new IllegalArgumentException( "Unsupported checksum type: " + tokenChecksumType );
         };
     }
 
@@ -142,10 +142,10 @@ public enum ApiTokenType
 
         return switch ( tokenHashType )
         {
-            case "SHA-256" -> CodeGenerator.hashSHA256( plaintextToken );
-            case "SHA-512" -> CodeGenerator.hashSHA512( plaintextToken );
+        case "SHA-256" -> CodeGenerator.hashSHA256( plaintextToken );
+        case "SHA-512" -> CodeGenerator.hashSHA512( plaintextToken );
 
-            default -> throw new IllegalArgumentException( "Unsupported hash type: " + tokenHashType );
+        default -> throw new IllegalArgumentException( "Unsupported hash type: " + tokenHashType );
         };
     }
 }

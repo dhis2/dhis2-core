@@ -283,7 +283,8 @@ public class CrudControllerAdvice
         {
             return MessageFormat.format( "{0} cannot be empty.", field );
         }
-        if (isPathVariable){
+        if ( isPathVariable )
+        {
             return String.format( "Value '%s' is not valid for path parameter %s.", value, field );
         }
         return String.format( "Value '%s' is not valid for parameter %s.", value, field );

@@ -66,7 +66,9 @@ public class Each<T, R> implements Validator<T>
      * You would then write
      *
      * <pre>
-     * {@code each(Enrollment::getNotes, noteValidator)}
+     * {@code
+     * each( Enrollment::getNotes, noteValidator )
+     * }
      * </pre>
      *
      * @param map function taking type T to Collection of R

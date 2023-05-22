@@ -460,7 +460,7 @@ public class EventManager
             {
                 final ImportSummary is = new ImportSummary( ERROR,
                     "Event " + eventToImport.getUid() + " already exists or was deleted earlier" )
-                        .setReference( eventToImport.getUid() ).incrementIgnored();
+                    .setReference( eventToImport.getUid() ).incrementIgnored();
 
                 importSummaries.addImportSummary( is );
 
@@ -480,7 +480,7 @@ public class EventManager
                     final ImportSummary is = new ImportSummary( ERROR,
                         "ProgramStage " + eventToImport.getProgramStage()
                             + " is not repeatable. Current payload contains duplicate event" )
-                                .setReference( eventToImport.getUid() ).incrementIgnored();
+                        .setReference( eventToImport.getUid() ).incrementIgnored();
 
                     importSummaries.addImportSummary( is );
                 }

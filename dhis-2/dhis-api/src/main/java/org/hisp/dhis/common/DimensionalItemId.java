@@ -163,13 +163,13 @@ public class DimensionalItemId
     {
         return switch ( dimensionItemType )
         {
-            case DATA_ELEMENT, INDICATOR, PROGRAM_INDICATOR -> id0 != null && id1 == null && id2 == null;
-            case DATA_ELEMENT_OPERAND -> id0 != null && (id1 != null || id2 != null);
-            case REPORTING_RATE -> id0 != null && id1 != null && id2 == null
-                && isValidEnum( ReportingRateMetric.class, id1 );
-            case PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE -> id0 != null && id1 != null && id2 == null;
-            case SUBEXPRESSION_DIMENSION_ITEM -> subexSql != null && !subexItemIds.isEmpty();
-            default -> false;
+        case DATA_ELEMENT, INDICATOR, PROGRAM_INDICATOR -> id0 != null && id1 == null && id2 == null;
+        case DATA_ELEMENT_OPERAND -> id0 != null && (id1 != null || id2 != null);
+        case REPORTING_RATE -> id0 != null && id1 != null && id2 == null
+            && isValidEnum( ReportingRateMetric.class, id1 );
+        case PROGRAM_DATA_ELEMENT, PROGRAM_ATTRIBUTE -> id0 != null && id1 != null && id2 == null;
+        case SUBEXPRESSION_DIMENSION_ITEM -> subexSql != null && !subexItemIds.isEmpty();
+        default -> false;
         };
     }
 

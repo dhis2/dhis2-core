@@ -77,7 +77,7 @@ public class HibernateUserDatastoreStore
 
         return getList( builder, newJpaParameters()
             .addPredicate( root -> builder.equal( root.get( BaseIdentifiableObject_.CREATED_BY ), user ) ) )
-                .stream().map( UserDatastoreEntry::getNamespace ).distinct().collect( Collectors.toList() );
+            .stream().map( UserDatastoreEntry::getNamespace ).distinct().collect( Collectors.toList() );
     }
 
     @Override

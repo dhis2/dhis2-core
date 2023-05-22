@@ -162,7 +162,7 @@ class GenericSmsGatewayTest
 
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
-                .thenReturn( responseEntity );
+            .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 
@@ -214,7 +214,7 @@ class GenericSmsGatewayTest
         when( pbeStringEncryptor.decrypt( anyString() ) ).thenReturn( password.getValue() );
         when( restTemplate.exchange( any( URI.class ), any( HttpMethod.class ), any( HttpEntity.class ),
             eq( String.class ) ) )
-                .thenReturn( responseEntity );
+            .thenReturn( responseEntity );
 
         assertThat( subject.send( SUBJECT, TEXT, RECIPIENTS, gatewayConfig ).isOk(), is( true ) );
 

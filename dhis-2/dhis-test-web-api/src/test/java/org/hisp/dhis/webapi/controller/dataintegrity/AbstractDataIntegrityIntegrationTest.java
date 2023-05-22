@@ -267,7 +267,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         return ccDefault.getString( "id" ).string();
     }
 
@@ -275,7 +275,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         return ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
 
     }

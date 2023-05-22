@@ -63,7 +63,7 @@ class IconControllerTest extends DhisControllerIntegrationTest
         JsonWebMessage message = POST( "/icons/",
             "{'key':'" + iconKey + "', 'description':'" + description + "', 'fileResourceUid':'" + createFileResource()
                 + "', 'keywords':" + keywords + "}" )
-                    .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
+            .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
 
         assertEquals( String.format( "Icon %s created", iconKey ), message.getMessage() );
     }
@@ -116,7 +116,7 @@ class IconControllerTest extends DhisControllerIntegrationTest
         JsonWebMessage message = POST( "/icons/",
             "{'key':'" + iconKey + "', 'description':'" + description + "', 'fileResourceUid':'" + fileResourceId
                 + "', 'keywords':" + keywords + "}" )
-                    .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
+            .content( HttpStatus.CREATED ).as( JsonWebMessage.class );
         return message.getMessage();
     }
 
