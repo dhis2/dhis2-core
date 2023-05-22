@@ -152,11 +152,11 @@
     <aerogear-otp-java.version>1.0.0</aerogear-otp-java.version>
     <jsmpp.version>3.0.0</jsmpp.version>
     <json-path.version>2.8.0</json-path.version>
-    <jsoup.version>1.15.4</jsoup.version>
+    <jsoup.version>1.16.1</jsoup.version>
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.1.2.Final</version.debezium>
+    <version.debezium>2.2.1.Final</version.debezium>
     <guava.version>31.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
