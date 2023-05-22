@@ -36,10 +36,10 @@ import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
@@ -69,7 +69,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Class<?> identifierClass;
 
-    @OpenApi.Property( name = "fields", value = String[].class )
+    @OpenApi.Property( value = String[].class )
     @Getter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
