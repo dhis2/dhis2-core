@@ -30,13 +30,11 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,47 +63,9 @@ public class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
-        .filter( QueryOperator::isComparison ).map( Enum::toString )
-        .collect( Collectors.joining( "|" ) );
+    private static final String FILTER_ITEM_SPLIT = "(?<!\\\\)" + DIMENSION_NAME_SEP;
 
-    /**
-     * For multi operand, we support digits and dates
-     * {@link org.hisp.dhis.util.DateUtils}.
-     */
-    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
-
-    private static final Pattern MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN = Pattern
-        .compile( "(?i)(" + COMPARISON_OPERATOR + ")" + DIMENSION_NAME_SEP
-            + DIGITS_DATES_VALUES_REG_EX + "(?!" + "(?i)(" + COMPARISON_OPERATOR + ")"
-            + ")" );
-
-    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
-        + DIMENSION_NAME_SEP
-        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
-
-    /**
-     * RegEx to search and validate multiple operand
-     * {operator}:{value}[:{operator}:{value}], We allow comparison for digits
-     * and dates,
-     */
-    private static final Pattern MULTI_OPERAND_VALUE_PATTERN = Pattern
-        .compile(
-            MULTI_OPERAND_VALUE_REG_EX
-                + DIMENSION_NAME_SEP
-                + MULTI_OPERAND_VALUE_REG_EX );
-
-    /**
-     * RegEx to validate and match {operator}:{value} in a filter
-     */
-    private static final String SINGLE_OPERAND_REG_EX = "(?i)("
-        + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
-            .collect( Collectors.joining( "|" ) )
-        + ")" +
-        DIMENSION_NAME_SEP + "(.)+";
-
-    private static final Pattern SINGLE_OPERAND_VALIDATION_PATTERN = Pattern
-        .compile( SINGLE_OPERAND_REG_EX );
+    private static final String FILTER_LIST_SPLIT = "(?<!\\\\),";
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -163,21 +123,28 @@ public class RequestParamUtils
      * {@link #parseQueryItem(String, CheckedFunction)} for details on the
      * expected item format.
      *
-     * @param items query item strings each composed of identifier, operator and
-     *        value
+     * @param queryItem query item strings each composed of identifier, operator
+     *        and value
      * @param attributes tracked entity attribute map from identifiers to
      *        attributes
      * @return query items each of a tracked entity attribute with attached
      *         query filters
      */
-    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
+    public static List<QueryItem> parseAttributeQueryItems( String queryItem,
         Map<String, TrackedEntityAttribute> attributes )
         throws BadRequestException
     {
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String item : items )
+        if ( StringUtils.isEmpty( queryItem ) )
         {
-            itemList.add( parseAttributeQueryItem( item, attributes ) );
+            return List.of();
+        }
+
+        String[] idOperatorValues = queryItem.split( FILTER_LIST_SPLIT );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String idOperatorValue : idOperatorValues )
+        {
+            itemList.add( parseAttributeQueryItem( idOperatorValue, attributes ) );
         }
 
         return itemList;
@@ -224,8 +191,7 @@ public class RequestParamUtils
      * Expected item format is
      * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
      * is mandatory. Multiple operator:value pairs are allowed, If is not a
-     * multiple operand, a single operator:value filter will be created.
-     * Otherwise, the query item is not valid.
+     * multiple or single operator the query item is not valid.
      * <p>
      * The identifier is passed to given map function which translates the
      * identifier to a QueryItem. A QueryFilter for each operator:value pair is
@@ -233,41 +199,38 @@ public class RequestParamUtils
      *
      * @throws BadRequestException given invalid query item
      */
-    public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
+    public static QueryItem parseQueryItem( String items, CheckedFunction<String, QueryItem> map )
         throws BadRequestException
     {
-        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP ) + 1;
+        int identifierIndex = items.indexOf( DIMENSION_NAME_SEP ) + 1;
 
-        if ( identifierIndex == 0 || fullPath.length() == identifierIndex )
+        if ( identifierIndex == 0 || items.length() == identifierIndex )
         {
-            return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
+            return map.apply( items.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex - 1 ) );
+        QueryItem queryItem = map.apply( items.substring( 0, identifierIndex - 1 ) );
 
-        String filter = fullPath.substring( identifierIndex );
+        String[] filters = items.substring( identifierIndex ).split( FILTER_ITEM_SPLIT );
 
-        if ( MULTI_OPERAND_VALUE_PATTERN
-            .matcher( filter ).matches() )
+        // single operator
+        if ( filters.length == 2 )
         {
-            Matcher matcher = MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN.matcher( filter );
-
-            while ( matcher.find() )
+            queryItem.getFilters()
+                .add( parseSingleOperatorValueFilter( filters[0], filters[1], items ) );
+        }
+        // multiple operator
+        else if ( filters.length == 4 )
+        {
+            for ( int i = 0; i < filters.length; i += 2 )
             {
-                queryItem.getFilters().add( singleOperatorValueFilter( matcher.group() ) );
+                queryItem.getFilters()
+                    .add( parseSingleOperatorValueFilter( filters[i], filters[i + 1], items ) );
             }
-
-            return queryItem;
-        }
-
-        if ( SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( filter ).matches() )
-        {
-            queryItem.getFilters().add( singleOperatorValueFilter( filter ) );
         }
         else
         {
-            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
+            throw new BadRequestException( "Query item or filter is invalid: " + items );
         }
 
         return queryItem;
@@ -282,32 +245,77 @@ public class RequestParamUtils
      *
      * @throws BadRequestException given invalid query string
      */
-    public static QueryFilter parseQueryFilter( String query )
+    public static QueryFilter parseQueryFilter( String filter )
         throws BadRequestException
     {
-        if ( query == null || query.isEmpty() )
+        if ( StringUtils.isEmpty( filter ) )
         {
             return null;
         }
 
-        if ( !query.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
+        if ( !filter.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
         {
-            return new QueryFilter( QueryOperator.EQ, query );
+            return new QueryFilter( QueryOperator.EQ, filter );
         }
 
-        if ( !SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( query ).matches() )
-        {
-            throw new BadRequestException( "Query has invalid format: " + query );
-        }
-
-        return singleOperatorValueFilter( query );
+        return parseSingleOperatorValueFilter( filter.split( FILTER_ITEM_SPLIT ), filter );
     }
 
-    private static QueryFilter singleOperatorValueFilter( String operatorValue )
+    private static QueryFilter parseSingleOperatorValueFilter( String[] operatorValue, String filter )
+        throws BadRequestException
     {
-        String[] operatorValueSplit = operatorValue.split( DIMENSION_NAME_SEP, 2 );
+        if ( null == operatorValue || operatorValue.length < 2 )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
 
-        return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+        return parseSingleOperatorValueFilter( operatorValue[0], operatorValue[1], filter );
+    }
+
+    private static QueryFilter parseSingleOperatorValueFilter( String operator, String value, String filter )
+        throws BadRequestException
+    {
+        if ( StringUtils.isEmpty( operator ) || StringUtils.isEmpty( value ) )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
+
+        try
+        {
+            return new QueryFilter( queryOperator( operator ), escapedFilterValue( value ) );
+
+        }
+        catch ( Exception exception )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
+    }
+
+    /**
+     * Escapes colon in the input value and reconstruct the value
+     *
+     * @param value
+     * @return
+     */
+    private static String escapedFilterValue( String value )
+    {
+        Stack<Character> stack = new Stack<>();
+
+        for ( int i = 0; i < value.length(); i++ )
+        {
+            if ( i == value.length() - 1
+                || !(value.charAt( i ) == '\\' && value.charAt( i + 1 ) == DIMENSION_NAME_SEP.charAt( 0 )) )
+            {
+                stack.add( value.charAt( i ) );
+            }
+        }
+
+        return stack.stream().map( Object::toString ).collect( Collectors.joining( "" ) );
+    }
+
+    private static QueryOperator queryOperator(
+        String itemOperator )
+    {
+        return QueryOperator.fromString( itemOperator );
     }
 }

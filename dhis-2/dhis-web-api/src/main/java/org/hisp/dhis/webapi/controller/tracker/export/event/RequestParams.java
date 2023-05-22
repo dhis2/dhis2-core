@@ -113,7 +113,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Set<String> filter = new HashSet<>();
 
-    private Set<String> filterAttributes = new HashSet<>();
+    private String filterAttributes;
 
     private Set<String> enrollments = new HashSet<>();
 

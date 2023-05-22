@@ -579,7 +579,7 @@ class RequestParamsMapperTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
+        criteria.setFilterAttributes( TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -638,7 +638,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+        criteria.setFilterAttributes( TEA_1_UID + ":gt:10:lt:20" );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -676,7 +676,7 @@ class RequestParamsMapperTest
     {
         RequestParams criteria = new RequestParams();
         criteria.setFilterAttributes(
-            Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
+            "TvjwTPToKHO:lt:20" + "," + "cy2oRh2sNr6:lt:20" + "," + "TvjwTPToKHO:gt:30" + "," + "cy2oRh2sNr6:gt:30" );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
@@ -695,7 +695,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
+        criteria.setFilterAttributes( TEA_1_UID );
 
         EventSearchParams params = mapper.map( criteria );
 

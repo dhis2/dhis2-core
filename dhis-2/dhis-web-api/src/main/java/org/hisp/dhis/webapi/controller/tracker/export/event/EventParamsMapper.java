@@ -274,7 +274,7 @@ class EventParamsMapper
         }
     }
 
-    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
+    private List<QueryItem> parseFilterAttributes( String filterAttributes, List<OrderParam> attributeOrderParams )
         throws BadRequestException
     {
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
