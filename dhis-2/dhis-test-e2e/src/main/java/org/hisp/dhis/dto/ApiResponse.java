@@ -52,7 +52,7 @@ import io.restassured.response.ValidatableResponse;
  */
 public class ApiResponse
 {
-    protected Response raw;
+                    protected Response raw;
 
     public ApiResponse( Response response )
     {
