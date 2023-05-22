@@ -113,7 +113,7 @@ public class HibernateOrganisationUnitStore
         return getQuery(
             "from OrganisationUnit o where o.parent is null and not exists " +
                 "(select 1 from OrganisationUnit io where io.parent = o.id)" )
-                    .list();
+            .list();
     }
 
     @Override
@@ -132,7 +132,7 @@ public class HibernateOrganisationUnitStore
         return getQuery( "from OrganisationUnit o where size(o.groups) > 1 and exists " +
             "(select 1 from OrganisationUnitGroupSet s where " +
             "(select count(*) from OrganisationUnitGroup g where o in elements(g.members) and s in elements(g.groupSets)) > 1)" )
-                .list();
+            .list();
     }
 
     @Override

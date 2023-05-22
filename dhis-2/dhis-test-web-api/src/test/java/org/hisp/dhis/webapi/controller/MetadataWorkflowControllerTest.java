@@ -129,7 +129,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/", "{" + "'type':'ADD'," + "'target':'ORGANISATION_UNIT',"
                 + "'change':{'name':'hasNoShortName', " + "'openingDate': '2020-01-01'" + "}" + "}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
         assertEquals( "Missing required property `shortName`", error.getMessage() );
@@ -162,7 +162,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
             POST( "/metadata/proposals/",
                 "{" + "'type':'UPDATE'," + "'target':'ORGANISATION_UNIT',"
                     + "'change':[{'op':'replace', 'path':'/name', 'value':'New name'}]" + "}" )
-                        .content( HttpStatus.BAD_REQUEST ) );
+                .content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
@@ -180,7 +180,7 @@ class MetadataWorkflowControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             POST( "/metadata/proposals/", "{" + "'type':'UPDATE'," + "'target':'ORGANISATION_UNIT'," + "'targetId': '"
                 + defaultTargetId + "'," + "'change':[{'op':'not-json-patch-op'}]" + "}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4031 );
         assertEquals( "Property `change` requires a valid JSON payload, was given `[{\"op\":\"not-json-patch-op\"}]`",

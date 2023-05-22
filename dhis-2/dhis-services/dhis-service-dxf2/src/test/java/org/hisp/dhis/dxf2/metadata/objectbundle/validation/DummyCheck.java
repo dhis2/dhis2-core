@@ -56,7 +56,7 @@ public class DummyCheck implements ObjectValidationCheck
             {
                 ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( nonPersistedObject ) )
-                        .setMainId( nonPersistedObject.getUid() );
+                    .setMainId( nonPersistedObject.getUid() );
                 addReports.accept( createObjectReport( errorReport, nonPersistedObject, bundle ) );
 
                 context.markForRemoval( nonPersistedObject );

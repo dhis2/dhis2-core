@@ -52,7 +52,7 @@ class OptionControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 1,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
@@ -64,7 +64,7 @@ class OptionControllerTest extends DhisControllerConvenienceTest
         // Update option sortOrder 2 to 20
         POST( "/metadata", "{\"options\":\n" +
             "[{\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 20,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
         assertEquals( 2, response.getObject( "options" ).size() );

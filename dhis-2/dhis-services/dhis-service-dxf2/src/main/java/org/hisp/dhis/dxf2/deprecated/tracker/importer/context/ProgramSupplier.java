@@ -179,11 +179,11 @@ public class ProgramSupplier extends AbstractSupplier<Map<String, Program>>
                 {
                     Stream<ProgramStageDataElement> compulsoryProgramStageDataElementsStream = getOrEmpty(
                         dataElementSets.getCompulsoryDataElements() )
-                            .map( de -> new ProgramStageDataElement( programStage, de, true ) );
+                        .map( de -> new ProgramStageDataElement( programStage, de, true ) );
 
                     Stream<ProgramStageDataElement> nonCompulsoryProgramStageDataElementsStream = getOrEmpty(
                         dataElementSets.getNonCompulsoryDataElements() )
-                            .map( de -> new ProgramStageDataElement( programStage, de, false ) );
+                        .map( de -> new ProgramStageDataElement( programStage, de, false ) );
 
                     Set<ProgramStageDataElement> allProgramStageDataElements = Stream
                         .concat( compulsoryProgramStageDataElementsStream, nonCompulsoryProgramStageDataElementsStream )

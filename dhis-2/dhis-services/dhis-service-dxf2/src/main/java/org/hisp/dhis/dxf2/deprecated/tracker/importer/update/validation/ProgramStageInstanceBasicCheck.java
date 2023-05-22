@@ -60,7 +60,7 @@ public class ProgramStageInstanceBasicCheck implements Checker
         {
             return error(
                 "Event ID " + event.getEvent() + " was already used and/or deleted. This event can not be modified." )
-                    .setReference( event.getEvent() );
+                .setReference( event.getEvent() );
         }
 
         return success();

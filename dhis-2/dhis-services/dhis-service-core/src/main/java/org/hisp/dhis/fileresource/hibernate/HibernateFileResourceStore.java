@@ -89,10 +89,10 @@ public class HibernateFileResourceStore
     {
         return getQuery(
             "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-                .setParameter( "domains", FileResourceDomain.DOMAIN_FOR_MULTIPLE_IMAGES )
-                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-                .setParameter( "hasMultipleStorageFiles", false )
-                .setMaxResults( 50 ).getResultList();
+            .setParameter( "domains", FileResourceDomain.DOMAIN_FOR_MULTIPLE_IMAGES )
+            .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
+            .setParameter( "hasMultipleStorageFiles", false )
+            .setMaxResults( 50 ).getResultList();
     }
 
     @Override

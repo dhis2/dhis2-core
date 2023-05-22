@@ -97,7 +97,7 @@ class PredictorControllerTest extends DhisControllerConvenienceTest
     {
         String ccId = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 ).getString( "id" ).string();
+            .content().getObject( 0 ).getString( "id" ).string();
         String deId = assertStatus( HttpStatus.CREATED,
             POST( "/dataElements/",
                 "{'name':'My data element', 'shortName':'DE1', 'code':'DE1', 'valueType':'INTEGER', "

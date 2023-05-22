@@ -50,7 +50,7 @@ class EmailControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Conflict", 409, "ERROR", "SMTP server not configured",
             POST( "/email/notification", "{" + "'subject':'Subject'," + "'text':'Text'," + "'sender':{'id':'"
                 + getCurrentUser().getUid() + "'}," + "'recipients':[{'id':'" + getSuperuserUid() + "'}]" + "}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test

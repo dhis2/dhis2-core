@@ -227,7 +227,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ -12, 9 ], [ -13, 10 ], [ -11, 8 ] ] ] ] }}]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7705, List.of( 0 ) );
     }
 
@@ -250,7 +250,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Invalid', 'coordinates':[1,2]} }]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7707, List.of( 0 ) );
     }
 
@@ -262,7 +262,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'id':'Kare5678901', 'geometry': {'type':'Polygon', 'coordinates':[]} }]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7712, List.of( 0 ) );
     }
 
@@ -272,7 +272,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "ERROR", "Import failed.",
             POST( "/organisationUnits/geometry",
                 "{'features':[{'id':'foo', 'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ -12, 9 ], [ -13, 10 ], [ -11, 8 ] ] ] ]}}]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7708, List.of( 0 ) );
     }
 
@@ -288,7 +288,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
                     + "'properties': { 'name': 'Alpha'}, "
                     + "'geometry': {'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }"
                     + "}]}" )
-                        .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
         assertReportError( msg, ErrorCode.E7711, List.of( 0 ) );
     }
 
@@ -301,7 +301,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
             POST( "/organisationUnits/" + ouId + "/geometry",
                 "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
 
         assertImportedAndIgnored( msg, 1, 0 );
         assertGeometryIsNotNull( ouId );
@@ -317,7 +317,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
             POST( "/organisationUnits/" + ouId + "/geometry?attributeId=" + attrId,
                 "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
 
         assertImportedAndIgnored( msg, 1, 0 );
         assertGeometryAttributeIsNotNull( attrId, ouId );
@@ -332,7 +332,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
             POST( "/organisationUnits/" + ouId + "/geometry",
                 "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
 
         assertImportedAndIgnored( msg, 1, 0 );
         assertGeometryIsNotNull( ouId );
@@ -354,7 +354,7 @@ class GeoJsonImportControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage msg = assertWebMessage( "OK", 200, "OK", "Import successful.",
             POST( "/organisationUnits/" + ouId + "/geometry?attributeId=" + attrId,
                 "{'type':'MultiPolygon', 'coordinates': [ [ [ [ 1,1 ], [ 2,2 ], [ 1,3 ], [1,1] ] ] ] }" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
 
         assertImportedAndIgnored( msg, 1, 0 );
         assertGeometryAttributeIsNotNull( attrId, ouId );

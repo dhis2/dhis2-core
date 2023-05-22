@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 import com.google.gson.JsonObject;
 
@@ -45,7 +46,6 @@ import io.restassured.path.json.config.JsonParserType;
 import io.restassured.path.json.config.JsonPathConfig;
 import io.restassured.response.Response;
 import io.restassured.response.ValidatableResponse;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>

@@ -84,7 +84,7 @@ public class PeriodCondition extends BaseRenderable
                 .getDimensionalObject()
                 .getItems()
                 .get( 0 ))
-                    .getDateField() );
+                .getDateField() );
     }
 
     private Date nextDay( Date date )
