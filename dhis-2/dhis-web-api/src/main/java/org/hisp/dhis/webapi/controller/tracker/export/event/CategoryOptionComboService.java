@@ -83,7 +83,7 @@ public class CategoryOptionComboService
         return getAttributeOptionCombo( cc, options, skipFallback );
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
     {
         String cacheKey = TextUtils.joinHyphen( cc, TextUtils.joinHyphen( options ), String.valueOf( skipFallback ) );
 
