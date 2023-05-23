@@ -203,7 +203,7 @@ class RequestParamsMapperTest
         criteria.setUpdatedWithin( "20" );
         criteria.setEnrollmentOccurredAfter( getDate( 2019, 5, 5 ) );
         criteria.setEnrollmentOccurredBefore( getDate( 2020, 5, 5 ) );
-        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
         criteria.setEventStatus( EventStatus.COMPLETED );
         criteria.setEventOccurredAfter( getDate( 2019, 7, 7 ) );
         criteria.setEventOccurredBefore( getDate( 2020, 7, 7 ) );
@@ -422,7 +422,7 @@ class RequestParamsMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -432,11 +432,11 @@ class RequestParamsMapperTest
     @Test
     void testMappingProgramNotFound()
     {
-        criteria.setProgram( "unknown" );
+        criteria.setProgram( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program is specified but does not exist: unknown", e.getMessage() );
+        assertEquals( "Program is specified but does not exist: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
@@ -444,8 +444,8 @@ class RequestParamsMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setProgram( PROGRAM_UID );
-        criteria.setProgramStage( PROGRAM_STAGE_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
+        criteria.setProgramStage( UID.of( PROGRAM_STAGE_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -455,7 +455,7 @@ class RequestParamsMapperTest
     @Test
     void testMappingProgramStageGivenWithoutProgram()
     {
-        criteria.setProgramStage( PROGRAM_STAGE_UID );
+        criteria.setProgramStage( UID.of( PROGRAM_STAGE_UID ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
@@ -465,11 +465,11 @@ class RequestParamsMapperTest
     @Test
     void testMappingProgramStageNotFound()
     {
-        criteria.setProgramStage( "unknown" );
+        criteria.setProgramStage( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program does not contain the specified programStage: unknown", e.getMessage() );
+        assertEquals( "Program does not contain the specified programStage: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
@@ -477,7 +477,7 @@ class RequestParamsMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -487,22 +487,23 @@ class RequestParamsMapperTest
     @Test
     void testMappingTrackedEntityTypeNotFound()
     {
-        criteria.setTrackedEntityType( "unknown" );
+        criteria.setTrackedEntityType( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity type does not exist: unknown", e.getMessage() );
+        assertEquals( "Tracked entity type is specified but does not exist: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
     void testMappingOrgUnit()
-        throws BadRequestException,
+        throws
+        BadRequestException,
         ForbiddenException
     {
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -521,13 +522,14 @@ class RequestParamsMapperTest
 
     @Test
     void testMappingOrgUnits()
-        throws BadRequestException,
+        throws
+        BadRequestException,
         ForbiddenException
     {
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
         criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 

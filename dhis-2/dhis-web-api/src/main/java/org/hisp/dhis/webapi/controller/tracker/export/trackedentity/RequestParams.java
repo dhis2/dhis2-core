@@ -92,7 +92,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      * a Program UID for which instances in the response must be enrolled in.
      */
     @OpenApi.Property( { UID.class, Program.class } )
-    private String program;
+    private UID program;
 
     /**
      * The {@see ProgramStatus} of the Tracked Entity Instance in the given
@@ -145,7 +145,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      * Only returns Tracked Entity Instances of this type.
      */
     @OpenApi.Property( { UID.class, TrackedEntityType.class } )
-    private String trackedEntityType;
+    private UID trackedEntityType;
 
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
@@ -184,7 +184,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      * Stage
      */
     @OpenApi.Property( { UID.class, ProgramStage.class } )
-    private String programStage;
+    private UID programStage;
 
     /**
      * Status of any events in the specified program.
