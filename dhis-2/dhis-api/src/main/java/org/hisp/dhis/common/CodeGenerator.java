@@ -70,18 +70,16 @@ public class CodeGenerator
 
     /**
      * The minimum length of a random alphanumeric string, with the first
-     * character always being a letter, needs to have at least 256 bits of
+     * character always being a letter. We want to have at least 256 bits of
      * entropy.
      * <p>
-     * <ol>
-     * <li>Alphanumeric char = log2(62) = 5.954196310386875</li>
-     * <li>Letter only char = log2(52) = 5.700439718141092</li>
-     * <li>256 bits - 5.7 bits (first char) = 250.3 bits (total minus first
-     * char)</li>
-     * <li>250.3 bits / 5.95 bits ≈ 42.1 characters ≈ 43 characters (can't have
-     * a fraction of a character)</li>
-     * <li>43 + 1 (first char, we subtracted) = 44 characters</li>
-     * </ol>
+     * Alphanumeric char = log2(62) = 5.95
+     * <p>
+     * Letter only char = log2(52) = 5.7
+     * <p>
+     * 256 - 5.7 (1st char) / 5.95 bits ≈ 42.1 characters ≈ 43 characters + 1
+     * (1st char) = 44 characters
+     * <p>
      * We add one extra character to ensure we have 256 bits of entropy.
      */
     public static final int SECURE_RANDOM_TOKEN_MIN_SIZE = 44;
@@ -156,7 +154,7 @@ public class CodeGenerator
     }
 
     /**
-     * Generates a random secure 44-character(≈256-bit) token.
+     * Generates a random secure token.
      * <p>
      * The token is generated using {@link SecureRandom} and should be used for
      * security-related purposes only.
