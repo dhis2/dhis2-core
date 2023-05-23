@@ -100,6 +100,7 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
      * @deprecated use {@link #enrollments} instead which is comma instead of
      *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, Enrollment.class } )
     private String enrollment;
 

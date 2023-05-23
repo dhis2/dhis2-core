@@ -143,6 +143,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      * @deprecated use {@link #events} instead which is comma instead of
      *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, Event.class } )
     private String event;
 

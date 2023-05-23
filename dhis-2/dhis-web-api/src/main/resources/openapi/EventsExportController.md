@@ -86,7 +86,15 @@ Get events with enrollments that were enrolled before given date.
 
 Get soft-deleted events by specifying `includeDeleted=true`. Soft-deleted events are excluded by default.
 
+### `getEvents.parameter.events`
+
+`<event1-uid>[,<event2-uid>...]`
+
+Get events with given UID(s).
+
 ### `getEvents.parameter.event`
+
+**DEPRECATED as of 2.41:** Use parameter `events` instead where UIDs have to be separated by comma!
 
 `<event1-uid>[;<event2-uid>...]`
 
