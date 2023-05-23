@@ -32,10 +32,9 @@ import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -70,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -116,11 +116,14 @@ public class TrackedEntityParamsMapper
             requestParams.getTrackedEntityType() );
         validateTrackedEntityType( requestParams.getTrackedEntityType(), trackedEntityType );
 
-        Set<String> assignedUserIds = parseAndFilterUids( requestParams.getAssignedUser() );
+        Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
+            "assignedUsers",
+            requestParams.getAssignedUsers() );
 
         User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( requestParams.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
+        Set<UID> orgUnitUids = validateDeprecatedUidsParameter( "orgUnit", requestParams.getOrgUnit(), "orgUnits",
+            requestParams.getOrgUnits() );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitUids, program );
         if ( requestParams.getOuMode() == OrganisationUnitSelectionMode.CAPTURE && user != null )
         {
             orgUnits.addAll( user.getOrganisationUnits() );
@@ -140,7 +143,9 @@ public class TrackedEntityParamsMapper
         List<OrderParam> orderParams = toOrderParams( requestParams.getOrder() );
         validateOrderParams( orderParams, attributes );
 
-        Set<String> trackedEntities = parseUids( requestParams.getTrackedEntity() );
+        Set<UID> trackedEntities = validateDeprecatedUidsParameter( "trackedEntity", requestParams.getTrackedEntity(),
+            "trackedEntities",
+            requestParams.getTrackedEntities() );
 
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
         params.setQuery( queryFilter )
@@ -161,8 +166,8 @@ public class TrackedEntityParamsMapper
             .setEventStatus( requestParams.getEventStatus() )
             .setEventStartDate( requestParams.getEventOccurredAfter() )
             .setEventEndDate( requestParams.getEventOccurredBefore() )
-            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, assignedUserIds )
-            .setTrackedEntityUids( trackedEntities )
+            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, UID.toValueSet( assignedUsers ) )
+            .setTrackedEntityUids( UID.toValueSet( trackedEntities ) )
             .setAttributes( attributeItems )
             .setFilters( filters )
             .setSkipMeta( requestParams.isSkipMeta() )
@@ -219,24 +224,24 @@ public class TrackedEntityParamsMapper
             .collect( Collectors.toSet() );
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
+    private Set<OrganisationUnit> validateOrgUnits( User user, Set<UID> orgUnitIds, Program program )
         throws BadRequestException,
         ForbiddenException
     {
-
         Set<OrganisationUnit> orgUnits = new HashSet<>();
-        for ( String orgUnitId : orgUnitIds )
+        for ( UID orgUnitUid : orgUnitIds )
         {
-            OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
+            OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( orgUnitUid.getValue() );
 
             if ( orgUnit == null )
             {
-                throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
+                throw new BadRequestException( "Organisation unit does not exist: " + orgUnitUid.getValue() );
             }
 
             if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
             {
-                throw new ForbiddenException( "User does not have access to organisation unit: " + orgUnitId );
+                throw new ForbiddenException(
+                    "User does not have access to organisation unit: " + orgUnitUid.getValue() );
             }
 
             orgUnits.add( orgUnit );

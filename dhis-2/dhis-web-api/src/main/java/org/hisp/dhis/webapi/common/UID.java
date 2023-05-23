@@ -27,6 +27,12 @@
  */
 package org.hisp.dhis.webapi.common;
 
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
@@ -56,5 +62,15 @@ public final class UID
     public static UID of( String value )
     {
         return new UID( value );
+    }
+
+    public static Set<String> toValueSet( Collection<UID> uids )
+    {
+        return uids.stream().map( UID::getValue ).collect( toUnmodifiableSet() );
+    }
+
+    public static List<String> toValueList( Collection<UID> uids )
+    {
+        return uids.stream().map( UID::getValue ).toList();
     }
 }

@@ -12,7 +12,15 @@ Get enrollments enrolled after given date.
 
 Get enrollments enrolled before given date.
 
+### `getEnrollments.parameter.enrollments`
+
+`<enrollment1-uid>[,<enrollment2-uid>...]`
+
+Get enrollments with given UID(s).
+
 ### `getEnrollments.parameter.enrollment`
+
+**DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by comma!
 
 `<enrollment1-uid>[;<enrollment2-uid>...]`
 
@@ -26,7 +34,17 @@ Get enrollments with given follow-up status of the instance for the given progra
 
 Get soft-deleted enrollments by specifying `includeDeleted=true`. Soft-deleted enrollments are excluded by default.
 
+### `getEnrollments.parameter.orgUnits`
+
+`<orgUnit1-uid>[,<orgUnit2-uid>...]`
+
+Get enrollments owned by given `orgUnit`.
+
 ### `getEnrollments.parameter.orgUnit`
+
+**DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by comma!
+
+`<orgUnit1-uid>[;<orgUnit2-uid>...]`
 
 Get enrollments owned by given `orgUnit`.
 

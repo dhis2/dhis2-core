@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseUids;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -56,6 +56,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -104,8 +105,9 @@ public class EnrollmentParamsMapper
         validateTrackedEntity( requestParams.getTrackedEntity(), trackedEntity );
 
         User user = currentUserService.getCurrentUser();
-        Set<String> orgUnitIds = parseUids( requestParams.getOrgUnit() );
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitIds, program );
+        Set<UID> orgUnitUids = validateDeprecatedUidsParameter( "orgUnit", requestParams.getOrgUnit(), "orgUnits",
+            requestParams.getOrgUnits() );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, orgUnitUids, program );
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( program );
@@ -158,28 +160,29 @@ public class EnrollmentParamsMapper
         }
     }
 
-    private Set<OrganisationUnit> validateOrgUnits( User user, Set<String> orgUnitIds, Program program )
+    private Set<OrganisationUnit> validateOrgUnits( User user, Set<UID> orgUnitUids, Program program )
         throws BadRequestException,
         ForbiddenException
     {
         Set<OrganisationUnit> orgUnits = new HashSet<>();
-        if ( orgUnitIds != null )
+        if ( orgUnitUids != null )
         {
-            for ( String orgUnitId : orgUnitIds )
+            for ( UID orgUnitUid : orgUnitUids )
             {
-                OrganisationUnit organisationUnit = organisationUnitService.getOrganisationUnit( orgUnitId );
+                OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit(
+                    orgUnitUid.getValue() );
 
-                if ( organisationUnit == null )
+                if ( orgUnit == null )
                 {
-                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitId );
+                    throw new BadRequestException( "Organisation unit does not exist: " + orgUnitUid.getValue() );
                 }
 
-                if ( !trackerAccessManager.canAccess( user, program, organisationUnit ) )
+                if ( !trackerAccessManager.canAccess( user, program, orgUnit ) )
                 {
                     throw new ForbiddenException(
-                        "User does not have access to organisation unit: " + organisationUnit.getUid() );
+                        "User does not have access to organisation unit: " + orgUnit.getUid() );
                 }
-                orgUnits.add( organisationUnit );
+                orgUnits.add( orgUnit );
             }
         }
 

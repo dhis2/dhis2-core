@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
@@ -40,7 +41,6 @@ import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Response.Status;
-import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -99,7 +99,10 @@ public class EnrollmentsExportController
         EnrollmentParams enrollmentParams = fieldsMapper.map( requestParams.getFields() )
             .withIncludeDeleted( requestParams.isIncludeDeleted() );
 
-        if ( requestParams.getEnrollment() == null )
+        Set<UID> enrollmentUids = validateDeprecatedUidsParameter( "enrollment", requestParams.getEnrollment(),
+            "enrollments",
+            requestParams.getEnrollments() );
+        if ( enrollmentUids.isEmpty() )
         {
             EnrollmentQueryParams params = paramsMapper.map( requestParams );
 
@@ -115,12 +118,10 @@ public class EnrollmentsExportController
         }
         else
         {
-            Set<String> enrollmentUids = Set.of( requestParams.getEnrollment().split( TextUtils.SEMICOLON ) );
-
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
-            for ( String e : enrollmentUids )
+            for ( UID uid : enrollmentUids )
             {
-                list.add( enrollmentService.getEnrollment( e, enrollmentParams ) );
+                list.add( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams ) );
             }
             enrollmentList = list;
         }
@@ -134,7 +135,7 @@ public class EnrollmentsExportController
     @GetMapping( value = "/{uid}" )
     public ResponseEntity<ObjectNode> getEnrollmentByUid(
         @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable UID uid,
-        @OpenApi.Param( name = "fields", value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
