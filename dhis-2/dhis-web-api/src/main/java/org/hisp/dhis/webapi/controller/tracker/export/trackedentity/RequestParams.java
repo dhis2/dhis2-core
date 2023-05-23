@@ -41,6 +41,7 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
@@ -69,9 +70,17 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<String> filter = new HashSet<>();
 
     /**
-     * Semicolon-delimited list of Organizational Unit UIDs
+     * Semicolon-delimited list of organisation unit UIDs.
+     *
+     * @deprecated use {@link #orgUnits} instead which is comma instead of
+     *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
     private String orgUnit;
+
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
+    private Set<UID> orgUnits = new HashSet<>();
 
     /**
      * Selection mode for the specified organisation units, default is
@@ -140,9 +149,16 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
+     *
+     * @deprecated use {@link #trackedEntities} instead which is comma instead
+     *             of semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, TrackedEntity.class } )
     private String trackedEntity;
+
+    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
+    private Set<UID> trackedEntities = new HashSet<>();
 
     /**
      * Selection mode for user assignment of events.
@@ -152,9 +168,16 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Semicolon-delimited list of user UIDs to filter based on events assigned
      * to the users.
+     *
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of
+     *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
+
+    @OpenApi.Property( { UID[].class, User.class } )
+    private Set<UID> assignedUsers = new HashSet<>();
 
     /**
      * Program Stage UID, used for filtering TEIs based on the selected Program

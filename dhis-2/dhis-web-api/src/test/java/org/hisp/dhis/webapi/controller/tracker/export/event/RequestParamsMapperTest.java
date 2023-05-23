@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -68,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -417,7 +419,7 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingEvents()
+    void testMappingEvent()
         throws BadRequestException,
         ForbiddenException
     {
@@ -430,16 +432,16 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingEventsStripsInvalidUid()
+    void testMappingEvents()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( "invalidUid;M4pNmLabtXl" );
+        criteria.setEvents( Set.of( UID.of( "XKrcfuM4Hcw" ), UID.of( "M4pNmLabtXl" ) ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getEvents() );
+        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
@@ -455,42 +457,35 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingEventIsEmpty()
+    void testMappingAssignedUser()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( " " );
+        criteria.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertIsEmpty( params.getEvents() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
-    void testMappingAssignedUserStripsInvalidUid()
+    void testMappingAssignedUsers()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+        criteria.setAssignedUsers( Set.of( UID.of( "IsdLBTOBzMi" ), UID.of( "l5ab8q5skbB" ) ) );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUserQueryParam().getAssignedUsers() );
-    }
-
-    @Test
-    void testMappingAssignedUserIsEmpty()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        RequestParams criteria = new RequestParams();
-        criteria.setAssignedUser( " " );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertIsEmpty( params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test

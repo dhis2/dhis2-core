@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -176,13 +177,13 @@ class RequestParamsMapperTest
     void testMappingOrgUnitNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( "unknown;" + ORG_UNIT_2_UID );
+        criteria.setOrgUnit( "NeU85luyD4w;" + ORG_UNIT_2_UID );
         criteria.setProgram( program.getUid() );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit does not exist: unknown", exception.getMessage() );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -190,6 +191,47 @@ class RequestParamsMapperTest
     {
         RequestParams criteria = new RequestParams();
         criteria.setOrgUnit( ORG_UNIT_1_UID );
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, exception.getMessage() );
+    }
+
+    @Test
+    void testMappingOrgUnits()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
+        criteria.setProgram( program.getUid() );
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+
+        EnrollmentQueryParams params = mapper.map( criteria );
+
+        assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
+    }
+
+    @Test
+    void testMappingOrgUnitsNotFound()
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( "NeU85luyD4w" ), UID.of( ORG_UNIT_2_UID ) ) );
+        criteria.setProgram( program.getUid() );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOrgUnitsNotInScope()
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ) ) );
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,
