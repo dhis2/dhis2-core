@@ -188,7 +188,7 @@ public class RequestParamUtils
         List<QueryItem> itemList = new ArrayList<>();
         for ( String uidOperatorValue : uidOperatorValues )
         {
-            itemList.add( parseAttributeQueryItem( uidOperatorValue, attributes ) );
+            itemList.add( parseQueryItem( uidOperatorValue, id -> attributeToQueryItem( id, attributes ) ) );
         }
 
         return itemList;
@@ -223,24 +223,6 @@ public class RequestParamUtils
         }
 
         return itemList;
-    }
-
-    /**
-     * Parse request parameter to filter tracked entity attributes using UID,
-     * operator and values. Refer to
-     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
-     * expected item format.
-     *
-     * @param item query item string composed of UID, operator and value
-     * @param attributes tracked entity attribute map from UID to attributes
-     * @return query item of tracked entity attribute with attached query
-     *         filters
-     */
-
-    public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
-    {
-        return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
     }
 
     private static QueryItem attributeToQueryItem( String uid, Map<String, TrackedEntityAttribute> attributes )
