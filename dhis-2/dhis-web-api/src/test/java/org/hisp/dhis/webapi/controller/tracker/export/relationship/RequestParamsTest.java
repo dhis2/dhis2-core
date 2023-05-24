@@ -34,6 +34,7 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.webapi.common.UID;
 import org.junit.jupiter.api.Test;
 
 class RequestParamsTest
@@ -44,7 +45,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam(), "should return cached identifier" );
@@ -56,7 +57,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTei( "Hq3Kc6HK4OZ" );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
     }
@@ -67,7 +68,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
     }
@@ -78,7 +79,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTei( "Hq3Kc6HK4OZ" );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "trackedEntity", criteria.getIdentifierName() );
     }
@@ -89,7 +90,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
     }
@@ -100,7 +101,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setTei( "Hq3Kc6HK4OZ" );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( TrackedEntity.class, criteria.getIdentifierClass() );
     }
@@ -111,7 +112,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
     }
@@ -122,7 +123,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "enrollment", criteria.getIdentifierName() );
     }
@@ -133,7 +134,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( Enrollment.class, criteria.getIdentifierClass() );
     }
@@ -144,7 +145,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "Hq3Kc6HK4OZ", criteria.getIdentifierParam() );
     }
@@ -155,7 +156,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "event", criteria.getIdentifierName() );
     }
@@ -166,7 +167,7 @@ class RequestParamsTest
     {
 
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( Event.class, criteria.getIdentifierClass() );
     }
@@ -197,10 +198,10 @@ class RequestParamsTest
     void getIdentifierParamThrowsIfAllParamsAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
-        criteria.setTei( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
@@ -212,10 +213,10 @@ class RequestParamsTest
     void getIdentifierNameThrowsIfAllParamsAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
-        criteria.setTei( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierName );
 
@@ -227,10 +228,10 @@ class RequestParamsTest
     void getIdentifierClassThrowsIfAllParamsAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
-        criteria.setTei( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
@@ -242,8 +243,8 @@ class RequestParamsTest
     void getIdentifierParamThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
@@ -255,8 +256,8 @@ class RequestParamsTest
     void getIdentifierParamThrowsIfTeiAndEnrollmentAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTei( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 
@@ -268,8 +269,8 @@ class RequestParamsTest
     void getIdentifierClassThrowsIfTrackedEntityAndEnrollmentAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
@@ -281,8 +282,8 @@ class RequestParamsTest
     void getIdentifierClassThrowsIfTeiAndEnrollmentAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTei( "Hq3Kc6HK4OZ" );
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
+        criteria.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierClass );
 
@@ -294,8 +295,8 @@ class RequestParamsTest
     void getIdentifierParamThrowsIfEnrollmentAndEventAreSet()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setEnrollment( "Hq3Kc6HK4OZ" );
-        criteria.setEvent( "Hq3Kc6HK4OZ" );
+        criteria.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
+        criteria.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
         BadRequestException exception = assertThrows( BadRequestException.class, criteria::getIdentifierParam );
 

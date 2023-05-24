@@ -28,10 +28,8 @@
 package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
@@ -108,13 +106,9 @@ public class TrackedEntityParamsMapper
         throws BadRequestException,
         ForbiddenException
     {
-        Program program = applyIfNonEmpty( programService::getProgram, requestParams.getProgram() );
-        validateProgram( requestParams.getProgram(), program );
+        Program program = validateProgram( requestParams.getProgram() );
         ProgramStage programStage = validateProgramStage( requestParams, program );
-
-        TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            requestParams.getTrackedEntityType() );
-        validateTrackedEntityType( requestParams.getTrackedEntityType(), trackedEntityType );
+        TrackedEntityType trackedEntityType = validateTrackedEntityType( requestParams.getTrackedEntityType() );
 
         Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
             "assignedUsers",
@@ -250,26 +244,50 @@ public class TrackedEntityParamsMapper
         return orgUnits;
     }
 
-    private static void validateProgram( String id, Program program )
+    private Program validateProgram( UID uid )
         throws BadRequestException
     {
-        if ( isNotEmpty( id ) && program == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Program is specified but does not exist: " + id );
+            return null;
         }
+
+        Program program = programService.getProgram( uid.getValue() );
+        if ( program == null )
+        {
+            throw new BadRequestException( "Program is specified but does not exist: " + uid );
+        }
+
+        return program;
+    }
+
+    private TrackedEntityType validateTrackedEntityType( UID uid )
+        throws BadRequestException
+    {
+        if ( uid == null )
+        {
+            return null;
+        }
+
+        TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( uid.getValue() );
+        if ( trackedEntityType == null )
+        {
+            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + uid );
+        }
+
+        return trackedEntityType;
     }
 
     private ProgramStage validateProgramStage( RequestParams requestParams, Program program )
         throws BadRequestException
     {
 
-        final String programStage = requestParams.getProgramStage();
-
-        ProgramStage ps = programStage != null ? getProgramStageFromProgram( program, programStage ) : null;
-
-        if ( programStage != null && ps == null )
+        ProgramStage ps = requestParams.getProgramStage() != null ? getProgramStageFromProgram( program,
+            requestParams.getProgramStage().getValue() ) : null;
+        if ( requestParams.getProgramStage() != null && ps == null )
         {
-            throw new BadRequestException( "Program does not contain the specified programStage: " + programStage );
+            throw new BadRequestException(
+                "Program does not contain the specified programStage: " + requestParams.getProgramStage() );
         }
         return ps;
     }
@@ -283,15 +301,6 @@ public class TrackedEntityParamsMapper
 
         return program.getProgramStages().stream().filter( ps -> ps.getUid().equals( programStage ) ).findFirst()
             .orElse( null );
-    }
-
-    private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
-        throws BadRequestException
-    {
-        if ( isNotEmpty( id ) && trackedEntityType == null )
-        {
-            throw new BadRequestException( "Tracked entity type does not exist: " + id );
-        }
     }
 
     private void validateOrderParams( List<OrderParam> orderParams, Map<String, TrackedEntityAttribute> attributes )

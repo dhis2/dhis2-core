@@ -28,9 +28,7 @@
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.apache.commons.lang3.StringUtils.isNotEmpty;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.HashSet;
@@ -93,16 +91,9 @@ public class EnrollmentParamsMapper
         throws BadRequestException,
         ForbiddenException
     {
-        Program program = applyIfNonEmpty( programService::getProgram, requestParams.getProgram() );
-        validateProgram( requestParams.getProgram(), program );
-
-        TrackedEntityType trackedEntityType = applyIfNonEmpty( trackedEntityTypeService::getTrackedEntityType,
-            requestParams.getTrackedEntityType() );
-        validateTrackedEntityType( requestParams.getTrackedEntityType(), trackedEntityType );
-
-        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
-            requestParams.getTrackedEntity() );
-        validateTrackedEntity( requestParams.getTrackedEntity(), trackedEntity );
+        Program program = validateProgram( requestParams.getProgram() );
+        TrackedEntityType trackedEntityType = validateTrackedEntityType( requestParams.getTrackedEntityType() );
+        TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
 
         User user = currentUserService.getCurrentUser();
         Set<UID> orgUnitUids = validateDeprecatedUidsParameter( "orgUnit", requestParams.getOrgUnit(), "orgUnits",
@@ -133,31 +124,55 @@ public class EnrollmentParamsMapper
         return params;
     }
 
-    private static void validateProgram( String id, Program program )
+    private Program validateProgram( UID uid )
         throws BadRequestException
     {
-        if ( isNotEmpty( id ) && program == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Program is specified but does not exist: " + id );
+            return null;
         }
+
+        Program program = programService.getProgram( uid.getValue() );
+        if ( program == null )
+        {
+            throw new BadRequestException( "Program is specified but does not exist: " + uid );
+        }
+
+        return program;
     }
 
-    private void validateTrackedEntityType( String id, TrackedEntityType trackedEntityType )
+    private TrackedEntityType validateTrackedEntityType( UID uid )
         throws BadRequestException
     {
-        if ( isNotEmpty( id ) && trackedEntityType == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + id );
+            return null;
         }
+
+        TrackedEntityType trackedEntityType = trackedEntityTypeService.getTrackedEntityType( uid.getValue() );
+        if ( trackedEntityType == null )
+        {
+            throw new BadRequestException( "Tracked entity type is specified but does not exist: " + uid );
+        }
+
+        return trackedEntityType;
     }
 
-    private void validateTrackedEntity( String id, TrackedEntity trackedEntity )
+    private TrackedEntity validateTrackedEntity( UID uid )
         throws BadRequestException
     {
-        if ( isNotEmpty( id ) && trackedEntity == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Tracked entity instance is specified but does not exist: " + id );
+            return null;
         }
+
+        TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( uid.getValue() );
+        if ( trackedEntity == null )
+        {
+            throw new BadRequestException( "Tracked entity is specified but does not exist: " + uid );
+        }
+
+        return trackedEntity;
     }
 
     private Set<OrganisationUnit> validateOrgUnits( User user, Set<UID> orgUnitUids, Program program )

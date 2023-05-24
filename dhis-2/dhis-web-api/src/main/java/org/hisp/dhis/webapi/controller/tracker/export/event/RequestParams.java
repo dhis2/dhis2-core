@@ -68,20 +68,20 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
     @OpenApi.Property( { UID.class, Program.class } )
-    private String program;
+    private UID program;
 
     @OpenApi.Property( { UID.class, ProgramStage.class } )
-    private String programStage;
+    private UID programStage;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+    private UID trackedEntity;
 
     @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String orgUnit;
+    private UID orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
@@ -126,7 +126,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private EventStatus status;
 
     @OpenApi.Property( { UID.class, CategoryCombo.class } )
-    private String attributeCc;
+    private UID attributeCc;
 
     @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private String attributeCos;
@@ -157,7 +157,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<String> filterAttributes = new HashSet<>();
 
     @OpenApi.Property( { UID[].class, Enrollment.class } )
-    private Set<String> enrollments = new HashSet<>();
+    private Set<UID> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
 

@@ -37,6 +37,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UidObject;
 
 /**
  * UID represents an alphanumeric string of 11 characters starting with a
@@ -59,9 +60,20 @@ public final class UID
         this.value = value;
     }
 
+    @Override
+    public String toString()
+    {
+        return value;
+    }
+
     public static UID of( String value )
     {
         return new UID( value );
+    }
+
+    public static UID of( UidObject object )
+    {
+        return new UID( object.getUid() );
     }
 
     public static Set<String> toValueSet( Collection<UID> uids )

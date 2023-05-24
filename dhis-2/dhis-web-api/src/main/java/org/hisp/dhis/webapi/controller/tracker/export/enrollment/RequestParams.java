@@ -74,7 +74,7 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     private OrganisationUnitSelectionMode ouMode;
 
     @OpenApi.Property( { UID.class, Program.class } )
-    private String program;
+    private UID program;
 
     private ProgramStatus programStatus;
 
@@ -89,10 +89,10 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     private Date enrolledBefore;
 
     @OpenApi.Property( { UID.class, TrackedEntityType.class } )
-    private String trackedEntityType;
+    private UID trackedEntityType;
 
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+    private UID trackedEntity;
 
     /**
      * Semicolon-delimited list of enrollment UIDs.
