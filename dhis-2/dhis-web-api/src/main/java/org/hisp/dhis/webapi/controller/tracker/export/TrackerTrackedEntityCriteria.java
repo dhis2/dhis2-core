@@ -29,14 +29,14 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 
 import java.util.Date;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
-
-import lombok.Data;
-import lombok.NoArgsConstructor;
 
 /**
  * Represents query parameters sent to

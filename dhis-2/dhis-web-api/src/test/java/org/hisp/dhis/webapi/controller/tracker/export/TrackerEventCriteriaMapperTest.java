@@ -802,18 +802,18 @@ class TrackerEventCriteriaMapperTest
 
     @Test
     void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithSplitChars()
-            throws ForbiddenException,
-            BadRequestException
+        throws ForbiddenException,
+        BadRequestException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
         criteria.setFilterAttributes( TEA_1_UID + ":like:value\\,with\\,comma" + "," + TEA_2_UID + ":eq:value\\:x" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilterAttributes().stream()
-                .flatMap( f -> f.getFilters().stream() )
-                .collect( Collectors.toList() );
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-                new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
-                new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
+            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
+            new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
     }
 }

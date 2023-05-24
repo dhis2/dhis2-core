@@ -129,13 +129,15 @@ class RequestParamUtils
         return CollectionUtils.emptyIfNull( TextUtils.splitToSet( input, TextUtils.SEMICOLON ) )
             .stream();
     }
+
     /**
      * Parse request parameter to filter tracked entity attributes using UID,
      * operator and values. Refer to
      * {@link #parseQueryItem(String, CheckedFunction)} for details on the
      * expected item format.
      *
-     * @param filterItem query item string composed of identifier, operator and value
+     * @param filterItem query item string composed of identifier, operator and
+     *        value
      * @param attributes tracked entity attribute map from identifiers to
      *        attributes
      * @return query item of tracked entity attribute with attached query
