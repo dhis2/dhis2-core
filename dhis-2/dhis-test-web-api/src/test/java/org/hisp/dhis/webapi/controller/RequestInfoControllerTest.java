@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
 
@@ -43,7 +42,6 @@ import org.junit.jupiter.api.Test;
  */
 class RequestInfoControllerTest extends DhisControllerConvenienceTest
 {
-
     @Test
     void testGetCurrentInfo_NoHeader()
     {
@@ -55,7 +53,7 @@ class RequestInfoControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetCurrentInfo_XRequestIdHeader()
     {
-        JsonResponse info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
+        JsonObject info = GET( "/request", Header( "X-Request-ID", "abc" ) ).content();
         assertTrue( info.isObject() );
         assertEquals( "abc", info.getString( "headerXRequestID" ).string() );
     }

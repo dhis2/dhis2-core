@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 import com.google.gson.JsonObject;
@@ -150,9 +150,9 @@ public class ApiResponse
         return new JsonObjectBuilder( getBody() );
     }
 
-    public JsonResponse getBodyAsJson()
+    public JsonMixed getBodyAsJson()
     {
-        return new JsonResponse( raw.asString(), JsonTypedAccess.GLOBAL );
+        return JsonMixed.of( raw.asString(), JsonTypedAccess.GLOBAL );
     }
 
     public boolean isEntityCreated()
