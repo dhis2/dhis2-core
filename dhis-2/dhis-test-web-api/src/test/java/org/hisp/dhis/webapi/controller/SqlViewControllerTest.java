@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.List;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -84,7 +83,7 @@ class SqlViewControllerTest extends DhisControllerConvenienceTest
         String uid = assertStatus( HttpStatus.CREATED,
             POST( "/sqlViews/", "{'name':'My SQL View','sqlQuery':'select 1 from userinfo'}" ) );
 
-        JsonResponse sqlView = GET( "/sqlViews/{uid}", uid ).content();
+        JsonObject sqlView = GET( "/sqlViews/{uid}", uid ).content();
         assertEquals( "VIEW", sqlView.getString( "type" ).string() );
         assertEquals( "RESPECT_SYSTEM_SETTING", sqlView.getString( "cacheStrategy" ).string() );
     }
