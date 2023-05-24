@@ -311,7 +311,7 @@ public class DefaultDimensionService
     }
 
     @Override
-    @Transactional( readonly = false )
+    @Transactional( readOnly = false )
     public void mergeAnalyticalObject( BaseAnalyticalObject object )
     {
         if ( object != null )
