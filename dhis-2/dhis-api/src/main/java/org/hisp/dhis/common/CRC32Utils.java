@@ -78,27 +78,10 @@ public class CRC32Utils
         return s1 == s2;
     }
 
-    /**
-     * Encodes a CRC32 checksum in decimal into base62.
-     * <p>
-     * The CRC32 checksum is 32-bit. To calculate the max length in base62, we
-     * do: log_62(2^32 - 1) = 5.3743 ≈ 6
-     * <p>
-     * The encoded string is padded with leading zeros to a length of 6
-     * characters to make the resulting strings uniform.
-     *
-     * @param crc32Checksum the CRC32 checksum to encode.
-     * @return the encoded string.
-     */
-    public static String crc32ToBase62( long crc32Checksum )
-    {
-        return Base62.encodeToBase62( crc32Checksum, 6 );
-    }
-
     public static boolean isMatchingCRC32Base62Checksum( char[] input, char[] base62EncodedCRC32Checksum )
     {
         long crc32Checksum = generateCRC32Checksum( input );
-        String checksum = crc32ToBase62( crc32Checksum );
+        String checksum = Base62.encodeUnsigned32bitToBase62( crc32Checksum );
         return checksum.equals( new String( base62EncodedCRC32Checksum ) );
     }
 }

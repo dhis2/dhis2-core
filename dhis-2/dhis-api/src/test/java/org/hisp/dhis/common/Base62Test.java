@@ -28,6 +28,7 @@
 package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
 
@@ -37,21 +38,21 @@ import org.junit.jupiter.api.Test;
 class Base62Test
 {
     @Test
-    void encodeCRC32DecimalToBase62()
+    void encodeToBase62()
     {
         String crc32Max64BitLongInBase62 = "AzL8n0Y58m7";
-        long max64BitValue = (long) (Math.pow( 2, 64 ) - 1);
-        double logBase62Max64 = Math.log( max64BitValue ) / Math.log( 62 );
+        long maxSigned64BitValue = (1L << 63) - 1;
+        double logBase62Max64 = Math.log( maxSigned64BitValue ) / Math.log( 62 );
         int maxCharLen64Max = (int) Math.ceil( logBase62Max64 );
-        String encoded64Max = Base62.encodeToBase62( max64BitValue, maxCharLen64Max );
+        String encoded64Max = Base62.encodeToBase62( maxSigned64BitValue, maxCharLen64Max );
         assertEquals( maxCharLen64Max, encoded64Max.length() );
         assertEquals( encoded64Max, crc32Max64BitLongInBase62 );
 
         String crc32Max32BitLongInBase62 = "4gfFC3";
-        long max32BitValue = (long) (Math.pow( 2, 32 ) - 1);
-        double logBase62Max32 = Math.log( max32BitValue ) / Math.log( 62 );
+        long maxUnsigned32BitValue = (1L << 32) - 1;
+        double logBase62Max32 = Math.log( maxUnsigned32BitValue ) / Math.log( 62 );
         int maxCharLen32Max = (int) Math.ceil( logBase62Max32 );
-        String encoded32Max = Base62.encodeToBase62( max32BitValue, maxCharLen32Max );
+        String encoded32Max = Base62.encodeToBase62( maxUnsigned32BitValue, maxCharLen32Max );
         assertEquals( maxCharLen32Max, encoded32Max.length() );
         assertEquals( encoded32Max, crc32Max32BitLongInBase62 );
     }
@@ -68,7 +69,64 @@ class Base62Test
     void encodeZero()
     {
         String zeroInBase62PaddedTo6Zeros = "000000";
-        String encoded = CRC32Utils.crc32ToBase62( 0L );
+        String encoded = Base62.encodeToBase62( 0L, 6 );
         assertEquals( zeroInBase62PaddedTo6Zeros, encoded );
+    }
+
+    @Test
+    void negativePadding()
+    {
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> Base62.encodeToBase62( 0L, 0 ) );
+
+        String expectedMessage = "Padding must be positive";
+
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
+    void negativeNumber()
+    {
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> Base62.encodeToBase62( -1L, 0 ) );
+
+        String expectedMessage = "Number must be greater or equal to zero";
+
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
+    void greaterThan32BitFails()
+    {
+        long maxUnsigned32BitValue = (1L << 32) - 1;
+
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> Base62.encodeUnsigned32bitToBase62( maxUnsigned32BitValue + 1 ) );
+
+        String expectedMessage = "Number is to large for an unsigned 32-bit";
+
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
+    void encodeMax64()
+    {
+        String crc32Max64BitLongInBase62 = "AzL8n0Y58m7";
+        long maxSigned64BitValue = (1L << 63) - 1;
+        String encoded64Max = Base62.encodeSigned64bitToBase62( maxSigned64BitValue );
+
+        assertEquals( crc32Max64BitLongInBase62, encoded64Max );
+    }
+
+    @Test
+    void encode64TooBig()
+    {
+        long maxSigned64BitValue = (1L << 63) - 1;
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> Base62.encodeSigned64bitToBase62( maxSigned64BitValue + 1 ) );
+
+        String expectedMessage = "Number must be greater or equal to zero";
+
+        assertEquals( expectedMessage, exception.getMessage() );
     }
 }

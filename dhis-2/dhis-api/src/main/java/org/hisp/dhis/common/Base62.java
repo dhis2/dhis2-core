@@ -34,6 +34,8 @@ import java.util.Arrays;
  */
 public class Base62
 {
+    public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
+
     private Base62()
     {
         throw new IllegalStateException( "Utility class" );
@@ -42,22 +44,64 @@ public class Base62
     private static final String BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**
-     * Encodes a number to a Base62 encoded string.
+     * Encodes an unsigned 32-bit long into base62.
+     * <p>
+     * To calculate the max length in base62, we do:
+     * <p>
+     * log_62(2^32 - 1) = 5.3743 ≈ 6
+     * <p>
+     * The encoded string is padded with leading zeros to a length of 6
+     * characters to make the resulting strings uniform.
+     *
+     * @param num the long to encode.
+     * @return the encoded string.
+     */
+    public static String encodeUnsigned32bitToBase62( long num )
+    {
+        if ( num > MAX_UNSIGNED_32_BIT_VALUE )
+        {
+            throw new IllegalArgumentException( "Number is to large for an unsigned 32-bit" );
+        }
+        return encodeToBase62( num, 6 );
+    }
+
+    /**
+     * Encodes a signed 64-bit long (Long.MAX_VALUE) into base62.
+     * <p>
+     * To calculate the max length in base62, we do:
+     * <p>
+     * log_62(2^63 - 1) = 10.58 ≈ 11
+     * <p>
+     * The encoded string is padded with leading zeros to a length of 11
+     * characters to make the resulting strings uniform.
+     *
+     * @param num the long to encode.
+     * @return the encoded string.
+     */
+    public static String encodeSigned64bitToBase62( long num )
+    {
+        return encodeToBase62( num, 11 );
+    }
+
+    /**
+     * Encodes a long into a Base62 encoded string.
      *
      * @param num the number to encode, must be positive.
      * @param padding the length of the encoded string, will be padded with
-     *        zeros prefixed to the string if the encoded string is shorter.
+     *        zeros prefixed to the string if the encoded string is shorter. If
+     *        padding is less than the length of the encoded string, the output
+     *        will be truncated.
      * @return the Base62 encoded string
      */
-    public static String encodeToBase62( long num, int padding )
+    protected static String encodeToBase62( long num, int padding )
     {
         if ( num < 0 )
         {
-            throw new IllegalArgumentException( "Number must be positive" );
+            throw new IllegalArgumentException( "Number must be greater or equal to zero" );
         }
-        if ( padding < 0 )
+        if ( padding <= 0 )
         {
-            throw new IllegalArgumentException( "Padding must greater than one" );
+            throw new IllegalArgumentException( "Padding must be positive" );
         }
 
         int base = BASE62_ALPHABET.length();

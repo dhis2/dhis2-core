@@ -38,8 +38,6 @@ import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -55,7 +53,6 @@ import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -65,6 +62,8 @@ import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -81,8 +80,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis( 30 );
-
-    private final ApiTokenService apiTokenService;
 
     @Override
     @PostMapping( consumes = "application/json" )
@@ -192,5 +189,4 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
         }
     }
-
 }

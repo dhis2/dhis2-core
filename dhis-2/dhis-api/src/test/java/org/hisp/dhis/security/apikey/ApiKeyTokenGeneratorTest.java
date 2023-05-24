@@ -160,7 +160,7 @@ class ApiKeyTokenGeneratorTest
             long decode = Base62.decodeBase62( new String( checksum ) );
             assertEquals( decode, crc32 );
 
-            log.error( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
+            log.info( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
                 checksum ) + " decoded: " + decode + " encoded: " + crc32 );
 
             assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length );
@@ -178,7 +178,7 @@ class ApiKeyTokenGeneratorTest
         char[] checksum = pair.getChecksum();
 
         long longChecksum = CRC32Utils.generateCRC32Checksum( code );
-        String base62EncodedLongChecksum = CRC32Utils.crc32ToBase62( longChecksum );
+        String base62EncodedLongChecksum = Base62.encodeUnsigned32bitToBase62( longChecksum );
 
         assertEquals( base62EncodedLongChecksum, new String( checksum ) );
     }

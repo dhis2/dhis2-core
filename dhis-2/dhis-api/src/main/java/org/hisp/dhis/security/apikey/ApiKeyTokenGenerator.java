@@ -35,6 +35,7 @@ import javax.annotation.CheckForNull;
 
 import lombok.Value;
 
+import org.hisp.dhis.common.Base62;
 import org.hisp.dhis.common.CRC32Utils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.HashUtils;
@@ -139,7 +140,7 @@ public class ApiKeyTokenGenerator
     public static char[] generateCRC32InBase62( char[] code )
     {
         long checksum = CRC32Utils.generateCRC32Checksum( code );
-        String b62encoded = CRC32Utils.crc32ToBase62( checksum );
+        String b62encoded = Base62.encodeUnsigned32bitToBase62( checksum );
         return b62encoded.toCharArray();
     }
 
