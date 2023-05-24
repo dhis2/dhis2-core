@@ -69,7 +69,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.6.0</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>5.8.3</spring-security.version>
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.18.0</flyway-core.version>
+    <flyway-core.version>9.19.0</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
