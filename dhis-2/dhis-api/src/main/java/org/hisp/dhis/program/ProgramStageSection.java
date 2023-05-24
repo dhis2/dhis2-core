@@ -30,7 +30,12 @@ package org.hisp.dhis.program;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
@@ -212,23 +217,24 @@ public class ProgramStageSection
     public static ProgramStageSection copyOf( ProgramStageSection original, ProgramStage newProgramStage )
     {
         ProgramStageSection copy = new ProgramStageSection();
-        copy.setProgramStage( newProgramStage ); //TODO should this be the newly-created instance of ProgramStage
+        copy.setProgramStage( newProgramStage );
         setShallowCopyValues( copy, original );
         return copy;
     }
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
-        copy.setAutoFields(); // TODO this is required here as when ProgramStage is being saved, this ProgramStageSection doesn't have a uid
+        //        String prefix = options.getOrDefault( "prefix", "Copy of " );
+        copy.setAutoFields();
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
         copy.setDataElements( new ArrayList<>( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
         copy.setFormName( original.getFormName() );
         //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
-        copy.setName( original.getName() + "clone" );
+        copy.setName( original.getName() );
         copy.setProgramIndicators( new ArrayList<>( original.getProgramIndicators() ) );
         copy.setSharing( original.getSharing() );
-        copy.setShortName( original.getShortName() + "clone" );
+        copy.setShortName( original.getShortName() );
         copy.setSortOrder( original.getSortOrder() );
         copy.setStyle( original.getStyle() );
     }

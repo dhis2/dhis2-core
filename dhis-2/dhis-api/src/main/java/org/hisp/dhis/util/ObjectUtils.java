@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -196,13 +192,13 @@ public class ObjectUtils
         return object;
     }
 
-    public static Set newSetFromObjectOrEmpty( Set set )
+    public static <T> Set<T> newSetFromObjectOrEmpty( Set<T> set )
     {
         return set != null ? new HashSet<>( set ) : new HashSet<>();
     }
 
-    public static List newListFromObjectOrEmpty( List list )
+    public static <T> List<T> newListFromObjectOrEmpty( List<T> list )
     {
-        return list != null ? new ArrayList( list ) : new ArrayList<>();
+        return list != null ? new ArrayList<>( list ) : new ArrayList<>();
     }
 }

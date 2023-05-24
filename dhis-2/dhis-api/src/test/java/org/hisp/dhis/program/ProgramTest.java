@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -85,7 +86,8 @@ class ProgramTest
     void testCopyOfWithPropertyValuesSet()
     {
         Program original = getNewProgramWithNoNulls();
-        Program copy = Program.copyOf( original );
+        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program copy = programCopyTuple.copy();
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -103,7 +105,8 @@ class ProgramTest
     void testCopyOfWithNulls()
     {
         Program original = getNewProgramWithNulls();
-        Program copy = Program.copyOf( original );
+        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program copy = programCopyTuple.copy();
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );

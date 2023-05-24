@@ -27,30 +27,74 @@
  */
 package org.hisp.dhis.copy;
 
-import lombok.RequiredArgsConstructor;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.program.*;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
-@RequiredArgsConstructor
-@Service( "org.hisp.dhis.program.ProgramCloneService" )
+@Service
 public class CopyService
 {
+    private ProgramService programService;
 
-    private final ProgramService programService;
+    private EnrollmentService enrollmentService;
 
-    public Program copyProgram( String fromUid )
-        throws NotFoundException
+    public CopyService( ProgramService programService, EnrollmentService enrollmentService )
     {
-        Program original = programService.getProgram( fromUid );
-        if ( original != null )
-        {
-            Program copy = Program.copyOf( original );
-            programService.addProgram( copy );
-            return copy;
-        }
-        throw new NotFoundException( "No Program with uid %s found".formatted( fromUid ) );
+        this.programService = programService;
+        this.enrollmentService = enrollmentService;
     }
+
+    public String copyProgramFromUid( String uid, Map<String, String> copyOptions )
+        throws NotFoundException,
+        ConflictException
+    {
+        try
+        {
+            Program original = programService.getProgram( uid );
+            if ( original != null )
+            {
+                return applyAllProgramCopySteps( original, copyOptions );
+            }
+            throw new NotFoundException( Program.class, uid );
+        }
+        catch ( DataIntegrityViolationException div )
+        {
+            throw new ConflictException( Objects.requireNonNull( div.getRootCause() ).getMessage() );
+        }
+    }
+
+    public String applyAllProgramCopySteps( Program program, Map<String, String> copyOptions )
+    {
+        return Program.copyOf
+            .andThen( saveNewProgram )
+            .andThen( copyEnrollments )
+            .andThen( saveNewEnrollments )
+            .apply( program, copyOptions );
+    }
+
+    private final UnaryOperator<ProgramCopyTuple> saveNewProgram = programCopyTuple -> {
+        programService.addProgram( programCopyTuple.copy() );
+        return programCopyTuple;
+    };
+
+    private final Function<ProgramCopyTuple, ProgramEnrollmentsTuple> copyEnrollments = programCopyTuple -> {
+        List<Enrollment> copiedEnrollments = enrollmentService.getEnrollments( programCopyTuple.original() )
+            .stream()
+            .map( enrollment -> Enrollment.copyOf( enrollment, programCopyTuple.copy() ) )
+            .toList();
+        return new ProgramEnrollmentsTuple( programCopyTuple.copy(), copiedEnrollments );
+    };
+
+    private final Function<ProgramEnrollmentsTuple, String> saveNewEnrollments = programEnrollmentsTuple -> {
+        programEnrollmentsTuple.enrollments().forEach( enrollmentService::addEnrollment );
+        return programEnrollmentsTuple.program().getUid();
+    };
 }

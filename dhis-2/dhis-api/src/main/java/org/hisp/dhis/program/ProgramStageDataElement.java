@@ -294,25 +294,26 @@ public class ProgramStageDataElement
             '}';
     }
 
-    public static ProgramStageDataElement copyOf( ProgramStageDataElement original, ProgramStage newProgramStage )
+    public static ProgramStageDataElement copyOf( ProgramStageDataElement original, ProgramStage copyProgramStage )
     {
         ProgramStageDataElement copy = new ProgramStageDataElement();
-        copy.setProgramStage( newProgramStage ); //TODO should this be the newly-create ProgramStage instance?
+        copy.setProgramStage( copyProgramStage );
         setShallowCopyValues( copy, original );
         return copy;
     }
 
     private static void setShallowCopyValues( ProgramStageDataElement copy, ProgramStageDataElement original )
     {
+        //        String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAllowFutureDate( original.getAllowFutureDate() );
         copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
-        copy.setAutoFields(); // TODO this is required here as when ProgramStage is being saved, this ProgramStageDataElement doesn't have a uid
+        copy.setAutoFields();
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
         copy.setCompulsory( original.isCompulsory() );
         copy.setDataElement( original.getDataElement() );
         copy.setDisplayInReports( original.getDisplayInReports() );
         //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
-        copy.setName( original.getName() + "clone" );
+        copy.setName( original.getName() );
         copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );

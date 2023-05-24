@@ -31,23 +31,13 @@ import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
 import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
-import org.hisp.dhis.common.AccessLevel;
-import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.MetadataObject;
-import org.hisp.dhis.common.ObjectStyle;
-import org.hisp.dhis.common.VersionedObject;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeDeserializer;
 import org.hisp.dhis.common.adapter.JacksonPeriodTypeSerializer;
 import org.hisp.dhis.dataelement.DataElement;
@@ -62,6 +52,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.util.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -910,71 +901,65 @@ public class Program
         this.accessLevel = accessLevel;
     }
 
-    public static Program copyOf( Program programToCopy )
+    public static final BiFunction<Program, Map<String, String>, ProgramCopyTuple> copyOf = ( original, options ) -> {
+        Program copy = new Program();
+        setShallowCopyValues( copy, original, options );
+        setDeepCopyValues( copy, original, options );
+        return new ProgramCopyTuple( copy, original );
+    };
+
+    private static void setShallowCopyValues( Program copy, Program original, Map<String, String> options )
     {
-        Program newProgram = new Program();
-        setShallowCopyValues( newProgram, programToCopy );
-        setDeepCopyValues( newProgram, programToCopy );
-        return newProgram;
+        String prefix = options.getOrDefault( "prefix", "Copy of " );
+        copy.setAccessLevel( original.getAccessLevel() );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayIncidentDate( original.getDisplayIncidentDate() );
+        copy.setDisplayFrontPageList( original.getDisplayFrontPageList() );
+        copy.setEnrollmentDateLabel( original.getEnrollmentDateLabel() );
+        copy.setExpiryDays( original.getExpiryDays() );
+        copy.setFeatureType( original.getFeatureType() );
+        copy.setFormName( original.getFormName() );
+        copy.setIgnoreOverdueEvents( original.getIgnoreOverdueEvents() );
+        copy.setIncidentDateLabel( original.getIncidentDateLabel() );
+        copy.setMaxTeiCountToReturn( original.getMaxTeiCountToReturn() );
+        copy.setMinAttributesRequiredToSearch( original.getMinAttributesRequiredToSearch() );
+        copy.setName( prefix + original.getName() );
+        copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
+        copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
+        copy.setProgramType( original.getProgramType() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
+        copy.setSelectEnrollmentDatesInFuture( original.getSelectEnrollmentDatesInFuture() );
+        copy.setSelectIncidentDatesInFuture( original.getSelectIncidentDatesInFuture() );
+        copy.setSkipOffline( original.isSkipOffline() );
+        copy.setUseFirstStageDuringRegistration( original.getUseFirstStageDuringRegistration() );
+        copy.setCategoryCombo( original.getCategoryCombo() );
+        copy.setDataEntryForm( original.getDataEntryForm() );
+        copy.setExpiryPeriodType( original.getExpiryPeriodType() );
+        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
+        copy.setOrganisationUnits( newSetFromObjectOrEmpty( original.getOrganisationUnits() ) );
+        copy.setProgramAttributes( newListFromObjectOrEmpty( original.getProgramAttributes() ) );
+        copy.setProgramIndicators( newSetFromObjectOrEmpty( original.getProgramIndicators() ) );
+        copy.setProgramRuleVariables( newSetFromObjectOrEmpty( original.getProgramRuleVariables() ) );
+        copy.setProgramSections( newSetFromObjectOrEmpty( original.getProgramSections() ) );
+        copy.setRelatedProgram( original.getRelatedProgram() );
+        copy.setStyle( original.getStyle() );
+        copy.setTrackedEntityType( original.getTrackedEntityType() );
+        copy.setUserRoles( newSetFromObjectOrEmpty( original.getUserRoles() ) );
     }
 
-    private static void setShallowCopyValues( Program newProgram, Program programToCopy )
+    private static void setDeepCopyValues( Program copy, Program original, Map<String, String> options )
     {
-        newProgram.setAccessLevel( programToCopy.getAccessLevel() );
-        newProgram.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) ); //TODO should this be a new unique code? set at service level
-        newProgram.setCompleteEventsExpiryDays( programToCopy.getCompleteEventsExpiryDays() );
-        newProgram.setDescription( programToCopy.getDescription() );
-        newProgram.setDisplayIncidentDate( programToCopy.getDisplayIncidentDate() );
-        newProgram.setDisplayFrontPageList( programToCopy.getDisplayFrontPageList() );
-        newProgram.setEnrollmentDateLabel( programToCopy.getEnrollmentDateLabel() );
-        newProgram.setExpiryDays( programToCopy.getExpiryDays() );
-        newProgram.setFeatureType( programToCopy.getFeatureType() );
-        newProgram.setFormName( programToCopy.getFormName() );
-        newProgram.setIgnoreOverdueEvents( programToCopy.getIgnoreOverdueEvents() );
-        newProgram.setIncidentDateLabel( programToCopy.getIncidentDateLabel() );
-        newProgram.setMaxTeiCountToReturn( programToCopy.getMaxTeiCountToReturn() );
-        newProgram.setMinAttributesRequiredToSearch( programToCopy.getMinAttributesRequiredToSearch() );
-        newProgram.setName( programToCopy.getName() + "_" + CodeGenerator.generateUid() ); //TODO add 'clone' suffix?
-        newProgram.setOnlyEnrollOnce( programToCopy.getOnlyEnrollOnce() );
-        newProgram.setOpenDaysAfterCoEndDate( programToCopy.getOpenDaysAfterCoEndDate() );
-        newProgram.setProgramType( programToCopy.getProgramType() );
-        newProgram.setSharing( programToCopy.getSharing() );
-        newProgram.setShortName( programToCopy.getShortName() + "_clone" ); //TODO add 'clone' suffix?
-        newProgram.setSelectEnrollmentDatesInFuture( programToCopy.getSelectEnrollmentDatesInFuture() );
-        newProgram.setSelectIncidentDatesInFuture( programToCopy.getSelectIncidentDatesInFuture() );
-        newProgram.setSkipOffline( programToCopy.isSkipOffline() );
-        newProgram.setUseFirstStageDuringRegistration( programToCopy.getUseFirstStageDuringRegistration() );
-        newProgram.setCategoryCombo( programToCopy.getCategoryCombo() );
-        newProgram.setDataEntryForm( programToCopy.getDataEntryForm() );
-        newProgram.setExpiryPeriodType( programToCopy.getExpiryPeriodType() );
-        newProgram.setNotificationTemplates( newSetFromObjectOrEmpty( programToCopy.getNotificationTemplates() ) );
-        newProgram.setOrganisationUnits( newSetFromObjectOrEmpty( programToCopy.getOrganisationUnits() ) );
-        newProgram.setProgramAttributes( newListFromObjectOrEmpty( programToCopy.getProgramAttributes() ) );
-        newProgram.setProgramIndicators( newSetFromObjectOrEmpty( programToCopy.getProgramIndicators() ) );
-        newProgram.setProgramRuleVariables( newSetFromObjectOrEmpty( programToCopy.getProgramRuleVariables() ) );
-        newProgram.setProgramSections( newSetFromObjectOrEmpty( programToCopy.getProgramSections() ) );
-        newProgram.setRelatedProgram( copyOrNull( programToCopy.getRelatedProgram() ) ); //TODO null/copy/ref?
-        newProgram.setStyle( programToCopy.getStyle() );
-        newProgram.setTrackedEntityType( programToCopy.getTrackedEntityType() );
-        newProgram.setUserRoles( newSetFromObjectOrEmpty( programToCopy.getUserRoles() ) );
+        copyProgramStages( copy, original.getProgramStages(), options );
     }
 
-    private static void setDeepCopyValues( Program newProgram, Program programToCopy )
+    private static void copyProgramStages( Program copy, Set<ProgramStage> original, Map<String, String> options )
     {
-        if ( programToCopy.getProgramStages() != null )
-        {
-            newProgram.setProgramStages( programToCopy.getProgramStages().stream()
-                .map( original -> ProgramStage.copyOf( original, newProgram ) )
+        copy.setProgramStages(
+            StreamUtils.nullSafeCollectionToStream( original )
+                .map( programStage -> ProgramStage.copyOf( programStage, copy, options ) )
                 .collect( toSet() ) );
-        }
-        else
-        {
-            newProgram.setProgramStages( new HashSet<>() );
-        }
-    }
-
-    private static Program copyOrNull( Program relatedProgram )
-    {
-        return relatedProgram != null ? copyOf( relatedProgram ) : null;
     }
 }

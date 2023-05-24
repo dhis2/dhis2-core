@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,6 +53,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.util.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -588,19 +590,20 @@ public class ProgramStage
         this.referral = referral;
     }
 
-    public static ProgramStage copyOf( ProgramStage original, Program newProgram )
+    public static ProgramStage copyOf( ProgramStage original, Program programCopy, Map<String, String> options )
     {
         ProgramStage copy = new ProgramStage();
-        copy.setProgram( newProgram ); //TODO should this be the newly-created Program instance?
-        setShallowCopyValues( copy, original );
-        setDeepCopyValues( copy, original );
+        copy.setProgram( programCopy );
+        setShallowCopyValues( copy, original, options );
+        setDeepCopyValues( copy, original, options );
         return copy;
     }
 
-    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original )
+    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original, Map<String, String> options )
     {
+        String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
-        copy.setAutoFields(); // TODO this is required here as when Program is being saved, this ProgramStage doesn't have a uid
+        copy.setAutoFields();
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
@@ -617,7 +620,7 @@ public class ProgramStage
         //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
-        copy.setName( original.getName() + "_" + CodeGenerator.generateUid() );
+        copy.setName( prefix + original.getName() );
         copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );
@@ -627,35 +630,34 @@ public class ProgramStage
         copy.setRepeatable( original.getRepeatable() );
         copy.setReportDateToUse( original.getReportDateToUse() );
         copy.setSharing( original.getSharing() );
-        copy.setShortName( original.getShortName() + "clone" );
+        copy.setShortName( original.getShortName() );
         copy.setSortOrder( original.getSortOrder() );
         copy.setStandardInterval( original.getStandardInterval() );
         copy.setStyle( original.getStyle() );
         copy.setValidationStrategy( original.getValidationStrategy() );
     }
 
-    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original )
+    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original, Map<String, String> options )
     {
-        if ( original.getProgramStageDataElements() != null )
-        {
-            copy.setProgramStageDataElements( original.getProgramStageDataElements().stream()
+        copyProgramStageDataElements( copy, original.getProgramStageDataElements(), options );
+        copyProgramStageSections( copy, original.getProgramStageSections(), options );
+    }
+
+    private static void copyProgramStageDataElements( ProgramStage copy,
+        Set<ProgramStageDataElement> original, Map<String, String> options )
+    {
+        copy.setProgramStageDataElements(
+            StreamUtils.nullSafeCollectionToStream( original )
                 .map( element -> ProgramStageDataElement.copyOf( element, copy ) )
                 .collect( Collectors.toSet() ) );
-        }
-        else
-        {
-            copy.setProgramStageDataElements( new HashSet<>() );
-        }
+    }
 
-        if ( original.getProgramStageSections() != null )
-        {
-            copy.setProgramStageSections( original.getProgramStageSections().stream()
-                .map( section -> ProgramStageSection.copyOf( section, copy ) )
+    private static void copyProgramStageSections( ProgramStage copy,
+        Set<ProgramStageSection> original, Map<String, String> options )
+    {
+        copy.setProgramStageSections(
+            StreamUtils.nullSafeCollectionToStream( original )
+                .map( element -> ProgramStageSection.copyOf( element, copy ) )
                 .collect( Collectors.toSet() ) );
-        }
-        else
-        {
-            copy.setProgramStageSections( new HashSet<>() );
-        }
     }
 }

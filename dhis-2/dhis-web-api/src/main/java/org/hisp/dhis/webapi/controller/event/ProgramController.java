@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Collection;
@@ -42,7 +43,9 @@ import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
@@ -54,6 +57,7 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -62,6 +66,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
 
@@ -132,11 +137,16 @@ public class ProgramController
     }
 
     @PostMapping( "/{uid}/copy" )
-    public ResponseEntity<String> copyProgram( @PathVariable( "uid" ) String pvUid )
-        throws NotFoundException
+    @ResponseStatus( HttpStatus.CREATED )
+    @ResponseBody
+    public WebMessage copyProgram( @PathVariable( "uid" ) String uid,
+        @RequestParam( required = false ) Map<String, String> copyOptions )
+        throws NotFoundException,
+        ConflictException
     {
-        Program copy = copyService.copyProgram( pvUid );
-        return ResponseEntity.ok( copy.getUid() );
+        String newUid = copyService.copyProgramFromUid( uid, copyOptions );
+        return created( String.format( "Program created: '%s'", newUid ) )
+            .setLocation( "/programs/" + newUid );
     }
 
     @ResponseBody

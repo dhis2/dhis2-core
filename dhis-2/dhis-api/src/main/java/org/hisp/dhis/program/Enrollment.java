@@ -27,12 +27,10 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
+import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
+
+import java.util.*;
 
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -454,5 +452,38 @@ public class Enrollment
             ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +
             '}';
+    }
+
+    public static Enrollment copyOf( Enrollment original, Program programCopy )
+    {
+        Enrollment copy = new Enrollment();
+        setShallowCopyValues( copy, original, programCopy );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
+    {
+        copy.setAutoFields();
+        copy.setCode( original.getCode() );
+        copy.setComments( newListFromObjectOrEmpty( original.getComments() ) );
+        copy.setCompletedBy( original.getCompletedBy() );
+        copy.setCreatedAtClient( original.getCreatedAtClient() );
+        copy.setCreatedByUserInfo( original.getCreatedByUserInfo() );
+        copy.setEndDate( original.getEndDate() );
+        copy.setEnrollmentDate( original.getEnrollmentDate() );
+        copy.setEvents( new HashSet<>() ); // TODO should this be an empty set?
+        copy.setFollowup( original.getFollowup() );
+        copy.setGeometry( original.getGeometry() );
+        copy.setIncidentDate( original.getIncidentDate() );
+        copy.setLastUpdatedAtClient( original.getLastUpdatedAtClient() );
+        copy.setLastUpdatedByUserInfo( original.getLastUpdatedByUserInfo() );
+        copy.setMessageConversations( newListFromObjectOrEmpty( original.getMessageConversations() ) );
+        copy.setName( original.getName() );
+        copy.setOrganisationUnit( original.getOrganisationUnit() );
+        copy.setProgram( programCopy );
+        copy.setRelationshipItems( newSetFromObjectOrEmpty( original.getRelationshipItems() ) );
+        copy.setStatus( original.getStatus() );
+        copy.setStoredBy( original.getStoredBy() );
+        copy.setTrackedEntity( original.getTrackedEntity() );
     }
 }

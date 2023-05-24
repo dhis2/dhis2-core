@@ -33,6 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collections;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.CodeGenerator;
@@ -55,7 +56,7 @@ class ProgramStageTest
     {
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNoNulls( program );
-        ProgramStage copy = ProgramStage.copyOf( original, program );
+        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -76,7 +77,7 @@ class ProgramStageTest
     {
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNulls();
-        ProgramStage copy = ProgramStage.copyOf( original, program );
+        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
