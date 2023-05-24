@@ -181,7 +181,7 @@ class DataValidationRunnerTest
 
         when( expressionService.getExpressionValue( ExpressionParams.builder()
             .expression( "8.4!=-10.0" ).parseType( SIMPLE_TEST ).build() ) )
-                .thenReturn( true );
+            .thenReturn( true );
 
         subject.run( organisationUnits, ctx );
 

@@ -74,7 +74,7 @@ class DataValueControllerTest extends AbstractDataValueControllerTest
         assertEquals( ErrorCode.E2032,
             PUT( "/dataValues/followups",
                 Body( format( "{'values':[%s]}", dataValueKeyJSON( "2021-02", true ) ) ) )
-                    .error( HttpStatus.CONFLICT ).getErrorCode() );
+                .error( HttpStatus.CONFLICT ).getErrorCode() );
     }
 
     @Test

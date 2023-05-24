@@ -166,9 +166,9 @@ public class TrackerApiTest
     {
         JsonObject object = new JsonFileReader(
             new File( "src/test/resources/tracker/importer/teis/teisWithEnrollmentsAndEvents.json" ) )
-                .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "PuBvJxDB73z", "olfXZzSGacW",
-                    "ZwwuwNp6gVd" )
-                .get( JsonObject.class );
+            .replaceStringsWithIds( "Kj6vYde4LHh", "Nav6inZRw1u", "MNWZ6hnuhSw", "PuBvJxDB73z", "olfXZzSGacW",
+                "ZwwuwNp6gVd" )
+            .get( JsonObject.class );
 
         return trackerImportExportActions.postAndGetJobReport( object )
             .validateSuccessfulImport();

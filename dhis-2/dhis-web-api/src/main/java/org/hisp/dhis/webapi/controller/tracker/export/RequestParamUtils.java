@@ -52,6 +52,7 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.util.CheckedFunction;
+import org.hisp.dhis.webapi.common.UID;
 
 /**
  * RequestParamUtils are functions used to parse and transform tracker request
@@ -113,8 +114,8 @@ public class RequestParamUtils
      *
      * @param func function to be called if arg is not empty
      * @param arg arg to be checked
-     * @return result of func
      * @param <T> base identifiable object to be returned from func
+     * @return result of func
      */
     public static <T extends BaseIdentifiableObject> T applyIfNonEmpty( Function<String, T> func, String arg )
     {
@@ -137,6 +138,37 @@ public class RequestParamUtils
         return parseUidString( input )
             .filter( CodeGenerator::isValidUid )
             .collect( Collectors.toSet() );
+    }
+
+    /**
+     * Helps us transition request parameters that contained semicolon separated
+     * UIDs (deprecated) to comma separated UIDs in a backwards compatible way.
+     *
+     * @param deprecatedParamName request parameter name of deprecated
+     *        semi-colon separated parameter
+     * @param deprecatedParamUids semicolon separated uids
+     * @param newParamName new request parameter replacing deprecated request
+     *        parameter
+     * @param newParamUids new request parameter uids
+     * @return uids from the request parameter containing uids
+     * @throws IllegalArgumentException when both deprecated and new request
+     *         parameter contain uids
+     */
+    public static Set<UID> validateDeprecatedUidsParameter( String deprecatedParamName, String deprecatedParamUids,
+        String newParamName, Set<UID> newParamUids )
+    {
+        Set<String> deprecatedParamParsedUids = parseUids( deprecatedParamUids );
+        if ( !deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty() )
+        {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
+                    deprecatedParamName, newParamName, newParamName, deprecatedParamName ) );
+        }
+
+        return !deprecatedParamParsedUids.isEmpty()
+            ? deprecatedParamParsedUids.stream().map( UID::of ).collect( Collectors.toSet() )
+            : newParamUids;
     }
 
     /**

@@ -152,7 +152,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     protected static char[] generatePlainTextToken( ApiTokenType type )
     {
-        char[] code = CodeGenerator.generateSecureCode( type.getLength() );
+        char[] code = CodeGenerator.generateSecureRandomCode( type.getLength() );
 
         Preconditions.checkArgument( code.length == type.getLength(),
             "Could not create new token, please try again." );
@@ -179,9 +179,9 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
         return switch ( checksumType )
         {
-            case "CRC32" -> generateCrc32Checksum( secureCode );
+        case "CRC32" -> generateCrc32Checksum( secureCode );
 
-            default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
+        default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
         };
 
     }

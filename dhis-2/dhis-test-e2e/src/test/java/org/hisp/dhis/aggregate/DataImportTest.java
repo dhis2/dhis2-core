@@ -146,7 +146,7 @@ public class DataImportTest
 
         JsonObject importedPayload = new JsonFileReader(
             new File( "src/test/resources/aggregate/dataValues_single_dataset.json" ) )
-                .get();
+            .get();
         ApiResponse response = dataValueSetActions.post( importedPayload );
 
         response.validate().statusCode( 200 )

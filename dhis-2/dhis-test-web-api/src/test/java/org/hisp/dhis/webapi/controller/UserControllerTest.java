@@ -364,7 +364,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/",
                 "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                    .content( HttpStatus.CREATED ) );
+                .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -374,7 +374,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             POST( "/users/",
                 "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -499,7 +499,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
-                    .content( HttpStatus.CREATED ) );
+            .content( HttpStatus.CREATED ) );
     }
 
     @Test

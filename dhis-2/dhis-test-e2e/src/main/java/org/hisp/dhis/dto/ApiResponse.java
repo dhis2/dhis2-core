@@ -38,6 +38,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonTypedAccess;
 
 import com.google.gson.JsonObject;
 
@@ -151,7 +152,7 @@ public class ApiResponse
 
     public JsonResponse getBodyAsJson()
     {
-        return new JsonResponse( raw.asString() );
+        return new JsonResponse( raw.asString(), JsonTypedAccess.GLOBAL );
     }
 
     public boolean isEntityCreated()

@@ -75,8 +75,8 @@ public class SchemasActions
     {
         return get( "",
             new QueryParamsBuilder().add( String.format( "fields=%s,%s", propertyToFind, knownPropertyName ) ) )
-                .extractString(
-                    String.format( "schemas.find{it.%s == '%s'}.%s", knownPropertyName, knownPropertyValue,
-                        propertyToFind ) );
+            .extractString(
+                String.format( "schemas.find{it.%s == '%s'}.%s", knownPropertyName, knownPropertyValue,
+                    propertyToFind ) );
     }
 }

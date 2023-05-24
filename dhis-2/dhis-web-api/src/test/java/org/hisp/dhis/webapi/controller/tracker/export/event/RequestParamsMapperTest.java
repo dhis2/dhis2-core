@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -68,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -94,7 +96,7 @@ class RequestParamsMapperTest
 
     private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-    private static final String PROGRAM_UID = "programuid";
+    private static final String PROGRAM_UID = "PlZSBEN7iZd";
 
     @Mock
     private CurrentUserService currentUserService;
@@ -148,8 +150,8 @@ class RequestParamsMapperTest
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
         programStage = new ProgramStage();
-        programStage.setUid( "programstageuid" );
-        when( programStageService.getProgramStage( "programstageuid" ) ).thenReturn( programStage );
+        programStage.setUid( "PlZSBEN7iZd" );
+        when( programStageService.getProgramStage( "PlZSBEN7iZd" ) ).thenReturn( programStage );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
 
         ou = new OrganisationUnit();
@@ -157,7 +159,7 @@ class RequestParamsMapperTest
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
         trackedEntity = new TrackedEntity();
-        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( trackedEntity );
+        when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( trackedEntity );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
         TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -194,7 +196,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -205,11 +207,11 @@ class RequestParamsMapperTest
     void testMappingProgramNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgram( "unknown" );
+        criteria.setProgram( UID.of( "NeU85luyD4w" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -218,7 +220,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgramStage( "programstageuid" );
+        criteria.setProgramStage( UID.of( "PlZSBEN7iZd" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -229,11 +231,11 @@ class RequestParamsMapperTest
     void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownProgramStage()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgramStage( "unknown" );
+        criteria.setProgramStage( UID.of( "NeU85luyD4w" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program stage is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -242,7 +244,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( ou.getUid() );
+        criteria.setOrgUnit( UID.of( ou.getUid() ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -253,13 +255,13 @@ class RequestParamsMapperTest
     void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( "unknown" );
+        criteria.setOrgUnit( UID.of( "NeU85luyD4w" ) );
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
 
-        assertEquals( "Org unit is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Org unit is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -268,7 +270,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "teiuid" );
+        criteria.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -279,13 +281,13 @@ class RequestParamsMapperTest
     void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "teiuid" );
-        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( null );
+        criteria.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
+        when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
 
-        assertStartsWith( "Tracked entity instance is specified but does not exist: " + criteria.getTrackedEntity(),
+        assertStartsWith( "Tracked entity is specified but does not exist: " + criteria.getTrackedEntity(),
             exception.getMessage() );
     }
 
@@ -408,16 +410,15 @@ class RequestParamsMapperTest
     {
         RequestParams criteria = new RequestParams();
 
-        Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
-        criteria.setEnrollments( enrollments );
+        criteria.setEnrollments( Set.of( UID.of( "NQnuK2kLm6e" ) ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( enrollments, params.getEnrollments() );
+        assertEquals( Set.of( "NQnuK2kLm6e" ), params.getEnrollments() );
     }
 
     @Test
-    void testMappingEvents()
+    void testMappingEvent()
         throws BadRequestException,
         ForbiddenException
     {
@@ -430,16 +431,16 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingEventsStripsInvalidUid()
+    void testMappingEvents()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( "invalidUid;M4pNmLabtXl" );
+        criteria.setEvents( Set.of( UID.of( "XKrcfuM4Hcw" ), UID.of( "M4pNmLabtXl" ) ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getEvents() );
+        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
@@ -455,42 +456,35 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingEventIsEmpty()
+    void testMappingAssignedUser()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setEvent( " " );
+        criteria.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertIsEmpty( params.getEvents() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
-    void testMappingAssignedUserStripsInvalidUid()
+    void testMappingAssignedUsers()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+        criteria.setAssignedUsers( Set.of( UID.of( "IsdLBTOBzMi" ), UID.of( "l5ab8q5skbB" ) ) );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUserQueryParam().getAssignedUsers() );
-    }
-
-    @Test
-    void testMappingAssignedUserIsEmpty()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        RequestParams criteria = new RequestParams();
-        criteria.setAssignedUser( " " );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertIsEmpty( params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
@@ -709,7 +703,7 @@ class RequestParamsMapperTest
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgram( program.getUid() );
+        criteria.setProgram( UID.of( program ) );
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( aclService.canDataRead( user, program ) ).thenReturn( false );
@@ -724,7 +718,7 @@ class RequestParamsMapperTest
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgramStage( programStage.getUid() );
+        criteria.setProgramStage( UID.of( programStage ) );
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( false );
@@ -739,13 +733,13 @@ class RequestParamsMapperTest
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryCombo()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setAttributeCc( "Cc" );
+        criteria.setAttributeCc( UID.of( "NeU85luyD4w" ) );
         criteria.setAttributeCos( "Cos" );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", criteria.getAttributeCos(),
             true ) )
-                .thenReturn( combo );
+            .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,

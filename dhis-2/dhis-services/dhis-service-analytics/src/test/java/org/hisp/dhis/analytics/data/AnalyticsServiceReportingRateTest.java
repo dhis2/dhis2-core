@@ -104,14 +104,14 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actualReports ) );
+            .thenReturn( CompletableFuture.completedFuture( actualReports ) );
 
         Map<String, Object> reportingRate = new HashMap<>();
         reportingRate.put( dataSetA.getUid() + "-" + ou.getUid(), expectedReports );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
+            .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -160,7 +160,7 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
+            .thenReturn( CompletableFuture.completedFuture( reportingRate ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -194,12 +194,12 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actualReports ) );
+            .thenReturn( CompletableFuture.completedFuture( actualReports ) );
 
         // NO TARGET RETURNED
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( null ) );
+            .thenReturn( CompletableFuture.completedFuture( null ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
 
@@ -243,11 +243,11 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( targets ) );
+            .thenReturn( CompletableFuture.completedFuture( targets ) );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actuals ) );
+            .thenReturn( CompletableFuture.completedFuture( actuals ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
         assertReportingRatesGrid( grid, dataSetA, "201902" );
@@ -290,11 +290,11 @@ class AnalyticsServiceReportingRateTest extends AnalyticsServiceBaseTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS_TARGET ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( targets ) );
+            .thenReturn( CompletableFuture.completedFuture( targets ) );
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.COMPLETENESS ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( actuals ) );
+            .thenReturn( CompletableFuture.completedFuture( actuals ) );
 
         Grid grid = target.getAggregatedDataValueGrid( params );
         assertReportingRatesGrid( grid, dataSetA, "201901" );

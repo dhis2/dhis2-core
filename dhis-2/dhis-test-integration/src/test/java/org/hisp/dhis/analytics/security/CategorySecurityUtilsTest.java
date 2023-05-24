@@ -129,9 +129,9 @@ class CategorySecurityUtilsTest
                 params.getDimensions().stream(),
                 params.getFilters().stream() )
                 .collect( Collectors.toList() ) )
-                    .stream()
-                    .map( IdentifiableObject::getUid )
-                    .collect( Collectors.toList() );
+            .stream()
+            .map( IdentifiableObject::getUid )
+            .collect( Collectors.toList() );
 
         assertThat( expected, containsInAnyOrder( actual.toArray() ) );
         assertThat( actual, hasSize( expected.size() ) );

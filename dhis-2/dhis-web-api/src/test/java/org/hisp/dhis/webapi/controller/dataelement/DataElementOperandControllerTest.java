@@ -186,7 +186,7 @@ class DataElementOperandControllerTest
 
         when( fieldFilterService.toCollectionNode( eq( DataElementOperand.class ),
             filterParamsArgumentCaptor.capture() ) )
-                .thenReturn( buildResponse( first50elements ) );
+            .thenReturn( buildResponse( first50elements ) );
 
         doReturn( totalSize ).when( queryService ).count( any( Query.class ) );
 
@@ -240,7 +240,7 @@ class DataElementOperandControllerTest
 
         when( fieldFilterService.toCollectionNode( eq( DataElementOperand.class ),
             filterParamsArgumentCaptor.capture() ) )
-                .thenReturn( buildResponse( thirdPageElements ) );
+            .thenReturn( buildResponse( thirdPageElements ) );
 
         doReturn( totalSize ).when( queryService ).count( any( Query.class ) );
 

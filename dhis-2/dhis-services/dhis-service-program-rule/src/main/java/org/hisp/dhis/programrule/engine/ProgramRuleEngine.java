@@ -159,9 +159,9 @@ public class ProgramRuleEngine
 
         RuleEngine.Builder builder = getRuleEngineContext( program,
             programRules )
-                .toEngineBuilder()
-                .triggerEnvironment( TriggerEnvironment.SERVER )
-                .events( ruleEvents );
+            .toEngineBuilder()
+            .triggerEnvironment( TriggerEnvironment.SERVER )
+            .events( ruleEvents );
 
         if ( ruleEnrollment != null )
         {
