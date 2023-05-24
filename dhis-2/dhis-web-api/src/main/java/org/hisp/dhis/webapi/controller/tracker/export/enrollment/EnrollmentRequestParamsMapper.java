@@ -65,9 +65,8 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class EnrollmentParamsMapper
+class EnrollmentRequestParamsMapper
 {
-
     @Nonnull
     private final CurrentUserService currentUserService;
 

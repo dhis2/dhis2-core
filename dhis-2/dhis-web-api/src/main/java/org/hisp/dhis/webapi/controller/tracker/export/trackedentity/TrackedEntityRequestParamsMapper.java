@@ -81,7 +81,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityParamsMapper
+class TrackedEntityRequestParamsMapper
 {
     @Nonnull
     private final CurrentUserService currentUserService;

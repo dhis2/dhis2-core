@@ -85,7 +85,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequestMapping( value = RESOURCE_PATH + "/" + TrackedEntitiesExportController.TRACKED_ENTITIES )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class TrackedEntitiesExportController
+class TrackedEntitiesExportController
 {
     protected static final String TRACKED_ENTITIES = "trackedEntities";
 
@@ -103,7 +103,7 @@ public class TrackedEntitiesExportController
     private static final TrackedEntityMapper TRACKED_ENTITY_MAPPER = Mappers.getMapper( TrackedEntityMapper.class );
 
     @Nonnull
-    private final TrackedEntityParamsMapper paramsMapper;
+    private final TrackedEntityRequestParamsMapper paramsMapper;
 
     @Nonnull
     private final TrackedEntityService trackedEntityService;
