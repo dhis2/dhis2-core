@@ -59,7 +59,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             "{'programs':[{'name':'test program name', 'id':'%s', 'description':'program description', 'shortName':'test program short name','programType':'WITH_REGISTRATION','programStages':[{'id':'%s'},{'id':'%s'}] }],'programStages':[{'id':'%s','name':'test programStage1'},{'id':'%s','name':'test programStage2'}]}"
                 .formatted( originalProgramUid, originalStageUid1, originalStageUid2, originalStageUid1,
                     originalStageUid2 ) )
-                        .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( originalProgramUid ) )
             .content( HttpStatus.CREATED )
             .as( JsonWebMessage.class );
