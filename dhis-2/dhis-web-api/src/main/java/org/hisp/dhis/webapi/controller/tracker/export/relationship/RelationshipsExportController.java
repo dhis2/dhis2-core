@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
@@ -58,6 +59,7 @@ import org.hisp.dhis.tracker.export.relationship.RelationshipService;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -71,6 +73,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 
+@OpenApi.EntityType( Relationship.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
@@ -143,6 +146,7 @@ public class RelationshipsExportController
             criteria );
     }
 
+    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping
     PagingWrapper<ObjectNode> getRelationships( RequestParams requestParams )
         throws NotFoundException,
@@ -167,10 +171,10 @@ public class RelationshipsExportController
         return pagingWrapper.withInstances( objectNodes );
     }
 
-    @GetMapping( "{uid}" )
-    public ResponseEntity<ObjectNode> getRelationship(
-        @PathVariable UID uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    @GetMapping( "/{uid}" )
+    ResponseEntity<ObjectNode> getRelationshipByUid(
+        @OpenApi.Param( { UID.class, Relationship.class } ) @PathVariable UID uid,
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

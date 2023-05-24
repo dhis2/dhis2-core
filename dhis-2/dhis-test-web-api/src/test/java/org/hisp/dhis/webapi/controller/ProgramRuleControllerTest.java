@@ -74,7 +74,7 @@ class ProgramRuleControllerTest extends DhisControllerConvenienceTest
 
         JsonImportSummary response = POST( "/metadata/",
             "{'programRules':[{'name':'test', 'program':{ 'id':'" + program.getUid() + "'}}]}" )
-                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
+            .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
         assertEquals( "The Program Rule name test already exist in Program ProgramA",
             response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4057 ).getMessage() );
     }

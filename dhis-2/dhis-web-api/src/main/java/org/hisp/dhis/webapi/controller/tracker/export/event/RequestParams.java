@@ -35,43 +35,71 @@ import java.util.Set;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to {@link EventsExportController}.
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@OpenApi.Property
 @Data
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships";
 
-    private String program;
+    @OpenApi.Property( { UID.class, Program.class } )
+    private UID program;
 
-    private String programStage;
+    @OpenApi.Property( { UID.class, ProgramStage.class } )
+    private UID programStage;
 
     private ProgramStatus programStatus;
 
     private Boolean followUp;
 
-    private String trackedEntity;
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
+    private UID trackedEntity;
 
-    private String orgUnit;
+    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
+    private UID orgUnit;
 
     private OrganisationUnitSelectionMode ouMode;
 
     private AssignedUserSelectionMode assignedUserMode;
 
+    /**
+     * Semicolon-delimited list of user UIDs to filter based on events assigned
+     * to the users.
+     *
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of
+     *             semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
+
+    @OpenApi.Property( { UID[].class, User.class } )
+    private Set<UID> assignedUsers = new HashSet<>();
 
     private Date occurredAfter;
 
@@ -97,8 +125,10 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private EventStatus status;
 
-    private String attributeCc;
+    @OpenApi.Property( { UID.class, CategoryCombo.class } )
+    private UID attributeCc;
 
+    @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private String attributeCos;
 
     private boolean skipMeta;
@@ -107,17 +137,36 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private boolean includeDeleted;
 
+    /**
+     * Semicolon-delimited list of event UIDs.
+     *
+     * @deprecated use {@link #events} instead which is comma instead of
+     *             semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, Event.class } )
     private String event;
+
+    @OpenApi.Property( { UID[].class, Event.class } )
+    private Set<UID> events = new HashSet<>();
 
     private Boolean skipEventId;
 
-    private Set<String> filter = new HashSet<>();
+    /**
+     * Comma separated list of data element filters
+     */
+    private String filter;
 
+    /**
+     * Comma separated list of attribute filters
+     */
     private String filterAttributes;
 
-    private Set<String> enrollments = new HashSet<>();
+    @OpenApi.Property( { UID[].class, Enrollment.class } )
+    private Set<UID> enrollments = new HashSet<>();
 
     private IdSchemes idSchemes = new IdSchemes();
 
+    @OpenApi.Property( value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

@@ -51,6 +51,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -163,7 +164,7 @@ class RequestParamsMapperTest
     {
         RequestParams criteria = new RequestParams();
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        criteria.setProgram( program.getUid() );
+        criteria.setProgram( UID.of( program ) );
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
@@ -176,13 +177,14 @@ class RequestParamsMapperTest
     void testMappingOrgUnitNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( "unknown;" + ORG_UNIT_2_UID );
-        criteria.setProgram( program.getUid() );
+        criteria.setOrgUnit( "NeU85luyD4w;" + ORG_UNIT_2_UID );
+        criteria.setProgram( UID.of( program ) );
+        criteria.setProgram( UID.of( program ) );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit does not exist: unknown", exception.getMessage() );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -198,12 +200,53 @@ class RequestParamsMapperTest
     }
 
     @Test
+    void testMappingOrgUnits()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
+        criteria.setProgram( UID.of( program ) );
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+
+        EnrollmentQueryParams params = mapper.map( criteria );
+
+        assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
+    }
+
+    @Test
+    void testMappingOrgUnitsNotFound()
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( "NeU85luyD4w" ), UID.of( ORG_UNIT_2_UID ) ) );
+        criteria.setProgram( UID.of( program ) );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenOrgUnitsNotInScope()
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ) ) );
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, exception.getMessage() );
+    }
+
+    @Test
     void testMappingProgram()
         throws BadRequestException,
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         EnrollmentQueryParams params = mapper.map( criteria );
 
@@ -214,11 +257,11 @@ class RequestParamsMapperTest
     void testMappingProgramNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setProgram( "unknown" );
+        criteria.setProgram( UID.of( "JW6BrFd0HLu" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
@@ -227,7 +270,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
 
         EnrollmentQueryParams params = mapper.map( criteria );
 
@@ -238,11 +281,11 @@ class RequestParamsMapperTest
     void testMappingTrackedEntityTypeNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntityType( "unknown" );
+        criteria.setTrackedEntityType( UID.of( "JW6BrFd0HLu" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity type is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Tracked entity type is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
@@ -251,7 +294,7 @@ class RequestParamsMapperTest
         ForbiddenException
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( TRACKED_ENTITY_UID );
+        criteria.setTrackedEntity( UID.of( TRACKED_ENTITY_UID ) );
 
         EnrollmentQueryParams params = mapper.map( criteria );
 
@@ -262,11 +305,11 @@ class RequestParamsMapperTest
     void testMappingTrackedEntityNotFound()
     {
         RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( "unknown" );
+        criteria.setTrackedEntity( UID.of( "JW6BrFd0HLu" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity instance is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Tracked entity is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test

@@ -145,7 +145,7 @@ public class HibernateMinMaxDataElementStore
         return getCount( builder, newJpaParameters()
             .addPredicate( root -> parseFilter( builder, root, query.getFilters() ) )
             .setUseDistinct( true ) )
-                .intValue();
+            .intValue();
     }
 
     @Override

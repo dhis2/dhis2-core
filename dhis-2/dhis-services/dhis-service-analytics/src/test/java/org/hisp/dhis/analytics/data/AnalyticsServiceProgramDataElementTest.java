@@ -94,7 +94,7 @@ class AnalyticsServiceProgramDataElementTest
 
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( emptyData ) );
+            .thenReturn( CompletableFuture.completedFuture( emptyData ) );
 
         when( eventAnalyticsService.getAggregatedEventData( any( EventQueryParams.class ) ) )
             .thenReturn( new ListGrid() );

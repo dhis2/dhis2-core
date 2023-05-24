@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
 import static org.hisp.dhis.webapi.controller.tracker.export.event.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_CSV;
@@ -60,6 +61,7 @@ import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
 import org.hisp.dhis.webapi.controller.tracker.export.CsvService;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.utils.ContextUtils;
@@ -74,6 +76,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
+@OpenApi.EntityType( Event.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( value = RESOURCE_PATH + "/" + EventsExportController.EVENTS )
@@ -99,8 +102,9 @@ public class EventsExportController
 
     private final EventFieldsParamMapper eventsMapper;
 
+    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping( produces = APPLICATION_JSON_VALUE )
-    public PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
+    PagingWrapper<ObjectNode> getEvents( RequestParams requestParams )
         throws BadRequestException,
         ForbiddenException
     {
@@ -127,7 +131,7 @@ public class EventsExportController
     }
 
     @GetMapping( produces = { CONTENT_TYPE_CSV, CONTENT_TYPE_CSV_GZIP, CONTENT_TYPE_TEXT_CSV } )
-    public void getCsvEvents(
+    void getEventsAsCsv(
         RequestParams requestParams,
         HttpServletResponse response,
         @RequestParam( required = false, defaultValue = "false" ) boolean skipHeader,
@@ -166,10 +170,11 @@ public class EventsExportController
             CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 
-    @GetMapping( "{uid}" )
-    public ResponseEntity<ObjectNode> getEvent(
-        @PathVariable UID uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    @OpenApi.Response( OpenApi.EntityType.class )
+    @GetMapping( "/{uid}" )
+    ResponseEntity<ObjectNode> getEventByUid(
+        @OpenApi.Param( { UID.class, Event.class } ) @PathVariable UID uid,
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {

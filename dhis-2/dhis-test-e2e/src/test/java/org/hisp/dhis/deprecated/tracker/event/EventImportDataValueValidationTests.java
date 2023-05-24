@@ -174,12 +174,12 @@ public class EventImportDataValueValidationTests
         JsonObject jsonObject = new JsonObjectBuilder(
             new FileReaderUtils()
                 .readJsonAndGenerateData( new File( "src/test/resources/tracker/eventProgram.json" ) ) )
-                    .addPropertyByJsonPath( "programStages[0].program.id", programId )
-                    .addPropertyByJsonPath( "programs[0].id", programId )
-                    .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
-                    .addPropertyByJsonPath( "programStages[0].id", programStageId )
-                    .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
-                    .build();
+            .addPropertyByJsonPath( "programStages[0].program.id", programId )
+            .addPropertyByJsonPath( "programs[0].id", programId )
+            .addPropertyByJsonPath( "programs[0].programStages[0].id", programStageId )
+            .addPropertyByJsonPath( "programStages[0].id", programStageId )
+            .addPropertyByJsonPath( "programStages[0].programStageDataElements", null )
+            .build();
 
         new MetadataActions().importAndValidateMetadata( jsonObject );
 

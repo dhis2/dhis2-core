@@ -59,7 +59,8 @@ public class EventGeometryCheck implements Checker
             return new ImportSummary( ImportStatus.ERROR,
                 "Geometry (" + event.getGeometry().getGeometryType() + ") does not conform to the feature type ("
                     + programStage.getFeatureType().value() + ") specified for the program stage: "
-                    + programStage.getUid() ).setReference( event.getEvent() ).incrementIgnored();
+                    + programStage.getUid() )
+                .setReference( event.getEvent() ).incrementIgnored();
         }
 
         return success();

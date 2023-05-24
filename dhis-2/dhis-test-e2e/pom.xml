@@ -20,7 +20,7 @@
     <rest-assured.version>5.3.0</rest-assured.version>
     <jackson.version>2.15.1</jackson.version>
     <guava.version>31.1-jre</guava.version>
-    <json-tree.version>0.3.0</json-tree.version>
+    <json-tree.version>0.6.0</json-tree.version>
     <epam-reportportal.version>5.1.6</epam-reportportal.version>
     <javafaker.version>1.0.2</javafaker.version>
     <opencsv.version>4.5</opencsv.version>
@@ -228,19 +228,14 @@
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
           <version>${spotless.version}</version>
-          <executions>
-              <execution>
-                  <id>install-formatter-hook</id>
-                  <goals>
-                      <goal>install-hooks</goal>
-                  </goals>
-              </execution>
-          </executions>
           <configuration>
+              <upToDateChecking>
+                  <enabled>true</enabled>
+              </upToDateChecking>
               <java>
                   <eclipse>
                       <file>${rootDir}/DHISFormatter.xml</file>
-                      <version>4.9</version>
+                      <version>4.27</version>
                   </eclipse>
                   <trimTrailingWhitespace />
                   <removeUnusedImports />

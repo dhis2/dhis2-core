@@ -66,7 +66,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "OK", 200, "OK", null,
             POST( "/38/metadata",
                 "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
     }
 
     @Test
@@ -81,7 +81,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "OK", 200, "OK", "Initiated metadataImport",
             POST( "/metadata?async=true",
                 "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}" )
-                    .content( HttpStatus.OK ) );
+                .content( HttpStatus.OK ) );
     }
 
     @Test
@@ -89,7 +89,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     {
         JsonObject report = POST( "/37/metadata",
             "{'organisationUnits':[{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
         assertEquals( "OK", report.getString( "status" ).string() );
     }
 
@@ -158,7 +158,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/metadata/",
             "{'programs':[{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION','programStages':[{'id':'VoZMWi7rBgf'}] }],'programStages':[{'id':'VoZMWi7rBgf','name':'test programStage'}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
         assertEquals( "VoZMWi7rBgj",
             GET( "/programStages/{id}", "VoZMWi7rBgf" ).content().getString( "program.id" ).string() );
         assertEquals( "VoZMWi7rBgf",
@@ -175,7 +175,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
                 + "\\\"coordinates\\\":  [[[100,0],[101,0],[101,1],[100,1],[100,0]]] }\","
                 + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
-                    .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonIdentifiableObject organisationUnit = GET( "/organisationUnits/{id}", "rXnqqH2Pu6N" ).content()
             .asObject( JsonIdentifiableObject.class );
@@ -197,7 +197,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
                 + "\"attributeValues\": [{\"value\":  \"{\\\"type\\\": \\\"Polygon\\\"}\","
                 + "\"attribute\": {\"id\": \"RRH9IFiZZYN\"}}]}],"
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
-                    .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
+            .content( HttpStatus.CONFLICT ).as( JsonWebMessage.class );
         assertNotNull( message.find( JsonErrorReport.class, report -> report.getErrorCode() == ErrorCode.E6004 ) );
     }
 
@@ -214,7 +214,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
@@ -237,7 +237,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
@@ -259,7 +259,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
@@ -281,7 +281,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
@@ -300,7 +300,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"sortOrder\": 2,\"id\": \"BQMei56UBl6\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
-                .content( HttpStatus.OK );
+            .content( HttpStatus.OK );
 
         JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 

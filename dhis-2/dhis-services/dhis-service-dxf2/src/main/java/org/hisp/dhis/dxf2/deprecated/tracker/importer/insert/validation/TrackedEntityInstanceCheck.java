@@ -56,7 +56,8 @@ public class TrackedEntityInstanceCheck implements Checker
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Event.trackedEntityInstance does not point to a valid tracked entity instance: "
-                    + event.getTrackedEntityInstance() ).setReference( event.getEvent() ).incrementIgnored();
+                    + event.getTrackedEntityInstance() )
+                .setReference( event.getEvent() ).incrementIgnored();
         }
 
         return success();

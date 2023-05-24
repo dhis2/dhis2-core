@@ -97,7 +97,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             "JobConfiguration with id no-uid could not be found.",
             POST( "/scheduler/queues/testQueue",
                 format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s','%s','%s']}", jobIdA, "no-uid", jobIdC ) )
-                    .content( HttpStatus.NOT_FOUND ) );
+                .content( HttpStatus.NOT_FOUND ) );
     }
 
     @Test
@@ -107,7 +107,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             "Job queue must have at least two jobs.",
             POST( "/scheduler/queues/testQueue",
                 format( "{'cronExpression':'0 0 1 ? * *','sequence':['%s']}", jobIdA ) )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -131,7 +131,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             "Cron expression is invalid: `Cron expression must consist of 6 fields (found 5 in \"0 1 ? * *\")`",
             POST( "/scheduler/queues/testQueue",
                 format( "{'cronExpression':'0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdB ) )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -203,7 +203,7 @@ class JobSchedulerControllerTest extends DhisControllerConvenienceTest
             "Cron expression is invalid: `Cron expression must consist of 6 fields (found 5 in \"0 1 ? * *\")`",
             PUT( "/scheduler/queues/testQueue",
                 format( "{'cronExpression':'0 1 ? * *','sequence':['%s','%s']}", jobIdA, jobIdB ) )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test

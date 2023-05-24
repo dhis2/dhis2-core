@@ -38,7 +38,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.event.EventStatus;
+import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,6 +48,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
@@ -59,6 +62,7 @@ public class RelationshipItem
     public static class TrackedEntity
     {
         @JsonProperty
+        @OpenApi.Property( { UID.class, TrackedEntity.class } )
         private String trackedEntity;
 
         @JsonProperty
@@ -119,6 +123,7 @@ public class RelationshipItem
     @AllArgsConstructor
     public static class Enrollment
     {
+        @OpenApi.Property( { UID.class, Enrollment.class } )
         @JsonProperty
         private String enrollment;
 
@@ -198,6 +203,7 @@ public class RelationshipItem
     @AllArgsConstructor
     public static class Event
     {
+        @OpenApi.Property( { UID.class, Event.class } )
         @JsonProperty
         private String event;
 

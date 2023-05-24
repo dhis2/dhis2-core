@@ -25,64 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.common;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
-
-import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
+import lombok.Value;
 
-import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.UidObject;
+import org.hisp.dhis.common.OpenApi;
 
 /**
- * UID represents an alphanumeric string of 11 characters starting with a
- * letter.
+ * OpenAPI specifications used across tracker export endpoints.
  */
-@Getter
-@EqualsAndHashCode
-public final class UID
+public class OpenApiExport
 {
-    private static final String VALID_UID_FORMAT = "UID must be an alphanumeric string of 11 characters starting with a letter.";
-
-    private final String value;
-
-    private UID( String value )
+    private OpenApiExport()
     {
-        if ( !CodeGenerator.isValidUid( value ) )
-        {
-            throw new IllegalArgumentException( VALID_UID_FORMAT );
-        }
-        this.value = value;
+        throw new IllegalStateException( "Utility class" );
     }
 
-    @Override
-    public String toString()
+    @Value
+    @OpenApi.Property
+    @OpenApi.Shared( value = false )
+    public static class ListResponse
     {
-        return value;
-    }
+        Integer page = 1;
 
-    public static UID of( String value )
-    {
-        return new UID( value );
-    }
+        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 
-    public static UID of( UidObject object )
-    {
-        return new UID( object.getUid() );
-    }
+        Long total;
 
-    public static Set<String> toValueSet( Collection<UID> uids )
-    {
-        return uids.stream().map( UID::getValue ).collect( toUnmodifiableSet() );
-    }
-
-    public static List<String> toValueList( Collection<UID> uids )
-    {
-        return uids.stream().map( UID::getValue ).toList();
+        @OpenApi.Property( value = OpenApi.EntityType[].class )
+        List<Object> instances;
     }
 }

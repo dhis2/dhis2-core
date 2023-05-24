@@ -28,10 +28,10 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
@@ -70,6 +69,7 @@ import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
@@ -111,34 +111,31 @@ class EventParamsMapper
         throws BadRequestException,
         ForbiddenException
     {
-        Program program = applyIfNonEmpty( programService::getProgram, requestParams.getProgram() );
-        validateProgram( requestParams.getProgram(), program );
-
-        ProgramStage programStage = applyIfNonEmpty( programStageService::getProgramStage,
-            requestParams.getProgramStage() );
-        validateProgramStage( requestParams.getProgramStage(), programStage );
-
-        OrganisationUnit orgUnit = applyIfNonEmpty( organisationUnitService::getOrganisationUnit,
-            requestParams.getOrgUnit() );
-        validateOrgUnit( requestParams.getOrgUnit(), orgUnit );
+        Program program = validateProgram( requestParams.getProgram() );
+        ProgramStage programStage = validateProgramStage( requestParams.getProgramStage() );
+        OrganisationUnit orgUnit = validateOrgUnit( requestParams.getOrgUnit() );
 
         User user = currentUserService.getCurrentUser();
         validateUser( user, program, programStage );
 
-        TrackedEntity trackedEntity = applyIfNonEmpty( trackedEntityService::getTrackedEntity,
-            requestParams.getTrackedEntity() );
-        validateTrackedEntity( requestParams.getTrackedEntity(), trackedEntity );
+        TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
 
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
-            requestParams.getAttributeCc(),
+            requestParams.getAttributeCc() != null ? requestParams.getAttributeCc().getValue() : null,
             requestParams.getAttributeCos(),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        Set<String> eventIds = parseAndFilterUids( requestParams.getEvent() );
-        validateFilter( requestParams.getFilter(), eventIds, requestParams.getProgramStage(), programStage );
+        List<QueryItem> filters = parseDataElementQueryItems( requestParams.getFilter(), this::dataElementToQueryItem );
 
-        Set<String> assignedUserIds = parseAndFilterUids( requestParams.getAssignedUser() );
+        Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
+            "events",
+            requestParams.getEvents() );
+        validateFilter( filters, eventUids, requestParams.getProgramStage(), programStage );
+
+        Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
+            "assignedUsers",
+            requestParams.getAssignedUsers() );
 
         Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
 
@@ -156,23 +153,13 @@ class EventParamsMapper
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
 
-        List<QueryItem> filters = new ArrayList<>();
-        for ( String eventCriteria : requestParams.getFilter() )
-        {
-            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
-        }
-
-        Set<String> enrollments = requestParams.getEnrollments().stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
-
         EventSearchParams params = new EventSearchParams();
 
         return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
             .setTrackedEntity( trackedEntity )
             .setProgramStatus( requestParams.getProgramStatus() ).setFollowUp( requestParams.getFollowUp() )
             .setOrgUnitSelectionMode( requestParams.getOuMode() )
-            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, assignedUserIds )
+            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, UID.toValueSet( assignedUsers ) )
             .setStartDate( requestParams.getOccurredAfter() ).setEndDate( requestParams.getOccurredBefore() )
             .setScheduleAtStartDate( requestParams.getScheduledAfter() )
             .setScheduleAtEndDate( requestParams.getScheduledBefore() )
@@ -194,35 +181,60 @@ class EventParamsMapper
             .addOrders( getOrderParams( requestParams.getOrder() ) )
             .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
-            .setEvents( eventIds ).setEnrollments( enrollments )
+            .setEvents( UID.toValueSet( eventUids ) )
+            .setEnrollments( UID.toValueSet( requestParams.getEnrollments() ) )
             .setIncludeDeleted( requestParams.isIncludeDeleted() );
     }
 
-    private static void validateProgram( String program, Program pr )
+    private Program validateProgram( UID uid )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( program ) && pr == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Program is specified but does not exist: " + program );
+            return null;
         }
+
+        Program program = programService.getProgram( uid.getValue() );
+        if ( program == null )
+        {
+            throw new BadRequestException( "Program is specified but does not exist: " + uid );
+        }
+
+        return program;
     }
 
-    private static void validateProgramStage( String programStage, ProgramStage ps )
+    private ProgramStage validateProgramStage( UID uid )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( programStage ) && ps == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Program stage is specified but does not exist: " + programStage );
+            return null;
         }
+
+        ProgramStage programStage = programStageService.getProgramStage( uid.getValue() );
+        if ( programStage == null )
+        {
+            throw new BadRequestException( "Program stage is specified but does not exist: " + uid );
+        }
+
+        return programStage;
     }
 
-    private static void validateOrgUnit( String orgUnit, OrganisationUnit ou )
+    private OrganisationUnit validateOrgUnit( UID uid )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( orgUnit ) && ou == null )
+        if ( uid == null )
         {
-            throw new BadRequestException( "Org unit is specified but does not exist: " + orgUnit );
+            return null;
         }
+
+        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid.getValue() );
+        if ( orgUnit == null )
+        {
+            throw new BadRequestException( "Org unit is specified but does not exist: " + uid );
+        }
+
+        return orgUnit;
     }
 
     private void validateUser( User user, Program pr, ProgramStage ps )
@@ -239,14 +251,21 @@ class EventParamsMapper
         }
     }
 
-    private void validateTrackedEntity( String trackedEntityParam, TrackedEntity trackedEntity )
+    private TrackedEntity validateTrackedEntity( UID uid )
         throws BadRequestException
     {
-        if ( !StringUtils.isEmpty( trackedEntityParam ) && trackedEntity == null )
+        if ( uid == null )
         {
-            throw new BadRequestException(
-                "Tracked entity instance is specified but does not exist: " + trackedEntityParam );
+            return null;
         }
+
+        TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( uid.getValue() );
+        if ( trackedEntity == null )
+        {
+            throw new BadRequestException( "Tracked entity is specified but does not exist: " + uid );
+        }
+
+        return trackedEntity;
     }
 
     private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
@@ -260,7 +279,7 @@ class EventParamsMapper
         }
     }
 
-    private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
+    private static void validateFilter( List<QueryItem> filters, Set<UID> eventIds, UID programStage,
         ProgramStage ps )
         throws BadRequestException
     {
@@ -268,7 +287,7 @@ class EventParamsMapper
         {
             throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
         }
-        if ( !CollectionUtils.isEmpty( filters ) && !StringUtils.isEmpty( programStage ) && ps == null )
+        if ( !CollectionUtils.isEmpty( filters ) && programStage != null && ps == null )
         {
             throw new BadRequestException( "ProgramStage needs to be specified for event filtering to work" );
         }
