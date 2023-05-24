@@ -27,7 +27,7 @@
     <owner.version>1.0.12</owner.version>
     <commons-collections4.version>4.4</commons-collections4.version>
     <commons-lang3.version>3.12.0</commons-lang3.version>
-    <json-path.version>2.4.0</json-path.version>
+    <json-path.version>2.8.0</json-path.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <lombok.version>1.18.26</lombok.version>
