@@ -55,6 +55,8 @@ import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 import org.hisp.dhis.helpers.TestCleanUp;
 import org.hisp.dhis.helpers.file.FileReaderUtils;
+import org.hisp.dhis.jsontree.JsonBuilder;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.tracker.TrackerApiTest;
 import org.hisp.dhis.tracker.imports.databuilder.RelationshipDataBuilder;
 import org.junit.jupiter.api.AfterEach;
@@ -162,20 +164,20 @@ public class RelationshipsTests
 
         trackerImportExportActions.postAndGetJobReport( originalRelationship ).validateSuccessfulImport();
 
-        JsonObject updatedRelationship = trackerImportExportActions.getRelationship( relationshipId )
+        JsonNode relationship = trackerImportExportActions.getRelationship( relationshipId )
             .validateStatus( 200 )
-            .getBody();
+            .getBodyAsJsonNode();
 
-        updatedRelationship = JsonObjectBuilder.jsonObject( updatedRelationship )
-            .addObjectByJsonPath( "relationships[0]", "from",
-                relationshipItem( "trackedEntity", teis.get( 0 ) ).build() )
-            .addObjectByJsonPath( "relationships[0]", "to",
-                relationshipItem( "trackedEntity", teis.get( 1 ) ).build() )
-            .wrapIntoArray( "relationships" );
+
+        JsonNode updatedRelationship = JsonBuilder.createObject( obj -> obj
+            .addArray( "relationships", arr -> arr.addElement( relationship
+                .addMembers(rel -> rel
+                    .addObject( "from", from -> from.addObject( "trackedEntity", te -> te.addString("trackedEntity", teis.get( 0 )) ))
+                    .addObject( "to", to -> to.addObject( "trackedEntity", te -> te.addString("trackedEntity", teis.get(1 ))))))));
 
         // act
         trackerImportExportActions
-            .postAndGetJobReport( updatedRelationship, new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
+            .postAndGetJobReport( updatedRelationship.getDeclaration(), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
             .validateWarningReport()
             .body( "warningCode", hasItems( "E4015" ) )
             .body( "message", hasItem( containsString( "already exists" ) ) );

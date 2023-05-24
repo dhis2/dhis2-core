@@ -97,7 +97,7 @@ public class TrackerImportExportActions
         return getJobReportByImportResponse( response );
     }
 
-    public TrackerApiResponse postAndGetJobReport( JsonObject jsonObject, QueryParamsBuilder queryParamsBuilder )
+    public TrackerApiResponse postAndGetJobReport( Object jsonObject, QueryParamsBuilder queryParamsBuilder )
     {
         ApiResponse response = this.post( jsonObject, queryParamsBuilder );
 

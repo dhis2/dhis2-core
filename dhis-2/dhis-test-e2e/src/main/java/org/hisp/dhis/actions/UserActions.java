@@ -85,7 +85,7 @@ public class UserActions
     public void addRoleToUser( String userId, String userRoleId )
     {
         ApiResponse response = this.get( userId );
-        if ( response.getBodyAsJson().getArray( "userRoles.id" ).stringValues().contains( userRoleId ) )
+        if ( response.getBodyAsJsonValue().getArray( "userRoles.id" ).stringValues().contains( userRoleId ) )
         {
             return;
         }
