@@ -643,5 +643,4 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
                                                     // relationships
         assertTrue( jsonTEI.getArray( "attributes" ).isEmpty() );
     }
-
 }
