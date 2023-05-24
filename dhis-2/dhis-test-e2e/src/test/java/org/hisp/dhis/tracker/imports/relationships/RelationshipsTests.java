@@ -168,16 +168,19 @@ public class RelationshipsTests
             .validateStatus( 200 )
             .getBodyAsJsonNode();
 
-
         JsonNode updatedRelationship = JsonBuilder.createObject( obj -> obj
             .addArray( "relationships", arr -> arr.addElement( relationship
-                .addMembers(rel -> rel
-                    .addObject( "from", from -> from.addObject( "trackedEntity", te -> te.addString("trackedEntity", teis.get( 0 )) ))
-                    .addObject( "to", to -> to.addObject( "trackedEntity", te -> te.addString("trackedEntity", teis.get(1 ))))))));
+                .addMembers( rel -> rel
+                    .addObject( "from",
+                        from -> from.addObject( "trackedEntity",
+                            te -> te.addString( "trackedEntity", teis.get( 0 ) ) ) )
+                    .addObject( "to", to -> to.addObject( "trackedEntity",
+                        te -> te.addString( "trackedEntity", teis.get( 1 ) ) ) ) ) ) ) );
 
         // act
         trackerImportExportActions
-            .postAndGetJobReport( updatedRelationship.getDeclaration(), new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
+            .postAndGetJobReport( updatedRelationship.getDeclaration(),
+                new QueryParamsBuilder().addAll( "importStrategy=UPDATE" ) )
             .validateWarningReport()
             .body( "warningCode", hasItems( "E4015" ) )
             .body( "message", hasItem( containsString( "already exists" ) ) );
