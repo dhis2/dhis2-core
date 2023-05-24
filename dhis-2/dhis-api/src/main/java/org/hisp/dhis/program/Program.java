@@ -924,7 +924,7 @@ public class Program
     {
         String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAccessLevel( original.getAccessLevel() );
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
         copy.setDescription( original.getDescription() );
         copy.setDisplayIncidentDate( original.getDisplayIncidentDate() );

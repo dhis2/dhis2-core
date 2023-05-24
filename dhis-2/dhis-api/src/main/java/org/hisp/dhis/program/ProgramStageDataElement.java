@@ -307,7 +307,7 @@ public class ProgramStageDataElement
         copy.setAllowFutureDate( original.getAllowFutureDate() );
         copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
         copy.setAutoFields();
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setCompulsory( original.isCompulsory() );
         copy.setDataElement( original.getDataElement() );
         copy.setDisplayInReports( original.getDisplayInReports() );

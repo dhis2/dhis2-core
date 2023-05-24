@@ -97,7 +97,7 @@ class ProgramStageTest
     private ProgramStage getNewProgramStageWithNoNulls( Program program )
     {
         ProgramStage programStage = new ProgramStage();
-        programStage.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        programStage.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         programStage.setDataEntryForm( new DataEntryForm( "entry form" ) );
         programStage.setDescription( "Program description" );
         programStage.setDueDateLabel( "due label" );

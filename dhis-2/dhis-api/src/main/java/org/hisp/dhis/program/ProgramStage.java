@@ -606,7 +606,7 @@ public class ProgramStage
         copy.setAutoFields();
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setDataEntryForm( original.getDataEntryForm() );
         copy.setDescription( original.getDescription() );
         copy.setDisplayGenerateEventBox( original.getDisplayGenerateEventBox() );

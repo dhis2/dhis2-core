@@ -227,7 +227,7 @@ public class ProgramStageSection
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
         copy.setAutoFields();
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setDataElements( newListFromObjectOrEmpty( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
         copy.setFormName( original.getFormName() );

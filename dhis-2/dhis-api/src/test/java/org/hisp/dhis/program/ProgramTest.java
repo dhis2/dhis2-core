@@ -125,7 +125,7 @@ class ProgramTest
     {
         Program program = new Program();
         program.setAccessLevel( AccessLevel.OPEN );
-        program.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
+        program.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         program.setCompleteEventsExpiryDays( 22 );
         program.setDescription( "Program description" );
         program.setDisplayIncidentDate( true );
