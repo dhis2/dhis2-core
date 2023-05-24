@@ -595,7 +595,7 @@ public class ProgramStage
         ProgramStage copy = new ProgramStage();
         copy.setProgram( programCopy );
         setShallowCopyValues( copy, original, options );
-        setDeepCopyValues( copy, original, options );
+        setDeepCopyValues( copy, original );
         return copy;
     }
 
@@ -637,14 +637,14 @@ public class ProgramStage
         copy.setValidationStrategy( original.getValidationStrategy() );
     }
 
-    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original, Map<String, String> options )
+    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original )
     {
-        copyProgramStageDataElements( copy, original.getProgramStageDataElements(), options );
-        copyProgramStageSections( copy, original.getProgramStageSections(), options );
+        copyProgramStageDataElements( copy, original.getProgramStageDataElements() );
+        copyProgramStageSections( copy, original.getProgramStageSections() );
     }
 
     private static void copyProgramStageDataElements( ProgramStage copy,
-        Set<ProgramStageDataElement> original, Map<String, String> options )
+        Set<ProgramStageDataElement> original )
     {
         copy.setProgramStageDataElements(
             StreamUtils.nullSafeCollectionToStream( original )
@@ -653,7 +653,7 @@ public class ProgramStage
     }
 
     private static void copyProgramStageSections( ProgramStage copy,
-        Set<ProgramStageSection> original, Map<String, String> options )
+        Set<ProgramStageSection> original )
     {
         copy.setProgramStageSections(
             StreamUtils.nullSafeCollectionToStream( original )

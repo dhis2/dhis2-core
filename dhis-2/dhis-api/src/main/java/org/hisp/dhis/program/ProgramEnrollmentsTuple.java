@@ -30,6 +30,8 @@ package org.hisp.dhis.program;
 import java.util.List;
 
 /**
+ * record used to hold a Program and a List<Enrollment>
+ *
  * @author David Mackessy
  * @param program
  * @param enrollments

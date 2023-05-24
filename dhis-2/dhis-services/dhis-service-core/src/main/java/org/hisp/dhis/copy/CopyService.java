@@ -35,7 +35,12 @@ import java.util.function.UnaryOperator;
 
 import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.*;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.EnrollmentService;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramCopyTuple;
+import org.hisp.dhis.program.ProgramEnrollmentsTuple;
+import org.hisp.dhis.program.ProgramService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 

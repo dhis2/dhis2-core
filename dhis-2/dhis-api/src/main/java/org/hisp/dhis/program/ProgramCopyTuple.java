@@ -28,6 +28,8 @@
 package org.hisp.dhis.program;
 
 /**
+ * record used to hold 2 instances of Program
+ *
  * @author David Mackessy
  * @param copy
  * @param original

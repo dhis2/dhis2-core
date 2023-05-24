@@ -304,7 +304,6 @@ public class ProgramStageDataElement
 
     private static void setShallowCopyValues( ProgramStageDataElement copy, ProgramStageDataElement original )
     {
-        //        String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAllowFutureDate( original.getAllowFutureDate() );
         copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
         copy.setAutoFields();

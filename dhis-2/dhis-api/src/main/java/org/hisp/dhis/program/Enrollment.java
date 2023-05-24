@@ -30,7 +30,12 @@ package org.hisp.dhis.program;
 import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
 import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -471,7 +476,7 @@ public class Enrollment
         copy.setCreatedByUserInfo( original.getCreatedByUserInfo() );
         copy.setEndDate( original.getEndDate() );
         copy.setEnrollmentDate( original.getEnrollmentDate() );
-        copy.setEvents( new HashSet<>() ); // TODO should this be an empty set?
+        copy.setEvents( new HashSet<>() );
         copy.setFollowup( original.getFollowup() );
         copy.setGeometry( original.getGeometry() );
         copy.setIncidentDate( original.getIncidentDate() );

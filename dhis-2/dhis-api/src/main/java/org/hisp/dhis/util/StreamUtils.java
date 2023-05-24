@@ -43,6 +43,10 @@ public class StreamUtils
     }
 
     /**
+     * This method allows calling stream on collection, whether it is null or
+     * non-null, returning and empty stream when passed null as an argument or
+     * the actual stream of elements if non-null. This will help reduce
+     * NullPointExceptions.
      *
      * @param collection of any type
      * @return a stream of elements (of Type T) from the collection if the

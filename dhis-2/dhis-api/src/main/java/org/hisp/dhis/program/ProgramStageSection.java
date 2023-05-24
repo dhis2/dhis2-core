@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -214,25 +216,24 @@ public class ProgramStageSection
         this.renderType = renderType;
     }
 
-    public static ProgramStageSection copyOf( ProgramStageSection original, ProgramStage newProgramStage )
+    public static ProgramStageSection copyOf( ProgramStageSection original, ProgramStage copyProgramStage )
     {
         ProgramStageSection copy = new ProgramStageSection();
-        copy.setProgramStage( newProgramStage );
+        copy.setProgramStage( copyProgramStage );
         setShallowCopyValues( copy, original );
         return copy;
     }
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
-        //        String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAutoFields();
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.CODESIZE ) );
-        copy.setDataElements( new ArrayList<>( original.getDataElements() ) );
+        copy.setDataElements( newListFromObjectOrEmpty( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
         copy.setFormName( original.getFormName() );
         //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
         copy.setName( original.getName() );
-        copy.setProgramIndicators( new ArrayList<>( original.getProgramIndicators() ) );
+        copy.setProgramIndicators( newListFromObjectOrEmpty( original.getProgramIndicators() ) );
         copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );
         copy.setSortOrder( original.getSortOrder() );
