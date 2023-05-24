@@ -63,14 +63,11 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
-import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
-@Ignore( "failed on 38, need investigation" )
 class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenienceTest
 {
 
@@ -138,7 +135,6 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
                 .getMessage() );
     }
 
-    @Disabled( "Disabled to avoid blocking and continue to investigate in separate PR" )
     @Test
     void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
     {
