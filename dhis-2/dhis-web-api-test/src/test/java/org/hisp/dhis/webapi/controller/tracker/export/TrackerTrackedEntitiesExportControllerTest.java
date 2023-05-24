@@ -63,6 +63,7 @@ import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
+import org.junit.Ignore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -135,17 +136,17 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
                 .getMessage() );
     }
 
-// TODO does not work on 38 (GL), need investigation
-//    @Test
-//    void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
-//    {
-//        this.switchContextToUser( user );
-//
-//        assertEquals( "Either Program or Tracked entity type should be specified",
-//            GET( "/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid() )
-//                .error( HttpStatus.CONFLICT )
-//                .getMessage() );
-//    }
+    @Ignore("does not work on 38, need investigation")
+    @Test
+    void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
+    {
+        this.switchContextToUser( user );
+
+        assertEquals( "Either Program or Tracked entity type should be specified",
+            GET( "/tracker/trackedEntities?orgUnit={ou}", orgUnit.getUid() )
+                .error( HttpStatus.CONFLICT )
+                .getMessage() );
+    }
 
     @Test
     void getTrackedEntitiesNeedsAtLeastOneOrgUnit()
