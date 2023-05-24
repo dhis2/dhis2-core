@@ -109,6 +109,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
         user = createUserWithId( "tester", CodeGenerator.generateUid() );
         user.addOrganisationUnit( orgUnit );
         user.setTeiSearchOrganisationUnits( Set.of( orgUnit ) );
+
         this.userService.updateUser( user );
 
         program = createProgram( 'A' );
