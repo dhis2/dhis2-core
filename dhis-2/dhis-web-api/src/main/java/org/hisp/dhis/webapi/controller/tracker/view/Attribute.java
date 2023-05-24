@@ -34,19 +34,23 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.ValueType;
+import org.hisp.dhis.webapi.common.UID;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Attribute
 {
+    @OpenApi.Property( { UID.class, Attribute.class } )
     @JsonProperty
     private String attribute;
 

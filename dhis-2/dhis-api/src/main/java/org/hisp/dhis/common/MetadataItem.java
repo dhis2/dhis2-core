@@ -249,37 +249,39 @@ public class MetadataItem
         }
         else if ( dimensionalItemObject instanceof DataDimensionItem dataDimensionItem )
         {
-            if( dataDimensionItem.hasDataElement() )
+            if ( dataDimensionItem.hasDataElement() )
             {
                 return dataDimensionItem.getDataElement().getStyle();
             }
 
-            if( dataDimensionItem.hasIndicator() )
+            if ( dataDimensionItem.hasIndicator() )
             {
                 return dataDimensionItem.getIndicator().getStyle();
             }
 
-            if( dataDimensionItem.hasDataElementOperand() && dataDimensionItem.getDataElementOperand().getDataElement() != null )
+            if ( dataDimensionItem.hasDataElementOperand()
+                && dataDimensionItem.getDataElementOperand().getDataElement() != null )
             {
                 return dataDimensionItem.getDataElementOperand().getDataElement().getStyle();
             }
 
-            if( dataDimensionItem.hasProgramIndicator() )
+            if ( dataDimensionItem.hasProgramIndicator() )
             {
                 return dataDimensionItem.getProgramIndicator().getStyle();
             }
 
-            if( dataDimensionItem.hasReportingRate() && dataDimensionItem.getReportingRate().getDataSet() != null )
+            if ( dataDimensionItem.hasReportingRate() && dataDimensionItem.getReportingRate().getDataSet() != null )
             {
                 return dataDimensionItem.getReportingRate().getDataSet().getStyle();
             }
 
-            if( dataDimensionItem.hasProgramTrackedEntityAttributeDimensionItem() && dataDimensionItem.getProgramAttribute().getAttribute() != null )
+            if ( dataDimensionItem.hasProgramTrackedEntityAttributeDimensionItem()
+                && dataDimensionItem.getProgramAttribute().getAttribute() != null )
             {
                 return dataDimensionItem.getProgramAttribute().getAttribute().getStyle();
             }
         }
-        else if ( dimensionalItemObject instanceof  ReportingRate reportingRate && reportingRate.getDataSet() != null )
+        else if ( dimensionalItemObject instanceof ReportingRate reportingRate && reportingRate.getDataSet() != null )
         {
             return reportingRate.getDataSet().getStyle();
         }

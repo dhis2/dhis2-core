@@ -696,14 +696,14 @@ class ExpressionServiceTest extends SingleSetupIntegrationTestBase
 
     private String itemNameOrSubexpression( DimensionalItemObject item )
     {
-        String name = (item instanceof SubexpressionDimensionItem subex )
+        String name = (item instanceof SubexpressionDimensionItem subex)
             ? getItemNames( subex.getItems() ) + " [" + subex.getSubexSql() + "]::"
                 + subex.getQueryMods().getValueType().name()
             : item.getName();
 
         String typeOverride = (item.getQueryMods() != null && item.getQueryMods().getAggregationType() != null)
-        ? ".aggregationType(" + item.getQueryMods().getAggregationType().name() + ")"
-        : "";
+            ? ".aggregationType(" + item.getQueryMods().getAggregationType().name() + ")"
+            : "";
 
         return name + typeOverride;
     }

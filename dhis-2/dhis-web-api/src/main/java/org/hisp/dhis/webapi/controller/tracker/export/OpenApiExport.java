@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
+package org.hisp.dhis.webapi.controller.tracker.export;
 
-import java.util.Date;
+import java.util.List;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.Value;
 
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.common.OpenApi;
 
 /**
- * Represents query parameters sent to {@link EnrollmentsExportController}.
+ * OpenAPI specifications used across tracker export endpoints.
  */
-@Data
-@NoArgsConstructor
-public class EnrollmentCriteria extends PagingAndSortingCriteriaAdapter
+public class OpenApiExport
 {
-    private String orgUnit;
+    private OpenApiExport()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
 
-    private OrganisationUnitSelectionMode ouMode;
+    @Value
+    @OpenApi.Property
+    @OpenApi.Shared( value = false )
+    public static class ListResponse
+    {
+        Integer page = 1;
 
-    private String program;
+        Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
 
-    private ProgramStatus programStatus;
+        Long total;
 
-    private Boolean followUp;
-
-    private Date updatedAfter;
-
-    private String updatedWithin;
-
-    private Date enrolledAfter;
-
-    private Date enrolledBefore;
-
-    private String trackedEntityType;
-
-    private String trackedEntity;
-
-    private String enrollment;
-
-    private boolean includeDeleted;
+        @OpenApi.Property( value = OpenApi.EntityType[].class )
+        List<Object> instances;
+    }
 }

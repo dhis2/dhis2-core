@@ -89,8 +89,8 @@ class CrudControllerPagingTest extends DhisControllerConvenienceTest
     {
         JsonList<JsonOrganisationUnit> ous = GET(
             "/organisationUnits?order=displayName&paging=true&pageSize=2&page=" + page )
-                .content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
+            .content( HttpStatus.OK )
+            .getList( "organisationUnits", JsonOrganisationUnit.class );
         assertEquals( size, ous.size() );
         assertEquals( firstItem, ous.get( 0 ).getDisplayName() );
         assertEquals( secondItem, ous.get( 1 ).getDisplayName() );
@@ -105,8 +105,8 @@ class CrudControllerPagingTest extends DhisControllerConvenienceTest
     {
         JsonList<JsonOrganisationUnit> ous = GET(
             "/organisationUnits?order=displayName:desc&paging=true&pageSize=2&page=" + page )
-                .content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
+            .content( HttpStatus.OK )
+            .getList( "organisationUnits", JsonOrganisationUnit.class );
         assertEquals( size, ous.size() );
         assertEquals( firstItem, ous.get( 0 ).getDisplayName() );
         assertEquals( secondItem, ous.get( 1 ).getDisplayName() );
@@ -117,7 +117,7 @@ class CrudControllerPagingTest extends DhisControllerConvenienceTest
     {
         JsonList<JsonOrganisationUnit> ous = GET(
             "/organisationUnits?filter=displayName:in:[A,B,C]&paging=true&pageSize=2&page=2" ).content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
+            .getList( "organisationUnits", JsonOrganisationUnit.class );
         assertEquals( 1, ous.size() );
         assertEquals( "C", ous.get( 0 ).getDisplayName() );
     }
@@ -138,7 +138,7 @@ class CrudControllerPagingTest extends DhisControllerConvenienceTest
     {
         JsonList<JsonOrganisationUnit> ous = GET(
             "/organisationUnits?filter=name:in:[A,B,C]&paging=true&pageSize=2&page=2" ).content( HttpStatus.OK )
-                .getList( "organisationUnits", JsonOrganisationUnit.class );
+            .getList( "organisationUnits", JsonOrganisationUnit.class );
         assertEquals( 1, ous.size() );
         assertEquals( "C", ous.get( 0 ).getDisplayName() );
     }

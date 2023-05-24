@@ -29,6 +29,8 @@ package org.hisp.dhis.webapi.controller.event.webrequest;
 
 import java.util.Optional;
 
+import org.hisp.dhis.common.OpenApi;
+
 /**
  * Paging parameters
  *
@@ -61,6 +63,7 @@ public interface PagingCriteria
      */
     Boolean isSkipPaging();
 
+    @OpenApi.Ignore
     default Integer getFirstResult()
     {
         Integer page = Optional.ofNullable( getPage() )

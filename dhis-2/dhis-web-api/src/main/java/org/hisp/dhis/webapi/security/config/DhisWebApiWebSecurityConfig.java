@@ -396,7 +396,7 @@ public class DhisWebApiWebSecurityConfig
         {
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
             {
-                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( this.apiTokenService,
+                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter(
                     new ApiTokenAuthManager( userService, securityService, apiTokenService, cacheProvider ),
                     apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
 
@@ -433,7 +433,7 @@ public class DhisWebApiWebSecurityConfig
             jwtFilter.setAuthenticationEntryPoint( bearerTokenEntryPoint );
             jwtFilter.setBearerTokenResolver( new DefaultBearerTokenResolver() );
 
-            // "Dummy" failure handler to "activate" the sending of auth failed
+            // Placeholder failure handler to "activate" the sending of auth failed
             // messages
             // to the central auth logger in DHIS2:
             // "AuthenticationLoggerListener"

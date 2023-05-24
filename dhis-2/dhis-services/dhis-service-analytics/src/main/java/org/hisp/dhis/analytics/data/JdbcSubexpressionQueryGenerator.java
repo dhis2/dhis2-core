@@ -241,9 +241,9 @@ public class JdbcSubexpressionQueryGenerator
      */
     private String getQuotedDataElementUid( DimensionalItemObject item )
     {
-        return "'" + ( (item instanceof DataElementOperand deo)
+        return "'" + ((item instanceof DataElementOperand deo)
             ? deo.getDataElement().getUid()
-            : item.getUid() ) + "'";
+            : item.getUid()) + "'";
     }
 
     /**
@@ -261,7 +261,7 @@ public class JdbcSubexpressionQueryGenerator
         String cocUid = null;
         String aocUid = null;
 
-        if (item instanceof DataElementOperand deo)
+        if ( item instanceof DataElementOperand deo )
         {
             cocUid = (deo.getCategoryOptionCombo() != null) ? deo.getCategoryOptionCombo().getUid() : "";
             aocUid = (deo.getAttributeOptionCombo() != null) ? deo.getAttributeOptionCombo().getUid() : "";
@@ -270,12 +270,13 @@ public class JdbcSubexpressionQueryGenerator
         String fun = getLowLevelAggregateFunction( dataElement );
 
         String conditional = quote( ANALYTICS_TBL_ALIAS, DX ) + "='" + deUid + "'" +
-            ( isEmpty( cocUid )
+            (isEmpty( cocUid )
                 ? ""
-                : " and " + quote( ANALYTICS_TBL_ALIAS, CO ) + "='" + cocUid + "'" ) +
-            ( isEmpty( aocUid )
+                : " and " + quote( ANALYTICS_TBL_ALIAS, CO ) + "='" + cocUid + "'")
+            +
+            (isEmpty( aocUid )
                 ? ""
-                : " and " + quote( ANALYTICS_TBL_ALIAS, AO ) + "='" + aocUid + "'" );
+                : " and " + quote( ANALYTICS_TBL_ALIAS, AO ) + "='" + aocUid + "'");
 
         String value = quote( dataElement.getValueColumn() );
 
@@ -330,10 +331,10 @@ public class JdbcSubexpressionQueryGenerator
     private String aggregateFunctionFromType( AggregationType aggType )
     {
         return switch ( aggType )
-            {
-                case AVERAGE -> "avg";
-                case MAX, MIN, COUNT, STDDEV, VARIANCE -> aggType.name().toLowerCase();
-                default -> "sum";
-            };
+        {
+        case AVERAGE -> "avg";
+        case MAX, MIN, COUNT, STDDEV, VARIANCE -> aggType.name().toLowerCase();
+        default -> "sum";
+        };
     }
 }

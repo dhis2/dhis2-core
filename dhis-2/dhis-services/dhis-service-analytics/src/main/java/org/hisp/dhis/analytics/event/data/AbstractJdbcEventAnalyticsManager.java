@@ -1164,7 +1164,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         // Groups repeatable conditions based on PSI.DEID
         Map<String, List<String>> repeatableConditionsByIdentifier = asSqlCollection( itemsByRepeatableFlag.get( true ),
             params )
-                .collect( groupingBy( IdentifiableSql::getIdentifier, mapping( IdentifiableSql::getSql, toList() ) ) );
+            .collect( groupingBy( IdentifiableSql::getIdentifier, mapping( IdentifiableSql::getSql, toList() ) ) );
 
         // Joins each group with OR
         Collection<String> orConditions = repeatableConditionsByIdentifier.values()

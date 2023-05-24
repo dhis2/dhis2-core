@@ -75,6 +75,7 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -89,13 +90,13 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Tests {@link TrackedEntityCriteriaMapper}.
+ * Tests {@link TrackedEntityParamsMapper}.
  *
  * @author Luciano Fiandesio
  */
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
-class TrackedEntityCriteriaMapperTest
+class RequestParamsMapperTest
 {
     public static final String TEA_1_UID = "TvjwTPToKHO";
 
@@ -130,7 +131,7 @@ class TrackedEntityCriteriaMapperTest
     private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
-    private TrackedEntityCriteriaMapper mapper;
+    private TrackedEntityParamsMapper mapper;
 
     private User user;
 
@@ -144,7 +145,7 @@ class TrackedEntityCriteriaMapperTest
 
     private TrackedEntityType trackedEntityType;
 
-    private TrackedEntityCriteria criteria;
+    private RequestParams criteria;
 
     @BeforeEach
     public void setUp()
@@ -184,7 +185,7 @@ class TrackedEntityCriteriaMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        criteria = new TrackedEntityCriteria();
+        criteria = new RequestParams();
         criteria.setAssignedUserMode( AssignedUserSelectionMode.CURRENT );
     }
 
@@ -202,7 +203,7 @@ class TrackedEntityCriteriaMapperTest
         criteria.setUpdatedWithin( "20" );
         criteria.setEnrollmentOccurredAfter( getDate( 2019, 5, 5 ) );
         criteria.setEnrollmentOccurredBefore( getDate( 2020, 5, 5 ) );
-        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
         criteria.setEventStatus( EventStatus.COMPLETED );
         criteria.setEventOccurredAfter( getDate( 2019, 7, 7 ) );
         criteria.setEventOccurredBefore( getDate( 2020, 7, 7 ) );
@@ -421,7 +422,7 @@ class TrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -431,11 +432,11 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingProgramNotFound()
     {
-        criteria.setProgram( "unknown" );
+        criteria.setProgram( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program is specified but does not exist: unknown", e.getMessage() );
+        assertEquals( "Program is specified but does not exist: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
@@ -443,8 +444,8 @@ class TrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setProgram( PROGRAM_UID );
-        criteria.setProgramStage( PROGRAM_STAGE_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
+        criteria.setProgramStage( UID.of( PROGRAM_STAGE_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -454,7 +455,7 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingProgramStageGivenWithoutProgram()
     {
-        criteria.setProgramStage( PROGRAM_STAGE_UID );
+        criteria.setProgramStage( UID.of( PROGRAM_STAGE_UID ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
@@ -464,11 +465,11 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingProgramStageNotFound()
     {
-        criteria.setProgramStage( "unknown" );
+        criteria.setProgramStage( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program does not contain the specified programStage: unknown", e.getMessage() );
+        assertEquals( "Program does not contain the specified programStage: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
@@ -476,7 +477,7 @@ class TrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setTrackedEntityType( TRACKED_ENTITY_TYPE_UID );
+        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -486,22 +487,23 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingTrackedEntityTypeNotFound()
     {
-        criteria.setTrackedEntityType( "unknown" );
+        criteria.setTrackedEntityType( UID.of( "NeU85luyD4w" ) );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Tracked entity type does not exist: unknown", e.getMessage() );
+        assertEquals( "Tracked entity type is specified but does not exist: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
     void testMappingOrgUnit()
-        throws BadRequestException,
+        throws
+        BadRequestException,
         ForbiddenException
     {
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
         criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        criteria.setProgram( PROGRAM_UID );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
 
@@ -511,11 +513,37 @@ class TrackedEntityCriteriaMapperTest
     @Test
     void testMappingOrgUnitNotFound()
     {
-        criteria.setOrgUnit( "unknown" );
+        criteria.setOrgUnit( "NeU85luyD4w" );
 
         BadRequestException e = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit does not exist: unknown", e.getMessage() );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", e.getMessage() );
+    }
+
+    @Test
+    void testMappingOrgUnits()
+        throws
+        BadRequestException,
+        ForbiddenException
+    {
+        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
+        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
+
+        TrackedEntityQueryParams params = mapper.map( criteria );
+
+        assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
+    }
+
+    @Test
+    void testMappingOrgUnitsNotFound()
+    {
+        criteria.setOrgUnits( Set.of( UID.of( "NeU85luyD4w" ) ) );
+
+        BadRequestException e = assertThrows( BadRequestException.class,
+            () -> mapper.map( criteria ) );
+        assertEquals( "Organisation unit does not exist: NeU85luyD4w", e.getMessage() );
     }
 
     @Test
@@ -532,11 +560,26 @@ class TrackedEntityCriteriaMapperTest
     }
 
     @Test
+    void testMappingAssignedUser()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        criteria.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
+
+        TrackedEntityQueryParams params = mapper.map( criteria );
+
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
+    }
+
+    @Test
     void testMappingAssignedUsers()
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setAssignedUser( "IsdLBTOBzMi;invalid;l5ab8q5skbB" );
+        criteria.setAssignedUsers( Set.of( UID.of( "IsdLBTOBzMi" ), UID.of( "l5ab8q5skbB" ) ) );
         criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         TrackedEntityQueryParams params = mapper.map( criteria );
@@ -670,5 +713,23 @@ class TrackedEntityCriteriaMapperTest
         assertContainsOnly( List.of(
             new QueryFilter( QueryOperator.GE, "2020-01-01T00:00:00.001 +05:30" ),
             new QueryFilter( QueryOperator.LE, "2021-01-01T00:00:00.001 +05:30" ) ), actualFilters );
+    }
+
+    @Test
+    void shouldFailIfGivenOrgUnitAndOrgUnits()
+    {
+        criteria.setOrgUnit( "IsdLBTOBzMi" );
+        criteria.setOrgUnits( Set.of( UID.of( "IsdLBTOBzMi" ) ) );
+
+        assertThrows( IllegalArgumentException.class, () -> mapper.map( criteria ) );
+    }
+
+    @Test
+    void shouldFailIfGivenTrackedEntityAndTrackedEntities()
+    {
+        criteria.setTrackedEntity( "IsdLBTOBzMi" );
+        criteria.setTrackedEntities( Set.of( UID.of( "IsdLBTOBzMi" ) ) );
+
+        assertThrows( IllegalArgumentException.class, () -> mapper.map( criteria ) );
     }
 }

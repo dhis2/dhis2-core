@@ -27,7 +27,9 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.common.OpenApi.Response.Status;
 import static org.hisp.dhis.webapi.controller.tracker.ControllerSupport.RESOURCE_PATH;
+import static org.hisp.dhis.webapi.controller.tracker.export.relationship.RequestParams.DEFAULT_FIELDS_PARAM;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -54,8 +56,10 @@ import org.hisp.dhis.program.EventService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.relationship.RelationshipService;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
+import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Relationship;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
@@ -69,6 +73,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.collect.ImmutableMap;
 
+@OpenApi.EntityType( Relationship.class )
 @OpenApi.Tags( "tracker" )
 @RestController
 @RequestMapping( produces = APPLICATION_JSON_VALUE, value = RESOURCE_PATH + "/"
@@ -78,8 +83,6 @@ import com.google.common.collect.ImmutableMap;
 public class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
-
-    private static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
     private static final RelationshipMapper RELATIONSHIP_MAPPER = Mappers.getMapper( RelationshipMapper.class );
 
@@ -143,39 +146,39 @@ public class RelationshipsExportController
             criteria );
     }
 
+    @OpenApi.Response( status = Status.OK, value = OpenApiExport.ListResponse.class )
     @GetMapping
-    PagingWrapper<ObjectNode> getInstances(
-        RelationshipCriteria criteria,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    PagingWrapper<ObjectNode> getRelationships( RequestParams requestParams )
         throws NotFoundException,
         BadRequestException,
         ForbiddenException
     {
         List<org.hisp.dhis.webapi.controller.tracker.view.Relationship> relationships = tryGetRelationshipFrom(
-            criteria.getIdentifierClass(), criteria.getIdentifierParam(), criteria.getIdentifierName(), criteria );
+            requestParams.getIdentifierClass(), requestParams.getIdentifierParam(), requestParams.getIdentifierName(),
+            requestParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-        if ( criteria.isPagingRequest() )
+        if ( requestParams.isPagingRequest() )
         {
             pagingWrapper = pagingWrapper.withPager(
                 PagingWrapper.Pager.builder()
-                    .page( criteria.getPage() )
-                    .pageSize( criteria.getPageSize() )
+                    .page( requestParams.getPage() )
+                    .pageSize( requestParams.getPageSize() )
                     .build() );
         }
 
-        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, fields );
+        List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, requestParams.getFields() );
         return pagingWrapper.withInstances( objectNodes );
     }
 
-    @GetMapping( "{uid}" )
-    public ResponseEntity<ObjectNode> getRelationship(
-        @PathVariable String uid,
-        @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
+    @GetMapping( "/{uid}" )
+    ResponseEntity<ObjectNode> getRelationshipByUid(
+        @OpenApi.Param( { UID.class, Relationship.class } ) @PathVariable UID uid,
+        @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
         ForbiddenException
     {
-        Relationship relationship = RELATIONSHIP_MAPPER.from( relationshipService.getRelationship( uid ) );
+        Relationship relationship = RELATIONSHIP_MAPPER.from( relationshipService.getRelationship( uid.getValue() ) );
 
         return ResponseEntity.ok( fieldFilterService.toObjectNode( relationship, fields ) );
     }

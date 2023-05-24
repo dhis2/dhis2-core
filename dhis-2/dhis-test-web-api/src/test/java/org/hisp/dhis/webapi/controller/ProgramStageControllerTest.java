@@ -59,7 +59,7 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/programs/",
             "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }" )
-                .content( HttpStatus.CREATED );
+            .content( HttpStatus.CREATED );
         String programStageId = assertStatus( HttpStatus.CREATED,
             POST( "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}" ) );
         JsonResponse programStage = GET( "/programStages/{id}", programStageId ).content();

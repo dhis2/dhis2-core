@@ -94,8 +94,8 @@ public class MetadataAttributeCheck implements ObjectValidationCheck
             object.getAttributeValues()
                 .forEach( av -> getValueType( av.getAttribute().getUid(), attributesMap, klass.getSimpleName(),
                     errorReports::add )
-                        .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
-                            errorReports::add ) ) );
+                    .ifPresent( type -> attributeValidator.validate( type, av.getValue(),
+                        errorReports::add ) ) );
 
             if ( !errorReports.isEmpty() )
             {

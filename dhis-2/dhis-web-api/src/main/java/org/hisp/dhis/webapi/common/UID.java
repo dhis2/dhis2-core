@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,57 +25,64 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.common;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import static java.util.stream.Collectors.toUnmodifiableSet;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
+
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+
+import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.UidObject;
 
 /**
- * @author Kristian Wærstad
+ * UID represents an alphanumeric string of 11 characters starting with a
+ * letter.
  */
-public class IconData
+@Getter
+@EqualsAndHashCode
+public final class UID
 {
-    private String key;
+    private static final String VALID_UID_FORMAT = "UID must be an alphanumeric string of 11 characters starting with a letter.";
 
-    private String description;
+    private final String value;
 
-    private String[] keywords;
-
-    private String reference;
-
-    IconData( String key, String description, String[] keywords )
+    private UID( String value )
     {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
+        if ( !CodeGenerator.isValidUid( value ) )
+        {
+            throw new IllegalArgumentException( VALID_UID_FORMAT );
+        }
+        this.value = value;
     }
 
-    @JsonProperty
-    public String getKey()
+    @Override
+    public String toString()
     {
-        return key;
+        return value;
     }
 
-    @JsonProperty
-    public String getDescription()
+    public static UID of( String value )
     {
-        return description;
+        return new UID( value );
     }
 
-    @JsonProperty
-    public String[] getKeywords()
+    public static UID of( UidObject object )
     {
-        return keywords;
+        return new UID( object.getUid() );
     }
 
-    @JsonProperty( "href" )
-    public String getReference()
+    public static Set<String> toValueSet( Collection<UID> uids )
     {
-        return reference;
+        return uids.stream().map( UID::getValue ).collect( toUnmodifiableSet() );
     }
 
-    public IconData setReference( String ref )
+    public static List<String> toValueList( Collection<UID> uids )
     {
-        this.reference = ref;
-        return this;
+        return uids.stream().map( UID::getValue ).toList();
     }
 }

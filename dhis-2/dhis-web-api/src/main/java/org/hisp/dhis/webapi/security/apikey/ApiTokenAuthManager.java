@@ -83,11 +83,11 @@ public class ApiTokenAuthManager implements AuthenticationManager
         }
         else
         {
-            ApiToken apiToken = apiTokenService.getWithKey( tokenKey );
+            ApiToken apiToken = apiTokenService.getByKey( tokenKey );
             if ( apiToken == null )
             {
                 throw new ApiTokenAuthenticationException(
-                    ApiTokenErrors.invalidToken( "The API token does not exists." ) );
+                    ApiTokenErrors.invalidToken( "The API token does not exists" ) );
             }
 
             validateTokenExpiry( apiToken.getExpire() );

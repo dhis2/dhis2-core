@@ -45,11 +45,13 @@ import java.util.Set;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.web.HttpStatus;
@@ -173,7 +175,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             PUT( "/users/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E1107 );
         assertEquals( "Object type `User` is not translatable", error.getMessage() );
@@ -191,7 +193,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         PUT( "/dataSets/" + id + "/translations",
             "{'translations': [{'locale':'sv', 'property':'name', 'value':'name sv'}]}" )
-                .content( HttpStatus.NO_CONTENT );
+            .content( HttpStatus.NO_CONTENT );
 
         GET( "/dataSets/{id}", id ).content();
 
@@ -217,7 +219,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'sv', 'property':'name', 'value':'namn 1'},{'locale':'sv', 'property':'name', 'value':'namn2'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
 
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E1106 );
@@ -244,7 +246,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'property':'name'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
 
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
@@ -263,7 +265,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'locale':'en', 'value':'namn 1'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
 
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
@@ -282,7 +284,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             PUT( "/dataSets/" + id + "/translations",
                 "{'translations': [{'property':'name', 'value':'namn 1'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
 
         JsonErrorReport error = message.find( JsonErrorReport.class,
             report -> report.getErrorCode() == ErrorCode.E4000 );
@@ -638,7 +640,7 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         JsonWebMessage message = PUT( "/userGroups/" + groupId + "/users",
             "{'identifiableObjects':[{'id':'" + peterUserId + "'}]}" )
-                .content( HttpStatus.OK ).as( JsonWebMessage.class );
+            .content( HttpStatus.OK ).as( JsonWebMessage.class );
         JsonStats stats = message.getResponse().as( JsonTypeReport.class ).getStats();
         assertEquals( 1, stats.getUpdated() );
         assertEquals( 1, stats.getDeleted() );
@@ -806,12 +808,12 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
 
         JsonList<JsonIdentifiableObject> response = GET(
             "/attributes?fields=id,name&filter=dataElementAttribute:eq:true" )
-                .content().getList( "attributes", JsonIdentifiableObject.class );
+            .content().getList( "attributes", JsonIdentifiableObject.class );
         assertEquals( attribute.getUid(), response.get( 0 ).getId() );
 
         response = GET(
             "/attributes?fields=id,name&filter=userAttribute:eq:true" )
-                .content().getList( "attributes", JsonIdentifiableObject.class );
+            .content().getList( "attributes", JsonIdentifiableObject.class );
         assertEquals( 0, response.size() );
     }
 
@@ -820,9 +822,25 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     {
         JsonImportSummary response = POST( "/dataSets/",
             "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" )
-                .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
-        assertEquals( "Invalid UID `11111111111` for property `uid`",
+            .content( HttpStatus.CONFLICT ).get( "response" ).as( JsonImportSummary.class );
+        assertEquals( "Invalid UID `11111111111` for property `DataSet`",
             response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4014 ).getMessage() );
+    }
+
+    @Test
+    void testUpdateObjectWithInvalidUid()
+    {
+        DataSet dataSet = createDataSet( 'A' );
+        dataSet.setPeriodType( PeriodType.getPeriodTypeByName( "Monthly" ) );
+        dataSet.setUid( "11111111111" );
+        manager.save( dataSet );
+
+        PUT( "/dataSets/11111111111",
+            "{'id':'11111111111','name':'My data set', 'shortName': 'MDS', 'periodType':'Monthly'}" )
+            .content( HttpStatus.OK );
+
+        JsonIdentifiableObject response = GET( "/dataSets/11111111111" ).content().as( JsonIdentifiableObject.class );
+        assertEquals( "My data set", response.getName() );
     }
 
     private void assertUserGroupHasOnlyUser( String groupId, String userId )

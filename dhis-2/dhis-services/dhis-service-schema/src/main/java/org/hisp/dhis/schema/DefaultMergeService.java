@@ -137,7 +137,7 @@ public class DefaultMergeService implements MergeService
         {
             return merge( new MergeParams<>( source,
                 (T) HibernateProxyUtils.getRealClass( source ).getDeclaredConstructor().newInstance() )
-                    .setMergeMode( MergeMode.REPLACE ) );
+                .setMergeMode( MergeMode.REPLACE ) );
         }
         catch ( InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e )
         {

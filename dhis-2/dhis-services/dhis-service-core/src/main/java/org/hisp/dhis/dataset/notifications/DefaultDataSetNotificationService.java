@@ -466,7 +466,7 @@ public class DefaultDataSetNotificationService implements DataSetNotificationSer
                 new MessageConversationParams.Builder( msg.recipients, null, msg.message.getSubject(),
                     msg.message.getMessage(),
                     MessageType.SYSTEM, null )
-                        .build() ) );
+                    .build() ) );
     }
 
     private void sendProgramMessages( String type, List<ProgramMessage> messages, JobProgress progress )

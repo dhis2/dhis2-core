@@ -63,6 +63,7 @@ import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import lombok.Value;
 
+import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
@@ -136,6 +137,7 @@ final class ApiAnalyse
     static
     {
         register( UID.class, SchemaGenerators.UID );
+        register( org.hisp.dhis.webapi.common.UID.class, SchemaGenerators.UID );
         register( Api.PropertyNames.class, SchemaGenerators.PROPERTY_NAMES );
     }
 
@@ -186,13 +188,20 @@ final class ApiAnalyse
         whenAnnotated( source, RequestMapping.class, a -> controller.getPaths().addAll( List.of( a.value() ) ) );
         whenAnnotated( source, OpenApi.Tags.class, a -> controller.getTags().addAll( List.of( a.value() ) ) );
 
-        stream( source.getMethods() )
+        methodsIn( source )
             .map( ApiAnalyse::getMapping )
             .filter( Objects::nonNull )
             .map( mapping -> analyseEndpoint( controller, mapping ) )
             .forEach( endpoint -> controller.getEndpoints().add( endpoint ) );
 
         return controller;
+    }
+
+    private static Stream<Method> methodsIn( Class<?> source )
+    {
+        return source == null || source == Object.class
+            ? Stream.empty()
+            : Stream.concat( stream( source.getDeclaredMethods() ), methodsIn( source.getSuperclass() ) );
     }
 
     private static Api.Endpoint analyseEndpoint( Api.Controller controller, Mapping mapping )
@@ -340,11 +349,9 @@ final class ApiAnalyse
             else if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
             {
                 RequestParam a = p.getAnnotation( RequestParam.class );
-                boolean required = a.required()
-                    && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, required,
+                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestBody.class ) )
@@ -392,12 +399,12 @@ final class ApiAnalyse
         Collection<Property> properties = getProperties( paramsObject );
         if ( isSharable( paramsObject, false ) )
         {
-            Map<String, Api.Parameter> globalParameters = endpoint.getIn().getIn().getParameters();
+            Map<String, Api.Parameter> sharedParameters = endpoint.getIn().getIn().getParameters();
             Function<Property, String> toName = property -> paramsObject.getSimpleName() + "." + property.getName();
-            properties.forEach( property -> globalParameters
+            properties.forEach( property -> sharedParameters
                 .computeIfAbsent( toName.apply( property ), name -> analyseParameter( endpoint, property, name ) ) );
             properties.forEach( property -> endpoint.getParameters()
-                .computeIfAbsent( toName.apply( property ), globalParameters::get ) );
+                .computeIfAbsent( toName.apply( property ), sharedParameters::get ) );
         }
         else
         {
@@ -567,11 +574,11 @@ final class ApiAnalyse
         if ( source instanceof Class<?> )
         {
             Class<?> type = (Class<?>) source;
-            if ( useRefs && IdentifiableObject.class.isAssignableFrom( type ) && type != Period.class )
+            if ( useRefs && isReferencableType( type ) )
             {
                 return Api.Schema.ref( type );
             }
-            if ( useRefs && IdentifiableObject[].class.isAssignableFrom( type ) && type != Period[].class )
+            if ( useRefs && isReferencableArrayType( type ) )
             {
                 return new Api.Schema( Api.Schema.Type.ARRAY, type, type )
                     .withElements( Api.Schema.ref( type.getComponentType() ) );
@@ -618,6 +625,20 @@ final class ApiAnalyse
             return analyseTypeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }
         return Api.Schema.unknown( source );
+    }
+
+    private static boolean isReferencableType( Class<?> type )
+    {
+        return IdentifiableObject.class.isAssignableFrom( type )
+            && type != Period.class
+            && !EmbeddedObject.class.isAssignableFrom( type );
+    }
+
+    private static boolean isReferencableArrayType( Class<?> type )
+    {
+        return IdentifiableObject[].class.isAssignableFrom( type )
+            && type != Period[].class
+            && !EmbeddedObject[].class.isAssignableFrom( type );
     }
 
     /*
@@ -776,7 +797,9 @@ final class ApiAnalyse
         if ( source.isAnnotationPresent( RequestParam.class ) )
         {
             RequestParam a = source.getAnnotation( RequestParam.class );
-            return new Param( Api.Parameter.In.QUERY, firstNonEmpty( a.name(), a.value() ), a.required() );
+            boolean required = a.required()
+                && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
+            return new Param( Api.Parameter.In.QUERY, firstNonEmpty( a.name(), a.value() ), required );
         }
         if ( source.isAnnotationPresent( RequestBody.class ) )
         {

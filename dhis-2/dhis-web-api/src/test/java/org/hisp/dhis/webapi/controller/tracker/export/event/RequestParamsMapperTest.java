@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -68,6 +69,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -83,7 +85,7 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
-class EventCriteriaMapperTest
+class RequestParamsMapperTest
 {
 
     private static final String DE_1_UID = "OBzmpRP6YUh";
@@ -94,7 +96,7 @@ class EventCriteriaMapperTest
 
     private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-    private static final String PROGRAM_UID = "programuid";
+    private static final String PROGRAM_UID = "PlZSBEN7iZd";
 
     @Mock
     private CurrentUserService currentUserService;
@@ -124,7 +126,7 @@ class EventCriteriaMapperTest
     private CategoryOptionComboService categoryOptionComboService;
 
     @InjectMocks
-    private EventCriteriaMapper mapper;
+    private EventParamsMapper mapper;
 
     private Program program;
 
@@ -148,8 +150,8 @@ class EventCriteriaMapperTest
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
         programStage = new ProgramStage();
-        programStage.setUid( "programstageuid" );
-        when( programStageService.getProgramStage( "programstageuid" ) ).thenReturn( programStage );
+        programStage.setUid( "PlZSBEN7iZd" );
+        when( programStageService.getProgramStage( "PlZSBEN7iZd" ) ).thenReturn( programStage );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
 
         ou = new OrganisationUnit();
@@ -157,7 +159,7 @@ class EventCriteriaMapperTest
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
         trackedEntity = new TrackedEntity();
-        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( trackedEntity );
+        when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( trackedEntity );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
         TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
@@ -178,7 +180,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         mapper.map( criteria );
 
@@ -193,8 +195,8 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgram( PROGRAM_UID );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgram( UID.of( PROGRAM_UID ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -204,12 +206,12 @@ class EventCriteriaMapperTest
     @Test
     void testMappingProgramNotFound()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgram( "unknown" );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgram( UID.of( "NeU85luyD4w" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -217,8 +219,8 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgramStage( "programstageuid" );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgramStage( UID.of( "PlZSBEN7iZd" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -228,12 +230,12 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownProgramStage()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgramStage( "unknown" );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgramStage( UID.of( "NeU85luyD4w" ) );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
-        assertEquals( "Program stage is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -241,8 +243,8 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setOrgUnit( ou.getUid() );
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnit( UID.of( ou.getUid() ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -252,14 +254,14 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setOrgUnit( "unknown" );
+        RequestParams criteria = new RequestParams();
+        criteria.setOrgUnit( UID.of( "NeU85luyD4w" ) );
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
 
-        assertEquals( "Org unit is specified but does not exist: unknown", exception.getMessage() );
+        assertEquals( "Org unit is specified but does not exist: NeU85luyD4w", exception.getMessage() );
     }
 
     @Test
@@ -267,8 +269,8 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setTrackedEntity( "teiuid" );
+        RequestParams criteria = new RequestParams();
+        criteria.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -278,14 +280,14 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setTrackedEntity( "teiuid" );
-        when( entityInstanceService.getTrackedEntity( "teiuid" ) ).thenReturn( null );
+        RequestParams criteria = new RequestParams();
+        criteria.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
+        when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( criteria ) );
 
-        assertStartsWith( "Tracked entity instance is specified but does not exist: " + criteria.getTrackedEntity(),
+        assertStartsWith( "Tracked entity is specified but does not exist: " + criteria.getTrackedEntity(),
             exception.getMessage() );
     }
 
@@ -294,7 +296,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         Date occurredAfter = parseDate( "2020-01-01" );
         criteria.setOccurredAfter( occurredAfter );
@@ -312,7 +314,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         Date scheduledAfter = parseDate( "2021-01-01" );
         criteria.setScheduledAfter( scheduledAfter );
@@ -330,7 +332,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         Date updatedAfter = parseDate( "2022-01-01" );
         criteria.setUpdatedAfter( updatedAfter );
@@ -351,7 +353,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         Date enrolledBefore = parseDate( "2022-01-01" );
         criteria.setEnrollmentEnrolledBefore( enrolledBefore );
@@ -369,7 +371,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         Date enrolledBefore = parseDate( "2022-01-01" );
         criteria.setEnrollmentOccurredBefore( enrolledBefore );
@@ -387,7 +389,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
         OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
@@ -406,22 +408,21 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
-        Set<String> enrollments = Set.of( "NQnuK2kLm6e" );
-        criteria.setEnrollments( enrollments );
+        criteria.setEnrollments( Set.of( UID.of( "NQnuK2kLm6e" ) ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( enrollments, params.getEnrollments() );
+        assertEquals( Set.of( "NQnuK2kLm6e" ), params.getEnrollments() );
     }
 
     @Test
-    void testMappingEvents()
+    void testMappingEvent()
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
         EventSearchParams params = mapper.map( criteria );
@@ -430,16 +431,16 @@ class EventCriteriaMapperTest
     }
 
     @Test
-    void testMappingEventsStripsInvalidUid()
+    void testMappingEvents()
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setEvent( "invalidUid;M4pNmLabtXl" );
+        RequestParams criteria = new RequestParams();
+        criteria.setEvents( Set.of( UID.of( "XKrcfuM4Hcw" ), UID.of( "M4pNmLabtXl" ) ) );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getEvents() );
+        assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
@@ -447,7 +448,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
 
         EventSearchParams params = mapper.map( criteria );
 
@@ -455,48 +456,41 @@ class EventCriteriaMapperTest
     }
 
     @Test
-    void testMappingEventIsEmpty()
+    void testMappingAssignedUser()
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setEvent( " " );
+        RequestParams criteria = new RequestParams();
+        criteria.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertIsEmpty( params.getEvents() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
-    void testMappingAssignedUserStripsInvalidUid()
+    void testMappingAssignedUsers()
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setAssignedUser( "invalidUid;M4pNmLabtXl" );
+        RequestParams criteria = new RequestParams();
+        criteria.setAssignedUsers( Set.of( UID.of( "IsdLBTOBzMi" ), UID.of( "l5ab8q5skbB" ) ) );
+        criteria.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
         EventSearchParams params = mapper.map( criteria );
 
-        assertEquals( Set.of( "M4pNmLabtXl" ), params.getAssignedUserQueryParam().getAssignedUsers() );
-    }
-
-    @Test
-    void testMappingAssignedUserIsEmpty()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setAssignedUser( " " );
-
-        EventSearchParams params = mapper.map( criteria );
-
-        assertIsEmpty( params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
+            params.getAssignedUserQueryParam().getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
     }
 
     @Test
     void testMutualExclusionOfEventsAndFilter()
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
         criteria.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
@@ -510,7 +504,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setOrder( OrderCriteria.fromOrderString( "createdAt:asc,programStage:desc,scheduledAt:asc" ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -524,7 +518,7 @@ class EventCriteriaMapperTest
     @Test
     void shouldThrowWhenOrderParameterContainsUnsupportedField()
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setOrder(
             OrderCriteria.fromOrderString( "unsupportedProperty1:asc,enrolledAt:asc,unsupportedProperty2:desc" ) );
 
@@ -543,7 +537,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -578,7 +572,7 @@ class EventCriteriaMapperTest
         ForbiddenException
     {
 
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -612,7 +606,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -637,7 +631,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -660,7 +654,7 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithBadRequestExceptionWhenCriteriaDataElementDoesNotExist()
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         String filterName = "filter";
         criteria.setFilter( Set.of( filterName ) );
         when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
@@ -674,7 +668,7 @@ class EventCriteriaMapperTest
     @Test
     void testFilterAttributesWhenTEAUidIsDuplicated()
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilterAttributes(
             Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
 
@@ -694,7 +688,7 @@ class EventCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        EventCriteria criteria = new EventCriteria();
+        RequestParams criteria = new RequestParams();
         criteria.setFilterAttributes( Set.of( TEA_1_UID ) );
 
         EventSearchParams params = mapper.map( criteria );
@@ -708,8 +702,8 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgram( program.getUid() );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgram( UID.of( program ) );
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( aclService.canDataRead( user, program ) ).thenReturn( false );
@@ -723,8 +717,8 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setProgramStage( programStage.getUid() );
+        RequestParams criteria = new RequestParams();
+        criteria.setProgramStage( UID.of( programStage ) );
         User user = new User();
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( false );
@@ -738,14 +732,14 @@ class EventCriteriaMapperTest
     @Test
     void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryCombo()
     {
-        EventCriteria criteria = new EventCriteria();
-        criteria.setAttributeCc( "Cc" );
+        RequestParams criteria = new RequestParams();
+        criteria.setAttributeCc( UID.of( "NeU85luyD4w" ) );
         criteria.setAttributeCos( "Cos" );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( criteria.getAttributeCc(), criteria.getAttributeCos(),
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", criteria.getAttributeCos(),
             true ) )
-                .thenReturn( combo );
+            .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,

@@ -118,7 +118,7 @@ class DataIntegrityChecksControllerTest extends AbstractDataIntegrityControllerT
     {
         JsonList<JsonDataIntegrityCheck> checks = GET(
             "/dataIntegrity?checks=program_rule_variables_without_attribute" ).content()
-                .asList( JsonDataIntegrityCheck.class );
+            .asList( JsonDataIntegrityCheck.class );
         assertEquals( 1, checks.size() );
         JsonDataIntegrityCheck check = checks.get( 0 );
         assertEquals( "program_rule_variables_without_attribute", check.getName() );
