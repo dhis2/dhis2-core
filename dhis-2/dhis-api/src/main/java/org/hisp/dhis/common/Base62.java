@@ -27,64 +27,76 @@
  */
 package org.hisp.dhis.common;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Base62Utils
+public class Base62
 {
+    private Base62()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     private static final String BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     /**
-     * Encodes a CRC32 checksum in decimal into base-62.
-     * <p>
-     * The CRC32 checksum is 32 bits. To calculate the padding length, we do:
-     * log_62(2^32 - 1) = 5.3743 ≈ 6
-     * <p>
-     * The encoded string is padded with leading zeros to a length of 6
-     * characters to make the result string uniform.
+     * Encodes a number to a Base62 encoded string.
      *
-     * @param crc32 the CRC32 checksum to encode.
-     * @return the encoded string.
+     * @param num the number to encode, must be positive.
+     * @param padding the length of the encoded string, will be padded with
+     *        zeros prefixed to the string if the encoded string is shorter.
+     * @return the Base62 encoded string
      */
-    public static String encodeCRC32IntoBase62( long crc32 )
+    public static String encodeToBase62( long num, int padding )
     {
-        return encodeIntoBase62( crc32, 6 );
+        if ( num < 0 )
+        {
+            throw new IllegalArgumentException( "Number must be positive" );
+        }
+        if ( padding < 0 )
+        {
+            throw new IllegalArgumentException( "Padding must greater than one" );
+        }
+
+        int base = BASE62_ALPHABET.length();
+        char[] chars = new char[padding];
+        Arrays.fill( chars, '0' );
+
+        long r;
+        for ( int i = padding - 1; i >= 0; i-- )
+        {
+            r = num % base;
+            chars[i] = BASE62_ALPHABET.charAt( (int) r );
+            num -= r;
+            num = num / base;
+        }
+
+        return new String( chars );
     }
 
-    private static String encodeIntoBase62( long numberToEncode, int padding )
+    /**
+     * Decodes a Base62 encoded string to a number.
+     *
+     * @param str the Base62 encoded string
+     * @return the decoded number
+     */
+    public static long decodeBase62( final String str )
     {
         int base = BASE62_ALPHABET.length();
-        List<Character> encodedCharacters = new ArrayList<>();
-
-        long remainder;
-        while ( numberToEncode > 0 )
+        long num = 0;
+        for ( char c : str.toCharArray() )
         {
-            remainder = numberToEncode % base;
-            encodedCharacters.add( 0, BASE62_ALPHABET.charAt( (int) remainder ) );
-            numberToEncode -= remainder;
-            numberToEncode = numberToEncode / base;
+            num = num * base;
+            int index = BASE62_ALPHABET.indexOf( c );
+            if ( index == -1 )
+            {
+                throw new IllegalArgumentException( "Invalid character for Base62: " + c );
+            }
+            num = num + index;
         }
-
-        StringBuilder encodedStringBuilder = new StringBuilder();
-        for ( char character : encodedCharacters )
-        {
-            encodedStringBuilder.append( character );
-        }
-
-        while ( encodedStringBuilder.length() < padding )
-        {
-            encodedStringBuilder.insert( 0, BASE62_ALPHABET.charAt( 0 ) );
-        }
-
-        return encodedStringBuilder.toString();
+        return num;
     }
 
-    public static boolean isMatchingCrc32B62Checksum( char[] inputCode, String base62EncodedCRC32Checksum )
-    {
-        String checksum = encodeCRC32IntoBase62( CRC32Utils.generateCrc32Checksum( inputCode ) );
-        return checksum.equals( base62EncodedCRC32Checksum );
-    }
 }

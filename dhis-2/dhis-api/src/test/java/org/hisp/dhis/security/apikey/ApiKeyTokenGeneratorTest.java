@@ -33,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.Base62Utils;
+import org.hisp.dhis.common.Base62;
 import org.hisp.dhis.common.CRC32Utils;
 import org.junit.jupiter.api.Test;
 
@@ -155,10 +155,13 @@ class ApiKeyTokenGeneratorTest
             char[] code = pair.getCode();
             assertEquals( type.getLength(), code.length );
 
+            long crc32 = CRC32Utils.generateCRC32Checksum( code );
             char[] checksum = pair.getChecksum();
+            long decode = Base62.decodeBase62( new String( checksum ) );
+            assertEquals( decode, crc32 );
 
             log.error( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
-                checksum ) );
+                checksum ) + " decoded: " + decode + " encoded: " + crc32 );
 
             assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length );
             assertTrue( ApiKeyTokenGenerator.isValidTokenChecksum( token ) );
@@ -174,8 +177,8 @@ class ApiKeyTokenGeneratorTest
         char[] code = pair.getCode();
         char[] checksum = pair.getChecksum();
 
-        long longChecksum = CRC32Utils.generateCrc32Checksum( code );
-        String base62EncodedLongChecksum = Base62Utils.encodeCRC32IntoBase62( longChecksum );
+        long longChecksum = CRC32Utils.generateCRC32Checksum( code );
+        String base62EncodedLongChecksum = CRC32Utils.crc32ToBase62( longChecksum );
 
         assertEquals( base62EncodedLongChecksum, new String( checksum ) );
     }

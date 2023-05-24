@@ -40,13 +40,18 @@ import javax.annotation.Nonnull;
  */
 public class CRC32Utils
 {
+    private CRC32Utils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     /**
      * Calculates a checksum for the given input string.
      *
      * @param input the input char array.
      * @return the checksum.
      */
-    public static long generateCrc32Checksum( @Nonnull char[] input )
+    public static long generateCRC32Checksum( @Nonnull char[] input )
     {
         Charset charset = StandardCharsets.UTF_8;
         CharBuffer charBuffer = CharBuffer.wrap( input );
@@ -65,11 +70,35 @@ public class CRC32Utils
      * @param checksum the checksum to compare against.
      * @return true if they match.
      */
-    public static boolean isMatchingCrc32Checksum( @Nonnull char[] input, @Nonnull String checksum )
+    public static boolean isMatchingCRC32Checksum( @Nonnull char[] input, @Nonnull char[] checksum )
     {
-        long s1 = CRC32Utils.generateCrc32Checksum( input );
-        long s2 = Long.parseLong( checksum );
+        long s1 = CRC32Utils.generateCRC32Checksum( input );
+        long s2 = Long.parseLong( new String( checksum ) );
 
         return s1 == s2;
+    }
+
+    /**
+     * Encodes a CRC32 checksum in decimal into base62.
+     * <p>
+     * The CRC32 checksum is 32-bit. To calculate the max length in base62, we
+     * do: log_62(2^32 - 1) = 5.3743 ≈ 6
+     * <p>
+     * The encoded string is padded with leading zeros to a length of 6
+     * characters to make the resulting strings uniform.
+     *
+     * @param crc32Checksum the CRC32 checksum to encode.
+     * @return the encoded string.
+     */
+    public static String crc32ToBase62( long crc32Checksum )
+    {
+        return Base62.encodeToBase62( crc32Checksum, 6 );
+    }
+
+    public static boolean isMatchingCRC32Base62Checksum( char[] input, char[] base62EncodedCRC32Checksum )
+    {
+        long crc32Checksum = generateCRC32Checksum( input );
+        String checksum = crc32ToBase62( crc32Checksum );
+        return checksum.equals( new String( base62EncodedCRC32Checksum ) );
     }
 }

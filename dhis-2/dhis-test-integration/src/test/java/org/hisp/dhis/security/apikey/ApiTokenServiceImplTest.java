@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePlainTextToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.hashToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
@@ -80,12 +80,13 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         throws Exception
     {
         userService = _userService;
+        preCreateInjectAdminUser();
     }
 
     public ApiToken createAndSaveToken()
     {
         long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
-        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePatToken( null, thirtyDaysInTheFuture );
+        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePersonalAccessToken( null, thirtyDaysInTheFuture );
         apiTokenStore.save( apiTokenPair.getApiToken() );
         return apiTokenPair.getApiToken();
     }
@@ -93,7 +94,6 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testListTokens()
     {
-        preCreateInjectAdminUser();
         createAndSaveToken();
         createAndSaveToken();
         final List<ApiToken> all = apiTokenService.getAll();
@@ -103,7 +103,6 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testCantListOthersTokens()
     {
-        preCreateInjectAdminUser();
         createAndSaveToken();
         createAndSaveToken();
         switchToOtherUser();
@@ -114,46 +113,40 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testSaveGet()
     {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
+        final ApiToken tokenA = createAndSaveToken();
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey() );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
     }
 
     @Test
     void testGetAllByUser()
     {
-        preCreateInjectAdminUser();
-
-        final ApiToken apiToken0 = createAndSaveToken();
+        final ApiToken token = createAndSaveToken();
         createAndSaveToken();
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
         User user = userService.getUserByUsername( currentUserDetails.getUsername() );
         List<ApiToken> allOwning = apiTokenService.getAllOwning( user );
 
         assertEquals( 2, allOwning.size() );
-        assertEquals( allOwning.get( 0 ).getKey(), apiToken0.getKey() );
+        assertEquals( allOwning.get( 0 ).getKey(), token.getKey() );
     }
 
     @Test
     void testSaveGetCurrentUser()
     {
-        preCreateInjectAdminUser();
-
-        final ApiToken apiToken0 = createAndSaveToken();
+        final ApiToken tokenA = createAndSaveToken();
         CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
         User user = userService.getUserByUsername( currentUserDetails.getUsername() );
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey(), user );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey(), user );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
     }
 
     @Test
     void testShouldDeleteTokensWhenUserIsDeleted()
     {
-        preCreateInjectAdminUser();
-
         User userB = createUserWithAuth( "userB" );
         injectSecurityContext( userB );
+
         String apiTokenCreator = CurrentUserUtil.getCurrentUsername();
         createAndSaveToken();
         createAndSaveToken();
@@ -161,8 +154,7 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
         User adminUser = userService.getUserByUsername( "admin_test" );
         injectSecurityContext( adminUser );
 
-        User user = userService.getUserByUsername( apiTokenCreator );
-        userService.deleteUser( user );
+        userService.deleteUser( userService.getUserByUsername( apiTokenCreator ) );
 
         List<ApiToken> all = apiTokenService.getAll();
         assertEquals( 0, all.size() );
@@ -171,48 +163,44 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testUpdate()
     {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiToken1.addIpToAllowedList( "1.1.1.1" );
-        apiTokenService.update( apiToken1 );
-        final ApiToken apiToken2 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertTrue( apiToken2.getIpAllowedList().getAllowedIps().contains( "1.1.1.1" ) );
+        final ApiToken tokenA = createAndSaveToken();
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey() );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
+        tokenB.addIpToAllowedList( "1.1.1.1" );
+        apiTokenService.update( tokenB );
+        final ApiToken tokenC = apiTokenService.getByKey( tokenA.getKey() );
+        assertTrue( tokenC.getIpAllowedList().getAllowedIps().contains( "1.1.1.1" ) );
     }
 
     @Test
     void testCantUpdateOthersTokens()
     {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiToken1.addIpToAllowedList( "1.1.1.1" );
+        final ApiToken tokenA = createAndSaveToken();
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey() );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
+        tokenB.addIpToAllowedList( "1.1.1.1" );
         switchToOtherUser();
-        assertThrows( UpdateAccessDeniedException.class, () -> apiTokenService.update( apiToken1 ) );
+        assertThrows( UpdateAccessDeniedException.class, () -> apiTokenService.update( tokenB ) );
     }
 
     @Test
     void testDelete()
     {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
-        apiTokenService.delete( apiToken1 );
-        assertNull( apiTokenService.getByUid( apiToken0.getUid() ) );
+        final ApiToken tokenA = createAndSaveToken();
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey() );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
+        apiTokenService.delete( tokenB );
+        assertNull( apiTokenService.getByUid( tokenA.getUid() ) );
     }
 
     @Test
     void testCantDeleteOthersToken()
     {
-        preCreateInjectAdminUser();
-        final ApiToken apiToken0 = createAndSaveToken();
-        final ApiToken apiToken1 = apiTokenService.getByKey( apiToken0.getKey() );
-        assertEquals( apiToken1.getKey(), apiToken0.getKey() );
+        final ApiToken tokenA = createAndSaveToken();
+        final ApiToken tokenB = apiTokenService.getByKey( tokenA.getKey() );
+        assertEquals( tokenB.getKey(), tokenA.getKey() );
         switchToOtherUser();
-        assertThrows( DeleteAccessDeniedException.class, () -> apiTokenService.delete( apiToken1 ) );
+        assertThrows( DeleteAccessDeniedException.class, () -> apiTokenService.delete( tokenB ) );
     }
 
     private void switchToOtherUser()

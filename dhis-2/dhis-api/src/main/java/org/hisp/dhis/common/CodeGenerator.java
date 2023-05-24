@@ -64,9 +64,9 @@ public class CodeGenerator
 
     public static final int UID_CODE_SIZE = 11;
 
-    public static final String UID_PATTERN = "^[a-zA-Z][a-zA-Z0-9]{10}$";
+    public static final String UID_REGEXP = "^[a-zA-Z][a-zA-Z0-9]{10}$";
 
-    public static final Pattern CODE_PATTERN = Pattern.compile( "^[a-zA-Z][a-zA-Z0-9]{10}$" );
+    public static final Pattern UID_PATTERN = Pattern.compile( UID_REGEXP );
 
     /**
      * The minimum length of a random alphanumeric string, with the first
@@ -175,6 +175,6 @@ public class CodeGenerator
      */
     public static boolean isValidUid( String code )
     {
-        return code != null && CODE_PATTERN.matcher( code ).matches();
+        return code != null && UID_PATTERN.matcher( code ).matches();
     }
 }

@@ -106,7 +106,7 @@ public final class ApiTokenResolver
     {
         if ( authorizationHeaderToken.length > 0 )
         {
-            checksum( authorizationHeaderToken );
+            validateChecksum( authorizationHeaderToken );
 
             if ( parameterToken.length > 0 )
             {
@@ -140,13 +140,13 @@ public final class ApiTokenResolver
     {
         if ( parameterToken.length > 0 && isParameterTokenSupportedForRequest( request ) )
         {
-            checksum( parameterToken );
+            validateChecksum( parameterToken );
             return true;
         }
         return false;
     }
 
-    private static void checksum( char[] token )
+    private static void validateChecksum( char[] token )
     {
         try
         {

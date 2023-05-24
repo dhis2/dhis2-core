@@ -32,8 +32,13 @@ import java.security.SecureRandom;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class PasswordGeneratorUtils
+public class PasswordGenerator
 {
+    private PasswordGenerator()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     public static final String NUMERIC_CHARS = "0123456789";
 
     public static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -48,14 +53,8 @@ public class PasswordGeneratorUtils
 
     public static final String ALL_CHARS = NUMERIC_CHARS + LETTERS + SPECIAL_CHARS;
 
-    private static char generateRandomCharacter( String charSet )
-    {
-        SecureRandom sr = CodeGenerator.SecureRandomHolder.GENERATOR;
-        return charSet.charAt( sr.nextInt( charSet.length() ) );
-    }
-
     /**
-     * Generates a random password with the given size, has to be minimum 4
+     * Generates a random password with the given size, has to be minimum 8
      * characters long.
      * <p>
      * The password will contain at least one digit, one special character, one
@@ -63,50 +62,61 @@ public class PasswordGeneratorUtils
      * <p>
      * The password will not contain more than 2 consecutive letters to avoid
      * generating words.
+     * <p>
+     * Passwords should always be greater than 4 characters, since the first 4
+     * has predetermined lesser character sets. To avoid using it in production
+     * with size set to 4 or less, we enforce minimum size of 8, which is the
+     * default password minimum length in DHIS2.
      *
-     * @param passwordSize the size of the password.
+     * @param size the size of the password.
      * @return a random password.
      */
-    public static char[] generateValidPassword( int passwordSize )
+    public static char[] generateValidPassword( int size )
     {
-        if ( passwordSize < 4 )
+        if ( size < 8 )
         {
-            throw new IllegalArgumentException( "Password must be at least 4 characters long" );
+            throw new IllegalArgumentException( "Password must be at least 8 characters long" );
         }
 
-        char[] randomChars = new char[passwordSize];
+        char[] chars = new char[size];
 
-        randomChars[0] = generateRandomCharacter( NUMERIC_CHARS );
-        randomChars[1] = generateRandomCharacter( SPECIAL_CHARS );
-        randomChars[2] = generateRandomCharacter( UPPERCASE_LETTERS );
-        randomChars[3] = generateRandomCharacter( LOWERCASE_LETTERS );
+        chars[0] = generateCharacter( NUMERIC_CHARS );
+        chars[1] = generateCharacter( SPECIAL_CHARS );
+        chars[2] = generateCharacter( UPPERCASE_LETTERS );
+        chars[3] = generateCharacter( LOWERCASE_LETTERS );
 
-        int consecutiveLetterCount = 2; // the last 2 characters are letters
-        for ( int i = 4; i < passwordSize; ++i )
+        int c = 2; // the last 2 characters are letters
+        for ( int i = 4; i < size; ++i )
         {
-            if ( consecutiveLetterCount >= 2 )
+            if ( c >= 2 )
             {
                 // After 2 consecutive letters, the next character should be a number or a special character
-                randomChars[i] = generateRandomCharacter( NUMERIC_AND_SPECIAL_CHARS );
-                consecutiveLetterCount = 0;
+                chars[i] = generateCharacter( NUMERIC_AND_SPECIAL_CHARS );
+                c = 0;
             }
             else
             {
-                randomChars[i] = generateRandomCharacter( ALL_CHARS );
-                if ( LETTERS.indexOf( randomChars[i] ) >= 0 )
+                chars[i] = generateCharacter( ALL_CHARS );
+                if ( LETTERS.indexOf( chars[i] ) >= 0 )
                 {
                     // If the character is a letter, increment the counter
-                    consecutiveLetterCount++;
+                    c++;
                 }
                 else
                 {
                     // If the character is not a letter, reset the counter
-                    consecutiveLetterCount = 0;
+                    c = 0;
                 }
             }
         }
 
-        return randomChars;
+        return chars;
+    }
+
+    private static char generateCharacter( String str )
+    {
+        SecureRandom sr = CodeGenerator.SecureRandomHolder.GENERATOR;
+        return str.charAt( sr.nextInt( str.length() ) );
     }
 
     public static boolean containsDigit( char[] chars )

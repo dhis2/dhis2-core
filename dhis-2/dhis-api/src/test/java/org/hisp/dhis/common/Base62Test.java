@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,69 +25,50 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.common;
 
-import lombok.Getter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Class for representing the different types of API tokens and their
- * properties.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-public enum ApiTokenType
+class Base62Test
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" ),
-    PERSONAL_ACCESS_TOKEN_V2( 2, "d2p", 44, "SHA-256", "CRC32_B62" );
-
-    private final String prefix;
-
-    private final int version;
-
-    private final int length;
-
-    private final String hashType;
-
-    private final String checksumType;
-
-    ApiTokenType( int version, String prefix, int length, String hashType, String checksumType )
+    @Test
+    void encodeCRC32DecimalToBase62()
     {
-        this.prefix = prefix;
-        this.length = length;
-        this.version = version;
-        this.hashType = hashType;
-        this.checksumType = checksumType;
+        String crc32Max64BitLongInBase62 = "AzL8n0Y58m7";
+        long max64BitValue = (long) (Math.pow( 2, 64 ) - 1);
+        double logBase62Max64 = Math.log( max64BitValue ) / Math.log( 62 );
+        int maxCharLen64Max = (int) Math.ceil( logBase62Max64 );
+        String encoded64Max = Base62.encodeToBase62( max64BitValue, maxCharLen64Max );
+        assertEquals( maxCharLen64Max, encoded64Max.length() );
+        assertEquals( encoded64Max, crc32Max64BitLongInBase62 );
+
+        String crc32Max32BitLongInBase62 = "4gfFC3";
+        long max32BitValue = (long) (Math.pow( 2, 32 ) - 1);
+        double logBase62Max32 = Math.log( max32BitValue ) / Math.log( 62 );
+        int maxCharLen32Max = (int) Math.ceil( logBase62Max32 );
+        String encoded32Max = Base62.encodeToBase62( max32BitValue, maxCharLen32Max );
+        assertEquals( maxCharLen32Max, encoded32Max.length() );
+        assertEquals( encoded32Max, crc32Max32BitLongInBase62 );
     }
 
-    public static ApiTokenType getDefaultPatType()
+    @Test
+    void encodeMaxLong()
     {
-        return PERSONAL_ACCESS_TOKEN_V2;
+        String maxInBase62 = "AzL8n0Y58m7";
+        String encoded = Base62.encodeToBase62( Long.MAX_VALUE, 11 );
+        assertEquals( maxInBase62, encoded );
     }
 
-    public static ApiTokenType fromToken( char[] token )
+    @Test
+    void encodeZero()
     {
-        String tokenType = getTokenTypePrefix( token );
-
-        for ( ApiTokenType type : ApiTokenType.values() )
-        {
-            if ( tokenType.equals( type.getPrefix() ) )
-            {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException( "No token type found" );
-    }
-
-    private static String getTokenTypePrefix( char[] token )
-    {
-        for ( int i = 0; i < token.length; i++ )
-        {
-            if ( token[i] == '_' )
-            {
-                return new String( token, 0, i );
-            }
-        }
-        throw new IllegalArgumentException( "No token type prefix found" );
+        String zeroInBase62PaddedTo6Zeros = "000000";
+        String encoded = CRC32Utils.crc32ToBase62( 0L );
+        assertEquals( zeroInBase62PaddedTo6Zeros, encoded );
     }
 }

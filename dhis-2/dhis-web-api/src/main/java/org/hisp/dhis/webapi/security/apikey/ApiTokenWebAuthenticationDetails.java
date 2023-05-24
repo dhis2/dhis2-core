@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2023, University of Oslo
+ * Copyright (c) 2004-2022, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.common;
+package org.hisp.dhis.webapi.security.apikey;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import javax.servlet.http.HttpServletRequest;
 
-import org.junit.jupiter.api.Test;
+import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Base62UtilsTest
+public class ApiTokenWebAuthenticationDetails
+    extends ForwardedIpAwareWebAuthenticationDetails
 {
-    @Test
-    void encodeCRC32DecimalIntoBase62()
+    public ApiTokenWebAuthenticationDetails( HttpServletRequest request )
     {
-        long max32BitValue = (long) Math.pow( 2, 32 ) - 1;
-        double logBase62 = Math.log( max32BitValue ) / Math.log( 62 );
-        int maxCharLength = (int) Math.ceil( logBase62 );
-
-        String crc32MaxInBase62 = "4gfFC3";
-
-        String encoded = Base62Utils.encodeCRC32IntoBase62( max32BitValue );
-        assertEquals( maxCharLength, encoded.length() );
-        assertEquals( encoded, crc32MaxInBase62 );
-    }
-
-    @Test
-    void encodeMaxLong()
-    {
-        String maxInBase62 = "AzL8n0Y58m7";
-        String encoded = Base62Utils.encodeCRC32IntoBase62( Long.MAX_VALUE );
-        assertEquals( maxInBase62, encoded );
-    }
-
-    @Test
-    void encodeZero()
-    {
-        String zeroInBase62PaddedTo6Zeros = "000000";
-        String encoded = Base62Utils.encodeCRC32IntoBase62( 0L );
-        assertEquals( zeroInBase62PaddedTo6Zeros, encoded );
+        super( request );
     }
 }

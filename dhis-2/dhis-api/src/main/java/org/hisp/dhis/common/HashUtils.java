@@ -42,74 +42,92 @@ import com.google.common.hash.Hashing;
  */
 public class HashUtils
 {
+    private HashUtils()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
     /**
      * Calculates a SHA256 hash for the given input string.
      *
-     * @param input the input string.
+     * @param bytes the input string.
      * @return the hash.
      */
-    public static String hashSHA256( @Nonnull byte[] input )
+    public static String hashSHA256( @Nonnull byte[] bytes )
     {
-        return Hashing.sha256().hashBytes( input ).toString();
+        return Hashing.sha256().hashBytes( bytes ).toString();
     }
 
-    public static String hashSHA256( @Nonnull String input )
+    public static String hashSHA256( @Nonnull String str )
     {
-        return hashSHA256( input.getBytes( StandardCharsets.UTF_8 ) );
+        return hashSHA256( str.getBytes( StandardCharsets.UTF_8 ) );
     }
 
-    public static String hashSHA256( @Nonnull char[] input )
+    public static String hashSHA256( @Nonnull char[] chars )
     {
-        byte[] bytes = extractBytesFromChar( input );
-
+        byte[] bytes = extractBytesFromChar( chars );
         return hashSHA256( bytes );
     }
 
     /**
      * Calculates a SHA512 hash for the given input string.
      *
-     * @param input the input string.
+     * @param bytes the input string.
      * @return the hash.
      */
-    public static String hashSHA512( @Nonnull byte[] input )
+    public static String hashSHA512( @Nonnull byte[] bytes )
     {
-        return Hashing.sha512().hashBytes( input ).toString();
+        return Hashing.sha512().hashBytes( bytes ).toString();
     }
 
-    public static String hashSHA512( @Nonnull String input )
+    public static String hashSHA512( @Nonnull String str )
     {
-        return hashSHA512( input.getBytes( StandardCharsets.UTF_8 ) );
+        return hashSHA512( str.getBytes( StandardCharsets.UTF_8 ) );
     }
 
-    public static String hashSHA512( @Nonnull char[] input )
+    public static String hashSHA512( @Nonnull char[] chars )
     {
-        byte[] bytes = extractBytesFromChar( input );
+        byte[] bytes = extractBytesFromChar( chars );
 
         return hashSHA512( bytes );
     }
 
-    private static byte[] extractBytesFromChar( char[] input )
+    /**
+     * Creates a byte array from a char array.
+     *
+     * @param chars the char array
+     * @return the byte array
+     */
+    private static byte[] extractBytesFromChar( char[] chars )
     {
         Charset charset = StandardCharsets.UTF_8;
-        CharBuffer charBuffer = CharBuffer.wrap( input );
+        CharBuffer charBuffer = CharBuffer.wrap( chars );
         ByteBuffer byteBuffer = charset.encode( charBuffer );
         byte[] bytes = new byte[byteBuffer.remaining()];
         byteBuffer.get( bytes );
         return bytes;
     }
 
-    public static boolean isValidSHA256HexFormat( String s )
+    /**
+     * Try to check if the given string is a valid SHA-256 hash in hexadecimal
+     * format.
+     *
+     * @param str the string to check.
+     * @return true if the string is a valid SHA-256 hash in hexadecimal format,
+     *         false otherwise.
+     */
+    public static boolean isValidSHA256HexFormat( String str )
     {
         // Check if the string is a valid hexadecimal number
         String hexPattern = "^[0-9a-fA-F]+$";
         Pattern pattern = Pattern.compile( hexPattern );
-        if ( !pattern.matcher( s ).matches() )
+        if ( !pattern.matcher( str ).matches() )
         {
             return false;
         }
 
         // SHA-256 in hexadecimal are exactly 64 characters long
-        return s.length() == 64;
+        return str.length() == 64;
     }
 
 }

@@ -34,26 +34,15 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class CRC32UtilsTest
+class CRC32UtilsTest
 {
-    @Test
-    void testGenerateCrc32Checksum9Digit()
-    {
-        char[] input = "Heladasd loAAA adAAAAadasdasdasdasdsd!".toCharArray();
-        long expectedChecksum = 821511666L;
-
-        long actualChecksum = CRC32Utils.generateCrc32Checksum( input );
-        assertEquals( expectedChecksum, actualChecksum,
-            "The calculated CRC32 checksum does not match the expected value." );
-    }
-
     @Test
     void testGenerateCrc32Checksum10Digit()
     {
-        char[] input = "Hello, World!".toCharArray();
-        long expectedChecksum = 1413314458L;
+        char[] input = "checksum".toCharArray();
+        long expectedChecksum = 3731873690L;
 
-        long actualChecksum = CRC32Utils.generateCrc32Checksum( input );
+        long actualChecksum = CRC32Utils.generateCRC32Checksum( input );
         assertEquals( expectedChecksum, actualChecksum,
             "The calculated CRC32 checksum does not match the expected value." );
     }
@@ -64,7 +53,7 @@ public class CRC32UtilsTest
         char[] input = "".toCharArray();
         long expectedChecksum = 0L;
 
-        long actualChecksum = CRC32Utils.generateCrc32Checksum( input );
+        long actualChecksum = CRC32Utils.generateCRC32Checksum( input );
 
         assertEquals( expectedChecksum, actualChecksum,
             "The calculated CRC32 checksum does not match the expected value for an empty input." );

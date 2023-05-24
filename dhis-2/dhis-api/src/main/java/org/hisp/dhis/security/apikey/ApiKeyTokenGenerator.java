@@ -32,11 +32,9 @@ import java.util.Arrays;
 import java.util.List;
 
 import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
 
 import lombok.Value;
 
-import org.hisp.dhis.common.Base62Utils;
 import org.hisp.dhis.common.CRC32Utils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.HashUtils;
@@ -48,21 +46,34 @@ import com.google.common.base.Preconditions;
  */
 public class ApiKeyTokenGenerator
 {
-    @Nonnull
-    public static TokenWrapper generatePatToken( @CheckForNull List<ApiTokenAttribute> tokenAttributes, long expire )
+    private ApiKeyTokenGenerator()
+    {
+        throw new IllegalStateException( "Utility class" );
+    }
+
+    /**
+     * Generates a personal access token with the given attributes and
+     * expiration time.
+     *
+     * @param attributes the attributes to include in the token
+     * @param expire the expiration time in milliseconds since epoch
+     * @return a token wrapper containing the plaintext token and the token
+     */
+    public static TokenWrapper generatePersonalAccessToken( @CheckForNull List<ApiTokenAttribute> attributes,
+        long expire )
     {
         ApiTokenType type = ApiTokenType.getDefaultPatType();
 
-        char[] plaintextToken = ApiKeyTokenGenerator.generatePlainTextToken( type );
+        char[] plaintext = ApiKeyTokenGenerator.generatePlainTextToken( type );
 
         final ApiToken token = ApiToken.builder().type( type )
             .version( type.getVersion() )
-            .attributes( tokenAttributes == null ? new ArrayList<>() : tokenAttributes )
+            .attributes( attributes == null ? new ArrayList<>() : attributes )
             .expire( expire )
-            .key( ApiKeyTokenGenerator.hashToken( plaintextToken ) )
+            .key( ApiKeyTokenGenerator.hashToken( plaintext ) )
             .build();
 
-        return new TokenWrapper( plaintextToken, token );
+        return new TokenWrapper( plaintext, token );
     }
 
     protected static char[] generatePlainTextToken( ApiTokenType type )
@@ -73,7 +84,6 @@ public class ApiKeyTokenGenerator
 
         char[] prefix = type.getPrefix().toCharArray();
         char[] underscore = new char[] { '_' };
-
         char[] checksum = generateChecksum( type, code );
 
         // Concatenate prefix, underscore, code, and checksum
@@ -87,58 +97,68 @@ public class ApiKeyTokenGenerator
         return token;
     }
 
-    private static char[] generateChecksum( ApiTokenType type, char[] secureCode )
+    private static char[] generateChecksum( ApiTokenType type, char[] code )
     {
         String checksumType = type.getChecksumType();
 
         return switch ( checksumType )
         {
-        case "CRC32" -> generateCrc32Checksum( secureCode );
-        case "CRC32B62" -> generateCrc32InBase62Checksum( secureCode );
-
+        case "CRC32" -> generateCRC32InDecimal( code );
+        case "CRC32_B62" -> generateCRC32InBase62( code );
         default -> throw new IllegalArgumentException( "Unknown checksum type: " + checksumType );
         };
     }
 
-    public static char[] generateCrc32Checksum( char[] secureCode )
+    /**
+     * Generates a CRC32 checksum.
+     *
+     * @param code the code to generate the checksum for.
+     * @return the checksum as a char array.
+     */
+    public static char[] generateCRC32InDecimal( char[] code )
     {
-        long checksum = CRC32Utils.generateCrc32Checksum( secureCode );
+        long checksum = CRC32Utils.generateCRC32Checksum( code );
 
         // Convert checksum to a char array
-        char[] checksumChars = Long.toString( checksum ).toCharArray();
+        char[] chars = Long.toString( checksum ).toCharArray();
 
-        // Padding CRC32 checksum to 10 digits
-        int paddingLength = 10 - checksumChars.length;
+        // Padding (prefixing with zeros) CRC32 checksum in decimal to 10 digits
+        int paddingLength = 10 - chars.length;
         char[] paddedChecksum = new char[10];
         Arrays.fill( paddedChecksum, '0' );
-        System.arraycopy( checksumChars, 0, paddedChecksum, paddingLength, checksumChars.length );
+        System.arraycopy( chars, 0, paddedChecksum, paddingLength, chars.length );
         return paddedChecksum;
     }
 
-    public static char[] generateCrc32InBase62Checksum( char[] secureCode )
+    /**
+     * Generates a CRC32 checksum in base62.
+     *
+     * @param code the code to generate the checksum for.
+     * @return the checksum as a char array.
+     */
+    public static char[] generateCRC32InBase62( char[] code )
     {
-        long checksum = CRC32Utils.generateCrc32Checksum( secureCode );
-        String b62encoded = Base62Utils.encodeCRC32IntoBase62( checksum );
+        long checksum = CRC32Utils.generateCRC32Checksum( code );
+        String b62encoded = CRC32Utils.crc32ToBase62( checksum );
         return b62encoded.toCharArray();
     }
 
     /**
-     * Validates the checksum of the plaintextToken.
+     * Validates the checksum of the plaintext token.
      *
-     * @param plaintextToken the plaintextToken
+     * @param plaintextToken the plaintext token
      * @return true if the checksum is valid, false otherwise
      */
     public static boolean isValidTokenChecksum( char[] plaintextToken )
     {
-        ApiTokenType tokenType = ApiTokenType.fromToken( plaintextToken );
+        ApiTokenType type = ApiTokenType.fromToken( plaintextToken );
 
-        String tokenChecksumType = tokenType.getChecksumType();
+        String tokenChecksumType = type.getChecksumType();
 
         return switch ( tokenChecksumType )
         {
         case "CRC32" -> validateCrc32Checksum( plaintextToken );
-        case "CRC32B62" -> validateCrc32B62Checksum( plaintextToken );
-
+        case "CRC32_B62" -> validateCrc32B62Checksum( plaintextToken );
         default -> throw new IllegalArgumentException( "Unsupported checksum type: " + tokenChecksumType );
         };
     }
@@ -146,23 +166,23 @@ public class ApiKeyTokenGenerator
     private static boolean validateCrc32B62Checksum( char[] plaintextToken )
     {
         CodeAndChecksum codeAndChecksum = extractCodeAndChecksum( plaintextToken );
-        return Base62Utils.isMatchingCrc32B62Checksum( codeAndChecksum.getCode(),
-            new String( codeAndChecksum.getChecksum() ) );
+        return CRC32Utils.isMatchingCRC32Base62Checksum( codeAndChecksum.getCode(),
+            codeAndChecksum.getChecksum() );
     }
 
     private static boolean validateCrc32Checksum( char[] plaintextToken )
     {
         CodeAndChecksum codeAndChecksum = extractCodeAndChecksum( plaintextToken );
-        return CRC32Utils.isMatchingCrc32Checksum( codeAndChecksum.getCode(),
-            new String( codeAndChecksum.getChecksum() ) );
+        return CRC32Utils.isMatchingCRC32Checksum( codeAndChecksum.getCode(),
+            codeAndChecksum.getChecksum() );
     }
 
     public static CodeAndChecksum extractCodeAndChecksum( char[] plaintextToken )
     {
-        ApiTokenType tokenType = ApiTokenType.fromToken( plaintextToken );
+        ApiTokenType type = ApiTokenType.fromToken( plaintextToken );
 
-        int prefixLength = tokenType.getPrefix().length();
-        int codeLength = tokenType.getLength();
+        int prefixLength = type.getPrefix().length();
+        int codeLength = type.getLength();
 
         // Extract code from the plaintextToken
         char[] code = new char[codeLength];

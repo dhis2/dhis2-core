@@ -36,7 +36,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class HashUtilsTest
+class HashUtilsTest
 {
     @Test
     void testIsValidSHA256HexFormat()
