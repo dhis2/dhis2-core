@@ -71,13 +71,13 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequestMapping( value = RESOURCE_PATH + "/" + EnrollmentsExportController.ENROLLMENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class EnrollmentsExportController
+class EnrollmentsExportController
 {
     protected static final String ENROLLMENTS = "enrollments";
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final EnrollmentParamsMapper paramsMapper;
+    private final EnrollmentRequestParamsMapper paramsMapper;
 
     private final EnrollmentService enrollmentService;
 

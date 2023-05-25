@@ -48,7 +48,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class CategoryOptionComboService
+class CategoryOptionComboService
 {
     private final Cache<Long> attrOptionComboIdCache;
 
