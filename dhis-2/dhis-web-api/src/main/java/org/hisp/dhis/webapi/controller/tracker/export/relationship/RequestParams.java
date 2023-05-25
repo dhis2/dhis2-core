@@ -34,7 +34,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
@@ -45,6 +44,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.controller.tracker.view.Event;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
+@OpenApi.Shared( name = "RelationshipRequestParams" )
 @OpenApi.Property
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
@@ -53,15 +53,15 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+    private UID trackedEntity;
 
     @OpenApi.Property( { UID.class, Enrollment.class } )
     @Setter
-    private String enrollment;
+    private UID enrollment;
 
     @OpenApi.Property( { UID.class, Event.class } )
     @Setter
-    private String event;
+    private UID event;
 
     private String identifier;
 
@@ -74,7 +74,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 
-    public void setTei( String tei )
+    public void setTei( UID tei )
     {
         // this setter is kept for backwards-compatibility
         // query parameter 'tei' should still be allowed, but 'trackedEntity' is
@@ -82,7 +82,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         this.trackedEntity = tei;
     }
 
-    public void setTrackedEntity( String trackedEntity )
+    public void setTrackedEntity( UID trackedEntity )
     {
         this.trackedEntity = trackedEntity;
     }
@@ -97,23 +97,23 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         }
 
         int count = 0;
-        if ( !StringUtils.isBlank( this.trackedEntity ) )
+        if ( this.trackedEntity != null )
         {
-            this.identifier = this.trackedEntity;
+            this.identifier = this.trackedEntity.getValue();
             this.identifierName = "trackedEntity";
             this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
             count++;
         }
-        if ( !StringUtils.isBlank( this.enrollment ) )
+        if ( this.enrollment != null )
         {
-            this.identifier = this.enrollment;
+            this.identifier = this.enrollment.getValue();
             this.identifierName = "enrollment";
             this.identifierClass = org.hisp.dhis.program.Enrollment.class;
             count++;
         }
-        if ( !StringUtils.isBlank( this.event ) )
+        if ( this.event != null )
         {
-            this.identifier = this.event;
+            this.identifier = this.event.getValue();
             this.identifierName = "event";
             this.identifierClass = org.hisp.dhis.program.Event.class;
             count++;

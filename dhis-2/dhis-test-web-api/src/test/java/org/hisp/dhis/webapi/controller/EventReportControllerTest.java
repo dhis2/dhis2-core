@@ -28,20 +28,16 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.not;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.web.HttpStatus.BAD_REQUEST;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,7 +66,6 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     void testPostForSingleEventDate()
     {
         // Given
@@ -85,19 +80,17 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "columns" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( "COLUMN" ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDateDimension ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( response.get( "columns" ).toString(), containsString( eventDateDimension ) );
+        assertThat( response.get( "rows" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( response.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     void testPostForMultiEventDates()
     {
         // Given
@@ -117,18 +110,17 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventReports/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+        final JsonObject response = GET( "/eventReports/" + uid ).content();
 
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
-        assertThat( nodeMap.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( eventDateDimension ) );
-        assertThat( nodeMap.get( "rows" ).toString(), containsString( incidentDateDimension ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
-        assertThat( nodeMap.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( "ROW" ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( eventDate ) );
+        assertThat( response.get( "simpleDimensions" ).toString(), containsString( incidentDate ) );
+        assertThat( response.get( "rows" ).toString(), containsString( eventDateDimension ) );
+        assertThat( response.get( "rows" ).toString(), containsString( incidentDateDimension ) );
+        assertThat( response.get( "columns" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( response.get( "columns" ).toString(), not( containsString( incidentDateDimension ) ) );
+        assertThat( response.get( "filters" ).toString(), not( containsString( eventDateDimension ) ) );
+        assertThat( response.get( "filters" ).toString(), not( containsString( incidentDateDimension ) ) );
     }
 
     @Test
@@ -151,7 +143,6 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     void testThatGetEventVisualizationsContainsLegacyEventReports()
     {
         // Given
@@ -162,15 +153,13 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventReports/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
+        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
 
-        assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
-        assertThat( nodeMap.get( "type" ).toString(), containsString( "LINE_LIST" ) );
+        assertThat( response.get( "name" ).toString(), containsString( "Name Test" ) );
+        assertThat( response.get( "type" ).toString(), containsString( "LINE_LIST" ) );
     }
 
     @Test
-    @SuppressWarnings( "unchecked" )
     void testThatGetEventReportsDoesNotContainNewEventVisualizations()
     {
         // Given
@@ -181,9 +170,6 @@ class EventReportControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventReports/" + uid ).content();
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
-
-        assertThat( nodeMap.values(), is( empty() ) );
+        assertTrue( GET( "/eventReports/" + uid ).content().isEmpty() );
     }
 }

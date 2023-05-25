@@ -69,7 +69,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.5.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.8.0</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>5.8.3</spring-security.version>
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.18.0</flyway-core.version>
+    <flyway-core.version>9.19.1</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -144,7 +144,7 @@
     <!-- Apache Artemis -->
     <artemis.version>2.28.0</artemis.version>
     <netty-all.version>4.1.92.Final</netty-all.version>
-    <classgraph.version>4.8.158</classgraph.version>
+    <classgraph.version>4.8.160</classgraph.version>
 
     <!-- SMS/SMPP -->
     <sms-compression.version>0.2.1.1</sms-compression.version>
@@ -161,7 +161,7 @@
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>
-    <lombok.version>1.18.26</lombok.version>
+    <lombok.version>1.18.28</lombok.version>
     <lombok-maven-plugin.version>1.18.20.0</lombok-maven-plugin.version>
     <joda-time.version>2.12.5</joda-time.version>
     <cron-utils.version>9.2.1</cron-utils.version>
@@ -215,7 +215,7 @@
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.4</spotbugs-maven-plugin.version>
-    <spotless.version>2.36.0</spotless.version>
+    <spotless.version>2.37.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.11</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>

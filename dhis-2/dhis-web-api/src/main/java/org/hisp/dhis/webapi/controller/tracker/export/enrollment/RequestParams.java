@@ -51,10 +51,11 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 /**
  * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
+@OpenApi.Shared( name = "EnrollmentRequestParams" )
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class RequestParams extends PagingAndSortingCriteriaAdapter
+class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 
@@ -74,7 +75,7 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     private OrganisationUnitSelectionMode ouMode;
 
     @OpenApi.Property( { UID.class, Program.class } )
-    private String program;
+    private UID program;
 
     private ProgramStatus programStatus;
 
@@ -89,10 +90,10 @@ public class RequestParams extends PagingAndSortingCriteriaAdapter
     private Date enrolledBefore;
 
     @OpenApi.Property( { UID.class, TrackedEntityType.class } )
-    private String trackedEntityType;
+    private UID trackedEntityType;
 
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
-    private String trackedEntity;
+    private UID trackedEntity;
 
     /**
      * Semicolon-delimited list of enrollment UIDs.

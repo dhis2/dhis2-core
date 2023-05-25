@@ -4,12 +4,14 @@
 
 Get relationships matching given query parameters.
 
-### `getRelationships.parameter.trackedEntity`
-
-### `getRelationships.parameter.enrollment`
-
-### `getRelationships.parameter.event`
-
 ## `getRelationshipByUid`
 
 Get a relationship with given UID.
+
+## Common for all endpoints
+
+### `*.parameter.RelationshipRequestParams.trackedEntity`
+
+### `*.parameter.RelationshipRequestParams.enrollment`
+
+### `*.parameter.RelationshipRequestParams.event`

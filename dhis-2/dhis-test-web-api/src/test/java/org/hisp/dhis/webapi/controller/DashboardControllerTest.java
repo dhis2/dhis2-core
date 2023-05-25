@@ -38,7 +38,7 @@ import java.util.Optional;
 import org.hisp.dhis.dashboard.Dashboard;
 import org.hisp.dhis.dashboard.DashboardItem;
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.visualization.Visualization;
@@ -74,7 +74,7 @@ class DashboardControllerTest extends DhisControllerIntegrationTest
         assertFalse( aclService.canRead( userA, visualization ) );
 
         // Add one more DashboardItem to the created Dashboard
-        JsonResponse response = PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) )
+        JsonMixed response = PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) )
             .content( HttpStatus.CONFLICT );
         assertEquals(
             "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not found or not accessible",

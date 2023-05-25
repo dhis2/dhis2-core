@@ -39,7 +39,6 @@ import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
@@ -216,7 +215,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );
@@ -239,7 +238,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );
@@ -261,7 +260,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );
@@ -283,7 +282,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 2,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );
@@ -302,7 +301,7 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"sortOrder\": 3,\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
+        JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );

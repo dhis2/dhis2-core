@@ -49,7 +49,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class TrackedEntityFieldsParamMapper
+class TrackedEntityFieldsParamMapper
 {
     private final FieldFilterService fieldFilterService;
 
