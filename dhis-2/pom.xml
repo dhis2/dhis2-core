@@ -1756,6 +1756,10 @@
             <artifactId>itext</artifactId>
           </exclusion>
           <exclusion>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
+          </exclusion>
+          <exclusion>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk14</artifactId>
           </exclusion>
