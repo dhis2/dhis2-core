@@ -341,6 +341,12 @@ public @interface OpenApi
     @interface Shared
     {
         boolean value() default true;
+
+        /**
+         * @return can be used to override the class name part of a shared
+         *         parameter
+         */
+        String name() default "";
     }
 
     /*
