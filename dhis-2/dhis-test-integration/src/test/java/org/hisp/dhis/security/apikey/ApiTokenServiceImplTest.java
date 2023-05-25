@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.hashToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 import static org.junit.jupiter.api.Assertions.assertEquals;

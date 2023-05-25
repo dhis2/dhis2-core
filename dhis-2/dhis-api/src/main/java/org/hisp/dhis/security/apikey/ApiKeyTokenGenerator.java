@@ -49,7 +49,7 @@ public class ApiKeyTokenGenerator
 {
     private ApiKeyTokenGenerator()
     {
-                        throw new IllegalStateException( "Utility class" );
+        throw new IllegalStateException( "Utility class" );
     }
 
     /**
