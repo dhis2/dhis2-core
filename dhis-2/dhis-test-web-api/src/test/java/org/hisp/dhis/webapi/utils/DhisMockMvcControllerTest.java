@@ -35,7 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.hisp.dhis.DhisConvenienceTest;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.web.HttpMethod;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
@@ -52,7 +52,7 @@ public abstract class DhisMockMvcControllerTest extends DhisConvenienceTest impl
 {
 
     public static JsonWebMessage assertWebMessage( String httpStatus, int httpStatusCode, String status, String message,
-        JsonResponse actual )
+        JsonMixed actual )
     {
         return assertWebMessage( httpStatus, httpStatusCode, status, message, actual.as( JsonWebMessage.class ) );
     }

@@ -399,8 +399,10 @@ final class ApiAnalyse
         Collection<Property> properties = getProperties( paramsObject );
         if ( isSharable( paramsObject, false ) )
         {
+            OpenApi.Shared shared = paramsObject.getAnnotation( OpenApi.Shared.class );
             Map<String, Api.Parameter> sharedParameters = endpoint.getIn().getIn().getParameters();
-            Function<Property, String> toName = property -> paramsObject.getSimpleName() + "." + property.getName();
+            String baseName = shared.name().isEmpty() ? paramsObject.getSimpleName() : shared.name();
+            Function<Property, String> toName = property -> baseName + "." + property.getName();
             properties.forEach( property -> sharedParameters
                 .computeIfAbsent( toName.apply( property ), name -> analyseParameter( endpoint, property, name ) ) );
             properties.forEach( property -> endpoint.getParameters()

@@ -80,7 +80,7 @@ import com.google.common.collect.ImmutableMap;
     + RelationshipsExportController.RELATIONSHIPS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class RelationshipsExportController
+class RelationshipsExportController
 {
     protected static final String RELATIONSHIPS = "relationships";
 

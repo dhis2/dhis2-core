@@ -29,7 +29,7 @@ package org.hisp.dhis.webapi.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -37,10 +37,10 @@ import org.junit.jupiter.api.Test;
 /**
  * @author viet@dhis2.org
  */
-public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
+class GeoFeatureControllerTest extends DhisControllerConvenienceTest
 {
     @Test
-    public void testGetWithCoordinateField()
+    void testGetWithCoordinateField()
     {
         POST( "/metadata",
             "{\"organisationUnits\": ["
@@ -56,7 +56,7 @@ public class GeoFeatureControllerTest extends DhisControllerConvenienceTest
                 + "\"attributes\":[{\"id\":\"RRH9IFiZZYN\",\"valueType\":\"GEOJSON\",\"organisationUnitAttribute\":true,\"name\":\"testgeojson\"}]}" )
             .content( HttpStatus.OK );
 
-        JsonResponse response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
+        JsonArray response = GET( "/geoFeatures?ou=ou:LEVEL-1&&coordinateField=RRH9IFiZZYN" )
             .content( HttpStatus.OK );
         assertEquals( 1, response.size() );
         assertEquals( "[[[100.0,0.0],[101.0,0.0],[101.0,1.0],[100.0,1.0],[100.0,0.0]]]",
