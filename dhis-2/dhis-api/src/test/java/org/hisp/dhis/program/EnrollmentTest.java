@@ -1,0 +1,112 @@
+/*
+ * Copyright (c) 2004-2023, University of Oslo
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ * Redistributions of source code must retain the above copyright notice, this
+ * list of conditions and the following disclaimer.
+ *
+ * Redistributions in binary form must reproduce the above copyright notice,
+ * this list of conditions and the following disclaimer in the documentation
+ * and/or other materials provided with the distribution.
+ * Neither the name of the HISP project nor the names of its contributors may
+ * be used to endorse or promote products derived from this software without
+ * specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ * DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ * ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+package org.hisp.dhis.program;
+
+import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
+import static org.hisp.dhis.program.ProgramTest.getNewProgramWithNoNulls;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+
+import java.lang.reflect.Field;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import org.hisp.dhis.message.MessageConversation;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.junit.jupiter.api.Test;
+
+/**
+ * @author David Mackessy
+ */
+class EnrollmentTest
+{
+    @Test
+    void testCopyOfWithPropertyValuesSet()
+    {
+        Enrollment original = getNewEnrollmentWithNoNulls();
+        Program copiedProgram = getNewProgramWithNoNulls();
+        Enrollment copy = Enrollment.copyOf( original, copiedProgram );
+
+        assertNotSame( original, copy );
+        assertNotEquals( original, copy );
+        assertNotEquals( original.getUid(), copy.getUid() );
+        assertNotEquals( original.getProgram(), copy.getProgram() );
+        assertEquals( original.getEvents(), copy.getEvents() );
+        assertEquals( original.getStatus(), copy.getStatus() );
+        assertEquals( original.getComments(), copy.getComments() );
+        assertEquals( original.getName(), copy.getName() );
+        assertEquals( original.getIncidentDate(), copy.getIncidentDate() );
+        assertEquals( original.getEnrollmentDate(), copy.getEnrollmentDate() );
+        assertEquals( original.getFollowup(), copy.getFollowup() );
+        assertEquals( original.getGeometry(), copy.getGeometry() );
+        assertEquals( original.getOrganisationUnit(), copy.getOrganisationUnit() );
+        assertEquals( original.getEndDate(), copy.getEndDate() );
+        assertEquals( original.getRelationshipItems(), copy.getRelationshipItems() );
+        assertEquals( original.getCreatedByUserInfo(), copy.getCreatedByUserInfo() );
+        assertEquals( original.getMessageConversations(), copy.getMessageConversations() );
+    }
+
+    /**
+     * This test checks the expected field count for {@link Enrollment}. This is
+     * important due to {@link Enrollment#copyOf} functionality. If a new field
+     * is added then {@link Enrollment#copyOf} should be updated with the
+     * appropriate copying approach.
+     */
+    @Test
+    void testExpectedFieldCount()
+    {
+        Field[] allClassFieldsIncludingInherited = getAllFields( Enrollment.class );
+        assertEquals( 36, allClassFieldsIncludingInherited.length );
+    }
+
+    private Enrollment getNewEnrollmentWithNoNulls()
+    {
+        Enrollment e = new Enrollment();
+        Program program = getNewProgramWithNoNulls();
+        e.setAutoFields();
+        e.setName( "Enrollment 1" );
+        e.setComments( List.of( new TrackedEntityComment( "comment1", "amin" ) ) );
+        e.setFollowup( true );
+        e.setStoredBy( "admin" );
+        e.setProgram( program );
+        e.setCompletedBy( "admin" );
+        e.setMessageConversations( List.of( new MessageConversation() ) );
+        e.setEvents( Set.of() );
+        e.setRelationshipItems( Set.of() );
+        e.setEndDate( new Date() );
+        e.setEnrollmentDate( new Date() );
+        e.setIncidentDate( new Date() );
+        e.setOrganisationUnit( new OrganisationUnit( "org1" ) );
+        e.setTrackedEntity( new TrackedEntity() );
+        return e;
+    }
+}

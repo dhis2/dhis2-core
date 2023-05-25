@@ -27,11 +27,13 @@
  */
 package org.hisp.dhis.program;
 
+import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -121,7 +123,20 @@ class ProgramTest
         assertTrue( copy.getUserRoles().isEmpty() );
     }
 
-    private Program getNewProgramWithNoNulls()
+    /**
+     * This test checks the expected field count for {@link Program}. This is
+     * important due to {@link Program#copyOf} functionality. If a new field is
+     * added then {@link Program#copyOf} should be updated with the appropriate
+     * copying approach.
+     */
+    @Test
+    void testExpectedFieldCount()
+    {
+        Field[] allClassFieldsIncludingInherited = getAllFields( Program.class );
+        assertEquals( 54, allClassFieldsIncludingInherited.length );
+    }
+
+    public static Program getNewProgramWithNoNulls()
     {
         Program program = new Program();
         program.setAccessLevel( AccessLevel.OPEN );
@@ -209,7 +224,7 @@ class ProgramTest
         return program;
     }
 
-    private Set<ProgramStage> getProgramStages()
+    private static Set<ProgramStage> getProgramStages()
     {
         ProgramStage stage = new ProgramStage();
         stage.setAutoFields();

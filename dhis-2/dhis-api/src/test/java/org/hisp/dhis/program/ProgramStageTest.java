@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.program;
 
+import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
 import static org.hisp.dhis.program.ProgramStageDataElementTest.getNewProgramStageDataElement;
 import static org.hisp.dhis.program.ProgramStageSectionTest.getNewProgramStageSection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -34,6 +35,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
@@ -91,7 +93,19 @@ class ProgramStageTest
         assertTrue( copy.getNotificationTemplates().isEmpty() );
         assertTrue( copy.getProgramStageSections().isEmpty() );
         assertTrue( copy.getProgramStageDataElements().isEmpty() );
+    }
 
+    /**
+     * This test checks the expected field count for {@link ProgramStage}. This
+     * is important due to {@link ProgramStage#copyOf} functionality. If a new
+     * field is added then {@link ProgramStage#copyOf} should be updated with
+     * the appropriate copying approach.
+     */
+    @Test
+    void testExpectedFieldCount()
+    {
+        Field[] allClassFieldsIncludingInherited = getAllFields( ProgramStage.class );
+        assertEquals( 50, allClassFieldsIncludingInherited.length );
     }
 
     private ProgramStage getNewProgramStageWithNoNulls( Program program )

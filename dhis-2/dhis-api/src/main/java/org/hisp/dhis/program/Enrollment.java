@@ -462,13 +462,13 @@ public class Enrollment
     public static Enrollment copyOf( Enrollment original, Program programCopy )
     {
         Enrollment copy = new Enrollment();
+        copy.setAutoFields();
         setShallowCopyValues( copy, original, programCopy );
         return copy;
     }
 
     private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
     {
-        copy.setAutoFields();
         copy.setCode( original.getCode() );
         copy.setComments( newListFromObjectOrEmpty( original.getComments() ) );
         copy.setCompletedBy( original.getCompletedBy() );
