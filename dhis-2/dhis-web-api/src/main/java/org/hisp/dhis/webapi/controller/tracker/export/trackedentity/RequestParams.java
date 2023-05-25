@@ -56,6 +56,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino
  */
+@OpenApi.Shared( name = "TrackedEntityRequestParams" )
 @OpenApi.Property
 @Data
 @NoArgsConstructor
