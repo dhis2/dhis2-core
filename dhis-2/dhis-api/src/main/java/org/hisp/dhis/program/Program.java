@@ -915,6 +915,7 @@ public class Program
 
     public static final BiFunction<Program, Map<String, String>, ProgramCopyTuple> copyOf = ( original, options ) -> {
         Program copy = new Program();
+        copy.setAutoFields();
         setShallowCopyValues( copy, original, options );
         setDeepCopyValues( copy, original, options );
         return new ProgramCopyTuple( copy, original );

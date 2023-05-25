@@ -298,6 +298,7 @@ public class ProgramStageDataElement
     {
         ProgramStageDataElement copy = new ProgramStageDataElement();
         copy.setProgramStage( copyProgramStage );
+        copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
     }
@@ -306,7 +307,6 @@ public class ProgramStageDataElement
     {
         copy.setAllowFutureDate( original.getAllowFutureDate() );
         copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
-        copy.setAutoFields();
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setCompulsory( original.isCompulsory() );
         copy.setDataElement( original.getDataElement() );

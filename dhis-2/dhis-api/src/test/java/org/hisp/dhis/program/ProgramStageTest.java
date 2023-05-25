@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.ProgramStageDataElementTest.getNewProgramStageDataElement;
+import static org.hisp.dhis.program.ProgramStageSectionTest.getNewProgramStageSection;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -66,9 +68,9 @@ class ProgramStageTest
         assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
         assertNotEquals( original.getName(), copy.getName() );
         assertNotSame( original.getProgramStageSections(), copy.getProgramStageSections() );
-        //        assertNotEquals(original.getProgramStageSections(), copy.getProgramStageSections());
+        assertNotEquals( original.getProgramStageSections(), copy.getProgramStageSections() );
         assertNotSame( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
-        //        assertNotEquals(original.getProgramStageDataElements(), copy.getProgramStageDataElements());
+        assertNotEquals( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
         assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
     }
 
@@ -86,11 +88,9 @@ class ProgramStageTest
         assertEquals( original.getFeatureType(), copy.getFeatureType() );
         assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
         assertNotEquals( original.getName(), copy.getName() );
-        assertNotSame( original.getProgramStageSections(), copy.getProgramStageSections() );
-        //        assertNotEquals(original.getProgramStageSections(), copy.getProgramStageSections());
-        assertNotSame( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
-        //        assertNotEquals(original.getProgramStageDataElements(), copy.getProgramStageDataElements());
         assertTrue( copy.getNotificationTemplates().isEmpty() );
+        assertTrue( copy.getProgramStageSections().isEmpty() );
+        assertTrue( copy.getProgramStageDataElements().isEmpty() );
 
     }
 
@@ -112,6 +112,8 @@ class ProgramStageTest
         programStage.setReportDateToUse( "report date" );
         programStage.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
         programStage.setShortName( "short name" );
+        programStage.setProgramStageSections( getProgramStageSections( programStage ) );
+        programStage.setProgramStageDataElements( getProgramStageDataElements( programStage ) );
         programStage.setSortOrder( 2 );
         programStage.setStyle( new ObjectStyle() );
         programStage.setStandardInterval( 11 );
@@ -144,11 +146,17 @@ class ProgramStageTest
         return programStage;
     }
 
-    private Set<ProgramStage> getProgramStages()
+    private Set<ProgramStageSection> getProgramStageSections( ProgramStage programStage )
     {
-        ProgramStage stage = new ProgramStage();
-        stage.setAutoFields();
-        stage.setName( "stage one" );
-        return Set.of( stage );
+        ProgramStageSection pss1 = getNewProgramStageSection( programStage );
+        ProgramStageSection pss2 = getNewProgramStageSection( programStage );
+        return Set.of( pss1, pss2 );
+    }
+
+    private Set<ProgramStageDataElement> getProgramStageDataElements( ProgramStage programStage )
+    {
+        ProgramStageDataElement psde1 = getNewProgramStageDataElement( programStage, "data el1" );
+        ProgramStageDataElement psde2 = getNewProgramStageDataElement( programStage, "data el2" );
+        return Set.of( psde1, psde2 );
     }
 }

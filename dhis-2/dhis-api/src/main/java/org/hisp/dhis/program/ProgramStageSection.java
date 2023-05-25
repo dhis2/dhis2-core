@@ -220,13 +220,13 @@ public class ProgramStageSection
     {
         ProgramStageSection copy = new ProgramStageSection();
         copy.setProgramStage( copyProgramStage );
+        copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
     }
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
-        copy.setAutoFields();
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setDataElements( newListFromObjectOrEmpty( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
@@ -234,6 +234,7 @@ public class ProgramStageSection
         //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
         copy.setName( original.getName() );
         copy.setProgramIndicators( newListFromObjectOrEmpty( original.getProgramIndicators() ) );
+        copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );
         copy.setSortOrder( original.getSortOrder() );

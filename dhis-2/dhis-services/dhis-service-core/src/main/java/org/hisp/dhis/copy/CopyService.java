@@ -76,7 +76,7 @@ public class CopyService
         }
     }
 
-    public String applyAllProgramCopySteps( Program program, Map<String, String> copyOptions )
+    private String applyAllProgramCopySteps( Program program, Map<String, String> copyOptions )
     {
         return Program.copyOf
             .andThen( saveNewProgram )

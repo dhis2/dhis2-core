@@ -594,6 +594,7 @@ public class ProgramStage
     {
         ProgramStage copy = new ProgramStage();
         copy.setProgram( programCopy );
+        copy.setAutoFields();
         setShallowCopyValues( copy, original, options );
         setDeepCopyValues( copy, original );
         return copy;
@@ -603,7 +604,6 @@ public class ProgramStage
     {
         String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
-        copy.setAutoFields();
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );
         copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
