@@ -80,15 +80,15 @@ import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
-import org.hisp.dhis.dxf2.events.EventParams;
-import org.hisp.dhis.dxf2.events.event.DataValue;
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventSearchParams;
-import org.hisp.dhis.dxf2.events.event.Events;
-import org.hisp.dhis.dxf2.events.event.ImportEventsTask;
-import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
-import org.hisp.dhis.dxf2.events.report.EventRowService;
-import org.hisp.dhis.dxf2.events.report.EventRows;
+import org.hisp.dhis.dxf2.deprecated.tracker.EventParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventSearchParams;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Events;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.ImportEventsTask;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.csv.CsvEventService;
+import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRowService;
+import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
@@ -168,7 +168,7 @@ public class EventController
 
     private final AsyncTaskExecutor taskExecutor;
 
-    private final org.hisp.dhis.dxf2.events.event.EventService eventService;
+    private final org.hisp.dhis.dxf2.deprecated.tracker.event.EventService eventService;
 
     private final CsvEventService<Event> csvEventService;
 

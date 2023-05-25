@@ -57,13 +57,13 @@ jobs:
 
       - name: Run tests
         run: |
-          cd dhis-2/dhis-e2e-test
+          cd dhis-2/dhis-test-e2e
           DHIS2_IMAGE=$CORE_IMAGE_NAME docker compose -f docker-compose.yml -f docker-compose.e2e.yml up --remove-orphans --exit-code-from test
 
       - name: Upload logs
         if: failure()
         run: |
-          cd dhis-2/dhis-e2e-test
+          cd dhis-2/dhis-test-e2e
           docker compose logs web > ~/logs.txt
 
       - uses: actions/upload-artifact@v3

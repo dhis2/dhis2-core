@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Set;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.DefaultAclStore;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.test.integration.IntegrationTestBase;
 import org.hisp.dhis.user.User;
