@@ -30,18 +30,23 @@ package org.hisp.dhis.common;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.concurrent.ThreadLocalRandom;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Slf4j
 class Base62Test
 {
     @Test
     void encodeToBase62()
     {
         String crc32Max64BitLongInBase62 = "AzL8n0Y58m7";
-        long maxSigned64BitValue = (1L << 63) - 1;
+        long maxSigned64BitValue = Long.MAX_VALUE;
         double logBase62Max64 = Math.log( maxSigned64BitValue ) / Math.log( 62 );
         int maxCharLen64Max = (int) Math.ceil( logBase62Max64 );
         String encoded64Max = Base62.encodeToBase62( maxSigned64BitValue, maxCharLen64Max );
@@ -121,12 +126,26 @@ class Base62Test
     @Test
     void encode64TooBig()
     {
-        long maxSigned64BitValue = (1L << 63) - 1;
+        long maxSigned64BitValue = Long.MAX_VALUE;
         Exception exception = assertThrows( IllegalArgumentException.class,
             () -> Base62.encodeSigned64bitToBase62( maxSigned64BitValue + 1 ) );
 
         String expectedMessage = "Number must be non-negative";
 
         assertEquals( expectedMessage, exception.getMessage() );
+    }
+
+    @Test
+    void decodeRandom()
+    {
+        for ( int x = 0; x < 1000; x++ )
+        {
+            long maxSigned64BitValue = Long.MAX_VALUE;
+            long num = maxSigned64BitValue - ThreadLocalRandom.current().nextLong( maxSigned64BitValue );
+            String encoded64Max = Base62.encodeSigned64bitToBase62( num );
+            long l = Base62.decodeBase62( "0000" + encoded64Max );
+
+            assertEquals( num, l );
+        }
     }
 }
