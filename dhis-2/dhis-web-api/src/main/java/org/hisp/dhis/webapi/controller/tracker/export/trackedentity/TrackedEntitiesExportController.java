@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -129,19 +130,17 @@ public class TrackedEntitiesExportController
 
         if ( criteria.isPagingRequest() )
         {
+            long count = 0L;
 
-            Long count = criteria.isTotalPages()
-                ? (long) trackedEntityService.getTrackedEntityCount( queryParams, true, true )
-                : null;
+            if ( criteria.isTotalPages() )
+            {
+                count = trackedEntityService.getTrackedEntityCount( queryParams, true, true );
+            }
 
-            int pageCount = (int) Math.ceil( count / (double) queryParams.getPageSizeWithDefault() );
+            Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
+
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( queryParams.getPageWithDefault() )
-                    .total( count )
-                    .pageCount( pageCount )
-                    .pageSize( queryParams.getPageSizeWithDefault() )
-                    .build() );
+                PagingWrapper.Pager.fromLegacy( criteria, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntities, fields );
