@@ -215,7 +215,7 @@
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.4</spotbugs-maven-plugin.version>
-    <spotless.version>2.36.0</spotless.version>
+    <spotless.version>2.37.0</spotless.version>
     <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
     <jrebel-x-maven-plugin.version>1.1.11</jrebel-x-maven-plugin.version>
     <dhis-antlr-expression-parser.version>1.0.34</dhis-antlr-expression-parser.version>
