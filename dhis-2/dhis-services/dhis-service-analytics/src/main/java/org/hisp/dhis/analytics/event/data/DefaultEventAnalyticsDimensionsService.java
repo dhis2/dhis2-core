@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
@@ -65,16 +63,12 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
 {
-    @Nonnull
     private final ProgramStageService programStageService;
 
-    @Nonnull
     private final CategoryService categoryService;
 
-    @Nonnull
     private final AclService aclService;
 
-    @Nonnull
     private final CurrentUserService currentUserService;
 
     @Override

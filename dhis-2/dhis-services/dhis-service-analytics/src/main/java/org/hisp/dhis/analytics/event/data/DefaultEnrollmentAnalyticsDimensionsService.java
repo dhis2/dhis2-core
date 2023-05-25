@@ -40,8 +40,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
@@ -60,13 +58,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAnalyticsDimensionsService
 {
-    @Nonnull
     private final ProgramService programService;
 
-    @Nonnull
     private final AclService aclService;
 
-    @Nonnull
     private final CurrentUserService currentUserService;
 
     @Override
