@@ -138,7 +138,7 @@ public class TrackedEntitiesExportController
         {
             long count = 0L;
 
-            if ( criteria.isTotalPages() )
+            if ( requestParams.isTotalPages() )
             {
                 count = trackedEntityService.getTrackedEntityCount( queryParams, true, true );
             }
@@ -146,7 +146,7 @@ public class TrackedEntitiesExportController
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
 
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.fromLegacy( criteria, pager ) );
+                PagingWrapper.Pager.fromLegacy( requestParams, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntities, requestParams.getFields() );
