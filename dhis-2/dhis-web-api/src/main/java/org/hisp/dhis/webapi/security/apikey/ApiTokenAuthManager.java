@@ -29,8 +29,9 @@ package org.hisp.dhis.webapi.security.apikey;
 
 import java.util.Optional;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.hisp.dhis.cache.Cache;
-import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
@@ -49,23 +50,24 @@ import org.springframework.security.core.AuthenticationException;
  * authenticated only if the token is not expired and the request constraint
  * rules are matching.
  */
+@Slf4j
 public class ApiTokenAuthManager implements AuthenticationManager
 {
     private final ApiTokenService apiTokenService;
 
     private final UserService userService;
 
-    private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
-
     private final SecurityService securityService;
 
+    private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
+
     public ApiTokenAuthManager( UserService userService, SecurityService securityService,
-        ApiTokenService apiTokenService, CacheProvider cacheProvider )
+        ApiTokenService apiTokenService, Cache<ApiTokenAuthenticationToken> apiTokenCache )
     {
         this.securityService = securityService;
         this.userService = userService;
         this.apiTokenService = apiTokenService;
-        this.apiTokenCache = cacheProvider.createApiKeyCache();
+        this.apiTokenCache = apiTokenCache;
     }
 
     @Override

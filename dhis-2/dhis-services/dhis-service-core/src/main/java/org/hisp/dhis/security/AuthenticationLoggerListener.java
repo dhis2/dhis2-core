@@ -59,7 +59,7 @@ import com.google.common.hash.Hashing;
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent>
 {
-    private final HashFunction sessionIdHasher = Hashing.sha256();
+    private final HashFunction sessionIDHasher = Hashing.sha256();
 
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
@@ -160,7 +160,7 @@ public class AuthenticationLoggerListener
         {
             return "";
         }
-        String s = sessionIdHasher.newHasher().putString( sessionId, StandardCharsets.UTF_8 ).hash().toString();
+        String s = sessionIDHasher.newHasher().putString( sessionId, StandardCharsets.UTF_8 ).hash().toString();
         return String.format( "sessionId: %s; ", s );
     }
 }
