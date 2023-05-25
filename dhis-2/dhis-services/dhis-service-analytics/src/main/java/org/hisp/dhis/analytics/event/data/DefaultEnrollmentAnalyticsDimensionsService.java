@@ -40,6 +40,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.common.DimensionsServiceCommon;
@@ -53,8 +55,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Nonnull;
 
 @Service
 @RequiredArgsConstructor
@@ -80,8 +80,8 @@ public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAn
             .map( program -> collectDimensions(
                 List.of(
                     ofItemsWithProgram( program, program.getProgramIndicators().stream()
-                            .filter( pi -> aclService.canRead( user, pi ) )
-                            .collect( Collectors.toSet() ) ),
+                        .filter( pi -> aclService.canRead( user, pi ) )
+                        .collect( Collectors.toSet() ) ),
                     getProgramStageDataElements( QUERY, program ),
                     filterByValueType(
                         QUERY,

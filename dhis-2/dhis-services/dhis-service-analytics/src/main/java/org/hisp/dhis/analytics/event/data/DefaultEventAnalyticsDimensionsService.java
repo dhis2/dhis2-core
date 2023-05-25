@@ -92,9 +92,9 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
                 .map( p -> collectDimensions(
                     List.of(
                         ofProgramIndicators( p.getProgramIndicators()
-                                                .stream()
-                                                .filter( pi -> aclService.canRead( user, pi ) )
-                                                .collect( Collectors.toSet() ) ),
+                            .stream()
+                            .filter( pi -> aclService.canRead( user, pi ) )
+                            .collect( Collectors.toSet() ) ),
                         filterByValueType(
                             QUERY,
                             ofDataElements( programStage.get() ) ),

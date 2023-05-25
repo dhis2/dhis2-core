@@ -68,7 +68,8 @@ class EnrollmentAnalyticsDimensionsServiceTest
         when( program.getProgramIndicators() ).thenReturn( Collections.emptySet() );
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
-        enrollmentAnalyticsDimensionsService = new DefaultEnrollmentAnalyticsDimensionsService( programService, mock( AclService.class ), mock( CurrentUserService.class ) );
+        enrollmentAnalyticsDimensionsService = new DefaultEnrollmentAnalyticsDimensionsService( programService,
+            mock( AclService.class ), mock( CurrentUserService.class ) );
     }
 
     @Test

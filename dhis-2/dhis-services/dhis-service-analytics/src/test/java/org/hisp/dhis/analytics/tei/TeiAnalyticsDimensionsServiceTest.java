@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
@@ -75,7 +74,8 @@ class TeiAnalyticsDimensionsServiceTest
 
         teiAnalyticsDimensionsService = new DefaultTeiAnalyticsDimensionsService(
             trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService( programService, mock( AclService.class ), mock( CurrentUserService.class ) ),
+            new DefaultEnrollmentAnalyticsDimensionsService( programService, mock( AclService.class ),
+                mock( CurrentUserService.class ) ),
             programService );
     }
 
