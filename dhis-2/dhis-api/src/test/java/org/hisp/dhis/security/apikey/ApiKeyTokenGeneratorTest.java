@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.security.apikey;
 
-import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePlainTextToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -128,7 +128,7 @@ class ApiKeyTokenGeneratorTest
         for ( int i = 0; i < 1000; i++ )
         {
             ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
-            char[] token = generatePlainTextToken( type );
+            char[] token = generatePatToken( type );
 
             ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
             char[] code = pair.getCode();
@@ -149,7 +149,7 @@ class ApiKeyTokenGeneratorTest
         for ( int i = 0; i < 1000; i++ )
         {
             ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V2;
-            char[] token = generatePlainTextToken( type );
+            char[] token = generatePatToken( type );
 
             ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
             char[] code = pair.getCode();
@@ -171,7 +171,7 @@ class ApiKeyTokenGeneratorTest
     @Test
     void testGeneratePersonalAccessTokensV2CheckChecksumMatch()
     {
-        char[] token = generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V2 );
+        char[] token = generatePatToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V2 );
 
         ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
         char[] code = pair.getCode();

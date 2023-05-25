@@ -28,7 +28,7 @@
 package org.hisp.dhis.security.apikey;
 
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
-import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePlainTextToken;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePatToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.hashToken;
 import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -212,14 +212,14 @@ class ApiTokenServiceImplTest extends SingleSetupIntegrationTestBase
     @Test
     void testValidateChecksums()
     {
-        char[] token = generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        char[] token = generatePatToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
         assertTrue( isValidTokenChecksum( token ) );
     }
 
     @Test
     void testHashingToken()
     {
-        char[] token = generatePlainTextToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
+        char[] token = generatePatToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V1 );
         String hashedToken = hashToken( token );
         assertTrue( HashUtils.isValidSHA256HexFormat( hashedToken ) );
     }

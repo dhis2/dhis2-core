@@ -34,12 +34,12 @@ import java.util.Arrays;
  */
 public class Base62
 {
-    public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
-
     private Base62()
     {
         throw new IllegalStateException( "Utility class" );
     }
+
+    public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
 
     private static final String BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -66,7 +66,7 @@ public class Base62
     }
 
     /**
-     * Encodes a signed 64-bit long (Long.MAX_VALUE) into base62.
+     * Encodes a signed 64-bit long into base62.
      * <p>
      * To calculate the max length in base62, we do:
      * <p>
@@ -97,11 +97,11 @@ public class Base62
     {
         if ( num < 0 )
         {
-            throw new IllegalArgumentException( "Number must be greater or equal to zero" );
+            throw new IllegalArgumentException( "Number must be non-negative" );
         }
         if ( padding <= 0 )
         {
-            throw new IllegalArgumentException( "Padding must be positive" );
+            throw new IllegalArgumentException( "Padding should be a non-zero positive value" );
         }
 
         int base = BASE62_ALPHABET.length();
@@ -142,5 +142,4 @@ public class Base62
         }
         return num;
     }
-
 }

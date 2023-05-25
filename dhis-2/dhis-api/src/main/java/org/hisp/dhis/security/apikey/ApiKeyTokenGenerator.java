@@ -49,7 +49,7 @@ public class ApiKeyTokenGenerator
 {
     private ApiKeyTokenGenerator()
     {
-        throw new IllegalStateException( "Utility class" );
+                        throw new IllegalStateException( "Utility class" );
     }
 
     /**
@@ -65,7 +65,7 @@ public class ApiKeyTokenGenerator
     {
         ApiTokenType type = ApiTokenType.getDefaultPatType();
 
-        char[] plaintext = ApiKeyTokenGenerator.generatePlainTextToken( type );
+        char[] plaintext = ApiKeyTokenGenerator.generatePatToken( type );
 
         final ApiToken token = ApiToken.builder().type( type )
             .version( type.getVersion() )
@@ -77,7 +77,7 @@ public class ApiKeyTokenGenerator
         return new TokenWrapper( plaintext, token );
     }
 
-    protected static char[] generatePlainTextToken( ApiTokenType type )
+    protected static char[] generatePatToken( ApiTokenType type )
     {
         char[] code = CodeGenerator.generateSecureRandomCode( type.getLength() );
         Preconditions.checkArgument( code.length == type.getLength(),

@@ -79,7 +79,7 @@ class Base62Test
         Exception exception = assertThrows( IllegalArgumentException.class,
             () -> Base62.encodeToBase62( 0L, 0 ) );
 
-        String expectedMessage = "Padding must be positive";
+        String expectedMessage = "Padding should be a non-zero positive value";
 
         assertEquals( expectedMessage, exception.getMessage() );
     }
@@ -90,7 +90,7 @@ class Base62Test
         Exception exception = assertThrows( IllegalArgumentException.class,
             () -> Base62.encodeToBase62( -1L, 0 ) );
 
-        String expectedMessage = "Number must be greater or equal to zero";
+        String expectedMessage = "Number must be non-negative";
 
         assertEquals( expectedMessage, exception.getMessage() );
     }
@@ -125,7 +125,7 @@ class Base62Test
         Exception exception = assertThrows( IllegalArgumentException.class,
             () -> Base62.encodeSigned64bitToBase62( maxSigned64BitValue + 1 ) );
 
-        String expectedMessage = "Number must be greater or equal to zero";
+        String expectedMessage = "Number must be non-negative";
 
         assertEquals( expectedMessage, exception.getMessage() );
     }

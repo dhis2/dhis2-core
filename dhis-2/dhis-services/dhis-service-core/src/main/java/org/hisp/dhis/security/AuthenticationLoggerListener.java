@@ -94,9 +94,9 @@ public class AuthenticationLoggerListener
         String sessionId = "";
         String exceptionMessage = "";
 
-        if ( event instanceof AbstractAuthenticationFailureEvent abstractAuthenticationFailureEvent )
+        if ( event instanceof AbstractAuthenticationFailureEvent failureEvent )
         {
-            exceptionMessage = "exception: " + abstractAuthenticationFailureEvent.getException().getMessage();
+            exceptionMessage = "exception: " + failureEvent.getException().getMessage();
         }
         else if ( authentication.getDetails() instanceof ForwardedIpAwareWebAuthenticationDetails authDetails )
         {
