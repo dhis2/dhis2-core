@@ -64,10 +64,12 @@ import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonRelationship;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 
+@Order( 1 )
 class BrokenTest extends DhisControllerConvenienceTest
 {
 
