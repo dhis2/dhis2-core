@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.relationship;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -58,6 +59,18 @@ class RequestParamsTest
         requestParams.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
 
         assertEquals( "Hq3Kc6HK4OZ", requestParams.getIdentifierParam() );
+    }
+
+    @Test
+    void getIdentifierParamFailsIfTrackedEntityAndTeiAreSet()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
+        requestParams.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
+
+        IllegalArgumentException exception = assertThrows( IllegalArgumentException.class,
+            () -> requestParams.getIdentifierParam() );
+        assertStartsWith( "Only one parameter of 'tei'", exception.getMessage() );
     }
 
     @Test
@@ -188,7 +201,6 @@ class RequestParamsTest
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
-        requestParams.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
@@ -203,7 +215,6 @@ class RequestParamsTest
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
-        requestParams.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
@@ -218,7 +229,6 @@ class RequestParamsTest
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntity( UID.of( "Hq3Kc6HK4OZ" ) );
-        requestParams.setTei( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEnrollment( UID.of( "Hq3Kc6HK4OZ" ) );
         requestParams.setEvent( UID.of( "Hq3Kc6HK4OZ" ) );
 
