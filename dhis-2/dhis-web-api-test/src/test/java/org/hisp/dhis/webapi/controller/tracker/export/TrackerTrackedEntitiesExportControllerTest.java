@@ -139,6 +139,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
     void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
     {
         // THIS TEST FAILS ON GITHUB ONLY
+        // trigger
         this.switchContextToUser( user );
 
         assertEquals( "Either Program or Tracked entity type should be specified",
