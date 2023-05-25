@@ -39,7 +39,7 @@ import org.springframework.security.authentication.AbstractAuthenticationToken;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ApiTokenAuthenticationToken extends AbstractAuthenticationToken implements CurrentUserDetails
+public final class ApiTokenAuthenticationToken extends AbstractAuthenticationToken implements CurrentUserDetails
 {
     private String tokenKey;
 

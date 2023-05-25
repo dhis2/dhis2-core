@@ -47,7 +47,6 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonBoolean;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.message.FakeMessageSender;
 import org.hisp.dhis.message.MessageSender;
@@ -291,7 +290,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetUserLegacyUserCredentialsIdPresent()
     {
-        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject response = GET( "/users/{id}", peter.getUid() ).content();
         JsonObject userCredentials = response.getObject( "userCredentials" );
         JsonValue id = userCredentials.get( "id" );
         assertTrue( id.exists() );
@@ -300,7 +299,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
     @Test
     void testNewTwoFAStatusExistsInUserCredentials()
     {
-        JsonResponse response = GET( "/users/{id}", peter.getUid() ).content();
+        JsonObject response = GET( "/users/{id}", peter.getUid() ).content();
         JsonObject userCredentials = response.getObject( "userCredentials" );
         Boolean twoFA = userCredentials.get( "twoFA" ).as( JsonBoolean.class ).bool();
         assertFalse( twoFA );
@@ -364,7 +363,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/",
                 "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                    .content( HttpStatus.CREATED ) );
+                .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -374,7 +373,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
             "One or more errors occurred, please see full details in import report.",
             POST( "/users/",
                 "{'id': 'yrB6vc5Ip¤¤', 'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                    .content( HttpStatus.CONFLICT ) );
+                .content( HttpStatus.CONFLICT ) );
     }
 
     @Test
@@ -499,7 +498,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
-                    .content( HttpStatus.CREATED ) );
+            .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -517,7 +516,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
             Body(
                 "[{'op': 'add', 'path': '/userGroups', 'value': [ { 'id': 'GZSvMCVowAx' }, { 'id': 'B6JNeAQ6akX' } ] } ]" ) ) );
 
-        JsonResponse response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
+        JsonObject response = GET( "/users/{id}?fields=userGroups", peter.getUid() ).content( HttpStatus.OK );
         assertEquals( 2, response.getArray( "userGroups" ).size() );
 
         assertStatus( HttpStatus.OK, PATCH( "/users/{id}", peter.getUid() + "?importReportMode=ERRORS",

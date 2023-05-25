@@ -65,7 +65,7 @@ class DataValueFileResourceControllerTest extends DhisControllerIntegrationTest
         pe = "2021-01";
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         String cc = ccDefault.getString( "id" ).string();
         coc = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
         de = addDataElement( "file data", "FDE1", ValueType.FILE_RESOURCE, null, cc );

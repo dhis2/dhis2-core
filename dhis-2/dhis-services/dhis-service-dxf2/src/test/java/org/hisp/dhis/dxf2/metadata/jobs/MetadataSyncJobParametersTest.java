@@ -187,7 +187,7 @@ class MetadataSyncJobParametersTest
             .thenReturn( metadataVersion );
         when(
             metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
-                .thenReturn( metadataVersions );
+            .thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) )
             .thenThrow( new DhisVersionMismatchException( "" ) );
         when( metadataSyncService.isSyncRequired( any( MetadataSyncParams.class ) ) ).thenReturn( true );
@@ -219,7 +219,7 @@ class MetadataSyncJobParametersTest
             .thenReturn( metadataVersion );
         when(
             metadataSyncPreProcessor.handleMetadataVersionsList( metadataRetryContext, metadataVersion, JOB_PROGRESS ) )
-                .thenReturn( metadataVersions );
+            .thenReturn( metadataVersions );
         when( metadataSyncService.doMetadataSync( any( MetadataSyncParams.class ) ) ).thenReturn( metadataSyncSummary );
         when( metadataSyncPostProcessor.handleSyncNotificationsAndAbortStatus( metadataSyncSummary,
             metadataRetryContext, metadataVersion ) ).thenReturn( true );

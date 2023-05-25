@@ -101,7 +101,7 @@ class RelationshipTypeControllerTest extends DhisControllerIntegrationTest
 
         JsonList<JsonString> attributes = GET(
             "/relationshipTypes/" + relationshipTypeId + "?fields=toConstraint[trackerDataView[attributes]]" ).content()
-                .getList( "toConstraint.trackerDataView.attributes", JsonString.class );
+            .getList( "toConstraint.trackerDataView.attributes", JsonString.class );
 
         assertEquals( 3, attributes.size() );
         assertEquals( List.of( attrA, attrB, attrC ), attributes.toList( JsonString::string ) );

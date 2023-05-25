@@ -27,26 +27,36 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
+import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.annotation.CheckForNull;
 import javax.servlet.http.HttpServletRequest;
 
+import lombok.Setter;
+
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.security.apikey.ApiTokenType;
 
 import com.google.common.net.HttpHeaders;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@Setter
 public final class ApiTokenResolver
 {
-    private static final Pattern authorizationPattern = Pattern.compile( "^ApiToken (?<token>[a-zA-Z0-9-._~+/]+=*)$",
+
+    private static final Pattern AUTHORIZATION_PATTERN = Pattern.compile( "^ApiToken (?<token>[a-z0-9-._~+/]+=*)$",
         Pattern.CASE_INSENSITIVE );
 
     public static final String HEADER_TOKEN_KEY_PREFIX = "apitoken";
 
     public static final String REQUEST_PARAMETER_NAME = "api_token";
+
+    public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
     private boolean allowFormEncodedBodyParameter = false;
 
@@ -54,81 +64,119 @@ public final class ApiTokenResolver
 
     private String bearerTokenHeaderName = HttpHeaders.AUTHORIZATION;
 
+    private boolean isParameterTokenSupportedForRequest( HttpServletRequest request )
+    {
+        return (this.allowFormEncodedBodyParameter && "POST".equals( request.getMethod() ))
+            || (this.allowUriQueryParameter && "GET".equals( request.getMethod() ));
+    }
+
+    @CheckForNull
     public String resolve( HttpServletRequest request )
     {
-        String authorizationHeaderToken = resolveFromAuthorizationHeader( request );
-        String parameterToken = resolveFromRequestParameters( request );
+        char[] headerToken = extractTokenFromHeader( request );
+        char[] parameterToken = extractTokenFromParameters( request );
 
-        if ( authorizationHeaderToken != null )
-        {
-            if ( parameterToken != null )
-            {
-                throw new ApiTokenAuthenticationException( ApiTokenErrors
-                    .invalidRequest( "Found multiple api tokens in the request" ) );
-            }
-            return authorizationHeaderToken;
-        }
+        if ( validateHeaderToken( headerToken, parameterToken ) )
+            return hashToken( headerToken );
 
-        if ( parameterToken != null && isParameterTokenSupportedForRequest( request ) )
-        {
-            return parameterToken;
-        }
+        if ( validateParameterToken( request, parameterToken ) )
+            return hashToken( parameterToken );
 
         return null;
     }
 
-    public void setAllowFormEncodedBodyParameter( boolean allowFormEncodedBodyParameter )
-    {
-        this.allowFormEncodedBodyParameter = allowFormEncodedBodyParameter;
-    }
-
-    public void setAllowUriQueryParameter( boolean allowUriQueryParameter )
-    {
-        this.allowUriQueryParameter = allowUriQueryParameter;
-    }
-
-    public void setBearerTokenHeaderName( String bearerTokenHeaderName )
-    {
-        this.bearerTokenHeaderName = bearerTokenHeaderName;
-    }
-
-    private String resolveFromAuthorizationHeader( HttpServletRequest request )
+    private char[] extractTokenFromHeader( HttpServletRequest request )
     {
         String authorization = request.getHeader( this.bearerTokenHeaderName );
         if ( !StringUtils.startsWithIgnoreCase( authorization, HEADER_TOKEN_KEY_PREFIX ) )
         {
-            return null;
+            return new char[0];
         }
 
-        Matcher matcher = authorizationPattern.matcher( authorization );
+        Matcher matcher = AUTHORIZATION_PATTERN.matcher( authorization );
         if ( !matcher.matches() )
         {
-            throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidToken( "Api token is malformed" ) );
+            throw new ApiTokenAuthenticationException( ApiTokenErrors.invalidRequest( "Api token is malformed" ) );
         }
 
-        return matcher.group( "token" );
+        return matcher.group( "token" ).toCharArray();
     }
 
-    private static String resolveFromRequestParameters( HttpServletRequest request )
+    private static boolean validateHeaderToken( char[] authorizationHeaderToken, char[] parameterToken )
+    {
+        if ( authorizationHeaderToken.length > 0 )
+        {
+            checksum( authorizationHeaderToken );
+
+            if ( parameterToken.length > 0 )
+            {
+                throw new ApiTokenAuthenticationException( ApiTokenErrors
+                    .invalidRequest( "Found multiple tokens in the request" ) );
+            }
+            return true;
+        }
+
+        return false;
+    }
+
+    private static char[] extractTokenFromParameters( HttpServletRequest request )
     {
         String[] values = request.getParameterValues( REQUEST_PARAMETER_NAME );
         if ( values == null || values.length == 0 )
         {
-            return null;
+            return new char[0];
         }
 
         if ( values.length == 1 )
         {
-            return values[0];
+            return values[0].toCharArray();
         }
 
         throw new ApiTokenAuthenticationException(
             ApiTokenErrors.invalidRequest( "Found multiple Api tokens in the request" ) );
     }
 
-    private boolean isParameterTokenSupportedForRequest( HttpServletRequest request )
+    private boolean validateParameterToken( HttpServletRequest request, char[] parameterToken )
     {
-        return ((this.allowFormEncodedBodyParameter && "POST".equals( request.getMethod() ))
-            || (this.allowUriQueryParameter && "GET".equals( request.getMethod() )));
+        if ( parameterToken.length > 0 && isParameterTokenSupportedForRequest( request ) )
+        {
+            checksum( parameterToken );
+            return true;
+        }
+        return false;
+    }
+
+    private static void checksum( char[] token )
+    {
+        try
+        {
+            if ( !validateChecksum( token ) )
+            {
+                throw new ApiTokenAuthenticationException( ApiTokenErrors
+                    .invalidRequest( CHECKSUM_VALIDATION_FAILED ) );
+            }
+        }
+        catch ( ApiTokenAuthenticationException e )
+        {
+            throw e;
+        }
+        catch ( Exception e )
+        {
+            throw new ApiTokenAuthenticationException( ApiTokenErrors
+                .invalidRequest( CHECKSUM_VALIDATION_FAILED ) );
+        }
+    }
+
+    private static String hashToken( char[] tokenInHeader )
+    {
+        try
+        {
+            return ApiTokenType.hashToken( tokenInHeader );
+        }
+        catch ( Exception e )
+        {
+            throw new ApiTokenAuthenticationException( ApiTokenErrors
+                .invalidRequest( "Could not hash token" ) );
+        }
     }
 }

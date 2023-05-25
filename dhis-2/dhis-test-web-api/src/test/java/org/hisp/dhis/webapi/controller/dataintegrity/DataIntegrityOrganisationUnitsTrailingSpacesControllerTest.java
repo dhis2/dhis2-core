@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.web.HttpStatus;
@@ -83,7 +83,7 @@ class DataIntegrityOrganisationUnitsTrailingSpacesControllerTest extends Abstrac
         orgUnitService.addOrganisationUnit( unitC );
         dbmsManager.clearSession();
 
-        JsonResponse json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content().as( JsonResponse.class );
+        JsonObject json_unitA = GET( "/organisationUnits/" + unitA.getUid() ).content();
         assertEquals( unitAName, json_unitA.getString( "name" ).string() );
 
         Set<String> orgUnitUIDs = Set.of( unitA.getUid(), unitB.getUid() );

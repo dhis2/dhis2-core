@@ -258,7 +258,7 @@ class DefaultCompleteDataSetRegistrationExchangeServiceTest
             when( orgUnitInHierarchyCache.get( eq( organisationUnit.getUid() ), any() ) ).thenReturn( Boolean.TRUE );
             when(
                 attrOptComboOrgUnitCache.get( eq( categoryOptionCombo.getUid() + organisationUnit.getUid() ), any() ) )
-                    .thenReturn( Boolean.TRUE );
+                .thenReturn( Boolean.TRUE );
             when( categoryService.getCategoryOptionCombo( categoryOptionCombo.getUid() ) )
                 .thenReturn( categoryOptionCombo );
 

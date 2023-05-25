@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Set;
 
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.user.User;
@@ -73,7 +73,7 @@ class AccountControllerTest extends DhisControllerConvenienceTest
         systemSettingManager.saveSystemSetting( SettingKey.SELF_REGISTRATION_NO_RECAPTCHA, Boolean.TRUE );
         assertWebMessage( "Bad Request", 400, "ERROR", "User self registration is not allowed", POST(
             "/account?username=test&firstName=fn&surname=sn&password=Pass%23%23%23123663&email=test@example.com&phoneNumber=0123456789&employer=em" )
-                .content( HttpStatus.BAD_REQUEST ) );
+            .content( HttpStatus.BAD_REQUEST ) );
     }
 
     @Test
@@ -138,9 +138,9 @@ class AccountControllerTest extends DhisControllerConvenienceTest
             POST( "/account/validatePassword?password=xyz" ).content( HttpStatus.OK ) );
     }
 
-    private static void assertMessage( String key, String value, String message, JsonResponse response )
+    private static void assertMessage( String key, String value, String message, JsonMixed response )
     {
-        assertContainsOnly( Set.of( key, "message" ), response.node().members().keySet() );
+        assertContainsOnly( Set.of( key, "message" ), response.names() );
         assertEquals( value, response.getString( key ).string() );
         assertEquals( message, response.getString( "message" ).string() );
     }

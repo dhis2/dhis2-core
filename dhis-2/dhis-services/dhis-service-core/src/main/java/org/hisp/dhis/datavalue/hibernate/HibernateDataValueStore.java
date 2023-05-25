@@ -230,7 +230,7 @@ public class HibernateDataValueStore extends HibernateGenericStore<DataValue>
         return getCount( builder, newJpaParameters()
             .addPredicates( predicateList )
             .count( builder::countDistinct ) )
-                .intValue();
+            .intValue();
     }
 
     @Override

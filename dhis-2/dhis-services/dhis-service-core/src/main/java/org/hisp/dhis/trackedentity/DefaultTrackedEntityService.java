@@ -69,7 +69,7 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.events.event.EventContext;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;

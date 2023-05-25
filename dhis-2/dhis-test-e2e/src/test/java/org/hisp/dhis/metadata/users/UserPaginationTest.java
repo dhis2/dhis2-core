@@ -38,6 +38,7 @@ import org.hisp.dhis.actions.LoginActions;
 import org.hisp.dhis.actions.UserActions;
 import org.hisp.dhis.actions.metadata.MetadataPaginationActions;
 import org.hisp.dhis.dto.ApiResponse;
+import org.hisp.dhis.helpers.PasswordGenerator;
 import org.hisp.dhis.utils.DataGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,7 +74,7 @@ public class UserPaginationTest
             userActions
                 .addUserFull( DataGenerator.randomString() + i, DataGenerator.randomString() + i,
                     (DataGenerator.randomString() + i).toLowerCase(),
-                    DataGenerator.randomString() + "Abcd1234!" + i );
+                    PasswordGenerator.generateValidPassword( 12 ) );
         }
     }
 

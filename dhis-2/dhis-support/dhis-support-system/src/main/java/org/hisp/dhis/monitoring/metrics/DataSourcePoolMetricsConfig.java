@@ -47,6 +47,7 @@ import org.springframework.context.annotation.Configuration;
 
 import com.google.common.collect.Lists;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
+
 import io.micrometer.core.instrument.MeterRegistry;
 
 /**

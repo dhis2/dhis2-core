@@ -42,8 +42,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Stream;
 
-import joptsimple.internal.Strings;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
@@ -222,7 +221,7 @@ public class EventExportTests
     {
         loginActions.loginAsUser( userName, password );
 
-        eventActions.get( String.format( "?event=%s", Strings.join( events, ";" ) ) )
+        eventActions.get( String.format( "?event=%s", StringUtils.join( events, ";" ) ) )
             .validate().statusCode( 200 )
             .body( "events", hasSize( greaterThanOrEqualTo( 1 ) ) )
             .body( "events.orgUnit", everyItem( in( orgUnits ) ) );
@@ -254,7 +253,7 @@ public class EventExportTests
         loginActions.loginAsUser( userName, password );
 
         QueryParamsBuilder builder = new QueryParamsBuilder().add( "ouMode", ouMode );
-        if ( !Strings.isNullOrEmpty( programId ) )
+        if ( !StringUtils.isEmpty( programId ) )
         {
             builder.add( "program", programId );
         }

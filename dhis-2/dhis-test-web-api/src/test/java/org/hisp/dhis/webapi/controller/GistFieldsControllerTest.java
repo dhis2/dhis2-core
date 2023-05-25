@@ -104,11 +104,11 @@ class GistFieldsControllerTest extends AbstractGistControllerTest
         JsonArray users = GET( "/users/gist?headless=true" ).content();
         JsonObject user0 = users.getObject( 0 );
         assertContainsOnly( Set.of( "id", "code", "surname", "firstName", "username" ),
-            user0.node().members().keySet() );
+            user0.names() );
         switchToSuperuser();
         users = GET( "/users/gist?headless=true" ).content();
         user0 = users.getObject( 0 );
-        assertTrue( user0.node().members().keySet().size() > 4 );
+        assertTrue( user0.size() > 4 );
     }
 
     /*
