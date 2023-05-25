@@ -32,6 +32,7 @@ import static org.hisp.dhis.program.ProgramTest.getNewProgramWithNoNulls;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Date;
@@ -75,6 +76,32 @@ class EnrollmentTest
         assertEquals( original.getMessageConversations(), copy.getMessageConversations() );
     }
 
+    @Test
+    void testCopyOfWithNullPropertyValues()
+    {
+        Enrollment original = getNewEnrollmentWithNulls();
+        Program copiedProgram = getNewProgramWithNoNulls();
+        Enrollment copy = Enrollment.copyOf( original, copiedProgram );
+
+        assertNotSame( original, copy );
+        assertNotEquals( original, copy );
+        assertNotEquals( original.getUid(), copy.getUid() );
+        assertNotEquals( original.getProgram(), copy.getProgram() );
+        assertEquals( original.getCreatedByUserInfo(), copy.getCreatedByUserInfo() );
+        assertEquals( original.getEndDate(), copy.getEndDate() );
+        assertEquals( original.getEnrollmentDate(), copy.getEnrollmentDate() );
+        assertEquals( original.getFollowup(), copy.getFollowup() );
+        assertEquals( original.getGeometry(), copy.getGeometry() );
+        assertEquals( original.getIncidentDate(), copy.getIncidentDate() );
+        assertEquals( original.getName(), copy.getName() );
+        assertEquals( original.getOrganisationUnit(), copy.getOrganisationUnit() );
+        assertEquals( original.getStatus(), copy.getStatus() );
+        assertTrue( copy.getComments().isEmpty() );
+        assertTrue( copy.getMessageConversations().isEmpty() );
+        assertTrue( copy.getEvents().isEmpty() );
+        assertTrue( copy.getRelationshipItems().isEmpty() );
+    }
+
     /**
      * This test checks the expected field count for {@link Enrollment}. This is
      * important due to {@link Enrollment#copyOf} functionality. If a new field
@@ -107,6 +134,25 @@ class EnrollmentTest
         e.setIncidentDate( new Date() );
         e.setOrganisationUnit( new OrganisationUnit( "org1" ) );
         e.setTrackedEntity( new TrackedEntity() );
+        return e;
+    }
+
+    private Enrollment getNewEnrollmentWithNulls()
+    {
+        Enrollment e = new Enrollment();
+        e.setName( null );
+        e.setComments( null );
+        e.setStoredBy( null );
+        e.setProgram( null );
+        e.setCompletedBy( null );
+        e.setMessageConversations( null );
+        e.setEvents( null );
+        e.setRelationshipItems( null );
+        e.setEndDate( null );
+        e.setEnrollmentDate( null );
+        e.setIncidentDate( null );
+        e.setOrganisationUnit( null );
+        e.setTrackedEntity( null );
         return e;
     }
 }

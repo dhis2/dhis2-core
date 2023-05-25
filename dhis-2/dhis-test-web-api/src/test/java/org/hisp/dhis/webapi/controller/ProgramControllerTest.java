@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.feedback.ErrorCode.E1005;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -133,5 +134,19 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             .collect( Collectors.toSet() );
         stageDataElUids.removeAll( Set.of( psde1, psde2 ) );
         assertEquals( 2, stageDataElUids.size() );
+    }
+
+    @Test
+    void testCopyProgramWithInvalidUid()
+    {
+        String invalidProgramUid = "invalid";
+        JsonWebMessage response = POST( "/programs/%s/copy".formatted( invalidProgramUid ) )
+            .content( HttpStatus.NOT_FOUND )
+            .as( JsonWebMessage.class );
+        assertEquals( "Not Found", response.getHttpStatus() );
+        assertEquals( 404, response.getHttpStatusCode() );
+        assertEquals( "ERROR", response.getStatus() );
+        assertEquals( "Program with id invalid could not be found.", response.getMessage() );
+        assertEquals( E1005, response.getErrorCode() );
     }
 }
