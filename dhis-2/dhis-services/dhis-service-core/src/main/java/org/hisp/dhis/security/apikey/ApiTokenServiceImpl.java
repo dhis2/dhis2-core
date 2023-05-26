@@ -36,7 +36,6 @@ import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.user.User;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,14 +50,11 @@ public class ApiTokenServiceImpl implements ApiTokenService
 {
     private final ApiTokenStore apiTokenStore;
 
-    private final ApplicationEventPublisher applicationEventPublisher;
-
-    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore, ApplicationEventPublisher applicationEventPublisher )
+    public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
     {
         checkNotNull( apiTokenStore );
 
         this.apiTokenStore = apiTokenStore;
-        this.applicationEventPublisher = applicationEventPublisher;
     }
 
     @Override
