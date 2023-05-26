@@ -47,10 +47,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.ActiveProfiles;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
+@ActiveProfiles( { "test-h2", "cache-test" } )
 class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
 {
     public static final String URI = "/me?fields=settings,id";

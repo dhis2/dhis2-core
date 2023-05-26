@@ -242,7 +242,6 @@ public class DhisWebApiWebSecurityConfig
 
         @Autowired
         private ApiTokenAuthManager apiTokenAuthManager;
-        //        private Cache<ApiTokenAuthenticationToken> apiKeyCache;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
