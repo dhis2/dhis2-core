@@ -34,12 +34,17 @@ import java.util.Arrays;
  */
 public class Base62
 {
+
     private Base62()
     {
         throw new IllegalStateException( "Utility class" );
     }
 
     public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
+
+    public static final int PADDING_BASE62_UNSIGNED_32BIT_LONG = 6;
+
+    public static final int PADDING_BASE62_SIGNED_64BIT_LONG = 11;
 
     private static final String BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
@@ -62,7 +67,7 @@ public class Base62
         {
             throw new IllegalArgumentException( "Number is too large for an unsigned 32-bit long" );
         }
-        return encodeToBase62( num, 6 );
+        return encodeToBase62( num, PADDING_BASE62_UNSIGNED_32BIT_LONG );
     }
 
     /**
@@ -80,7 +85,7 @@ public class Base62
      */
     public static String encodeSigned64bitToBase62( long num )
     {
-        return encodeToBase62( num, 11 );
+        return encodeToBase62( num, PADDING_BASE62_SIGNED_64BIT_LONG );
     }
 
     /**
