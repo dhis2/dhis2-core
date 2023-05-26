@@ -137,6 +137,16 @@ public class ProgramRuleVariable
         this.valueType = valueType;
     }
 
+    public boolean hasDataElement()
+    {
+        return this.dataElement != null;
+    }
+
+    public boolean hasTrackedEntityAttribute()
+    {
+        return this.attribute != null;
+    }
+
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------

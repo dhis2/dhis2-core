@@ -137,6 +137,7 @@ class TrackerTrackedEntitiesExportControllerTest extends DhisControllerConvenien
                 .getMessage() );
     }
 
+    @Disabled( "Disabled to avoid blocking and continue to investigate in separate PR" )
     @Test
     @Disabled
     void getTrackedEntitiesNeedsProgramOrTrackedEntityType()
