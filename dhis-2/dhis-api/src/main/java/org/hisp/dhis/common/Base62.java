@@ -60,7 +60,7 @@ public class Base62
     {
         if ( num > MAX_UNSIGNED_32_BIT_VALUE )
         {
-            throw new IllegalArgumentException( "Number is to large for an unsigned 32-bit" );
+            throw new IllegalArgumentException( "Number is too large for an unsigned 32-bit long" );
         }
         return encodeToBase62( num, 6 );
     }
