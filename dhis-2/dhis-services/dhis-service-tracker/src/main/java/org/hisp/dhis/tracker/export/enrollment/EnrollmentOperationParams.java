@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.program;
+package org.hisp.dhis.tracker.export.enrollment;
 
 import java.util.Date;
 import java.util.HashSet;
@@ -36,23 +36,20 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
-import org.hisp.dhis.user.User;
+import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
-/**
- * @author Morten Olav Hansen <mortenoh@gmail.com>
- */
 @Data
 @Accessors( chain = true )
-public class EnrollmentQueryParams
+public class EnrollmentOperationParams
 {
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
+
+    private EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
     /**
      * Last updated for enrollment.
@@ -68,7 +65,7 @@ public class EnrollmentQueryParams
      * Organisation units for which instances in the response were registered
      * at. Is related to the specified OrganisationUnitMode.
      */
-    private Set<OrganisationUnit> organisationUnits = new HashSet<>();
+    private Set<String> organisationUnitUids = new HashSet<>();
 
     /**
      * Selection mode for the specified organisation units.
@@ -78,7 +75,7 @@ public class EnrollmentQueryParams
     /**
      * Program for which instances in the response must be enrolled in.
      */
-    private Program program;
+    private String programUid;
 
     /**
      * Status of the tracked entity instance in the given program.
@@ -104,12 +101,12 @@ public class EnrollmentQueryParams
     /**
      * Tracked entity of the instances in the response.
      */
-    private TrackedEntityType trackedEntityType;
+    private String trackedEntityTypeUid;
 
     /**
      * Tracked entity instance.
      */
-    private TrackedEntity trackedEntity;
+    private String trackedEntityUid;
 
     /**
      * Page number.
@@ -143,19 +140,10 @@ public class EnrollmentQueryParams
     private List<OrderParam> order;
 
     // -------------------------------------------------------------------------
-    // Transient properties
-    // -------------------------------------------------------------------------
-
-    /**
-     * Current user for query.
-     */
-    private transient User user;
-
-    // -------------------------------------------------------------------------
     // Constructors
     // -------------------------------------------------------------------------
 
-    public EnrollmentQueryParams()
+    public EnrollmentOperationParams()
     {
     }
 
@@ -166,14 +154,14 @@ public class EnrollmentQueryParams
     /**
      * Adds an organisation unit to the parameters.
      */
-    public void addOrganisationUnit( OrganisationUnit unit )
+    public void addOrganisationUnit( String unit )
     {
-        this.organisationUnits.add( unit );
+        this.organisationUnitUids.add( unit );
     }
 
-    public void addOrganisationUnits( Set<OrganisationUnit> orgUnits )
+    public void addOrganisationUnits( Set<String> orgUnits )
     {
-        this.organisationUnits.addAll( orgUnits );
+        this.organisationUnitUids.addAll( orgUnits );
     }
 
     /**
@@ -197,7 +185,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasOrganisationUnits()
     {
-        return organisationUnits != null && !organisationUnits.isEmpty();
+        return organisationUnitUids != null && !organisationUnitUids.isEmpty();
     }
 
     /**
@@ -205,7 +193,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasProgram()
     {
-        return program != null;
+        return programUid != null;
     }
 
     /**
@@ -246,7 +234,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasTrackedEntityType()
     {
-        return trackedEntityType != null;
+        return trackedEntityTypeUid != null;
     }
 
     /**
@@ -254,7 +242,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasTrackedEntity()
     {
-        return this.trackedEntity != null;
+        return StringUtils.isNotEmpty( this.trackedEntityUid );
     }
 
     /**

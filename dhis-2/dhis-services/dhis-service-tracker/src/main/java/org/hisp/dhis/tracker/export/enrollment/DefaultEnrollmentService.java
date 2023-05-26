@@ -45,6 +45,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -77,6 +78,8 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     private final CurrentUserService currentUserService;
 
     private final TrackerAccessManager trackerAccessManager;
+
+    private final EnrollmentOperationParamsMapper opeationParamsMapper;
 
     @Override
     public Enrollment getEnrollment( String uid, EnrollmentParams params )
@@ -201,10 +204,13 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     }
 
     @Override
-    public Enrollments getEnrollments( EnrollmentQueryParams params )
-        throws ForbiddenException
+    public Enrollments getEnrollments( EnrollmentOperationParams params )
+        throws ForbiddenException,
+        BadRequestException
     {
         Enrollments enrollments = new Enrollments();
+
+        EnrollmentQueryParams queryParams = opeationParamsMapper.map( params );
 
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
@@ -212,25 +218,25 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         }
 
         List<Enrollment> enrollmentList = new ArrayList<>(
-            enrollmentService.getEnrollments( params ) );
+            enrollmentService.getEnrollments( queryParams ) );
         if ( !params.isSkipPaging() )
         {
             Pager pager;
 
             if ( params.isTotalPages() )
             {
-                int count = enrollmentService.countEnrollments( params );
+                int count = enrollmentService.countEnrollments( queryParams );
                 pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
             }
             else
             {
-                pager = handleLastPageFlag( params, enrollmentList );
+                pager = handleLastPageFlag( queryParams, enrollmentList );
             }
 
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( enrollmentList ) );
+        enrollments.setEnrollments( getEnrollments( enrollmentList, params.getEnrollmentParams() ) );
 
         return enrollments;
     }
@@ -271,7 +277,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments )
+    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments, EnrollmentParams params )
         throws ForbiddenException
     {
         List<Enrollment> enrollmentList = new ArrayList<>();
@@ -282,7 +288,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             if ( enrollment != null && trackerOwnershipAccessManager
                 .hasAccess( user, enrollment.getTrackedEntity(), enrollment.getProgram() ) )
             {
-                enrollmentList.add( getEnrollment( enrollment, EnrollmentParams.FALSE ) );
+                enrollmentList.add( getEnrollment( enrollment, params ) );
             }
         }
 

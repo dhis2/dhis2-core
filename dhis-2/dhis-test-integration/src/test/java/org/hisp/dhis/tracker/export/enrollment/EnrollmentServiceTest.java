@@ -44,11 +44,11 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.commons.util.RelationshipUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -376,15 +376,16 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentsWhenUserHasReadAccessToProgramAndSearchScopeAccessToOrgUnit()
-        throws ForbiddenException
+        throws ForbiddenException,
+        BadRequestException
     {
-        programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
+        programA.getSharing().setPublicAccess( AccessStringHelper.FULL );
+
         manager.updateNoAcl( programA );
 
-        EnrollmentQueryParams params = new EnrollmentQueryParams();
-        params.setProgram( programA );
+        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        params.setProgramUid( programA.getUid() );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
-        params.setUser( user );
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -394,15 +395,15 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
     @Test
     void shouldGetEnrollmentsByTrackedEntityWhenUserHasAccessToTrackedEntityType()
-        throws ForbiddenException
+        throws ForbiddenException,
+        BadRequestException
     {
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        EnrollmentQueryParams params = new EnrollmentQueryParams();
-        params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
+        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
         params.setTrackedEntityUid( trackedEntityA.getUid() );
-        params.setUser( user );
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -420,10 +421,9 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( trackedEntityTypeA );
 
-        EnrollmentQueryParams params = new EnrollmentQueryParams();
-        params.setOrganisationUnits( Set.of( trackedEntityA.getOrganisationUnit() ) );
+        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
         params.setTrackedEntityUid( trackedEntityA.getUid() );
-        params.setUser( user );
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollments( params ) );

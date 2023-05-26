@@ -31,12 +31,10 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -162,8 +160,7 @@ public class EnrollmentCriteriaMapper
         params.setProgramStartDate( programStartDate );
         params.setProgramEndDate( programEndDate );
         params.setTrackedEntityType( te );
-        params.setTrackedEntityUid(
-            Optional.ofNullable( tei ).map( IdentifiableObject::getUid ).orElse( null ) );
+        params.setTrackedEntity( tei );
         params.setOrganisationUnitMode( ouMode );
         params.setPage( page );
         params.setPageSize( pageSize );

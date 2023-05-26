@@ -27,10 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.EnrollmentQueryParams;
 
 public interface EnrollmentService
 {
@@ -41,6 +41,7 @@ public interface EnrollmentService
     Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params )
         throws ForbiddenException;
 
-    Enrollments getEnrollments( EnrollmentQueryParams params )
-        throws ForbiddenException;
+    Enrollments getEnrollments( EnrollmentOperationParams params )
+        throws ForbiddenException,
+        BadRequestException;
 }
