@@ -108,7 +108,7 @@ class Base62Test
         Exception exception = assertThrows( IllegalArgumentException.class,
             () -> Base62.encodeUnsigned32bitToBase62( maxUnsigned32BitValue + 1 ) );
 
-        String expectedMessage = "Number is to large for an unsigned 32-bit";
+        String expectedMessage = "Number is too large for an unsigned 32-bit long";
 
         assertEquals( expectedMessage, exception.getMessage() );
     }
