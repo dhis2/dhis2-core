@@ -33,15 +33,12 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.security.ImpersonatingUserDetailsChecker;
 import org.hisp.dhis.security.SecurityService;
-import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
-import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.security.apikey.DhisApiTokenAuthenticationEntryPoint;
 import org.hisp.dhis.security.basic.HttpBasicWebAuthenticationDetailsSource;
@@ -71,7 +68,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.access.AccessDecisionManager;
 import org.springframework.security.access.vote.AuthenticatedVoter;
@@ -244,7 +240,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private ConfigurationService configurationService;
 
-        private Cache<ApiTokenAuthenticationToken> apiKeyCache;
+        @Autowired
+        private ApiTokenAuthManager apiTokenAuthManager;
+        //        private Cache<ApiTokenAuthenticationToken> apiKeyCache;
 
         @Override
         public void configure( AuthenticationManagerBuilder auth )
@@ -402,22 +400,10 @@ public class DhisWebApiWebSecurityConfig
         {
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
             {
-                apiKeyCache = cacheProvider.createApiKeyCache();
-
-                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter(
-                    new ApiTokenAuthManager( userService, securityService, apiTokenService, apiKeyCache ),
+                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( apiTokenAuthManager,
                     apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
 
                 http.addFilterBefore( tokenFilter, BasicAuthenticationFilter.class );
-            }
-        }
-
-        @EventListener
-        public void handleApiTokenDeleted( ApiTokenDeletedEvent event )
-        {
-            if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
-            {
-                apiKeyCache.invalidate( event.getTokenHash() );
             }
         }
 

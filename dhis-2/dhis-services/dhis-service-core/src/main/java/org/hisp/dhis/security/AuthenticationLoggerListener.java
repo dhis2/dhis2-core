@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.security;
 
+import static org.apache.commons.lang3.StringUtils.firstNonEmpty;
+
 import java.nio.charset.StandardCharsets;
 
 import lombok.extern.slf4j.Slf4j;
@@ -59,7 +61,7 @@ import com.google.common.hash.Hashing;
 public class AuthenticationLoggerListener
     implements ApplicationListener<AbstractAuthenticationEvent>
 {
-    private final HashFunction sessionIDHasher = Hashing.sha256();
+    private static final HashFunction ID_HASH_FUNCTION = Hashing.sha256();
 
     public void onApplicationEvent( AbstractAuthenticationEvent event )
     {
@@ -68,18 +70,17 @@ public class AuthenticationLoggerListener
             return;
         }
 
-        if ( AuthenticationSwitchUserEvent.class.isAssignableFrom( event.getClass() ) )
+        if ( event instanceof SessionFixationProtectionEvent
+            || event instanceof InteractiveAuthenticationSuccessEvent )
         {
-            AuthenticationSwitchUserEvent switchUserEvent = (AuthenticationSwitchUserEvent) event;
+            return;
+        }
+
+        if ( event instanceof AuthenticationSwitchUserEvent switchUserEvent )
+        {
             log.info( "Authentication event: AuthenticationSwitchUserEvent; username: {}; targetUser: {}",
                 switchUserEvent.getAuthentication().getName(),
                 switchUserEvent.getTargetUser().getUsername() );
-        }
-
-        if ( SessionFixationProtectionEvent.class.isAssignableFrom( event.getClass() ) ||
-            InteractiveAuthenticationSuccessEvent.class.isAssignableFrom( event.getClass() ) )
-        {
-            return;
         }
 
         logAuthenticationEvent( event );
@@ -89,7 +90,7 @@ public class AuthenticationLoggerListener
     {
         Authentication authentication = event.getAuthentication();
 
-        String authName = StringUtils.firstNonEmpty( authentication.getName(), "" );
+        String authName = firstNonEmpty( authentication.getName(), "" );
         String ipAddress = "";
         String sessionId = "";
         String exceptionMessage = "";
@@ -145,7 +146,7 @@ public class AuthenticationLoggerListener
         return String.format( "ip: %s; ", ip );
     }
 
-    private String getUsernameFromPrincipal( Object principal )
+    private static String getUsernameFromPrincipal( Object principal )
     {
         if ( principal instanceof DhisOidcUser dhisOidcUser )
         {
@@ -154,13 +155,14 @@ public class AuthenticationLoggerListener
         return "";
     }
 
-    private String hashSessionId( String sessionId )
+    private static String hashSessionId( String sessionId )
     {
         if ( sessionId == null )
         {
             return "";
         }
-        String s = sessionIDHasher.newHasher().putString( sessionId, StandardCharsets.UTF_8 ).hash().toString();
+
+        String s = ID_HASH_FUNCTION.newHasher().putString( sessionId, StandardCharsets.UTF_8 ).hash().toString();
         return String.format( "sessionId: %s; ", s );
     }
 }

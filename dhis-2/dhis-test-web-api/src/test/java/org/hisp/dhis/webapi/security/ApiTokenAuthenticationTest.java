@@ -202,4 +202,35 @@ class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
         assertEquals( "The API token is disabled, locked or 2FA is enabled.",
             GET( URI, ApiTokenHeader( token ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
     }
+
+    @Test
+    void testTokenDoesNotExist()
+    {
+        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+        final String plaintext = new String( wrapper.getPlaintextToken() );
+
+        ApiToken token = wrapper.getApiToken();
+
+        apiTokenService.delete( token );
+
+        assertEquals( "The API token does not exists",
+            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
+    }
+
+    @Test
+    void testTokenDoesNotExistAndIsDeletedFromCache()
+    {
+        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+        final String plaintext = new String( wrapper.getPlaintextToken() );
+
+        // Do a request to cache the token
+        JsonUser user = GET( URI, ApiTokenHeader( plaintext ) ).content().as( JsonUser.class );
+        assertEquals( adminUser.getUid(), user.getId() );
+
+        ApiToken token = wrapper.getApiToken();
+        apiTokenService.delete( token );
+
+        assertEquals( "The API token does not exists",
+            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
+    }
 }

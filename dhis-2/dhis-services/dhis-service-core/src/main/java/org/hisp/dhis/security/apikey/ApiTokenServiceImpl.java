@@ -128,6 +128,5 @@ public class ApiTokenServiceImpl implements ApiTokenService
     public void delete( @Nonnull ApiToken apiToken )
     {
         apiTokenStore.delete( apiToken );
-        applicationEventPublisher.publishEvent( new ApiTokenDeletedEvent( this, apiToken.getKey() ) );
     }
 }
