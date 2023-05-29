@@ -27,6 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
+import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
+import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
+import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Set;
+
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -42,18 +54,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
-
-import java.util.List;
-import java.util.Set;
-
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.enrollment.RequestParams.DEFAULT_FIELDS_PARAM;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
@@ -89,7 +89,7 @@ class EnrollmentRequestParamsMapperTest
 
         mapper.map( requestParams );
 
-        verify( fieldsParamMapper, times(1) ).map(FieldFilterParser.parse( DEFAULT_FIELDS_PARAM ));
+        verify( fieldsParamMapper, times( 1 ) ).map( FieldFilterParser.parse( DEFAULT_FIELDS_PARAM ) );
     }
 
     @Test
@@ -97,7 +97,7 @@ class EnrollmentRequestParamsMapperTest
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        requestParams.setProgram( UID.of(PROGRAM_UID) );
+        requestParams.setProgram( UID.of( PROGRAM_UID ) );
 
         EnrollmentOperationParams params = mapper.map( requestParams );
 

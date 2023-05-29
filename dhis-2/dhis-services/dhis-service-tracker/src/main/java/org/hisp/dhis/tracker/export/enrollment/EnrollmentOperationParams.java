@@ -27,18 +27,17 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import lombok.Builder;
-import lombok.Data;
-import lombok.Getter;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryModifiers;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
+import lombok.Builder;
+import lombok.Getter;
+
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 @Getter
 @Builder

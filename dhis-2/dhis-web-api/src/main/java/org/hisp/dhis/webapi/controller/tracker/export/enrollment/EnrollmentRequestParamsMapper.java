@@ -27,17 +27,18 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
 
-import lombok.RequiredArgsConstructor;
-import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
-import org.hisp.dhis.webapi.common.UID;
-import org.springframework.stereotype.Component;
+import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
+import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
+import org.hisp.dhis.webapi.common.UID;
+import org.springframework.stereotype.Component;
 
 /**
  * Maps operation parameters from {@link EnrollmentsExportController} stored in
@@ -56,27 +57,28 @@ class EnrollmentRequestParamsMapper
             requestParams.getOrgUnits() );
 
         return EnrollmentOperationParams.builder()
-        .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
-        .programStatus( requestParams.getProgramStatus() )
-        .followUp( requestParams.getFollowUp() )
-        .lastUpdated( requestParams.getUpdatedAfter() )
-        .lastUpdatedDuration( requestParams.getUpdatedWithin() )
-        .programStartDate( requestParams.getEnrolledAfter() )
-        .programEndDate( requestParams.getEnrolledBefore() )
-        .trackedEntityTypeUid(
-            requestParams.getTrackedEntityType() != null ? requestParams.getTrackedEntityType().getValue() : null )
-        .trackedEntityUid(
-            requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
-        .organisationUnitUids( orgUnits.stream().map( UID::getValue ).collect( Collectors.toSet() ) )
-        .organisationUnitMode( requestParams.getOuMode() )
-        .page( requestParams.getPage() )
-        .pageSize( requestParams.getPageSize() )
-        .totalPages( requestParams.isTotalPages() )
-        .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
-        .includeDeleted( requestParams.isIncludeDeleted() )
-        .order( toOrderParams( requestParams.getOrder() ) )
-        .enrollmentParams(
-            fieldsParamMapper.map( requestParams.getFields() ).withIncludeDeleted( requestParams.isIncludeDeleted() ) )
-        .build();
+            .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
+            .programStatus( requestParams.getProgramStatus() )
+            .followUp( requestParams.getFollowUp() )
+            .lastUpdated( requestParams.getUpdatedAfter() )
+            .lastUpdatedDuration( requestParams.getUpdatedWithin() )
+            .programStartDate( requestParams.getEnrolledAfter() )
+            .programEndDate( requestParams.getEnrolledBefore() )
+            .trackedEntityTypeUid(
+                requestParams.getTrackedEntityType() != null ? requestParams.getTrackedEntityType().getValue() : null )
+            .trackedEntityUid(
+                requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
+            .organisationUnitUids( orgUnits.stream().map( UID::getValue ).collect( Collectors.toSet() ) )
+            .organisationUnitMode( requestParams.getOuMode() )
+            .page( requestParams.getPage() )
+            .pageSize( requestParams.getPageSize() )
+            .totalPages( requestParams.isTotalPages() )
+            .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
+            .includeDeleted( requestParams.isIncludeDeleted() )
+            .order( toOrderParams( requestParams.getOrder() ) )
+            .enrollmentParams(
+                fieldsParamMapper.map( requestParams.getFields() )
+                    .withIncludeDeleted( requestParams.isIncludeDeleted() ) )
+            .build();
     }
 }

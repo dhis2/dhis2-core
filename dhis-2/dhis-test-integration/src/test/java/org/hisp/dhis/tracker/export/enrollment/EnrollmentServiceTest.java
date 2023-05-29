@@ -383,9 +383,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         manager.updateNoAcl( programA );
 
-        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
-        params.setProgramUid( programA.getUid() );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
+        EnrollmentOperationParams params = EnrollmentOperationParams.builder()
+                .programUid( programA.getUid() )
+                .organisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE )
+                .build();
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -401,9 +402,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
-        params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
-        params.setTrackedEntityUid( trackedEntityA.getUid() );
+        EnrollmentOperationParams params = EnrollmentOperationParams.builder()
+                .organisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
+                .trackedEntityUid( trackedEntityA.getUid() )
+                .build();
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
 
@@ -421,9 +423,10 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( trackedEntityTypeA );
 
-        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
-        params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
-        params.setTrackedEntityUid( trackedEntityA.getUid() );
+        EnrollmentOperationParams params = EnrollmentOperationParams.builder()
+                .organisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
+                .trackedEntityUid( trackedEntityA.getUid() )
+                .build();
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
             () -> enrollmentService.getEnrollments( params ) );
