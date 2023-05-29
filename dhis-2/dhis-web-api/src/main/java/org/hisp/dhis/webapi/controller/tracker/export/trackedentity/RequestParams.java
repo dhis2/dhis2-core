@@ -56,6 +56,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino
  */
+@OpenApi.Shared( name = "TrackedEntityRequestParams" )
 @OpenApi.Property
 @Data
 @NoArgsConstructor
@@ -236,5 +237,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      */
     private Boolean potentialDuplicate;
 
+    @OpenApi.Property( value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

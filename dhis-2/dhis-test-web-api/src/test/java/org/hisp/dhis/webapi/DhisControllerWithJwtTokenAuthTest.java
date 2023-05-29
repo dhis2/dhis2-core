@@ -33,7 +33,6 @@ import javax.sql.DataSource;
 
 import org.hisp.dhis.IntegrationH2Test;
 import org.hisp.dhis.h2.H2SqlFunction;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.utils.TestUtils;
@@ -55,7 +54,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 /**
  * Base class for convenient testing of the web API on basis of
- * {@link JsonResponse}, with JWT token
+ * {@link org.hisp.dhis.jsontree.JsonMixed} responses, with JWT token
  *
  * @author Morten Svanæs
  */

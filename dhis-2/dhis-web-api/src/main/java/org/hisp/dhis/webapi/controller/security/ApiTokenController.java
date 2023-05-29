@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.security;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -52,9 +53,8 @@ import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.schema.descriptors.ApiTokenSchemaDescriptor;
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
-import org.hisp.dhis.security.apikey.ApiTokenService;
-import org.hisp.dhis.security.apikey.TokenWrapper;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
@@ -80,8 +80,6 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
     private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
 
     public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis( 30 );
-
-    private final ApiTokenService apiTokenService;
 
     @Override
     @PostMapping( consumes = "application/json" )
@@ -109,7 +107,7 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
         }
 
-        TokenWrapper apiTokenPair = apiTokenService.generatePatToken( inputToken.getAttributes(),
+        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePersonalAccessToken( inputToken.getAttributes(),
             inputToken.getExpire() );
 
         MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
@@ -191,5 +189,4 @@ public class ApiTokenController extends AbstractCrudController<ApiToken>
             throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
         }
     }
-
 }

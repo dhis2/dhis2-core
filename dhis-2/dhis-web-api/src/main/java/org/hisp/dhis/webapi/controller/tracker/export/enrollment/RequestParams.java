@@ -51,10 +51,11 @@ import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 /**
  * Represents query parameters sent to {@link EnrollmentsExportController}.
  */
+@OpenApi.Shared( name = "EnrollmentRequestParams" )
 @OpenApi.Property
 @Data
 @NoArgsConstructor
-public class RequestParams extends PagingAndSortingCriteriaAdapter
+class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!events,!attributes";
 

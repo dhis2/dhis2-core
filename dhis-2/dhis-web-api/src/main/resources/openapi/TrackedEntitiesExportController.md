@@ -4,17 +4,25 @@
 
 Get tracked entities matching given query parameters.
 
-### `getTrackedEntities.parameter.query`
+## `getTrackedEntityByUid`
 
-### `getTrackedEntities.parameter.attribute`
+Get a tracked entity with given UID.
 
-### `getTrackedEntities.parameter.orgUnits`
+### `getTrackedEntityByUid.parameter.program`
+
+## Common for all endpoints
+
+### `*.parameter.TrackedEntityRequestParams.query`
+
+### `*.parameter.TrackedEntityRequestParams.attribute`
+
+### `*.parameter.TrackedEntityRequestParams.orgUnits`
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
 Get tracked entities owned by given `orgUnit`.
 
-### `getTrackedEntities.parameter.orgUnit`
+### `*.parameter.TrackedEntityRequestParams.orgUnit`
 
 **DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by comma!
 
@@ -22,39 +30,39 @@ Get tracked entities owned by given `orgUnit`.
 
 Get tracked entities owned by given `orgUnit`.
 
-### `getTrackedEntities.parameter.ouMode`
+### `*.parameter.TrackedEntityRequestParams.ouMode`
 
 Get events using given organisation unit selection mode.
 
-### `getTrackedEntities.parameter.program`
+### `*.parameter.TrackedEntityRequestParams.program`
 
-### `getTrackedEntities.parameter.programStatus`
+### `*.parameter.TrackedEntityRequestParams.programStatus`
 
-### `getTrackedEntities.parameter.followUp`
+### `*.parameter.TrackedEntityRequestParams.followUp`
 
-### `getTrackedEntities.parameter.updatedAfter`
+### `*.parameter.TrackedEntityRequestParams.updatedAfter`
 
-### `getTrackedEntities.parameter.updatedBefore`
+### `*.parameter.TrackedEntityRequestParams.updatedBefore`
 
-### `getTrackedEntities.parameter.updatedWithin`
+### `*.parameter.TrackedEntityRequestParams.updatedWithin`
 
-### `getTrackedEntities.parameter.enrollmentEnrolledAfter`
+### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledAfter`
 
-### `getTrackedEntities.parameter.enrollmentEnrolledBefore`
+### `*.parameter.TrackedEntityRequestParams.enrollmentEnrolledBefore`
 
-### `getTrackedEntities.parameter.enrollmentOccurredAfter`
+### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredAfter`
 
-### `getTrackedEntities.parameter.enrollmentOccurredBefore`
+### `*.parameter.TrackedEntityRequestParams.enrollmentOccurredBefore`
 
-### `getTrackedEntities.parameter.trackedEntityType`
+### `*.parameter.TrackedEntityRequestParams.trackedEntityType`
 
-### `getTrackedEntities.parameter.trackedEntities`
+### `*.parameter.TrackedEntityRequestParams.trackedEntities`
 
 `<trackedEntity1-uid>[,<trackedEntity2-uid>...]`
 
 Get tracked entities with given UID(s).
 
-### `getTrackedEntities.parameter.trackedEntity`
+### `*.parameter.TrackedEntityRequestParams.trackedEntity`
 
 **DEPRECATED as of 2.41:** Use parameter `trackedEntities` instead where UIDs have to be separated by comma!
 
@@ -62,16 +70,16 @@ Get tracked entities with given UID(s).
 
 Get tracked entities with given UID(s).
 
-### `getTrackedEntities.parameter.assignedUserMode`
+### `*.parameter.TrackedEntityRequestParams.assignedUserMode`
 
-### `getTrackedEntities.parameter.assignedUsers`
+### `*.parameter.TrackedEntityRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`
 
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only valid
 if `assignedUserMode` is either `PROVIDED` or not specified.
 
-### `getTrackedEntities.parameter.assignedUser`
+### `*.parameter.TrackedEntityRequestParams.assignedUser`
 
 **DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by comma!
 
@@ -80,24 +88,19 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 Get tracked entities with an event assigned to given user(s). Specifying `assignedUsers` is only valid
 if `assignedUserMode` is either `PROVIDED` or not specified.
 
-### `getTrackedEntities.parameter.programStage`
+### `*.parameter.TrackedEntityRequestParams.programStage`
 
-### `getTrackedEntities.parameter.eventStatus`
+### `*.parameter.TrackedEntityRequestParams.eventStatus`
 
-### `getTrackedEntities.parameter.eventOccurredAfter`
+### `*.parameter.TrackedEntityRequestParams.eventOccurredAfter`
 
-### `getTrackedEntities.parameter.eventOccurredBefore`
+### `*.parameter.TrackedEntityRequestParams.eventOccurredBefore`
 
-### `getTrackedEntities.parameter.skipMeta`
+### `*.parameter.TrackedEntityRequestParams.skipMeta`
 
-### `getTrackedEntities.parameter.includeDeleted`
+### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
-### `getTrackedEntities.parameter.includeAllAttributes`
+### `*.parameter.TrackedEntityRequestParams.includeAllAttributes`
 
-### `getTrackedEntities.parameter.potentialDuplicate`
+### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
-## `getTrackedEntityByUid`
-
-Get a tracked entity with given UID.
-
-### `getTrackedEntityByUid.parameter.program`

@@ -32,9 +32,8 @@ import java.nio.charset.StandardCharsets;
 
 import org.hisp.dhis.commons.jackson.config.JacksonObjectMapperConfig;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
 import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.web.client.ResponseExtractor;
 
@@ -59,8 +58,7 @@ public class ImportSummaryResponseExtractor implements ResponseExtractor<ImportS
     public ImportSummary extractData( ClientHttpResponse response )
         throws IOException
     {
-        JsonObject body = new JsonResponse( new String( response.getBody().readAllBytes(), StandardCharsets.UTF_8 ),
-            JsonTypedAccess.GLOBAL );
+        JsonObject body = JsonMixed.of( new String( response.getBody().readAllBytes(), StandardCharsets.UTF_8 ) );
         // auto-detect if it is wrapped in a WebMessage envelope
         if ( body.has( "httpStatus", "response" ) ) // is a WebMessage wrapper
         {

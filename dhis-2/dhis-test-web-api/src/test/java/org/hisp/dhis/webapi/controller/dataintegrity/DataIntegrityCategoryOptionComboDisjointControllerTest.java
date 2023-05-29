@@ -31,7 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.json.domain.JsonCategoryOptionCombo;
 import org.junit.jupiter.api.Test;
@@ -67,7 +67,7 @@ class DataIntegrityCategoryOptionComboDisjointControllerTest extends AbstractDat
 
         setupTest();
         //We should have three cat option combos now. The two we created and default.
-        JsonResponse response = GET( "/categoryOptionCombos?fields=id,name" ).content();
+        JsonObject response = GET( "/categoryOptionCombos?fields=id,name" ).content();
         JsonList<JsonCategoryOptionCombo> catOptionCombos = response.getList( "categoryOptionCombos",
             JsonCategoryOptionCombo.class );
         assertEquals( 3, catOptionCombos.size() );

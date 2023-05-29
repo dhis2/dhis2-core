@@ -37,6 +37,7 @@ import static org.hamcrest.Matchers.endsWith;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.iterableWithSize;
@@ -118,6 +119,26 @@ public class TrackerExportTests
         teiWithEnrollmentAndEventsTemplate = new FileReaderUtils()
             .read( new File( "src/test/resources/tracker/importer/teis/teiWithEnrollmentAndEventsNested.json" ) )
             .get( JsonObject.class );
+    }
+
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsComma()
+    {
+        trackerImportExportActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "kZeSYCgaHTk:eq:Test\\,Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test,Test" ) );
+    }
+
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsColon()
+    {
+        trackerImportExportActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "dIVt4l5vIOa:eq:Test\\:Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test:Test" ) );
     }
 
     private Stream<Arguments> shouldReturnRequestedFields()
@@ -334,7 +355,7 @@ public class TrackerExportTests
     @MethodSource( )
     @ParameterizedTest
     public void shouldReturnTeisMatchingAttributeCriteria( String operator, String searchCriteria,
-        Matcher everyItemMatcher )
+        Matcher<?> everyItemMatcher )
     {
         QueryParamsBuilder queryParamsBuilder = new QueryParamsBuilder()
             .add( "orgUnit", "O6uvpzGd5pu" )
@@ -385,7 +406,8 @@ public class TrackerExportTests
             .body( "event", equalTo( "ZwwuwNp6gVd" ) );
     }
 
-    @Test // TODO(tracker): remove with old tracker
+    @Test
+    // TODO(tracker): remove with old tracker
     void shouldReturnInvalidPropertyWhenOrderOnLegacyCreatedField()
     {
         ApiResponse response = trackerImportExportActions.get( "events?order=created:desc" );
@@ -468,6 +490,6 @@ public class TrackerExportTests
         return new QueryParamsBuilder().addAll(
             "trackedEntity=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
             "trackedEntityType=" + "Q9GufDoplCL",
-            "ou=" + "O6uvpzGd5pu" );
+            "orgUnit=" + "O6uvpzGd5pu" );
     }
 }
