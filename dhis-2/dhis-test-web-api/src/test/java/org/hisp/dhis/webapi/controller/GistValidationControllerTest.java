@@ -89,7 +89,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest
             "Filter `surname:canaccess:[" + getSuperuserUid() + "]` requires a user ID and an access pattern argument.",
             GET(
                 "/users/gist?filter=username:like:admin&filter=surname:canAccess" ).error( HttpStatus.BAD_REQUEST )
-                    .getMessage() );
+                .getMessage() );
     }
 
     @Test
@@ -177,7 +177,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     void testValidation_Access_CollectionOwnerSharing()
     {
         JsonObject group = GET( "/userGroups/{id}", userGroupId ).content();
-        String sharing = group.getObject( "sharing" ).node().extract().members().get( "public" )
+        String sharing = group.getObject( "sharing" ).node().extract().member( "public" )
             .replaceWith( "\"--------\"" ).toString();
         assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + userGroupId + "/sharing", sharing ) );
         switchToGuestUser();

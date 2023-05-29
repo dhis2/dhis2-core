@@ -28,17 +28,13 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hamcrest.CoreMatchers.containsString;
-import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.empty;
 import static org.hisp.dhis.web.HttpStatus.CREATED;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
-
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.jsontree.JsonNode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
@@ -77,13 +73,10 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventCharts/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventVisualizations/" + uid ).content();
+        final JsonObject response = GET( "/eventVisualizations/" + uid ).content();
 
-        @SuppressWarnings( "unchecked" )
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
-
-        assertThat( nodeMap.get( "name" ).toString(), containsString( "Name Test" ) );
-        assertThat( nodeMap.get( "type" ).toString(), containsString( "GAUGE" ) );
+        assertThat( response.get( "name" ).toString(), containsString( "Name Test" ) );
+        assertThat( response.get( "type" ).toString(), containsString( "GAUGE" ) );
     }
 
     @Test
@@ -97,11 +90,6 @@ class EventChartControllerTest extends DhisControllerConvenienceTest
         final String uid = assertStatus( CREATED, POST( "/eventVisualizations/", body ) );
 
         // Then
-        final JsonResponse response = GET( "/eventCharts/" + uid ).content();
-
-        @SuppressWarnings( "unchecked" )
-        final Map<String, JsonNode> nodeMap = (Map<String, JsonNode>) response.node().value();
-
-        assertThat( nodeMap.values(), is( empty() ) );
+        assertTrue( GET( "/eventCharts/" + uid ).content().isEmpty() );
     }
 }

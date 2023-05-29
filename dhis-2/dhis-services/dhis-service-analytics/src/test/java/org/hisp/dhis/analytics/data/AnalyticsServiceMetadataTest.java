@@ -81,7 +81,7 @@ class AnalyticsServiceMetadataTest extends AnalyticsServiceBaseTest
         Map<String, Object> aggregatedValues = new HashMap<>();
         when( analyticsManager.getAggregatedDataValues( any( DataQueryParams.class ),
             eq( AnalyticsTableType.DATA_VALUE ), eq( 0 ) ) )
-                .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
+            .thenReturn( CompletableFuture.completedFuture( aggregatedValues ) );
     }
 
     @SuppressWarnings( "unchecked" )

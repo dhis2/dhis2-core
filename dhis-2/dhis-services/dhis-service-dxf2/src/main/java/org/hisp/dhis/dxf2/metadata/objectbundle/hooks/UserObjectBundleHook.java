@@ -201,9 +201,6 @@ public class UserObjectBundleHook extends AbstractObjectBundleHook<User>
                 fileResourceService.updateFileResource( fileResource );
             }
         }
-
-        //        userService.validateTwoFactorUpdate( persisted.isTwoFactorEnabled(), user.isTwoFactorEnabled(),
-        //            persisted );
     }
 
     @Override

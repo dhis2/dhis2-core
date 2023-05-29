@@ -52,7 +52,9 @@ import org.hisp.dhis.user.UserService;
  * Example:
  *
  * <pre>
- * {@code UserCheck.isUserNameExist.apply( value, klass -> userService.getUserByUsername( value ) != null ) }
+ * {@code
+ * UserCheck.isUserNameExist.apply( value, klass -> userService.getUserByUsername( value ) != null )
+ * }
  * </pre>
  *
  * @author viet

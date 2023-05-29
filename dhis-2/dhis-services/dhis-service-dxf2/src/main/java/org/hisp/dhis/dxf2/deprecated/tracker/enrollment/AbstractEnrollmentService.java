@@ -520,7 +520,7 @@ public abstract class AbstractEnrollmentService
         {
             ImportSummary is = new ImportSummary( ImportStatus.ERROR,
                 "Enrollment " + foundEnrollmentUid + " already exists or was deleted earlier" )
-                    .setReference( foundEnrollmentUid ).incrementIgnored();
+                .setReference( foundEnrollmentUid ).incrementIgnored();
             importSummaries.addImportSummary( is );
         }
 
@@ -535,7 +535,7 @@ public abstract class AbstractEnrollmentService
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "Enrollment " + enrollment.getEnrollment() + " already exists or was deleted earlier" )
-                    .setReference( enrollment.getEnrollment() ).incrementIgnored();
+                .setReference( enrollment.getEnrollment() ).incrementIgnored();
         }
 
         return addEnrollment( enrollment, importOptions, null );
@@ -927,7 +927,7 @@ public abstract class AbstractEnrollmentService
         {
             return new ImportSummary( ImportStatus.ERROR,
                 "ID " + enrollment.getEnrollment() + " doesn't point to a valid enrollment." )
-                    .incrementIgnored();
+                .incrementIgnored();
         }
 
         if ( !errors.isEmpty() )

@@ -64,7 +64,7 @@ public class CreationCheck implements ObjectValidationCheck
             {
                 ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5000, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setMainId( identifiableObject.getUid() );
+                    .setMainId( identifiableObject.getUid() );
 
                 addReports.accept( createObjectReport( errorReport, object, bundle ) );
 

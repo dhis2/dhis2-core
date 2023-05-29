@@ -37,8 +37,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import joptsimple.internal.Strings;
-
+import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.hisp.dhis.Constants;
 import org.hisp.dhis.actions.UserActions;
@@ -203,7 +202,7 @@ public class EventValidationTests
             .add( "fields=id,categoryCombo[categories[categoryOptions]]" ) );
 
         String programId = program.extractString( "programs.id[0]" );
-        Assumptions.assumeFalse( Strings.isNullOrEmpty( programId ) );
+        Assumptions.assumeFalse( StringUtils.isEmpty( programId ) );
 
         JsonObject object = new EventDataBuilder()
             .setProgram( programId )

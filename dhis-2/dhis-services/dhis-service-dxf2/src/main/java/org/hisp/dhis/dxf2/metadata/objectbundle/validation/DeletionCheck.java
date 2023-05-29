@@ -64,7 +64,7 @@ public class DeletionCheck implements ObjectValidationCheck
             {
                 ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
                     bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                        .setMainId( object != null ? object.getUid() : null );
+                    .setMainId( object != null ? object.getUid() : null );
                 addReports.accept( createObjectReport( errorReport, object, bundle ) );
                 ctx.markForRemoval( object );
             }

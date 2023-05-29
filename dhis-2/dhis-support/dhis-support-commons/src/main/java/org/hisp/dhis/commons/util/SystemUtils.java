@@ -46,6 +46,11 @@ public class SystemUtils
         return Arrays.asList( profiles ).contains( "test" );
     }
 
+    public static boolean isEnableCacheInTest( String[] profiles )
+    {
+        return Arrays.asList( profiles ).contains( "cache-test" );
+    }
+
     public static boolean isAuditTest( String[] profiles )
     {
         return Arrays.asList( profiles ).contains( "test-audit" );

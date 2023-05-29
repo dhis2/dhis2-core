@@ -117,8 +117,8 @@ public class DimensionIdentifierHelper
     {
         return stream(
             split( fullDimensionId, DIMENSION_SEPARATOR ) )
-                .map( DimensionIdentifierHelper::elementWithOffsetByString )
-                .collect( toList() );
+            .map( DimensionIdentifierHelper::elementWithOffsetByString )
+            .collect( toList() );
     }
 
     private static void assertDimensionIdHasNoOffset( ElementWithOffset<StringUid> dimensionIdWithOffset )

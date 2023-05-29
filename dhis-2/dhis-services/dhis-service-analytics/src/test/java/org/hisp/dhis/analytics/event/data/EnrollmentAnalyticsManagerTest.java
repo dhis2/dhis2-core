@@ -417,8 +417,8 @@ class EnrollmentAnalyticsManagerTest
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) )
-                .withStartDate( startDate )
-                .withEndDate( endDate );
+            .withStartDate( startDate )
+            .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
@@ -459,8 +459,8 @@ class EnrollmentAnalyticsManagerTest
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) )
-                .withStartDate( startDate )
-                .withEndDate( endDate );
+            .withStartDate( startDate )
+            .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );
@@ -531,8 +531,8 @@ class EnrollmentAnalyticsManagerTest
 
         EventQueryParams.Builder params = new EventQueryParams.Builder(
             createRequestParams( programIndicatorA, relationshipTypeA ) )
-                .withStartDate( startDate )
-                .withEndDate( endDate );
+            .withStartDate( startDate )
+            .withEndDate( endDate );
 
         when( programIndicatorService.getAnalyticsSql( "", NUMERIC, programIndicatorA, getDate( 2000, 1, 1 ),
             getDate( 2017, 4, 8 ), "subax" ) ).thenReturn( piSubquery );

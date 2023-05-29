@@ -201,7 +201,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     final void assertNamedMetadataObjectExists( String endpoint, String name )
     {
-        JsonResponse response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
+        JsonObject response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
         JsonArray dimensions = response.getArray( endpoint );
         assertEquals( 1, dimensions.size() );
     }
@@ -210,7 +210,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         GET( "/" + endpoint + "/gist?fields=id&headless=true" ).content().stringValues()
             .forEach( id -> DELETE( "/" + endpoint + "/" + id ) );
-        JsonResponse response = GET( "/" + endpoint ).content();
+        JsonObject response = GET( "/" + endpoint ).content();
         JsonArray dimensions = response.getArray( endpoint );
         assertEquals( 0, dimensions.size() );
     }
@@ -267,7 +267,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         return ccDefault.getString( "id" ).string();
     }
 
@@ -275,7 +275,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         JsonObject ccDefault = GET(
             "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-                .content().getObject( 0 );
+            .content().getObject( 0 );
         return ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
 
     }

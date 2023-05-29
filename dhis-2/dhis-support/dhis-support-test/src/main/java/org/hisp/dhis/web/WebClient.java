@@ -46,8 +46,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 
 import org.apache.commons.lang3.ArrayUtils;
-import org.hisp.dhis.jsontree.JsonResponse;
-import org.hisp.dhis.jsontree.JsonTypedAccess;
+import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.json.domain.JsonError;
 
@@ -306,18 +305,18 @@ public interface WebClient
             return failOnException( response::getContent );
         }
 
-        public JsonResponse content()
+        public JsonMixed content()
         {
             return content( HttpStatus.Series.SUCCESSFUL );
         }
 
-        public JsonResponse content( HttpStatus.Series expected )
+        public JsonMixed content( HttpStatus.Series expected )
         {
             assertSeries( expected, this );
             return contentUnchecked();
         }
 
-        public JsonResponse content( HttpStatus expected )
+        public JsonMixed content( HttpStatus expected )
         {
             assertStatus( expected, this );
             return contentUnchecked();
@@ -364,9 +363,9 @@ public interface WebClient
             return !response.getContent().isEmpty();
         }
 
-        public JsonResponse contentUnchecked()
+        public JsonMixed contentUnchecked()
         {
-            return failOnException( () -> new JsonResponse( response.getContent(), JsonTypedAccess.GLOBAL ) );
+            return failOnException( () -> JsonMixed.of( response.getContent() ) );
         }
 
         public String location()

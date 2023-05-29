@@ -34,28 +34,43 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.Enrollment;
-import org.hisp.dhis.program.Event;
-import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
+import org.hisp.dhis.webapi.controller.tracker.view.Event;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 
+@OpenApi.Shared( name = "RelationshipRequestParams" )
+@OpenApi.Property
 @NoArgsConstructor
 @EqualsAndHashCode( exclude = { "identifier", "identifierName", "identifierClass" } )
 class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
-    private String trackedEntity;
-
+    /**
+     * @deprecated use {@link #trackedEntity} instead
+     */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     @Setter
-    private String enrollment;
+    private UID tei;
 
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
     @Setter
-    private String event;
+    private UID trackedEntity;
+
+    @OpenApi.Property( { UID.class, Enrollment.class } )
+    @Setter
+    private UID enrollment;
+
+    @OpenApi.Property( { UID.class, Event.class } )
+    @Setter
+    private UID event;
 
     private String identifier;
 
@@ -63,23 +78,12 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Class<?> identifierClass;
 
+    @OpenApi.Property( value = String[].class )
     @Getter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 
-    public void setTei( String tei )
-    {
-        // this setter is kept for backwards-compatibility
-        // query parameter 'tei' should still be allowed, but 'trackedEntity' is
-        // preferred.
-        this.trackedEntity = tei;
-    }
-
-    public void setTrackedEntity( String trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
+    @OpenApi.Ignore
     public String getIdentifierParam()
         throws BadRequestException
     {
@@ -88,26 +92,39 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
             return this.identifier;
         }
 
+        if ( this.trackedEntity != null && this.tei != null )
+        {
+            throw new IllegalArgumentException(
+                "Only one parameter of 'tei' and 'trackedEntity' must be specified. Prefer 'trackedEntity' as 'tei' will be removed." );
+        }
+
         int count = 0;
-        if ( !StringUtils.isBlank( this.trackedEntity ) )
+        if ( this.trackedEntity != null )
         {
-            this.identifier = this.trackedEntity;
+            this.identifier = this.trackedEntity.getValue();
             this.identifierName = "trackedEntity";
-            this.identifierClass = TrackedEntity.class;
+            this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
             count++;
         }
-        if ( !StringUtils.isBlank( this.enrollment ) )
+        if ( this.tei != null )
         {
-            this.identifier = this.enrollment;
+            this.identifier = this.tei.getValue();
+            this.identifierName = "trackedEntity";
+            this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
+            count++;
+        }
+        if ( this.enrollment != null )
+        {
+            this.identifier = this.enrollment.getValue();
             this.identifierName = "enrollment";
-            this.identifierClass = Enrollment.class;
+            this.identifierClass = org.hisp.dhis.program.Enrollment.class;
             count++;
         }
-        if ( !StringUtils.isBlank( this.event ) )
+        if ( this.event != null )
         {
-            this.identifier = this.event;
+            this.identifier = this.event.getValue();
             this.identifierName = "event";
-            this.identifierClass = Event.class;
+            this.identifierClass = org.hisp.dhis.program.Event.class;
             count++;
         }
 
@@ -123,6 +140,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         return this.identifier;
     }
 
+    @OpenApi.Ignore
     public String getIdentifierName()
         throws BadRequestException
     {
@@ -133,6 +151,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
         return this.identifierName;
     }
 
+    @OpenApi.Ignore
     public Class<?> getIdentifierClass()
         throws BadRequestException
     {

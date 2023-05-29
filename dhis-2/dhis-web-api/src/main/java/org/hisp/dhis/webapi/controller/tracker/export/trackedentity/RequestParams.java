@@ -36,18 +36,28 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.trackedentity.TrackedEntityType;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to {@link TrackedEntitiesExportController}.
  *
  * @author Giuseppe Nespolino
  */
+@OpenApi.Shared( name = "TrackedEntityRequestParams" )
+@OpenApi.Property
 @Data
 @NoArgsConstructor
 class RequestParams extends PagingAndSortingCriteriaAdapter
@@ -61,9 +71,17 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     private Set<String> filter = new HashSet<>();
 
     /**
-     * Semicolon-delimited list of Organizational Unit UIDs
+     * Semicolon-delimited list of organisation unit UIDs.
+     *
+     * @deprecated use {@link #orgUnits} instead which is comma instead of
+     *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
     private String orgUnit;
+
+    @OpenApi.Property( { UID[].class, OrganisationUnit.class } )
+    private Set<UID> orgUnits = new HashSet<>();
 
     /**
      * Selection mode for the specified organisation units, default is
@@ -74,7 +92,8 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * a Program UID for which instances in the response must be enrolled in.
      */
-    private String program;
+    @OpenApi.Property( { UID.class, Program.class } )
+    private UID program;
 
     /**
      * The {@see ProgramStatus} of the Tracked Entity Instance in the given
@@ -126,12 +145,21 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Only returns Tracked Entity Instances of this type.
      */
-    private String trackedEntityType;
+    @OpenApi.Property( { UID.class, TrackedEntityType.class } )
+    private UID trackedEntityType;
 
     /**
      * Semicolon-delimited list of Tracked Entity Instance UIDs
+     *
+     * @deprecated use {@link #trackedEntities} instead which is comma instead
+     *             of semicolon separated.
      */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
     private String trackedEntity;
+
+    @OpenApi.Property( { UID[].class, TrackedEntity.class } )
+    private Set<UID> trackedEntities = new HashSet<>();
 
     /**
      * Selection mode for user assignment of events.
@@ -141,14 +169,23 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Semicolon-delimited list of user UIDs to filter based on events assigned
      * to the users.
+     *
+     * @deprecated use {@link #assignedUsers} instead which is comma instead of
+     *             semicolon separated.
      */
+    @Deprecated( since = "2.41" )
+    @OpenApi.Property( { UID[].class, User.class } )
     private String assignedUser;
+
+    @OpenApi.Property( { UID[].class, User.class } )
+    private Set<UID> assignedUsers = new HashSet<>();
 
     /**
      * Program Stage UID, used for filtering TEIs based on the selected Program
      * Stage
      */
-    private String programStage;
+    @OpenApi.Property( { UID.class, ProgramStage.class } )
+    private UID programStage;
 
     /**
      * Status of any events in the specified program.
@@ -191,5 +228,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      */
     private Boolean potentialDuplicate;
 
+    @OpenApi.Property( value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

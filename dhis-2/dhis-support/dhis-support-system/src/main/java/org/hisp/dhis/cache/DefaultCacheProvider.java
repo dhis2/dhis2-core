@@ -31,6 +31,7 @@ import static java.util.concurrent.TimeUnit.HOURS;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.hisp.dhis.commons.util.SystemUtils.isEnableCacheInTest;
 import static org.hisp.dhis.commons.util.SystemUtils.isTestRun;
 
 import java.time.Duration;
@@ -139,7 +140,11 @@ public class DefaultCacheProvider
 
     private long orZeroInTestRun( long value )
     {
-        return isTestRun( environment.getActiveProfiles() ) ? 0 : value;
+        boolean isEnableCacheInTest = isEnableCacheInTest( environment.getActiveProfiles() );
+        boolean isTestRun = isTestRun( environment.getActiveProfiles() );
+        return isTestRun && !isEnableCacheInTest
+            ? 0
+            : value;
     }
 
     private <V> CacheBuilder<V> newBuilder()

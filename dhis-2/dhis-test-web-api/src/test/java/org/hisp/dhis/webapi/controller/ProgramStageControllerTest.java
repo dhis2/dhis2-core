@@ -31,7 +31,7 @@ import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.feedback.ErrorCode;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonTypeReport;
@@ -59,12 +59,12 @@ class ProgramStageControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/programs/",
             "{'name':'test program', 'id':'VoZMWi7rBgj', 'shortName':'test program','programType':'WITH_REGISTRATION' }" )
-                .content( HttpStatus.CREATED );
+            .content( HttpStatus.CREATED );
         String programStageId = assertStatus( HttpStatus.CREATED,
             POST( "/programStages/", "{'name':'test programStage', 'program':{'id':'VoZMWi7rBgj'}}" ) );
-        JsonResponse programStage = GET( "/programStages/{id}", programStageId ).content();
+        JsonObject programStage = GET( "/programStages/{id}", programStageId ).content();
         assertEquals( "VoZMWi7rBgj", programStage.getString( "program.id" ).string() );
-        JsonResponse program = GET( "/programs/{id}", "VoZMWi7rBgj" ).content();
+        JsonObject program = GET( "/programs/{id}", "VoZMWi7rBgj" ).content();
         assertEquals( programStageId, program.getString( "programStages[0].id" ).string() );
     }
 }

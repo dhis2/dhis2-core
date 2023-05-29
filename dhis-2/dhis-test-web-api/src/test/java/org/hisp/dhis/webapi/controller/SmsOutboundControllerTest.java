@@ -74,7 +74,7 @@ class SmsOutboundControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Internal Server Error", 500, "ERROR", "No default gateway configured",
             POST( "/sms/outbound",
                 "{" + "'recipients':[{'id':'" + getSuperuserUid() + "'}]," + "'message':'text'" + "}" )
-                    .content( HttpStatus.INTERNAL_SERVER_ERROR ) );
+                .content( HttpStatus.INTERNAL_SERVER_ERROR ) );
     }
 
     @Test

@@ -320,7 +320,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
-                .thenReturn( "select * from table" );
+            .thenReturn( "select * from table" );
 
         String clause = eventSubject.getAggregateClause( params );
 
@@ -340,7 +340,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
-                .thenReturn( "select * from table" );
+            .thenReturn( "select * from table" );
 
         String clause = eventSubject.getAggregateClause( params );
 
@@ -358,7 +358,7 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
 
         when( programIndicatorService.getAnalyticsSql( programIndicator.getExpression(), NUMERIC, programIndicator,
             params.getEarliestStartDate(), params.getLatestEndDate() ) )
-                .thenReturn( "select * from table" );
+            .thenReturn( "select * from table" );
 
         String clause = eventSubject.getAggregateClause( params );
 

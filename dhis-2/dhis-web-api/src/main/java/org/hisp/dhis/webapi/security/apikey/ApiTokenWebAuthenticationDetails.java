@@ -25,57 +25,20 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.icon;
+package org.hisp.dhis.webapi.security.apikey;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+import javax.servlet.http.HttpServletRequest;
+
+import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
- * @author Kristian Wærstad
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class IconData
+public class ApiTokenWebAuthenticationDetails
+    extends ForwardedIpAwareWebAuthenticationDetails
 {
-    private String key;
-
-    private String description;
-
-    private String[] keywords;
-
-    private String reference;
-
-    IconData( String key, String description, String[] keywords )
+    public ApiTokenWebAuthenticationDetails( HttpServletRequest request )
     {
-        this.key = key;
-        this.description = description;
-        this.keywords = keywords;
-    }
-
-    @JsonProperty
-    public String getKey()
-    {
-        return key;
-    }
-
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
-
-    @JsonProperty
-    public String[] getKeywords()
-    {
-        return keywords;
-    }
-
-    @JsonProperty( "href" )
-    public String getReference()
-    {
-        return reference;
-    }
-
-    public IconData setReference( String ref )
-    {
-        this.reference = ref;
-        return this;
+        super( request );
     }
 }

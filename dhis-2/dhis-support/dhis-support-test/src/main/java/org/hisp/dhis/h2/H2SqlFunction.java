@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.h2;
 
-import static org.hisp.dhis.jsontree.JsonTypedAccess.GLOBAL;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -39,8 +37,8 @@ import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.jsontree.JsonDocument.JsonNodeType;
-import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonMixed;
+import org.hisp.dhis.jsontree.JsonNodeType;
 import org.hisp.dhis.jsontree.JsonString;
 import org.hisp.dhis.jsontree.JsonValue;
 import org.postgresql.util.PGobject;
@@ -107,7 +105,7 @@ public class H2SqlFunction
             {
                 return null;
             }
-            JsonValue value = new JsonResponse( content, GLOBAL ).get( toJsonPath( paths ) );
+            JsonValue value = JsonMixed.of( content ).get( toJsonPath( paths ) );
             if ( !value.exists() )
             {
                 return null;
@@ -136,7 +134,7 @@ public class H2SqlFunction
             {
                 return null;
             }
-            JsonValue value = new JsonResponse( content, GLOBAL ).get( toJsonPath( paths ) );
+            JsonValue value = JsonMixed.of( content ).get( toJsonPath( paths ) );
             if ( !value.exists() )
             {
                 return null;

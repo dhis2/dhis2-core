@@ -28,13 +28,10 @@
 package org.hisp.dhis.security.apikey;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static org.hisp.dhis.common.CodeGenerator.getRandomSecureToken;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import java.util.zip.CRC32;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.StringUtils;
@@ -43,7 +40,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.base.Preconditions;
-import com.google.common.hash.Hashing;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
@@ -52,8 +48,6 @@ import com.google.common.hash.Hashing;
 @Transactional
 public class ApiTokenServiceImpl implements ApiTokenService
 {
-    private static final Long DEFAULT_EXPIRE_TIME_IN_MILLIS = TimeUnit.DAYS.toMillis( 30 );
-
     private final ApiTokenStore apiTokenStore;
 
     public ApiTokenServiceImpl( ApiTokenStore apiTokenStore )
@@ -65,6 +59,7 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional( readOnly = true )
+    @Nonnull
     public List<ApiToken> getAll()
     {
         return this.apiTokenStore.getAll();
@@ -72,21 +67,31 @@ public class ApiTokenServiceImpl implements ApiTokenService
 
     @Override
     @Transactional( readOnly = true )
-    public List<ApiToken> getAllOwning( User user )
+    @Nonnull
+    public List<ApiToken> getAllOwning( @Nonnull User user )
     {
         return apiTokenStore.getAllOwning( user );
     }
 
     @Override
+    @CheckForNull
+    public ApiToken getByUid( @Nonnull String uid )
+    {
+        return apiTokenStore.getByUid( uid );
+    }
+
+    @Override
     @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key, User user )
+    @CheckForNull
+    public ApiToken getByKey( @Nonnull String key, @Nonnull User user )
     {
         return apiTokenStore.getByKey( key, user );
     }
 
     @Override
     @Transactional( readOnly = true )
-    public ApiToken getWithKey( String key )
+    @CheckForNull
+    public ApiToken getByKey( @Nonnull String key )
     {
         return apiTokenStore.getByKey( key );
     }
@@ -112,8 +117,6 @@ public class ApiTokenServiceImpl implements ApiTokenService
         checkNotNull( apiToken.getVersion(), "Token must have an version value" );
 
         apiTokenStore.update( apiToken );
-
-        // Invalidate cache here or let cache expire ?
     }
 
     @Override
@@ -121,47 +124,5 @@ public class ApiTokenServiceImpl implements ApiTokenService
     public void delete( @Nonnull ApiToken apiToken )
     {
         apiTokenStore.delete( apiToken );
-        // Invalidate cache here or let cache expire ?
-    }
-
-    @Override
-    public ApiToken initToken( ApiToken token )
-    {
-        Preconditions.checkNotNull( token );
-        Preconditions.checkNotNull( token.getType() );
-
-        token.setVersion( 1 );
-
-        if ( token.getExpire() == null )
-        {
-            token.setExpire( System.currentTimeMillis() + DEFAULT_EXPIRE_TIME_IN_MILLIS );
-        }
-
-        String randomSecureToken = getRandomSecureToken( 24 ).replaceAll( "[-_]", "x" );
-        Preconditions.checkArgument( randomSecureToken.length() == 32,
-            "Could not create new token, please try again." + randomSecureToken.length() );
-
-        byte[] bytes = randomSecureToken.getBytes();
-        CRC32 crc = new CRC32();
-        crc.update( bytes, 0, bytes.length );
-        long checksumLong = crc.getValue();
-
-        token.setKey( String.format( "%s_%s%010d", token.getType().getPrefix(), randomSecureToken, checksumLong ) );
-
-        Preconditions.checkArgument( token.getKey().length() == 48,
-            "Could not create new token, please try again." );
-
-        return token;
-    }
-
-    public String hashKey( String key )
-    {
-        return Hashing.sha256().hashBytes( key.getBytes( StandardCharsets.UTF_8 ) ).toString();
-    }
-
-    @Override
-    public ApiToken getWithUid( String uid )
-    {
-        return apiTokenStore.getByUid( uid );
     }
 }

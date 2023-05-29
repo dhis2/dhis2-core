@@ -46,6 +46,7 @@ import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdentifiableObject;
+import org.hisp.dhis.common.PasswordGenerator;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.i18n.I18n;
 import org.hisp.dhis.i18n.I18nManager;
@@ -85,10 +86,6 @@ public class DefaultSecurityService
     private static final String TBD_NAME = "(TBD)";
 
     private static final String DEFAULT_APPLICATION_TITLE = "DHIS 2";
-
-    private static final int INVITED_USER_PASSWORD_LENGTH_BYTES = 16;
-
-    private static final int RESTORE_TOKEN_LENGTH_BYTES = 32;
 
     private static final int LOGIN_MAX_FAILED_ATTEMPTS = 4;
 
@@ -248,13 +245,14 @@ public class DefaultSecurityService
             user.setUsername( username );
         }
 
-        String rawPassword = "Inv!t3#" + CodeGenerator.getRandomSecureToken( INVITED_USER_PASSWORD_LENGTH_BYTES );
+        int minPasswordLength = systemSettingManager.getIntSetting( SettingKey.MIN_PASSWORD_LENGTH );
+        char[] plaintextPassword = PasswordGenerator.generateValidPassword( minPasswordLength );
 
         user.setSurname( StringUtils.isEmpty( user.getSurname() ) ? TBD_NAME : user.getSurname() );
         user.setFirstName( StringUtils.isEmpty( user.getFirstName() ) ? TBD_NAME : user.getFirstName() );
         user.setInvitation( true );
 
-        user.setPassword( rawPassword );
+        user.setPassword( new String( plaintextPassword ) );
     }
 
     @Override
@@ -369,11 +367,11 @@ public class DefaultSecurityService
         RestoreType restoreType = restoreOptions.getRestoreType();
 
         String restoreToken = restoreOptions.getTokenPrefix()
-            + CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
+            + CodeGenerator.getRandomSecureToken();
 
         String hashedRestoreToken = passwordManager.encode( restoreToken );
 
-        String idToken = CodeGenerator.getRandomSecureToken( RESTORE_TOKEN_LENGTH_BYTES );
+        String idToken = CodeGenerator.getRandomSecureToken();
 
         Date expiry = new Cal().now().add( restoreType.getExpiryIntervalType(), restoreType.getExpiryIntervalCount() )
             .time();
