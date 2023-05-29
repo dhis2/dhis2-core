@@ -142,8 +142,8 @@ public class EventExportTests
         return Stream.of(
             Arguments.of( "OU: root", "SELECTED", rootOu, false, null ),
             Arguments.of( "OU: capture", "SELECTED", captureOu, true, Arrays.asList( captureOu ) ),
-            Arguments.of( "OU: search", "SELECTED", searchOu, false, null ),
-            Arguments.of( "OU: data read", "SELECTED", dataReadOu, false, null ),
+            Arguments.of( "OU: search", "SELECTED", searchOu, true, null ),
+            Arguments.of( "OU: data read", "SELECTED", dataReadOu, true, null ),
             Arguments.of( "OU: data read ( DESCENDANTS ) ", "DESCENDANTS", captureOu, true,
                 Arrays.asList( captureOu ) ) );
     }
