@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,69 +25,54 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.common;
 
-import lombok.Getter;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 /**
- * Class for representing the different types of API tokens and their
- * properties.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Getter
-public enum ApiTokenType
+class HashUtilsTest
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" ),
-    PERSONAL_ACCESS_TOKEN_V2( 2, "d2p", 44, "SHA-256", "CRC32_B62" );
-
-    private final String prefix;
-
-    private final int version;
-
-    private final int length;
-
-    private final String hashType;
-
-    private final String checksumType;
-
-    ApiTokenType( int version, String prefix, int length, String hashType, String checksumType )
+    @Test
+    void testIsValidSHA256HexFormat()
     {
-        this.prefix = prefix;
-        this.length = length;
-        this.version = version;
-        this.hashType = hashType;
-        this.checksumType = checksumType;
+        String validSHA256Hex = "635e253fddd8466788d9580983bda99c258e9dd8c5a60a032623fde6c3a2789d";
+        assertTrue( HashUtils.isValidSHA256HexFormat( validSHA256Hex ) );
     }
 
-    public static ApiTokenType getDefaultPatType()
+    @Test
+    void testIsNotValidSHA256HexFormat()
     {
-        return PERSONAL_ACCESS_TOKEN_V2;
+        String invalidSHA256Hex = "6c196468f13817c3fc6e3ced80edef6fa9d7480e687e5f353ab126112f";
+        assertFalse( HashUtils.isValidSHA256HexFormat( invalidSHA256Hex ) );
     }
 
-    public static ApiTokenType fromToken( char[] token )
+    @Test
+    void testSHA256Hex()
     {
-        String tokenType = getTokenTypePrefix( token );
+        String input = "Hello, World!";
+        String expectedChecksum = "dffd6021bb2bd5b0af676290809ec3a53191dd81c7f70a4b28688a362182986f";
 
-        for ( ApiTokenType type : ApiTokenType.values() )
-        {
-            if ( tokenType.equals( type.getPrefix() ) )
-            {
-                return type;
-            }
-        }
-        throw new IllegalArgumentException( "No token type found" );
+        String actualChecksum = HashUtils.hashSHA256( input );
+
+        assertEquals( expectedChecksum, actualChecksum,
+            "The calculated SHA256 checksum does not match the expected value." );
     }
 
-    private static String getTokenTypePrefix( char[] token )
+    @Test
+    void testSHA512Hex()
     {
-        for ( int i = 0; i < token.length; i++ )
-        {
-            if ( token[i] == '_' )
-            {
-                return new String( token, 0, i );
-            }
-        }
-        throw new IllegalArgumentException( "No token type prefix found" );
+        String input = "Hello, World!";
+        String expectedChecksum = "374d794a95cdcfd8b35993185fef9ba368f160d8daf432d08ba9f1ed1e5abe6cc69291e0fa2fe0006a52570ef18c19def4e617c33ce52ef0a6e5fbe318cb0387";
+
+        String actualChecksum = HashUtils.hashSHA512( input );
+
+        assertEquals( expectedChecksum, actualChecksum,
+            "The calculated SHA512 checksum does not match the expected value." );
     }
 }
