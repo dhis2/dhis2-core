@@ -52,7 +52,16 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "relationship,relationshipType,from[trackedEntity[trackedEntity],enrollment[enrollment],event[event]],to[trackedEntity[trackedEntity],enrollment[enrollment],event[event]]";
 
+    /**
+     * @deprecated use {@link #trackedEntity} instead
+     */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID.class, TrackedEntity.class } )
+    @Setter
+    private UID tei;
+
+    @OpenApi.Property( { UID.class, TrackedEntity.class } )
+    @Setter
     private UID trackedEntity;
 
     @OpenApi.Property( { UID.class, Enrollment.class } )
@@ -74,19 +83,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     @Setter
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 
-    public void setTei( UID tei )
-    {
-        // this setter is kept for backwards-compatibility
-        // query parameter 'tei' should still be allowed, but 'trackedEntity' is
-        // preferred.
-        this.trackedEntity = tei;
-    }
-
-    public void setTrackedEntity( UID trackedEntity )
-    {
-        this.trackedEntity = trackedEntity;
-    }
-
     @OpenApi.Ignore
     public String getIdentifierParam()
         throws BadRequestException
@@ -96,10 +92,23 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
             return this.identifier;
         }
 
+        if ( this.trackedEntity != null && this.tei != null )
+        {
+            throw new IllegalArgumentException(
+                "Only one parameter of 'tei' and 'trackedEntity' must be specified. Prefer 'trackedEntity' as 'tei' will be removed." );
+        }
+
         int count = 0;
         if ( this.trackedEntity != null )
         {
             this.identifier = this.trackedEntity.getValue();
+            this.identifierName = "trackedEntity";
+            this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
+            count++;
+        }
+        if ( this.tei != null )
+        {
+            this.identifier = this.tei.getValue();
             this.identifierName = "trackedEntity";
             this.identifierClass = org.hisp.dhis.trackedentity.TrackedEntity.class;
             count++;
