@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,38 +25,37 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.security.apikey;
+package org.hisp.dhis.common;
 
-import java.util.List;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import javax.annotation.CheckForNull;
-import javax.annotation.Nonnull;
-
-import org.hisp.dhis.user.User;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public interface ApiTokenService
+class CRC32UtilsTest
 {
-    void save( @Nonnull ApiToken apiToken );
+    @Test
+    void testGenerateCrc32Checksum10Digit()
+    {
+        char[] input = "checksum".toCharArray();
+        long expectedChecksum = 3731873690L;
 
-    void update( @Nonnull ApiToken apiToken );
+        long actualChecksum = CRC32Utils.generateCRC32Checksum( input );
+        assertEquals( expectedChecksum, actualChecksum,
+            "The calculated CRC32 checksum does not match the expected value." );
+    }
 
-    void delete( @Nonnull ApiToken apiToken );
+    @Test
+    void testGenerateCrc32ChecksumWithEmptyInput()
+    {
+        char[] input = "".toCharArray();
+        long expectedChecksum = 0L;
 
-    @Nonnull
-    List<ApiToken> getAll();
+        long actualChecksum = CRC32Utils.generateCRC32Checksum( input );
 
-    @Nonnull
-    List<ApiToken> getAllOwning( @Nonnull User user );
-
-    @CheckForNull
-    ApiToken getByUid( @Nonnull String uid );
-
-    @CheckForNull
-    ApiToken getByKey( @Nonnull String key, @Nonnull User user );
-
-    @CheckForNull
-    ApiToken getByKey( @Nonnull String key );
+        assertEquals( expectedChecksum, actualChecksum,
+            "The calculated CRC32 checksum does not match the expected value for an empty input." );
+    }
 }

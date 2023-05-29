@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,59 +29,58 @@ package org.hisp.dhis.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.extern.slf4j.Slf4j;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.jupiter.api.Test;
 
 /**
- * @author bobj
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-class CodeGeneratorTest
+class PasswordGeneratorTest
 {
+    @Test
+    void testValidPasswordGenerationToSmall()
+    {
+        Exception exception = assertThrows( IllegalArgumentException.class,
+            () -> PasswordGenerator.generateValidPassword( 3 ) );
+
+        String expectedMessage = "Password must be at least 8 characters long";
+
+        assertEquals( expectedMessage, exception.getMessage() );
+    }
 
     @Test
-    void testGetUid()
+    void testValidPasswordGenerationMinLength()
     {
-        int numberOfCodes = 500;
-        Set<String> codes = new HashSet<>();
-        for ( int n = 0; n < numberOfCodes; ++n )
+        char[] chars = PasswordGenerator.generateValidPassword( 8 );
+        assertEquals( 8, chars.length );
+    }
+
+    @Test
+    void testValidPasswordGeneration()
+    {
+        for ( int i = 0; i < 100; i++ )
         {
-            String code = CodeGenerator.generateUid();
-            // Test syntax
-            assertTrue( code.substring( 0, 1 ).matches( "[a-zA-Z]" ) );
-            assertTrue( code.matches( "[0-9a-zA-Z]{11}" ) );
-            // Test uniqueness
-            assertTrue( codes.add( code ) );
+            char[] password = PasswordGenerator.generateValidPassword( 12 );
+            testPassword( password );
         }
     }
 
-    @Test
-    void testUidIsValid()
+    private static void testPassword( char[] password )
     {
-        assertTrue( CodeGenerator.isValidUid( "mq4jAnN6fg3" ) );
-        assertTrue( CodeGenerator.isValidUid( "QX4LpiTZmUH" ) );
-        assertTrue( CodeGenerator.isValidUid( "rT1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
-        assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
-        assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
-        assertFalse( CodeGenerator.isValidUid( "11111111111" ) );
-    }
+        String passwordString = new String( password );
 
-    @Test
-    void testGetRandomUrlToken()
-    {
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertNotNull( CodeGenerator.getRandomSecureToken() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
-        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
+        boolean containsDigit = PasswordGenerator.containsDigit( password );
+        boolean containsSpecial = PasswordGenerator.containsSpecialCharacter( password );
+        boolean hasUppercase = PasswordGenerator.containsUppercaseCharacter( password );
+        boolean hasLowercase = PasswordGenerator.containsLowercaseCharacter( password );
+        assertTrue( containsSpecial && containsDigit && hasUppercase && hasLowercase );
+
+        Matcher threeConsecutiveLetters = Pattern.compile( "[a-zA-Z][a-zA-Z][a-zA-Z]+" ).matcher( passwordString );
+        assertFalse( threeConsecutiveLetters.find() );
     }
 }
