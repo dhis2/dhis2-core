@@ -36,7 +36,6 @@ import org.hisp.dhis.program.ProgramIndicator;
 
 /**
  * @author Lars Helge Overland
- * @version $Id: StatementBuilder.java 5715 2008-09-17 14:05:28Z larshelg $
  */
 public interface StatementBuilder
 {

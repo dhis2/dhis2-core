@@ -1,0 +1,30 @@
+#!/bin/sh
+# From gist at https://gist.github.com/chadmaughan/5889802
+# Version 2 (05/25/23)
+
+echo '[git hook] executing mvn spotless:check before commit'
+
+# stash any unstaged changes
+git stash -q --keep-index
+
+# Initialize the RESULT variable to 0
+RESULT=0
+
+# Run mvn spotless:check for each directory, capturing exit codes
+for dir in ./dhis-2 ./dhis-2/dhis-test-e2e
+do
+  cd $dir; mvn spotless:check
+  # If mvn command fails, update RESULT to 1
+  if [ $? -ne 0 ]
+  then
+    RESULT=1
+  fi
+  # Go back to the root directory before the next iteration
+  cd - > /dev/null
+done
+
+# unstash the unstashed changes
+git stash pop -q
+
+# return the 'mvn spotless:check' exit code
+exit $RESULT
