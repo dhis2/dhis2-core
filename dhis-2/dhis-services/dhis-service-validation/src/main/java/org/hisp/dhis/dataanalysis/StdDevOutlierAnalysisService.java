@@ -84,12 +84,8 @@ public class StdDevOutlierAnalysisService
                 List<DataAnalysisMeasures> measuresList = dataAnalysisStore.getDataAnalysisMeasures( dataElement,
                     categoryOptionCombos, parentsPaths, from );
 
-                MapMap<Long, Long, Integer> lowBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                            // orgUnitId,
-                                                                            // lowBound
-                MapMap<Long, Long, Integer> highBoundMapMap = new MapMap<>(); // catOptionComboId,
-                                                                             // orgUnitId,
-                                                                             // highBound
+                MapMap<Long, Long, Integer> lowBoundMapMap = new MapMap<>();
+                MapMap<Long, Long, Integer> highBoundMapMap = new MapMap<>();
 
                 for ( DataAnalysisMeasures measures : measuresList )
                 {
@@ -107,9 +103,8 @@ public class StdDevOutlierAnalysisService
                     Map<Long, Integer> lowBoundMap = lowBoundMapMap.get( categoryOptionCombo.getId() );
                     Map<Long, Integer> highBoundMap = highBoundMapMap.get( categoryOptionCombo.getId() );
 
-                    outlierCollection
-                        .addAll( dataAnalysisStore.getDeflatedDataValues( dataElement, categoryOptionCombo, periods,
-                            lowBoundMap, highBoundMap ) );
+                    outlierCollection.addAll( dataAnalysisStore.getDeflatedDataValues(
+                        dataElement, categoryOptionCombo, periods, lowBoundMap, highBoundMap ) );
 
                     if ( outlierCollection.size() > MAX_OUTLIERS )
                     {
