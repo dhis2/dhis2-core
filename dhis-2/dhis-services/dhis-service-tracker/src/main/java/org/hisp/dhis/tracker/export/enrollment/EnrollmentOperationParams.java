@@ -35,15 +35,15 @@ import java.util.Set;
 import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
-
 import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 @Getter
-@Builder(toBuilder = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@Builder( toBuilder = true )
+@RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 public class EnrollmentOperationParams
 {
     public static final int DEFAULT_PAGE = 1;

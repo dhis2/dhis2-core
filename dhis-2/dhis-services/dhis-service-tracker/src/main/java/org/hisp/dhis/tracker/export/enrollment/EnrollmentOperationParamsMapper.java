@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
-import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
 import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 
@@ -100,9 +99,11 @@ class EnrollmentOperationParamsMapper
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setPage( DEFAULT_PAGE );
-            params.setPageSize( DEFAULT_PAGE_SIZE ) ;
+            params.setPageSize( DEFAULT_PAGE_SIZE );
             params.setSkipPaging( false );
-        } else {
+        }
+        else
+        {
             params.setPage( operationParams.getPage() );
             params.setPageSize( operationParams.getPageSize() );
             params.setSkipPaging( operationParams.isSkipPaging() );
