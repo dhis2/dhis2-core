@@ -32,15 +32,18 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 @Getter
-@Builder
+@Builder(toBuilder = true)
+@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
 public class EnrollmentOperationParams
 {
     public static final int DEFAULT_PAGE = 1;
@@ -50,96 +53,96 @@ public class EnrollmentOperationParams
     static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
 
     @Builder.Default
-    private EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
+    private final EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
     /**
      * Last updated for enrollment.
      */
-    private Date lastUpdated;
+    private final Date lastUpdated;
 
     /**
      * The last updated duration filter.
      */
-    private String lastUpdatedDuration;
+    private final String lastUpdatedDuration;
 
     /**
      * Organisation units for which instances in the response were registered
      * at. Is related to the specified OrganisationUnitMode.
      */
     @Builder.Default
-    private Set<String> organisationUnitUids = new HashSet<>();
+    private final Set<String> organisationUnitUids = new HashSet<>();
 
     /**
      * Selection mode for the specified organisation units.
      */
-    private OrganisationUnitSelectionMode organisationUnitMode;
+    private final OrganisationUnitSelectionMode organisationUnitMode;
 
     /**
      * Program for which instances in the response must be enrolled in.
      */
-    private String programUid;
+    private final String programUid;
 
     /**
      * Status of the tracked entity instance in the given program.
      */
-    private ProgramStatus programStatus;
+    private final ProgramStatus programStatus;
 
     /**
      * Indicates whether tracked entity instance is marked for follow up for the
      * specified program.
      */
-    private Boolean followUp;
+    private final Boolean followUp;
 
     /**
      * Start date for enrollment in the given program.
      */
-    private Date programStartDate;
+    private final Date programStartDate;
 
     /**
      * End date for enrollment in the given program.
      */
-    private Date programEndDate;
+    private final Date programEndDate;
 
     /**
      * Tracked entity of the instances in the response.
      */
-    private String trackedEntityTypeUid;
+    private final String trackedEntityTypeUid;
 
     /**
      * Tracked entity instance.
      */
-    private String trackedEntityUid;
+    private final String trackedEntityUid;
 
     /**
      * Page number.
      */
-    private Integer page;
+    private final Integer page;
 
     /**
      * Page size.
      */
-    private Integer pageSize;
+    private final Integer pageSize;
 
     /**
      * Indicates whether to include the total number of pages in the paging
      * response.
      */
-    private boolean totalPages;
+    private final boolean totalPages;
 
     /**
      * Indicates whether paging should be skipped.
      */
-    private boolean skipPaging;
+    private final boolean skipPaging;
 
     /**
      * Indicates whether to include soft-deleted enrollments
      */
-    private boolean includeDeleted;
+    private final boolean includeDeleted;
 
     /**
      * List of order params
      */
-    private List<OrderParam> order;
+    private final List<OrderParam> order;
 
     /**
      * Indicates whether paging is enabled.
@@ -165,15 +168,5 @@ public class EnrollmentOperationParams
     public int getPageSizeWithDefault()
     {
         return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
-
-    /**
-     * Sets paging properties to default values.
-     */
-    public void setDefaultPaging()
-    {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.skipPaging = false;
     }
 }

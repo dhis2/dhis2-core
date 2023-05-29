@@ -28,6 +28,8 @@
 package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE;
+import static org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams.DEFAULT_PAGE_SIZE;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -95,10 +97,17 @@ class EnrollmentOperationParamsMapper
         params.setTrackedEntity( trackedEntity );
         params.addOrganisationUnits( orgUnits );
         params.setOrganisationUnitMode( operationParams.getOrganisationUnitMode() );
-        params.setPage( operationParams.getPage() );
-        params.setPageSize( operationParams.getPageSize() );
+        if ( !params.isPaging() && !params.isSkipPaging() )
+        {
+            params.setPage( DEFAULT_PAGE );
+            params.setPageSize( DEFAULT_PAGE_SIZE ) ;
+            params.setSkipPaging( false );
+        } else {
+            params.setPage( operationParams.getPage() );
+            params.setPageSize( operationParams.getPageSize() );
+            params.setSkipPaging( operationParams.isSkipPaging() );
+        }
         params.setTotalPages( operationParams.isTotalPages() );
-        params.setSkipPaging( toBooleanDefaultIfNull( operationParams.isSkipPaging(), false ) );
         params.setIncludeDeleted( operationParams.isIncludeDeleted() );
         params.setUser( user );
         params.setOrder( operationParams.getOrder() );

@@ -212,11 +212,6 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
 
         EnrollmentQueryParams queryParams = opeationParamsMapper.map( params );
 
-        if ( !params.isPaging() && !params.isSkipPaging() )
-        {
-            params.setDefaultPaging();
-        }
-
         List<Enrollment> enrollmentList = new ArrayList<>(
             enrollmentService.getEnrollments( queryParams ) );
         if ( !params.isSkipPaging() )
