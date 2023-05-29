@@ -469,7 +469,6 @@ public class Enrollment
 
     private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
     {
-        copy.setCode( original.getCode() );
         copy.setComments( newListFromObjectOrEmpty( original.getComments() ) );
         copy.setCompletedBy( original.getCompletedBy() );
         copy.setCreatedAtClient( original.getCreatedAtClient() );
@@ -486,6 +485,7 @@ public class Enrollment
         copy.setName( original.getName() );
         copy.setOrganisationUnit( original.getOrganisationUnit() );
         copy.setProgram( programCopy );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setRelationshipItems( newSetFromObjectOrEmpty( original.getRelationshipItems() ) );
         copy.setStatus( original.getStatus() );
         copy.setStoredBy( original.getStoredBy() );

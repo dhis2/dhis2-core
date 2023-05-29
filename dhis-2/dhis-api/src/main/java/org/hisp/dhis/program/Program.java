@@ -45,7 +45,6 @@ import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -925,7 +924,6 @@ public class Program
     {
         String prefix = options.getOrDefault( "prefix", "Copy of " );
         copy.setAccessLevel( original.getAccessLevel() );
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
         copy.setDescription( original.getDescription() );
         copy.setDisplayIncidentDate( original.getDisplayIncidentDate() );
@@ -942,6 +940,7 @@ public class Program
         copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
         copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
         copy.setProgramType( original.getProgramType() );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );
         copy.setSelectEnrollmentDatesInFuture( original.getSelectEnrollmentDatesInFuture() );

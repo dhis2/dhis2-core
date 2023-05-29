@@ -93,14 +93,50 @@ class ProgramTest
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
+
         assertEquals( original.getOrganisationUnits(), copy.getOrganisationUnits() );
         assertNotSame( original.getOrganisationUnits(), copy.getOrganisationUnits() );
-        assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
-        assertEquals( original.getDescription(), copy.getDescription() );
-        assertNotEquals( original.getName(), copy.getName() );
+
         assertNotSame( original.getProgramStages(), copy.getProgramStages() );
         assertNotEquals( original.getProgramStages(), copy.getProgramStages() );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
+
+        //check all others are the equal
+        assertEquals( original.getAccess(), copy.getAccess() );
+        assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
+        assertEquals( original.getAnalyticsDataElements(), copy.getAnalyticsDataElements() );
+        assertEquals( original.getCategoryCombo(), copy.getCategoryCombo() );
+        assertEquals( original.getCompleteEventsExpiryDays(), copy.getCompleteEventsExpiryDays() );
+        assertEquals( original.getDataElements(), copy.getDataElements() );
+        assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
+        assertEquals( original.getDescription(), copy.getDescription() );
+        assertEquals( original.getDisplayEnrollmentDateLabel(), copy.getDisplayEnrollmentDateLabel() );
+        assertEquals( original.getDisplayIncidentDate(), copy.getDisplayIncidentDate() );
+        assertEquals( original.getEnrollmentDateLabel(), copy.getEnrollmentDateLabel() );
+        assertEquals( original.getExpiryDays(), copy.getExpiryDays() );
+        assertEquals( original.getExpiryPeriodType(), copy.getExpiryPeriodType() );
+        assertEquals( original.getFeatureType(), copy.getFeatureType() );
+        assertEquals( original.getFormName(), copy.getFormName() );
+        assertEquals( original.getIgnoreOverdueEvents(), copy.getIgnoreOverdueEvents() );
+        assertEquals( original.getMaxTeiCountToReturn(), copy.getMaxTeiCountToReturn() );
+        assertEquals( original.getMinAttributesRequiredToSearch(), copy.getMinAttributesRequiredToSearch() );
+        assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
+        assertEquals( original.getOnlyEnrollOnce(), copy.getOnlyEnrollOnce() );
+        assertEquals( original.getOpenDaysAfterCoEndDate(), copy.getOpenDaysAfterCoEndDate() );
+        assertEquals( original.getProgramAttributes(), copy.getProgramAttributes() );
+        assertEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
+        assertEquals( original.getProgramType(), copy.getProgramType() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
+        assertEquals( original.getSelectEnrollmentDatesInFuture(), copy.getSelectEnrollmentDatesInFuture() );
         assertEquals( original.getSelectIncidentDatesInFuture(), copy.getSelectIncidentDatesInFuture() );
+        assertEquals( original.getStyle(), copy.getStyle() );
+        assertEquals( original.getTrackedEntityAttributes(), copy.getTrackedEntityAttributes() );
+        assertEquals( original.getTrackedEntityType(), copy.getTrackedEntityType() );
+        assertEquals( original.getTranslations(), copy.getTranslations() );
     }
 
     @Test
@@ -112,11 +148,16 @@ class ProgramTest
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
-        assertTrue( copy.getOrganisationUnits().isEmpty() );
-        assertTrue( copy.getOrganisationUnits().isEmpty() );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
+
         assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
         assertEquals( original.getDescription(), copy.getDescription() );
-        assertNotEquals( original.getName(), copy.getName() );
+        assertTrue( copy.getOrganisationUnits().isEmpty() );
+        assertTrue( copy.getOrganisationUnits().isEmpty() );
         assertTrue( copy.getProgramStages().isEmpty() );
         assertTrue( copy.getProgramAttributes().isEmpty() );
         assertTrue( copy.getProgramIndicators().isEmpty() );
@@ -136,17 +177,28 @@ class ProgramTest
         assertEquals( 54, allClassFieldsIncludingInherited.length );
     }
 
+    public static boolean notEqualsOrBothNull( String original, String copy )
+    {
+        if ( original == null )
+            return true;
+        return !original.equals( copy );
+    }
+
     public static Program getNewProgramWithNoNulls()
     {
         Program program = new Program();
         program.setAccessLevel( AccessLevel.OPEN );
+        program.setAutoFields();
+        program.setCategoryCombo( new CategoryCombo( "cat combo", DataDimensionType.ATTRIBUTE ) );
         program.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         program.setCompleteEventsExpiryDays( 22 );
+        program.setDataEntryForm( new DataEntryForm( "entry form" ) );
         program.setDescription( "Program description" );
         program.setDisplayIncidentDate( true );
         program.setDisplayFrontPageList( true );
         program.setEnrollmentDateLabel( "enroll date" );
         program.setExpiryDays( 33 );
+        program.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         program.setFeatureType( FeatureType.NONE );
         program.setFormName( "Form name" );
         program.setIgnoreOverdueEvents( true );
@@ -154,28 +206,26 @@ class ProgramTest
         program.setMaxTeiCountToReturn( 2 );
         program.setMinAttributesRequiredToSearch( 3 );
         program.setName( "Name" + CodeGenerator.generateUid() );
+        program.setNotificationTemplates( Collections.emptySet() );
         program.setOnlyEnrollOnce( true );
         program.setOpenDaysAfterCoEndDate( 20 );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        program.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
-        program.setShortName( "short name" );
-        program.setSelectEnrollmentDatesInFuture( true );
-        program.setSelectIncidentDatesInFuture( false );
-        program.setSkipOffline( true );
-        program.setUseFirstStageDuringRegistration( false );
-        program.setCategoryCombo( new CategoryCombo( "cat combo", DataDimensionType.ATTRIBUTE ) );
-        program.setDataEntryForm( new DataEntryForm( "entry form" ) );
-        program.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
-        program.setNotificationTemplates( Collections.emptySet() );
         program.setOrganisationUnits( Set.of( new OrganisationUnit( "Org One" ) ) );
+        program.setPublicAccess( "rw------" );
         program.setProgramAttributes( Collections.emptyList() );
         program.setProgramIndicators( Collections.emptySet() );
         program.setProgramRuleVariables( Collections.emptySet() );
         program.setProgramSections( Collections.emptySet() );
         program.setProgramStages( getProgramStages() );
+        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         program.setRelatedProgram( new Program( "Related Program" ) );
+        program.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        program.setShortName( "short name" );
+        program.setSelectEnrollmentDatesInFuture( true );
+        program.setSelectIncidentDatesInFuture( false );
         program.setStyle( new ObjectStyle() );
+        program.setSkipOffline( true );
         program.setTrackedEntityType( new TrackedEntityType( "TET", "description" ) );
+        program.setUseFirstStageDuringRegistration( false );
         program.setUserRoles( Collections.emptySet() );
         return program;
     }
@@ -201,6 +251,7 @@ class ProgramTest
         program.setOnlyEnrollOnce( true );
         program.setOpenDaysAfterCoEndDate( 20 );
         program.setProgramType( null );
+        program.setPublicAccess( null );
         program.setSharing( null );
         program.setShortName( null );
         program.setSelectEnrollmentDatesInFuture( true );

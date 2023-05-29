@@ -37,7 +37,6 @@ import java.util.stream.Collectors;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -606,7 +605,6 @@ public class ProgramStage
         copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setDataEntryForm( original.getDataEntryForm() );
         copy.setDescription( original.getDescription() );
         copy.setDisplayGenerateEventBox( original.getDisplayGenerateEventBox() );
@@ -617,7 +615,7 @@ public class ProgramStage
         copy.setFormName( original.getFormName() );
         copy.setGeneratedByEnrollmentDate( original.getGeneratedByEnrollmentDate() );
         copy.setHideDueDate( original.getHideDueDate() );
-        //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
         copy.setName( prefix + original.getName() );
@@ -625,6 +623,7 @@ public class ProgramStage
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );
         copy.setPreGenerateUID( original.getPreGenerateUID() );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setReferral( original.isReferral() );
         copy.setRemindCompleted( original.getRemindCompleted() );
         copy.setRepeatable( original.getRepeatable() );

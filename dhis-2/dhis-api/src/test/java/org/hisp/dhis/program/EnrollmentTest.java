@@ -61,6 +61,7 @@ class EnrollmentTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getUid(), copy.getUid() );
         assertNotEquals( original.getProgram(), copy.getProgram() );
+
         assertEquals( original.getEvents(), copy.getEvents() );
         assertEquals( original.getStatus(), copy.getStatus() );
         assertEquals( original.getComments(), copy.getComments() );
@@ -87,6 +88,7 @@ class EnrollmentTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getUid(), copy.getUid() );
         assertNotEquals( original.getProgram(), copy.getProgram() );
+
         assertEquals( original.getCreatedByUserInfo(), copy.getCreatedByUserInfo() );
         assertEquals( original.getEndDate(), copy.getEndDate() );
         assertEquals( original.getEnrollmentDate(), copy.getEnrollmentDate() );
@@ -120,20 +122,21 @@ class EnrollmentTest
         Enrollment e = new Enrollment();
         Program program = getNewProgramWithNoNulls();
         e.setAutoFields();
-        e.setName( "Enrollment 1" );
         e.setComments( List.of( new TrackedEntityComment( "comment1", "amin" ) ) );
-        e.setFollowup( true );
-        e.setStoredBy( "admin" );
-        e.setProgram( program );
         e.setCompletedBy( "admin" );
-        e.setMessageConversations( List.of( new MessageConversation() ) );
-        e.setEvents( Set.of() );
-        e.setRelationshipItems( Set.of() );
         e.setEndDate( new Date() );
         e.setEnrollmentDate( new Date() );
+        e.setEvents( Set.of() );
+        e.setFollowup( true );
         e.setIncidentDate( new Date() );
+        e.setMessageConversations( List.of( new MessageConversation() ) );
+        e.setName( "Enrollment 1" );
         e.setOrganisationUnit( new OrganisationUnit( "org1" ) );
+        e.setProgram( program );
+        e.setRelationshipItems( Set.of() );
+        e.setStoredBy( "admin" );
         e.setTrackedEntity( new TrackedEntity() );
+        e.setPublicAccess( "rw------" );
         return e;
     }
 
@@ -142,16 +145,17 @@ class EnrollmentTest
         Enrollment e = new Enrollment();
         e.setName( null );
         e.setComments( null );
-        e.setStoredBy( null );
-        e.setProgram( null );
         e.setCompletedBy( null );
-        e.setMessageConversations( null );
-        e.setEvents( null );
-        e.setRelationshipItems( null );
         e.setEndDate( null );
         e.setEnrollmentDate( null );
+        e.setEvents( null );
         e.setIncidentDate( null );
+        e.setMessageConversations( null );
         e.setOrganisationUnit( null );
+        e.setProgram( null );
+        e.setPublicAccess( null );
+        e.setRelationshipItems( null );
+        e.setStoredBy( null );
         e.setTrackedEntity( null );
         return e;
     }

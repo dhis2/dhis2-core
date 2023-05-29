@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
+import static org.hisp.dhis.program.ProgramTest.notEqualsOrBothNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -63,13 +64,17 @@ class ProgramStageSectionTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
-        assertNotEquals( original.getUid(), copy.getUid() );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertEquals( original.getDataElements(), copy.getDataElements() );
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFormName(), copy.getFormName() );
         assertEquals( original.getName(), copy.getName() );
         assertEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
         assertEquals( original.getRenderType(), copy.getRenderType() );
         assertEquals( original.getSharing(), copy.getSharing() );
         assertEquals( original.getShortName(), copy.getShortName() );
@@ -92,13 +97,17 @@ class ProgramStageSectionTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
-        assertNotEquals( original.getUid(), copy.getUid() );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertTrue( copy.getDataElements().isEmpty() );
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFormName(), copy.getFormName() );
         assertEquals( original.getName(), copy.getName() );
         assertTrue( copy.getProgramIndicators().isEmpty() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
         assertEquals( original.getRenderType(), copy.getRenderType() );
         assertEquals( original.getSharing(), copy.getSharing() );
         assertEquals( original.getShortName(), copy.getShortName() );
@@ -129,6 +138,7 @@ class ProgramStageSectionTest
         pss.setFormName( "PSS form name" );
         pss.setProgramIndicators( List.of( new ProgramIndicator() ) );
         pss.setProgramStage( original );
+        pss.setPublicAccess( original.getPublicAccess() );
         pss.setRenderType( new DeviceRenderTypeMap<>() );
         pss.setSortOrder( 1 );
         pss.setShortName( "PSS short name" );
@@ -145,6 +155,7 @@ class ProgramStageSectionTest
         pss.setFormName( null );
         pss.setProgramIndicators( null );
         pss.setProgramStage( null );
+        pss.setPublicAccess( null );
         pss.setRenderType( null );
         pss.setSharing( null );
         pss.setShortName( null );

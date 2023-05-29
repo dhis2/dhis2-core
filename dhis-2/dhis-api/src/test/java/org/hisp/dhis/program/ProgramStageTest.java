@@ -30,6 +30,7 @@ package org.hisp.dhis.program;
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
 import static org.hisp.dhis.program.ProgramStageDataElementTest.getNewProgramStageDataElement;
 import static org.hisp.dhis.program.ProgramStageSectionTest.getNewProgramStageSection;
+import static org.hisp.dhis.program.ProgramTest.notEqualsOrBothNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -64,16 +65,22 @@ class ProgramStageTest
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
-        assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
-        assertEquals( original.getDescription(), copy.getDescription() );
-        assertEquals( original.getFeatureType(), copy.getFeatureType() );
-        assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
-        assertNotEquals( original.getName(), copy.getName() );
         assertNotSame( original.getProgramStageSections(), copy.getProgramStageSections() );
         assertNotEquals( original.getProgramStageSections(), copy.getProgramStageSections() );
         assertNotSame( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
         assertNotEquals( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
+
+        assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
+        assertEquals( original.getDescription(), copy.getDescription() );
+        assertEquals( original.getFeatureType(), copy.getFeatureType() );
+        assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
         assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
     }
 
     @Test
@@ -85,14 +92,20 @@ class ProgramStageTest
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
+
+        //check known unique constraints are not equal or both null
+        assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
+        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
+        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
+
         assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFeatureType(), copy.getFeatureType() );
         assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
-        assertNotEquals( original.getName(), copy.getName() );
         assertTrue( copy.getNotificationTemplates().isEmpty() );
         assertTrue( copy.getProgramStageSections().isEmpty() );
         assertTrue( copy.getProgramStageDataElements().isEmpty() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
     }
 
     /**

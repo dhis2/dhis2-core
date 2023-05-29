@@ -64,12 +64,13 @@ class ProgramStageDataElementTest
         assertEquals( original.getAllowFutureDate(), copy.getAllowFutureDate() );
         assertEquals( original.getDataElement(), copy.getDataElement() );
         assertEquals( original.getDisplayInReports(), copy.getDisplayInReports() );
+        assertEquals( original.isCompulsory(), copy.isCompulsory() );
         assertEquals( original.getName(), copy.getName() );
         assertEquals( original.getRenderType(), copy.getRenderType() );
         assertEquals( original.getSortOrder(), copy.getSortOrder() );
         assertEquals( original.getSkipAnalytics(), copy.getSkipAnalytics() );
         assertEquals( original.getSkipSynchronization(), copy.getSkipSynchronization() );
-        assertEquals( original.isCompulsory(), copy.isCompulsory() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
     }
 
     @Test
@@ -93,6 +94,7 @@ class ProgramStageDataElementTest
         assertEquals( original.getDataElement(), copy.getDataElement() );
         assertEquals( original.getDisplayInReports(), copy.getDisplayInReports() );
         assertEquals( original.getName(), copy.getName() );
+        assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
         assertEquals( original.getRenderType(), copy.getRenderType() );
         assertEquals( original.getSortOrder(), copy.getSortOrder() );
         assertEquals( original.getSkipAnalytics(), copy.getSkipAnalytics() );
@@ -117,25 +119,27 @@ class ProgramStageDataElementTest
     public static ProgramStageDataElement getNewProgramStageDataElement( ProgramStage original, String dataElementName )
     {
         ProgramStageDataElement psde = new ProgramStageDataElement();
-        psde.setProgramStage( original );
-        psde.setAutoFields();
-        psde.setDataElement( new DataElement( dataElementName ) );
-        psde.setRenderType( new DeviceRenderTypeMap<>() );
-        psde.setSortOrder( 1 );
-        psde.setCompulsory( true );
-        psde.setAllowProvidedElsewhere( true );
-        psde.setDisplayInReports( true );
         psde.setAllowFutureDate( true );
+        psde.setAllowProvidedElsewhere( true );
+        psde.setAutoFields();
+        psde.setCompulsory( true );
+        psde.setDataElement( new DataElement( dataElementName ) );
+        psde.setDisplayInReports( true );
+        psde.setProgramStage( original );
+        psde.setPublicAccess( "rw------" );
         psde.setRenderOptionsAsRadio( true );
+        psde.setRenderType( new DeviceRenderTypeMap<>() );
         psde.setSkipAnalytics( true );
+        psde.setSortOrder( 1 );
         return psde;
     }
 
     private ProgramStageDataElement getNewProgramStageDataElementWithNulls()
     {
         ProgramStageDataElement psde = new ProgramStageDataElement();
-        psde.setProgramStage( null );
         psde.setDataElement( null );
+        psde.setProgramStage( null );
+        psde.setPublicAccess( null );
         psde.setRenderType( null );
         psde.setSortOrder( null );
         return psde;

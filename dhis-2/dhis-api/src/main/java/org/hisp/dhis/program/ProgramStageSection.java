@@ -34,7 +34,6 @@ import java.util.List;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
@@ -227,13 +226,13 @@ public class ProgramStageSection
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setDataElements( newListFromObjectOrEmpty( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
         copy.setFormName( original.getFormName() );
-        //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setName( original.getName() );
         copy.setProgramIndicators( newListFromObjectOrEmpty( original.getProgramIndicators() ) );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );

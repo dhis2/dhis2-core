@@ -30,7 +30,6 @@ package org.hisp.dhis.program;
 import java.util.Objects;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
@@ -307,12 +306,12 @@ public class ProgramStageDataElement
     {
         copy.setAllowFutureDate( original.getAllowFutureDate() );
         copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
-        copy.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         copy.setCompulsory( original.isCompulsory() );
         copy.setDataElement( original.getDataElement() );
         copy.setDisplayInReports( original.getDisplayInReports() );
-        //        copy.setLastUpdatedBy(); //TODO this is blank in DB when saved
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setName( original.getName() );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );
