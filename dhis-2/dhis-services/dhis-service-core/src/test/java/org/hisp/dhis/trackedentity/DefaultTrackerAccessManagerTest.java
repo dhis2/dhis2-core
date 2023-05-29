@@ -30,13 +30,14 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.user.User;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -60,9 +61,37 @@ class DefaultTrackerAccessManagerTest
         Program program = new Program();
         program.setAccessLevel( OPEN );
         OrganisationUnit orgUnit = new OrganisationUnit();
+
         when( organisationUnitService.isInUserSearchHierarchy( user, orgUnit ) ).thenReturn( true );
 
-        Assertions.assertTrue( trackerAccessManager.canAccess( user, program, orgUnit ) );
+        assertTrue( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should have access to open program" );
+    }
+
+    @Test
+    void shouldNotHaveAccessWhenProgramOpenAndSearchAccessNotAvailable()
+    {
+        User user = new User();
+        Program program = new Program();
+        program.setAccessLevel( OPEN );
+        OrganisationUnit orgUnit = new OrganisationUnit();
+
+        when( organisationUnitService.isInUserSearchHierarchy( user, orgUnit ) ).thenReturn( false );
+
+        assertFalse( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should not have access to open program" );
+    }
+
+    @Test
+    void shouldHaveAccessWhenProgramNullAndSearchAccessAvailable()
+    {
+        User user = new User();
+        OrganisationUnit orgUnit = new OrganisationUnit();
+
+        when( organisationUnitService.isInUserSearchHierarchy( user, orgUnit ) ).thenReturn( true );
+
+        assertTrue( trackerAccessManager.canAccess( user, null, orgUnit ),
+            "User should have access to unspecified program" );
     }
 
     @Test
@@ -70,9 +99,11 @@ class DefaultTrackerAccessManagerTest
     {
         User user = new User();
         OrganisationUnit orgUnit = new OrganisationUnit();
+
         when( organisationUnitService.isInUserSearchHierarchy( user, orgUnit ) ).thenReturn( false );
 
-        Assertions.assertFalse( trackerAccessManager.canAccess( user, null, orgUnit ) );
+        assertFalse( trackerAccessManager.canAccess( user, null, orgUnit ),
+            "User should not have access to unspecified program" );
     }
 
     @Test
@@ -82,9 +113,39 @@ class DefaultTrackerAccessManagerTest
         Program program = new Program();
         program.setAccessLevel( CLOSED );
         OrganisationUnit orgUnit = new OrganisationUnit();
+
         when( organisationUnitService.isInUserHierarchy( user, orgUnit ) ).thenReturn( true );
 
-        Assertions.assertTrue( trackerAccessManager.canAccess( user, program, orgUnit ) );
+        assertTrue( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should have access to closed program" );
+    }
+
+    @Test
+    void shouldNotHaveAccessWhenProgramClosedAndCaptureAccessNotAvailable()
+    {
+        User user = new User();
+        Program program = new Program();
+        program.setAccessLevel( CLOSED );
+        OrganisationUnit orgUnit = new OrganisationUnit();
+
+        when( organisationUnitService.isInUserHierarchy( user, orgUnit ) ).thenReturn( false );
+
+        assertFalse( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should not have access to closed program" );
+    }
+
+    @Test
+    void shouldHaveAccessWhenProgramProtectedAndCaptureAccessAvailable()
+    {
+        User user = new User();
+        Program program = new Program();
+        program.setAccessLevel( PROTECTED );
+        OrganisationUnit orgUnit = new OrganisationUnit();
+
+        when( organisationUnitService.isInUserHierarchy( user, orgUnit ) ).thenReturn( true );
+
+        assertTrue( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should have access to protected program" );
     }
 
     @Test
@@ -94,8 +155,10 @@ class DefaultTrackerAccessManagerTest
         Program program = new Program();
         program.setAccessLevel( PROTECTED );
         OrganisationUnit orgUnit = new OrganisationUnit();
+
         when( organisationUnitService.isInUserHierarchy( user, orgUnit ) ).thenReturn( false );
 
-        Assertions.assertFalse( trackerAccessManager.canAccess( user, program, orgUnit ) );
+        assertFalse( trackerAccessManager.canAccess( user, program, orgUnit ),
+            "User should not have access to protected program" );
     }
 }
