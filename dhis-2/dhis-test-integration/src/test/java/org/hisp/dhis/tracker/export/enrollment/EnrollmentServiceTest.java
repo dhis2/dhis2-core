@@ -383,7 +383,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         manager.updateNoAcl( programA );
 
-        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
         params.setProgramUid( programA.getUid() );
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE );
 
@@ -401,7 +401,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         programA.getSharing().setPublicAccess( AccessStringHelper.DATA_READ );
         manager.updateNoAcl( programA );
 
-        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
         params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
         params.setTrackedEntityUid( trackedEntityA.getUid() );
 
@@ -421,7 +421,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         trackedEntityTypeA.getSharing().setPublicAccess( AccessStringHelper.DEFAULT );
         manager.updateNoAcl( trackedEntityTypeA );
 
-        EnrollmentOperationParams params = new EnrollmentOperationParams();
+        EnrollmentOperationParams params = EnrollmentOperationParams.EMPTY;
         params.setOrganisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) );
         params.setTrackedEntityUid( trackedEntityA.getUid() );
 

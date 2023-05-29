@@ -27,28 +27,30 @@
  */
 package org.hisp.dhis.tracker.export.enrollment;
 
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryModifiers;
+import org.hisp.dhis.program.ProgramStatus;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import lombok.Data;
-import lombok.experimental.Accessors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.program.ProgramStatus;
-import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
-
-@Data
-@Accessors( chain = true )
+@Getter
+@Builder
 public class EnrollmentOperationParams
 {
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;
 
+    static final EnrollmentOperationParams EMPTY = EnrollmentOperationParams.builder().build();
+
+    @Builder.Default
     private EnrollmentParams enrollmentParams = EnrollmentParams.FALSE;
 
     /**
@@ -65,6 +67,7 @@ public class EnrollmentOperationParams
      * Organisation units for which instances in the response were registered
      * at. Is related to the specified OrganisationUnitMode.
      */
+    @Builder.Default
     private Set<String> organisationUnitUids = new HashSet<>();
 
     /**
@@ -139,120 +142,6 @@ public class EnrollmentOperationParams
      */
     private List<OrderParam> order;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
-
-    public EnrollmentOperationParams()
-    {
-    }
-
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
-
-    /**
-     * Adds an organisation unit to the parameters.
-     */
-    public void addOrganisationUnit( String unit )
-    {
-        this.organisationUnitUids.add( unit );
-    }
-
-    public void addOrganisationUnits( Set<String> orgUnits )
-    {
-        this.organisationUnitUids.addAll( orgUnits );
-    }
-
-    /**
-     * Indicates whether this params specifies last updated.
-     */
-    public boolean hasLastUpdated()
-    {
-        return lastUpdated != null;
-    }
-
-    /**
-     * Indicates whether this parameters has a lastUpdatedDuration filter.
-     */
-    public boolean hasLastUpdatedDuration()
-    {
-        return lastUpdatedDuration != null;
-    }
-
-    /**
-     * Indicates whether this params specifies any organisation units.
-     */
-    public boolean hasOrganisationUnits()
-    {
-        return organisationUnitUids != null && !organisationUnitUids.isEmpty();
-    }
-
-    /**
-     * Indicates whether this params specifies a program.
-     */
-    public boolean hasProgram()
-    {
-        return programUid != null;
-    }
-
-    /**
-     * Indicates whether this params specifies a program status.
-     */
-    public boolean hasProgramStatus()
-    {
-        return programStatus != null;
-    }
-
-    /**
-     * Indicates whether this params specifies follow up for the given program.
-     * Follow up can be specified as true or false.
-     */
-    public boolean hasFollowUp()
-    {
-        return followUp != null;
-    }
-
-    /**
-     * Indicates whether this params specifies a program start date.
-     */
-    public boolean hasProgramStartDate()
-    {
-        return programStartDate != null;
-    }
-
-    /**
-     * Indicates whether this params specifies a program end date.
-     */
-    public boolean hasProgramEndDate()
-    {
-        return programEndDate != null;
-    }
-
-    /**
-     * Indicates whether this params specifies a tracked entity.
-     */
-    public boolean hasTrackedEntityType()
-    {
-        return trackedEntityTypeUid != null;
-    }
-
-    /**
-     * Indicates whether this params specifies a tracked entity instance.
-     */
-    public boolean hasTrackedEntity()
-    {
-        return StringUtils.isNotEmpty( this.trackedEntityUid );
-    }
-
-    /**
-     * Indicates whether this params is of the given organisation unit mode.
-     */
-    public boolean isOrganisationUnitMode( OrganisationUnitSelectionMode mode )
-    {
-        return organisationUnitMode != null && organisationUnitMode.equals( mode );
-    }
-
     /**
      * Indicates whether paging is enabled.
      */
@@ -280,14 +169,6 @@ public class EnrollmentOperationParams
     }
 
     /**
-     * Returns the offset based on the page number and page size.
-     */
-    public int getOffset()
-    {
-        return (getPageWithDefault() - 1) * getPageSizeWithDefault();
-    }
-
-    /**
      * Sets paging properties to default values.
      */
     public void setDefaultPaging()
@@ -295,10 +176,5 @@ public class EnrollmentOperationParams
         this.page = DEFAULT_PAGE;
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
-    }
-
-    public boolean isSorting()
-    {
-        return !CollectionUtils.emptyIfNull( order ).isEmpty();
     }
 }
