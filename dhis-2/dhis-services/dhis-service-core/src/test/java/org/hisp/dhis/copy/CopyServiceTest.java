@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.copy;
 
+import static org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
+import static org.hisp.dhis.program.notification.ProgramNotificationRecipient.WEB_HOOK;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,10 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -54,14 +55,11 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramType;
-import org.hisp.dhis.render.DeviceRenderTypeMap;
-import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,7 +70,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @ExtendWith( MockitoExtension.class )
-class CopyServiceTest
+class CopyServiceTest extends DhisConvenienceTest
 {
 
     @Mock
@@ -99,11 +97,30 @@ class CopyServiceTest
         throws ConflictException,
         NotFoundException
     {
-        Program original = getValidProgram();
-        List<Enrollment> originalEnrollments = List.of();
+        Program original = createProgram();
+        OrganisationUnit orgUnit = createOrganisationUnit( "New Org 1" );
+        List<Enrollment> originalEnrollments = List
+            .of( createEnrollment( original, createTrackedEntity( orgUnit ), orgUnit ) );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
         when( programService.addProgram( any( Program.class ) ) ).thenReturn( 12344L );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( originalEnrollments );
+
+        String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+
+        assertNotEquals( original.getUid(), newProgramUid );
+        assertTrue( CodeGenerator.isValidUid( newProgramUid ) );
+    }
+
+    @Test
+    void testCopyProgramFromUidWithValidProgramAndNullEnrollments()
+        throws ConflictException,
+        NotFoundException
+    {
+        Program original = createProgram();
+        OrganisationUnit orgUnit = createOrganisationUnit( "New Org 1" );
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+        when( programService.addProgram( any( Program.class ) ) ).thenReturn( 12344L );
+        when( enrollmentService.getEnrollments( original ) ).thenReturn( null );
 
         String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
 
@@ -121,7 +138,7 @@ class CopyServiceTest
     @Test
     void testCopyProgramFromUidWithDuplicateName()
     {
-        Program original = getValidProgram();
+        Program original = createProgram();
         DataIntegrityViolationException error = new DataIntegrityViolationException( "DB ERROR",
             new Throwable( "DB ERROR" ) );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
@@ -131,7 +148,7 @@ class CopyServiceTest
         assertThrows( ConflictException.class, () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() ) );
     }
 
-    Program getValidProgram()
+    Program createProgram()
     {
         Program program = new Program();
         program.setAutoFields();
@@ -159,30 +176,32 @@ class CopyServiceTest
         program.setSelectIncidentDatesInFuture( false );
         program.setSkipOffline( true );
         program.setUseFirstStageDuringRegistration( false );
-        program.setCategoryCombo( new CategoryCombo( "cat combo", DataDimensionType.ATTRIBUTE ) );
-        program.setDataEntryForm( new DataEntryForm( "entry form" ) );
+        program.setCategoryCombo( createCategoryCombo( 'c' ) );
+        program.setDataEntryForm( createDataEntryForm( 'd' ) );
         program.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
-        program.setNotificationTemplates( Collections.emptySet() );
-        program.setOrganisationUnits( Set.of( new OrganisationUnit( "Org One" ) ) );
-        program.setProgramAttributes( Collections.emptyList() );
-        program.setProgramIndicators( Collections.emptySet() );
-        program.setProgramRuleVariables( Collections.emptySet() );
-        program.setProgramSections( Collections.emptySet() );
-        program.setProgramStages( getProgramStages( program ) );
-        program.setRelatedProgram( new Program( "Related Program" ) );
+        program.setNotificationTemplates(
+            Set.of( createProgramNotificationTemplate( "not1", 20, ENROLLMENT, WEB_HOOK ) ) );
+        program.setOrganisationUnits( Set.of( createOrganisationUnit( "Org 1" ) ) );
+        program.setProgramAttributes( List.of(
+            createProgramTrackedEntityAttribute( program, createTrackedEntityAttribute( 't' ) ) ) );
+        program.setProgramIndicators( Set.of( createProgramIndicator( 'i', program, "exp", "ind" ) ) );
+        program.setProgramRuleVariables( Set.of( createProgramRuleVariable( 'v', program ) ) );
+        program.setProgramSections( Set.of( createProgramSection( 'x', program ) ) );
+        program.setProgramStages( createProgramStages( program ) );
+        program.setRelatedProgram( createProgram( 'P' ) );
         program.setStyle( new ObjectStyle() );
-        program.setTrackedEntityType( new TrackedEntityType( "TET", "description" ) );
-        program.setUserRoles( Collections.emptySet() );
+        program.setTrackedEntityType( createTrackedEntityType( 'A' ) );
+        program.setUserRoles( Set.of( createUserRole( "tester", "d" ) ) );
         return program;
     }
 
-    private Set<ProgramStage> getProgramStages( Program program )
+    private Set<ProgramStage> createProgramStages( Program program )
     {
-        ProgramStage stage = getNewProgramStageWithNoNulls( program );
+        ProgramStage stage = createProgramStage( program );
         return Set.of( stage );
     }
 
-    private ProgramStage getNewProgramStageWithNoNulls( Program program )
+    private ProgramStage createProgramStage( Program program )
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
@@ -201,59 +220,25 @@ class CopyServiceTest
         programStage.setReportDateToUse( "report date" );
         programStage.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
         programStage.setShortName( "short name" );
-        programStage.setProgramStageSections( getProgramStageSections( programStage ) );
-        programStage.setProgramStageDataElements( getProgramStageDataElements( programStage ) );
+        programStage.setProgramStageSections( createProgramStageSections( programStage ) );
+        programStage.setProgramStageDataElements( createProgramStageDataElements( programStage ) );
         programStage.setSortOrder( 2 );
         programStage.setStyle( new ObjectStyle() );
         programStage.setStandardInterval( 11 );
         return programStage;
     }
 
-    private Set<ProgramStageSection> getProgramStageSections( ProgramStage programStage )
+    private Set<ProgramStageSection> createProgramStageSections( ProgramStage programStage )
     {
-        ProgramStageSection pss1 = getNewProgramStageSection( programStage );
-        ProgramStageSection pss2 = getNewProgramStageSection( programStage );
+        ProgramStageSection pss1 = createProgramStageSection( 'w', 7 );
+        ProgramStageSection pss2 = createProgramStageSection( 'q', 6 );
         return Set.of( pss1, pss2 );
     }
 
-    private Set<ProgramStageDataElement> getProgramStageDataElements( ProgramStage programStage )
+    private Set<ProgramStageDataElement> createProgramStageDataElements( ProgramStage programStage )
     {
-        ProgramStageDataElement psde1 = getNewProgramStageDataElement( programStage, "data el1" );
-        ProgramStageDataElement psde2 = getNewProgramStageDataElement( programStage, "data el2" );
+        ProgramStageDataElement psde1 = createProgramStageDataElement( programStage, createDataElement( 'k' ), 3 );
+        ProgramStageDataElement psde2 = createProgramStageDataElement( programStage, createDataElement( 'y' ), 3 );
         return Set.of( psde1, psde2 );
-    }
-
-    private ProgramStageSection getNewProgramStageSection( ProgramStage original )
-    {
-        ProgramStageSection pss = new ProgramStageSection();
-        pss.setAutoFields();
-        pss.setDataElements( List.of( new DataElement( "DE1" ), new DataElement( "DE2" ) ) );
-        pss.setDescription( "PSS Description" );
-        pss.setFormName( "PSS form name" );
-        pss.setProgramIndicators( List.of( new ProgramIndicator() ) );
-        pss.setProgramStage( original );
-        pss.setRenderType( new DeviceRenderTypeMap<>() );
-        pss.setSortOrder( 1 );
-        pss.setShortName( "PSS short name" );
-        pss.setSharing( new Sharing() );
-        pss.setStyle( new ObjectStyle() );
-        return pss;
-    }
-
-    private ProgramStageDataElement getNewProgramStageDataElement( ProgramStage original, String dataElementName )
-    {
-        ProgramStageDataElement psde = new ProgramStageDataElement();
-        psde.setProgramStage( original );
-        psde.setAutoFields();
-        psde.setDataElement( new DataElement( dataElementName ) );
-        psde.setRenderType( new DeviceRenderTypeMap<>() );
-        psde.setSortOrder( 1 );
-        psde.setCompulsory( true );
-        psde.setAllowProvidedElsewhere( true );
-        psde.setDisplayInReports( true );
-        psde.setAllowFutureDate( true );
-        psde.setRenderOptionsAsRadio( true );
-        psde.setSkipAnalytics( true );
-        return psde;
     }
 }

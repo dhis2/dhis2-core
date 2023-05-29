@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.copy;
 
+import static org.hisp.dhis.util.StreamUtils.nullSafeCollectionToStream;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -91,8 +93,8 @@ public class CopyService
     };
 
     private final Function<ProgramCopyTuple, ProgramEnrollmentsTuple> copyEnrollments = programCopyTuple -> {
-        List<Enrollment> copiedEnrollments = enrollmentService.getEnrollments( programCopyTuple.original() )
-            .stream()
+        List<Enrollment> copiedEnrollments = nullSafeCollectionToStream(
+            enrollmentService.getEnrollments( programCopyTuple.original() ) )
             .map( enrollment -> Enrollment.copyOf( enrollment, programCopyTuple.copy() ) )
             .toList();
         return new ProgramEnrollmentsTuple( programCopyTuple.copy(), copiedEnrollments );

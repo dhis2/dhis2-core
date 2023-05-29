@@ -32,16 +32,31 @@ import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.Category;
+import org.hisp.dhis.category.CategoryCombo;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
+import org.hisp.dhis.jsontree.JsonObject;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Enrollment;
+import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
+import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.webapi.json.domain.JsonProgramStage;
-import org.hisp.dhis.webapi.json.domain.JsonProgramStageDataElement;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -49,19 +64,106 @@ import org.junit.jupiter.api.Test;
  */
 class ProgramControllerTest extends DhisControllerConvenienceTest
 {
+    private OrganisationUnit orgUnit;
+
+    @BeforeEach
+    public void testSetup()
+    {
+        orgUnit = createOrganisationUnit( "Org 1" );
+        manager.save( orgUnit );
+        CategoryOption option = createCategoryOption( 'y' );
+        manager.save( option );
+        Category category = createCategory( 'x', option );
+        manager.save( category );
+        ProgramStage stage1 = createProgramStage( 'a', 30 );
+        ProgramStage stage2 = createProgramStage( 'b', 30 );
+        manager.save( List.of( stage1, stage2 ) );
+        DataElement dataElement1 = createDataElement( 'p' );
+        DataElement dataElement2 = createDataElement( 'q' );
+        manager.save( List.of( dataElement1, dataElement2 ) );
+        ProgramStageDataElement psde1 = createProgramStageDataElement( stage1, dataElement1, 1 );
+        ProgramStageDataElement psde2 = createProgramStageDataElement( stage2, dataElement2, 2 );
+        manager.save( List.of( psde1, psde2 ) );
+
+        ProgramStageSection pss1 = createProgramStageSection( 'l', 3 );
+        ProgramStageSection pss2 = createProgramStageSection( 'm', 4 );
+        manager.save( List.of( pss1, pss2 ) );
+
+        TrackedEntityAttribute tea = createTrackedEntityAttribute( 't' );
+        manager.save( tea );
+        CategoryCombo categoryCombo = createCategoryCombo( 'z', category );
+        manager.save( categoryCombo );
+        Program program = createProgram( 'c', null, Set.of( tea ), Set.of( orgUnit ),
+            categoryCombo );
+        manager.save( program );
+        stage1.setProgramStageDataElements( Set.of( psde1, psde2 ) );
+        stage2.setProgramStageDataElements( Set.of( psde1, psde2 ) );
+        stage1.setProgramStageSections( Set.of( pss1, pss2 ) );
+        stage2.setProgramStageSections( Set.of( pss1, pss2 ) );
+        manager.save( stage1 );
+        manager.save( stage2 );
+        program.setProgramStages( Set.of( stage1, stage2 ) );
+        manager.save( program );
+        TrackedEntity tei1 = createTrackedEntity( 'd', orgUnit );
+        TrackedEntity tei2 = createTrackedEntity( 'e', orgUnit );
+        manager.save( List.of( tei1, tei2 ) );
+        Enrollment enrollment1 = createEnrollment( program, tei1, orgUnit );
+        Enrollment enrollment2 = createEnrollment( program, tei2, orgUnit );
+        manager.save( List.of( enrollment1, enrollment2 ) );
+    }
 
     @Test
-    void testCopyProgramWith2ProgramStages()
+    void testCopyProgramWith2ProgramStagesAnd2Enrollments()
     {
-        String originalProgramUid = "VoZMWi7rBga";
-        String originalStageUid1 = "VoZMWi7rBgb";
-        String originalStageUid2 = "VoZMWi7rBgc";
-        POST( "/metadata/",
-            "{'programs':[{'name':'test program name', 'id':'%s', 'description':'program description', 'shortName':'test program short name','programType':'WITH_REGISTRATION','programStages':[{'id':'%s'},{'id':'%s'}] }],'programStages':[{'id':'%s','name':'test programStage1'},{'id':'%s','name':'test programStage2'}]}"
-                .formatted( originalProgramUid, originalStageUid1, originalStageUid2, originalStageUid1,
-                    originalStageUid2 ) )
-            .content( HttpStatus.OK );
-        JsonWebMessage response = POST( "/programs/%s/copy".formatted( originalProgramUid ) )
+        JsonWebMessage response = POST( "/programs/%s/copy".formatted( BASE_PR_UID + 'c' ) )
+            .content( HttpStatus.CREATED )
+            .as( JsonWebMessage.class );
+
+        String copiedProgramUid = getMatchingGroupFromPattern( response.getMessage(), "'(.*?)'", 1 );
+        assertTrue( response.getMessage().contains( "Program created" ) );
+
+        JsonProgram copiedProgram = GET( "/programs/{id}", copiedProgramUid ).content( HttpStatus.OK )
+            .as( JsonProgram.class );
+        JsonList<JsonProgramStage> copiedStages = copiedProgram.getProgramStages();
+
+        assertEquals( copiedProgramUid, copiedProgram.getUid() );
+        assertEquals( "ProgramShortc", copiedProgram.getShortName() );
+        assertEquals( "Copy of Programc", copiedProgram.getName() );
+        assertEquals( "Descriptionc", copiedProgram.getDescription() );
+        assertEquals( 2, copiedProgram.getProgramStages().size() );
+
+        // ensure that copied stages have new uids
+        Set<String> copiedStageUids = copiedStages.stream().map( JsonProgramStage::getUid )
+            .collect( Collectors.toSet() );
+        copiedStageUids.removeAll( Set.of( BASE_PG_UID + 'a', BASE_PG_UID + 'b' ) );
+        assertEquals( 2, copiedStageUids.size() );
+
+        //check for copied enrollments with new program uid
+        JsonObject enrollments = GET( "/tracker/enrollments?orgUnit={orgUnitId}", orgUnit.getUid() )
+            .content( HttpStatus.OK )
+            .as( JsonObject.class );
+
+        JsonList<JsonEnrollment> instances = enrollments.getString( "instances" ).asList( JsonEnrollment.class );
+
+        long enrollmentsForNewProgramCount = instances.stream().map( JsonEnrollment::getProgram )
+            .filter( program -> program.equals( copiedProgramUid ) ).count();
+        assertEquals( 2, enrollmentsForNewProgramCount );
+
+        //check for new Program Stage Data Elements and Program Sections
+        JsonProgramStage copiedStage = copiedStages.get( 0 );
+        JsonProgramStage jsonCopiedProgramStage = GET( "/programStages/" + copiedStage.getUid() )
+            .content( HttpStatus.OK )
+            .as( JsonProgramStage.class );
+        assertEquals( 2, jsonCopiedProgramStage.getProgramStageDataElements().size() );
+        assertEquals( 2, jsonCopiedProgramStage.getProgramStageSections().size() );
+    }
+
+    @Test
+    void testCopyProgramWithPrefixCopyOption()
+    {
+        String prefixCopyOption = "add prefix ";
+        JsonWebMessage response = POST(
+            "/programs/%s/copy?prefix=%s".formatted( BASE_PR_UID + 'c', prefixCopyOption ) )
             .content( HttpStatus.CREATED )
             .as( JsonWebMessage.class );
 
@@ -69,71 +171,11 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         assertTrue( response.getMessage().contains( "Program created" ) );
 
         JsonProgram newProgram = GET( "/programs/{id}", newUid ).content( HttpStatus.OK ).as( JsonProgram.class );
-        JsonList<JsonProgramStage> stages = newProgram.getProgramStages();
 
         assertEquals( newUid, newProgram.getUid() );
-        assertEquals( "test program short name", newProgram.getShortName() );
-        assertEquals( "Copy of test program name", newProgram.getName() );
-        assertEquals( "program description", newProgram.getDescription() );
-        assertEquals( 2, newProgram.getProgramStages().size() );
-
-        // ensure that copied stages have new uids
-        Set<String> stageUids = stages.stream().map( JsonProgramStage::getUid ).collect( Collectors.toSet() );
-        stageUids.removeAll( Set.of( originalStageUid1, originalStageUid2 ) );
-        assertEquals( 2, stageUids.size() );
-    }
-
-    @Test
-    void testCopyProgramWithProgramStageDataElements()
-    {
-        String originalProgramUid = "abcMWi7rBga";
-        String originalStageUid1 = "VoZMWi7rBgb";
-        String psde1 = "uoZMWi7rBd1";
-        String psde2 = "uoZMWi7rBd2";
-        String dataEl1 = "poZMWi7rBd1";
-        String dataEl2 = "poZMWi7rBd2";
-
-        //create data elements to use later
-        String dataElementCreate = """
-            {"dataElements":[{"id":"%s","name":"test dataElement1","aggregationType":"NONE","domainType":"AGGREGATE","valueType":"TEXT","shortName":"datael1"},{"id":"%s","name":"test dataElement12","aggregationType":"SUM","domainType":"TRACKER","valueType":"INTEGER","shortName":"datael2"}]}
-            """
-            .formatted( dataEl1, dataEl2 );
-        POST( "/metadata", dataElementCreate ).content( HttpStatus.OK );
-
-        //create program with stage
-        String program = """
-            {"programs":[{"name":"test program azz","id":"%s","shortName":"local test program","programType": "WITH_REGISTRATION","programStages":[{"id":"%s"}]}],"programStages":[{"id":"%s","name":"test programStage azz"}]}
-            """
-            .formatted( originalProgramUid, originalStageUid1, originalStageUid1 );
-        POST( "/metadata", program ).content( HttpStatus.OK );
-
-        //create program stage data elements
-        String programStageDataElements = """
-            {"programStages":[{"id":"%s","name":"test program stage","program":{"id":"%s"},"programStageDataElements":[{"id":"%s","dataElement":{"id":"%s","displayName":"Age in years","valueType":"INTEGER"},"programStage":{"id":"%s"},"sortOrder":1},{"id":"%s","dataElement":{"id":"%s","displayName":"Year born","valueType":"INTEGER"},"programStage":{"id":"%s"},"sortOrder":2}]}]}
-            """
-            .formatted( originalStageUid1, originalProgramUid, psde1, dataEl1, originalStageUid1, psde2, dataEl2,
-                originalStageUid1 );
-        POST( "/metadata", programStageDataElements ).content( HttpStatus.OK );
-
-        //copy program
-        JsonWebMessage response = POST( "/programs/%s/copy".formatted( originalProgramUid ) )
-            .content( HttpStatus.CREATED )
-            .as( JsonWebMessage.class );
-
-        String newUid = getMatchingGroupFromPattern( response.getMessage(), "'(.*?)'", 1 );
-        JsonProgram newProgram = GET( "/programs/{id}", newUid ).content( HttpStatus.OK ).as( JsonProgram.class );
-        JsonProgramStage stage = newProgram.getProgramStages().get( 0 );
-
-        JsonProgramStage jsonProgramStage = GET( "/programStages/" + stage.getUid() ).content( HttpStatus.OK )
-            .as( JsonProgramStage.class );
-        assertEquals( 2, jsonProgramStage.getProgramStageDataElements().size() );
-
-        // ensure that copied stage data elements have new uids
-        Set<String> stageDataElUids = jsonProgramStage.getProgramStageDataElements().stream()
-            .map( JsonProgramStageDataElement::getUid )
-            .collect( Collectors.toSet() );
-        stageDataElUids.removeAll( Set.of( psde1, psde2 ) );
-        assertEquals( 2, stageDataElUids.size() );
+        assertEquals( "ProgramShortc", newProgram.getShortName() );
+        assertEquals( "add prefix Programc", newProgram.getName() );
+        assertEquals( "Descriptionc", newProgram.getDescription() );
     }
 
     @Test
