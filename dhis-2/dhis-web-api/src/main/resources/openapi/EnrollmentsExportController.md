@@ -31,7 +31,7 @@ Get soft-deleted enrollments by specifying `includeDeleted=true`. Soft-deleted e
 Get enrollments owned by given `orgUnit` relative to the `ouMode`. 
 - When `ouMode=SELECTED` - or no `ouMode` is given - the enrollments owned by the `orgUnit` is returned.
 - When `ouMode=CHILDREN` the enrollments owned by the `orgUnit` or by the `orgUnit`s direct children is returned.
-- When `ouMode=DESCENDANTS` the enrollments owned by the `orgUnit` or by any of the descendants under the `orgUnit` is returned.
+- When `ouMode=DESCENDANTS` the enrollments owned by the `orgUnit` or any its descendants are returned.
 - When `ouMode=ALL`, `ouMode=CAPTURE` or `ouMode=ACCESSIBLE` the `orgUnit` parameter will be ignored.
 
 ### `getEnrollments.parameter.ouMode`
