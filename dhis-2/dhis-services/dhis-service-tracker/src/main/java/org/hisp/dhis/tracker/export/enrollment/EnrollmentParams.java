@@ -34,18 +34,15 @@ import lombok.With;
 @Value
 public class EnrollmentParams
 {
-    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true, false );
+    public static final EnrollmentParams TRUE = new EnrollmentParams( EnrollmentEventsParams.TRUE, true, true );
 
-    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false,
-        false );
+    public static final EnrollmentParams FALSE = new EnrollmentParams( EnrollmentEventsParams.FALSE, false, false );
 
     EnrollmentEventsParams enrollmentEventsParams;
 
     boolean includeRelationships;
 
     boolean includeAttributes;
-
-    boolean includeDeleted;
 
     public boolean isIncludeEvents()
     {
@@ -56,6 +53,6 @@ public class EnrollmentParams
     {
         return this.enrollmentEventsParams.isIncludeEvents() == includeEvents ? this
             : new EnrollmentParams( enrollmentEventsParams.withIncludeEvents( includeEvents ),
-                this.includeRelationships, this.includeAttributes, this.includeDeleted );
+                this.includeRelationships, this.includeAttributes );
     }
 }
