@@ -37,6 +37,7 @@ import static org.mockito.Mockito.when;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +48,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class DefaultTrackerAccessManagerTest
 {
+
+    @Mock
+    private AclService aclService;
+
+    @Mock
+    private TrackerOwnershipManager ownershipAccessManager;
 
     @Mock
     private OrganisationUnitService organisationUnitService;
