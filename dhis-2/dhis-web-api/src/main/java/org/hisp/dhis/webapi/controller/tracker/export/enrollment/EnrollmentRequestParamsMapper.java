@@ -32,7 +32,6 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
@@ -68,7 +67,7 @@ class EnrollmentRequestParamsMapper
                 requestParams.getTrackedEntityType() != null ? requestParams.getTrackedEntityType().getValue() : null )
             .trackedEntityUid(
                 requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
-            .orgUnitUids( UID.toValueSet(orgUnits ) )
+            .orgUnitUids( UID.toValueSet( orgUnits ) )
             .orgUnitMode( requestParams.getOuMode() )
             .page( requestParams.getPage() )
             .pageSize( requestParams.getPageSize() )

@@ -118,7 +118,8 @@ class EnrollmentsExportController
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
             for ( UID uid : enrollmentUids )
             {
-                list.add( enrollmentService.getEnrollment( uid.getValue(), operationParams.getEnrollmentParams(), operationParams.isIncludeDeleted() ) );
+                list.add( enrollmentService.getEnrollment( uid.getValue(), operationParams.getEnrollmentParams(),
+                    operationParams.isIncludeDeleted() ) );
             }
             enrollmentList = list;
         }
@@ -139,6 +140,6 @@ class EnrollmentsExportController
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
         Enrollment enrollment = ENROLLMENT_MAPPER
             .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams, false ) );
-        return ResponseEntity.ok(fieldFilterService.toObjectNode( enrollment, fields ));
+        return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }

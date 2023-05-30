@@ -73,7 +73,7 @@ class TrackedEntityFieldsParamMapper
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_PROGRAM_OWNERS ) );
         params = params.withIncludeAttributes(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ATTRIBUTES ) );
-        params = params.withIncludeDeleted(includeDeleted);
+        params = params.withIncludeDeleted( includeDeleted );
 
         EventParams eventParams = new EventParams(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.events.relationships" ) );

@@ -53,8 +53,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EnrollmentOperationParams} to
- * {@link EnrollmentQueryParams} which is used to fetch enrollments from the DB.
+ * Maps {@link EnrollmentOperationParams} to {@link EnrollmentQueryParams} which
+ * is used to fetch enrollments from the DB.
  */
 @Component
 @RequiredArgsConstructor
