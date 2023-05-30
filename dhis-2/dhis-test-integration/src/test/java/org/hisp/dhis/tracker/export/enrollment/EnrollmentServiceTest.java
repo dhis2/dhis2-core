@@ -226,7 +226,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
 
         Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(),
-            EnrollmentParams.FALSE );
+            EnrollmentParams.FALSE, false );
 
         assertNotNull( enrollment );
         assertEquals( enrollmentA.getUid(), enrollment.getUid() );
@@ -241,7 +241,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
 
         Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(),
-            EnrollmentParams.FALSE );
+            EnrollmentParams.FALSE, false );
 
         assertNotNull( enrollment );
         assertEquals( enrollmentA.getUid(), enrollment.getUid() );
@@ -255,7 +255,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withEnrollmentEventsParams( EnrollmentEventsParams.TRUE );
 
-        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params, false );
 
         assertNotNull( enrollment );
         assertContainsOnly( List.of( eventA.getUid() ), enrollment.getEvents().stream()
@@ -274,7 +274,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeEvents( true );
 
-        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params, false );
 
         assertNotNull( enrollment );
         assertIsEmpty( enrollment.getEvents() );
@@ -288,7 +288,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeRelationships( true );
 
-        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params, false );
 
         assertNotNull( enrollment );
         assertContainsOnly( Set.of( relationshipA.getUid() ), relationshipUids( enrollment ) );
@@ -305,7 +305,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeRelationships( true );
 
-        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params, false );
 
         assertNotNull( enrollment );
         assertIsEmpty( enrollment.getRelationshipItems() );
@@ -319,7 +319,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         EnrollmentParams params = EnrollmentParams.FALSE;
         params = params.withIncludeAttributes( true );
 
-        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params );
+        Enrollment enrollment = enrollmentService.getEnrollment( enrollmentA.getUid(), params, false );
 
         assertNotNull( enrollment );
         assertContainsOnly( List.of( trackedEntityAttributeA.getUid() ), attributeUids( enrollment ) );
@@ -333,7 +333,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( trackedEntityTypeA );
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE, false ) );
         assertContains( "access to tracked entity type", exception.getMessage() );
     }
 
@@ -346,7 +346,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( userWithoutOrgUnit );
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE, false ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
 
@@ -359,7 +359,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         injectSecurityContext( userWithoutOrgUnit );
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE, false ) );
         assertContains( "OWNERSHIP_ACCESS_DENIED", exception.getMessage() );
     }
 
@@ -370,7 +370,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
 
         ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE ) );
+            () -> enrollmentService.getEnrollment( enrollmentA.getUid(), EnrollmentParams.FALSE, false ) );
         assertContains( "access to program", exception.getMessage() );
     }
 
@@ -385,7 +385,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
 
         EnrollmentOperationParams params = EnrollmentOperationParams.builder()
             .programUid( programA.getUid() )
-            .organisationUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE )
+            .orgUnitMode( OrganisationUnitSelectionMode.ACCESSIBLE )
             .build();
 
         Enrollments enrollments = enrollmentService.getEnrollments( params );
@@ -403,7 +403,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( programA );
 
         EnrollmentOperationParams params = EnrollmentOperationParams.builder()
-            .organisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
+            .orgUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
             .trackedEntityUid( trackedEntityA.getUid() )
             .build();
 
@@ -424,7 +424,7 @@ class EnrollmentServiceTest extends TransactionalIntegrationTest
         manager.updateNoAcl( trackedEntityTypeA );
 
         EnrollmentOperationParams params = EnrollmentOperationParams.builder()
-            .organisationUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
+            .orgUnitUids( Set.of( trackedEntityA.getOrganisationUnit().getUid() ) )
             .trackedEntityUid( trackedEntityA.getUid() )
             .build();
 

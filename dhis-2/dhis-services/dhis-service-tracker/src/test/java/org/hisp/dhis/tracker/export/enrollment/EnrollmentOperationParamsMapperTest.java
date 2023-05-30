@@ -165,7 +165,7 @@ class EnrollmentRequestParamsMapperTest
         ForbiddenException
     {
         EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
-            .organisationUnitUids( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ) )
+            .orgUnitUids( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ) )
             .programUid( program.getUid() )
             .build();
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
@@ -180,7 +180,7 @@ class EnrollmentRequestParamsMapperTest
     void shouldThrowExceptionWhenOrgUnitNotFound()
     {
         EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
-            .organisationUnitUids( Set.of( "JW6BrFd0HLu", ORG_UNIT_2_UID ) )
+            .orgUnitUids( Set.of( "JW6BrFd0HLu", ORG_UNIT_2_UID ) )
             .programUid( PROGRAM_UID )
             .build();
 
@@ -195,7 +195,7 @@ class EnrollmentRequestParamsMapperTest
     void shouldThrowExceptionWhenOrgUnitNotInScope()
     {
         EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
-            .organisationUnitUids( Set.of( ORG_UNIT_1_UID ) )
+            .orgUnitUids( Set.of( ORG_UNIT_1_UID ) )
             .build();
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
 

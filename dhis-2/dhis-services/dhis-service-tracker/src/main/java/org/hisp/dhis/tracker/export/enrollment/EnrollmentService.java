@@ -34,11 +34,11 @@ import org.hisp.dhis.program.Enrollment;
 
 public interface EnrollmentService
 {
-    Enrollment getEnrollment( String uid, EnrollmentParams params )
+    Enrollment getEnrollment( String uid, EnrollmentParams params, boolean includeDeleted )
         throws NotFoundException,
         ForbiddenException;
 
-    Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params )
+    Enrollment getEnrollment( Enrollment enrollment, EnrollmentParams params, boolean includeDeleted )
         throws ForbiddenException;
 
     Enrollments getEnrollments( EnrollmentOperationParams params )

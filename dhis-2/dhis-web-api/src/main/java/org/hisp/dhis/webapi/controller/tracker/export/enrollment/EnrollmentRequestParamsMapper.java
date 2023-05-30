@@ -68,17 +68,15 @@ class EnrollmentRequestParamsMapper
                 requestParams.getTrackedEntityType() != null ? requestParams.getTrackedEntityType().getValue() : null )
             .trackedEntityUid(
                 requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
-            .organisationUnitUids( orgUnits.stream().map( UID::getValue ).collect( Collectors.toSet() ) )
-            .organisationUnitMode( requestParams.getOuMode() )
+            .orgUnitUids( UID.toValueSet(orgUnits ) )
+            .orgUnitMode( requestParams.getOuMode() )
             .page( requestParams.getPage() )
             .pageSize( requestParams.getPageSize() )
             .totalPages( requestParams.isTotalPages() )
             .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
             .includeDeleted( requestParams.isIncludeDeleted() )
             .order( toOrderParams( requestParams.getOrder() ) )
-            .enrollmentParams(
-                fieldsParamMapper.map( requestParams.getFields() )
-                    .withIncludeDeleted( requestParams.isIncludeDeleted() ) )
+            .enrollmentParams( fieldsParamMapper.map( requestParams.getFields() ) )
             .build();
     }
 }

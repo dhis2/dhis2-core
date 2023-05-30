@@ -101,7 +101,7 @@ class EnrollmentRequestParamsMapperTest
 
         EnrollmentOperationParams params = mapper.map( requestParams );
 
-        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrganisationUnitUids() );
+        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrgUnitUids() );
     }
 
     @Test
@@ -113,7 +113,7 @@ class EnrollmentRequestParamsMapperTest
 
         EnrollmentOperationParams params = mapper.map( requestParams );
 
-        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrganisationUnitUids() );
+        assertContainsOnly( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ), params.getOrgUnitUids() );
     }
 
     @Test

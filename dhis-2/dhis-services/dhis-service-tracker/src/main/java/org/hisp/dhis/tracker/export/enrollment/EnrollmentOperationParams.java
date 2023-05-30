@@ -70,25 +70,25 @@ public class EnrollmentOperationParams
      * at. Is related to the specified OrganisationUnitMode.
      */
     @Builder.Default
-    private final Set<String> organisationUnitUids = new HashSet<>();
+    private final Set<String> orgUnitUids = new HashSet<>();
 
     /**
      * Selection mode for the specified organisation units.
      */
-    private final OrganisationUnitSelectionMode organisationUnitMode;
+    private final OrganisationUnitSelectionMode orgUnitMode;
 
     /**
-     * Program for which instances in the response must be enrolled in.
+     * Enrollments must be enrolled into this program.
      */
     private final String programUid;
 
     /**
-     * Status of the tracked entity instance in the given program.
+     * Status of the tracked entity in the given program.
      */
     private final ProgramStatus programStatus;
 
     /**
-     * Indicates whether tracked entity instance is marked for follow up for the
+     * Indicates whether tracked entity is marked for follow up for the
      * specified program.
      */
     private final Boolean followUp;
@@ -104,12 +104,12 @@ public class EnrollmentOperationParams
     private final Date programEndDate;
 
     /**
-     * Tracked entity of the instances in the response.
+     * Tracked entity type of the tracked entity in the response.
      */
     private final String trackedEntityTypeUid;
 
     /**
-     * Tracked entity instance.
+     * Tracked entity.
      */
     private final String trackedEntityUid;
 

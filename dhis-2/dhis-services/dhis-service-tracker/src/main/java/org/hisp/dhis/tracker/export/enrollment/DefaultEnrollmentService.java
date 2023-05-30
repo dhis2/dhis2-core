@@ -79,10 +79,10 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
 
     private final TrackerAccessManager trackerAccessManager;
 
-    private final EnrollmentOperationParamsMapper opeationParamsMapper;
+    private final EnrollmentOperationParamsMapper paramsMapper;
 
     @Override
-    public Enrollment getEnrollment( String uid, EnrollmentParams params )
+    public Enrollment getEnrollment( String uid, EnrollmentParams params, boolean includeDeleted )
         throws NotFoundException,
         ForbiddenException
     {
@@ -93,11 +93,11 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             throw new NotFoundException( Enrollment.class, uid );
         }
 
-        return getEnrollment( enrollment, params );
+        return getEnrollment( enrollment, params, includeDeleted );
     }
 
     @Override
-    public Enrollment getEnrollment( @Nonnull Enrollment enrollment, EnrollmentParams params )
+    public Enrollment getEnrollment( @Nonnull Enrollment enrollment, EnrollmentParams params, boolean includeDeleted )
         throws ForbiddenException
     {
         User user = currentUserService.getCurrentUser();
@@ -136,11 +136,11 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         result.setComments( enrollment.getComments() );
         if ( params.isIncludeEvents() )
         {
-            result.setEvents( getEvents( user, enrollment, params ) );
+            result.setEvents( getEvents( user, enrollment, params, includeDeleted ) );
         }
         if ( params.isIncludeRelationships() )
         {
-            result.setRelationshipItems( getRelationshipItems( user, enrollment, params ) );
+            result.setRelationshipItems( getRelationshipItems( user, enrollment, params, includeDeleted ) );
         }
         if ( params.isIncludeAttributes() )
         {
@@ -151,13 +151,13 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         return result;
     }
 
-    private Set<Event> getEvents( User user, Enrollment enrollment, EnrollmentParams params )
+    private Set<Event> getEvents( User user, Enrollment enrollment, EnrollmentParams params, boolean includeDeleted )
     {
         Set<Event> events = new HashSet<>();
 
         for ( Event event : enrollment.getEvents() )
         {
-            if ( (params.isIncludeDeleted() || !event.isDeleted())
+            if ( (includeDeleted || !event.isDeleted())
                 && trackerAccessManager.canRead( user, event, true ).isEmpty() )
             {
                 events.add( event );
@@ -167,7 +167,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     }
 
     private Set<RelationshipItem> getRelationshipItems( User user, Enrollment enrollment,
-        EnrollmentParams params )
+        EnrollmentParams params, boolean includeDeleted )
     {
         Set<RelationshipItem> relationshipItems = new HashSet<>();
 
@@ -175,7 +175,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         {
             org.hisp.dhis.relationship.Relationship daoRelationship = relationshipItem.getRelationship();
             if ( trackerAccessManager.canRead( user, daoRelationship ).isEmpty()
-                && (params.isIncludeDeleted() || !daoRelationship.isDeleted()) )
+                && (includeDeleted || !daoRelationship.isDeleted()) )
             {
                 relationshipItems.add( relationshipItem );
             }
@@ -210,7 +210,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
     {
         Enrollments enrollments = new Enrollments();
 
-        EnrollmentQueryParams queryParams = opeationParamsMapper.map( params );
+        EnrollmentQueryParams queryParams = paramsMapper.map( params );
 
         List<Enrollment> enrollmentList = new ArrayList<>(
             enrollmentService.getEnrollments( queryParams ) );
@@ -231,7 +231,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             enrollments.setPager( pager );
         }
 
-        enrollments.setEnrollments( getEnrollments( enrollmentList, params.getEnrollmentParams() ) );
+        enrollments.setEnrollments( getEnrollments( enrollmentList, params.getEnrollmentParams(), params.isIncludeDeleted() ) );
 
         return enrollments;
     }
@@ -272,7 +272,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
         return new SlimPager( originalPage, originalPageSize, isLastPage );
     }
 
-    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments, EnrollmentParams params )
+    private List<Enrollment> getEnrollments( Iterable<Enrollment> enrollments, EnrollmentParams params, boolean includeDeleted )
         throws ForbiddenException
     {
         List<Enrollment> enrollmentList = new ArrayList<>();
@@ -283,7 +283,7 @@ public class DefaultEnrollmentService implements org.hisp.dhis.tracker.export.en
             if ( enrollment != null && trackerOwnershipAccessManager
                 .hasAccess( user, enrollment.getTrackedEntity(), enrollment.getProgram() ) )
             {
-                enrollmentList.add( getEnrollment( enrollment, params ) );
+                enrollmentList.add( getEnrollment( enrollment, params, includeDeleted ) );
             }
         }
 

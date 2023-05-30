@@ -56,6 +56,7 @@ import org.hisp.dhis.webapi.controller.tracker.export.OpenApiExport;
 import org.hisp.dhis.webapi.controller.tracker.view.Enrollment;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.mapstruct.factory.Mappers;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -75,8 +76,6 @@ class EnrollmentsExportController
     protected static final String ENROLLMENTS = "enrollments";
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
-
-    private final EnrollmentRequestParamsMapper paramsMapper;
 
     private final EnrollmentRequestParamsMapper operationParamsMapper;
 
@@ -119,7 +118,7 @@ class EnrollmentsExportController
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
             for ( UID uid : enrollmentUids )
             {
-                list.add( enrollmentService.getEnrollment( uid.getValue(), operationParams.getEnrollmentParams() ) );
+                list.add( enrollmentService.getEnrollment( uid.getValue(), operationParams.getEnrollmentParams(), operationParams.isIncludeDeleted() ) );
             }
             enrollmentList = list;
         }
@@ -131,7 +130,7 @@ class EnrollmentsExportController
 
     @OpenApi.Response( OpenApi.EntityType.class )
     @GetMapping( value = "/{uid}" )
-    public ObjectNode getEnrollmentByUid(
+    public ResponseEntity<ObjectNode> getEnrollmentByUid(
         @OpenApi.Param( { UID.class, Enrollment.class } ) @PathVariable UID uid,
         @OpenApi.Param( value = String[].class ) @RequestParam( defaultValue = DEFAULT_FIELDS_PARAM ) List<FieldPath> fields )
         throws NotFoundException,
@@ -139,7 +138,7 @@ class EnrollmentsExportController
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
         Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams ) );
-        return fieldFilterService.toObjectNode( enrollment, fields );
+            .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams, false ) );
+        return ResponseEntity.ok(fieldFilterService.toObjectNode( enrollment, fields ));
     }
 }

@@ -53,7 +53,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps operation parameters stored in {@link EnrollmentOperationParams} to
+ * Maps {@link EnrollmentOperationParams} to
  * {@link EnrollmentQueryParams} which is used to fetch enrollments from the DB.
  */
 @Component
@@ -82,7 +82,7 @@ class EnrollmentOperationParamsMapper
         TrackedEntity trackedEntity = validateTrackedEntity( operationParams.getTrackedEntityUid() );
 
         User user = currentUserService.getCurrentUser();
-        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, operationParams.getOrganisationUnitUids(), program );
+        Set<OrganisationUnit> orgUnits = validateOrgUnits( user, operationParams.getOrgUnitUids(), program );
 
         EnrollmentQueryParams params = new EnrollmentQueryParams();
         params.setProgram( program );
@@ -95,7 +95,7 @@ class EnrollmentOperationParamsMapper
         params.setTrackedEntityType( trackedEntityType );
         params.setTrackedEntity( trackedEntity );
         params.addOrganisationUnits( orgUnits );
-        params.setOrganisationUnitMode( operationParams.getOrganisationUnitMode() );
+        params.setOrganisationUnitMode( operationParams.getOrgUnitMode() );
         if ( !params.isPaging() && !params.isSkipPaging() )
         {
             params.setPage( DEFAULT_PAGE );
