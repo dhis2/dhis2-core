@@ -37,7 +37,7 @@ Get enrollments owned by given `orgUnit` relative to the `ouMode`.
 ### `getEnrollments.parameter.ouMode`
 
 Get enrollments using given organisation unit selection mode.
-- When `ouMode=SELECTED`, `ouMode=CHILDREN` or `ouMode=DESCENDANTS`, the `orgUnit` parameter is also required to specify which enrollments to download.
+- When `ouMode=SELECTED`, `ouMode=CHILDREN` or `ouMode=DESCENDANTS`, the `orgUnit` parameter is required to specify which enrollments to return.
 - When `ouMode=ALL` enrollments will be downloaded irrespective of the organization unit they are owned by. To use this parameter, the user needs the TODO: FIND AUTHORITY NAME, or ALL authority.
 - When `ouMode=ACCESSIBLE` enrollments owned by any org unit in the users capture scope will be returned.
 - When `ouMode=CAPTURE` enrollments that has an enrollment org unit in the users capture scope will be returned.
