@@ -360,7 +360,7 @@ class TrackedEntityServiceTest
         TrackedEntityQueryParams params = new TrackedEntityQueryParams();
 
         params.setOrganisationUnits( Set.of( organisationUnit ) );
-        params.setOrders( List.of( new OrderParam( "createdAt", SortDirection.ASC ) ) );
+        params.setOrders( List.of( new OrderParam( "created", SortDirection.ASC ) ) );
 
         List<Long> teiIdList = entityInstanceService.getTrackedEntityIds( params, true, true );
 
