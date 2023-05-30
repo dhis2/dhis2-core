@@ -30,6 +30,7 @@ package org.hisp.dhis.trackedentity;
 import static org.hisp.dhis.common.AccessLevel.CLOSED;
 import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
+import org.hisp.dhis.security.acl.AclService;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -47,6 +48,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class DefaultTrackerAccessManagerTest
 {
+
+    @Mock
+    private AclService aclService;
+
+    @Mock
+    private TrackerOwnershipManager ownershipAccessManager;
 
     @Mock
     private OrganisationUnitService organisationUnitService;
