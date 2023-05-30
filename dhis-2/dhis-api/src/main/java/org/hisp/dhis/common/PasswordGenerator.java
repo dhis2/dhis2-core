@@ -25,7 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.helpers;
+package org.hisp.dhis.common;
 
 import java.security.SecureRandom;
 
@@ -52,11 +52,6 @@ public class PasswordGenerator
     public static final String NUMERIC_AND_SPECIAL_CHARS = NUMERIC_CHARS + SPECIAL_CHARS;
 
     public static final String ALL_CHARS = NUMERIC_CHARS + LETTERS + SPECIAL_CHARS;
-
-    private static class SecureRandomHolder
-    {
-        static final SecureRandom GENERATOR = new SecureRandom();
-    }
 
     /**
      * Generates a random password with the given size, has to be minimum 8
@@ -118,9 +113,57 @@ public class PasswordGenerator
         return chars;
     }
 
-    private static char generateCharacter( String charSet )
+    private static char generateCharacter( String str )
     {
-        SecureRandom sr = SecureRandomHolder.GENERATOR;
-        return charSet.charAt( sr.nextInt( charSet.length() ) );
+        SecureRandom sr = CodeGenerator.SecureRandomHolder.GENERATOR;
+        return str.charAt( sr.nextInt( str.length() ) );
+    }
+
+    public static boolean containsDigit( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= '0' && c <= '9' )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsSpecialCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( SPECIAL_CHARS.indexOf( c ) >= 0 )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsUppercaseCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= 'A' && c <= 'Z' )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean containsLowercaseCharacter( char[] chars )
+    {
+        for ( char c : chars )
+        {
+            if ( c >= 'a' && c <= 'z' )
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

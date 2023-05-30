@@ -58,7 +58,7 @@ import com.fasterxml.jackson.dataformat.csv.CsvSchema;
  * @author Enrico Colasante
  */
 @Service( "org.hisp.dhis.webapi.controller.tracker.export.event.CsvEventService" )
-public class CsvEventService
+class CsvEventService
     implements CsvService<Event>
 {
     private static final CsvMapper CSV_MAPPER = new CsvMapper().enable( CsvParser.Feature.WRAP_AS_ARRAY );

@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class EnrollmentFieldsParamMapper
+class EnrollmentFieldsParamMapper
 {
     private final FieldFilterService fieldFilterService;
 

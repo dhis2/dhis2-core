@@ -64,8 +64,10 @@ public class HibernateEncryptionConfig
         password = (String) getConnectionProperty( "encryption.password", "J7GhAs287hsSQlKd9g5" );
     }
 
-    // Used only for SystemSettings (due to bug with JCE policy restrictions in
-    // Jasypt)
+    /**
+     * Used only for SystemSettings (due to bug with JCE policy restrictions in
+     * Jasypt.
+     */
     @Bean( TRIPLE_DES_STRING_ENCRYPTOR )
     public PooledPBEStringEncryptor tripleDesStringEncryptor()
     {
@@ -77,8 +79,10 @@ public class HibernateEncryptionConfig
         return encryptor;
     }
 
-    // AES string encryptor, requires BouncyCastle and JCE extended policy (due
-    // to issue mentioned above)
+    /*
+     * AES string encryptor, requires BouncyCastle and JCE extended policy (due
+     * to issue mentioned above).
+     */
     @Bean( AES_128_STRING_ENCRYPTOR )
     public PooledPBEStringEncryptor aes128StringEncryptor()
     {

@@ -72,7 +72,6 @@ import org.hisp.dhis.dataset.LockExceptionStore;
 import org.hisp.dhis.datavalue.DataExportParams;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.datavalue.DataValueAudit;
-import org.hisp.dhis.datavalue.DataValueService;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.datavalueset.ImportContext.DataSetContext;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
@@ -165,8 +164,6 @@ public class DefaultDataValueSetService
     private final InputUtils inputUtils;
 
     private final CalendarService calendarService;
-
-    private final DataValueService dataValueService;
 
     private final FileResourceService fileResourceService;
 
