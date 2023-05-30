@@ -86,7 +86,15 @@ Get events with enrollments that were enrolled before given date.
 
 ### `*.parameter.EventRequestParams.attributeCc`
 
+### `*.parameter.EventRequestParams.attributeCategoryOptions`
+
+`<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
+
 ### `*.parameter.EventRequestParams.attributeCos`
+
+`<attributeCategoryOption1-uid>[;<attributeCategoryOption2-uid>...]`
+
+**DEPRECATED as of 2.41:** Use parameter `attributeCategoryOptions` instead where UIDs have to be separated by comma!
 
 ### `*.parameter.EventRequestParams.includeDeleted`
 

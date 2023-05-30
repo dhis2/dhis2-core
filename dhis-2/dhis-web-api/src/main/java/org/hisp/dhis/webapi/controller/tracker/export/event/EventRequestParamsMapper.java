@@ -119,9 +119,13 @@ class EventRequestParamsMapper
 
         TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
 
+        Set<UID> attributeCategoryOptions = validateDeprecatedUidsParameter( "attributeCos",
+            requestParams.getAttributeCos(),
+            "attributeCategoryOptions",
+            requestParams.getAttributeCategoryOptions() );
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             requestParams.getAttributeCc() != null ? requestParams.getAttributeCc().getValue() : null,
-            requestParams.getAttributeCos(),
+            UID.toValueSet( attributeCategoryOptions ),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
