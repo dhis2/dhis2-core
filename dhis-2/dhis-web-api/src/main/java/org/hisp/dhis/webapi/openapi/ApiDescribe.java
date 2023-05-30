@@ -80,9 +80,9 @@ final class ApiDescribe
             endpoint.getParameters().values().forEach( parameter -> {
                 List<String> keys = parameter.isShared()
                     ? List.of(
-                        format( "%s.parameter.%s.description", name, parameter.getGlobalName() ),
+                        format( "%s.parameter.%s.description", name, parameter.getFullName() ),
                         format( "%s.parameter.%s.description", name, getDeclaringTypeGlobalName( parameter ) ),
-                        format( "*.parameter.%s.description", parameter.getGlobalName() ),
+                        format( "*.parameter.%s.description", parameter.getFullName() ),
                         format( "*.parameter.%s.description", getDeclaringTypeGlobalName( parameter ) ) )
                     : List.of(
                         format( "%s.parameter.%s.description", name, parameter.getName() ),
