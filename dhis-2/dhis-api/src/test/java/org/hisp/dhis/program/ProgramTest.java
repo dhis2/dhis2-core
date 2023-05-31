@@ -29,8 +29,10 @@ package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
@@ -91,21 +93,16 @@ class ProgramTest
         ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
         Program copy = programCopyTuple.copy();
 
+        //check for differences
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
-
-        assertEquals( original.getOrganisationUnits(), copy.getOrganisationUnits() );
         assertNotSame( original.getOrganisationUnits(), copy.getOrganisationUnits() );
-
         assertNotSame( original.getProgramStages(), copy.getProgramStages() );
         assertNotEquals( original.getProgramStages(), copy.getProgramStages() );
-
-        //check known unique constraints are not equal or both null
-        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
+        assertNotEquals( original.getUid(), copy.getUid() );
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
-        //check all others are the equal
+        //check all others are equal
         assertEquals( original.getAccess(), copy.getAccess() );
         assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
         assertEquals( original.getAnalyticsDataElements(), copy.getAnalyticsDataElements() );
@@ -127,6 +124,7 @@ class ProgramTest
         assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
         assertEquals( original.getOnlyEnrollOnce(), copy.getOnlyEnrollOnce() );
         assertEquals( original.getOpenDaysAfterCoEndDate(), copy.getOpenDaysAfterCoEndDate() );
+        assertEquals( original.getOrganisationUnits(), copy.getOrganisationUnits() );
         assertEquals( original.getProgramAttributes(), copy.getProgramAttributes() );
         assertEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
         assertEquals( original.getProgramType(), copy.getProgramType() );
@@ -140,6 +138,28 @@ class ProgramTest
     }
 
     @Test
+    void testCopyOfWithCodeValue()
+    {
+        Program original = getNewProgramWithNoNulls();
+        original.setCode( "code123" );
+        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program copy = programCopyTuple.copy();
+
+        assertNull( copy.getCode() );
+    }
+
+    @Test
+    void testCopyOfWithNullCodeValue()
+    {
+        Program original = getNewProgramWithNoNulls();
+        original.setCode( null );
+        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program copy = programCopyTuple.copy();
+
+        assertNull( copy.getCode() );
+    }
+
+    @Test
     void testCopyOfWithNulls()
     {
         Program original = getNewProgramWithNulls();
@@ -149,18 +169,24 @@ class ProgramTest
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
 
-        //check known unique constraints are not equal or both null
-        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
+        assertFalse( copy.getUid().isBlank() );
+        assertNotEquals( copy.getUid(), original.getUid() );
 
+        assertEquals( "copynull", copy.getName() );
         assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
         assertEquals( original.getDescription(), copy.getDescription() );
+        assertTrue( copy.getAnalyticsDataElements().isEmpty() );
+        assertTrue( copy.getDataElements().isEmpty() );
+        assertTrue( copy.getNonConfidentialTrackedEntityAttributes().isEmpty() );
+        assertTrue( copy.getNonConfidentialTrackedEntityAttributesWithLegendSet().isEmpty() );
+        assertTrue( copy.getNotificationTemplates().isEmpty() );
         assertTrue( copy.getOrganisationUnits().isEmpty() );
-        assertTrue( copy.getOrganisationUnits().isEmpty() );
-        assertTrue( copy.getProgramStages().isEmpty() );
         assertTrue( copy.getProgramAttributes().isEmpty() );
         assertTrue( copy.getProgramIndicators().isEmpty() );
+        assertTrue( copy.getProgramRuleVariables().isEmpty() );
+        assertTrue( copy.getProgramStages().isEmpty() );
+        assertTrue( copy.getTrackedEntityAttributes().isEmpty() );
         assertTrue( copy.getUserRoles().isEmpty() );
     }
 
@@ -168,18 +194,19 @@ class ProgramTest
      * This test checks the expected field count for {@link Program}. This is
      * important due to {@link Program#copyOf} functionality. If a new field is
      * added then {@link Program#copyOf} should be updated with the appropriate
-     * copying approach.
+     * copying approach (Deep or shallow copy). If the field is not included in
+     * {@link Program#copyOf} this may have unexpected results.
      */
     @Test
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( Program.class );
-        assertEquals( 54, allClassFieldsIncludingInherited.length );
+        assertEquals( 56, allClassFieldsIncludingInherited.length );
     }
 
     public static boolean notEqualsOrBothNull( String original, String copy )
     {
-        if ( original == null )
+        if ( original == null || copy == null )
             return true;
         return !original.equals( copy );
     }
@@ -205,7 +232,7 @@ class ProgramTest
         program.setIncidentDateLabel( "incident date" );
         program.setMaxTeiCountToReturn( 2 );
         program.setMinAttributesRequiredToSearch( 3 );
-        program.setName( "Name" + CodeGenerator.generateUid() );
+        program.setName( "Program Name" );
         program.setNotificationTemplates( Collections.emptySet() );
         program.setOnlyEnrollOnce( true );
         program.setOpenDaysAfterCoEndDate( 20 );

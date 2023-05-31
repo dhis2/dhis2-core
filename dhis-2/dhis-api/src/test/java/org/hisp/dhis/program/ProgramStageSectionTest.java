@@ -64,10 +64,9 @@ class ProgramStageSectionTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
+        assertNotEquals( original.getUid(), copy.getUid() );
 
-        //check known unique constraints are not equal or both null
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertEquals( original.getDataElements(), copy.getDataElements() );
         assertEquals( original.getDescription(), copy.getDescription() );
@@ -97,10 +96,9 @@ class ProgramStageSectionTest
         assertNotEquals( original, copy );
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
+        assertNotEquals( original.getUid(), copy.getUid() );
 
-        //check known unique constraints are not equal or both null
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertTrue( copy.getDataElements().isEmpty() );
         assertEquals( original.getDescription(), copy.getDescription() );

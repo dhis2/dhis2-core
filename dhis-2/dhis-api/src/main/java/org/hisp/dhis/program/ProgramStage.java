@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
+import static org.hisp.dhis.program.Program.PREFIX_KEY;
 import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
 import java.util.HashSet;
@@ -601,7 +603,7 @@ public class ProgramStage
 
     private static void setShallowCopyValues( ProgramStage copy, ProgramStage original, Map<String, String> options )
     {
-        String prefix = options.getOrDefault( "prefix", "Copy of " );
+        String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );

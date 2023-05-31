@@ -102,7 +102,6 @@ class CopyServiceTest extends DhisConvenienceTest
         List<Enrollment> originalEnrollments = List
             .of( createEnrollment( original, createTrackedEntity( orgUnit ), orgUnit ) );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
-        when( programService.addProgram( any( Program.class ) ) ).thenReturn( 12344L );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( originalEnrollments );
 
         String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
@@ -117,9 +116,7 @@ class CopyServiceTest extends DhisConvenienceTest
         NotFoundException
     {
         Program original = createProgram();
-        OrganisationUnit orgUnit = createOrganisationUnit( "New Org 1" );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
-        when( programService.addProgram( any( Program.class ) ) ).thenReturn( 12344L );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( null );
 
         String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
@@ -136,7 +133,7 @@ class CopyServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testCopyProgramFromUidWithDuplicateName()
+    void testCopyProgramFromUidWithDbException()
     {
         Program original = createProgram();
         DataIntegrityViolationException error = new DataIntegrityViolationException( "DB ERROR",
@@ -153,7 +150,6 @@ class CopyServiceTest extends DhisConvenienceTest
         Program program = new Program();
         program.setAutoFields();
         program.setAccessLevel( AccessLevel.OPEN );
-        program.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         program.setCompleteEventsExpiryDays( 22 );
         program.setDescription( "Program description" );
         program.setDisplayIncidentDate( true );
@@ -166,7 +162,7 @@ class CopyServiceTest extends DhisConvenienceTest
         program.setIncidentDateLabel( "incident date" );
         program.setMaxTeiCountToReturn( 2 );
         program.setMinAttributesRequiredToSearch( 3 );
-        program.setName( "Name" + CodeGenerator.generateUid() );
+        program.setName( "Program Name" );
         program.setOnlyEnrollOnce( true );
         program.setOpenDaysAfterCoEndDate( 20 );
         program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
@@ -205,14 +201,13 @@ class CopyServiceTest extends DhisConvenienceTest
     {
         ProgramStage programStage = new ProgramStage();
         programStage.setAutoFields();
-        programStage.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         programStage.setDataEntryForm( new DataEntryForm( "entry form" ) );
         programStage.setDescription( "Program description" );
         programStage.setDueDateLabel( "due label" );
         programStage.setExecutionDateLabel( "label" );
         programStage.setFeatureType( FeatureType.NONE );
         programStage.setFormName( "Form name" );
-        programStage.setName( "Name" + CodeGenerator.generateUid() );
+        programStage.setName( "Stage Name" );
         programStage.setNextScheduleDate( new DataElement( "element" ) );
         programStage.setNotificationTemplates( Collections.emptySet() );
         programStage.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );

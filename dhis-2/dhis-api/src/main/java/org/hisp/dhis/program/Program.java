@@ -80,6 +80,10 @@ public class Program
     extends BaseNameableObject
     implements VersionedObject, MetadataObject
 {
+    static final String DEFAULT_PREFIX = "Copy of ";
+
+    static final String PREFIX_KEY = "prefix";
+
     private String formName;
 
     private int version;
@@ -922,7 +926,7 @@ public class Program
 
     private static void setShallowCopyValues( Program copy, Program original, Map<String, String> options )
     {
-        String prefix = options.getOrDefault( "prefix", "Copy of " );
+        String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAccessLevel( original.getAccessLevel() );
         copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
         copy.setDescription( original.getDescription() );

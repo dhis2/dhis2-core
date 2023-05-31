@@ -34,6 +34,7 @@ import static org.hisp.dhis.program.ProgramTest.notEqualsOrBothNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
@@ -41,7 +42,6 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -69,16 +69,15 @@ class ProgramStageTest
         assertNotEquals( original.getProgramStageSections(), copy.getProgramStageSections() );
         assertNotSame( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
         assertNotEquals( original.getProgramStageDataElements(), copy.getProgramStageDataElements() );
+        assertNotEquals( original.getUid(), copy.getUid() );
 
-        //check known unique constraints are not equal or both null
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFeatureType(), copy.getFeatureType() );
         assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
+        assertEquals( "copyStage Name", copy.getName() );
         assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
         assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
     }
@@ -92,11 +91,10 @@ class ProgramStageTest
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
+        assertNotEquals( original.getName(), copy.getName() );
+        assertNotEquals( original.getUid(), copy.getUid() );
 
-        //check known unique constraints are not equal or both null
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
-        assertTrue( notEqualsOrBothNull( original.getName(), copy.getName() ) );
-        assertTrue( notEqualsOrBothNull( original.getUid(), copy.getUid() ) );
 
         assertEquals( original.getDataEntryForm(), copy.getDataEntryForm() );
         assertEquals( original.getDescription(), copy.getDescription() );
@@ -106,6 +104,28 @@ class ProgramStageTest
         assertTrue( copy.getProgramStageSections().isEmpty() );
         assertTrue( copy.getProgramStageDataElements().isEmpty() );
         assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
+    }
+
+    @Test
+    void testCopyOfCodeShouldBeNullWhenOriginalHasCode()
+    {
+        Program program = new Program( "Program 1" );
+        ProgramStage original = getNewProgramStageWithNoNulls( program );
+        original.setCode( "stage code" );
+        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+
+        assertNull( copy.getCode() );
+    }
+
+    @Test
+    void testCopyOfCodeShouldBeNullWhenOriginalHasNullCode()
+    {
+        Program program = new Program( "Program 1" );
+        ProgramStage original = getNewProgramStageWithNoNulls( program );
+        original.setCode( null );
+        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+
+        assertNull( copy.getCode() );
     }
 
     /**
@@ -124,14 +144,13 @@ class ProgramStageTest
     private ProgramStage getNewProgramStageWithNoNulls( Program program )
     {
         ProgramStage programStage = new ProgramStage();
-        programStage.setCode( CodeGenerator.generateCode( CodeGenerator.UID_CODE_SIZE ) );
         programStage.setDataEntryForm( new DataEntryForm( "entry form" ) );
         programStage.setDescription( "Program description" );
         programStage.setDueDateLabel( "due label" );
         programStage.setExecutionDateLabel( "label" );
         programStage.setFeatureType( FeatureType.NONE );
         programStage.setFormName( "Form name" );
-        programStage.setName( "Name" + CodeGenerator.generateUid() );
+        programStage.setName( "Stage Name" );
         programStage.setNextScheduleDate( new DataElement( "element" ) );
         programStage.setNotificationTemplates( Collections.emptySet() );
         programStage.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
