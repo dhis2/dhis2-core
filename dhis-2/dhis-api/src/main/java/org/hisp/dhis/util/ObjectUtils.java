@@ -197,8 +197,8 @@ public class ObjectUtils
     }
 
     /**
-     * Util method that always returns a Set, either instantiated from a
-     * non-null Set passed as an argument, or if a null arg is passed then then
+     * Util method that always returns a new Set, either instantiated from a
+     * non-null Set passed as an argument, or if a null arg is passed then
      * returning an empty Set. This helps reduce possible NullPointerExceptions
      * when trying to instantiate a Set with a null value.
      *
@@ -212,8 +212,8 @@ public class ObjectUtils
     }
 
     /**
-     * Util method that always returns a List, either instantiated from a
-     * non-null Set passed as an argument, or if a null arg is passed then then
+     * Util method that always returns a new List, either instantiated from a
+     * non-null Set passed as an argument, or if a null arg is passed then
      * returning an empty Set. This helps reduce possible NullPointerExceptions
      * when trying to instantiate a Set with a null value.
      *

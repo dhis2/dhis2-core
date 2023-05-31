@@ -147,48 +147,48 @@ class CopyServiceTest extends DhisConvenienceTest
 
     Program createProgram()
     {
-        Program program = new Program();
-        program.setAutoFields();
-        program.setAccessLevel( AccessLevel.OPEN );
-        program.setCompleteEventsExpiryDays( 22 );
-        program.setDescription( "Program description" );
-        program.setDisplayIncidentDate( true );
-        program.setDisplayFrontPageList( true );
-        program.setEnrollmentDateLabel( "enroll date" );
-        program.setExpiryDays( 33 );
-        program.setFeatureType( FeatureType.NONE );
-        program.setFormName( "Form name" );
-        program.setIgnoreOverdueEvents( true );
-        program.setIncidentDateLabel( "incident date" );
-        program.setMaxTeiCountToReturn( 2 );
-        program.setMinAttributesRequiredToSearch( 3 );
-        program.setName( "Program Name" );
-        program.setOnlyEnrollOnce( true );
-        program.setOpenDaysAfterCoEndDate( 20 );
-        program.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        program.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
-        program.setShortName( "short name" );
-        program.setSelectEnrollmentDatesInFuture( true );
-        program.setSelectIncidentDatesInFuture( false );
-        program.setSkipOffline( true );
-        program.setUseFirstStageDuringRegistration( false );
-        program.setCategoryCombo( createCategoryCombo( 'c' ) );
-        program.setDataEntryForm( createDataEntryForm( 'd' ) );
-        program.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
-        program.setNotificationTemplates(
+        Program p = new Program();
+        p.setAutoFields();
+        p.setAccessLevel( AccessLevel.OPEN );
+        p.setCompleteEventsExpiryDays( 22 );
+        p.setDescription( "Program description" );
+        p.setDisplayIncidentDate( true );
+        p.setDisplayFrontPageList( true );
+        p.setEnrollmentDateLabel( "enroll date" );
+        p.setExpiryDays( 33 );
+        p.setFeatureType( FeatureType.NONE );
+        p.setFormName( "Form name" );
+        p.setIgnoreOverdueEvents( true );
+        p.setIncidentDateLabel( "incident date" );
+        p.setMaxTeiCountToReturn( 2 );
+        p.setMinAttributesRequiredToSearch( 3 );
+        p.setName( "Program Name" );
+        p.setOnlyEnrollOnce( true );
+        p.setOpenDaysAfterCoEndDate( 20 );
+        p.setProgramType( ProgramType.WITHOUT_REGISTRATION );
+        p.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        p.setShortName( "short name" );
+        p.setSelectEnrollmentDatesInFuture( true );
+        p.setSelectIncidentDatesInFuture( false );
+        p.setSkipOffline( true );
+        p.setUseFirstStageDuringRegistration( false );
+        p.setCategoryCombo( createCategoryCombo( 'c' ) );
+        p.setDataEntryForm( createDataEntryForm( 'd' ) );
+        p.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
+        p.setNotificationTemplates(
             Set.of( createProgramNotificationTemplate( "not1", 20, ENROLLMENT, WEB_HOOK ) ) );
-        program.setOrganisationUnits( Set.of( createOrganisationUnit( "Org 1" ) ) );
-        program.setProgramAttributes( List.of(
-            createProgramTrackedEntityAttribute( program, createTrackedEntityAttribute( 't' ) ) ) );
-        program.setProgramIndicators( Set.of( createProgramIndicator( 'i', program, "exp", "ind" ) ) );
-        program.setProgramRuleVariables( Set.of( createProgramRuleVariable( 'v', program ) ) );
-        program.setProgramSections( Set.of( createProgramSection( 'x', program ) ) );
-        program.setProgramStages( createProgramStages( program ) );
-        program.setRelatedProgram( createProgram( 'P' ) );
-        program.setStyle( new ObjectStyle() );
-        program.setTrackedEntityType( createTrackedEntityType( 'A' ) );
-        program.setUserRoles( Set.of( createUserRole( "tester", "d" ) ) );
-        return program;
+        p.setOrganisationUnits( Set.of( createOrganisationUnit( "Org 1" ) ) );
+        p.setProgramAttributes( List.of(
+            createProgramTrackedEntityAttribute( p, createTrackedEntityAttribute( 't' ) ) ) );
+        p.setProgramIndicators( Set.of( createProgramIndicator( 'i', p, "exp", "ind" ) ) );
+        p.setProgramRuleVariables( Set.of( createProgramRuleVariable( 'v', p ) ) );
+        p.setProgramSections( Set.of( createProgramSection( 'x', p ) ) );
+        p.setProgramStages( createProgramStages( p ) );
+        p.setRelatedProgram( createProgram( 'P' ) );
+        p.setStyle( new ObjectStyle() );
+        p.setTrackedEntityType( createTrackedEntityType( 'A' ) );
+        p.setUserRoles( Set.of( createUserRole( "tester", "d" ) ) );
+        return p;
     }
 
     private Set<ProgramStage> createProgramStages( Program program )
@@ -199,28 +199,28 @@ class CopyServiceTest extends DhisConvenienceTest
 
     private ProgramStage createProgramStage( Program program )
     {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setAutoFields();
-        programStage.setDataEntryForm( new DataEntryForm( "entry form" ) );
-        programStage.setDescription( "Program description" );
-        programStage.setDueDateLabel( "due label" );
-        programStage.setExecutionDateLabel( "label" );
-        programStage.setFeatureType( FeatureType.NONE );
-        programStage.setFormName( "Form name" );
-        programStage.setName( "Stage Name" );
-        programStage.setNextScheduleDate( new DataElement( "element" ) );
-        programStage.setNotificationTemplates( Collections.emptySet() );
-        programStage.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
-        programStage.setProgram( program );
-        programStage.setReportDateToUse( "report date" );
-        programStage.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
-        programStage.setShortName( "short name" );
-        programStage.setProgramStageSections( createProgramStageSections( programStage ) );
-        programStage.setProgramStageDataElements( createProgramStageDataElements( programStage ) );
-        programStage.setSortOrder( 2 );
-        programStage.setStyle( new ObjectStyle() );
-        programStage.setStandardInterval( 11 );
-        return programStage;
+        ProgramStage ps = new ProgramStage();
+        ps.setAutoFields();
+        ps.setDataEntryForm( new DataEntryForm( "entry form" ) );
+        ps.setDescription( "Program description" );
+        ps.setDueDateLabel( "due label" );
+        ps.setExecutionDateLabel( "label" );
+        ps.setFeatureType( FeatureType.NONE );
+        ps.setFormName( "Form name" );
+        ps.setName( "Stage Name" );
+        ps.setNextScheduleDate( new DataElement( "element" ) );
+        ps.setNotificationTemplates( Collections.emptySet() );
+        ps.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
+        ps.setProgram( program );
+        ps.setReportDateToUse( "report date" );
+        ps.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        ps.setShortName( "short name" );
+        ps.setProgramStageSections( createProgramStageSections( ps ) );
+        ps.setProgramStageDataElements( createProgramStageDataElements( ps ) );
+        ps.setSortOrder( 2 );
+        ps.setStyle( new ObjectStyle() );
+        ps.setStandardInterval( 11 );
+        return ps;
     }
 
     private Set<ProgramStageSection> createProgramStageSections( ProgramStage programStage )

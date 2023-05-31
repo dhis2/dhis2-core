@@ -143,53 +143,53 @@ class ProgramStageTest
 
     private ProgramStage getNewProgramStageWithNoNulls( Program program )
     {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setDataEntryForm( new DataEntryForm( "entry form" ) );
-        programStage.setDescription( "Program description" );
-        programStage.setDueDateLabel( "due label" );
-        programStage.setExecutionDateLabel( "label" );
-        programStage.setFeatureType( FeatureType.NONE );
-        programStage.setFormName( "Form name" );
-        programStage.setName( "Stage Name" );
-        programStage.setNextScheduleDate( new DataElement( "element" ) );
-        programStage.setNotificationTemplates( Collections.emptySet() );
-        programStage.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
-        programStage.setProgram( program );
-        programStage.setReportDateToUse( "report date" );
-        programStage.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
-        programStage.setShortName( "short name" );
-        programStage.setProgramStageSections( getProgramStageSections( programStage ) );
-        programStage.setProgramStageDataElements( getProgramStageDataElements( programStage ) );
-        programStage.setSortOrder( 2 );
-        programStage.setStyle( new ObjectStyle() );
-        programStage.setStandardInterval( 11 );
-        return programStage;
+        ProgramStage ps = new ProgramStage();
+        ps.setDataEntryForm( new DataEntryForm( "entry form" ) );
+        ps.setDescription( "Program description" );
+        ps.setDueDateLabel( "due label" );
+        ps.setExecutionDateLabel( "label" );
+        ps.setFeatureType( FeatureType.NONE );
+        ps.setFormName( "Form name" );
+        ps.setName( "Stage Name" );
+        ps.setNextScheduleDate( new DataElement( "element" ) );
+        ps.setNotificationTemplates( Collections.emptySet() );
+        ps.setPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.DAILY ) );
+        ps.setProgram( program );
+        ps.setReportDateToUse( "report date" );
+        ps.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        ps.setShortName( "short name" );
+        ps.setProgramStageSections( getProgramStageSections( ps ) );
+        ps.setProgramStageDataElements( getProgramStageDataElements( ps ) );
+        ps.setSortOrder( 2 );
+        ps.setStyle( new ObjectStyle() );
+        ps.setStandardInterval( 11 );
+        return ps;
     }
 
     private ProgramStage getNewProgramStageWithNulls()
     {
-        ProgramStage programStage = new ProgramStage();
-        programStage.setCode( null );
-        programStage.setDataEntryForm( null );
-        programStage.setDescription( null );
-        programStage.setDueDateLabel( null );
-        programStage.setExecutionDateLabel( null );
-        programStage.setFeatureType( null );
-        programStage.setFormName( null );
-        programStage.setName( null );
-        programStage.setNextScheduleDate( null );
-        programStage.setNotificationTemplates( null );
-        programStage.setPeriodType( null );
-        programStage.setProgram( null );
-        programStage.setReportDateToUse( null );
-        programStage.setSharing( null );
-        programStage.setShortName( null );
-        programStage.setSortOrder( null );
-        programStage.setStyle( null );
-        programStage.setStandardInterval( null );
-        programStage.setProgramStageSections( null );
-        programStage.setProgramStageDataElements( null );
-        return programStage;
+        ProgramStage ps = new ProgramStage();
+        ps.setCode( null );
+        ps.setDataEntryForm( null );
+        ps.setDescription( null );
+        ps.setDueDateLabel( null );
+        ps.setExecutionDateLabel( null );
+        ps.setFeatureType( null );
+        ps.setFormName( null );
+        ps.setName( null );
+        ps.setNextScheduleDate( null );
+        ps.setNotificationTemplates( null );
+        ps.setPeriodType( null );
+        ps.setProgram( null );
+        ps.setReportDateToUse( null );
+        ps.setSharing( null );
+        ps.setShortName( null );
+        ps.setSortOrder( null );
+        ps.setStyle( null );
+        ps.setStandardInterval( null );
+        ps.setProgramStageSections( null );
+        ps.setProgramStageDataElements( null );
+        return ps;
     }
 
     private Set<ProgramStageSection> getProgramStageSections( ProgramStage programStage )
