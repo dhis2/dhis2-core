@@ -124,7 +124,7 @@ class ExpressionDimensionItemServiceTests
     }
 
     @Test
-    void testValidateNumericExpressionItemsReturnsTrue( )
+    void testValidateNumericExpressionItemsReturnsTrue()
     {
         // Given
         // When
