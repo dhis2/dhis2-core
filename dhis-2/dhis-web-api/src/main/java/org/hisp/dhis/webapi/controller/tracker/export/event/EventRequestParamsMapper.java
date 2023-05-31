@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.ArrayList;
@@ -119,12 +120,14 @@ class EventRequestParamsMapper
 
         TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
 
+        UID attributeCategoryCombo = validateDeprecatedUidParameter( "attributeCc", requestParams.getAttributeCc(),
+            "attributeCategoryCombo", requestParams.getAttributeCategoryCombo() );
         Set<UID> attributeCategoryOptions = validateDeprecatedUidsParameter( "attributeCos",
             requestParams.getAttributeCos(),
             "attributeCategoryOptions",
             requestParams.getAttributeCategoryOptions() );
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
-            requestParams.getAttributeCc() != null ? requestParams.getAttributeCc().getValue() : null,
+            attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null,
             UID.toValueSet( attributeCategoryOptions ),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
