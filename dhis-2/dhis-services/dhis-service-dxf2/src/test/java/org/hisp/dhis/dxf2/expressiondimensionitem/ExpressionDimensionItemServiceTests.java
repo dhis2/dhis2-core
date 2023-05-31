@@ -122,4 +122,15 @@ class ExpressionDimensionItemServiceTests
         // Then
         assertFalse( valid );
     }
+
+    @Test
+    void testValidateNumericExpressionItemsReturnsTrue( )
+    {
+        // Given
+        // When
+        boolean valid = sut.isValidExpressionItems( "123456789123456789" );
+
+        // Then
+        assertTrue( valid );
+    }
 }

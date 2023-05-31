@@ -28,6 +28,7 @@
 package org.hisp.dhis.dxf2.expressiondimensionitem;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -101,6 +102,11 @@ public class ExpressionDimensionItemService
      */
     public boolean isValidExpressionItems( String expression )
     {
+        if( expression.chars().allMatch( Character::isDigit ) )
+        {
+            return true;
+        }
+
         List<String> expressionTokens = getExpressionTokens( pattern, expression );
 
         return expressionTokens.stream().allMatch( et -> {
@@ -120,7 +126,6 @@ public class ExpressionDimensionItemService
             }
             else if ( uids.length > 0 )
             {
-
                 IdentifiableObject de = manager.get( DataElement.class, uids[0] );
 
                 return de != null;
