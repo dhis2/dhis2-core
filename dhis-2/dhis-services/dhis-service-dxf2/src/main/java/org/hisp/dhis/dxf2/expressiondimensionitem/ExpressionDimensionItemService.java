@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
@@ -101,7 +102,7 @@ public class ExpressionDimensionItemService
      */
     public boolean isValidExpressionItems( String expression )
     {
-        if ( expression.chars().allMatch( Character::isDigit ) )
+        if ( StringUtils.isNumeric( expression ) )
         {
             return true;
         }
