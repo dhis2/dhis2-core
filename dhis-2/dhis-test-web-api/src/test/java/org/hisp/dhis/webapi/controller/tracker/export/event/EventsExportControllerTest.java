@@ -338,6 +338,15 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
                 .getMessage() );
     }
 
+    @Test
+    void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo()
+    {
+        assertStartsWith( "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
+            GET( "/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
     private TrackedEntityType trackedEntityTypeAccessible()
     {
         TrackedEntityType type = trackedEntityType( 'A' );
