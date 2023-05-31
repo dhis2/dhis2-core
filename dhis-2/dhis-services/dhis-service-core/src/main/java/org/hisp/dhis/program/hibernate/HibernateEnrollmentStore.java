@@ -232,7 +232,7 @@ public class HibernateEnrollmentStore
             query = query.toBuilder()
                 .orderBy(
                     " order by " + params.getOrder().stream()
-                        .map( orderParam -> orderParam.getField() + " "
+                        .map( orderParam -> "pi." + orderParam.getField() + " "
                             + (orderParam.getDirection().isAscending() ? "asc" : "desc") )
                         .collect( Collectors.joining( ", " ) ) )
                 .build();
