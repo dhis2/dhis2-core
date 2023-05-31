@@ -180,7 +180,6 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
                 "2313.0" ) );
     }
 
-
     @Disabled( "test has to be fixed, the result is not consistent with expectation" )
     @Test
     public void queryWithProgramAndRepeatableProgramStage()
