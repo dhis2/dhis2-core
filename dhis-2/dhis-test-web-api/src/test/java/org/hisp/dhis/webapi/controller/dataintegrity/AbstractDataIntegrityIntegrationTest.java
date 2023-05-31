@@ -201,7 +201,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
 
     final void assertNamedMetadataObjectExists( String endpoint, String name )
     {
-        JsonResponse response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
+        JsonObject response = GET( "/" + endpoint + "/?filter=name:eq:" + name ).content();
         JsonArray dimensions = response.getArray( endpoint );
         assertEquals( 1, dimensions.size() );
     }
@@ -210,7 +210,7 @@ class AbstractDataIntegrityIntegrationTest extends DhisControllerIntegrationTest
     {
         GET( "/" + endpoint + "/gist?fields=id&headless=true" ).content().stringValues()
             .forEach( id -> DELETE( "/" + endpoint + "/" + id ) );
-        JsonResponse response = GET( "/" + endpoint ).content();
+        JsonObject response = GET( "/" + endpoint ).content();
         JsonArray dimensions = response.getArray( endpoint );
         assertEquals( 0, dimensions.size() );
     }

@@ -177,7 +177,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     void testValidation_Access_CollectionOwnerSharing()
     {
         JsonObject group = GET( "/userGroups/{id}", userGroupId ).content();
-        String sharing = group.getObject( "sharing" ).node().extract().members().get( "public" )
+        String sharing = group.getObject( "sharing" ).node().extract().member( "public" )
             .replaceWith( "\"--------\"" ).toString();
         assertStatus( HttpStatus.NO_CONTENT, PUT( "/userGroups/" + userGroupId + "/sharing", sharing ) );
         switchToGuestUser();

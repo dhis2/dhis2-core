@@ -25,11 +25,11 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.controller.tracker.export.enrollment;
+package org.hisp.dhis.tracker.export.enrollment;
 
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
-import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -51,10 +51,8 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
-import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -66,12 +64,14 @@ import org.mockito.quality.Strictness;
 
 @MockitoSettings( strictness = Strictness.LENIENT ) // common setup
 @ExtendWith( MockitoExtension.class )
-class RequestParamsMapperTest
+class EnrollmentRequestParamsMapperTest
 {
 
     private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
     private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
+
+    private static final String NOT_PRESENT_ORG_UNIT_UID = "TK4KA0IIWde";
 
     private static final String PROGRAM_UID = "XhBYIraw7sv";
 
@@ -98,7 +98,7 @@ class RequestParamsMapperTest
     private TrackerAccessManager trackerAccessManager;
 
     @InjectMocks
-    private EnrollmentParamsMapper mapper;
+    private EnrollmentOperationParamsMapper mapper;
 
     private OrganisationUnit orgUnit1;
 
@@ -109,6 +109,8 @@ class RequestParamsMapperTest
     private Program program;
 
     private TrackedEntityType trackedEntityType;
+
+    private TrackedEntity trackedEntity;
 
     @BeforeEach
     void setUp()
@@ -136,20 +138,20 @@ class RequestParamsMapperTest
         when( trackedEntityTypeService.getTrackedEntityType( TRACKED_ENTITY_TYPE_UID ) )
             .thenReturn( trackedEntityType );
 
-        TrackedEntity trackedEntity = new TrackedEntity();
+        trackedEntity = new TrackedEntity();
         trackedEntity.setUid( TRACKED_ENTITY_UID );
         when( trackedEntityService.getTrackedEntity( TRACKED_ENTITY_UID ) )
             .thenReturn( trackedEntity );
     }
 
     @Test
-    void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+    void shouldMapWithoutFetchingNullParamsWhenParamsAreNotSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.EMPTY;
 
-        mapper.map( criteria );
+        mapper.map( operationParams );
 
         verifyNoInteractions( programService );
         verifyNoInteractions( organisationUnitService );
@@ -158,171 +160,140 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingOrgUnit()
+    void shouldMapOrgUnitsWhenOrgUnitUidsAreSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
-        criteria.setProgram( UID.of( program ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .orgUnitUids( Set.of( ORG_UNIT_1_UID, ORG_UNIT_2_UID ) )
+            .programUid( program.getUid() )
+            .build();
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( operationParams );
 
         assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
     }
 
     @Test
-    void testMappingOrgUnitNotFound()
+    void shouldThrowExceptionWhenOrgUnitNotFound()
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( "NeU85luyD4w;" + ORG_UNIT_2_UID );
-        criteria.setProgram( UID.of( program ) );
-        criteria.setProgram( UID.of( program ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .orgUnitUids( Set.of( "JW6BrFd0HLu", ORG_UNIT_2_UID ) )
+            .programUid( PROGRAM_UID )
+            .build();
+
         when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
+            () -> mapper.map( operationParams ) );
+        assertEquals( "Organisation unit does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
     void shouldThrowExceptionWhenOrgUnitNotInScope()
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnit( ORG_UNIT_1_UID );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .orgUnitUids( Set.of( ORG_UNIT_1_UID ) )
+            .build();
         when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
 
         Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( criteria ) );
+            () -> mapper.map( operationParams ) );
         assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, exception.getMessage() );
     }
 
     @Test
-    void testMappingOrgUnits()
+    void shouldMapProgramWhenProgramUidIsSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
-        criteria.setProgram( UID.of( program ) );
-        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( true );
-        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
+        EnrollmentOperationParams requestParams = EnrollmentOperationParams.builder()
+            .programUid( PROGRAM_UID )
+            .build();
 
-        EnrollmentQueryParams params = mapper.map( criteria );
-
-        assertContainsOnly( Set.of( orgUnit1, orgUnit2 ), params.getOrganisationUnits() );
-    }
-
-    @Test
-    void testMappingOrgUnitsNotFound()
-    {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnits( Set.of( UID.of( "NeU85luyD4w" ), UID.of( ORG_UNIT_2_UID ) ) );
-        criteria.setProgram( UID.of( program ) );
-        when( trackerAccessManager.canAccess( user, program, orgUnit2 ) ).thenReturn( true );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "Organisation unit does not exist: NeU85luyD4w", exception.getMessage() );
-    }
-
-    @Test
-    void shouldThrowExceptionWhenOrgUnitsNotInScope()
-    {
-        RequestParams criteria = new RequestParams();
-        criteria.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ) ) );
-        when( trackerAccessManager.canAccess( user, program, orgUnit1 ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( criteria ) );
-        assertEquals( "User does not have access to organisation unit: " + ORG_UNIT_1_UID, exception.getMessage() );
-    }
-
-    @Test
-    void testMappingProgram()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        RequestParams criteria = new RequestParams();
-        criteria.setProgram( UID.of( PROGRAM_UID ) );
-
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( requestParams );
 
         assertEquals( program, params.getProgram() );
     }
 
     @Test
-    void testMappingProgramNotFound()
+    void shouldThrowExceptionWhenProgramNotFound()
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setProgram( UID.of( "JW6BrFd0HLu" ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .programUid( "JW6BrFd0HLu" )
+            .build();
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
+            () -> mapper.map( operationParams ) );
         assertEquals( "Program is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
-    void testMappingTrackedEntityType()
+    void shouldMapTrackedEntityTypeWhenTrackedEntityTypeUidIsSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .trackedEntityTypeUid( TRACKED_ENTITY_TYPE_UID )
+            .build();
 
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( operationParams );
 
         assertEquals( trackedEntityType, params.getTrackedEntityType() );
     }
 
     @Test
-    void testMappingTrackedEntityTypeNotFound()
+    void shouldThrowExceptionWhenTrackedEntityTypeNotFound()
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntityType( UID.of( "JW6BrFd0HLu" ) );
+        EnrollmentOperationParams requestParams = EnrollmentOperationParams.builder()
+            .trackedEntityTypeUid( "JW6BrFd0HLu" )
+            .build();
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
+            () -> mapper.map( requestParams ) );
         assertEquals( "Tracked entity type is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
-    void testMappingTrackedEntity()
+    void shouldMapTrackedEntityWhenTrackedEntityUidIsSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( UID.of( TRACKED_ENTITY_UID ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .trackedEntityUid( TRACKED_ENTITY_UID )
+            .build();
 
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( operationParams );
 
-        assertEquals( TRACKED_ENTITY_UID, params.getTrackedEntityUid() );
+        assertEquals( trackedEntity, params.getTrackedEntity() );
     }
 
     @Test
-    void testMappingTrackedEntityNotFound()
+    void shouldThrowExceptionTrackedEntityNotFound()
     {
-        RequestParams criteria = new RequestParams();
-        criteria.setTrackedEntity( UID.of( "JW6BrFd0HLu" ) );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .trackedEntityUid( "JW6BrFd0HLu" )
+            .build();
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( criteria ) );
+            () -> mapper.map( operationParams ) );
         assertEquals( "Tracked entity is specified but does not exist: JW6BrFd0HLu", exception.getMessage() );
     }
 
     @Test
-    void testMappingOrderParams()
+    void shouldMapOrderingParamsWhenOrderingParamsAreSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
-        OrderCriteria order1 = OrderCriteria.of( "field1", SortDirection.ASC );
-        OrderCriteria order2 = OrderCriteria.of( "field2", SortDirection.DESC );
-        criteria.setOrder( List.of( order1, order2 ) );
+        OrderParam order1 = new OrderParam( "field1", SortDirection.ASC );
+        OrderParam order2 = new OrderParam( "field2", SortDirection.DESC );
+        EnrollmentOperationParams operationParams = EnrollmentOperationParams.builder()
+            .order( List.of( order1, order2 ) )
+            .build();
 
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( operationParams );
 
         assertEquals( List.of(
             new OrderParam( "field1", SortDirection.ASC ),
@@ -330,14 +301,14 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void testMappingOrderParamsNoOrder()
+    void shouldMapNullOrderingParamsWhenNoOrderingParamsAreSpecified()
         throws BadRequestException,
         ForbiddenException
     {
-        RequestParams criteria = new RequestParams();
+        EnrollmentOperationParams requestParams = EnrollmentOperationParams.EMPTY;
 
-        EnrollmentQueryParams params = mapper.map( criteria );
+        EnrollmentQueryParams params = mapper.map( requestParams );
 
-        assertIsEmpty( params.getOrder() );
+        assertNull( params.getOrder() );
     }
 }

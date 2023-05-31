@@ -74,7 +74,7 @@ public class UserPaginationTest
             userActions
                 .addUserFull( DataGenerator.randomString() + i, DataGenerator.randomString() + i,
                     (DataGenerator.randomString() + i).toLowerCase(),
-                    PasswordGenerator.generateValidPassword( 12 ) );
+                    new String( PasswordGenerator.generateValidPassword( 12 ) ) );
         }
     }
 

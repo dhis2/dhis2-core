@@ -87,9 +87,4 @@ public class TrackedEntityEnrollmentParams
     {
         return enrollmentParams.isIncludeAttributes();
     }
-
-    public boolean isIncludeDeleted()
-    {
-        return enrollmentParams.isIncludeDeleted();
-    }
 }

@@ -240,6 +240,9 @@ public class DhisWebApiWebSecurityConfig
         @Autowired
         private ConfigurationService configurationService;
 
+        @Autowired
+        private ApiTokenAuthManager apiTokenAuthManager;
+
         @Override
         public void configure( AuthenticationManagerBuilder auth )
         {
@@ -396,8 +399,7 @@ public class DhisWebApiWebSecurityConfig
         {
             if ( dhisConfig.isEnabled( ConfigurationKey.ENABLE_API_TOKEN_AUTHENTICATION ) )
             {
-                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter(
-                    new ApiTokenAuthManager( userService, securityService, apiTokenService, cacheProvider ),
+                Dhis2ApiTokenFilter tokenFilter = new Dhis2ApiTokenFilter( apiTokenAuthManager,
                     apiTokenAuthenticationEntryPoint, authenticationEventPublisher );
 
                 http.addFilterBefore( tokenFilter, BasicAuthenticationFilter.class );

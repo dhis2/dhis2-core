@@ -82,7 +82,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @RequestMapping( value = RESOURCE_PATH + "/" + EventsExportController.EVENTS )
 @ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
 @RequiredArgsConstructor
-public class EventsExportController
+class EventsExportController
 {
     protected static final String EVENTS = "events";
 
@@ -92,7 +92,7 @@ public class EventsExportController
     private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
-    private final EventParamsMapper requestToSearchParams;
+    private final EventRequestParamsMapper requestToSearchParams;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;

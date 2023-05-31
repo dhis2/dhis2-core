@@ -4,38 +4,44 @@
 
 Get events matching given query parameters.
 
-### `getEvents.parameter.program`
+## `getEventByUid`
 
-### `getEvents.parameter.programStage`
+Get an event with given UID.
 
-### `getEvents.parameter.programStatus`
+## Common for all endpoints
 
-### `getEvents.parameter.followUp`
+### `*.parameter.EventRequestParams.program`
+
+### `*.parameter.EventRequestParams.programStage`
+
+### `*.parameter.EventRequestParams.programStatus`
+
+### `*.parameter.EventRequestParams.followUp`
 
 Get events with given follow-up status of the instance for the given program.
 
-### `getEvents.parameter.trackedEntity`
+### `*.parameter.EventRequestParams.trackedEntity`
 
 Get events of tracked entity with given UID.
 
-### `getEvents.parameter.orgUnit`
+### `*.parameter.EventRequestParams.orgUnit`
 
 Get events owned by given `orgUnit`.
 
-### `getEvents.parameter.ouMode`
+### `*.parameter.EventRequestParams.ouMode`
 
 Get events using given organisation unit selection mode.
 
-### `getEvents.parameter.assignedUserMode`
+### `*.parameter.EventRequestParams.assignedUserMode`
 
-### `getEvents.parameter.assignedUsers`
+### `*.parameter.EventRequestParams.assignedUsers`
 
 `<user1-uid>[,<user2-uid>...]`
 
 Get events that are assigned to the given user(s). Specifying `assignedUsers` is only valid if `assignedUserMode` is
 either `PROVIDED` or not specified.
 
-### `getEvents.parameter.assignedUser`
+### `*.parameter.EventRequestParams.assignedUser`
 
 **DEPRECATED as of 2.41:** Use parameter `assignedUsers` instead where UIDs have to be separated by comma!
 
@@ -44,55 +50,63 @@ either `PROVIDED` or not specified.
 Get events that are assigned to the given user(s). Specifying `assignedUser` is only valid if `assignedUserMode` is
 either `PROVIDED` or not specified.
 
-### `getEvents.parameter.occurredAfter`
+### `*.parameter.EventRequestParams.occurredAfter`
 
 Get events that occurred after given date.
 
-### `getEvents.parameter.occurredBefore`
+### `*.parameter.EventRequestParams.occurredBefore`
 
 Get events that occurred before given date.
 
-### `getEvents.parameter.scheduledAfter`
+### `*.parameter.EventRequestParams.scheduledAfter`
 
 Get events that are scheduled after given date.
 
-### `getEvents.parameter.scheduledBefore`
+### `*.parameter.EventRequestParams.scheduledBefore`
 
 Get events that are scheduled before given date.
 
-### `getEvents.parameter.updatedAfter`
+### `*.parameter.EventRequestParams.updatedAfter`
 
 Get events updated after given date.
 
-### `getEvents.parameter.updatedWithin`
+### `*.parameter.EventRequestParams.updatedWithin`
 
 Get events updated since given ISO-8601 duration.
 
-### `getEvents.parameter.enrollmentEnrolledAfter`
+### `*.parameter.EventRequestParams.enrollmentEnrolledAfter`
 
 Get events with enrollments that were enrolled after given date.
 
-### `getEvents.parameter.enrollmentEnrolledBefore`
+### `*.parameter.EventRequestParams.enrollmentEnrolledBefore`
 
 Get events with enrollments that were enrolled before given date.
 
-### `getEvents.parameter.status`
+### `*.parameter.EventRequestParams.status`
 
-### `getEvents.parameter.attributeCc`
+### `*.parameter.EventRequestParams.attributeCc`
 
-### `getEvents.parameter.attributeCos`
+### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
-### `getEvents.parameter.includeDeleted`
+`<attributeCategoryOption1-uid>[,<attributeCategoryOption2-uid>...]`
+
+### `*.parameter.EventRequestParams.attributeCos`
+
+`<attributeCategoryOption1-uid>[;<attributeCategoryOption2-uid>...]`
+
+**DEPRECATED as of 2.41:** Use parameter `attributeCategoryOptions` instead where UIDs have to be separated by comma!
+
+### `*.parameter.EventRequestParams.includeDeleted`
 
 Get soft-deleted events by specifying `includeDeleted=true`. Soft-deleted events are excluded by default.
 
-### `getEvents.parameter.events`
+### `*.parameter.EventRequestParams.events`
 
 `<event1-uid>[,<event2-uid>...]`
 
 Get events with given UID(s).
 
-### `getEvents.parameter.event`
+### `*.parameter.EventRequestParams.event`
 
 **DEPRECATED as of 2.41:** Use parameter `events` instead where UIDs have to be separated by comma!
 
@@ -100,9 +114,9 @@ Get events with given UID(s).
 
 Get events with given UID(s).
 
-### `getEvents.parameter.skipEventId`
+### `*.parameter.EventRequestParams.skipEventId`
 
-### `getEvents.parameter.order`
+### `*.parameter.EventRequestParams.order`
 
 `<propertyName1:sortDirection>[,<propertyName2:sortDirection>...]`
 
@@ -113,7 +127,3 @@ Supported properties are `assignedUser`, `assignedUserDisplayName`, `attributeOp
 `completedBy`, `createdAt`, `createdBy`, `deleted`, `enrolledAt`, `enrollment`, `enrollmentStatus`, `event`, `followup`,
 `occurredAt`, `orgUnit`, `orgUnitName`, `program`, `programStage`, `scheduleAt`, `status`, `storedBy`, `trackedEntity`,
 `updatedAt`, `updatedBy`.
-
-## `getEventByUid`
-
-Get an event with given UID.

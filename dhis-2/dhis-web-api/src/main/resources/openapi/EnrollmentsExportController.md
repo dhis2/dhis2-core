@@ -4,21 +4,27 @@
 
 Get enrollments matching given query parameters.
 
-### `getEnrollments.parameter.enrolledAfter`
+## `getEnrollmentByUid`
+
+Get an enrollment with given UID.
+
+## Common for all endpoints
+
+### `*.parameter.EnrollmentRequestParams.enrolledAfter`
 
 Get enrollments enrolled after given date.
 
-### `getEnrollments.parameter.enrolledBefore`
+### `*.parameter.EnrollmentRequestParams.enrolledBefore`
 
 Get enrollments enrolled before given date.
 
-### `getEnrollments.parameter.enrollments`
+### `*.parameter.EnrollmentRequestParams.enrollments`
 
 `<enrollment1-uid>[,<enrollment2-uid>...]`
 
 Get enrollments with given UID(s).
 
-### `getEnrollments.parameter.enrollment`
+### `*.parameter.EnrollmentRequestParams.enrollment`
 
 **DEPRECATED as of 2.41:** Use parameter `enrollments` instead where UIDs have to be separated by comma!
 
@@ -26,21 +32,21 @@ Get enrollments with given UID(s).
 
 Get enrollments with given UID(s).
 
-### `getEnrollments.parameter.followUp`
+### `*.parameter.EnrollmentRequestParams.followUp`
 
 Get enrollments with given follow-up status of the instance for the given program.
 
-### `getEnrollments.parameter.includeDeleted`
+### `*.parameter.EnrollmentRequestParams.includeDeleted`
 
 Get soft-deleted enrollments by specifying `includeDeleted=true`. Soft-deleted enrollments are excluded by default.
 
-### `getEnrollments.parameter.orgUnits`
+### `*.parameter.EnrollmentRequestParams.orgUnits`
 
 `<orgUnit1-uid>[,<orgUnit2-uid>...]`
 
 Get enrollments owned by given `orgUnit`.
 
-### `getEnrollments.parameter.orgUnit`
+### `*.parameter.EnrollmentRequestParams.orgUnit`
 
 **DEPRECATED as of 2.41:** Use parameter `orgUnits` instead where UIDs have to be separated by comma!
 
@@ -48,34 +54,30 @@ Get enrollments owned by given `orgUnit`.
 
 Get enrollments owned by given `orgUnit`.
 
-### `getEnrollments.parameter.ouMode`
+### `*.parameter.EnrollmentRequestParams.ouMode`
 
 Get enrollments using given organisation unit selection mode.
 
-### `getEnrollments.parameter.program`
+### `*.parameter.EnrollmentRequestParams.program`
 
 Get enrollments enrolled in given program.
 
-### `getEnrollments.parameter.programStatus`
+### `*.parameter.EnrollmentRequestParams.programStatus`
 
 Get enrollments enrolled in a program with given status.
 
-### `getEnrollments.parameter.trackedEntityType`
+### `*.parameter.EnrollmentRequestParams.trackedEntityType`
 
 Get enrollments of tracked entities of given type.
 
-### `getEnrollments.parameter.trackedEntity`
+### `*.parameter.EnrollmentRequestParams.trackedEntity`
 
 Get enrollments of tracked entity with given UID.
 
-### `getEnrollments.parameter.updatedAfter`
+### `*.parameter.EnrollmentRequestParams.updatedAfter`
 
 Get enrollments updated after given date.
 
-### `getEnrollments.parameter.updatedWithin`
+### `*.parameter.EnrollmentRequestParams.updatedWithin`
 
 Get enrollments updated since given ISO-8601 duration.
-
-## `getEnrollmentByUid`
-
-Get an enrollment with given UID.

@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.hisp.dhis.jsontree.JsonObject;
-import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.Test;
@@ -50,7 +49,7 @@ class MapControllerTest extends DhisControllerConvenienceTest
     {
         String mapId = assertStatus( HttpStatus.CREATED, POST( "/maps/", "{'name':'My map'}" ) );
 
-        JsonResponse map = GET( "/maps/{uid}", mapId ).content();
+        JsonObject map = GET( "/maps/{uid}", mapId ).content();
 
         // The default merge method is REPLACE, so we must set the mandatory attributes from the created object.
         String mandatoryProperties = "'lastUpdated':'" + map.get( "lastUpdated" ).node().value() + "', 'created':'"
@@ -81,7 +80,7 @@ class MapControllerTest extends DhisControllerConvenienceTest
             "{\"name\":\"My map\", \"mapViews\":[ { \"orgUnitField\": \"" + attrId + "\", " +
                 "\"layer\": \"thematic1\",\"renderingStrategy\": \"SINGLE\" } ]}" ) );
 
-        JsonResponse map = GET( "/maps/{uid}", mapId ).content();
+        JsonObject map = GET( "/maps/{uid}", mapId ).content();
         assertNotNull( map.getArray( "mapViews" ) );
         assertEquals( 1, map.getArray( "mapViews" ).size() );
 

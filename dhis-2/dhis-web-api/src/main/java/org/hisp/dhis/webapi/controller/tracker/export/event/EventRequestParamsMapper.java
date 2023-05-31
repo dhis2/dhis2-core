@@ -82,7 +82,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @RequiredArgsConstructor
-class EventParamsMapper
+class EventRequestParamsMapper
 {
     private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
@@ -119,9 +119,13 @@ class EventParamsMapper
 
         TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
 
+        Set<UID> attributeCategoryOptions = validateDeprecatedUidsParameter( "attributeCos",
+            requestParams.getAttributeCos(),
+            "attributeCategoryOptions",
+            requestParams.getAttributeCategoryOptions() );
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
             requestParams.getAttributeCc() != null ? requestParams.getAttributeCc().getValue() : null,
-            requestParams.getAttributeCos(),
+            UID.toValueSet( attributeCategoryOptions ),
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 

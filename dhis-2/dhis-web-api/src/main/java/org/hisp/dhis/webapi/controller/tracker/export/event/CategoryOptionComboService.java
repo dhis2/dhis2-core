@@ -39,6 +39,7 @@ import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.common.IllegalQueryException;
+import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorMessage;
@@ -48,7 +49,7 @@ import org.springframework.stereotype.Component;
  * @author Lars Helge Overland
  */
 @Component
-public class CategoryOptionComboService
+class CategoryOptionComboService
 {
     private final Cache<Long> attrOptionComboIdCache;
 
@@ -83,7 +84,7 @@ public class CategoryOptionComboService
         return getAttributeOptionCombo( cc, options, skipFallback );
     }
 
-    private CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
+    public CategoryOptionCombo getAttributeOptionCombo( String cc, Set<String> options, boolean skipFallback )
     {
         String cacheKey = TextUtils.joinHyphen( cc, TextUtils.joinHyphen( options ), String.valueOf( skipFallback ) );
 
@@ -112,7 +113,7 @@ public class CategoryOptionComboService
         // Attribute category combo validation
         // ---------------------------------------------------------------------
 
-        if ( (cc == null && options != null) || (cc != null && options == null) )
+        if ( (cc == null && !CollectionUtils.isEmpty( options )) || (cc != null && CollectionUtils.isEmpty( options )) )
         {
             throw new IllegalQueryException( ErrorCode.E2040 );
         }

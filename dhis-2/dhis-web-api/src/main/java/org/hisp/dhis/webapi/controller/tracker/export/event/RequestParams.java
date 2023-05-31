@@ -60,6 +60,7 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@OpenApi.Shared( name = "EventRequestParams" )
 @OpenApi.Property
 @Data
 @NoArgsConstructor
@@ -128,8 +129,18 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     @OpenApi.Property( { UID.class, CategoryCombo.class } )
     private UID attributeCc;
 
+    /**
+     * Semicolon-delimited list of category option UIDs.
+     *
+     * @deprecated use {@link #attributeCategoryOptions} instead which is comma
+     *             instead of semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private String attributeCos;
+
+    @OpenApi.Property( { UID[].class, CategoryOption.class } )
+    private Set<UID> attributeCategoryOptions = new HashSet<>();
 
     private boolean skipMeta;
 
