@@ -628,8 +628,8 @@ public class DefaultProgramNotificationService
         messages.forEach( m -> messageService.sendMessage(
             new MessageConversationParams.Builder( m.recipients, null, m.message.getSubject(), m.message.getMessage(),
                 MessageType.SYSTEM, null )
-                    .withForceNotification( true )
-                    .build() ) );
+                .withForceNotification( true )
+                .build() ) );
     }
 
     private void sendProgramMessages( Set<ProgramMessage> messages )

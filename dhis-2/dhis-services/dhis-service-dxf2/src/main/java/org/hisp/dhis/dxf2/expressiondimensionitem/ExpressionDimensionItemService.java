@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.DataDimensionItem;
@@ -101,6 +102,11 @@ public class ExpressionDimensionItemService
      */
     public boolean isValidExpressionItems( String expression )
     {
+        if ( StringUtils.isNumeric( expression ) )
+        {
+            return true;
+        }
+
         List<String> expressionTokens = getExpressionTokens( pattern, expression );
 
         return expressionTokens.stream().allMatch( et -> {
@@ -120,7 +126,6 @@ public class ExpressionDimensionItemService
             }
             else if ( uids.length > 0 )
             {
-
                 IdentifiableObject de = manager.get( DataElement.class, uids[0] );
 
                 return de != null;

@@ -57,7 +57,9 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
  * Example:
  *
  * <pre>
- * {@code EntityCheck.isOrganisationUnitExist.apply( value, klass -> manager.get( klass, value ) != null ) }
+ * {@code
+ * EntityCheck.isOrganisationUnitExist.apply( value, klass -> manager.get( klass, value ) != null )
+ * }
  * </pre>
  *
  * @author viet

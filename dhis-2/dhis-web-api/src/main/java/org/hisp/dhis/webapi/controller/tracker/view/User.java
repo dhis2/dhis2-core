@@ -32,17 +32,22 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.webapi.common.UID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Enrico Colasante
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class User
 {
+    @OpenApi.Property( { UID.class, User.class } )
     @JsonProperty
     private String uid;
 

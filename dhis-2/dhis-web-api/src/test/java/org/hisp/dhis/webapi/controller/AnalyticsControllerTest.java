@@ -116,7 +116,7 @@ class AnalyticsControllerTest
             .thenReturn( new DataElement( "beta" ) );
         when( analyticsService.getAggregatedDataValues( Mockito.any( DataQueryParams.class ), Mockito.any(),
             Mockito.any() ) )
-                .thenReturn( buildMockGrid() );
+            .thenReturn( buildMockGrid() );
     }
 
     @Test

@@ -34,11 +34,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.webapi.common.UID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
@@ -57,6 +62,7 @@ public class DataValue
     @JsonProperty
     private boolean providedElsewhere;
 
+    @OpenApi.Property( { UID.class, DataElement.class } )
     @JsonProperty
     @Builder.Default
     private String dataElement = "";

@@ -104,10 +104,10 @@ public class TeiFields
 
         Stream<Field> trackedEntityAttributesFromType = getTrackedEntityAttributes(
             teiQueryParams.getTrackedEntityType() )
-                .filter( programTrackedEntityAttribute -> !programAttributesUids
-                    .contains( programTrackedEntityAttribute.getUid() ) )
-                .map( IdentifiableObject::getUid )
-                .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
+            .filter( programTrackedEntityAttribute -> !programAttributesUids
+                .contains( programTrackedEntityAttribute.getUid() ) )
+            .map( IdentifiableObject::getUid )
+            .map( attr -> Field.of( TEI_ALIAS, () -> attr, attr ) );
 
         // TET and program attribute uids.
         return Stream.concat( trackedEntityAttributesFromType, programAttributes );

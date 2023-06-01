@@ -89,10 +89,10 @@ public class HibernateFileResourceStore
     {
         return getQuery(
             "FROM FileResource fr WHERE fr.domain IN ( :domains ) AND fr.contentType IN ( :contentTypes ) AND hasMultipleStorageFiles = :hasMultipleStorageFiles" )
-                .setParameter( "domains", FileResourceDomain.DOMAIN_FOR_MULTIPLE_IMAGES )
-                .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
-                .setParameter( "hasMultipleStorageFiles", false )
-                .setMaxResults( 50 ).getResultList();
+            .setParameter( "domains", FileResourceDomain.DOMAIN_FOR_MULTIPLE_IMAGES )
+            .setParameter( "contentTypes", IMAGE_CONTENT_TYPES )
+            .setParameter( "hasMultipleStorageFiles", false )
+            .setMaxResults( 50 ).getResultList();
     }
 
     @Override
@@ -102,6 +102,15 @@ public class HibernateFileResourceStore
             .createNativeQuery( "select fr.* from fileresource fr where fr.storagekey = :key", FileResource.class )
             .setParameter( "key", storageKey )
             .getResultStream().findFirst();
+    }
+
+    @Override
+    public Optional<FileResource> findByUidAndDomain( @Nonnull String uid, @Nonnull FileResourceDomain domain )
+    {
+        return getSession()
+            .createNativeQuery( "select * from fileresource where uid = :uid and domain = :domain", FileResource.class )
+            .setParameter( "uid", uid ).setParameter( "domain", domain.name() )
+            .getResultList().stream().findFirst();
     }
 
     @Override

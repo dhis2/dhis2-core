@@ -772,11 +772,11 @@ public abstract class BaseAnalyticalObject
     {
         return getDimensionFromEmbeddedObjects( dimension, DimensionType.DATA_ELEMENT_GROUP_SET,
             dataElementGroupSetDimensions )
-                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
-                    organisationUnitGroupSetDimensions ) )
-                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ) )
-                .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
-                    categoryOptionGroupSetDimensions ) );
+            .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.ORGANISATION_UNIT_GROUP_SET,
+                organisationUnitGroupSetDimensions ) )
+            .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY, categoryDimensions ) )
+            .or( () -> getDimensionFromEmbeddedObjects( dimension, DimensionType.CATEGORY_OPTION_GROUP_SET,
+                categoryOptionGroupSetDimensions ) );
     }
 
     private Optional<DimensionalObject> getTrackedEntityDimension( String dimension )

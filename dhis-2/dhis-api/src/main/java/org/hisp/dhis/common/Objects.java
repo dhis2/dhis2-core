@@ -92,6 +92,7 @@ public enum Objects
     TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntity.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
     EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );
+
     private String value;
 
     private Class<?> clazz;

@@ -470,7 +470,7 @@ public class FieldFilterService
         applyFieldPathVisitor( object, fieldPaths, isSkipSharing,
             s -> s.equals( "attributeValues.attribute" ) || s.endsWith( ".attributeValues.attribute" ),
             o -> {
-                if ( o instanceof AttributeValue a)
+                if ( o instanceof AttributeValue a )
                 {
                     a.setAttribute(
                         attributeService.getAttribute( ((AttributeValue) o).getAttribute().getUid() ) );

@@ -39,6 +39,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Nonnull;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,6 +50,7 @@ import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
@@ -81,7 +84,8 @@ public class DefaultEventService implements EventService
 
     @Override
     public Event getEvent( String uid, EventParams eventParams )
-        throws NotFoundException
+        throws NotFoundException,
+        ForbiddenException
     {
         Event event = eventService.getEvent( uid );
         if ( event == null )
@@ -93,11 +97,13 @@ public class DefaultEventService implements EventService
     }
 
     @Override
-    public Event getEvent( Event event, EventParams eventParams )
+    public Event getEvent( @Nonnull Event event, EventParams eventParams )
+        throws ForbiddenException
     {
-        if ( event == null )
+        List<String> errors = trackerAccessManager.canRead( currentUserService.getCurrentUser(), event, false );
+        if ( !errors.isEmpty() )
         {
-            return null;
+            throw new ForbiddenException( errors.toString() );
         }
 
         Event result = new Event();
@@ -119,18 +125,10 @@ public class DefaultEventService implements EventService
         result.setDeleted( event.isDeleted() );
         result.setAssignedUser( event.getAssignedUser() );
 
-        User user = currentUserService.getCurrentUser();
         OrganisationUnit ou = event.getOrganisationUnit();
 
         result.setEnrollment( event.getEnrollment() );
         result.setProgramStage( event.getProgramStage() );
-
-        List<String> errors = trackerAccessManager.canRead( user, event, false );
-
-        if ( !errors.isEmpty() )
-        {
-            throw new IllegalQueryException( errors.toString() );
-        }
 
         result.setOrganisationUnit( ou );
         result.setProgramStage( event.getProgramStage() );
@@ -161,6 +159,7 @@ public class DefaultEventService implements EventService
 
         result.getComments().addAll( event.getComments() );
 
+        User user = currentUserService.getCurrentUser();
         if ( eventParams.isIncludeRelationships() )
         {
             Set<RelationshipItem> relationshipItems = new HashSet<>();

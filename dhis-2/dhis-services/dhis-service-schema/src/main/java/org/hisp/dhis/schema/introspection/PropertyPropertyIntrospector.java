@@ -179,7 +179,10 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
 
         if ( propertyAnnotation != null )
         {
-            property.setPropertyType( propertyAnnotation.value() );
+            if ( propertyAnnotation.value() != PropertyType.DEFAULT )
+            {
+                property.setPropertyType( propertyAnnotation.value() );
+            }
 
             if ( propertyAnnotation.required() != Value.DEFAULT )
             {
@@ -205,6 +208,7 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
             {
                 property.setReadable( false );
             }
+
             if ( !propertyAnnotation.persistedAs().isEmpty() )
             {
                 property.setFieldName( propertyAnnotation.persistedAs() );
@@ -214,6 +218,8 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
 
     private static PropertyType getPropertyType( Class<?> klass )
     {
+        klass = Primitives.wrap( klass );
+
         if ( isAssignableFrom( klass, String.class )
             || isAssignableFrom( klass, Character.class )
             || isAssignableFrom( klass, Byte.class )
@@ -253,7 +259,7 @@ public class PropertyPropertyIntrospector implements PropertyIntrospector
         }
 
         // if klass is primitive (but unknown), fall back to text, if its not
-        // then assume reference
+        // then assume complex
         return Primitives.isWrapperType( klass ) ? PropertyType.TEXT : PropertyType.COMPLEX;
     }
 

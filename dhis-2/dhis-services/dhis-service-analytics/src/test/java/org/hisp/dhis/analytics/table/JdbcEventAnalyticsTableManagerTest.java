@@ -556,7 +556,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, true, availableDataYears ),
             Integer.class ) )
-                .thenReturn( List.of( 2018, 2019 ) );
+            .thenReturn( List.of( 2018, 2019 ) );
 
         // When
         subject.populateTable( params,
@@ -633,7 +633,7 @@ class JdbcEventAnalyticsTableManagerTest
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false, availableDataYears ),
             Integer.class ) )
-                .thenReturn( List.of( 2018, 2019 ) );
+            .thenReturn( List.of( 2018, 2019 ) );
 
         List<AnalyticsTable> tables = subject.getAnalyticsTables( params );
 
@@ -666,7 +666,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         when( jdbcTemplate.queryForList( getYearQueryForCurrentYear( programA, false, availableDataYears ),
             Integer.class ) )
-                .thenReturn( List.of( 2018, 2019 ) );
+            .thenReturn( List.of( 2018, 2019 ) );
 
         AnalyticsTableUpdateParams params = AnalyticsTableUpdateParams.newBuilder().withStartTime( START_TIME ).build();
 

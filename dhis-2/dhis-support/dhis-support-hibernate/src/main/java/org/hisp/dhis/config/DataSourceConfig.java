@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import lombok.extern.slf4j.Slf4j;
+
 import net.ttddyy.dsproxy.listener.MethodExecutionContext;
 import net.ttddyy.dsproxy.listener.logging.DefaultQueryLogEntryCreator;
 import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
@@ -118,14 +119,15 @@ public class DataSourceConfig
         String username = dhisConfig.getProperty( ConfigurationKey.CONNECTION_USERNAME );
         String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
 
-        DatabasePoolUtils.PoolConfig.PoolConfigBuilder builder = DatabasePoolUtils.PoolConfig.builder();
-        builder.dhisConfig( dhisConfig );
-        builder.hibernateConfig( hibernateConfigurationProvider );
-        builder.dbPoolType( dbPoolType );
+        DatabasePoolUtils.PoolConfig poolConfig = DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig( dhisConfig )
+            .hibernateConfig( hibernateConfigurationProvider )
+            .dbPoolType( dbPoolType )
+            .build();
 
         try
         {
-            return DatabasePoolUtils.createDbPool( builder.build() );
+            return DatabasePoolUtils.createDbPool( poolConfig );
         }
         catch ( SQLException | PropertyVetoException e )
         {
@@ -160,39 +162,33 @@ public class DataSourceConfig
         listener.setLogLevel( SLF4JLogLevel.INFO );
         listener.setQueryLogEntryCreator( creator );
 
-        ProxyDataSourceBuilder b = ProxyDataSourceBuilder
-
+        ProxyDataSourceBuilder builder = ProxyDataSourceBuilder
             .create( actualDataSource )
             .name( "ProxyDS_DHIS2_" + dhisConfig.getProperty(
                 ConfigurationKey.DB_POOL_TYPE ) +
                 "_" + CodeGenerator.generateCode( 5 ) )
-
             .logSlowQueryBySlf4j(
                 Integer.parseInt( dhisConfig.getProperty(
                     ConfigurationKey.SLOW_QUERY_LOGGING_THRESHOLD_TIME_MS ) ),
                 TimeUnit.MILLISECONDS, SLF4JLogLevel.WARN )
-
             .listener( listener )
             .proxyResultSet();
 
-        boolean elapsedTimeLogging = dhisConfig.isEnabled(
-            ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
-        boolean methodLoggingEnabled = dhisConfig.isEnabled(
-            ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
+        boolean elapsedTimeLogging = dhisConfig.isEnabled( ConfigurationKey.ELAPSED_TIME_QUERY_LOGGING_ENABLED );
+        boolean methodLoggingEnabled = dhisConfig.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED );
 
         if ( methodLoggingEnabled )
         {
-            b.afterMethod( DataSourceConfig::executeAfterMethod );
+            builder.afterMethod( DataSourceConfig::executeAfterMethod );
         }
 
         if ( elapsedTimeLogging )
         {
-            b.afterQuery(
-                ( execInfo, queryInfoList ) -> log.info( "Query took " +
-                    execInfo.getElapsedTime() + "msec" ) );
+            builder.afterQuery(
+                ( execInfo, queryInfoList ) -> log.info( "Query took " + execInfo.getElapsedTime() + "msec" ) );
         }
 
-        return b.build();
+        return builder.build();
     }
 
     private static void executeAfterMethod( MethodExecutionContext executionContext )
@@ -220,8 +216,7 @@ public class DataSourceConfig
                 String methodName1 = nextElement.getMethodName();
                 String className1 = nextElement.getClassName();
 
-                log.info(
-                    "---- JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
+                log.info( "JDBC: " + className + "#" + methodName + " ---- \n ----" + className1 + "#" + methodName1 );
                 break;
             }
 
@@ -229,9 +224,9 @@ public class DataSourceConfig
 
     }
 
-    private static class PrettyQueryEntryCreator extends DefaultQueryLogEntryCreator
+    private static class PrettyQueryEntryCreator
+        extends DefaultQueryLogEntryCreator
     {
-        // use hibernate to format queries
         private final Formatter formatter = FormatStyle.HIGHLIGHT.getFormatter();
 
         @Override
@@ -246,7 +241,8 @@ public class DataSourceConfig
             {
                 log.error( "Query formatter failed!", e );
             }
-            return "FORMATTER ERROR!";
+
+            return "Formatter error!";
         }
     }
 }

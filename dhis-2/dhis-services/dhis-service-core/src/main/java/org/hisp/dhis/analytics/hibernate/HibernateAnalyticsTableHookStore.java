@@ -76,9 +76,9 @@ public class HibernateAnalyticsTableHookStore
     {
         return getQuery(
             "from AnalyticsTableHook h where h.phase = :phase and h.resourceTableType = :resourceTableType" )
-                .setParameter( "phase", phase )
-                .setParameter( "resourceTableType", resourceTableType )
-                .getResultList();
+            .setParameter( "phase", phase )
+            .setParameter( "resourceTableType", resourceTableType )
+            .getResultList();
     }
 
     @Override
@@ -87,9 +87,9 @@ public class HibernateAnalyticsTableHookStore
     {
         return getQuery(
             "from AnalyticsTableHook h where h.phase = :phase and h.analyticsTableType = :analyticsTableType" )
-                .setParameter( "phase", phase )
-                .setParameter( "analyticsTableType", analyticsTableType )
-                .getResultList();
+            .setParameter( "phase", phase )
+            .setParameter( "analyticsTableType", analyticsTableType )
+            .getResultList();
     }
 
     @Override

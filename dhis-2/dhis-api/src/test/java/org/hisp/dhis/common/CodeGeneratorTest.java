@@ -35,11 +35,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.extern.slf4j.Slf4j;
+
 import org.junit.jupiter.api.Test;
 
 /**
  * @author bobj
  */
+@Slf4j
 class CodeGeneratorTest
 {
 
@@ -68,16 +71,17 @@ class CodeGeneratorTest
         assertFalse( CodeGenerator.isValidUid( "1T1hdSWjfDC" ) );
         assertFalse( CodeGenerator.isValidUid( "QX4LpiTZmUHg" ) );
         assertFalse( CodeGenerator.isValidUid( "1T1hdS_WjfD" ) );
+        assertFalse( CodeGenerator.isValidUid( "11111111111" ) );
     }
 
     @Test
     void testGetRandomUrlToken()
     {
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertNotNull( CodeGenerator.getRandomUrlToken() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
-        assertEquals( 32, CodeGenerator.getRandomUrlToken().length() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertNotNull( CodeGenerator.getRandomSecureToken() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
+        assertEquals( CodeGenerator.SECURE_RANDOM_TOKEN_MIN_SIZE, (CodeGenerator.getRandomSecureToken()).length() );
     }
 }

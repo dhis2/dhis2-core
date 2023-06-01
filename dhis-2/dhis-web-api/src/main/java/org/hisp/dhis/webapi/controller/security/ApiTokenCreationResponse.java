@@ -40,10 +40,10 @@ public class ApiTokenCreationResponse extends ObjectReportWebMessageResponse
 {
     private final String key;
 
-    public ApiTokenCreationResponse( ObjectReport objectReport, String key )
+    public ApiTokenCreationResponse( ObjectReport objectReport, char[] token )
     {
         super( objectReport );
-        this.key = key;
+        this.key = new String( token );
     }
 
     @JsonProperty

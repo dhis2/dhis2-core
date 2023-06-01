@@ -29,6 +29,7 @@ package org.hisp.dhis.security.apikey;
 
 import java.util.List;
 
+import javax.annotation.CheckForNull;
 import javax.annotation.Nonnull;
 
 import org.hisp.dhis.user.User;
@@ -38,23 +39,24 @@ import org.hisp.dhis.user.User;
  */
 public interface ApiTokenService
 {
-    List<ApiToken> getAll();
-
-    List<ApiToken> getAllOwning( User user );
-
-    ApiToken getWithKey( String key, User user );
-
-    ApiToken getWithKey( String key );
-
     void save( @Nonnull ApiToken apiToken );
 
     void update( @Nonnull ApiToken apiToken );
 
     void delete( @Nonnull ApiToken apiToken );
 
-    ApiToken getWithUid( String uid );
+    @Nonnull
+    List<ApiToken> getAll();
 
-    ApiToken initToken( ApiToken entity );
+    @Nonnull
+    List<ApiToken> getAllOwning( @Nonnull User user );
 
-    String hashKey( String key );
+    @CheckForNull
+    ApiToken getByUid( @Nonnull String uid );
+
+    @CheckForNull
+    ApiToken getByKey( @Nonnull String key, @Nonnull User user );
+
+    @CheckForNull
+    ApiToken getByKey( @Nonnull String key );
 }

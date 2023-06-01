@@ -34,14 +34,17 @@ import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenAuthenticationToken;
+import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.user.CurrentUserDetails;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserService;
 import org.hisp.dhis.util.ObjectUtils;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Service;
 
 /**
  * Processes API token authentication requests, looks for the 'Authorization'
@@ -49,15 +52,16 @@ import org.springframework.security.core.AuthenticationException;
  * authenticated only if the token is not expired and the request constraint
  * rules are matching.
  */
+@Service
 public class ApiTokenAuthManager implements AuthenticationManager
 {
     private final ApiTokenService apiTokenService;
 
     private final UserService userService;
 
-    private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
-
     private final SecurityService securityService;
+
+    private final Cache<ApiTokenAuthenticationToken> apiTokenCache;
 
     public ApiTokenAuthManager( UserService userService, SecurityService securityService,
         ApiTokenService apiTokenService, CacheProvider cacheProvider )
@@ -66,6 +70,12 @@ public class ApiTokenAuthManager implements AuthenticationManager
         this.userService = userService;
         this.apiTokenService = apiTokenService;
         this.apiTokenCache = cacheProvider.createApiKeyCache();
+    }
+
+    @EventListener
+    public void handleApiTokenDeleted( ApiTokenDeletedEvent event )
+    {
+        apiTokenCache.invalidate( event.getTokenHash() );
     }
 
     @Override
@@ -83,11 +93,11 @@ public class ApiTokenAuthManager implements AuthenticationManager
         }
         else
         {
-            ApiToken apiToken = apiTokenService.getWithKey( tokenKey );
+            ApiToken apiToken = apiTokenService.getByKey( tokenKey );
             if ( apiToken == null )
             {
                 throw new ApiTokenAuthenticationException(
-                    ApiTokenErrors.invalidToken( "The API token does not exists." ) );
+                    ApiTokenErrors.invalidToken( "The API token does not exists" ) );
             }
 
             validateTokenExpiry( apiToken.getExpire() );
@@ -96,6 +106,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
 
             ApiTokenAuthenticationToken authenticationToken = new ApiTokenAuthenticationToken( apiToken,
                 currentUserDetails );
+
             apiTokenCache.put( tokenKey, authenticationToken );
 
             return authenticationToken;
@@ -134,7 +145,7 @@ public class ApiTokenAuthManager implements AuthenticationManager
         return userService.createUserDetails( user, accountNonLocked, credentialsNonExpired );
     }
 
-    private void validateTokenExpiry( Long expiry )
+    private static void validateTokenExpiry( Long expiry )
     {
         if ( expiry <= System.currentTimeMillis() )
         {

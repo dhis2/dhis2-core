@@ -63,7 +63,7 @@ public class TrackedEntityTypeObjectBundleHook extends AbstractObjectBundleHook<
                     addReports.accept(
                         new ErrorReport( TrackedEntityAttribute.class, ErrorCode.E5001, preheatIdentifier,
                             preheatIdentifier.getIdentifiersWithName( tea ) ).setErrorProperty( "id" )
-                                .setMainId( tea.getUid() ) );
+                            .setMainId( tea.getUid() ) );
                 }
             } );
         }

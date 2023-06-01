@@ -48,7 +48,10 @@ import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -57,15 +60,23 @@ public class DefaultEnrollmentAnalyticsDimensionsService implements EnrollmentAn
 {
     private final ProgramService programService;
 
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
+
     @Override
     public List<PrefixedDimension> getQueryDimensionsByProgramId( String programId )
     {
+        User user = currentUserService.getCurrentUser();
+
         return Optional.of( programId )
             .map( programService::getProgram )
             .filter( Program::isRegistration )
             .map( program -> collectDimensions(
                 List.of(
-                    ofItemsWithProgram( program, program.getProgramIndicators() ),
+                    ofItemsWithProgram( program, program.getProgramIndicators().stream()
+                        .filter( pi -> aclService.canRead( user, pi ) )
+                        .collect( Collectors.toSet() ) ),
                     getProgramStageDataElements( QUERY, program ),
                     filterByValueType(
                         QUERY,

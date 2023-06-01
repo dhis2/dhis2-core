@@ -34,23 +34,30 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.relationship.RelationshipType;
+import org.hisp.dhis.webapi.common.UID;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Relationship
 {
+    @OpenApi.Property( { UID.class, Relationship.class } )
     @JsonProperty
     private String relationship;
 
     @JsonProperty
     private String relationshipName;
 
+    @OpenApi.Property( { UID.class, RelationshipType.class } )
     @JsonProperty
     private String relationshipType;
 

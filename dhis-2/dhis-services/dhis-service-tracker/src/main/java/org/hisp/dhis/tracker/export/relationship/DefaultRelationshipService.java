@@ -73,6 +73,51 @@ public class DefaultRelationshipService implements RelationshipService
     private final EventService eventService;
 
     @Override
+    public Relationship getRelationship( String uid )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Relationship relationship = relationshipStore.getByUid( uid );
+
+        if ( relationship == null )
+        {
+            throw new NotFoundException( Relationship.class, uid );
+        }
+
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, relationship );
+        if ( !errors.isEmpty() )
+        {
+            throw new ForbiddenException( errors.toString() );
+        }
+
+        return map( relationship );
+    }
+
+    @Override
+    public Optional<Relationship> findRelationshipByUid( String uid )
+        throws ForbiddenException,
+        NotFoundException
+    {
+        Relationship relationship = relationshipStore.getByUid( uid );
+
+        if ( relationship == null )
+        {
+            return Optional.empty();
+        }
+
+        User user = currentUserService.getCurrentUser();
+        List<String> errors = trackerAccessManager.canRead( user, relationship );
+
+        if ( !errors.isEmpty() )
+        {
+            return Optional.empty();
+        }
+
+        return Optional.of( map( relationship ) );
+    }
+
+    @Override
     public List<Relationship> getRelationshipsByTrackedEntity(
         TrackedEntity trackedEntity,
         PagingAndSortingCriteriaAdapter pagingAndSortingCriteriaAdapter )
@@ -114,29 +159,6 @@ public class DefaultRelationshipService implements RelationshipService
             .filter( r -> trackerAccessManager.canRead( currentUserService.getCurrentUser(), r ).isEmpty() )
             .collect( Collectors.toList() );
         return map( relationships );
-    }
-
-    @Override
-    public Optional<Relationship> findRelationshipByUid( String uid )
-        throws ForbiddenException,
-        NotFoundException
-    {
-        Relationship relationship = relationshipStore.getByUid( uid );
-
-        if ( relationship == null )
-        {
-            return Optional.empty();
-        }
-
-        User user = currentUserService.getCurrentUser();
-        List<String> errors = trackerAccessManager.canRead( user, relationship );
-
-        if ( !errors.isEmpty() )
-        {
-            return Optional.empty();
-        }
-
-        return Optional.of( map( relationship ) );
     }
 
     /**
@@ -193,7 +215,7 @@ public class DefaultRelationshipService implements RelationshipService
         {
             result.setEnrollment(
                 enrollmentService.getEnrollment( item.getEnrollment(),
-                    EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
+                    EnrollmentParams.TRUE.withIncludeRelationships( false ), false ) );
         }
         else if ( item.getEvent() != null )
         {

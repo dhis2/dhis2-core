@@ -107,8 +107,8 @@ public class DisplayNameUtils
             // username
             + " else concat(trim({prefix}.{column} ->> 'surname'), ', ', trim({prefix}.{column} ->> 'firstName'), ' (', trim({prefix}.{column} ->> 'username'), ')') end"
             + " as {alias}").replaceAll( "\\{column}", originColumn )
-                .replaceAll( "\\{prefix}", tablePrefix )
-                .replaceAll( "\\{alias}", columnAlias );
+            .replaceAll( "\\{prefix}", tablePrefix )
+            .replaceAll( "\\{alias}", columnAlias );
     }
 
 }

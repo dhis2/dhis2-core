@@ -41,12 +41,14 @@ import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * simplest implementation of PagingCriteria and SortingCriteria
  *
  * @author Giuseppe Nespolino <g.nespolino@gmail.com>
  */
+@OpenApi.Shared
 @Data
 @Slf4j
 @NoArgsConstructor( access = AccessLevel.PROTECTED )
@@ -78,6 +80,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
      */
     private List<OrderCriteria> order = new ArrayList<>();
 
+    @OpenApi.Ignore
     public boolean isPagingRequest()
     {
         return !toBooleanDefaultIfNull( isSkipPaging(), false );
@@ -112,6 +115,7 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
         return orderCriteria -> log.warn( "Ordering by " + orderCriteria.getField() + " is not supported" );
     }
 
+    @OpenApi.Ignore
     public boolean isSortingRequest()
     {
         return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();

@@ -41,9 +41,9 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.dxf2.events.event.Event;
-import org.hisp.dhis.dxf2.events.event.EventService;
-import org.hisp.dhis.dxf2.events.event.Events;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Event;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.EventService;
+import org.hisp.dhis.dxf2.deprecated.tracker.event.Events;
 import org.hisp.dhis.dxf2.metadata.sync.exception.MetadataSyncServiceException;
 import org.hisp.dhis.dxf2.synch.SystemInstance;
 import org.hisp.dhis.program.ProgramStageDataElementService;
