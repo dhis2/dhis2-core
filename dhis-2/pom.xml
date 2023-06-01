@@ -211,7 +211,7 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.2.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.3.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.4</spotbugs-maven-plugin.version>
