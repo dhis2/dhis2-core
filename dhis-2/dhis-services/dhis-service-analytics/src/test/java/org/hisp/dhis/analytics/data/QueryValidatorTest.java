@@ -186,12 +186,12 @@ class QueryValidatorTest
         deE = createDataElement( 'E', ValueType.DATE, AggregationType.NONE );
 
         textDeList = List.of( createDataElement( 'M', ValueType.TEXT, AggregationType.NONE ),
-                createDataElement( 'N', ValueType.LONG_TEXT, AggregationType.NONE ),
-                createDataElement( 'O', ValueType.EMAIL, AggregationType.NONE ),
-                createDataElement( 'P', ValueType.URL, AggregationType.NONE ),
-                createDataElement( 'Q', ValueType.USERNAME, AggregationType.NONE ),
-                createDataElement( 'R', ValueType.PHONE_NUMBER, AggregationType.NONE ),
-                createDataElement( 'S', ValueType.LETTER, AggregationType.NONE ) );
+            createDataElement( 'N', ValueType.LONG_TEXT, AggregationType.NONE ),
+            createDataElement( 'O', ValueType.EMAIL, AggregationType.NONE ),
+            createDataElement( 'P', ValueType.URL, AggregationType.NONE ),
+            createDataElement( 'Q', ValueType.USERNAME, AggregationType.NONE ),
+            createDataElement( 'R', ValueType.PHONE_NUMBER, AggregationType.NONE ),
+            createDataElement( 'S', ValueType.LETTER, AggregationType.NONE ) );
         textDeList.forEach( tdl -> tdl.setCategoryCombo( ccA ) );
 
         deA.setCategoryCombo( ccA );
