@@ -45,6 +45,7 @@ import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
@@ -54,6 +55,7 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.webapi.json.domain.JsonProgramSection;
 import org.hisp.dhis.webapi.json.domain.JsonProgramStage;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,6 +66,10 @@ import org.junit.jupiter.api.Test;
  */
 class ProgramControllerTest extends DhisControllerConvenienceTest
 {
+    public static final String PS1_UID = "ps1abcdes9i";
+
+    public static final String PS2_UID = "ps2abcdes9i";
+
     private OrganisationUnit orgUnit;
 
     @BeforeEach
@@ -95,6 +101,13 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         manager.save( categoryCombo );
         Program program = createProgram( 'c', null, Set.of( tea ), Set.of( orgUnit ),
             categoryCombo );
+        manager.save( program );
+        ProgramSection ps1 = createProgramSection( 'k', program );
+        ps1.setUid( PS1_UID );
+        ProgramSection ps2 = createProgramSection( 'l', program );
+        ps2.setUid( PS2_UID );
+        program.setProgramSections( Set.of( ps1, ps2 ) );
+        manager.save( List.of( ps1, ps2 ) );
         manager.save( program );
         stage1.setProgramStageDataElements( Set.of( psde1, psde2 ) );
         stage2.setProgramStageDataElements( Set.of( psde1, psde2 ) );
@@ -156,6 +169,35 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             .as( JsonProgramStage.class );
         assertEquals( 2, jsonCopiedProgramStage.getProgramStageDataElements().size() );
         assertEquals( 2, jsonCopiedProgramStage.getProgramStageSections().size() );
+    }
+
+    @Test
+    void testCopyProgramWith2ProgramSections()
+    {
+        JsonWebMessage response = POST( "/programs/%s/copy".formatted( BASE_PR_UID + 'c' ) )
+            .content( HttpStatus.CREATED )
+            .as( JsonWebMessage.class );
+
+        String copiedProgramUid = getMatchingGroupFromPattern( response.getMessage(), "'(.*?)'", 1 );
+        assertTrue( response.getMessage().contains( "Program created" ) );
+
+        JsonProgram copiedProgram = GET( "/programs/{id}", copiedProgramUid ).content( HttpStatus.OK )
+            .as( JsonProgram.class );
+        JsonList<JsonProgramSection> copiedSections = copiedProgram.getProgramSections();
+
+        assertEquals( copiedProgramUid, copiedProgram.getUid() );
+        assertEquals( 2, copiedProgram.getProgramSections().size() );
+
+        // ensure that copied program sections have new uids
+        Set<String> copiedSectionUids = copiedSections.stream().map( JsonProgramSection::getUid )
+            .collect( Collectors.toSet() );
+        copiedSectionUids.removeAll( Set.of( PS1_UID, PS2_UID ) );
+        assertEquals( 2, copiedSectionUids.size() );
+    }
+
+    Set<String> getUids( Set<JsonObject> jsonObjects )
+    {
+        return jsonObjects.stream().map( jo -> jo.getString( "id" ).string() ).collect( Collectors.toSet() );
     }
 
     @Test

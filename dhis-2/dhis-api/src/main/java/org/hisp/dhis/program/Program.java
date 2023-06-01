@@ -928,12 +928,15 @@ public class Program
     {
         String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAccessLevel( original.getAccessLevel() );
+        copy.setCategoryCombo( original.getCategoryCombo() );
         copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
+        copy.setDataEntryForm( original.getDataEntryForm() );
         copy.setDescription( original.getDescription() );
         copy.setDisplayIncidentDate( original.getDisplayIncidentDate() );
         copy.setDisplayFrontPageList( original.getDisplayFrontPageList() );
         copy.setEnrollmentDateLabel( original.getEnrollmentDateLabel() );
         copy.setExpiryDays( original.getExpiryDays() );
+        copy.setExpiryPeriodType( original.getExpiryPeriodType() );
         copy.setFeatureType( original.getFeatureType() );
         copy.setFormName( original.getFormName() );
         copy.setIgnoreOverdueEvents( original.getIgnoreOverdueEvents() );
@@ -941,34 +944,32 @@ public class Program
         copy.setMaxTeiCountToReturn( original.getMaxTeiCountToReturn() );
         copy.setMinAttributesRequiredToSearch( original.getMinAttributesRequiredToSearch() );
         copy.setName( prefix + original.getName() );
+        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
         copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
         copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
+        copy.setOrganisationUnits( newSetFromObjectOrEmpty( original.getOrganisationUnits() ) );
+        copy.setProgramAttributes( newListFromObjectOrEmpty( original.getProgramAttributes() ) );
+        copy.setProgramIndicators( newSetFromObjectOrEmpty( original.getProgramIndicators() ) );
+        copy.setProgramRuleVariables( newSetFromObjectOrEmpty( original.getProgramRuleVariables() ) );
+        //        copy.setProgramSections( newSetFromObjectOrEmpty( original.getProgramSections() ) );
         copy.setProgramType( original.getProgramType() );
         copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRelatedProgram( original.getRelatedProgram() );
         copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );
         copy.setSelectEnrollmentDatesInFuture( original.getSelectEnrollmentDatesInFuture() );
         copy.setSelectIncidentDatesInFuture( original.getSelectIncidentDatesInFuture() );
         copy.setSkipOffline( original.isSkipOffline() );
-        copy.setUseFirstStageDuringRegistration( original.getUseFirstStageDuringRegistration() );
-        copy.setCategoryCombo( original.getCategoryCombo() );
-        copy.setDataEntryForm( original.getDataEntryForm() );
-        copy.setExpiryPeriodType( original.getExpiryPeriodType() );
-        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
-        copy.setOrganisationUnits( newSetFromObjectOrEmpty( original.getOrganisationUnits() ) );
-        copy.setProgramAttributes( newListFromObjectOrEmpty( original.getProgramAttributes() ) );
-        copy.setProgramIndicators( newSetFromObjectOrEmpty( original.getProgramIndicators() ) );
-        copy.setProgramRuleVariables( newSetFromObjectOrEmpty( original.getProgramRuleVariables() ) );
-        copy.setProgramSections( newSetFromObjectOrEmpty( original.getProgramSections() ) );
-        copy.setRelatedProgram( original.getRelatedProgram() );
         copy.setStyle( original.getStyle() );
         copy.setTrackedEntityType( original.getTrackedEntityType() );
+        copy.setUseFirstStageDuringRegistration( original.getUseFirstStageDuringRegistration() );
         copy.setUserRoles( newSetFromObjectOrEmpty( original.getUserRoles() ) );
     }
 
     private static void setDeepCopyValues( Program copy, Program original, Map<String, String> options )
     {
         copyProgramStages( copy, original.getProgramStages(), options );
+        copyProgramSections( copy, original.getProgramSections() );
     }
 
     private static void copyProgramStages( Program copy, Set<ProgramStage> original, Map<String, String> options )
@@ -976,6 +977,14 @@ public class Program
         copy.setProgramStages(
             StreamUtils.nullSafeCollectionToStream( original )
                 .map( programStage -> ProgramStage.copyOf( programStage, copy, options ) )
+                .collect( toSet() ) );
+    }
+
+    private static void copyProgramSections( Program copy, Set<ProgramSection> original )
+    {
+        copy.setProgramSections(
+            StreamUtils.nullSafeCollectionToStream( original )
+                .map( programSection -> ProgramSection.copyOf.apply( programSection, copy ) )
                 .collect( toSet() ) );
     }
 }

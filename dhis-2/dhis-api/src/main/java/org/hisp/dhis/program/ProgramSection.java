@@ -27,10 +27,17 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
@@ -179,5 +186,29 @@ public class ProgramSection
         DeviceRenderTypeMap<SectionRenderingObject> renderType )
     {
         this.renderType = renderType;
+    }
+
+    public static BiFunction<ProgramSection, Program, ProgramSection> copyOf = ( original, program ) -> {
+        ProgramSection copy = new ProgramSection();
+        copy.setProgram( program );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramSection copy, ProgramSection original )
+    {
+        copy.setDescription( original.getDescription() );
+        copy.setTrackedEntityAttributes( newListFromObjectOrEmpty( original.getTrackedEntityAttributes() ) );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setStyle( original.getStyle() );
+        copy.setFormName( original.getFormName() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setName( original.getName() );
+        copy.setShortName( original.getShortName() );
+        copy.setSharing( original.getSharing() );
+        copy.setTranslations( original.getTranslations() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setAccess( original.getAccess() );
     }
 }

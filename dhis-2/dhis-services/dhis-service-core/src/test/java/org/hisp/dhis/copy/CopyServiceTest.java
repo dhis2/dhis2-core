@@ -226,7 +226,9 @@ class CopyServiceTest extends DhisConvenienceTest
     private Set<ProgramStageSection> createProgramStageSections( ProgramStage programStage )
     {
         ProgramStageSection pss1 = createProgramStageSection( 'w', 7 );
+        pss1.setProgramStage( programStage );
         ProgramStageSection pss2 = createProgramStageSection( 'q', 6 );
+        pss2.setProgramStage( programStage );
         return Set.of( pss1, pss2 );
     }
 

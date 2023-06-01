@@ -45,6 +45,7 @@ import org.hisp.dhis.program.ProgramEnrollmentsTuple;
 import org.hisp.dhis.program.ProgramService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class CopyService
@@ -59,6 +60,7 @@ public class CopyService
         this.enrollmentService = enrollmentService;
     }
 
+    @Transactional
     public String copyProgramFromUid( String uid, Map<String, String> copyOptions )
         throws NotFoundException,
         ConflictException
