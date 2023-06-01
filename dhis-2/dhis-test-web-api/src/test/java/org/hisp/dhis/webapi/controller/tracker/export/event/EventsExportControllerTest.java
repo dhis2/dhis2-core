@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
+import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasNoMember;
 import static org.hisp.dhis.webapi.controller.tracker.JsonAssertions.assertHasOnlyMembers;
@@ -325,6 +326,24 @@ class EventsExportControllerTest extends DhisControllerConvenienceTest
         assertEquals( "Event with id Hq3Kc6HK4OZ could not be found.",
             GET( "/tracker/events/Hq3Kc6HK4OZ" )
                 .error( HttpStatus.NOT_FOUND )
+                .getMessage() );
+    }
+
+    @Test
+    void getEventsFailsIfGivenAttributeCategoryOptionsAndDeprecatedAttributeCos()
+    {
+        assertStartsWith( "Only one parameter of 'attributeCos' (deprecated",
+            GET( "/tracker/events?attributeCategoryOptions=Hq3Kc6HK4OZ&attributeCos=Hq3Kc6HK4OZ" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void getEventsFailsIfGivenAttributeCcAndAttributeCategoryCombo()
+    {
+        assertStartsWith( "Only one parameter of 'attributeCc' and 'attributeCategoryCombo'",
+            GET( "/tracker/events?attributeCc=FQnYqKlIHxd&attributeCategoryCombo=YApXsOpwiXk" )
+                .error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
 

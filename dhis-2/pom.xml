@@ -64,7 +64,7 @@
     <!-- *Dependencies* -->
 
     <!-- DHIS2 Rule Engine -->
-    <dhis2-rule-engine.version>2.1.7</dhis2-rule-engine.version>
+    <dhis2-rule-engine.version>2.1.8</dhis2-rule-engine.version>
 
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
@@ -112,7 +112,7 @@
     <velocity-tools.version>2.0</velocity-tools.version>
 
     <!-- Jackson -->
-    <jackson.version>2.15.1</jackson.version>
+    <jackson.version>2.15.2</jackson.version>
     <jackson-datatype-jts.version>2.14</jackson-datatype-jts.version>
     <geojson-jackson.version>1.14</geojson-jackson.version>
 
@@ -194,7 +194,7 @@
     <powermock.version>2.0.9</powermock.version>
     <hamcrest.version>2.2</hamcrest.version>
     <hamcrest-date.version>2.0.8</hamcrest-date.version>
-    <testcontainers.version>1.18.1</testcontainers.version>
+    <testcontainers.version>1.18.2</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
     <easy-random.version>5.0.0</easy-random.version>
@@ -211,7 +211,7 @@
     <maven-antrun-plugin.version>3.1.0</maven-antrun-plugin.version>
     <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
     <maven-dependency-plugin.version>3.5.0</maven-dependency-plugin.version>
-    <restrict-imports-enforcer.version>2.2.0</restrict-imports-enforcer.version>
+    <restrict-imports-enforcer.version>2.3.0</restrict-imports-enforcer.version>
     <versions-maven-plugin.version>2.15.0</versions-maven-plugin.version>
     <dependency-check-maven.version>8.2.1</dependency-check-maven.version>
     <spotbugs-maven-plugin.version>4.7.3.4</spotbugs-maven-plugin.version>
