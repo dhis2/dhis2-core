@@ -947,7 +947,6 @@ public class Program
         copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
         copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
         copy.setOrganisationUnits( copyOf( original.getOrganisationUnits() ) );
-        //        copy.setProgramAttributes( ObjectUtils.copyOf( original.getProgramAttributes() ) );
         copy.setProgramIndicators( copyOf( original.getProgramIndicators() ) );
         copy.setProgramRuleVariables( copyOf( original.getProgramRuleVariables() ) );
         copy.setProgramType( original.getProgramType() );
@@ -995,6 +994,7 @@ public class Program
                 .toList() );
     }
 
-    public record ProgramCopyTuple(Program copy, Program original) {
+    public record ProgramCopyTuple( Program copy, Program original )
+    {
     }
 }

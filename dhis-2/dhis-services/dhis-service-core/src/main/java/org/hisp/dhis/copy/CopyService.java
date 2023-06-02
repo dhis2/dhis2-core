@@ -104,6 +104,7 @@ public class CopyService
         return programEnrollmentsTuple.program().getUid();
     };
 
-    record ProgramEnrollmentsTuple(Program program, List<Enrollment> enrollments) {
+    record ProgramEnrollmentsTuple( Program program, List<Enrollment> enrollments )
+    {
     }
 }

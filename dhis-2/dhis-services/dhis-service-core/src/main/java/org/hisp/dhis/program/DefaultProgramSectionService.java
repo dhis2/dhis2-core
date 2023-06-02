@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import org.springframework.stereotype.Service;
-
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
 
 /**
  * @author David Mackessy
