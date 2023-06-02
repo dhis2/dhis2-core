@@ -31,6 +31,7 @@ import java.util.Date;
 import java.util.Set;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
@@ -44,6 +45,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Viet Nguyen <viet@dhis.org>
  */
+@OpenApi.Shared( value = false )
 @JacksonXmlRootElement( localName = "categoryOption", namespace = DxfNamespaces.DXF_2_0 )
 public class Option
 {

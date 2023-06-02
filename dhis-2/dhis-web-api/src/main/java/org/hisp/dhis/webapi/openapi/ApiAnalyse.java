@@ -107,10 +107,10 @@ final class ApiAnalyse
      * path and tags will not be considered for this filter.
      *
      * @param controllers controllers all potential controllers
-     * @param paths       filter based on resource path (empty includes all)
-     * @param tags        filter based on tags (empty includes all)
+     * @param paths filter based on resource path (empty includes all)
+     * @param tags filter based on tags (empty includes all)
      */
-    record Scope(Set<Class<?>> controllers, Set<String> paths, Set<String> tags)
+    record Scope( Set<Class<?>> controllers, Set<String> paths, Set<String> tags )
     {
     }
 
@@ -392,8 +392,8 @@ final class ApiAnalyse
             properties.forEach( property -> {
                 Api.Parameter parameter = analyseParameter( endpoint, property );
                 parameter.getSharedName().setValue( sharedName );
-                sharedParameters.computeIfAbsent(paramsObject, e -> new ArrayList<>()).add( parameter );
-                endpoint.getParameters().put(parameter.getName(), parameter);
+                sharedParameters.computeIfAbsent( paramsObject, e -> new ArrayList<>() ).add( parameter );
+                endpoint.getParameters().put( parameter.getName(), parameter );
             } );
         }
         else
@@ -500,7 +500,8 @@ final class ApiAnalyse
         }
         boolean sharable = isSharable( rawType, true );
         UnaryOperator<Api.Schema> resolvedTo = schema -> {
-            if ( schema.isShared() ) {
+            if ( schema.isShared() )
+            {
                 OpenApi.Shared shared = rawType.getAnnotation( OpenApi.Shared.class );
                 schema.getSharedName().setValue( shared == null || shared.name().isEmpty() ? null : shared.name() );
             }
@@ -565,7 +566,7 @@ final class ApiAnalyse
     private static Api.Schema analyseTypeSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
         Map<Class<?>, Api.Schema> resolving )
     {
-        if ( source instanceof Class<?> type)
+        if ( source instanceof Class<?> type )
         {
             if ( useRefs && isReferencableType( type ) )
             {
@@ -578,7 +579,7 @@ final class ApiAnalyse
             }
             return analyseClassSchema( endpoint, type, resolving );
         }
-        if ( source instanceof ParameterizedType pt)
+        if ( source instanceof ParameterizedType pt )
         {
             Class<?> rawType = (Class<?>) pt.getRawType();
             if ( rawType == Class.class )
@@ -607,7 +608,7 @@ final class ApiAnalyse
             }
             return Api.Schema.unknown( source );
         }
-        if ( source instanceof WildcardType wt)
+        if ( source instanceof WildcardType wt )
         {
             if ( wt.getLowerBounds().length == 0
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
@@ -852,10 +853,14 @@ final class ApiAnalyse
         return stream( samples ).filter( e -> e != to ).findFirst().orElse( samples[0] );
     }
 
-    record EndpointMapping(Method source, String name, String[] path, RequestMethod[] method, String[] params,
-                           String[] headers, String[] consumes, String[] produces) {}
+    record EndpointMapping( Method source, String name, String[] path, RequestMethod[] method, String[] params,
+        String[] headers, String[] consumes, String[] produces )
+    {
+    }
 
-    record EndpointParam(Api.Parameter.In in, String name, boolean required) {}
+    record EndpointParam( Api.Parameter.In in, String name, boolean required )
+    {
+    }
 
     /*
      * Helpers for working with annotations

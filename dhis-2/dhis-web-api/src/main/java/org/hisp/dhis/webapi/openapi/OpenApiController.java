@@ -66,7 +66,7 @@ public class OpenApiController
 
     @GetMapping( value = "/openapi.yaml", produces = APPLICATION_X_YAML )
     public void getFullOpenApiYaml(
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_X_YAML,
@@ -75,7 +75,7 @@ public class OpenApiController
 
     @GetMapping( value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML )
     public void getPathOpenApiYaml( @PathVariable String path,
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_X_YAML,
@@ -86,7 +86,7 @@ public class OpenApiController
     public void getOpenApiYaml(
         @RequestParam( required = false ) Set<String> path,
         @RequestParam( required = false ) Set<String> tag,
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_X_YAML,
@@ -99,7 +99,7 @@ public class OpenApiController
 
     @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
     public void getFullOpenApiJson(
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
@@ -108,7 +108,7 @@ public class OpenApiController
 
     @GetMapping( value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE )
     public void getPathOpenApiJson( @PathVariable String path,
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
@@ -119,7 +119,7 @@ public class OpenApiController
     public void getOpenApiJson(
         @RequestParam( required = false ) Set<String> path,
         @RequestParam( required = false ) Set<String> tag,
-        @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
         writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_JSON_VALUE,
@@ -131,7 +131,7 @@ public class OpenApiController
         String contentType, BiFunction<Api, String, String> writer )
     {
         Api api = ApiAnalyse.analyseApi(
-            new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ));
+            new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
 
         ApiSynthesise.Configuration config = ApiSynthesise.Configuration.builder()
             .failOnNameClash( failOnNameClash )

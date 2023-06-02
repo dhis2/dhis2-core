@@ -158,21 +158,23 @@ public class Api
      * Shared {@code components} in an OpenAPi document.
      */
     @Value
-    static class Components {
+    static class Components
+    {
         /**
          * Only the shared schemas of the API by their unique name
          */
         Map<String, Schema> schemas = new TreeMap<>();
 
         /**
-         * Schemas for types that do not directly reflect domain object types but types such as references or UID types.
+         * Schemas for types that do not directly reflect domain object types
+         * but types such as references or UID types.
          */
         Map<String, Schema> additionalSchemas = new TreeMap<>();
 
         /**
-         * Shared parameters originating from parameter object classes.
-         * These are reused purely for sake of removing duplication from the
-         * resulting OpenAPI document.
+         * Shared parameters originating from parameter object classes. These
+         * are reused purely for sake of removing duplication from the resulting
+         * OpenAPI document.
          */
         Map<Class<?>, List<Parameter>> parameters = new ConcurrentHashMap<>();
     }
@@ -295,9 +297,11 @@ public class Api
         }
 
         /**
-         * The annotated {@link Method} when originating from a {@link OpenApi.Param},
-         * a {@link java.lang.reflect.Field} or {@link Method} when originating from a property in a {@link OpenApi.Params} type,
-         * a {@link java.lang.reflect.Parameter} when originating from a usual endpoint method parameter.
+         * The annotated {@link Method} when originating from a
+         * {@link OpenApi.Param}, a {@link java.lang.reflect.Field} or
+         * {@link Method} when originating from a property in a
+         * {@link OpenApi.Params} type, a {@link java.lang.reflect.Parameter}
+         * when originating from a usual endpoint method parameter.
          */
         @ToString.Exclude
         AnnotatedElement source;
@@ -315,8 +319,11 @@ public class Api
         Maybe<String> description = new Maybe<>();
 
         /**
-         * In case of a parameter this also refers to the class name containing the parameter, not the name of the field the parameter originates from.
-         * If not explicitly given using @{@link OpenApi.Shared} this value is {@code null} during analysis and first decided in the synthesis step.
+         * In case of a parameter this also refers to the class name containing
+         * the parameter, not the name of the field the parameter originates
+         * from. If not explicitly given using @{@link OpenApi.Shared} this
+         * value is {@code null} during analysis and first decided in the
+         * synthesis step.
          */
         Maybe<String> sharedName = new Maybe<>();
 
@@ -331,10 +338,13 @@ public class Api
         }
 
         /**
-         * @return either the simple parameter name if it is not shared (unique only in the context of the endpoint) or the globally unique name when shared.
+         * @return either the simple parameter name if it is not shared (unique
+         *         only in the context of the endpoint) or the globally unique
+         *         name when shared.
          */
-        String getFullName() {
-            return isShared() ? sharedName.getValue()+"."+name : name;
+        String getFullName()
+        {
+            return isShared() ? sharedName.getValue() + "." + name : name;
         }
     }
 
@@ -445,7 +455,8 @@ public class Api
             ONE_OF,
             ENUM;
 
-            boolean isSharedAsAdditionalSchema() {
+            boolean isSharedAsAdditionalSchema()
+            {
                 return this == Type.REF || this == Type.UID || this == Type.ENUM;
             }
         }
@@ -479,7 +490,8 @@ public class Api
         List<String> values = new ArrayList<>();
 
         /**
-         * The globally unique name of this is a shared schema. This name is decided first during the synthesis phase.
+         * The globally unique name of this is a shared schema. This name is
+         * decided first during the synthesis phase.
          */
         Maybe<String> sharedName = new Maybe<>();
 

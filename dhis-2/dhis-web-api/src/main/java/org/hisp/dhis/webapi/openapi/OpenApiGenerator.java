@@ -30,10 +30,8 @@ package org.hisp.dhis.webapi.openapi;
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toMap;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
@@ -51,7 +49,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import lombok.Builder;
@@ -155,7 +152,8 @@ public class OpenApiGenerator extends JsonGenerator
 
     private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
 
-    public static boolean isSimpleType(Class<?> type) {
+    public static boolean isSimpleType( Class<?> type )
+    {
         return SIMPLE_TYPES.containsKey( type );
     }
 
@@ -348,7 +346,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateSharedParameters()
     {
         Map<String, Api.Parameter> paramBySharedName = new TreeMap<>();
-        for ( List<Api.Parameter> params : api.getComponents().getParameters().values())
+        for ( List<Api.Parameter> params : api.getComponents().getParameters().values() )
             params.forEach( p -> paramBySharedName.put( p.getFullName(), p ) );
         // use map to sort parameter by name
         paramBySharedName.values().forEach( this::generateParameter );
@@ -361,7 +359,8 @@ public class OpenApiGenerator extends JsonGenerator
             // shared parameter usage: => reference object
             addObjectMember( null,
                 () -> addStringMember( "$ref", "#/components/parameters/" + parameter.getFullName() ) );
-        } else
+        }
+        else
         {
             generateParameter( parameter );
         }
@@ -489,7 +488,7 @@ public class OpenApiGenerator extends JsonGenerator
         {
             addStringMember( "type", "string" );
             addArrayMember( "enum", stream( type.getEnumConstants() )
-                .map( e -> ((Enum<?>) e).name() ).toList());
+                .map( e -> ((Enum<?>) e).name() ).toList() );
             return;
         }
         if ( type.isArray() || schemaType == Api.Schema.Type.ARRAY )
@@ -572,7 +571,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void addTypeDescriptionMember( Class<?> type, String template )
     {
         String name = "any type of object";
-        if (type != BaseIdentifiableObject.class && type != IdentifiableObject.class)
+        if ( type != BaseIdentifiableObject.class && type != IdentifiableObject.class )
         {
             Api.Schema schema = api.getSchemas().get( type );
             name = schema == null ? type.getSimpleName() : schema.getSharedName().getValue();
