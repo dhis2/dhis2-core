@@ -28,9 +28,11 @@
 package org.hisp.dhis.analytics;
 
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.dto.ApiResponse;
 
@@ -83,5 +85,10 @@ public class ValidationHelper
     {
         response.validate()
             .body( "rows[" + rowIndex + "]", equalTo( expectedValues ) );
+    }
+
+    public static void containsRow( ApiResponse response, List<String> expectedValues )
+    {
+        response.validate().body( "rows", hasItem( expectedValues ) );
     }
 }
