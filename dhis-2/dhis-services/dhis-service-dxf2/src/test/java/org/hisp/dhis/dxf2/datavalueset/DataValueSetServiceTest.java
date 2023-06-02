@@ -162,7 +162,6 @@ class DataValueSetServiceTest extends DhisConvenienceTest
         when( batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ) ).thenReturn( batchHandler );
 
         DataValueAuditBatchHandler auditBatchHandler = mock( DataValueAuditBatchHandler.class );
-        when( auditBatchHandler.init() ).thenReturn( auditBatchHandler );
         when( batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ) )
             .thenReturn( auditBatchHandler );
 
