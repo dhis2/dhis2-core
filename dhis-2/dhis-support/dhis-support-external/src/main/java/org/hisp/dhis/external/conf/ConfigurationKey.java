@@ -32,7 +32,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.Arrays;
 import java.util.Optional;
 
-import org.hisp.dhis.security.utils.CspUtils;
+import org.hisp.dhis.security.utils.CspConstants;
 
 /**
  * @author Lars Helge Overland
@@ -728,7 +728,7 @@ public enum ConfigurationKey
     /**
      * CSP default header value/string. Enable or disable the feature.
      */
-    CSP_HEADER_VALUE( "csp.header.value", CspUtils.DEFAULT_HEADER_VALUE, false );
+    CSP_HEADER_VALUE( "csp.header.value", CspConstants.SCRIPT_SOURCE_DEFAULT, false );
 
     private final String key;
 
