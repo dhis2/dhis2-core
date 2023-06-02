@@ -27,14 +27,17 @@
  */
 package org.hisp.dhis.program;
 
-import java.util.List;
-
 /**
- * record used to hold a Program and a List<Enrollment>
- *
  * @author David Mackessy
- * @param program
- * @param enrollments
  */
-public record ProgramEnrollmentsTuple(Program program, List<Enrollment> enrollments) {
+public interface ProgramSectionService
+{
+
+    /**
+     * Adds an {@link ProgramSection}
+     *
+     * @param programSection The ProgramSection to add.
+     * @return A generated unique id of the added {@link ProgramSection}.
+     */
+    void addProgramSection( ProgramSection programSection );
 }

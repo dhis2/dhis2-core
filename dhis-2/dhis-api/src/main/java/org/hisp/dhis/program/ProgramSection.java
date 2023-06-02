@@ -27,11 +27,8 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -42,6 +39,7 @@ import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -188,27 +186,28 @@ public class ProgramSection
         this.renderType = renderType;
     }
 
-    public static BiFunction<ProgramSection, Program, ProgramSection> copyOf = ( original, program ) -> {
+    public static ProgramSection copyOf( ProgramSection original, Program programCopy )
+    {
         ProgramSection copy = new ProgramSection();
-        copy.setProgram( program );
+        copy.setProgram( programCopy );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
-    };
+    }
 
     private static void setShallowCopyValues( ProgramSection copy, ProgramSection original )
     {
+        copy.setAccess( original.getAccess() );
         copy.setDescription( original.getDescription() );
-        copy.setTrackedEntityAttributes( newListFromObjectOrEmpty( original.getTrackedEntityAttributes() ) );
+        copy.setFormName( original.getFormName() );
+        copy.setName( original.getName() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
         copy.setSortOrder( original.getSortOrder() );
         copy.setStyle( original.getStyle() );
-        copy.setFormName( original.getFormName() );
-        copy.setRenderType( original.getRenderType() );
-        copy.setName( original.getName() );
-        copy.setShortName( original.getShortName() );
-        copy.setSharing( original.getSharing() );
+        copy.setTrackedEntityAttributes( ObjectUtils.copyOf( original.getTrackedEntityAttributes() ) );
         copy.setTranslations( original.getTranslations() );
-        copy.setPublicAccess( original.getPublicAccess() );
-        copy.setAccess( original.getAccess() );
     }
 }

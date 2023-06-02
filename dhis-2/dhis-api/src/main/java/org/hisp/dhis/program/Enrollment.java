@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
-import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashSet;
@@ -48,6 +45,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.util.ObjectUtils;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -469,7 +467,7 @@ public class Enrollment
 
     private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
     {
-        copy.setComments( newListFromObjectOrEmpty( original.getComments() ) );
+        copy.setComments( ObjectUtils.copyOf( original.getComments() ) );
         copy.setCompletedBy( original.getCompletedBy() );
         copy.setCreatedAtClient( original.getCreatedAtClient() );
         copy.setCreatedByUserInfo( original.getCreatedByUserInfo() );
@@ -481,12 +479,12 @@ public class Enrollment
         copy.setIncidentDate( original.getIncidentDate() );
         copy.setLastUpdatedAtClient( original.getLastUpdatedAtClient() );
         copy.setLastUpdatedByUserInfo( original.getLastUpdatedByUserInfo() );
-        copy.setMessageConversations( newListFromObjectOrEmpty( original.getMessageConversations() ) );
+        copy.setMessageConversations( ObjectUtils.copyOf( original.getMessageConversations() ) );
         copy.setName( original.getName() );
         copy.setOrganisationUnit( original.getOrganisationUnit() );
         copy.setProgram( programCopy );
         copy.setPublicAccess( original.getPublicAccess() );
-        copy.setRelationshipItems( newSetFromObjectOrEmpty( original.getRelationshipItems() ) );
+        copy.setRelationshipItems( ObjectUtils.copyOf( original.getRelationshipItems() ) );
         copy.setStatus( original.getStatus() );
         copy.setStoredBy( original.getStoredBy() );
         copy.setTrackedEntity( original.getTrackedEntity() );

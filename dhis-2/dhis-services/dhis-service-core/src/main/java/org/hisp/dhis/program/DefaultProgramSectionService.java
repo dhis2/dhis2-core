@@ -27,12 +27,27 @@
  */
 package org.hisp.dhis.program;
 
+import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
+
 /**
- * record used to hold 2 instances of Program
- *
  * @author David Mackessy
- * @param copy
- * @param original
  */
-public record ProgramCopyTuple(Program copy, Program original) {
+@RequiredArgsConstructor
+@Service
+public class DefaultProgramSectionService
+    implements ProgramSectionService
+{
+    private final ProgramSectionStore programSectionStore;
+
+    // -------------------------------------------------------------------------
+    // Implementation methods
+    // -------------------------------------------------------------------------
+
+    @Override
+    public void addProgramSection( ProgramSection programSection )
+    {
+        programSectionStore.save( programSection );
+    }
 }

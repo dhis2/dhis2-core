@@ -28,8 +28,7 @@
 package org.hisp.dhis.program;
 
 import static java.util.stream.Collectors.toSet;
-import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
-import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
+import static org.hisp.dhis.util.ObjectUtils.copyOf;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -944,14 +943,13 @@ public class Program
         copy.setMaxTeiCountToReturn( original.getMaxTeiCountToReturn() );
         copy.setMinAttributesRequiredToSearch( original.getMinAttributesRequiredToSearch() );
         copy.setName( prefix + original.getName() );
-        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
+        copy.setNotificationTemplates( copyOf( original.getNotificationTemplates() ) );
         copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
         copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
-        copy.setOrganisationUnits( newSetFromObjectOrEmpty( original.getOrganisationUnits() ) );
-        copy.setProgramAttributes( newListFromObjectOrEmpty( original.getProgramAttributes() ) );
-        copy.setProgramIndicators( newSetFromObjectOrEmpty( original.getProgramIndicators() ) );
-        copy.setProgramRuleVariables( newSetFromObjectOrEmpty( original.getProgramRuleVariables() ) );
-        //        copy.setProgramSections( newSetFromObjectOrEmpty( original.getProgramSections() ) );
+        copy.setOrganisationUnits( copyOf( original.getOrganisationUnits() ) );
+        //        copy.setProgramAttributes( ObjectUtils.copyOf( original.getProgramAttributes() ) );
+        copy.setProgramIndicators( copyOf( original.getProgramIndicators() ) );
+        copy.setProgramRuleVariables( copyOf( original.getProgramRuleVariables() ) );
         copy.setProgramType( original.getProgramType() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setRelatedProgram( original.getRelatedProgram() );
@@ -963,19 +961,20 @@ public class Program
         copy.setStyle( original.getStyle() );
         copy.setTrackedEntityType( original.getTrackedEntityType() );
         copy.setUseFirstStageDuringRegistration( original.getUseFirstStageDuringRegistration() );
-        copy.setUserRoles( newSetFromObjectOrEmpty( original.getUserRoles() ) );
+        copy.setUserRoles( copyOf( original.getUserRoles() ) );
     }
 
     private static void setDeepCopyValues( Program copy, Program original, Map<String, String> options )
     {
         copyProgramStages( copy, original.getProgramStages(), options );
         copyProgramSections( copy, original.getProgramSections() );
+        copyProgramAttributes( copy, original.getProgramAttributes() );
     }
 
     private static void copyProgramStages( Program copy, Set<ProgramStage> original, Map<String, String> options )
     {
         copy.setProgramStages(
-            StreamUtils.nullSafeCollectionToStream( original )
+            StreamUtils.streamOf( original )
                 .map( programStage -> ProgramStage.copyOf( programStage, copy, options ) )
                 .collect( toSet() ) );
     }
@@ -983,8 +982,19 @@ public class Program
     private static void copyProgramSections( Program copy, Set<ProgramSection> original )
     {
         copy.setProgramSections(
-            StreamUtils.nullSafeCollectionToStream( original )
-                .map( programSection -> ProgramSection.copyOf.apply( programSection, copy ) )
+            StreamUtils.streamOf( original )
+                .map( programSection -> ProgramSection.copyOf( programSection, copy ) )
                 .collect( toSet() ) );
+    }
+
+    private static void copyProgramAttributes( Program copy, List<ProgramTrackedEntityAttribute> original )
+    {
+        copy.setProgramAttributes(
+            StreamUtils.streamOf( original )
+                .map( programAttr -> ProgramTrackedEntityAttribute.copyOf( programAttr, copy ) )
+                .toList() );
+    }
+
+    public record ProgramCopyTuple(Program copy, Program original) {
     }
 }

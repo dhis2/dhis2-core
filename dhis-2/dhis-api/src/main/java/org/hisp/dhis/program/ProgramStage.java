@@ -29,7 +29,6 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
 import static org.hisp.dhis.program.Program.PREFIX_KEY;
-import static org.hisp.dhis.util.ObjectUtils.newSetFromObjectOrEmpty;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -54,6 +53,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.util.ObjectUtils;
 import org.hisp.dhis.util.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -621,7 +621,7 @@ public class ProgramStage
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
         copy.setName( prefix + original.getName() );
-        copy.setNotificationTemplates( newSetFromObjectOrEmpty( original.getNotificationTemplates() ) );
+        copy.setNotificationTemplates( ObjectUtils.copyOf( original.getNotificationTemplates() ) );
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );
         copy.setPreGenerateUID( original.getPreGenerateUID() );
@@ -648,7 +648,7 @@ public class ProgramStage
         Set<ProgramStageDataElement> original )
     {
         copy.setProgramStageDataElements(
-            StreamUtils.nullSafeCollectionToStream( original )
+            StreamUtils.streamOf( original )
                 .map( element -> ProgramStageDataElement.copyOf( element, copy ) )
                 .collect( Collectors.toSet() ) );
     }
@@ -657,7 +657,7 @@ public class ProgramStage
         Set<ProgramStageSection> original )
     {
         copy.setProgramStageSections(
-            StreamUtils.nullSafeCollectionToStream( original )
+            StreamUtils.streamOf( original )
                 .map( element -> ProgramStageSection.copyOf( element, copy ) )
                 .collect( Collectors.toSet() ) );
     }

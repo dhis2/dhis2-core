@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.copy;
 
-import static org.hisp.dhis.util.StreamUtils.nullSafeCollectionToStream;
+import static org.hisp.dhis.util.StreamUtils.streamOf;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 
@@ -40,8 +39,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramCopyTuple;
-import org.hisp.dhis.program.ProgramEnrollmentsTuple;
 import org.hisp.dhis.program.ProgramService;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
@@ -76,7 +73,7 @@ public class CopyService
         }
         catch ( DataIntegrityViolationException div )
         {
-            throw new ConflictException( Objects.requireNonNull( div.getRootCause() ).getMessage() );
+            throw new ConflictException( div.getRootCause().getMessage() );
         }
     }
 
@@ -89,13 +86,13 @@ public class CopyService
             .apply( program, copyOptions );
     }
 
-    private final UnaryOperator<ProgramCopyTuple> saveNewProgram = programCopyTuple -> {
+    private final UnaryOperator<Program.ProgramCopyTuple> saveNewProgram = programCopyTuple -> {
         programService.addProgram( programCopyTuple.copy() );
         return programCopyTuple;
     };
 
-    private final Function<ProgramCopyTuple, ProgramEnrollmentsTuple> copyEnrollments = programCopyTuple -> {
-        List<Enrollment> copiedEnrollments = nullSafeCollectionToStream(
+    private final Function<Program.ProgramCopyTuple, ProgramEnrollmentsTuple> copyEnrollments = programCopyTuple -> {
+        List<Enrollment> copiedEnrollments = streamOf(
             enrollmentService.getEnrollments( programCopyTuple.original() ) )
             .map( enrollment -> Enrollment.copyOf( enrollment, programCopyTuple.copy() ) )
             .toList();
@@ -106,4 +103,7 @@ public class CopyService
         programEnrollmentsTuple.enrollments().forEach( enrollmentService::addEnrollment );
         return programEnrollmentsTuple.program().getUid();
     };
+
+    record ProgramEnrollmentsTuple(Program program, List<Enrollment> enrollments) {
+    }
 }

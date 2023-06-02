@@ -273,4 +273,32 @@ public class ProgramTrackedEntityAttribute
     {
         this.renderType = renderType;
     }
+
+    public static ProgramTrackedEntityAttribute copyOf( ProgramTrackedEntityAttribute original,
+        Program programCopy )
+    {
+        ProgramTrackedEntityAttribute copy = new ProgramTrackedEntityAttribute();
+        copy.setProgram( programCopy );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramTrackedEntityAttribute copy,
+        ProgramTrackedEntityAttribute original )
+    {
+        copy.setAttribute( original.getAttribute() );
+        copy.setDisplayInList( original.isDisplayInList() );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setMandatory( original.isMandatory() );
+        copy.setAllowFutureDate( original.getAllowFutureDate() );
+        copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSearchable( original.isSearchable() );
+        copy.setAccess( original.getAccess() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setSharing( original.getSharing() );
+        copy.setTranslations( original.getTranslations() );
+    }
 }

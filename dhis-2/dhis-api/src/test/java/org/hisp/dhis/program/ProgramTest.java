@@ -90,7 +90,7 @@ class ProgramTest
     void testCopyOfWithPropertyValuesSet()
     {
         Program original = getNewProgramWithNoNulls();
-        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
         Program copy = programCopyTuple.copy();
 
         //check for differences
@@ -142,7 +142,7 @@ class ProgramTest
     {
         Program original = getNewProgramWithNoNulls();
         original.setCode( "code123" );
-        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
         Program copy = programCopyTuple.copy();
 
         assertNull( copy.getCode() );
@@ -153,7 +153,7 @@ class ProgramTest
     {
         Program original = getNewProgramWithNoNulls();
         original.setCode( null );
-        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
         Program copy = programCopyTuple.copy();
 
         assertNull( copy.getCode() );
@@ -163,7 +163,7 @@ class ProgramTest
     void testCopyOfWithNulls()
     {
         Program original = getNewProgramWithNulls();
-        ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
+        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
         Program copy = programCopyTuple.copy();
 
         assertNotSame( original, copy );

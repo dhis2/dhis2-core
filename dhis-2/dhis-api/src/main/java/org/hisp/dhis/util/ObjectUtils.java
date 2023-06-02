@@ -36,6 +36,8 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nonnull;
+
 import org.apache.commons.lang3.StringUtils;
 
 /**
@@ -206,7 +208,8 @@ public class ObjectUtils
      * @return
      * @param <T>
      */
-    public static <T> Set<T> newSetFromObjectOrEmpty( Set<T> set )
+    @Nonnull
+    public static <T> Set<T> copyOf( Set<T> set )
     {
         return set != null ? new HashSet<>( set ) : new HashSet<>();
     }
@@ -221,7 +224,8 @@ public class ObjectUtils
      * @return
      * @param <T>
      */
-    public static <T> List<T> newListFromObjectOrEmpty( List<T> list )
+    @Nonnull
+    public static <T> List<T> copyOf( List<T> list )
     {
         return list != null ? new ArrayList<>( list ) : new ArrayList<>();
     }

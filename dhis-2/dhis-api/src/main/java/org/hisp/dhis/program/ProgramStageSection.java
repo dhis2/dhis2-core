@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.util.ObjectUtils.newListFromObjectOrEmpty;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +39,7 @@ import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
+import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -226,12 +225,12 @@ public class ProgramStageSection
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
-        copy.setDataElements( newListFromObjectOrEmpty( original.getDataElements() ) );
+        copy.setDataElements( ObjectUtils.copyOf( original.getDataElements() ) );
         copy.setDescription( original.getDescription() );
         copy.setFormName( original.getFormName() );
         copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setName( original.getName() );
-        copy.setProgramIndicators( newListFromObjectOrEmpty( original.getProgramIndicators() ) );
+        copy.setProgramIndicators( ObjectUtils.copyOf( original.getProgramIndicators() ) );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );

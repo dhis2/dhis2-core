@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import javax.annotation.Nonnull;
+
 /**
  * @author David Mackessy
  */
@@ -54,7 +56,8 @@ public class StreamUtils
      *         collection is null.
      * @param <T> is the Type of element
      */
-    public static <T> Stream<T> nullSafeCollectionToStream( Collection<T> collection )
+    @Nonnull
+    public static <T> Stream<T> streamOf( Collection<T> collection )
     {
         return Optional.ofNullable( collection ).stream().flatMap( Collection::stream );
     }

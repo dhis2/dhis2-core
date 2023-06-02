@@ -50,7 +50,7 @@ class StreamUtilsTest
     void testNullSafeCollectionToStreamValidCollectionWithElements()
     {
         Set<String> countries = Set.of( "Ireland", "Norway", "Spain", "Ghana" );
-        Stream<String> stream = StreamUtils.nullSafeCollectionToStream( countries );
+        Stream<String> stream = StreamUtils.streamOf( countries );
         Set<String> result = stream.collect( Collectors.toSet() );
 
         assertEquals( 4, result.size() );
@@ -62,7 +62,7 @@ class StreamUtilsTest
     {
         List<String> countries = new ArrayList<>( Arrays.asList( "Ireland", null, "Spain", null ) );
 
-        List<String> result = assertDoesNotThrow( () -> StreamUtils.nullSafeCollectionToStream( countries ) ).toList();
+        List<String> result = assertDoesNotThrow( () -> StreamUtils.streamOf( countries ) ).toList();
         assertEquals( 4, result.size() );
         assertTrue( result.containsAll( countries ) );
     }
@@ -72,7 +72,7 @@ class StreamUtilsTest
     {
         List<String> countries = null;
 
-        List<String> result = assertDoesNotThrow( () -> StreamUtils.nullSafeCollectionToStream( countries ) ).toList();
+        List<String> result = assertDoesNotThrow( () -> StreamUtils.streamOf( countries ) ).toList();
         assertEquals( 0, result.size() );
     }
 }

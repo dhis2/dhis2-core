@@ -34,7 +34,7 @@
             <one-to-many class="org.hisp.dhis.program.ProgramStage"/>
         </set>
 
-        <set name="programSections" order-by="sortOrder" cascade="save-update">
+        <set name="programSections" order-by="sortOrder">
             <key column="programid"/>
             <one-to-many class="org.hisp.dhis.program.ProgramSection"/>
         </set>

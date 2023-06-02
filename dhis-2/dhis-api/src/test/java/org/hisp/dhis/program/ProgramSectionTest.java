@@ -60,7 +60,7 @@ class ProgramSectionTest
         ProgramSection original = getNewProgramSection( originalProgram );
 
         Program copyProgram = Program.copyOf.apply( originalProgram, Map.of() ).copy();
-        ProgramSection copy = ProgramSection.copyOf.apply( original, copyProgram );
+        ProgramSection copy = ProgramSection.copyOf( original, copyProgram );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -90,7 +90,7 @@ class ProgramSectionTest
         ProgramSection original = getNewProgramSectionWithNulls();
 
         Program copyProgram = Program.copyOf.apply( originalProgram, Map.of() ).copy();
-        ProgramSection copy = ProgramSection.copyOf.apply( original, copyProgram );
+        ProgramSection copy = ProgramSection.copyOf( original, copyProgram );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -122,7 +122,7 @@ class ProgramSectionTest
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( ProgramSection.class );
-        assertEquals( 27, allClassFieldsIncludingInherited.length );
+        assertEquals( 26, allClassFieldsIncludingInherited.length );
     }
 
     public static ProgramSection getNewProgramSection( Program original )
