@@ -32,7 +32,6 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import org.hisp.dhis.dto.ApiResponse;
 
