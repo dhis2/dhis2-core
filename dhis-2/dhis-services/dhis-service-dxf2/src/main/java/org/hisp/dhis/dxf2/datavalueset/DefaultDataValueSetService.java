@@ -627,6 +627,8 @@ public class DefaultDataValueSetService
     private ImportSummary importDataValueSet( ImportOptions options, JobConfiguration id,
         Callable<DataValueSetReader> createReader )
     {
+        options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
+
         BatchHandler<DataValue> dvBatch = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class );
         BatchHandler<DataValueAudit> dvaBatch = batchHandlerFactory.createBatchHandler(
             DataValueAuditBatchHandler.class );
@@ -1043,8 +1045,6 @@ public class DefaultDataValueSetService
     private ImportContext createDataValueSetImportContext( ImportOptions options, DataValueSet data,
         BatchHandler<DataValue> dataValueBatchHandler, BatchHandler<DataValueAudit> auditBatchHandler )
     {
-        options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
-
         final User currentUser = currentUserService.getCurrentUser();
 
         boolean auditEnabled = config.isEnabled( CHANGELOG_AGGREGATE );
