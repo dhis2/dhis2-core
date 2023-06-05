@@ -126,7 +126,7 @@ public class TrackerExportTests
     {
         trackerImportExportActions.getTrackedEntities(
             new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
-                .add( "filter", "kZeSYCgaHTk:eq:Test\\,Test" ) )
+                .add( "filter", "kZeSYCgaHTk:eq:Test//,Test" ) )
             .validate().statusCode( 200 )
             .body( "instances[0].attributes.value", hasItem( "Test,Test" ) );
     }
@@ -136,7 +136,7 @@ public class TrackerExportTests
     {
         trackerImportExportActions.getTrackedEntities(
             new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
-                .add( "filter", "dIVt4l5vIOa:eq:Test\\:Test" ) )
+                .add( "filter", "dIVt4l5vIOa:eq:Test//:Test" ) )
             .validate().statusCode( 200 )
             .body( "instances[0].attributes.value", hasItem( "Test:Test" ) );
     }

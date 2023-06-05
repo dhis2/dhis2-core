@@ -631,7 +631,7 @@ class RequestParamsMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        requestParams.setFilter( TEA_2_UID + ":like:project\\:x\\:eq\\:2" );
+        requestParams.setFilter( TEA_2_UID + ":like:project//:x//:eq//:2" );
         TrackedEntityQueryParams params = mapper.map( requestParams );
 
         List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
@@ -652,62 +652,13 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatWithHours()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        requestParams.setFilter( TEA_1_UID + ":gt:01-01-2000 00\\:00\\:01:lt:01-01-2001 00\\:00\\:01" );
-
-        List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
-            .flatMap( f -> f.getFilters().stream() )
-            .collect( Collectors.toList() );
-
-        assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.GT, "01-01-2000 00:00:01" ),
-            new QueryFilter( QueryOperator.LT, "01-01-2001 00:00:01" ) ), actualFilters );
-    }
-
-    @Test
-    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatYearMonthDay()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        requestParams.setFilter( TEA_1_UID + ":gt:01-01-2000:lt:01-01-2001" );
-
-        List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
-            .flatMap( f -> f.getFilters().stream() )
-            .collect( Collectors.toList() );
-
-        assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.GT, "01-01-2000" ),
-            new QueryFilter( QueryOperator.LT, "01-01-2001" ) ), actualFilters );
-    }
-
-    @Test
-    void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithTimeZone()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        requestParams
-            .setFilter( TEA_1_UID + ":gt:2020-01-01T00\\:00\\:00 +05\\:30:lt:2021-01-01T00\\:00\\:00 +05\\:30" );
-
-        List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
-            .flatMap( f -> f.getFilters().stream() )
-            .collect( Collectors.toList() );
-
-        assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.GT, "2020-01-01T00:00:00 +05:30" ),
-            new QueryFilter( QueryOperator.LT, "2021-01-01T00:00:00 +05:30" ) ), actualFilters );
-    }
-
-    @Test
     void shouldCreateQueryFilterWhenCriteriaFilterHasDatesFormatDateWithMilliSecondsAndTimeZone()
         throws ForbiddenException,
         BadRequestException
     {
         requestParams
             .setFilter(
-                TEA_1_UID + ":ge:2020-01-01T00\\:00\\:00.001 +05\\:30:le:2021-01-01T00\\:00\\:00.001 +05\\:30" );
+                TEA_1_UID + ":ge:2020-01-01T00//:00//:00.001 +05//:30:le:2021-01-01T00//:00//:00.001 +05//:30" );
 
         List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
@@ -724,7 +675,7 @@ class RequestParamsMapperTest
         BadRequestException
     {
         requestParams
-            .setFilter( TEA_1_UID + ":sw:project\\:x:ew:project\\:le\\:" );
+            .setFilter( TEA_1_UID + ":sw:project//:x:ew:project//:le//:" );
 
         List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
@@ -736,36 +687,37 @@ class RequestParamsMapperTest
     }
 
     @Test
-    void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithComma()
+    void shouldCreateQueryFilterWhenCriteriaMultipleFilterMixedCommaAndSlash()
         throws ForbiddenException,
         BadRequestException
     {
         requestParams
-            .setFilter( TEA_1_UID + ":like:value\\,with\\,comma" + "," + TEA_2_UID + ":eq:value" );
+            .setFilter( TEA_1_UID + ":eq:project///,//,/" + "," + TEA_2_UID + ":eq:project/" );
 
         List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
-            new QueryFilter( QueryOperator.EQ, "value" ) ), actualFilters );
+            new QueryFilter( QueryOperator.EQ, "project/,,/" ), new QueryFilter( QueryOperator.EQ, "project/" ) ),
+            actualFilters );
     }
 
     @Test
-    void shouldCreateQueryFilterWhenCriteriaFilterHasEscapeValue()
+    void shouldCreateQueryFilterWhenCriteriaMultipleOperatorHasFinalColon()
         throws ForbiddenException,
         BadRequestException
     {
         requestParams
-            .setFilter( TEA_1_UID + ":sw:project\\" );
+            .setFilter( TEA_1_UID + ":like:value1//::like:value2" );
 
         List<QueryFilter> actualFilters = mapper.map( requestParams ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.SW, "project\\" ) ), actualFilters );
+            new QueryFilter( QueryOperator.LIKE, "value1:" ), new QueryFilter( QueryOperator.LIKE, "value2" ) ),
+            actualFilters );
     }
 
     @Test
