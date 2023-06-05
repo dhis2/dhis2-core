@@ -120,6 +120,26 @@ public class TrackerExportTests
             .get( JsonObject.class );
     }
 
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsComma()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "kZeSYCgaHTk:eq:Test//,Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test,Test" ) );
+    }
+
+    @Test
+    public void shouldGetTeiWhenAttributeFilterValueContainsColon()
+    {
+        trackerActions.getTrackedEntities(
+            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
+                .add( "filter", "dIVt4l5vIOa:eq:Test//:Test" ) )
+            .validate().statusCode( 200 )
+            .body( "instances[0].attributes.value", hasItem( "Test:Test" ) );
+    }
+
     private Stream<Arguments> shouldReturnRequestedFields()
     {
         return Stream.of(
@@ -136,26 +156,6 @@ public class TrackerExportTests
                 "from,to.trackedEntity.trackedEntity" ),
             Arguments.of( "/relationships/" + enrollmentToTeiRelationship, "from,from[enrollment[enrollment]]",
                 "from,from.enrollment.enrollment" ) );
-    }
-
-    @Test
-    public void shouldGetTeiWhenAttributeFilterValueContainsComma()
-    {
-        trackerActions.getTrackedEntities(
-            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
-                .add( "filter", "kZeSYCgaHTk:eq:Test\\,Test" ) )
-            .validate().statusCode( 200 )
-            .body( "instances[0].attributes.value", hasItem( "Test,Test" ) );
-    }
-
-    @Test
-    public void shouldGetTeiWhenAttributeFilterValueContainsColon()
-    {
-        trackerActions.getTrackedEntities(
-            new QueryParamsBuilder().add( "trackedEntityType", "Q9GufDoplCL" ).add( "orgUnit", "O6uvpzGd5pu" )
-                .add( "filter", "dIVt4l5vIOa:eq:Test\\:Test" ) )
-            .validate().statusCode( 200 )
-            .body( "instances[0].attributes.value", hasItem( "Test:Test" ) );
     }
 
     @MethodSource

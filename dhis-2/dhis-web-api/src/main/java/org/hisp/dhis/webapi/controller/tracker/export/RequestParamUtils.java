@@ -30,8 +30,6 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
-import java.util.Deque;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -69,16 +67,16 @@ class RequestParamUtils
 
     /**
      * Negative lookahead to avoid wrong split when filter value contains colon.
-     * It skips colon escaped by backslash
+     * It skips colon escaped by slash
      */
-    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!\\\\)" + DIMENSION_NAME_SEP );
+    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!//)" + DIMENSION_NAME_SEP );
 
     /**
      * Negative lookahead to avoid wrong split of comma-separated list of
      * filters when one or more filter value contain comma. It skips comma
-     * escaped by backslash
+     * escaped by slash
      */
-    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!\\\\)" + COMMA_SEPARATOR );
+    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!//)" + COMMA_SEPARATOR );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -318,25 +316,14 @@ class RequestParamUtils
     }
 
     /**
-     * Skip backslash when followed by comma or colon and reconstruct the value
+     * Replace escaped comma or colon
      *
      * @param value
      * @return
      */
     private static String escapedFilterValue( String value )
     {
-        Deque<Character> stack = new LinkedList<>();
-
-        for ( int i = 0; i < value.length(); i++ )
-        {
-            if ( i == value.length() - 1
-                || (!(value.charAt( i ) == '\\' && value.charAt( i + 1 ) == DIMENSION_NAME_SEP.charAt( 0 ))
-                    && !(value.charAt( i ) == '\\' && value.charAt( i + 1 ) == COMMA_SEPARATOR)) )
-            {
-                stack.add( value.charAt( i ) );
-            }
-        }
-
-        return stack.stream().map( Object::toString ).collect( Collectors.joining( "" ) );
+        return value.replaceAll( "//,", "," )
+            .replaceAll( "//:", ":" );
     }
 }

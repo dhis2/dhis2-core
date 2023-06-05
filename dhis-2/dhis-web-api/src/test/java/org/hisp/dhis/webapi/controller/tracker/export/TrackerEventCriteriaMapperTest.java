@@ -806,7 +806,7 @@ class TrackerEventCriteriaMapperTest
         BadRequestException
     {
         TrackerEventCriteria criteria = new TrackerEventCriteria();
-        criteria.setFilterAttributes( TEA_1_UID + ":like:value\\,with\\,comma" + "," + TEA_2_UID + ":eq:value\\:x" );
+        criteria.setFilterAttributes( TEA_1_UID + ":like:value//,with//,comma" + "," + TEA_2_UID + ":eq:value//:x" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilterAttributes().stream()
             .flatMap( f -> f.getFilters().stream() )
