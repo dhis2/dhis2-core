@@ -115,6 +115,7 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.util.ObjectUtils;
+import org.hisp.quick.BatchHandler;
 import org.hisp.quick.BatchHandlerFactory;
 import org.hisp.staxwax.factory.XMLFactory;
 import org.springframework.stereotype.Service;
@@ -629,14 +630,33 @@ public class DefaultDataValueSetService
     private ImportSummary importDataValueSet( ImportOptions options, JobConfiguration id,
         Callable<DataValueSetReader> createReader )
     {
+        options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
+
+        BatchHandler<DataValue> dvBatch = batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class );
+        BatchHandler<DataValueAudit> dvaBatch = batchHandlerFactory.createBatchHandler(
+            DataValueAuditBatchHandler.class );
+
+        notifier.clear( id );
+
         try ( DataValueSetReader reader = createReader.call() )
         {
-            return importDataValueSet( options, id, reader );
+            ImportSummary summary = importDataValueSet( options, id, reader, dvBatch, dvaBatch );
+
+            dvBatch.flush();
+            dvaBatch.flush();
+
+            NotificationLevel notificationLevel = options.getNotificationLevel( INFO );
+            notifier.notify( id, notificationLevel, "Import done", true )
+                .addJobSummary( id, notificationLevel, summary, ImportSummary.class );
+
+            return summary;
         }
         catch ( Exception ex )
         {
+            dvBatch.flush();
+            dvaBatch.flush();
             log.error( DebugUtils.getStackTrace( ex ) );
-            notifier.clear( id ).notify( id, ERROR, "Process failed: " + ex.getMessage(), true );
+            notifier.notify( id, ERROR, "Process failed: " + ex.getMessage(), true );
             return new ImportSummary( ImportStatus.ERROR, "The import process failed: " + ex.getMessage() );
         }
     }
@@ -658,16 +678,18 @@ public class DefaultDataValueSetService
      * If id scheme is specific in the data value set, any id schemes in the
      * import options will be ignored.
      */
-    private ImportSummary importDataValueSet( ImportOptions options, JobConfiguration id, DataValueSetReader reader )
+    private ImportSummary importDataValueSet( ImportOptions options, JobConfiguration id, DataValueSetReader reader,
+        BatchHandler<DataValue> dataValueBatchHandler, BatchHandler<DataValueAudit> auditBatchHandler )
     {
         DataValueSet dataValueSet = reader.readHeader();
-        final ImportContext context = createDataValueSetImportContext( options, dataValueSet );
+        final ImportContext context = createDataValueSetImportContext( options, dataValueSet,
+            dataValueBatchHandler, auditBatchHandler );
         logDataValueSetImportContextInfo( context );
 
         Clock clock = new Clock( log ).startClock()
             .logTime( "Starting data value import, options: " + context.getImportOptions() );
-        NotificationLevel notificationLevel = context.getImportOptions().getNotificationLevel( INFO );
-        notifier.clear( id ).notify( id, notificationLevel, "Process started" );
+        NotificationLevel notificationLevel = options.getNotificationLevel( INFO );
+        notifier.notify( id, notificationLevel, "Process started" );
 
         // ---------------------------------------------------------------------
         // Heat caches
@@ -732,13 +754,6 @@ public class DefaultDataValueSetService
             dataValue = reader.readNext();
         }
 
-        context.getDataValueBatchHandler().flush();
-
-        if ( !context.isSkipAudit() )
-        {
-            context.getAuditBatchHandler().flush();
-        }
-
         context.getSummary()
             .setImportCount( importCount )
             .setStatus( !context.getSummary().hasConflicts() ? ImportStatus.SUCCESS : ImportStatus.WARNING )
@@ -748,8 +763,6 @@ public class DefaultDataValueSetService
             "Data value import done, total: " + importCount.getTotalCount() + ", import: " + importCount.getImported()
                 + ", update: "
                 + importCount.getUpdated() + ", delete: " + importCount.getDeleted() );
-        notifier.notify( id, notificationLevel, "Import done", true )
-            .addJobSummary( id, notificationLevel, context.getSummary(), ImportSummary.class );
 
         return context.getSummary();
     }
@@ -1032,10 +1045,9 @@ public class DefaultDataValueSetService
             o -> o.getPropertyValue( context.getDataElementIdScheme() ) );
     }
 
-    private ImportContext createDataValueSetImportContext( ImportOptions options, DataValueSet data )
+    private ImportContext createDataValueSetImportContext( ImportOptions options, DataValueSet data,
+        BatchHandler<DataValue> dataValueBatchHandler, BatchHandler<DataValueAudit> auditBatchHandler )
     {
-        options = ObjectUtils.firstNonNull( options, ImportOptions.getDefaultImportOptions() );
-
         final User currentUser = currentUserService.getCurrentUser();
 
         boolean auditEnabled = config.isEnabled( CHANGELOG_AGGREGATE );
@@ -1109,10 +1121,8 @@ public class DefaultDataValueSetService
                 trimToNull( data.getPeriod() ) ) )
 
             // data processing
-            .dataValueBatchHandler( batchHandlerFactory
-                .createBatchHandler( DataValueBatchHandler.class ).init() )
-            .auditBatchHandler( skipAudit ? null
-                : batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ).init() )
+            .dataValueBatchHandler( dataValueBatchHandler.init() )
+            .auditBatchHandler( skipAudit ? null : auditBatchHandler.init() )
             .singularNameForType( klass -> schemaService.getDynamicSchema( klass ).getSingular() )
             .build();
     }
