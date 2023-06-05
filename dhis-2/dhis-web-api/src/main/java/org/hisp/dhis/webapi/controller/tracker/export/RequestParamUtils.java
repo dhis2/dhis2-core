@@ -143,6 +143,32 @@ public class RequestParamUtils
     }
 
     /**
+     * Helps us transition request parameters from a deprecated to a new one.
+     *
+     * @param deprecatedParamName request parameter name of deprecated parameter
+     * @param deprecatedParam value of deprecated request parameter
+     * @param newParamName new request parameter replacing deprecated request
+     *        parameter
+     * @param newParam value of the request parameter
+     * @return value of the one request parameter that is non-empty
+     * @throws IllegalArgumentException when both deprecated and new request
+     *         parameter are non-empty
+     */
+    public static UID validateDeprecatedUidParameter( String deprecatedParamName, UID deprecatedParam,
+        String newParamName, UID newParam )
+    {
+        if ( newParam != null && deprecatedParam != null )
+        {
+            throw new IllegalArgumentException(
+                String.format(
+                    "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
+                    deprecatedParamName, newParamName, newParamName, deprecatedParamName ) );
+        }
+
+        return newParam != null ? newParam : deprecatedParam;
+    }
+
+    /**
      * Parse semicolon separated string of UIDs.
      *
      * @param input string to parse

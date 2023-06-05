@@ -730,14 +730,34 @@ class EventRequestParamsMapperTest
     }
 
     @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryCombo()
+    void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
+        throws ForbiddenException,
+        BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCos( "Cos" );
+        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
         CategoryOptionCombo combo = new CategoryOptionCombo();
         combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", requestParams.getAttributeCos(),
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
+            true ) )
+            .thenReturn( combo );
+        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( true );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        assertEquals( combo, params.getCategoryOptionCombo() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
+        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
+        CategoryOptionCombo combo = new CategoryOptionCombo();
+        combo.setUid( "uid" );
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
             true ) )
             .thenReturn( combo );
         when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
@@ -764,5 +784,6 @@ class EventRequestParamsMapperTest
         assertContainsOnly( List.of(
             new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
             new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
+
     }
 }

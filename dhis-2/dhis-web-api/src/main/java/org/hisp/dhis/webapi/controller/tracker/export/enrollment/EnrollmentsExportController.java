@@ -46,7 +46,7 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
-import org.hisp.dhis.program.EnrollmentQueryParams;
+import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentService;
 import org.hisp.dhis.tracker.export.enrollment.Enrollments;
@@ -77,7 +77,7 @@ class EnrollmentsExportController
 
     private static final EnrollmentMapper ENROLLMENT_MAPPER = Mappers.getMapper( EnrollmentMapper.class );
 
-    private final EnrollmentRequestParamsMapper paramsMapper;
+    private final EnrollmentRequestParamsMapper operationParamsMapper;
 
     private final EnrollmentService enrollmentService;
 
@@ -96,17 +96,14 @@ class EnrollmentsExportController
 
         List<org.hisp.dhis.program.Enrollment> enrollmentList;
 
-        EnrollmentParams enrollmentParams = fieldsMapper.map( requestParams.getFields() )
-            .withIncludeDeleted( requestParams.isIncludeDeleted() );
+        EnrollmentOperationParams operationParams = operationParamsMapper.map( requestParams );
 
         Set<UID> enrollmentUids = validateDeprecatedUidsParameter( "enrollment", requestParams.getEnrollment(),
             "enrollments",
             requestParams.getEnrollments() );
         if ( enrollmentUids.isEmpty() )
         {
-            EnrollmentQueryParams params = paramsMapper.map( requestParams );
-
-            Enrollments enrollments = enrollmentService.getEnrollments( params );
+            Enrollments enrollments = enrollmentService.getEnrollments( operationParams );
 
             if ( requestParams.isPagingRequest() )
             {
@@ -121,7 +118,8 @@ class EnrollmentsExportController
             List<org.hisp.dhis.program.Enrollment> list = new ArrayList<>();
             for ( UID uid : enrollmentUids )
             {
-                list.add( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams ) );
+                list.add( enrollmentService.getEnrollment( uid.getValue(), operationParams.getEnrollmentParams(),
+                    operationParams.isIncludeDeleted() ) );
             }
             enrollmentList = list;
         }
@@ -141,7 +139,7 @@ class EnrollmentsExportController
     {
         EnrollmentParams enrollmentParams = fieldsMapper.map( fields );
         Enrollment enrollment = ENROLLMENT_MAPPER
-            .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams ) );
+            .from( enrollmentService.getEnrollment( uid.getValue(), enrollmentParams, false ) );
         return ResponseEntity.ok( fieldFilterService.toObjectNode( enrollment, fields ) );
     }
 }

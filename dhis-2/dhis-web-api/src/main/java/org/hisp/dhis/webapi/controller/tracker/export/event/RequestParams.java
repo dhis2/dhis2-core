@@ -126,11 +126,28 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private EventStatus status;
 
+    /**
+     * @deprecated use {@link #attributeCategoryCombo}
+     */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID.class, CategoryCombo.class } )
     private UID attributeCc;
 
+    @OpenApi.Property( { UID.class, CategoryCombo.class } )
+    private UID attributeCategoryCombo;
+
+    /**
+     * Semicolon-delimited list of category option UIDs.
+     *
+     * @deprecated use {@link #attributeCategoryOptions} instead which is comma
+     *             instead of semicolon separated.
+     */
+    @Deprecated( since = "2.41" )
     @OpenApi.Property( { UID[].class, CategoryOption.class } )
     private String attributeCos;
+
+    @OpenApi.Property( { UID[].class, CategoryOption.class } )
+    private Set<UID> attributeCategoryOptions = new HashSet<>();
 
     private boolean skipMeta;
 
