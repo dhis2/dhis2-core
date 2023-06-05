@@ -386,12 +386,11 @@ final class ApiAnalyse
         if ( isSharable( paramsObject, false ) )
         {
             OpenApi.Shared shared = paramsObject.getAnnotation( OpenApi.Shared.class );
-            String sharedName = shared.name().isEmpty() ? null : shared.name();
             Api api = endpoint.getIn().getIn();
             Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
             properties.forEach( property -> {
                 Api.Parameter parameter = analyseParameter( endpoint, property );
-                parameter.getSharedName().setValue( sharedName );
+                parameter.getSharedName().setValue( getSharedName( paramsObject, shared ) );
                 sharedParameters.computeIfAbsent( paramsObject, e -> new ArrayList<>() ).add( parameter );
                 endpoint.getParameters().put( parameter.getName(), parameter );
             } );
@@ -401,6 +400,17 @@ final class ApiAnalyse
             properties.forEach( property -> endpoint.getParameters()
                 .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property ) ) );
         }
+    }
+
+    private static String getSharedName( Class<?> type, OpenApi.Shared value )
+    {
+        if ( value == null )
+            return null;
+        if ( !value.name().isEmpty() )
+            return value.name();
+        if ( value.pattern() != OpenApi.Shared.Pattern.DEFAULT )
+            return String.format( value.pattern().getTemplate(), type.getSimpleName() );
+        return null;
     }
 
     private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property )
@@ -502,8 +512,8 @@ final class ApiAnalyse
         UnaryOperator<Api.Schema> resolvedTo = schema -> {
             if ( schema.isShared() )
             {
-                OpenApi.Shared shared = rawType.getAnnotation( OpenApi.Shared.class );
-                schema.getSharedName().setValue( shared == null || shared.name().isEmpty() ? null : shared.name() );
+                schema.getSharedName()
+                    .setValue( getSharedName( rawType, rawType.getAnnotation( OpenApi.Shared.class ) ) );
             }
             resolving.put( rawType, schema );
             return schema;

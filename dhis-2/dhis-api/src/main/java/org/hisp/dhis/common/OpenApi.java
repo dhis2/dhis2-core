@@ -34,6 +34,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -347,6 +348,24 @@ public @interface OpenApi
          *         parameter
          */
         String name() default "";
+
+        @Getter
+        @AllArgsConstructor
+        enum Pattern
+        {
+            DEFAULT( "" ),
+            INFO( "%sInfo" );
+
+            private final String template;
+        }
+
+        /**
+         * If both name and pattern are used the pattern is ignored.
+         *
+         * @return naming pattern used to create a name based on the simple
+         *         class name.
+         */
+        Pattern pattern() default Pattern.DEFAULT;
     }
 
     /*
