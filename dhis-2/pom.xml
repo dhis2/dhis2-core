@@ -1311,7 +1311,7 @@
       <dependency>
         <groupId>org.flywaydb</groupId>
         <artifactId>flyway-core</artifactId>
-        <version>7.0.4</version>
+        <version>9.19.1</version>
       </dependency>
 
       <!-- Apache jClouds -->
