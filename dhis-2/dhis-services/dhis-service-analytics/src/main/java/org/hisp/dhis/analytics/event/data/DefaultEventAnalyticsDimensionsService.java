@@ -42,8 +42,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
@@ -55,18 +53,23 @@ import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDimensionsService
 {
-    @Nonnull
     private final ProgramStageService programStageService;
 
-    @Nonnull
     private final CategoryService categoryService;
+
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
 
     @Override
     public List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programStageId )
@@ -76,11 +79,16 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
 
         if ( programStage.isPresent() )
         {
+            User user = currentUserService.getCurrentUser();
+
             return programStage
                 .map( ProgramStage::getProgram )
                 .map( p -> collectDimensions(
                     List.of(
-                        ofProgramIndicators( p.getProgramIndicators() ),
+                        ofProgramIndicators( p.getProgramIndicators()
+                            .stream()
+                            .filter( pi -> aclService.canRead( user, pi ) )
+                            .collect( Collectors.toSet() ) ),
                         filterByValueType(
                             QUERY,
                             ofDataElements( programStage.get() ) ),

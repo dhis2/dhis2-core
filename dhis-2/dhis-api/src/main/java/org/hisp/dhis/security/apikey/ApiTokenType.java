@@ -29,15 +29,17 @@ package org.hisp.dhis.security.apikey;
 
 import lombok.Getter;
 
-import org.hisp.dhis.common.CodeGenerator;
-
 /**
+ * Class for representing the different types of API tokens and their
+ * properties.
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Getter
 public enum ApiTokenType
 {
-    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" );
+    PERSONAL_ACCESS_TOKEN_V1( 1, "d2pat", 32, "SHA-256", "CRC32" ),
+    PERSONAL_ACCESS_TOKEN_V2( 2, "d2p", 44, "SHA-256", "CRC32_B62" );
 
     private final String prefix;
 
@@ -58,12 +60,12 @@ public enum ApiTokenType
         this.checksumType = checksumType;
     }
 
-    public static ApiTokenType getDefault()
+    public static ApiTokenType getDefaultPatType()
     {
-        return PERSONAL_ACCESS_TOKEN_V1;
+        return PERSONAL_ACCESS_TOKEN_V2;
     }
 
-    private static ApiTokenType fromToken( char[] token )
+    public static ApiTokenType fromToken( char[] token )
     {
         String tokenType = getTokenTypePrefix( token );
 
@@ -74,7 +76,7 @@ public enum ApiTokenType
                 return type;
             }
         }
-        throw new IllegalArgumentException( "No ApiTokenType found in token" );
+        throw new IllegalArgumentException( "No token type found" );
     }
 
     private static String getTokenTypePrefix( char[] token )
@@ -86,66 +88,6 @@ public enum ApiTokenType
                 return new String( token, 0, i );
             }
         }
-        throw new IllegalArgumentException( "No ApiTokenType prefix found in token" );
-    }
-
-    /**
-     * Validates the checksum of the plaintextToken.
-     *
-     * @param plaintextToken the plaintextToken
-     * @return true if the checksum is valid, false otherwise
-     */
-    public static boolean validateChecksum( char[] plaintextToken )
-    {
-        ApiTokenType tokenType = ApiTokenType.fromToken( plaintextToken );
-
-        String tokenChecksumType = tokenType.getChecksumType();
-
-        return switch ( tokenChecksumType )
-        {
-        case "CRC32" -> validateCrc32Checksum( plaintextToken );
-
-        default -> throw new IllegalArgumentException( "Unsupported checksum type: " + tokenChecksumType );
-        };
-    }
-
-    private static boolean validateCrc32Checksum( char[] plaintextToken )
-    {
-        ApiTokenType tokenType = ApiTokenType.fromToken( plaintextToken );
-
-        int prefixLength = tokenType.getPrefix().length();
-        int codeLength = tokenType.getLength();
-
-        // Extract code from the plaintextToken
-        char[] code = new char[codeLength];
-        System.arraycopy( plaintextToken, prefixLength + 1, code, 0, codeLength );
-
-        // Extract checksum from the plaintextToken
-        int checksumLength = plaintextToken.length - codeLength - prefixLength - 1;
-        char[] checksumChars = new char[checksumLength];
-        System.arraycopy( plaintextToken, prefixLength + 1 + codeLength, checksumChars, 0, checksumLength );
-
-        return CodeGenerator.isMatchingCrc32Checksum( code, new String( checksumChars ) );
-    }
-
-    /**
-     * Hashes the token using the hash type specified in the token type.
-     *
-     * @param plaintextToken the plaintext token
-     * @return the hashed token
-     */
-    public static String hashToken( char[] plaintextToken )
-    {
-        ApiTokenType tokenType = ApiTokenType.fromToken( plaintextToken );
-
-        String tokenHashType = tokenType.getHashType();
-
-        return switch ( tokenHashType )
-        {
-        case "SHA-256" -> CodeGenerator.hashSHA256( plaintextToken );
-        case "SHA-512" -> CodeGenerator.hashSHA512( plaintextToken );
-
-        default -> throw new IllegalArgumentException( "Unsupported hash type: " + tokenHashType );
-        };
+        throw new IllegalArgumentException( "No token type prefix found" );
     }
 }

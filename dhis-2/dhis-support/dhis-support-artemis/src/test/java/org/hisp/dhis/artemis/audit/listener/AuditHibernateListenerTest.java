@@ -69,6 +69,7 @@ public class AuditHibernateListenerTest
     private SchemaService schemaService;
 
     @Test
+    @SuppressWarnings( "unchecked" )
     void testSavePassword()
     {
         User user = createUser( 1, "userA", "passwordA" );

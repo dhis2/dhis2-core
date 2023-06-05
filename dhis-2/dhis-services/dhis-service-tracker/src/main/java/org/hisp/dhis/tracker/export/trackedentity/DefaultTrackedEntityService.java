@@ -298,7 +298,7 @@ public class DefaultTrackedEntityService implements TrackedEntityService
         {
             result.setEnrollment(
                 enrollmentService.getEnrollment( item.getEnrollment().getUid(),
-                    EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
+                    EnrollmentParams.TRUE.withIncludeRelationships( false ), false ) );
         }
         else if ( item.getEvent() != null )
         {

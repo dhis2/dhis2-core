@@ -215,7 +215,7 @@ public class DefaultRelationshipService implements RelationshipService
         {
             result.setEnrollment(
                 enrollmentService.getEnrollment( item.getEnrollment(),
-                    EnrollmentParams.TRUE.withIncludeRelationships( false ) ) );
+                    EnrollmentParams.TRUE.withIncludeRelationships( false ), false ) );
         }
         else if ( item.getEvent() != null )
         {

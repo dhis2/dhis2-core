@@ -191,7 +191,7 @@ public class OpenApiGenerator extends JsonGenerator
         addSimpleType( UUID.class, schema -> schema.type( "string" ).format( "uuid" ).nullable( true )
             .pattern( "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$" ) );
         addSimpleType( UID.class, schema -> schema.type( "string" ).format( "uid" ).nullable( true )
-            .pattern( CodeGenerator.UID_PATTERN ) );
+            .pattern( CodeGenerator.UID_REGEXP ) );
         addSimpleType( Locale.class, schema -> schema.type( "string" ).nullable( true ) );
         addSimpleType( Instant.class, schema -> schema.type( "string" ).format( "date-time" ) );
         addSimpleType( Instant.class, schema -> schema.type( "integer" ).format( "int64" ) );

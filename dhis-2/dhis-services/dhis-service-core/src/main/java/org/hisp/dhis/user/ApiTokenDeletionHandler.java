@@ -29,8 +29,11 @@ package org.hisp.dhis.user;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenDeletedEvent;
 import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.system.deletion.DeletionHandler;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 /**
@@ -42,10 +45,18 @@ public class ApiTokenDeletionHandler extends DeletionHandler
 {
     private final ApiTokenService apiTokenService;
 
+    private final ApplicationEventPublisher applicationEventPublisher;
+
     @Override
     protected void register()
     {
         whenDeleting( User.class, this::deleteUser );
+        whenDeleting( ApiToken.class, this::deleteToken );
+    }
+
+    private void deleteToken( ApiToken apiToken )
+    {
+        applicationEventPublisher.publishEvent( new ApiTokenDeletedEvent( this, apiToken.getKey() ) );
     }
 
     private void deleteUser( User user )

@@ -13,6 +13,6 @@ The following shows the mapping of app repos to the DHIS2 versions that use the 
 |git@github.com:dhis2/data-visualizer-app.git|n/a|n/a|v31|32.x|33.x|34.x|35.x|36.x|37.x|38.x|39.x|master|
 |git@github.com:dhis2/messaging-app.git|master|master|master|master|master|master|master|master|master|master|master|master|
 |git@github.com:dhis2/reports-app.git|n/a|n/a|n/a|n/a|master|master|master|master|master|master|master|master|
-|git@github.com:dhis2/scheduler-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|master|master|master|master|master|
+|git@github.com:dhis2/scheduler-app.git|2.29|2.30|2.31|2.32|2.33|2.34|2.35|100.x|100.x|100.x|100.x|master|
 |git@github.com:dhis2/sms-configuration-app.git|n/a|n/a|n/a|n/a|n/a|n/a|master|master|master|master|master|master|
 |git@github.com:dhis2/usage-analytics-app.git|2.29|2.30|2.31|master|master|master|master|master|master|master|master|master|

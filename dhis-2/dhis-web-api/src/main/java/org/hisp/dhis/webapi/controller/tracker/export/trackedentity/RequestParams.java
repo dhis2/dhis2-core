@@ -228,5 +228,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      */
     private Boolean potentialDuplicate;
 
+    @OpenApi.Property( value = String[].class )
     private List<FieldPath> fields = FieldFilterParser.parse( DEFAULT_FIELDS_PARAM );
 }

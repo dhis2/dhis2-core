@@ -36,9 +36,9 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -109,7 +109,7 @@ public class EnrollmentQueryParams
     /**
      * Tracked entity instance.
      */
-    private String trackedEntityUid;
+    private TrackedEntity trackedEntity;
 
     /**
      * Page number.
@@ -254,7 +254,7 @@ public class EnrollmentQueryParams
      */
     public boolean hasTrackedEntity()
     {
-        return StringUtils.isNotEmpty( this.trackedEntityUid );
+        return this.trackedEntity != null;
     }
 
     /**

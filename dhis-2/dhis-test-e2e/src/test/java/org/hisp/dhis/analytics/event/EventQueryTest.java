@@ -567,17 +567,17 @@ public class EventQueryTest extends AnalyticsApiTest
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-02-27 00:00:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-05-27 00:00:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
-                "1",
+                "1.0",
                 "2022-01-19 00:00:00.0" ) );
     }
 
@@ -625,17 +625,17 @@ public class EventQueryTest extends AnalyticsApiTest
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-02-27 00:00:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
-                "1",
+                "1.0",
                 "2022-12-29 00:00:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2021-08-15 00:00:00.0" ) );
     }
 
