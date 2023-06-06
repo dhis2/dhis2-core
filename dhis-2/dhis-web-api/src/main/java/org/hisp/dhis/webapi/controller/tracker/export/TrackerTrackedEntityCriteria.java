@@ -33,10 +33,15 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.UID;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
+import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
+import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to
@@ -50,6 +55,11 @@ class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
 
+
+    /**
+     * Comma separated list of attribute UIDs
+     */
+    @OpenApi.Property( { UID[].class, Attribute.class } )
     private String attribute;
 
     private String filter;
