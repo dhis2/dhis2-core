@@ -412,6 +412,8 @@ public class Api
          */
         @ToString.Exclude
         Schema type;
+
+        Maybe<String> description = new Maybe<>();
     }
 
     @Value
@@ -500,7 +502,7 @@ public class Api
 
         /**
          * The globally unique name of this is a shared schema. This name is
-         * decided first during the synthesis phase.
+         * decided first during the finalisation phase.
          */
         Maybe<String> sharedName = new Maybe<>();
 

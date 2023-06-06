@@ -127,6 +127,7 @@ public class ApiFinalise
         // 2. Add description texts from markdown files to the Api model
         describeTags();
         api.getControllers().forEach( ApiFinalise::describeController );
+        api.getSchemas().values().stream().filter( Api.Schema::isShared ).forEach( ApiFinalise::describeSchema );
 
         // 3. Group and merge endpoints by request path and method
         groupAndMergeEndpoints();
@@ -370,9 +371,9 @@ public class ApiFinalise
                 List<String> keys = parameter.isShared()
                     ? List.of(
                         format( "%s.parameter.%s.description", name, parameter.getFullName() ),
-                        format( "%s.parameter.%s.description", name, getSharedName( parameter ) ),
+                        format( "%s.parameter.%s.description", name, getSharedNameForDeclaringType( parameter ) ),
                         format( "*.parameter.%s.description", parameter.getFullName() ),
-                        format( "*.parameter.%s.description", getSharedName( parameter ) ) )
+                        format( "*.parameter.%s.description", getSharedNameForDeclaringType( parameter ) ) )
                     : List.of(
                         format( "%s.parameter.%s.description", name, parameter.getName() ),
                         format( "*.parameter.%s.description", parameter.getName() ) );
@@ -386,15 +387,32 @@ public class ApiFinalise
             }
             endpoint.getResponses().values().forEach( response -> {
                 int statusCode = response.getStatus().value();
-                List<String> keys = List.of(
+                response.getDescription().setValue( descriptions.get( subst, List.of(
                     format( "%s.response.%d.description", name, statusCode ),
-                    format( "*.response.%d.description", statusCode ) );
-                response.getDescription().setValue( descriptions.get( subst, keys ) );
+                    format( "*.response.%d.description", statusCode ) ) ) );
+                Api.Schema schema = response.getContent().get( MediaType.APPLICATION_JSON );
+                if ( schema != null && !schema.isShared() )
+                {
+                    schema.getProperties()
+                        .forEach( property -> property.getDescription().setValue( descriptions.get( subst, List.of(
+                            format( "%s.response.%d.%s.description", name, statusCode, property.getName() ),
+                            format( "*.response.%d.%s.description", statusCode, property.getName() ) ) ) ) );
+                }
             } );
         } );
     }
 
-    private static String getSharedName( Api.Parameter p )
+    private static void describeSchema( Api.Schema schema )
+    {
+        Descriptions descriptions = Descriptions.of( schema.getRawType() );
+        String sharedName = schema.getSharedName().orElse( "*" );
+        schema.getProperties().forEach( property -> property.getDescription().setValue( descriptions.get( List.of(
+            format( "%s.schema.%s.description", sharedName, property.getName() ),
+            format( "*.schema.%s.description", property.getName() ),
+            format( "%s.description", property.getName() ) ) ) ) );
+    }
+
+    private static String getSharedNameForDeclaringType( Api.Parameter p )
     {
         Class<?> declaringClass = ((Member) p.getSource()).getDeclaringClass();
         return declaringClass.getSimpleName() + "." + p.getName();

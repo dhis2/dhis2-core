@@ -511,7 +511,10 @@ public class OpenApiGenerator extends JsonGenerator
             }
             addArrayMember( "required", schema.getRequiredProperties() );
             addObjectMember( "properties", schema.getProperties(),
-                property -> addObjectMember( property.getName(), () -> generateSchemaOrRef( property.getType() ) ) );
+                property -> addObjectMember( property.getName(), () -> {
+                    generateSchemaOrRef( property.getType() );
+                    addStringMember( "description", property.getDescription().orElse( null ) );
+                } ) );
         }
         else
         {
@@ -619,10 +622,13 @@ public class OpenApiGenerator extends JsonGenerator
         key = key.repeat( (11 / key.length()) + 1 );
         StringBuilder uid = new StringBuilder( 11 );
         int offset = fromType.getSimpleName().length();
+        int letters = 0;
         for ( int i = 0; i < 11; i++ )
         {
             int index = key.charAt( i ) + offset;
-            uid.append( chars[index % chars.length] );
+            char c = letters >= 2 ? (char) ('0' + (offset % 10)) : chars[index % chars.length];
+            letters = Character.isDigit( c ) ? 0 : letters + 1;
+            uid.append( c );
             // this is just to get more realistic character distribution
             // 13 because it is about half the alphabet
             offset += 13;
