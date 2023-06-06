@@ -354,7 +354,8 @@ public @interface OpenApi
         enum Pattern
         {
             DEFAULT( "" ),
-            INFO( "%sInfo" );
+            INFO( "%sInfo" ),
+            TRACKER( "Tracker%s" );
 
             private final String template;
         }

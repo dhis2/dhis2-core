@@ -345,7 +345,7 @@ public class OpenApiGenerator extends JsonGenerator
         for ( List<Api.Parameter> params : api.getComponents().getParameters().values() )
             params.forEach( p -> paramBySharedName.put( p.getFullName(), p ) );
         // use map to sort parameter by name
-        paramBySharedName.values().forEach( this::generateParameter );
+        paramBySharedName.forEach( this::generateParameter );
     }
 
     private void generateParameterOrRef( Api.Parameter parameter )
@@ -358,14 +358,14 @@ public class OpenApiGenerator extends JsonGenerator
         }
         else
         {
-            generateParameter( parameter );
+            generateParameter( null, parameter );
         }
     }
 
-    private void generateParameter( Api.Parameter parameter )
+    private void generateParameter( String name, Api.Parameter parameter )
     {
         // parameter definition (both shared and non-shared):
-        addObjectMember( parameter.getFullName(), () -> {
+        addObjectMember( name, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
             addStringMultilineMember( "description",
