@@ -98,7 +98,7 @@ public class ValidationHelper
             .body( "headers[" + headerIndex + "].type", equalTo( type ) )
             .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
             .body( "headers[" + headerIndex + "].meta", is( meta ) )
-            .body( "headers[" + headerIndex + "].optionSet", is( meta ) );
+            .body( "headers[" + headerIndex + "].optionSet", is( optionSet ) );
     }
 
     /**
