@@ -151,8 +151,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private boolean skipMeta;
 
-    private String attachment;
-
     private boolean includeDeleted;
 
     /**
