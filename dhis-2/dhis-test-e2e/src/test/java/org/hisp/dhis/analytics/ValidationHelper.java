@@ -79,6 +79,34 @@ public class ValidationHelper
      * value.
      *
      * @param response
+     * @param headerIndex of the header
+     * @param name
+     * @param column
+     * @param valueType
+     * @param type
+     * @param hidden
+     * @param meta
+     * @param optionSet
+     */
+    public static void validateHeader( ApiResponse response, int headerIndex, String name,
+        String column, String valueType, String type, boolean hidden, boolean meta, String optionSet )
+    {
+        response.validate()
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].meta", is( meta ) )
+            .body( "headers[" + headerIndex + "].optionSet", is( meta ) );
+    }
+
+    /**
+     * Validate/assert all attributes of the given header (represented by the
+     * index), matching each argument with its respective header attribute
+     * value.
+     *
+     * @param response
      * @param headerIndex
      * @param name
      * @param column
