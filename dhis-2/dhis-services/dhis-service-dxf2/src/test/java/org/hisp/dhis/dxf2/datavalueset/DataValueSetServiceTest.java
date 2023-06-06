@@ -60,6 +60,7 @@ import org.hisp.dhis.dxf2.util.InputUtils;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.i18n.I18nManager;
+import org.hisp.dhis.jdbc.batchhandler.DataValueAuditBatchHandler;
 import org.hisp.dhis.jdbc.batchhandler.DataValueBatchHandler;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.period.MonthlyPeriodType;
@@ -159,6 +160,10 @@ class DataValueSetServiceTest extends DhisConvenienceTest
         DataValueBatchHandler batchHandler = mock( DataValueBatchHandler.class );
         when( batchHandler.init() ).thenReturn( batchHandler );
         when( batchHandlerFactory.createBatchHandler( DataValueBatchHandler.class ) ).thenReturn( batchHandler );
+
+        DataValueAuditBatchHandler auditBatchHandler = mock( DataValueAuditBatchHandler.class );
+        when( batchHandlerFactory.createBatchHandler( DataValueAuditBatchHandler.class ) )
+            .thenReturn( auditBatchHandler );
 
         when( notifier.clear( any() ) ).thenReturn( notifier );
         when( notifier.notify( any(), any(), anyString() ) ).thenReturn( notifier );
