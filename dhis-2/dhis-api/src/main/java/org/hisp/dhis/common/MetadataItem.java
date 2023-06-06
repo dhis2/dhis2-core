@@ -38,12 +38,15 @@ import lombok.Setter;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementOperand;
+import org.hisp.dhis.dataset.DataSet;
 import org.hisp.dhis.expressiondimensionitem.ExpressionDimensionItem;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorType;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramDataElementDimensionItem;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 
@@ -226,15 +229,6 @@ public class MetadataItem
             {
                 this.indicatorType = HibernateProxyUtils.unproxy( indicator.getIndicatorType() );
             }
-
-            if ( indicator.getStyle() != null )
-            {
-                // Override icon path.
-                ObjectStyle indicatorStyle = indicator.getStyle();
-                indicator.getStyle().setIcon( getFullIconUrl( indicatorStyle.getIcon() ) );
-
-                this.style = indicator.getStyle();
-            }
         }
         else if ( dimensionalItemObject instanceof ExpressionDimensionItem )
         {
@@ -242,6 +236,121 @@ public class MetadataItem
 
             this.expression = expressionDimensionItem.getExpression();
         }
+
+        addIconPathToStyle( getDimensionalItemObjectStyle( dimensionalItemObject ) );
+    }
+
+    /**
+     * Returns Object Style
+     *
+     * @param dimensionalItemObject the {@link DimensionalItemObject}
+     * @return the {@link ObjectStyle}
+     */
+    private ObjectStyle getDimensionalItemObjectStyle( DimensionalItemObject dimensionalItemObject )
+    {
+        if ( dimensionalItemObject instanceof ProgramDataElementDimensionItem )
+        {
+            ProgramDataElementDimensionItem programDataElementDimensionItem = (ProgramDataElementDimensionItem) dimensionalItemObject;
+
+            if ( programDataElementDimensionItem.hasDataElement() )
+            {
+                return programDataElementDimensionItem.getDataElement().getStyle();
+            }
+        }
+        else if ( dimensionalItemObject instanceof DataDimensionItem )
+        {
+            DataDimensionItem dataDimensionItem = (DataDimensionItem) dimensionalItemObject;
+
+            if ( dataDimensionItem.hasDataElement() )
+            {
+                return dataDimensionItem.getDataElement().getStyle();
+            }
+
+            if ( dataDimensionItem.hasIndicator() )
+            {
+                return dataDimensionItem.getIndicator().getStyle();
+            }
+
+            if ( dataDimensionItem.hasDataElementOperand()
+                && dataDimensionItem.getDataElementOperand().getDataElement() != null )
+            {
+                return dataDimensionItem.getDataElementOperand().getDataElement().getStyle();
+            }
+
+            if ( dataDimensionItem.hasProgramIndicator() )
+            {
+                return dataDimensionItem.getProgramIndicator().getStyle();
+            }
+
+            if ( dataDimensionItem.hasReportingRate() && dataDimensionItem.getReportingRate().getDataSet() != null )
+            {
+                return dataDimensionItem.getReportingRate().getDataSet().getStyle();
+            }
+
+            if ( dataDimensionItem.hasProgramTrackedEntityAttributeDimensionItem()
+                && dataDimensionItem.getProgramAttribute().getAttribute() != null )
+            {
+                return dataDimensionItem.getProgramAttribute().getAttribute().getStyle();
+            }
+        }
+        else if ( dimensionalItemObject instanceof ReportingRate )
+        {
+            ReportingRate reportingRate = (ReportingRate) dimensionalItemObject;
+
+            if ( reportingRate.getDataSet() != null )
+            {
+                return reportingRate.getDataSet().getStyle();
+            }
+        }
+        else if ( dimensionalItemObject instanceof DataElement )
+        {
+            DataElement dataElement = (DataElement) dimensionalItemObject;
+
+            return dataElement.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof DataSet )
+        {
+            DataSet dataSet = (DataSet) dimensionalItemObject;
+
+            return dataSet.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof TrackedEntityAttribute )
+        {
+            TrackedEntityAttribute attribute = (TrackedEntityAttribute) dimensionalItemObject;
+
+            return attribute.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof Indicator )
+        {
+            Indicator indicator = (Indicator) dimensionalItemObject;
+
+            return indicator.getStyle();
+        }
+        else if ( dimensionalItemObject instanceof ProgramIndicator )
+        {
+            ProgramIndicator programIndicator = (ProgramIndicator) dimensionalItemObject;
+
+            return programIndicator.getStyle();
+        }
+
+        return null;
+    }
+
+    /**
+     * It adds icon path to style element if style exists
+     *
+     * @param style the {@link ObjectStyle}
+     */
+    private void addIconPathToStyle( ObjectStyle style )
+    {
+        if ( style == null )
+        {
+            return;
+        }
+        // Override icon path.
+        style.setIcon( getFullIconUrl( style.getIcon() ) );
+
+        this.style = style;
     }
 
     /**
