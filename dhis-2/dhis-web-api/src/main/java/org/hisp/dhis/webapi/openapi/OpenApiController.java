@@ -133,12 +133,10 @@ public class OpenApiController
         Api api = ApiAnalyse.analyseApi(
             new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
 
-        ApiSynthesise.Configuration config = ApiSynthesise.Configuration.builder()
+        ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
             .failOnNameClash( failOnNameClash )
             .namePartDelimiter( "-" )
-            .build();
-        ApiSynthesise.synthesiseApi( api, config );
-        ApiDescribe.describeApi( api );
+            .build() );
         response.setContentType( contentType );
         try
         {

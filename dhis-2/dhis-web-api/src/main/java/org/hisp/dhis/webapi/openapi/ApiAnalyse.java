@@ -199,7 +199,7 @@ final class ApiAnalyse
             controller::getEntityClass );
 
         // request media types
-        Set<MediaType> consumes = stream( mapping.consumes() ).map( MediaType::parseMediaType ).collect( toSet() );
+        Set<MediaType> consumes = mapping.consumes().stream().map( MediaType::parseMediaType ).collect( toSet() );
         if ( consumes.isEmpty() )
         {
             // assume JSON if nothing is set explicitly
@@ -210,10 +210,10 @@ final class ApiAnalyse
             ConsistentAnnotatedElement.of( source ).isAnnotationPresent( Deprecated.class ) ? Boolean.TRUE : null );
 
         whenAnnotated( source, OpenApi.Tags.class, a -> endpoint.getTags().addAll( List.of( a.value() ) ) );
-        Stream.of( mapping.path() )
+        mapping.path().stream()
             .map( path -> path.endsWith( "/" ) ? path.substring( 0, path.length() - 1 ) : path )
             .forEach( path -> endpoint.getPaths().add( path ) );
-        endpoint.getMethods().addAll( Set.of( mapping.method ) );
+        endpoint.getMethods().addAll( mapping.method );
 
         // request:
         analyseParameters( endpoint, consumes );
@@ -228,7 +228,7 @@ final class ApiAnalyse
         Set<MediaType> consumes )
     {
         Method source = mapping.source();
-        Set<MediaType> produces = stream( mapping.produces() )
+        Set<MediaType> produces = mapping.produces().stream()
             .map( MediaType::parseMediaType )
             .collect( toSet() );
         if ( produces.isEmpty() )
@@ -863,9 +863,13 @@ final class ApiAnalyse
         return stream( samples ).filter( e -> e != to ).findFirst().orElse( samples[0] );
     }
 
-    record EndpointMapping( Method source, String name, String[] path, RequestMethod[] method, String[] params,
-        String[] headers, String[] consumes, String[] produces )
+    record EndpointMapping( Method source, String name, List<String> path, Set<RequestMethod> method, List<String> params,
+        List<String> headers, List<String> consumes, List<String> produces )
     {
+        EndpointMapping( Method source, String name, String[] path, RequestMethod[] method, String[] params,
+            String[] headers, String[] consumes, String[] produces) {
+            this(source, name, List.of(path), Set.of(method), List.of(params), List.of(headers), List.of(consumes), List.of(produces));
+        }
     }
 
     record EndpointParam( Api.Parameter.In in, String name, boolean required )

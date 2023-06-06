@@ -37,7 +37,6 @@ import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -311,15 +310,12 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generatePaths()
     {
-        groupEndpointsByAbsolutePath().forEach( this::generatePath );
+        api.getEndpoints().forEach( this::generatePath );
     }
 
-    private void generatePath( String path, List<Api.Endpoint> endpoints )
+    private void generatePath( String path, Map<RequestMethod, Api.Endpoint> endpoints )
     {
-        EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
-        endpoints.forEach( e -> e.getMethods().forEach(
-            method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e, method ) ) ) );
-        addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
+        addObjectMember( path, () -> endpoints.forEach( this::generatePathMethod ) );
     }
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
@@ -583,7 +579,6 @@ public class OpenApiGenerator extends JsonGenerator
      * Open API document generation helpers
      */
 
-    //TODO move to synthesis
     private String getUniqueOperationId( Api.Endpoint endpoint )
     {
         String baseOperationId = endpoint.getIn().getName() + "." + endpoint.getName();
@@ -591,33 +586,6 @@ public class OpenApiGenerator extends JsonGenerator
             key -> new ArrayList<>() );
         endpoints.add( endpoint );
         return endpoints.size() == 1 ? baseOperationId : baseOperationId + endpoints.size();
-    }
-
-    private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
-    {
-        // OBS! We use a TreeMap to also get alphabetical order/grouping
-        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
-        for ( Api.Controller c : api.getControllers() )
-        {
-            if ( c.getPaths().isEmpty() )
-                c.getPaths().add( "" );
-            for ( String cPath : c.getPaths() )
-            {
-                for ( Api.Endpoint e : c.getEndpoints() )
-                {
-                    for ( String ePath : e.getPaths() )
-                    {
-                        String absolutePath = cPath + ePath;
-                        if ( absolutePath.isEmpty() )
-                        {
-                            absolutePath = "/";
-                        }
-                        endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
-                    }
-                }
-            }
-        }
-        return endpointsByAbsolutePath;
     }
 
     /**

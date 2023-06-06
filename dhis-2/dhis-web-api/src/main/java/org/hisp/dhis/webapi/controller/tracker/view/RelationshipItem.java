@@ -41,7 +41,6 @@ import lombok.NoArgsConstructor;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OpenApi.Shared.Pattern;
 import org.hisp.dhis.event.EventStatus;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.webapi.common.UID;
 import org.locationtech.jts.geom.Geometry;
 

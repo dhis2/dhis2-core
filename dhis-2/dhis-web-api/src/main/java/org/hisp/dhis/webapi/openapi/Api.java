@@ -102,7 +102,16 @@ public class Api
      */
     Map<String, Tag> tags = new TreeMap<>();
 
+    /**
+     * The controllers as collected by the analysis phase
+     */
     List<Controller> controllers = new ArrayList<>();
+
+    /**
+     * The merged endpoints grouped by path and request method computed by the
+     * finalisation phase. This is the basis of the OpenAPI document generation.
+     */
+    Map<String, Map<RequestMethod, Endpoint>> endpoints = new TreeMap<>();
 
     Components components = new Components();
 

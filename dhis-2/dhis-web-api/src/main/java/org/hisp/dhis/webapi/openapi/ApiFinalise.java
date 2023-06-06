@@ -31,12 +31,16 @@ import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toSet;
 
+import java.lang.reflect.Member;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -44,19 +48,25 @@ import lombok.Builder;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import org.hisp.dhis.common.OpenApi;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestMethod;
+
 /**
- * {@link Api} synthesis is the second step in the OpenAPI generation process.
+ * {@link Api} finalisation is the second step in the OpenAPI generation
+ * process.
  * <p>
  * After the {@link Api} has been analysed by looking at the controller
  * endpoints in the first step the gathered information is completed and
- * consolidated in this second step. This is the preperation to be ready to
+ * consolidated in this second step. This is the preparation to be ready to
  * transform the {@link Api} into the OpenAPI document in the third step.
  *
  * @author Jan Bernitt
  */
 @Value
 @Slf4j
-public class ApiSynthesise
+public class ApiFinalise
 {
     @Value
     @Builder( toBuilder = true )
@@ -98,17 +108,34 @@ public class ApiSynthesise
 
     Configuration config;
 
-    public static void synthesiseApi( Api api, Configuration config )
+    public static void finaliseApi( Api api, Configuration config )
     {
-        new ApiSynthesise( api, config ).synthesiseApi();
+        new ApiFinalise( api, config ).finaliseApi();
     }
 
-    private void synthesiseApi()
+    /**
+     * OBS! The order of steps in this is critical to produce a correct and
+     * complete {@link Api} model ready for document generation.
+     */
+    private void finaliseApi()
     {
+        // 1. Set and check shared unique names and create the additional schemas for Refs and UIDs
         nameSharedSchemas();
         nameSharedAdditionalSchemas();
         nameSharedParameters();
+
+        // 2. Add description texts from markdown files to the Api model
+        describeTags();
+        api.getControllers().forEach( ApiFinalise::describeController );
+
+        // 3. Group and merge endpoints by request path and method
+        groupAndMergeEndpoints();
     }
+
+    /*
+     * 1. Set and check shared unique names and create the additional schemas
+     * for Refs and UIDs
+     */
 
     /**
      * Assigns unique names to the shared schema types or fails if
@@ -194,6 +221,17 @@ public class ApiSynthesise
         } );
     }
 
+    /**
+     * Parameters generally use the shared name of the parameter defining class
+     * combined with the field name of the parameter. This fully qualified
+     * shared name must be unique. This still allows to have parameters from
+     * different classes of the same name to exist without a conflict as long as
+     * none of the parameters of these classes have the same name.
+     * <p>
+     * Therefore, the all prameters are first grouped by their effective shared
+     * name of the parameter class. On second level the parameters are grouped
+     * by their defining class.
+     */
     private void nameSharedParameters()
     {
         Map<String, List<Map.Entry<Class<?>, List<Api.Parameter>>>> sharedParametersByName = new HashMap<>();
@@ -301,5 +339,168 @@ public class ApiSynthesise
         }
         return prefix + config.getNamePartDelimiter()
             + (ofType == null ? of.getSimpleName() : ofType.getSharedName().getValue());
+    }
+
+    /*
+     * 2. Add description texts from markdown files to the Api model
+     */
+
+    private void describeTags()
+    {
+        Descriptions tags = Descriptions.of( OpenApi.Tags.class );
+        api.getUsedTags().forEach( name -> {
+            Api.Tag tag = new Api.Tag( name );
+            tag.getDescription().setValue( tags.get( name + ".description" ) );
+            tag.getExternalDocsUrl().setValue( tags.get( name + ".externalDocs.url" ) );
+            tag.getExternalDocsDescription().setValue( tags.get( name + ".externalDocs.description" ) );
+            api.getTags().put( name, tag );
+        } );
+    }
+
+    private static void describeController( Api.Controller controller )
+    {
+        Descriptions descriptions = Descriptions.of( controller.getSource() );
+
+        controller.getEndpoints().forEach( endpoint -> {
+            String name = endpoint.getSource().getName();
+            UnaryOperator<String> subst = desc -> desc.replace( "{entityType}", endpoint.getEntityTypeName() );
+            endpoint.getDescription().setValue( descriptions.get( subst,
+                format( "%s.description", name ) ) );
+            endpoint.getParameters().values().forEach( parameter -> {
+                List<String> keys = parameter.isShared()
+                    ? List.of(
+                        format( "%s.parameter.%s.description", name, parameter.getFullName() ),
+                        format( "%s.parameter.%s.description", name, getSharedName( parameter ) ),
+                        format( "*.parameter.%s.description", parameter.getFullName() ),
+                        format( "*.parameter.%s.description", getSharedName( parameter ) ) )
+                    : List.of(
+                        format( "%s.parameter.%s.description", name, parameter.getName() ),
+                        format( "*.parameter.%s.description", parameter.getName() ) );
+                parameter.getDescription().setValue( descriptions.get( subst, keys ) );
+            } );
+            if ( endpoint.getRequestBody().isPresent() )
+            {
+                Api.Maybe<String> description = endpoint.getRequestBody().getValue().getDescription();
+                String key = format( "%s.request.description", name );
+                description.setValue( descriptions.get( subst, key ) );
+            }
+            endpoint.getResponses().values().forEach( response -> {
+                int statusCode = response.getStatus().value();
+                List<String> keys = List.of(
+                    format( "%s.response.%d.description", name, statusCode ),
+                    format( "*.response.%d.description", statusCode ) );
+                response.getDescription().setValue( descriptions.get( subst, keys ) );
+            } );
+        } );
+    }
+
+    private static String getSharedName( Api.Parameter p )
+    {
+        Class<?> declaringClass = ((Member) p.getSource()).getDeclaringClass();
+        return declaringClass.getSimpleName() + "." + p.getName();
+    }
+
+    /*
+     * 3. Group and merge endpoints by request path and method
+     */
+
+    private void groupAndMergeEndpoints()
+    {
+        groupEndpointsByAbsolutePath().forEach( ( path, endpoints ) -> {
+            EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
+            endpoints.forEach( e -> e.getMethods().forEach(
+                method -> endpointByMethod.compute( method, ( k, v ) -> mergeEndpoints( v, e, method ) ) ) );
+            api.getEndpoints().put( path, endpointByMethod );
+        } );
+    }
+
+    private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
+    {
+        // OBS! We use a TreeMap to also get alphabetical order/grouping
+        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
+        for ( Api.Controller c : api.getControllers() )
+        {
+            if ( c.getPaths().isEmpty() )
+                c.getPaths().add( "" );
+            for ( String cPath : c.getPaths() )
+            {
+                for ( Api.Endpoint e : c.getEndpoints() )
+                {
+                    for ( String ePath : e.getPaths() )
+                    {
+                        String absolutePath = cPath + ePath;
+                        if ( absolutePath.isEmpty() )
+                        {
+                            absolutePath = "/";
+                        }
+                        endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
+                    }
+                }
+            }
+        }
+        return endpointsByAbsolutePath;
+    }
+
+    /**
+     * Merges two endpoints for the same path and request method.
+     * <p>
+     * A heuristic is used to decide which of the two endpoints is preserved
+     * fully.
+     */
+    private static Api.Endpoint mergeEndpoints( Api.Endpoint a, Api.Endpoint b, RequestMethod method )
+    {
+        if ( a == null || a.isDeprecated() )
+            return b;
+        if ( b == null || b.isDeprecated() )
+            return a;
+        Api.Endpoint primary = a;
+        Api.Endpoint secondary = b;
+        if ( !a.isSynthetic() && !b.isSynthetic() )
+        {
+            long countA = countJsonResponses( a );
+            long countB = countJsonResponses( b );
+            if ( countB > countA )
+            {
+                primary = b;
+                secondary = a;
+            }
+        }
+        Api.Endpoint merged = new Api.Endpoint( primary.getIn(), null, primary.getEntityType(),
+            primary.getName() + "+" + secondary.getName(), primary.getDeprecated() );
+        merged.getTags().addAll( primary.getTags() );
+        merged.getTags().addAll( secondary.getTags() );
+        merged.getDescription().setValue( primary.getDescription().orElse( secondary.getDescription().getValue() ) );
+        merged.getMethods().add( method );
+        merged.getRequestBody().setValue( primary.getRequestBody().getValue() );
+        if ( merged.getRequestBody().isPresent() && secondary.getRequestBody().isPresent() )
+        {
+            secondary.getRequestBody().getValue().getConsumes().forEach(
+                ( k, v ) -> merged.getRequestBody().getValue().getConsumes().putIfAbsent( k, v ) );
+        }
+        merged.getParameters().putAll( primary.getParameters() );
+        Map<HttpStatus, Api.Response> responses = merged.getResponses();
+        responses.putAll( primary.getResponses() );
+        for ( Api.Response source : secondary.getResponses().values() )
+        {
+            if ( !responses.containsKey( source.getStatus() ) )
+            {
+                responses.put( source.getStatus(), source );
+            }
+            else
+            {
+                Api.Response target = responses.get( source.getStatus() );
+                source.getContent().entrySet().stream()
+                    .filter( e -> !target.getContent().containsKey( e.getKey() ) )
+                    .forEach( e -> target.getContent().put( e.getKey(), e.getValue() ) );
+            }
+        }
+        return merged;
+    }
+
+    private static long countJsonResponses( Api.Endpoint a )
+    {
+        return a.getResponses().values().stream()
+            .filter( r -> r.getContent().containsKey( MediaType.APPLICATION_JSON ) )
+            .count();
     }
 }

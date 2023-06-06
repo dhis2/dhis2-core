@@ -173,12 +173,11 @@ public class OpenApiTool implements ToolProvider
         try
         {
             Api api = ApiAnalyse.analyseApi( scope );
-            ApiSynthesise.Configuration config = ApiSynthesise.Configuration.builder()
+
+            ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
                 .failOnNameClash( true )
                 .namePartDelimiter( "-" )
-                .build();
-            ApiSynthesise.synthesiseApi( api, config );
-            ApiDescribe.describeApi( api );
+                .build() );
             Path file = Path.of( filename );
             String title = file.getFileName().toString()
                 .replace( "openapi-", "" )
