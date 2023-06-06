@@ -378,7 +378,7 @@ public class RequestParamUtils
      */
     private static String escapedFilterValue( String value )
     {
-        return value.replaceAll( "//,", "," )
-            .replaceAll( "//:", ":" );
+        return value.replace( "//,", "," )
+            .replace( "//:", ":" );
     }
 }

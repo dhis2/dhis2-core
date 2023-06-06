@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 
@@ -72,6 +73,7 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
     /**
      * Comma separated list of attribute UIDs
      */
+    @OpenApi.Property( { UID[].class, Attribute.class } )
     private String attribute;
 
     /**
