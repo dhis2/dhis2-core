@@ -613,7 +613,15 @@ public abstract class AbstractAnalyticsService
             }
         }
 
-        for ( QueryItem item : params.getItemFilters() )
+        addItemFiltersToDimensionItems( params.getItemFilters(), dimensionItems );
+
+        return dimensionItems;
+    }
+
+    private static void addItemFiltersToDimensionItems( List<QueryItem> itemsFilter,
+        Map<String, List<String>> dimensionItems )
+    {
+        for ( QueryItem item : itemsFilter )
         {
             if ( item.hasOptionSet() )
             {
@@ -631,8 +639,6 @@ public abstract class AbstractAnalyticsService
                         : emptyList() );
             }
         }
-
-        return dimensionItems;
     }
 
     /**

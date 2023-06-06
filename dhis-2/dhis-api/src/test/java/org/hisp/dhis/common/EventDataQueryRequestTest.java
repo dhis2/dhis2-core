@@ -73,7 +73,7 @@ public class EventDataQueryRequestTest
             .fromCriteria( criteria )
             .build();
 
-        assertEquals( eventDataQueryRequest.getDimension(), Collections.emptySet() );
+        assertEquals( Collections.emptySet(), eventDataQueryRequest.getDimension() );
 
         eventDataQueryRequest = EventDataQueryRequest.builder()
             .fromCriteria( (EventsAnalyticsQueryCriteria) criteria.withEndpointAction( QUERY ) )
