@@ -30,6 +30,8 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,20 +65,28 @@ class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
+    private static final char ESCAPE = '/';
+
     private static final char COMMA_SEPARATOR = ',';
+
+    private static final String COMMA_STRING = Character.toString( COMMA_SEPARATOR );
+
+    private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
+
+    private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
 
     /**
      * Negative lookahead to avoid wrong split when filter value contains colon.
      * It skips colon escaped by slash
      */
-    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!//)" + DIMENSION_NAME_SEP );
+    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP );
 
     /**
      * Negative lookahead to avoid wrong split of comma-separated list of
      * filters when one or more filter value contain comma. It skips comma
      * escaped by slash
      */
-    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!//)" + COMMA_SEPARATOR );
+    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + COMMA_SEPARATOR );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -151,7 +161,7 @@ class RequestParamUtils
             return List.of();
         }
 
-        String[] uidOperatorValues = FILTER_LIST_SPLIT.split( filterItem );
+        List<String> uidOperatorValues = filterList( filterItem );
 
         List<QueryItem> itemList = new ArrayList<>();
         for ( String uidOperatorValue : uidOperatorValues )
@@ -160,6 +170,78 @@ class RequestParamUtils
         }
 
         return itemList;
+    }
+
+    /**
+     * Given an attribute filter list, first, it removes the escape chars in
+     * order to be able to split by comma and collect the filter list. Then, it
+     * recreates the original filters by restoring the escapes chars if any.
+     *
+     * @param filterItem
+     * @return a filter list split by comma
+     */
+    private static List<String> filterList( String filterItem )
+    {
+        Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+
+        StringBuilder filterListToEscape = new StringBuilder( filterItem );
+
+        List<String> filters = new LinkedList<>();
+
+        for ( int i = 0; i < filterListToEscape.length() - 1; i++ )
+        {
+            if ( filterListToEscape.charAt( i ) == ESCAPE
+                && filterListToEscape.charAt( i + 1 ) == ESCAPE )
+            {
+                filterListToEscape.delete( i, i + 2 );
+                escapesToRestore.put( i, false );
+            }
+        }
+
+        String[] escapedFilterList = FILTER_LIST_SPLIT
+            .split( filterListToEscape );
+
+        int beginning = 0;
+
+        for ( String escapedFilter : escapedFilterList )
+        {
+            filters.add( restoreEscape( escapesToRestore, new StringBuilder( escapedFilter ), beginning,
+                escapedFilter.length() ) );
+            beginning += escapedFilter.length() + 1;
+        }
+
+        return filters;
+    }
+
+    /**
+     * Restores the escape char in a filter based on the position in the
+     * original filter. It uses a pad as in a filter there can be more than one
+     * escape char removed.
+     *
+     * @param escapesToRestore
+     * @param filter
+     * @param beginning
+     * @param end
+     * @return a filter with restored escape chars
+     */
+    private static String restoreEscape( Map<Integer, Boolean> escapesToRestore, StringBuilder filter,
+        int beginning,
+        int end )
+    {
+        int pad = 0;
+        for ( Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet() )
+        {
+            if ( !slashPositionInFilter.getValue() )
+            {
+                if ( slashPositionInFilter.getKey() <= (beginning + end) )
+                {
+                    filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
+                    escapesToRestore.put( slashPositionInFilter.getKey(), true );
+                }
+            }
+        }
+
+        return filter.toString();
     }
 
     /**
@@ -182,7 +264,7 @@ class RequestParamUtils
             return List.of();
         }
 
-        String[] uidOperatorValues = FILTER_LIST_SPLIT.split( filterItem );
+        List<String> uidOperatorValues = filterList( filterItem );
 
         List<QueryItem> itemList = new ArrayList<>();
         for ( String uidOperatorValue : uidOperatorValues )
@@ -323,7 +405,7 @@ class RequestParamUtils
      */
     private static String escapedFilterValue( String value )
     {
-        return value.replace( "//,", "," )
-            .replace( "//:", ":" );
+        return value.replace( ESCAPE_COMMA, COMMA_STRING )
+            .replace( ESCAPE_COLON, DIMENSION_NAME_SEP );
     }
 }

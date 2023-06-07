@@ -101,6 +101,8 @@ class TrackerTrackedEntityCriteriaMapperTest
 
     public static final String TEA_2_UID = "cy2oRh2sNr6";
 
+    public static final String TEA_3_UID = "cy2oRh2sNr7";
+
     private static final String ORG_UNIT_1_UID = "lW0T2U7gZUi";
 
     private static final String ORG_UNIT_2_UID = "TK4KA0IIWqa";
@@ -174,9 +176,14 @@ class TrackerTrackedEntityCriteriaMapperTest
 
         TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
+
         TrackedEntityAttribute tea2 = new TrackedEntityAttribute();
         tea2.setUid( TEA_2_UID );
-        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
+
+        TrackedEntityAttribute tea3 = new TrackedEntityAttribute();
+        tea3.setUid( TEA_3_UID );
+
+        when( attributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2, tea3 ) );
         when( attributeService.getTrackedEntityAttribute( TEA_1_UID ) ).thenReturn( tea1 );
 
         trackedEntityType = new TrackedEntityType();
@@ -590,7 +597,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-        criteria.setFilter( TEA_2_UID + ":like:project//:x//:eq//:2" );
+        criteria.setFilter( TEA_2_UID + ":like:project/:x/:eq/:2" );
         TrackedEntityInstanceQueryParams params = mapper.map( criteria );
 
         List<QueryFilter> actualFilters = params.getFilters().stream().flatMap( f -> f.getFilters().stream() )
@@ -616,7 +623,7 @@ class TrackerTrackedEntityCriteriaMapperTest
     {
         criteria
             .setFilter(
-                TEA_1_UID + ":ge:2020-01-01T00//:00//:00.001 +05//:30:le:2021-01-01T00//:00//:00.001 +05//:30" );
+                TEA_1_UID + ":ge:2020-01-01T00/:00/:00.001 +05/:30:le:2021-01-01T00/:00/:00.001 +05/:30" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
@@ -633,7 +640,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         BadRequestException
     {
         criteria
-            .setFilter( TEA_1_UID + ":sw:project//:x:ew:project//:le//:" );
+            .setFilter( TEA_1_UID + ":sw:project/:x:ew:project/:le/:" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
@@ -649,15 +656,19 @@ class TrackerTrackedEntityCriteriaMapperTest
         throws ForbiddenException,
         BadRequestException
     {
-       criteria
-            .setFilter( TEA_1_UID + ":eq:project///,//,/" + "," + TEA_2_UID + ":eq:project/" );
+        criteria
+
+            .setFilter( TEA_1_UID + ":eq:project///,/,//" + "," + TEA_2_UID + ":eq:project//" + "," + TEA_3_UID
+                + ":eq:project//" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.EQ, "project/,,/" ), new QueryFilter( QueryOperator.EQ, "project/" ) ),
+            new QueryFilter( QueryOperator.EQ, "project/,,/" ), new QueryFilter( QueryOperator.EQ, "project/" ),
+            new QueryFilter( QueryOperator.EQ,
+                "project/" ) ),
             actualFilters );
     }
 
@@ -667,7 +678,7 @@ class TrackerTrackedEntityCriteriaMapperTest
         BadRequestException
     {
         criteria
-            .setFilter( TEA_1_UID + ":like:value1//::like:value2" );
+            .setFilter( TEA_1_UID + ":like:value1/::like:value2" );
 
         List<QueryFilter> actualFilters = mapper.map( criteria ).getFilters().stream()
             .flatMap( f -> f.getFilters().stream() )

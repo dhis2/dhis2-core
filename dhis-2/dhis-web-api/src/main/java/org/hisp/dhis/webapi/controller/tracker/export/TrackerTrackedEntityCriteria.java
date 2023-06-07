@@ -40,8 +40,6 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
-import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
-import org.hisp.dhis.webapi.controller.tracker.view.User;
 
 /**
  * Represents query parameters sent to
@@ -54,7 +52,6 @@ import org.hisp.dhis.webapi.controller.tracker.view.User;
 class TrackerTrackedEntityCriteria extends PagingAndSortingCriteriaAdapter
 {
     private String query;
-
 
     /**
      * Comma separated list of attribute UIDs
