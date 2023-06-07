@@ -157,7 +157,7 @@ class RequestParamUtilsTest
         throws BadRequestException
     {
         assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            RequestParamUtils.parseQueryFilter( "like:project//:x" ) );
+            RequestParamUtils.parseQueryFilter( "like:project/:x" ) );
     }
 
     private TrackedEntityAttribute trackedEntityAttribute( String uid )
