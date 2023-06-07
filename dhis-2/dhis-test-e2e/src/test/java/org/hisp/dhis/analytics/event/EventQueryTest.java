@@ -567,17 +567,17 @@ public class EventQueryTest extends AnalyticsApiTest
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-02-27 00:00:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-05-27 00:00:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
-                "1",
+                "1.0",
                 "2022-01-19 00:00:00.0" ) );
     }
 
@@ -625,17 +625,17 @@ public class EventQueryTest extends AnalyticsApiTest
         // Validate the first three rows, as samples.
         validateRow( response, 0,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2022-02-27 00:00:00.0" ) );
 
         validateRow( response, 1,
             List.of( "Ngelehun CHC",
-                "1",
+                "1.0",
                 "2022-12-29 00:00:00.0" ) );
 
         validateRow( response, 2,
             List.of( "Ngelehun CHC",
-                "0",
+                "0.0",
                 "2021-08-15 00:00:00.0" ) );
     }
 
@@ -676,5 +676,35 @@ public class EventQueryTest extends AnalyticsApiTest
             List.of( "xATvj8pdYoT",
                 "Sierra Leone / Kailahun / Peje Bongre / Grima Jou MCHP",
                 "24.0" ) );
+    }
+
+    @Test
+    void testMetadataInfoForOptionSetForQuery()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add(
+                "dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS,C0aLZo75dgJ.B6TnnFMgmCk,C0aLZo75dgJ.Z1rLc1rVHK8,C0aLZo75dgJ.CklPZdOd6H1" )
+            .add( "filter=C0aLZo75dgJ.vTKipVM0GsX,C0aLZo75dgJ.h5FuguPFF2j,C0aLZo75dgJ.aW66s2QSosT" )
+            .add( "stage=C0aLZo75dgJ" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=ENROLLMENT" )
+            .add( "totalPages=false" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "qDkgAbB5Jlk", JSON, JSON, params );
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 24 ) ) )
+            .body( "height", equalTo( 0 ) )
+            .body( "width", equalTo( 0 ) )
+            .body( "rows", hasSize( equalTo( 0 ) ) )
+
+            .body( "metaData.items", hasKey( "CklPZdOd6H1" ) )
+            .body( "metaData.items", not( hasKey( "AZK4rjJCss5" ) ) )
+            .body( "metaData.items", not( hasKey( "UrUdMteQzlT" ) ) );
+
+        validateHeader( response, 22, "C0aLZo75dgJ.CklPZdOd6H1", "Sex", "TEXT", "java.lang.String",
+            false, true, "hiQ3QFheQ3O" );
     }
 }

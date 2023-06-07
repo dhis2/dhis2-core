@@ -48,7 +48,9 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -72,7 +74,7 @@ class EventAnalyticsDimensionsServiceTest
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
         eventAnalyticsDimensionsService = new DefaultEventAnalyticsDimensionsService( programStageService,
-            categoryService );
+            categoryService, mock( AclService.class ), mock( CurrentUserService.class ) );
     }
 
     @Test

@@ -79,9 +79,16 @@ public class JdbcStatisticsProvider
         // Data, use approximate counts
 
         map.put( Objects.DATAVALUE, approximateCount( "datavalue" ) );
-        map.put( Objects.TRACKEDENTITYINSTANCE, approximateCount( "trackedentityinstance" ) );
-        map.put( Objects.PROGRAMINSTANCE, approximateCount( "programinstance" ) );
-        map.put( Objects.PROGRAMSTAGEINSTANCE, approximateCount( "programstageinstance" ) );
+
+        Long trackedEntities = approximateCount( "trackedentityinstance" );
+        map.put( Objects.TRACKEDENTITY, trackedEntities );
+        map.put( Objects.TRACKEDENTITYINSTANCE, trackedEntities );
+        Long enrollments = approximateCount( "programinstance" );
+        map.put( Objects.ENROLLMENT, enrollments );
+        map.put( Objects.PROGRAMINSTANCE, enrollments );
+        Long events = approximateCount( "programstageinstance" );
+        map.put( Objects.EVENT, events );
+        map.put( Objects.PROGRAMSTAGEINSTANCE, events );
 
         return map;
     }

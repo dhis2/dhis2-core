@@ -28,7 +28,6 @@
 package org.hisp.dhis.analytics.tei;
 
 import static java.util.Collections.emptySet;
-import static java.util.stream.Collectors.toList;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeDataElements;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.allValueTypeTEAs;
 import static org.hisp.dhis.analytics.common.AnalyticsDimensionsTestSupport.trackedEntityType;
@@ -46,8 +45,10 @@ import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -73,7 +74,8 @@ class TeiAnalyticsDimensionsServiceTest
 
         teiAnalyticsDimensionsService = new DefaultTeiAnalyticsDimensionsService(
             trackedEntityTypeService,
-            new DefaultEnrollmentAnalyticsDimensionsService( programService ),
+            new DefaultEnrollmentAnalyticsDimensionsService( programService, mock( AclService.class ),
+                mock( CurrentUserService.class ) ),
             programService );
     }
 
@@ -83,7 +85,7 @@ class TeiAnalyticsDimensionsServiceTest
         Collection<BaseIdentifiableObject> analyticsDimensions = teiAnalyticsDimensionsService
             .getQueryDimensionsByTrackedEntityTypeId( "aTeiId", emptySet() ).stream()
             .map( PrefixedDimension::getItem )
-            .collect( toList() );
+            .toList();
 
         assertTrue(
             analyticsDimensions

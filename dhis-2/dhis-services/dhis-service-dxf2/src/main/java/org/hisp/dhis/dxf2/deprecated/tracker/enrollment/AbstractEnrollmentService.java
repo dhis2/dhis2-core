@@ -763,7 +763,7 @@ public abstract class AbstractEnrollmentService
         params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
         params.setSkipPaging( true );
         params.setProgram( program );
-        params.setTrackedEntityUid( entityInstance.getUid() );
+        params.setTrackedEntity( entityInstance );
 
         // When imported enrollment has status CANCELLED, it is safe to import
         // it, otherwise do additional checks

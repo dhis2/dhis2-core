@@ -227,6 +227,7 @@ public class DefaultEventDataQueryService
             .withLocale( locale )
             .withEnhancedConditions( request.isEnhancedConditions() )
             .withEndpointItem( request.getEndpointItem() )
+            .withEndpointAction( request.getEndpointAction() )
             .withRowContext( request.isRowContext() );
 
         if ( analyzeOnly )

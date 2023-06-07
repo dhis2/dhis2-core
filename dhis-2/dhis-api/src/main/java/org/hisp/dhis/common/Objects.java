@@ -87,9 +87,24 @@ public enum Objects
     MAP( "map", Map.class ),
     DASHBOARD( "dashboard", Dashboard.class ),
     PROGRAM( "program", Program.class ),
-    PROGRAMSTAGEINSTANCE( "programStageInstance", Event.class ),
-    PROGRAMINSTANCE( "programInstance", Enrollment.class ),
-    TRACKEDENTITYINSTANCE( "trackedEntityInstance", TrackedEntity.class ),
+    /**
+     * @deprecated use {@link #TRACKEDENTITY} instead
+     */
+    @Deprecated( since = "2.41" )
+    TRACKEDENTITYINSTANCE("trackedEntityInstance", TrackedEntity.class ),
+    /**
+     * @deprecated use {@link #ENROLLMENT} instead
+     */
+    @Deprecated( since = "2.41" )
+    PROGRAMINSTANCE("programInstance", Enrollment.class ),
+    /**
+     * @deprecated use {@link #EVENT} instead
+     */
+    @Deprecated( since = "2.41" )
+    PROGRAMSTAGEINSTANCE("programStageInstance", Event.class ),
+    TRACKEDENTITY( "trackedEntity", TrackedEntity.class ),
+    ENROLLMENT( "enrollment", Enrollment.class ),
+    EVENT( "event", Event.class ),
     TRACKEDENTITYATTRIBUTE( "trackedEntityAttribute", TrackedEntityAttribute.class ),
     EXPRESSIONDIMENSIONITEM( "expressionDimensionItem", ExpressionDimensionItem.class );
 

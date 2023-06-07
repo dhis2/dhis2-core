@@ -73,6 +73,7 @@ class TrackedEntityFieldsParamMapper
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_PROGRAM_OWNERS ) );
         params = params.withIncludeAttributes(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ATTRIBUTES ) );
+        params = params.withIncludeDeleted( includeDeleted );
 
         EventParams eventParams = new EventParams(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.events.relationships" ) );
@@ -82,8 +83,7 @@ class TrackedEntityFieldsParamMapper
         EnrollmentParams enrollmentParams = new EnrollmentParams(
             enrollmentEventsParams,
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.relationships" ),
-            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.attributes" ),
-            includeDeleted );
+            fieldFilterService.filterIncludes( TrackedEntity.class, fields, "enrollments.attributes" ) );
         TrackedEntityEnrollmentParams teiEnrollmentParams = new TrackedEntityEnrollmentParams(
             fieldFilterService.filterIncludes( TrackedEntity.class, fields, FIELD_ENROLLMENTS ),
             enrollmentParams );
