@@ -677,4 +677,34 @@ public class EventQueryTest extends AnalyticsApiTest
                 "Sierra Leone / Kailahun / Peje Bongre / Grima Jou MCHP",
                 "24.0" ) );
     }
+
+    @Test
+    void testMetadataInfoForOptionSetForQuery()
+    {
+        // Given
+        QueryParamsBuilder params = new QueryParamsBuilder()
+            .add(
+                "dimension=ou:ImspTQPwCqd,pe:LAST_12_MONTHS,C0aLZo75dgJ.B6TnnFMgmCk,C0aLZo75dgJ.Z1rLc1rVHK8,C0aLZo75dgJ.CklPZdOd6H1" )
+            .add( "filter=C0aLZo75dgJ.vTKipVM0GsX,C0aLZo75dgJ.h5FuguPFF2j,C0aLZo75dgJ.aW66s2QSosT" )
+            .add( "stage=C0aLZo75dgJ" )
+            .add( "displayProperty=NAME" )
+            .add( "outputType=ENROLLMENT" )
+            .add( "totalPages=false" );
+
+        // When
+        ApiResponse response = analyticsEventActions.query().get( "qDkgAbB5Jlk", JSON, JSON, params );
+        response.validate()
+            .statusCode( 200 )
+            .body( "headers", hasSize( equalTo( 24 ) ) )
+            .body( "height", equalTo( 0 ) )
+            .body( "width", equalTo( 0 ) )
+            .body( "rows", hasSize( equalTo( 0 ) ) )
+
+            .body( "metaData.items", hasKey( "CklPZdOd6H1" ) )
+            .body( "metaData.items", not( hasKey( "AZK4rjJCss5" ) ) )
+            .body( "metaData.items", not( hasKey( "UrUdMteQzlT" ) ) );
+
+        validateHeader( response, 22, "C0aLZo75dgJ.CklPZdOd6H1", "Sex", "TEXT", "java.lang.String",
+            false, true, "hiQ3QFheQ3O" );
+    }
 }
