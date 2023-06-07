@@ -27,11 +27,15 @@
  */
 package org.hisp.dhis.webapi.webdomain.sharing;
 
+import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.OpenApi.Shared.Pattern;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( pattern = Pattern.INFO )
 public class Sharing
 {
     @JsonProperty
