@@ -129,7 +129,10 @@ public enum ConfigurationKey
     USE_QUERY_CACHE( "hibernate.cache.use_query_cache", "true", false ),
 
     /**
-     * Sets 'hibernate.hbm2ddl.auto', used in tests only. (default: validate)
+     * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden
+     * by the same property loaded by any class implementing
+     * {@link DhisConfigurationProvider} like
+     * {@link DefaultDhisConfigurationProvider} from dhis.conf at runtime
      */
     CONNECTION_SCHEMA( "connection.schema", "validate", false ),
 
