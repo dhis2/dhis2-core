@@ -27,11 +27,7 @@
  */
 package org.hisp.dhis.program;
 
-import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
-import static org.hisp.dhis.program.Program.PREFIX_KEY;
-
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -591,19 +587,23 @@ public class ProgramStage
         this.referral = referral;
     }
 
-    public static ProgramStage copyOf( ProgramStage original, Program programCopy, Map<String, String> options )
+    public static ProgramStage shallowCopy( ProgramStage original, Program programCopy )
     {
         ProgramStage copy = new ProgramStage();
         copy.setProgram( programCopy );
         copy.setAutoFields();
-        setShallowCopyValues( copy, original, options );
+        setShallowCopyValues( copy, original );
+        return copy;
+    }
+
+    public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy )
+    {
         setDeepCopyValues( copy, original );
         return copy;
     }
 
-    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original, Map<String, String> options )
+    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original )
     {
-        String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
         copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
         copy.setBlockEntryForm( original.getBlockEntryForm() );
@@ -620,7 +620,7 @@ public class ProgramStage
         copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setMinDaysFromStart( original.getMinDaysFromStart() );
         copy.setNextScheduleDate( original.getNextScheduleDate() );
-        copy.setName( prefix + original.getName() );
+        copy.setName( original.getName() );
         copy.setNotificationTemplates( ObjectUtils.copyOf( original.getNotificationTemplates() ) );
         copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
         copy.setPeriodType( original.getPeriodType() );

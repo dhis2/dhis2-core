@@ -239,4 +239,29 @@ public class ProgramRuleVariable
     {
         this.valueType = valueType;
     }
+
+    public static ProgramRuleVariable copyOf( ProgramRuleVariable original, Program programCopy )
+    {
+        ProgramRuleVariable copy = new ProgramRuleVariable();
+        copy.setProgram( programCopy );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramRuleVariable copy, ProgramRuleVariable original )
+    {
+        copy.setAccess( original.getAccess() );
+        copy.setName( original.getName() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setSharing( original.getSharing() );
+        copy.setTranslations( original.getTranslations() );
+        copy.setSourceType( original.getSourceType() );
+        copy.setAttribute( original.getAttribute() );
+        copy.setDataElement( original.getDataElement() );
+        copy.setUseCodeForOptionSet( original.getUseCodeForOptionSet() );
+        copy.setValueType( original.getValueType() );
+        copy.setProgramStage( original.getProgramStage() ); //TODO this should point to the newly-copied program stage
+    }
 }

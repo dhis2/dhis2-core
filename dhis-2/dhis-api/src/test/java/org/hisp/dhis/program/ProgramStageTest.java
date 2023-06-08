@@ -39,7 +39,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.common.ObjectStyle;
@@ -61,7 +60,7 @@ class ProgramStageTest
     {
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNoNulls( program );
-        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+        ProgramStage copy = ProgramStage.shallowCopy( original, program );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -77,7 +76,7 @@ class ProgramStageTest
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFeatureType(), copy.getFeatureType() );
         assertEquals( original.getValidationStrategy(), copy.getValidationStrategy() );
-        assertEquals( "copyStage Name", copy.getName() );
+        assertEquals( "Stage Name", copy.getName() );
         assertEquals( original.getNotificationTemplates(), copy.getNotificationTemplates() );
         assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
     }
@@ -87,11 +86,11 @@ class ProgramStageTest
     {
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNulls();
-        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+        ProgramStage copy = ProgramStage.shallowCopy( original, program );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
-        assertNotEquals( original.getName(), copy.getName() );
+        assertEquals( original.getName(), copy.getName() );
         assertNotEquals( original.getUid(), copy.getUid() );
 
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
@@ -112,7 +111,7 @@ class ProgramStageTest
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNoNulls( program );
         original.setCode( "stage code" );
-        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+        ProgramStage copy = ProgramStage.shallowCopy( original, program );
 
         assertNull( copy.getCode() );
     }
@@ -123,15 +122,15 @@ class ProgramStageTest
         Program program = new Program( "Program 1" );
         ProgramStage original = getNewProgramStageWithNoNulls( program );
         original.setCode( null );
-        ProgramStage copy = ProgramStage.copyOf( original, program, Map.of( "prefix", "copy" ) );
+        ProgramStage copy = ProgramStage.shallowCopy( original, program );
 
         assertNull( copy.getCode() );
     }
 
     /**
      * This test checks the expected field count for {@link ProgramStage}. This
-     * is important due to {@link ProgramStage#copyOf} functionality. If a new
-     * field is added then {@link ProgramStage#copyOf} should be updated with
+     * is important due to {@link ProgramStage#deepCopy} functionality. If a new
+     * field is added then {@link ProgramStage#deepCopy} should be updated with
      * the appropriate copying approach.
      */
     @Test

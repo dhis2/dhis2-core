@@ -42,6 +42,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -452,5 +453,36 @@ public class ProgramIndicator
     public void setOrgUnitField( String orgUnitField )
     {
         this.orgUnitField = orgUnitField;
+    }
+
+    public static ProgramIndicator copyOf( ProgramIndicator original, Program programCopy )
+    {
+        ProgramIndicator copy = new ProgramIndicator();
+        copy.setProgram( programCopy );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original )
+    {
+        copy.setAccess( original.getAccess() );
+        copy.setDecimals( original.getDecimals() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setSharing( original.getSharing() );
+        copy.setTranslations( original.getTranslations() );
+        copy.setExpression( original.getExpression() );
+        copy.setFilter( original.getFilter() );
+        copy.setFormName( original.getFormName() );
+        copy.setOrgUnitField( original.getOrgUnitField() );
+        copy.setDisplayInForm( original.getDisplayInForm() );
+        copy.setAnalyticsType( original.getAnalyticsType() );
+        copy.setAnalyticsPeriodBoundaries( ObjectUtils.copyOf( original.getAnalyticsPeriodBoundaries() ) );
+        copy.setStyle( original.getStyle() );
+        copy.setGroups( ObjectUtils.copyOf( original.getGroups() ) ); //TODO does this need further deep copies?
+        copy.setName( original.getName() );
+        copy.setShortName( original.getShortName() );
+        copy.setDescription( original.getDescription() );
     }
 }

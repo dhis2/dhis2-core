@@ -28,6 +28,7 @@
 package org.hisp.dhis.util;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -59,6 +60,6 @@ public class StreamUtils
     @Nonnull
     public static <T> Stream<T> streamOf( Collection<T> collection )
     {
-        return Optional.ofNullable( collection ).stream().flatMap( Collection::stream );
+        return Optional.ofNullable( collection ).stream().filter( Objects::nonNull ).flatMap( Collection::stream );
     }
 }

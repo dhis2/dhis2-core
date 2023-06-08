@@ -282,7 +282,7 @@ public class ProgramTrackedEntityAttribute
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
-    };
+    }
 
     private static void setShallowCopyValues( ProgramTrackedEntityAttribute copy,
         ProgramTrackedEntityAttribute original )

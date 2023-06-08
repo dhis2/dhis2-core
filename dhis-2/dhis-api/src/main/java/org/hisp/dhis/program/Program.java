@@ -37,7 +37,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.CategoryCombo;
@@ -915,13 +914,13 @@ public class Program
         this.accessLevel = accessLevel;
     }
 
-    public static final BiFunction<Program, Map<String, String>, ProgramCopyTuple> copyOf = ( original, options ) -> {
+    public static Program shallowCopy( Program original, Map<String, String> options )
+    {
         Program copy = new Program();
         copy.setAutoFields();
         setShallowCopyValues( copy, original, options );
-        setDeepCopyValues( copy, original, options );
-        return new ProgramCopyTuple( copy, original );
-    };
+        return copy;
+    }
 
     private static void setShallowCopyValues( Program copy, Program original, Map<String, String> options )
     {
@@ -963,38 +962,35 @@ public class Program
         copy.setUserRoles( copyOf( original.getUserRoles() ) );
     }
 
-    private static void setDeepCopyValues( Program copy, Program original, Map<String, String> options )
+    public static Set<ProgramSection> copyProgramSections( Program copy, Set<ProgramSection> original )
     {
-        copyProgramStages( copy, original.getProgramStages(), options );
-        copyProgramSections( copy, original.getProgramSections() );
-        copyProgramAttributes( copy, original.getProgramAttributes() );
+        return StreamUtils.streamOf( original )
+            .map( programSection -> ProgramSection.copyOf( programSection, copy ) )
+            .collect( toSet() );
     }
 
-    private static void copyProgramStages( Program copy, Set<ProgramStage> original, Map<String, String> options )
+    public static List<ProgramTrackedEntityAttribute> copyProgramAttributes( Program copy,
+        List<ProgramTrackedEntityAttribute> original )
     {
-        copy.setProgramStages(
-            StreamUtils.streamOf( original )
-                .map( programStage -> ProgramStage.copyOf( programStage, copy, options ) )
-                .collect( toSet() ) );
+        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
+            .map( programAttr -> ProgramTrackedEntityAttribute.copyOf( programAttr, copy ) )
+            .toList();
     }
 
-    private static void copyProgramSections( Program copy, Set<ProgramSection> original )
+    public static Set<ProgramIndicator> copyProgramIndicators( Program copy,
+        Set<ProgramIndicator> original )
     {
-        copy.setProgramSections(
-            StreamUtils.streamOf( original )
-                .map( programSection -> ProgramSection.copyOf( programSection, copy ) )
-                .collect( toSet() ) );
+        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
+            .map( programAttr -> ProgramIndicator.copyOf( programAttr, copy ) )
+            .collect( toSet() );
     }
 
-    private static void copyProgramAttributes( Program copy, List<ProgramTrackedEntityAttribute> original )
+    public static Set<ProgramRuleVariable> copyProgramRuleVariables( Program copy,
+        Set<ProgramRuleVariable> original )
     {
-        copy.setProgramAttributes(
-            StreamUtils.streamOf( original )
-                .map( programAttr -> ProgramTrackedEntityAttribute.copyOf( programAttr, copy ) )
-                .toList() );
+        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
+            .map( programAttr -> ProgramRuleVariable.copyOf( programAttr, copy ) )
+            .collect( toSet() );
     }
 
-    public record ProgramCopyTuple( Program copy, Program original )
-    {
-    }
 }

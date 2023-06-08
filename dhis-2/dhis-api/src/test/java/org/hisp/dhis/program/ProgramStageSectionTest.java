@@ -54,9 +54,9 @@ class ProgramStageSectionTest
     {
         Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
         Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.copyOf.apply( originalProgram, copyOptions ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.copyOf( originalStage, copyProgram, copyOptions );
+        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSection( originalStage );
         ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage );
 
@@ -86,9 +86,9 @@ class ProgramStageSectionTest
     {
         Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
         Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.copyOf.apply( originalProgram, copyOptions ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.copyOf( originalStage, copyProgram, copyOptions );
+        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSectionWithNulls();
         ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage );
 

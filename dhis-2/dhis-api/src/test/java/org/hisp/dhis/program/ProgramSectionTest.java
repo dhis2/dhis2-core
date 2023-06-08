@@ -59,7 +59,7 @@ class ProgramSectionTest
         Program originalProgram = getNewProgramWithNoNulls();
         ProgramSection original = getNewProgramSection( originalProgram );
 
-        Program copyProgram = Program.copyOf.apply( originalProgram, Map.of() ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, Map.of() );
         ProgramSection copy = ProgramSection.copyOf( original, copyProgram );
 
         assertNotSame( original, copy );
@@ -89,7 +89,7 @@ class ProgramSectionTest
         Program originalProgram = getNewProgramWithNoNulls();
         ProgramSection original = getNewProgramSectionWithNulls();
 
-        Program copyProgram = Program.copyOf.apply( originalProgram, Map.of() ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, Map.of() );
         ProgramSection copy = ProgramSection.copyOf( original, copyProgram );
 
         assertNotSame( original, copy );

@@ -55,13 +55,18 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramSectionService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
+import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.user.sharing.Sharing;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -77,6 +82,24 @@ class CopyServiceTest extends DhisConvenienceTest
     private ProgramService programService;
 
     @Mock
+    private ProgramStageService programStageService;
+
+    @Mock
+    private ProgramSectionService programSectionService;
+
+    @Mock
+    private ProgramStageSectionService programStageSectionService;
+
+    @Mock
+    private ProgramStageDataElementService programStageDataElementService;
+
+    @Mock
+    private ProgramIndicatorService programIndicatorService;
+
+    @Mock
+    private ProgramRuleVariableService programRuleVariableService;
+
+    @Mock
     private EnrollmentService enrollmentService;
 
     @InjectMocks
@@ -86,11 +109,13 @@ class CopyServiceTest extends DhisConvenienceTest
 
     private static final String INVALID_PROGRAM_UID = "123456789";
 
-    @BeforeEach
-    void setup()
-    {
-        copyService = new CopyService( programService, enrollmentService );
-    }
+    //    @BeforeEach
+    //    void setup()
+    //    {
+    //        copyService = new CopyService( programService, enrollmentService, programStageService,
+    //            programStageSectionService, programStageDataElementService, programSectionService,
+    //            programIndicatorService, programRuleVariableService );
+    //    }
 
     @Test
     void testCopyProgramFromUidWithValidProgram()
@@ -142,7 +167,8 @@ class CopyServiceTest extends DhisConvenienceTest
         when( programService.addProgram( any( Program.class ) ) )
             .thenThrow( error );
 
-        assertThrows( ConflictException.class, () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() ) );
+        assertThrows( DataIntegrityViolationException.class,
+            () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() ) );
     }
 
     Program createProgram()

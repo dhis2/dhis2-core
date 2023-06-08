@@ -27,84 +27,127 @@
  */
 package org.hisp.dhis.copy;
 
-import static org.hisp.dhis.util.StreamUtils.streamOf;
-
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.UnaryOperator;
+import java.util.Set;
 
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
+import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramSection;
+import org.hisp.dhis.program.ProgramSectionService;
 import org.hisp.dhis.program.ProgramService;
-import org.springframework.dao.DataIntegrityViolationException;
+import org.hisp.dhis.program.ProgramStage;
+import org.hisp.dhis.program.ProgramStageDataElementService;
+import org.hisp.dhis.program.ProgramStageSectionService;
+import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class CopyService
 {
-    private ProgramService programService;
+    private final ProgramService programService;
 
-    private EnrollmentService enrollmentService;
+    private final ProgramSectionService programSectionService;
 
-    public CopyService( ProgramService programService, EnrollmentService enrollmentService )
-    {
-        this.programService = programService;
-        this.enrollmentService = enrollmentService;
-    }
+    private final ProgramStageService programStageService;
+
+    private final ProgramStageSectionService programStageSectionService;
+
+    private final ProgramStageDataElementService programStageDataElementService;
+
+    private final ProgramIndicatorService programIndicatorService;
+
+    private final ProgramRuleVariableService programRuleVariableService;
+
+    private final EnrollmentService enrollmentService;
 
     @Transactional
     public String copyProgramFromUid( String uid, Map<String, String> copyOptions )
-        throws NotFoundException,
-        ConflictException
+        throws NotFoundException
     {
-        try
+        Program original = programService.getProgram( uid );
+        if ( original != null )
         {
-            Program original = programService.getProgram( uid );
-            if ( original != null )
-            {
-                return applyAllProgramCopySteps( original, copyOptions );
-            }
-            throw new NotFoundException( Program.class, uid );
+            return applyAllProgramCopySteps( original, copyOptions );
         }
-        catch ( DataIntegrityViolationException div )
-        {
-            throw new ConflictException( div.getRootCause().getMessage() );
-        }
+        throw new NotFoundException( Program.class, uid );
     }
 
-    private String applyAllProgramCopySteps( Program program, Map<String, String> copyOptions )
+    private String applyAllProgramCopySteps( Program original, Map<String, String> copyOptions )
     {
-        return Program.copyOf
-            .andThen( saveNewProgram )
-            .andThen( copyEnrollments )
-            .andThen( saveNewEnrollments )
-            .apply( program, copyOptions );
+        //shallow copy Program & save
+        Program copy = Program.shallowCopy( original, copyOptions );
+        programService.addProgram( copy );
+
+        copyStages( original, copy );
+        copyAndSaveSections( original, copy );
+        copyAttributes( original, copy );
+        copyAndSaveIndicators( original, copy );
+        copyAndSaveRuleVariables( original, copy );
+
+        programService.addProgram( copy );
+
+        return copy.getUid();
     }
 
-    private final UnaryOperator<Program.ProgramCopyTuple> saveNewProgram = programCopyTuple -> {
-        programService.addProgram( programCopyTuple.copy() );
-        return programCopyTuple;
-    };
-
-    private final Function<Program.ProgramCopyTuple, ProgramEnrollmentsTuple> copyEnrollments = programCopyTuple -> {
-        List<Enrollment> copiedEnrollments = streamOf(
-            enrollmentService.getEnrollments( programCopyTuple.original() ) )
-            .map( enrollment -> Enrollment.copyOf( enrollment, programCopyTuple.copy() ) )
-            .toList();
-        return new ProgramEnrollmentsTuple( programCopyTuple.copy(), copiedEnrollments );
-    };
-
-    private final Function<ProgramEnrollmentsTuple, String> saveNewEnrollments = programEnrollmentsTuple -> {
-        programEnrollmentsTuple.enrollments().forEach( enrollmentService::addEnrollment );
-        return programEnrollmentsTuple.program().getUid();
-    };
-
-    record ProgramEnrollmentsTuple( Program program, List<Enrollment> enrollments )
+    private void copyAndSaveRuleVariables( Program original, Program programCopy )
     {
+        Set<ProgramRuleVariable> programRuleVariables = Program.copyProgramRuleVariables( programCopy,
+            original.getProgramRuleVariables() );
+        programRuleVariables.forEach( programRuleVariableService::addProgramRuleVariable );
+        programCopy.setProgramRuleVariables( programRuleVariables );
+    }
+
+    private void copyAndSaveIndicators( Program original, Program programCopy )
+    {
+        Set<ProgramIndicator> programIndicators = Program.copyProgramIndicators( programCopy,
+            original.getProgramIndicators() );
+        programIndicators.forEach( programIndicatorService::addProgramIndicator );
+        programCopy.setProgramIndicators( programIndicators );
+    }
+
+    private void copyAttributes( Program original, Program programCopy )
+    {
+        programCopy.setProgramAttributes( Program.copyProgramAttributes( programCopy,
+            original.getProgramAttributes() ) );
+    }
+
+    private void copyAndSaveSections( Program original, Program programCopy )
+    {
+        Set<ProgramSection> copySections = Program.copyProgramSections( programCopy, original.getProgramSections() );
+        copySections.forEach( programSectionService::addProgramSection );
+        programCopy.setProgramSections( copySections );
+    }
+
+    private void copyStages( Program original, Program programCopy )
+    {
+        HashSet<ProgramStage> copyStages = new HashSet<>();
+        for ( ProgramStage stageOriginal : original.getProgramStages() )
+        {
+            //shallow copy PS & save
+            ProgramStage stageCopy = ProgramStage.shallowCopy( stageOriginal, programCopy );
+            programStageService.saveProgramStage( stageCopy );
+
+            //deep copy PS & save
+            ProgramStage stageCopyDeep = ProgramStage.deepCopy( stageOriginal, stageCopy );
+            stageCopyDeep.getProgramStageDataElements()
+                .forEach( programStageDataElementService::addProgramStageDataElement );
+
+            stageCopyDeep.getProgramStageSections()
+                .forEach( programStageSectionService::saveProgramStageSection );
+
+            programStageService.saveProgramStage( stageCopyDeep );
+            copyStages.add( stageCopyDeep );
+        }
+        programCopy.setProgramStages( copyStages );
     }
 }

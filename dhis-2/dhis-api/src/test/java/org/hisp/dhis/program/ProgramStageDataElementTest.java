@@ -49,9 +49,9 @@ class ProgramStageDataElementTest
     {
         Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
         Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.copyOf.apply( originalProgram, copyOptions ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.copyOf( originalStage, copyProgram, copyOptions );
+        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageDataElement original = getNewProgramStageDataElement( originalStage, "data el" );
         ProgramStageDataElement copy = ProgramStageDataElement.copyOf( original, copyStage );
 
@@ -78,9 +78,9 @@ class ProgramStageDataElementTest
     {
         Map<String, String> copyOptions = Map.of( "prefix", "copy of" );
         Program originalProgram = new Program( "Program 1" );
-        Program copyProgram = Program.copyOf.apply( originalProgram, copyOptions ).copy();
+        Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
-        ProgramStage copyStage = ProgramStage.copyOf( originalStage, copyProgram, copyOptions );
+        ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageDataElement original = getNewProgramStageDataElementWithNulls();
         ProgramStageDataElement copy = ProgramStageDataElement.copyOf( original, copyStage );
 

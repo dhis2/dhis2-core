@@ -33,10 +33,9 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
@@ -57,6 +56,7 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -69,6 +69,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -144,7 +146,15 @@ public class ProgramController
         throws NotFoundException,
         ConflictException
     {
-        String newUid = copyService.copyProgramFromUid( uid, copyOptions );
+        String newUid = "";
+        try
+        {
+            newUid = copyService.copyProgramFromUid( uid, copyOptions );
+        }
+        catch ( DataIntegrityViolationException dive )
+        {
+            throw new ConflictException( Objects.requireNonNull( dive.getRootCause().getMessage() ) );
+        }
         return created( ("Program created: '%s'".formatted( newUid )) )
             .setLocation( "/programs/" + newUid );
     }

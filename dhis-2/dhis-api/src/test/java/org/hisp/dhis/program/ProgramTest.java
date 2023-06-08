@@ -90,8 +90,7 @@ class ProgramTest
     void testCopyOfWithPropertyValuesSet()
     {
         Program original = getNewProgramWithNoNulls();
-        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
-        Program copy = programCopyTuple.copy();
+        Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
         //check for differences
         assertNotSame( original, copy );
@@ -142,8 +141,7 @@ class ProgramTest
     {
         Program original = getNewProgramWithNoNulls();
         original.setCode( "code123" );
-        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
-        Program copy = programCopyTuple.copy();
+        Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
         assertNull( copy.getCode() );
     }
@@ -153,8 +151,7 @@ class ProgramTest
     {
         Program original = getNewProgramWithNoNulls();
         original.setCode( null );
-        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
-        Program copy = programCopyTuple.copy();
+        Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
         assertNull( copy.getCode() );
     }
@@ -163,8 +160,7 @@ class ProgramTest
     void testCopyOfWithNulls()
     {
         Program original = getNewProgramWithNulls();
-        Program.ProgramCopyTuple programCopyTuple = Program.copyOf.apply( original, Map.of( "prefix", "copy" ) );
-        Program copy = programCopyTuple.copy();
+        Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -192,16 +188,16 @@ class ProgramTest
 
     /**
      * This test checks the expected field count for {@link Program}. This is
-     * important due to {@link Program#copyOf} functionality. If a new field is
-     * added then {@link Program#copyOf} should be updated with the appropriate
-     * copying approach (Deep or shallow copy). If the field is not included in
-     * {@link Program#copyOf} this may have unexpected results.
+     * important due to {@link Program#deepCopy} functionality. If a new field
+     * is added then {@link Program#deepCopy} should be updated with the
+     * appropriate copying approach (Deep or shallow copy). If the field is not
+     * included in {@link Program#deepCopy} this may have unexpected results.
      */
     @Test
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( Program.class );
-        assertEquals( 56, allClassFieldsIncludingInherited.length );
+        assertEquals( 55, allClassFieldsIncludingInherited.length );
     }
 
     public static boolean notEqualsOrBothNull( String original, String copy )

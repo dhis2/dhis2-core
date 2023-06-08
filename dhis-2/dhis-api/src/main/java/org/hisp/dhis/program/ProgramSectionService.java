@@ -37,7 +37,6 @@ public interface ProgramSectionService
      * Adds an {@link ProgramSection}
      *
      * @param programSection The ProgramSection to add.
-     * @return A generated unique id of the added {@link ProgramSection}.
      */
     void addProgramSection( ProgramSection programSection );
 }
