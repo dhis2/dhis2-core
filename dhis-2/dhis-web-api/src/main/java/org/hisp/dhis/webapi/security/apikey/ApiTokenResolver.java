@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.security.apikey;
 
-import static org.hisp.dhis.security.apikey.ApiTokenType.validateChecksum;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.isValidTokenChecksum;
 
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,7 +38,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.Setter;
 
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.security.apikey.ApiTokenType;
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 
 import com.google.common.net.HttpHeaders;
 
@@ -106,7 +106,7 @@ public final class ApiTokenResolver
     {
         if ( authorizationHeaderToken.length > 0 )
         {
-            checksum( authorizationHeaderToken );
+            validateChecksum( authorizationHeaderToken );
 
             if ( parameterToken.length > 0 )
             {
@@ -140,17 +140,17 @@ public final class ApiTokenResolver
     {
         if ( parameterToken.length > 0 && isParameterTokenSupportedForRequest( request ) )
         {
-            checksum( parameterToken );
+            validateChecksum( parameterToken );
             return true;
         }
         return false;
     }
 
-    private static void checksum( char[] token )
+    private static void validateChecksum( char[] token )
     {
         try
         {
-            if ( !validateChecksum( token ) )
+            if ( !isValidTokenChecksum( token ) )
             {
                 throw new ApiTokenAuthenticationException( ApiTokenErrors
                     .invalidRequest( CHECKSUM_VALIDATION_FAILED ) );
@@ -171,7 +171,7 @@ public final class ApiTokenResolver
     {
         try
         {
-            return ApiTokenType.hashToken( tokenInHeader );
+            return ApiKeyTokenGenerator.hashToken( tokenInHeader );
         }
         catch ( Exception e )
         {

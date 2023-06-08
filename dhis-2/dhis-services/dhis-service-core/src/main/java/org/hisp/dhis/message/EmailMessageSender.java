@@ -29,6 +29,7 @@ package org.hisp.dhis.message;
 
 import static java.util.Collections.singleton;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -291,6 +292,7 @@ public class EmailMessageSender
         throws EmailException
     {
         HtmlEmail email = new HtmlEmail();
+        email.setCharset( StandardCharsets.UTF_8.toString() );
         email.setHostName( hostName );
         email.setFrom( sender, getEmailName() );
         email.setSmtpPort( port );
@@ -306,12 +308,17 @@ public class EmailMessageSender
 
     private String renderPlainContent( String text, User sender )
     {
-        return sender == null ? text
+        String content = sender == null ? text
             : (text + LB + LB + sender.getName() + LB
-                + (sender.getOrganisationUnitsName() != null ? (sender.getOrganisationUnitsName() + LB)
-                    : StringUtils.EMPTY)
-                + (sender.getEmail() != null ? (sender.getEmail() + LB) : StringUtils.EMPTY)
-                + (sender.getPhoneNumber() != null ? (sender.getPhoneNumber() + LB) : StringUtils.EMPTY));
+                + getNullSafe( sender.getOrganisationUnitsName() )
+                + getNullSafe( sender.getEmail() )
+                + getNullSafe( sender.getPhoneNumber() ));
+        return new String( content.getBytes( StandardCharsets.UTF_8 ), StandardCharsets.UTF_8 );
+    }
+
+    private String getNullSafe( String value )
+    {
+        return value == null ? StringUtils.EMPTY : value + LB;
     }
 
     private String renderHtmlContent( String text, String footer, String serverBaseUrl, User sender )
