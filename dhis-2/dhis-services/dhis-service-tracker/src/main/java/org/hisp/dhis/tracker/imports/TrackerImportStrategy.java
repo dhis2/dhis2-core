@@ -43,12 +43,6 @@ public enum TrackerImportStrategy
     UPDATE,
 
     /**
-     * Patches the persisted object with a partial object, requires a valid UID.
-     * (currently no plans to support this).
-     */
-    PATCH,
-
-    /**
      * Create/import objects that don't match any existing identifiers,
      * update/import objects that matches existing identifiers.
      */
