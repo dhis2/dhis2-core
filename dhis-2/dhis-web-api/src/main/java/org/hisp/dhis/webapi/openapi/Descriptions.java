@@ -250,6 +250,13 @@ final class Descriptions
         return entries.get( key );
     }
 
+    @CheckForNull
+    String get( List<String> keys )
+    {
+        return get( UnaryOperator.identity(), keys );
+    }
+
+    @CheckForNull
     String get( UnaryOperator<String> transformer, String... keys )
     {
         return get( transformer, List.of( keys ) );
@@ -263,6 +270,7 @@ final class Descriptions
      * @param keys keys to try
      * @return the first non-null value transformed
      */
+    @CheckForNull
     String get( UnaryOperator<String> transformer, List<String> keys )
     {
         for ( String key : keys )

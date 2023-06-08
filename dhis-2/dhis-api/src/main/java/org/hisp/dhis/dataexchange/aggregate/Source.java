@@ -36,8 +36,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
 
+import org.hisp.dhis.common.OpenApi;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+@OpenApi.Shared( name = "ExchangeSource" )
 @Getter
 @Setter
 @NoArgsConstructor

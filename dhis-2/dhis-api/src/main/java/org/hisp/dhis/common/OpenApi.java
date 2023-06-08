@@ -34,6 +34,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -47,20 +48,20 @@ public @interface OpenApi
     /**
      * Annotation to use as part of the OpenAPI generation to work around lack
      * of generic types when using annotations.
-     *
+     * <p>
      * The annotation has different semantics depending on the annotated
      * element. See {@link #value()} for details.
-     *
+     * <p>
      * Generally speaking the annotation builds a type substitution mechanism.
      * On one set of target locations it defines the actual type that
      * substitution should use. On another set of target location it marks the
      * place where the substitution should be used.
-     *
+     * <p>
      * Substitution is scoped per controller and method. By default, methods
      * inherit the type defined for substitution from the controller level, but
      * it can be overridden per method by again annotating the method with a
      * different type given by {@link EntityType#value()}.
-     *
+     * <p>
      * A {@link java.lang.reflect.Field} or getter
      * {@link java.lang.reflect.Method} on a complex request/response object
      * annotated with {@link EntityType} marks the annotated member for
@@ -101,7 +102,7 @@ public @interface OpenApi
 
         /**
          * When the entire annotated type is substituted the path is empty.
-         *
+         * <p>
          * If e.g. the {@code T} in a type like {@code Map<String,List<T>>}
          * should be substituted to {@code Map<String,List<MyObject>>} (assuming
          * that {@code MyObject} is the current actual type) the path has to be:
@@ -119,7 +120,7 @@ public @interface OpenApi
          *
          * {@code Map} as root is exclusive, the target is at the {@code 1}
          * index of the root type.
-         *
+         * <p>
          * Arguably this could also be given by pointing at the {@code T} in
          * {@code List}:
          *
@@ -135,10 +136,10 @@ public @interface OpenApi
     /**
      * When annotated on type level the tags are added to all endpoints of the
      * controller.
-     *
+     * <p>
      * When annotated on method level the tags are added to the annotated
      * endpoint (operation).
-     *
+     * <p>
      * Tags can be used to split generation into multiple OpenAPI document.
      */
     @Inherited
@@ -151,9 +152,9 @@ public @interface OpenApi
 
     /**
      * Annotate a controller type to ignore the entire controller.
-     *
+     * <p>
      * Annotate a controller endpoint method to ignore that endpoint.
-     *
+     * <p>
      * Annotate a controller endpoint method parameter to ignore that parameter.
      */
     @Inherited
@@ -190,7 +191,7 @@ public @interface OpenApi
     /**
      * Used to add a single named parameter or request body parameter that is
      * not present (or ignored) in the method signature.
-     *
+     * <p>
      * Can also be used on a parameter to explicitly mark a parameter that
      * should be considered and to override or extend information about the
      * parameter. If this annotation is present on a method parameter no other
@@ -209,7 +210,7 @@ public @interface OpenApi
 
         /**
          * For complex parameter objects use {@link Params} instead.
-         *
+         * <p>
          * None (length zero) uses the actual type of the parameter. More than
          * one use a {@code oneOf} union type of all the type schemas.
          *
@@ -232,7 +233,7 @@ public @interface OpenApi
     /**
      * Used to add a parameter object that is not present (or ignored) in the
      * method signature. Each property of the object becomes a parameter.
-     *
+     * <p>
      * Can also be used on a type to explicitly mark it as a parameter object
      * type that should be considered.
      */
@@ -255,14 +256,14 @@ public @interface OpenApi
 
     /**
      * Used to add or override the response for a specific {@link Status}.
-     *
+     * <p>
      * If the {@link #status()} is the same as the success status of the method
      * this effectively overrides the return type of the method as present in
      * the signature.
-     *
+     * <p>
      * Can be annotated on exception types to link all occurrences of declared
      * exception to a particular HTTP response.
-     *
+     * <p>
      * Can be annotated on thrown exceptions to link a specific occurrence of a
      * declared exception to a particular HTTP response.
      */
@@ -274,7 +275,7 @@ public @interface OpenApi
     {
         /**
          * The HTTP status (actually used in DHIS2 APIs).
-         *
+         * <p>
          * Needed to be independent of existing enums for module reasons.
          */
         @Getter
@@ -331,8 +332,8 @@ public @interface OpenApi
 
     /**
      * Used to make explicit statement about a type being used as shared (named)
-     * component in the resulting OpenAPI document.
-     *
+     * global component in the resulting OpenAPI document.
+     * <p>
      * By default, schema types are shared (opt-out), parameters object types a
      * not shared (opt-in).
      */
@@ -347,6 +348,25 @@ public @interface OpenApi
          *         parameter
          */
         String name() default "";
+
+        @Getter
+        @AllArgsConstructor
+        enum Pattern
+        {
+            DEFAULT( "" ),
+            INFO( "%sInfo" ),
+            TRACKER( "Tracker%s" );
+
+            private final String template;
+        }
+
+        /**
+         * If both name and pattern are used the pattern is ignored.
+         *
+         * @return naming pattern used to create a name based on the simple
+         *         class name.
+         */
+        Pattern pattern() default Pattern.DEFAULT;
     }
 
     /*

@@ -27,9 +27,12 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
+import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
+
 import java.util.Objects;
 
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.program.UserInfoSnapshot;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -40,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( pattern = TRACKER )
 @JacksonXmlRootElement( localName = "dataValue", namespace = DxfNamespaces.DXF_2_0 )
 public class DataValue
 {
