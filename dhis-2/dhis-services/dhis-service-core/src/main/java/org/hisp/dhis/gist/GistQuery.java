@@ -71,7 +71,7 @@ public final class GistQuery
      * part of the property name. These commas need to be ignored when splitting
      * a {@code fields} parameter list.
      */
-    private static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\))";
+    static final String FIELD_SPLIT = ",(?![^\\[\\]]*\\]|[^\\(\\)]*\\)|([a-zA-Z0-9]+,?)+\\))";
 
     /**
      * Query properties about the owner of the collection property.
