@@ -48,6 +48,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.CodeGenerator;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -59,6 +60,7 @@ import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
@@ -128,6 +130,8 @@ class EventRequestParamsMapper
         {
             filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
         }
+
+        validateUpdateDurationParams( requestParams );
 
         return EventOperationParams.builder()
             .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
@@ -326,5 +330,21 @@ class EventRequestParamsMapper
         return orders.entrySet().stream()
             .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
             .toList();
+    }
+
+    private void validateUpdateDurationParams( RequestParams requestParams )
+    {
+        if ( requestParams.getUpdatedWithin() != null
+            && (requestParams.getUpdatedAfter() != null || requestParams.getUpdatedBefore() != null) )
+        {
+            throw new IllegalQueryException(
+                "Last updated from and/or to and last updated duration cannot be specified simultaneously" );
+        }
+
+        if ( requestParams.getUpdatedWithin() != null
+            && DateUtils.getDuration( requestParams.getUpdatedWithin() ) == null )
+        {
+            throw new IllegalQueryException( "Duration is not valid: " + requestParams.getUpdatedWithin() );
+        }
     }
 }

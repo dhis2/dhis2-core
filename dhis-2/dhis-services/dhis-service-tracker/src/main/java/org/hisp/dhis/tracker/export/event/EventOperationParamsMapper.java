@@ -33,7 +33,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
@@ -50,7 +49,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -100,7 +98,7 @@ public class EventOperationParamsMapper
 
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        validateOperationParams( operationParams, user, program, orgUnit );
+        validateOperationParams( operationParams, user, program );
 
         EventSearchParams searchParams = new EventSearchParams();
 
@@ -240,40 +238,16 @@ public class EventOperationParamsMapper
         }
     }
 
-    public void validateOperationParams( EventOperationParams params, User user, Program program,
-        OrganisationUnit orgUnit )
-        throws IllegalQueryException
+    private void validateOperationParams( EventOperationParams params, User user, Program program )
+        throws BadRequestException
     {
-        //Should all these validations be moved to the web layer?
-        String violation = null;
-
-        if ( params.hasUpdatedAtDuration() && (params.hasUpdatedAtStartDate() || params.hasUpdatedAtEndDate()) )
+        if ( params.getOrgUnitSelectionMode() != null )
         {
-            violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
-        }
-
-        if ( violation == null && params.hasUpdatedAtDuration()
-            && DateUtils.getDuration( params.getUpdatedAtDuration() ) == null )
-        {
-            violation = "Duration is not valid: " + params.getUpdatedAtDuration();
-        }
-
-        if ( violation == null && params.getOrgUnitUid() != null
-            && !trackerAccessManager.canAccess( user, program, orgUnit ) )
-        {
-            violation = "User does not have access to orgUnit: " + orgUnit;
-        }
-
-        if ( violation == null && params.getOrgUnitSelectionMode() != null )
-        {
-            violation = getOuModeViolation( params, user, program );
-        }
-
-        if ( violation != null )
-        {
-            log.warn( "Validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
+            String violation = getOuModeViolation( params, user, program );
+            if ( violation != null )
+            {
+                throw new BadRequestException( violation );
+            }
         }
     }
 
@@ -281,31 +255,17 @@ public class EventOperationParamsMapper
     {
         OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
 
-        String violation;
-
-        switch ( selectedOuMode )
+        return switch ( selectedOuMode )
         {
-        case ALL:
-            violation = userCanSearchOuModeALL( user ) ? null
-                : "Current user is not authorized to query across all organisation units";
-            break;
-        case ACCESSIBLE:
-            violation = getAccessibleScopeValidation( user, program );
-            break;
-        case CAPTURE:
-            violation = getCaptureScopeValidation( user );
-            break;
-        case CHILDREN, SELECTED, DESCENDANTS:
-            violation = params.getOrgUnitUid() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-            break;
-        default:
-            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-            break;
-        }
-
-        return violation;
+        case ALL -> userCanSearchOuModeALL( user ) ? null
+            : "Current user is not authorized to query across all organisation units";
+        case ACCESSIBLE -> getAccessibleScopeValidation( user, program );
+        case CAPTURE -> getCaptureScopeValidation( user );
+        case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
+            ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
+            : null;
+        default -> "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
+        };
     }
 
     private String getCaptureScopeValidation( User user )
