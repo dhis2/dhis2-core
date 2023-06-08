@@ -43,7 +43,6 @@ import org.hisp.dhis.sqlview.SqlView;
 import org.hisp.dhis.sqlview.SqlViewStore;
 import org.hisp.dhis.sqlview.SqlViewType;
 import org.hisp.dhis.user.CurrentUserService;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -61,24 +60,19 @@ public class HibernateSqlViewStore
 {
     private final StatementBuilder statementBuilder;
 
-    private final JdbcTemplate readOnlyJdbcTemplate;
-
     private final SystemSettingManager systemSettingManager;
 
     public HibernateSqlViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
         ApplicationEventPublisher publisher, CurrentUserService currentUserService,
         AclService aclService, StatementBuilder statementBuilder,
-        @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate readOnlyJdbcTemplate,
         SystemSettingManager systemSettingManager )
     {
         super( sessionFactory, jdbcTemplate, publisher, SqlView.class, currentUserService, aclService, false );
 
         checkNotNull( statementBuilder );
-        checkNotNull( readOnlyJdbcTemplate );
         checkNotNull( systemSettingManager );
 
         this.statementBuilder = statementBuilder;
-        this.readOnlyJdbcTemplate = readOnlyJdbcTemplate;
         this.systemSettingManager = systemSettingManager;
     }
 
@@ -130,7 +124,7 @@ public class HibernateSqlViewStore
     @Override
     public void populateSqlViewGrid( Grid grid, String sql )
     {
-        SqlRowSet rs = readOnlyJdbcTemplate.queryForRowSet( sql );
+        SqlRowSet rs = jdbcTemplate.queryForRowSet( sql );
 
         int maxLimit = systemSettingManager.getIntSetting( SettingKey.SQL_VIEW_MAX_LIMIT );
 
