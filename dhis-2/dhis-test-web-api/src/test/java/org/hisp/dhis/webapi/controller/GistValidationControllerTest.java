@@ -125,7 +125,7 @@ class GistValidationControllerTest extends AbstractGistControllerTest
     @Test
     void testValidation_Field_MultiPluck()
     {
-        assertEquals( "Property `name, displayName` does not exist in userGroup",
+        assertEquals( "Property `displayName` does not exist in userGroup",
             GET( "/users/gist?fields=id,userGroups~pluck(name, displayName)" ).error( HttpStatus.BAD_REQUEST )
                 .getMessage() );
     }
