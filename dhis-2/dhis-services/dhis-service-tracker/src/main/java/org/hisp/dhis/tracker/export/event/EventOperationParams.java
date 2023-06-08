@@ -127,18 +127,18 @@ public class EventOperationParams
 
     private EventStatus eventStatus;
 
-    private Date updatedAtStartDate;
+    private Date updatedAfter;
 
-    private Date updatedAtEndDate;
+    private Date updatedBefore;
 
     /**
      * The last updated duration filter.
      */
-    private String updatedAtDuration;
+    private String updatedWithin;
 
-    private Date scheduleAtStartDate;
+    private Date scheduledAfter;
 
-    private Date scheduleAtEndDate;
+    private Date scheduledBefore;
 
     private Date enrollmentEnrolledBefore;
 
@@ -260,7 +260,7 @@ public class EventOperationParams
      */
     public boolean hasUpdatedAtStartDate()
     {
-        return updatedAtStartDate != null;
+        return updatedAfter != null;
     }
 
     /**
@@ -268,7 +268,7 @@ public class EventOperationParams
      */
     public boolean hasUpdatedAtEndDate()
     {
-        return updatedAtEndDate != null;
+        return updatedBefore != null;
     }
 
     /**
@@ -276,7 +276,7 @@ public class EventOperationParams
      */
     public boolean hasUpdatedAtDuration()
     {
-        return updatedAtDuration != null;
+        return updatedWithin != null;
     }
 
 }

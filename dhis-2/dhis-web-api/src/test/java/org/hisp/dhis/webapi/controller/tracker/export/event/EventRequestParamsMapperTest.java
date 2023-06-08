@@ -246,13 +246,42 @@ class EventRequestParamsMapperTest
 
         EventOperationParams params = mapper.map( requestParams );
 
-        assertEquals( scheduledAfter, params.getScheduleAtStartDate() );
-        assertEquals( scheduledBefore, params.getScheduleAtEndDate() );
+        assertEquals( scheduledAfter, params.getScheduledAfter() );
+        assertEquals( scheduledBefore, params.getScheduledBefore() );
     }
 
     @Test
-    void testMappingUpdatedDates()
+    void shouldMapAfterAndBeforeDatesWhenSupplied()
         throws BadRequestException
+    {
+        RequestParams requestParams = new RequestParams();
+
+        Date updatedAfter = parseDate( "2022-01-01" );
+        requestParams.setUpdatedAfter( updatedAfter );
+        Date updatedBefore = parseDate( "2022-09-12" );
+        requestParams.setUpdatedBefore( updatedBefore );
+
+        EventOperationParams params = mapper.map( requestParams );
+
+        assertEquals( updatedAfter, params.getUpdatedAfter() );
+        assertEquals( updatedBefore, params.getUpdatedBefore() );
+    }
+
+    @Test
+    void shouldMapUpdatedWithinDateWhenSupplied()
+        throws BadRequestException
+    {
+        RequestParams requestParams = new RequestParams();
+        String updatedWithin = "6m";
+        requestParams.setUpdatedWithin( updatedWithin );
+
+        EventOperationParams params = mapper.map( requestParams );
+
+        assertEquals( updatedWithin, params.getUpdatedWithin() );
+    }
+
+    @Test
+    void shouldFailWithBadRequestExceptionWhenTryingToMapAllUpdateDatesTogether()
     {
         RequestParams requestParams = new RequestParams();
 
@@ -263,11 +292,11 @@ class EventRequestParamsMapperTest
         String updatedWithin = "P6M";
         requestParams.setUpdatedWithin( updatedWithin );
 
-        EventOperationParams params = mapper.map( requestParams );
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( requestParams ) );
 
-        assertEquals( updatedAfter, params.getUpdatedAtStartDate() );
-        assertEquals( updatedBefore, params.getUpdatedAtEndDate() );
-        assertEquals( updatedWithin, params.getUpdatedAtDuration() );
+        assertEquals( "Last updated from and/or to and last updated duration cannot be specified simultaneously",
+            exception.getMessage() );
     }
 
     @Test

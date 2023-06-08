@@ -228,7 +228,7 @@ class EventExporterTest extends TrackerTest
     void testExportEventsWithLastUpdateDuration( Function<EventOperationParams, List<String>> eventFunction )
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() ).updatedAtDuration( "1d" )
+            .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() ).updatedWithin( "1d" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -243,9 +243,9 @@ class EventExporterTest extends TrackerTest
         Date date = new Date();
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .updatedAtStartDate( Date.from(
+            .updatedAfter( Date.from(
                 date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) )
-            .updatedAtEndDate( Date.from(
+            .updatedBefore( Date.from(
                 date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) )
             .build();
 
@@ -1030,7 +1030,7 @@ class EventExporterTest extends TrackerTest
     void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .scheduleAtStartDate( parseDate( "2021-02-28T13:05:00.000" ) ).build();
+            .scheduledAfter( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1041,7 +1041,7 @@ class EventExporterTest extends TrackerTest
     void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .scheduleAtStartDate( parseDate( "2018-02-28T13:05:00.000" ) ).build();
+            .scheduledAfter( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1052,7 +1052,7 @@ class EventExporterTest extends TrackerTest
     void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .scheduleAtEndDate( parseDate( "2018-02-28T13:05:00.000" ) ).build();
+            .scheduledBefore( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
         List<String> events = eventsFunction.apply( params );
 
@@ -1063,7 +1063,7 @@ class EventExporterTest extends TrackerTest
     void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .scheduleAtEndDate( parseDate( "2021-02-28T13:05:00.000" ) ).build();
+            .scheduledBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
         List<String> events = eventsFunction.apply( params );
 

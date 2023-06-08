@@ -48,7 +48,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
@@ -147,11 +146,11 @@ class EventRequestParamsMapper
                 UID.toValueSet( assignedUsers ) ) )
             .startDate( requestParams.getOccurredAfter() )
             .endDate( requestParams.getOccurredBefore() )
-            .scheduleAtStartDate( requestParams.getScheduledAfter() )
-            .scheduleAtEndDate( requestParams.getScheduledBefore() )
-            .updatedAtStartDate( requestParams.getUpdatedAfter() )
-            .updatedAtEndDate( requestParams.getUpdatedBefore() )
-            .updatedAtDuration( requestParams.getUpdatedWithin() )
+            .scheduledAfter( requestParams.getScheduledAfter() )
+            .scheduledBefore( requestParams.getScheduledBefore() )
+            .updatedAfter( requestParams.getUpdatedAfter() )
+            .updatedBefore( requestParams.getUpdatedBefore() )
+            .updatedWithin( requestParams.getUpdatedWithin() )
             .enrollmentEnrolledBefore( requestParams.getEnrollmentEnrolledBefore() )
             .enrollmentEnrolledAfter( requestParams.getEnrollmentEnrolledAfter() )
             .enrollmentOccurredBefore( requestParams.getEnrollmentOccurredBefore() )
@@ -333,18 +332,19 @@ class EventRequestParamsMapper
     }
 
     private void validateUpdateDurationParams( RequestParams requestParams )
+        throws BadRequestException
     {
         if ( requestParams.getUpdatedWithin() != null
             && (requestParams.getUpdatedAfter() != null || requestParams.getUpdatedBefore() != null) )
         {
-            throw new IllegalQueryException(
+            throw new BadRequestException(
                 "Last updated from and/or to and last updated duration cannot be specified simultaneously" );
         }
 
         if ( requestParams.getUpdatedWithin() != null
             && DateUtils.getDuration( requestParams.getUpdatedWithin() ) == null )
         {
-            throw new IllegalQueryException( "Duration is not valid: " + requestParams.getUpdatedWithin() );
+            throw new BadRequestException( "Duration is not valid: " + requestParams.getUpdatedWithin() );
         }
     }
 }
