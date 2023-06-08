@@ -92,7 +92,7 @@ class EventsExportController
     private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
-    private final EventRequestParamsMapper requestToSearchParams;
+    private final EventRequestParamsMapper eventParamsMapper;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
@@ -108,7 +108,7 @@ class EventsExportController
         throws BadRequestException,
         ForbiddenException
     {
-        EventOperationParams eventOperationParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
         if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
         {
@@ -140,7 +140,7 @@ class EventsExportController
         BadRequestException,
         ForbiddenException
     {
-        EventOperationParams eventOperationParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
         if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
         {
