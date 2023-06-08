@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
@@ -47,8 +49,6 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
