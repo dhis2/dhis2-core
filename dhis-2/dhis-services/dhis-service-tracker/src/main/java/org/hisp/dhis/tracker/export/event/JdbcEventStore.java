@@ -397,16 +397,23 @@ public class JdbcEventStore implements EventStore
                     note.setCreated( resultSet.getDate( "psinote_storeddate" ) );
                     note.setCreator( resultSet.getString( "psinote_storedby" ) );
 
-                    if ( resultSet.getObject( "usernoteupdated_id" ) != null )
+                    try
                     {
-                        User userNote = new User();
-                        userNote.setId( resultSet.getLong( "usernoteupdated_id" ) );
-                        userNote.setCode( resultSet.getString( "usernoteupdated_code" ) );
-                        userNote.setUid( resultSet.getString( "usernoteupdated_uid" ) );
-                        userNote.setUsername( resultSet.getString( "usernoteupdated_username" ) );
-                        userNote.setFirstName( resultSet.getString( "usernoteupdated_firstname" ) );
-                        userNote.setSurname( resultSet.getString( "usernoteupdated_surname" ) );
-                        note.setLastUpdatedBy( userNote );
+                        if ( resultSet.getObject( "usernoteupdated_id" ) != null )
+                        {
+                            User userNote = new User();
+                            userNote.setId( resultSet.getLong( "usernoteupdated_id" ) );
+                            userNote.setCode( resultSet.getString( "usernoteupdated_code" ) );
+                            userNote.setUid( resultSet.getString( "usernoteupdated_uid" ) );
+                            userNote.setUsername( resultSet.getString( "usernoteupdated_username" ) );
+                            userNote.setFirstName( resultSet.getString( "usernoteupdated_firstname" ) );
+                            userNote.setSurname( resultSet.getString( "usernoteupdated_surname" ) );
+                            note.setLastUpdatedBy( userNote );
+                        }
+                    }
+                    catch ( SQLException e )
+                    {
+                        log.error( e.getMessage() );
                     }
 
                     note.setLastUpdated( resultSet.getDate( "psinote_lastupdated" ) );
