@@ -10,6 +10,9 @@ Get a tracked entity with given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
 
+Get tracked entities enrolled in the specified `program`.
+When a `program` is specified, all the Tracked Entity attributes and the Program specific ones are included.
+
 ## Common for all endpoints
 
 ### `*.parameter.TrackedEntityRequestParams.query`
@@ -101,6 +104,11 @@ if `assignedUserMode` is either `PROVIDED` or not specified.
 ### `*.parameter.TrackedEntityRequestParams.includeDeleted`
 
 ### `*.parameter.TrackedEntityRequestParams.includeAllAttributes`
+
+Include in the response all the attributes linked to a Tracked Entity. By default, only the Tracked
+Entity attributes are returned, not the Program specific ones.
+If a `program` is specified, `includeAllAttributes` is ignored and all the Tracked Entity attributes 
+and the Program specific ones are included.
 
 ### `*.parameter.TrackedEntityRequestParams.potentialDuplicate`
 
