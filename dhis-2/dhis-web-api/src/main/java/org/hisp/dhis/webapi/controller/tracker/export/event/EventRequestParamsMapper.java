@@ -101,7 +101,7 @@ class EventRequestParamsMapper
             "events",
             requestParams.getEvents() );
 
-        validateFilter( requestParams.getFilter(), eventUids, requestParams.getProgramStage() );
+        validateFilter( requestParams.getFilter(), eventUids );
 
         Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
             "assignedUsers",
@@ -174,12 +174,7 @@ class EventRequestParamsMapper
             .includeDeleted( requestParams.isIncludeDeleted() ).build();
     }
 
-    private void validate()
-    {
-
-    }
-
-    private static void validateFilter( Set<String> filters, Set<UID> eventIds, UID programStage )
+    private static void validateFilter( Set<String> filters, Set<UID> eventIds )
         throws BadRequestException
     {
         if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )

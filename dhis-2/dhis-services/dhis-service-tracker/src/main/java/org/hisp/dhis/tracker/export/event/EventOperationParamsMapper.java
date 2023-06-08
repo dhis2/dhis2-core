@@ -244,7 +244,7 @@ public class EventOperationParamsMapper
         OrganisationUnit orgUnit )
         throws IllegalQueryException
     {
-        //TODO Should all these validations be moved to the web layer?
+        //Should all these validations be moved to the web layer?
         String violation = null;
 
         if ( params.hasUpdatedAtDuration() && (params.hasUpdatedAtStartDate() || params.hasUpdatedAtEndDate()) )
@@ -295,9 +295,7 @@ public class EventOperationParamsMapper
         case CAPTURE:
             violation = getCaptureScopeValidation( user );
             break;
-        case CHILDREN:
-        case SELECTED:
-        case DESCENDANTS:
+        case CHILDREN, SELECTED, DESCENDANTS:
             violation = params.getOrgUnitUid() == null
                 ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
                 : null;
