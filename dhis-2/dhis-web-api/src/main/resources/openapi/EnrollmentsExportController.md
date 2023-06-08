@@ -81,3 +81,10 @@ Get enrollments updated after given date.
 ### `*.parameter.EnrollmentRequestParams.updatedWithin`
 
 Get enrollments updated since given ISO-8601 duration.
+
+### `*.parameter.EnrollmentRequestParams.fields`
+
+Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+the JSON response and in some cases decrease the response time. Refer to
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
+for how to use it.
