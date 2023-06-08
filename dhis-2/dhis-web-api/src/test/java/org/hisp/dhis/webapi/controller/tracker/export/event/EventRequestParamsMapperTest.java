@@ -46,7 +46,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
@@ -54,7 +53,6 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
@@ -66,7 +64,7 @@ import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.common.UID;
@@ -122,19 +120,12 @@ class EventRequestParamsMapperTest
     @Mock
     private DataElementService dataElementService;
 
-    @Mock
-    private CategoryOptionComboService categoryOptionComboService;
-
     @InjectMocks
     private EventRequestParamsMapper mapper;
 
     private Program program;
 
-    private ProgramStage programStage;
-
     private OrganisationUnit ou;
-
-    private TrackedEntity trackedEntity;
 
     private TrackedEntityAttribute tea1;
 
@@ -149,7 +140,7 @@ class EventRequestParamsMapperTest
         when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( aclService.canDataRead( user, program ) ).thenReturn( true );
 
-        programStage = new ProgramStage();
+        ProgramStage programStage = new ProgramStage();
         programStage.setUid( "PlZSBEN7iZd" );
         when( programStageService.getProgramStage( "PlZSBEN7iZd" ) ).thenReturn( programStage );
         when( aclService.canDataRead( user, programStage ) ).thenReturn( true );
@@ -158,7 +149,7 @@ class EventRequestParamsMapperTest
         when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( ou );
         when( organisationUnitService.isInUserHierarchy( ou ) ).thenReturn( true );
 
-        trackedEntity = new TrackedEntity();
+        TrackedEntity trackedEntity = new TrackedEntity();
         when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( trackedEntity );
         tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
@@ -177,8 +168,7 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -192,109 +182,43 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingProgram()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setProgram( UID.of( PROGRAM_UID ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
-        assertEquals( program, params.getProgram() );
-    }
-
-    @Test
-    void testMappingProgramNotFound()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgram( UID.of( "NeU85luyD4w" ) );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( requestParams ) );
-        assertEquals( "Program is specified but does not exist: NeU85luyD4w", exception.getMessage() );
-    }
-
-    @Test
-    void testMappingProgramStage()
-        throws BadRequestException,
-        ForbiddenException
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgramStage( UID.of( "PlZSBEN7iZd" ) );
-
-        EventSearchParams params = mapper.map( requestParams );
-
-        assertEquals( programStage, params.getProgramStage() );
-    }
-
-    @Test
-    void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownProgramStage()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgramStage( UID.of( "NeU85luyD4w" ) );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( requestParams ) );
-        assertEquals( "Program stage is specified but does not exist: NeU85luyD4w", exception.getMessage() );
+        assertEquals( program.getUid(), params.getProgramUid() );
     }
 
     @Test
     void shouldReturnOrgUnitWhenCorrectOrgUnitMapped()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setOrgUnit( UID.of( ou.getUid() ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
-        assertEquals( ou, params.getOrgUnit() );
-    }
-
-    @Test
-    void shouldFailWithBadRequestExceptionWhenMappingCriteriaWithUnknownOrgUnit()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setOrgUnit( UID.of( "NeU85luyD4w" ) );
-        when( organisationUnitService.getOrganisationUnit( any() ) ).thenReturn( null );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "Org unit is specified but does not exist: NeU85luyD4w", exception.getMessage() );
+        assertEquals( ou.getUid(), params.getOrgUnitUid() );
     }
 
     @Test
     void testMappingTrackedEntity()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
-        assertEquals( trackedEntity, params.getTrackedEntity() );
-    }
-
-    @Test
-    void shouldFailWithBadRequestExceptionWhenTrackedEntityDoesNotExist()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setTrackedEntity( UID.of( "qnR1RK4cTIZ" ) );
-        when( entityInstanceService.getTrackedEntity( "qnR1RK4cTIZ" ) ).thenReturn( null );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertStartsWith( "Tracked entity is specified but does not exist: " + requestParams.getTrackedEntity(),
-            exception.getMessage() );
+        assertEquals( "qnR1RK4cTIZ", params.getTrackedEntityUid() );
     }
 
     @Test
     void testMappingOccurredAfterBefore()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -303,7 +227,7 @@ class EventRequestParamsMapperTest
         Date occurredBefore = parseDate( "2020-09-12" );
         requestParams.setOccurredBefore( occurredBefore );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( occurredAfter, params.getStartDate() );
         assertEquals( occurredBefore, params.getEndDate() );
@@ -311,8 +235,7 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingScheduledAfterBefore()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -321,7 +244,7 @@ class EventRequestParamsMapperTest
         Date scheduledBefore = parseDate( "2021-09-12" );
         requestParams.setScheduledBefore( scheduledBefore );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( scheduledAfter, params.getScheduleAtStartDate() );
         assertEquals( scheduledBefore, params.getScheduleAtEndDate() );
@@ -329,8 +252,7 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingUpdatedDates()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -341,7 +263,7 @@ class EventRequestParamsMapperTest
         String updatedWithin = "P6M";
         requestParams.setUpdatedWithin( updatedWithin );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( updatedAfter, params.getUpdatedAtStartDate() );
         assertEquals( updatedBefore, params.getUpdatedAtEndDate() );
@@ -350,8 +272,7 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingEnrollmentEnrolledAtDates()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -360,7 +281,7 @@ class EventRequestParamsMapperTest
         Date enrolledAfter = parseDate( "2022-02-01" );
         requestParams.setEnrollmentEnrolledAfter( enrolledAfter );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( enrolledBefore, params.getEnrollmentEnrolledBefore() );
         assertEquals( enrolledAfter, params.getEnrollmentEnrolledAfter() );
@@ -368,8 +289,7 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingEnrollmentOccurredAtDates()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -378,7 +298,7 @@ class EventRequestParamsMapperTest
         Date enrolledAfter = parseDate( "2022-02-01" );
         requestParams.setEnrollmentOccurredAfter( enrolledAfter );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( enrolledBefore, params.getEnrollmentOccurredBefore() );
         assertEquals( enrolledAfter, params.getEnrollmentOccurredAfter() );
@@ -386,16 +306,14 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingAttributeOrdering()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
         OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
         OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
         requestParams.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
-
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertAll(
             () -> assertContainsOnly( params.getAttributeOrders(),
@@ -405,66 +323,61 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingEnrollments()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
         requestParams.setEnrollments( Set.of( UID.of( "NQnuK2kLm6e" ) ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( Set.of( "NQnuK2kLm6e" ), params.getEnrollments() );
     }
 
     @Test
     void testMappingEvent()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
     void testMappingEvents()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setEvents( Set.of( UID.of( "XKrcfuM4Hcw" ), UID.of( "M4pNmLabtXl" ) ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertEquals( Set.of( "XKrcfuM4Hcw", "M4pNmLabtXl" ), params.getEvents() );
     }
 
     @Test
     void testMappingEventIsNull()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertIsEmpty( params.getEvents() );
     }
 
     @Test
     void testMappingAssignedUser()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setAssignedUser( "IsdLBTOBzMi;l5ab8q5skbB" );
         requestParams.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
             params.getAssignedUserQueryParam().getAssignedUsers() );
@@ -473,14 +386,13 @@ class EventRequestParamsMapperTest
 
     @Test
     void testMappingAssignedUsers()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setAssignedUsers( Set.of( UID.of( "IsdLBTOBzMi" ), UID.of( "l5ab8q5skbB" ) ) );
         requestParams.setAssignedUserMode( AssignedUserSelectionMode.PROVIDED );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
             params.getAssignedUserQueryParam().getAssignedUsers() );
@@ -501,13 +413,12 @@ class EventRequestParamsMapperTest
 
     @Test
     void shouldMapOrderParameterToOrderCriteriaWhenFieldsAreSortable()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setOrder( OrderCriteria.fromOrderString( "createdAt:asc,programStage:desc,scheduledAt:asc" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly( List.of(
             new OrderParam( "createdAt", SortDirection.ASC ),
@@ -534,13 +445,12 @@ class EventRequestParamsMapperTest
 
     @Test
     void testFilter()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         List<QueryItem> items = params.getFilters();
         assertNotNull( items );
@@ -568,14 +478,13 @@ class EventRequestParamsMapperTest
 
     @Test
     void testFilterAttributes()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
 
         RequestParams requestParams = new RequestParams();
         requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         List<QueryItem> items = params.getFilterAttributes();
         assertNotNull( items );
@@ -603,13 +512,12 @@ class EventRequestParamsMapperTest
 
     @Test
     void testFilterWhenDEHasMultipleFilters()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         List<QueryItem> items = params.getFilters();
         assertNotNull( items );
@@ -628,13 +536,12 @@ class EventRequestParamsMapperTest
 
     @Test
     void testFilterAttributesWhenTEAHasMultipleFilters()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         List<QueryItem> items = params.getFilterAttributes();
         assertNotNull( items );
@@ -685,127 +592,16 @@ class EventRequestParamsMapperTest
 
     @Test
     void testFilterAttributesUsingOnlyUID()
-        throws BadRequestException,
-        ForbiddenException
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setFilterAttributes( Set.of( TEA_1_UID ) );
 
-        EventSearchParams params = mapper.map( requestParams );
+        EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly(
             List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
                 tea1.isUnique() ) ),
             params.getFilterAttributes() );
-    }
-
-    @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgram( UID.of( program ) );
-        User user = new User();
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( aclService.canDataRead( user, program ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "User has no access to program: " + program.getUid(), exception.getMessage() );
-    }
-
-    @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setProgramStage( UID.of( programStage ) );
-        User user = new User();
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
-        when( aclService.canDataRead( user, programStage ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "User has no access to program stage: " + programStage.getUid(), exception.getMessage() );
-    }
-
-    @Test
-    void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( true );
-
-        EventSearchParams params = mapper.map( requestParams );
-
-        assertEquals( combo, params.getCategoryOptionCombo() );
-    }
-
-    @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
-            exception.getMessage() );
-    }
-
-    @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCos()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCos( "tqrzUqNMHib;bT6OSf4qnnk" );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
-            exception.getMessage() );
-    }
-
-    @Test
-    void shouldMapGivenAttributeCosWhenUserHasAccessToCategoryCombo()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCos( "tqrzUqNMHib;bT6OSf4qnnk" );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( true );
-
-        EventSearchParams params = mapper.map( requestParams );
-
-        assertEquals( combo, params.getCategoryOptionCombo() );
     }
 }

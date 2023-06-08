@@ -46,26 +46,16 @@ import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.feedback.ForbiddenException;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
-import org.hisp.dhis.program.Program;
-import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageService;
-import org.hisp.dhis.security.acl.AclService;
-import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
@@ -78,7 +68,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Maps query parameters from {@link EventsExportController} stored in
- * {@link RequestParams} to {@link EventSearchParams} which is used to fetch
+ * {@link RequestParams} to {@link EventOperationParams} which is used to fetch
  * events from the DB.
  */
 @Component
@@ -89,53 +79,29 @@ class EventRequestParamsMapper
 
     private final CurrentUserService currentUserService;
 
-    private final ProgramService programService;
-
-    private final OrganisationUnitService organisationUnitService;
-
-    private final ProgramStageService programStageService;
-
-    private final AclService aclService;
-
-    private final TrackedEntityService trackedEntityService;
-
     private final TrackedEntityAttributeService attributeService;
 
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
-    private final CategoryOptionComboService categoryOptionComboService;
-
-    public EventSearchParams map( RequestParams requestParams )
-        throws BadRequestException,
-        ForbiddenException
+    public EventOperationParams map( RequestParams requestParams )
+        throws BadRequestException
     {
-        Program program = validateProgram( requestParams.getProgram() );
-        ProgramStage programStage = validateProgramStage( requestParams.getProgramStage() );
-        OrganisationUnit orgUnit = validateOrgUnit( requestParams.getOrgUnit() );
-
         User user = currentUserService.getCurrentUser();
-        validateUser( user, program, programStage );
-
-        TrackedEntity trackedEntity = validateTrackedEntity( requestParams.getTrackedEntity() );
-
         UID attributeCategoryCombo = validateDeprecatedUidParameter( "attributeCc", requestParams.getAttributeCc(),
             "attributeCategoryCombo", requestParams.getAttributeCategoryCombo() );
+
         Set<UID> attributeCategoryOptions = validateDeprecatedUidsParameter( "attributeCos",
             requestParams.getAttributeCos(),
             "attributeCategoryOptions",
             requestParams.getAttributeCategoryOptions() );
-        CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
-            attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null,
-            UID.toValueSet( attributeCategoryOptions ),
-            true );
-        validateAttributeOptionCombo( attributeOptionCombo, user );
 
         Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
             "events",
             requestParams.getEvents() );
-        validateFilter( requestParams.getFilter(), eventUids, requestParams.getProgramStage(), programStage );
+
+        validateFilter( requestParams.getFilter(), eventUids, requestParams.getProgramStage() );
 
         Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
             "assignedUsers",
@@ -163,143 +129,62 @@ class EventRequestParamsMapper
             filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
         }
 
-        EventSearchParams params = new EventSearchParams();
-
-        return params.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
-            .setTrackedEntity( trackedEntity )
-            .setProgramStatus( requestParams.getProgramStatus() ).setFollowUp( requestParams.getFollowUp() )
-            .setOrgUnitSelectionMode( requestParams.getOuMode() )
-            .setUserWithAssignedUsers( requestParams.getAssignedUserMode(), user, UID.toValueSet( assignedUsers ) )
-            .setStartDate( requestParams.getOccurredAfter() ).setEndDate( requestParams.getOccurredBefore() )
-            .setScheduleAtStartDate( requestParams.getScheduledAfter() )
-            .setScheduleAtEndDate( requestParams.getScheduledBefore() )
-            .setUpdatedAtStartDate( requestParams.getUpdatedAfter() )
-            .setUpdatedAtEndDate( requestParams.getUpdatedBefore() )
-            .setUpdatedAtDuration( requestParams.getUpdatedWithin() )
-            .setEnrollmentEnrolledBefore( requestParams.getEnrollmentEnrolledBefore() )
-            .setEnrollmentEnrolledAfter( requestParams.getEnrollmentEnrolledAfter() )
-            .setEnrollmentOccurredBefore( requestParams.getEnrollmentOccurredBefore() )
-            .setEnrollmentOccurredAfter( requestParams.getEnrollmentOccurredAfter() )
-            .setEventStatus( requestParams.getStatus() )
-            .setCategoryOptionCombo( attributeOptionCombo ).setIdSchemes( requestParams.getIdSchemes() )
-            .setPage( requestParams.getPage() )
-            .setPageSize( requestParams.getPageSize() ).setTotalPages( requestParams.isTotalPages() )
-            .setSkipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
-            .setSkipEventId( requestParams.getSkipEventId() ).setIncludeAttributes( false )
-            .setIncludeAllDataElements( false ).addDataElements( dataElements )
-            .addFilters( filters ).addFilterAttributes( filterAttributes )
-            .addOrders( getOrderParams( requestParams.getOrder() ) )
-            .addGridOrders( dataElementOrderParams )
-            .addAttributeOrders( attributeOrderParams )
-            .setEvents( UID.toValueSet( eventUids ) )
-            .setEnrollments( UID.toValueSet( requestParams.getEnrollments() ) )
-            .setIncludeDeleted( requestParams.isIncludeDeleted() );
+        return EventOperationParams.builder()
+            .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
+            .programStageUid(
+                requestParams.getProgramStage() != null ? requestParams.getProgramStage().getValue() : null )
+            .orgUnitUid( requestParams.getOrgUnit() != null ? requestParams.getOrgUnit().getValue() : null )
+            .trackedEntityUid(
+                requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
+            .programStatus( requestParams.getProgramStatus() )
+            .followUp( requestParams.getFollowUp() )
+            .orgUnitSelectionMode( requestParams.getOuMode() )
+            .assignedUserQueryParam( new AssignedUserQueryParam( requestParams.getAssignedUserMode(), user,
+                UID.toValueSet( assignedUsers ) ) )
+            .startDate( requestParams.getOccurredAfter() )
+            .endDate( requestParams.getOccurredBefore() )
+            .scheduleAtStartDate( requestParams.getScheduledAfter() )
+            .scheduleAtEndDate( requestParams.getScheduledBefore() )
+            .updatedAtStartDate( requestParams.getUpdatedAfter() )
+            .updatedAtEndDate( requestParams.getUpdatedBefore() )
+            .updatedAtDuration( requestParams.getUpdatedWithin() )
+            .enrollmentEnrolledBefore( requestParams.getEnrollmentEnrolledBefore() )
+            .enrollmentEnrolledAfter( requestParams.getEnrollmentEnrolledAfter() )
+            .enrollmentOccurredBefore( requestParams.getEnrollmentOccurredBefore() )
+            .enrollmentOccurredAfter( requestParams.getEnrollmentOccurredAfter() )
+            .eventStatus( requestParams.getStatus() )
+            .attributeCategoryCombo( attributeCategoryCombo != null ? attributeCategoryCombo.getValue() : null )
+            .attributeCategoryOptions( UID.toValueSet( attributeCategoryOptions ) )
+            .idSchemes( requestParams.getIdSchemes() )
+            .page( requestParams.getPage() )
+            .pageSize( requestParams.getPageSize() )
+            .totalPages( requestParams.isTotalPages() )
+            .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
+            .skipEventId( requestParams.getSkipEventId() )
+            .includeAttributes( false )
+            .includeAllDataElements( false )
+            .dataElements( new HashSet<>( dataElements ) )
+            .filters( filters )
+            .filterAttributes( filterAttributes )
+            .orders( getOrderParams( requestParams.getOrder() ) )
+            .gridOrders( dataElementOrderParams )
+            .attributeOrders( attributeOrderParams )
+            .events( UID.toValueSet( eventUids ) )
+            .enrollments( UID.toValueSet( requestParams.getEnrollments() ) )
+            .includeDeleted( requestParams.isIncludeDeleted() ).build();
     }
 
-    private Program validateProgram( UID uid )
-        throws BadRequestException
+    private void validate()
     {
-        if ( uid == null )
-        {
-            return null;
-        }
 
-        Program program = programService.getProgram( uid.getValue() );
-        if ( program == null )
-        {
-            throw new BadRequestException( "Program is specified but does not exist: " + uid );
-        }
-
-        return program;
     }
 
-    private ProgramStage validateProgramStage( UID uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
-
-        ProgramStage programStage = programStageService.getProgramStage( uid.getValue() );
-        if ( programStage == null )
-        {
-            throw new BadRequestException( "Program stage is specified but does not exist: " + uid );
-        }
-
-        return programStage;
-    }
-
-    private OrganisationUnit validateOrgUnit( UID uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
-
-        OrganisationUnit orgUnit = organisationUnitService.getOrganisationUnit( uid.getValue() );
-        if ( orgUnit == null )
-        {
-            throw new BadRequestException( "Org unit is specified but does not exist: " + uid );
-        }
-
-        return orgUnit;
-    }
-
-    private void validateUser( User user, Program pr, ProgramStage ps )
-        throws ForbiddenException
-    {
-        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
-        {
-            throw new ForbiddenException( "User has no access to program: " + pr.getUid() );
-        }
-
-        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
-        {
-            throw new ForbiddenException( "User has no access to program stage: " + ps.getUid() );
-        }
-    }
-
-    private TrackedEntity validateTrackedEntity( UID uid )
-        throws BadRequestException
-    {
-        if ( uid == null )
-        {
-            return null;
-        }
-
-        TrackedEntity trackedEntity = trackedEntityService.getTrackedEntity( uid.getValue() );
-        if ( trackedEntity == null )
-        {
-            throw new BadRequestException( "Tracked entity is specified but does not exist: " + uid );
-        }
-
-        return trackedEntity;
-    }
-
-    private void validateAttributeOptionCombo( CategoryOptionCombo attributeOptionCombo, User user )
-        throws ForbiddenException
-    {
-        if ( attributeOptionCombo != null && !user.isSuper()
-            && !aclService.canDataRead( user, attributeOptionCombo ) )
-        {
-            throw new ForbiddenException(
-                "User has no access to attribute category option combo: " + attributeOptionCombo.getUid() );
-        }
-    }
-
-    private static void validateFilter( Set<String> filters, Set<UID> eventIds, UID programStage,
-        ProgramStage ps )
+    private static void validateFilter( Set<String> filters, Set<UID> eventIds, UID programStage )
         throws BadRequestException
     {
         if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
         {
             throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
-        }
-        if ( !CollectionUtils.isEmpty( filters ) && programStage != null && ps == null )
-        {
-            throw new BadRequestException( "ProgramStage needs to be specified for event filtering to work" );
         }
     }
 

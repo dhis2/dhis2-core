@@ -55,8 +55,8 @@ import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -108,14 +108,14 @@ class EventsExportController
         throws BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
         {
             return new PagingWrapper<ObjectNode>().withInstances( Collections.emptyList() );
         }
 
-        Events events = eventService.getEvents( eventSearchParams );
+        Events events = eventService.getEvents( eventOperationParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -140,14 +140,14 @@ class EventsExportController
         BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = requestToSearchParams.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
+        if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
         {
             return;
         }
 
-        Events events = eventService.getEvents( eventSearchParams );
+        Events events = eventService.getEvents( eventOperationParams );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
@@ -164,10 +164,10 @@ class EventsExportController
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
     }
 
-    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventSearchParams eventSearchParams )
+    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventOperationParams eventOperationParams )
     {
         return !CollectionUtils.isEmpty( requestParams.getEnrollments() ) &&
-            CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
+            CollectionUtils.isEmpty( eventOperationParams.getEnrollments() );
     }
 
     @OpenApi.Response( OpenApi.EntityType.class )
