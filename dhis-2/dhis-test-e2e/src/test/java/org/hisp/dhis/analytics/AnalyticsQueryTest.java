@@ -29,7 +29,6 @@ package org.hisp.dhis.analytics;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasSize;
-import static org.hisp.dhis.analytics.ValidationHelper.containsRow;
 import static org.hisp.dhis.analytics.ValidationHelper.validateRow;
 
 import java.util.List;
@@ -75,8 +74,8 @@ public class AnalyticsQueryTest extends AnalyticsApiTest
             .statusCode( 200 )
             .body( "rows", hasSize( equalTo( 2 ) ) );
 
-        containsRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "" ) );
-        containsRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance" ) );
+        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "" ) );
+        validateRow( response, List.of( "M3xtLkYBlKI.fyjPqlHE7Dn", "202107", "Some insecticide resistance" ) );
     }
 
     @Test
