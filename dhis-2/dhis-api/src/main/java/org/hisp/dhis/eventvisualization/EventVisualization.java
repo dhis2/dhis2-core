@@ -753,8 +753,7 @@ public class EventVisualization extends BaseAnalyticalObject
     {
         List<String> columns = getColumnDimensions();
         List<String> sortingDims = getSorting().stream()
-            .map( Sorting::getDimension )
-            .collect( toList() );
+            .map( Sorting::getDimension ).toList();
 
         sortingDims.forEach( dim -> {
             if ( isBlank( dim ) )
