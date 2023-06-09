@@ -436,6 +436,8 @@ public enum ErrorCode
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
     E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
+    E7235( "Sorting dimension cannot be blank" ),
+    E7236( "Sorting dimension ‘{0}’ is not a column" ),
 
     /* TEI analytics */
     E7250( "Dimension is not a fully qualified: `{0}`" ),
