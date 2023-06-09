@@ -44,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -160,11 +161,21 @@ class RelationshipsExportController
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
         if ( requestParams.isPagingRequest() )
         {
+            long count = 0L;
+
+            if ( requestParams.isTotalPages() )
+            {
+                count = tryGetRelationshipFrom(
+                    requestParams.getIdentifierClass(), requestParams.getIdentifierParam(),
+                    requestParams.getIdentifierName(),
+                    null ).size();
+            }
+
+            Pager pager = new Pager( requestParams.getPageWithDefault(), count,
+                requestParams.getPageSizeWithDefault() );
+
             pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( requestParams.getPage() )
-                    .pageSize( requestParams.getPageSize() )
-                    .build() );
+                PagingWrapper.Pager.fromLegacy( requestParams, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( relationships, requestParams.getFields() );

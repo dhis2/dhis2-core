@@ -140,7 +140,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     public @ResponseBody ResponseEntity<JsonNode> getObjectListGist(
         GistParams params, HttpServletRequest request )
     {
-        return gistToJsonArrayResponse( request, createGistQuery( params, getEntityClass(), GistAutoType.S ),
+        return gistToJsonArrayResponse( request, params, createGistQuery( params, getEntityClass(), GistAutoType.S ),
             getSchema() );
     }
 
@@ -175,7 +175,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
                 .withField( property ) );
         }
 
-        return gistToJsonArrayResponse( request, createPropertyQuery( uid, property, params, objProperty ),
+        return gistToJsonArrayResponse( request, params, createPropertyQuery( uid, property, params, objProperty ),
             schemaService.getDynamicSchema( objProperty.getItemKlass() ) );
     }
 
@@ -243,7 +243,7 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
     }
 
     private ResponseEntity<JsonNode> gistToJsonArrayResponse( HttpServletRequest request,
-        GistQuery query, Schema schema )
+        GistParams params, GistQuery query, Schema schema )
     {
         if ( query.isDescribe() )
         {
@@ -255,7 +255,8 @@ public abstract class AbstractGistReadOnlyController<T extends PrimaryKeyObject>
         JsonNode body = responseBuilder.skipNullOrEmpty().toArray( query.getFieldNames(), elements );
         if ( !query.isHeadless() )
         {
-            body = responseBuilder.toObject( asList( "pager", schema.getPlural() ),
+            String property = params.getPageListName() == null ? schema.getPlural() : params.getPageListName();
+            body = responseBuilder.toObject( asList( "pager", property ),
                 gistService.pager( query, elements, request.getParameterMap() ), body );
         }
         return ResponseEntity.ok().cacheControl( noCache().cachePrivate() ).body( body );
