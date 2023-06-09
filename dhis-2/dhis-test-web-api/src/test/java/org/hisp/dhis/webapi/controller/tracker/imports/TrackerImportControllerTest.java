@@ -116,7 +116,7 @@ class TrackerImportControllerTest extends DhisControllerConvenienceTest
     void shouldReturnBadRequestWhenInvalidImportStrategyIsPassed()
     {
         assertWebMessage( "Bad Request", 400, "ERROR",
-            "Value 'INVALID' is not valid for parameter importStrategy. Valid values are: [CREATE, UPDATE, PATCH, CREATE_AND_UPDATE, DELETE]",
+            "Value 'INVALID' is not valid for parameter importStrategy. Valid values are: [CREATE, UPDATE, CREATE_AND_UPDATE, DELETE]",
             POST( "/tracker?async=false&importStrategy=INVALID", "{}" ).content( HttpStatus.BAD_REQUEST ) );
     }
 
