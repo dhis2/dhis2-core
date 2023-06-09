@@ -342,12 +342,13 @@ class EventRequestParamsMapperTest
         OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
         OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
         requestParams.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
+        requestParams.setFilterAttributes( Set.of( tea1.getUid() ) );
         EventOperationParams params = mapper.map( requestParams );
 
         assertAll(
             () -> assertContainsOnly( params.getAttributeOrders(),
                 List.of( new OrderParam( TEA_1_UID, SortDirection.ASC ) ) ),
-            () -> assertContainsOnly( params.getFilterAttributes(), List.of( new QueryItem( tea1 ) ) ) );
+            () -> assertContainsOnly( params.getFilterAttributes(), Set.of( tea1.getUid() ) ) );
     }
 
     @Test
@@ -409,8 +410,8 @@ class EventRequestParamsMapperTest
         EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
-            params.getAssignedUserQueryParam().getAssignedUsers() );
-        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
+            params.getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode() );
     }
 
     @Test
@@ -424,8 +425,8 @@ class EventRequestParamsMapperTest
         EventOperationParams params = mapper.map( requestParams );
 
         assertContainsOnly( Set.of( "IsdLBTOBzMi", "l5ab8q5skbB" ),
-            params.getAssignedUserQueryParam().getAssignedUsers() );
-        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserQueryParam().getMode() );
+            params.getAssignedUsers() );
+        assertEquals( AssignedUserSelectionMode.PROVIDED, params.getAssignedUserMode() );
     }
 
     @Test
@@ -506,40 +507,6 @@ class EventRequestParamsMapperTest
     }
 
     @Test
-    void testFilterAttributes()
-        throws BadRequestException
-    {
-
-        RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
-
-        EventOperationParams params = mapper.map( requestParams );
-
-        List<QueryItem> items = params.getFilterAttributes();
-        assertNotNull( items );
-        // mapping to UIDs as the error message by just relying on QueryItem
-        // equals() is not helpful
-        assertContainsOnly( List.of( TEA_1_UID,
-            TEA_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
-
-        // QueryItem equals() does not take the QueryFilter into account so
-        // assertContainsOnly alone does not ensure operators and filter value
-        // are correct
-        // the following block is needed because of that
-        // assertion is order independent as the order of QueryItems is not
-        // guaranteed
-        Map<String, QueryFilter> expectedFilters = Map.of(
-            TEA_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
-            TEA_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
-        assertAll( items.stream().map( i -> (Executable) () -> {
-            String uid = i.getItem().getUid();
-            QueryFilter expected = expectedFilters.get( uid );
-            assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
-                () -> String.format( "QueryFilter mismatch for TEA with UID %s", uid ) );
-        } ).collect( Collectors.toList() ) );
-    }
-
-    @Test
     void testFilterWhenDEHasMultipleFilters()
         throws BadRequestException
     {
@@ -564,30 +531,6 @@ class EventRequestParamsMapperTest
     }
 
     @Test
-    void testFilterAttributesWhenTEAHasMultipleFilters()
-        throws BadRequestException
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
-
-        EventOperationParams params = mapper.map( requestParams );
-
-        List<QueryItem> items = params.getFilterAttributes();
-        assertNotNull( items );
-        // mapping to UIDs as the error message by just relying on QueryItem
-        // equals() is not helpful
-        assertContainsOnly( List.of( TEA_1_UID ),
-            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
-
-        // QueryItem equals() does not take the QueryFilter into account so
-        // assertContainsOnly alone does not ensure operators and filter value
-        // are correct
-        assertContainsOnly( Set.of(
-            new QueryFilter( QueryOperator.GT, "10" ),
-            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
-    }
-
-    @Test
     void shouldFailWithBadRequestExceptionWhenCriteriaDataElementDoesNotExist()
     {
         RequestParams requestParams = new RequestParams();
@@ -599,38 +542,5 @@ class EventRequestParamsMapperTest
             () -> mapper.map( requestParams ) );
 
         assertEquals( "Data element does not exist: " + filterName, exception.getMessage() );
-    }
-
-    @Test
-    void testFilterAttributesWhenTEAUidIsDuplicated()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes(
-            Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
-
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> mapper.map( requestParams ) );
-        assertAll(
-            () -> assertStartsWith( "filterAttributes contains duplicate tracked entity attribute",
-                exception.getMessage() ),
-            // order of TEA UIDs might not always be the same; therefore using
-            // contains
-            () -> assertContains( TEA_1_UID, exception.getMessage() ),
-            () -> assertContains( TEA_2_UID, exception.getMessage() ) );
-    }
-
-    @Test
-    void testFilterAttributesUsingOnlyUID()
-        throws BadRequestException
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID ) );
-
-        EventOperationParams params = mapper.map( requestParams );
-
-        assertContainsOnly(
-            List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
-                tea1.isUnique() ) ),
-            params.getFilterAttributes() );
     }
 }

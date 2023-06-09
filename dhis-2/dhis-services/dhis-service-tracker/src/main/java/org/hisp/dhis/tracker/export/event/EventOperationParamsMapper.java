@@ -28,12 +28,23 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
+import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseAttributeQueryItems;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -45,10 +56,13 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +92,8 @@ public class EventOperationParamsMapper
 
     private final CurrentUserService currentUserService;
 
+    private final TrackedEntityAttributeService attributeService;
+
     //For now this maps to EventSearchParams. We should create a new EventQueryParams class that should be used in the persistence layer
     @Transactional( readOnly = true )
     public EventSearchParams map( EventOperationParams operationParams )
@@ -100,14 +116,21 @@ public class EventOperationParamsMapper
 
         validateOperationParams( operationParams, user, program );
 
+        List<QueryItem> filterAttributes = parseFilterAttributes( operationParams.getFilterAttributes(),
+            operationParams.getAttributeOrders() );
+        validateFilterAttributes( filterAttributes );
+
         EventSearchParams searchParams = new EventSearchParams();
 
-        return searchParams.setProgram( program ).setProgramStage( programStage ).setOrgUnit( orgUnit )
+        return searchParams.setProgram( program )
+            .setProgramStage( programStage )
+            .setOrgUnit( orgUnit )
             .setTrackedEntity( trackedEntity )
             .setProgramStatus( operationParams.getProgramStatus() )
             .setFollowUp( operationParams.getFollowUp() )
             .setOrgUnitSelectionMode( operationParams.getOrgUnitSelectionMode() )
-            .setAssignedUserQueryParam( operationParams.getAssignedUserQueryParam() )
+            .setAssignedUserQueryParam( new AssignedUserQueryParam( operationParams.getAssignedUserMode(), user,
+                operationParams.getAssignedUsers() ) )
             .setStartDate( operationParams.getStartDate() )
             .setEndDate( operationParams.getEndDate() )
             .setScheduleAtStartDate( operationParams.getScheduledAfter() )
@@ -131,7 +154,7 @@ public class EventOperationParamsMapper
             .setIncludeAllDataElements( false )
             .addDataElements( operationParams.getDataElements() )
             .addFilters( operationParams.getFilters() )
-            .addFilterAttributes( operationParams.getFilterAttributes() )
+            .addFilterAttributes( filterAttributes )
             .addOrders( operationParams.getOrders() )
             .addGridOrders( operationParams.getGridOrders() )
             .addAttributeOrders( operationParams.getAttributeOrders() )
@@ -317,5 +340,62 @@ public class EventOperationParamsMapper
 
         return user.isSuper()
             || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
+    }
+
+    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
+        throws BadRequestException
+    {
+        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
+            .stream()
+            .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
+
+        List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
+        List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
+
+        return Stream.concat( filterItems.stream(), orderItems.stream() ).toList();
+    }
+
+    private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
+        Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
+    {
+        return attributeOrderParams.stream()
+            .map( OrderParam::getField )
+            .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
+            .map( attributes::get )
+            .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
+            .toList();
+    }
+
+    private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
+    {
+        for ( QueryItem item : attributeFilters )
+        {
+            if ( Objects.equals( item.getItem().getUid(), attributeUid ) )
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void validateFilterAttributes( List<QueryItem> queryItems )
+        throws BadRequestException
+    {
+        Set<String> attributes = new HashSet<>();
+        Set<String> duplicates = new HashSet<>();
+        for ( QueryItem item : queryItems )
+        {
+            if ( !attributes.add( item.getItemId() ) )
+            {
+                duplicates.add( item.getItemId() );
+            }
+        }
+
+        if ( !duplicates.isEmpty() )
+        {
+            throw new BadRequestException( String.format(
+                "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
+                String.join( ", ", duplicates ) ) );
+        }
     }
 }

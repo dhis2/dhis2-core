@@ -28,7 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
@@ -39,14 +38,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import lombok.RequiredArgsConstructor;
 
-import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
@@ -57,8 +53,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
-import org.hisp.dhis.user.CurrentUserService;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
@@ -78,10 +72,6 @@ class EventRequestParamsMapper
 {
     private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
-    private final CurrentUserService currentUserService;
-
-    private final TrackedEntityAttributeService attributeService;
-
     private final DataElementService dataElementService;
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
@@ -89,7 +79,6 @@ class EventRequestParamsMapper
     public EventOperationParams map( RequestParams requestParams )
         throws BadRequestException
     {
-        User user = currentUserService.getCurrentUser();
         UID attributeCategoryCombo = validateDeprecatedUidParameter( "attributeCc", requestParams.getAttributeCc(),
             "attributeCategoryCombo", requestParams.getAttributeCategoryCombo() );
 
@@ -120,10 +109,6 @@ class EventRequestParamsMapper
         List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
         List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
 
-        List<QueryItem> filterAttributes = parseFilterAttributes( requestParams.getFilterAttributes(),
-            attributeOrderParams );
-        validateFilterAttributes( filterAttributes );
-
         List<QueryItem> filters = new ArrayList<>();
         for ( String eventCriteria : requestParams.getFilter() )
         {
@@ -142,8 +127,8 @@ class EventRequestParamsMapper
             .programStatus( requestParams.getProgramStatus() )
             .followUp( requestParams.getFollowUp() )
             .orgUnitSelectionMode( requestParams.getOuMode() )
-            .assignedUserQueryParam( new AssignedUserQueryParam( requestParams.getAssignedUserMode(), user,
-                UID.toValueSet( assignedUsers ) ) )
+            .assignedUserMode( requestParams.getAssignedUserMode() )
+            .assignedUsers( UID.toValueSet( assignedUsers ) )
             .startDate( requestParams.getOccurredAfter() )
             .endDate( requestParams.getOccurredBefore() )
             .scheduledAfter( requestParams.getScheduledAfter() )
@@ -168,7 +153,7 @@ class EventRequestParamsMapper
             .includeAllDataElements( false )
             .dataElements( new HashSet<>( dataElements ) )
             .filters( filters )
-            .filterAttributes( filterAttributes )
+            .filterAttributes( requestParams.getFilterAttributes() )
             .orders( getOrderParams( requestParams.getOrder() ) )
             .gridOrders( dataElementOrderParams )
             .attributeOrders( attributeOrderParams )
@@ -183,63 +168,6 @@ class EventRequestParamsMapper
         if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
         {
             throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
-        }
-    }
-
-    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
-        throws BadRequestException
-    {
-        Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()
-            .stream()
-            .collect( Collectors.toMap( TrackedEntityAttribute::getUid, att -> att ) );
-
-        List<QueryItem> filterItems = parseAttributeQueryItems( filterAttributes, attributes );
-        List<QueryItem> orderItems = attributeQueryItemsFromOrder( filterItems, attributes, attributeOrderParams );
-
-        return Stream.concat( filterItems.stream(), orderItems.stream() ).toList();
-    }
-
-    private List<QueryItem> attributeQueryItemsFromOrder( List<QueryItem> filterAttributes,
-        Map<String, TrackedEntityAttribute> attributes, List<OrderParam> attributeOrderParams )
-    {
-        return attributeOrderParams.stream()
-            .map( OrderParam::getField )
-            .filter( att -> !containsAttributeFilter( filterAttributes, att ) )
-            .map( attributes::get )
-            .map( at -> new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet() ) )
-            .toList();
-    }
-
-    private boolean containsAttributeFilter( List<QueryItem> attributeFilters, String attributeUid )
-    {
-        for ( QueryItem item : attributeFilters )
-        {
-            if ( Objects.equals( item.getItem().getUid(), attributeUid ) )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private void validateFilterAttributes( List<QueryItem> queryItems )
-        throws BadRequestException
-    {
-        Set<String> attributes = new HashSet<>();
-        Set<String> duplicates = new HashSet<>();
-        for ( QueryItem item : queryItems )
-        {
-            if ( !attributes.add( item.getItemId() ) )
-            {
-                duplicates.add( item.getItemId() );
-            }
-        }
-
-        if ( !duplicates.isEmpty() )
-        {
-            throw new BadRequestException( String.format(
-                "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
-                String.join( ", ", duplicates ) ) );
         }
     }
 

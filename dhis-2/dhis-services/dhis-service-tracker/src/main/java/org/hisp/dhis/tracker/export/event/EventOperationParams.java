@@ -40,7 +40,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
-import org.hisp.dhis.common.AssignedUserQueryParam;
+import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -119,6 +119,10 @@ public class EventOperationParams
 
     private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
+    private AssignedUserSelectionMode assignedUserMode;
+
+    private Set<String> assignedUsers;
+
     private String trackedEntityUid;
 
     private Date startDate;
@@ -193,7 +197,7 @@ public class EventOperationParams
     private List<QueryItem> filters = new ArrayList<>();
 
     @Builder.Default
-    private List<QueryItem> filterAttributes = new ArrayList<>();
+    private Set<String> filterAttributes = new HashSet<>();
 
     /**
      * DataElements to be included in the response. Can be used to filter
@@ -217,10 +221,6 @@ public class EventOperationParams
     private Date skipChangedBefore;
 
     private Set<String> enrollments;
-
-    @Getter
-    @Builder.Default
-    private AssignedUserQueryParam assignedUserQueryParam = AssignedUserQueryParam.ALL;
 
     // -------------------------------------------------------------------------
     // Constructors
