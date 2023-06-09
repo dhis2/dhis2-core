@@ -235,7 +235,7 @@ public class EventVisualizationController
      * @param eventVisualization the {@link EventVisualization}.
      * @throws ConflictException if the {@link Sorting} attribute is not valid.
      */
-    private static void validateSorting( EventVisualization eventVisualization )
+    private void validateSorting( EventVisualization eventVisualization )
         throws ConflictException
     {
         try
