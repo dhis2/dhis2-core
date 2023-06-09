@@ -334,24 +334,6 @@ class EventRequestParamsMapperTest
     }
 
     @Test
-    void testMappingAttributeOrdering()
-        throws BadRequestException
-    {
-        RequestParams requestParams = new RequestParams();
-
-        OrderCriteria attributeOrder = OrderCriteria.of( TEA_1_UID, SortDirection.ASC );
-        OrderCriteria unknownAttributeOrder = OrderCriteria.of( "unknownAtt1", SortDirection.ASC );
-        requestParams.setOrder( List.of( attributeOrder, unknownAttributeOrder ) );
-        requestParams.setFilterAttributes( Set.of( tea1.getUid() ) );
-        EventOperationParams params = mapper.map( requestParams );
-
-        assertAll(
-            () -> assertContainsOnly( params.getAttributeOrders(),
-                List.of( new OrderParam( TEA_1_UID, SortDirection.ASC ) ) ),
-            () -> assertContainsOnly( params.getFilterAttributes(), Set.of( tea1.getUid() ) ) );
-    }
-
-    @Test
     void testMappingEnrollments()
         throws BadRequestException
     {

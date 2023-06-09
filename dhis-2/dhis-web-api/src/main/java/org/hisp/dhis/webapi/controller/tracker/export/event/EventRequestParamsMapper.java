@@ -49,8 +49,6 @@ import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
-import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
 import org.hisp.dhis.util.DateUtils;
@@ -73,8 +71,6 @@ class EventRequestParamsMapper
     private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
 
     private final DataElementService dataElementService;
-
-    private final TrackedEntityAttributeService trackedEntityAttributeService;
 
     public EventOperationParams map( RequestParams requestParams )
         throws BadRequestException
@@ -105,8 +101,6 @@ class EventRequestParamsMapper
             dataElements.add( parseQueryItem( order, this::dataElementToQueryItem ) );
         }
 
-        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( requestParams.getOrder() );
-        List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
         List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
 
         List<QueryItem> filters = new ArrayList<>();
@@ -156,7 +150,7 @@ class EventRequestParamsMapper
             .filterAttributes( requestParams.getFilterAttributes() )
             .orders( getOrderParams( requestParams.getOrder() ) )
             .gridOrders( dataElementOrderParams )
-            .attributeOrders( attributeOrderParams )
+            .attributeOrders( requestParams.getOrder() )
             .events( UID.toValueSet( eventUids ) )
             .enrollments( UID.toValueSet( requestParams.getEnrollments() ) )
             .includeDeleted( requestParams.isIncludeDeleted() ).build();
@@ -188,26 +182,6 @@ class EventRequestParamsMapper
             }
         }
         return dataElements;
-    }
-
-    private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
-    {
-        if ( allOrders == null )
-        {
-            return Collections.emptyMap();
-        }
-
-        Map<String, SortDirection> attributes = new HashMap<>();
-        for ( OrderCriteria orderCriteria : allOrders )
-        {
-            TrackedEntityAttribute attribute = trackedEntityAttributeService
-                .getTrackedEntityAttribute( orderCriteria.getField() );
-            if ( attribute != null )
-            {
-                attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
-            }
-        }
-        return attributes;
     }
 
     private QueryItem dataElementToQueryItem( String item )

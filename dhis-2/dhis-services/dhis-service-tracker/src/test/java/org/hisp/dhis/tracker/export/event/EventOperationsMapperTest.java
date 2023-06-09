@@ -61,6 +61,9 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -366,4 +369,27 @@ class EventOperationsMapperTest
             () -> assertContains( TEA_1_UID, exception.getMessage() ),
             () -> assertContains( TEA_2_UID, exception.getMessage() ) );
     }
+
+    @Test
+    void testMappingAttributeOrdering()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
+        tea1.setUid( TEA_1_UID );
+        when( trackedEntityAttributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1 ) );
+        when( trackedEntityAttributeService.getTrackedEntityAttribute( "TvjwTPToKHO" ) ).thenReturn( tea1 );
+        EventOperationParams operationParams = EventOperationParams.builder()
+            .attributeOrders( List.of( OrderCriteria.of( TEA_1_UID, SortDirection.ASC ),
+                OrderCriteria.of( "unknownAtt1", SortDirection.ASC ) ) )
+            .filterAttributes( Set.of( TEA_1_UID ) )
+            .build();
+
+        EventSearchParams params = mapper.map( operationParams );
+
+        assertAll(
+            () -> assertContainsOnly( params.getAttributeOrders(),
+                List.of( new OrderParam( TEA_1_UID, SortDirection.ASC ) ) ) );
+    }
+
 }

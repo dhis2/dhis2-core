@@ -79,6 +79,7 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
@@ -881,7 +882,7 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000" ) )
-            .attributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
@@ -898,7 +899,7 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000" ) )
-            .attributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
@@ -915,8 +916,8 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000", "toDelete000" ) )
-            .attributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
-                new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
+                OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
                 new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
             .build();
@@ -935,8 +936,8 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000", "toDelete000" ) )
-            .attributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
-                new OrderParam( "toUpdate000", SortDirection.ASC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
+                OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
                 new OrderParam( "toUpdate000", SortDirection.ASC ) ) )
             .build();
@@ -1069,7 +1070,7 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000" ) )
-            .attributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ),
                 new OrderParam( "enrolledAt", SortDirection.ASC ) ) )
             .build();
@@ -1088,7 +1089,7 @@ class EventExporterTest extends TrackerTest
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .filterAttributes( Set.of( "toUpdate000" ) )
-            .attributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
                 new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
             .build();

@@ -30,6 +30,8 @@ package org.hisp.dhis.tracker.export.event;
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseAttributeQueryItems;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +65,8 @@ import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -94,6 +98,8 @@ public class EventOperationParamsMapper
 
     private final TrackedEntityAttributeService attributeService;
 
+    private final TrackedEntityAttributeService trackedEntityAttributeService;
+
     //For now this maps to EventSearchParams. We should create a new EventQueryParams class that should be used in the persistence layer
     @Transactional( readOnly = true )
     public EventSearchParams map( EventOperationParams operationParams )
@@ -116,8 +122,11 @@ public class EventOperationParamsMapper
 
         validateOperationParams( operationParams, user, program );
 
+        Map<String, SortDirection> attributeOrders = getAttributesFromOrder( operationParams.getAttributeOrders() );
+        List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
+
         List<QueryItem> filterAttributes = parseFilterAttributes( operationParams.getFilterAttributes(),
-            operationParams.getAttributeOrders() );
+            attributeOrderParams );
         validateFilterAttributes( filterAttributes );
 
         EventSearchParams searchParams = new EventSearchParams();
@@ -157,7 +166,7 @@ public class EventOperationParamsMapper
             .addFilterAttributes( filterAttributes )
             .addOrders( operationParams.getOrders() )
             .addGridOrders( operationParams.getGridOrders() )
-            .addAttributeOrders( operationParams.getAttributeOrders() )
+            .addAttributeOrders( attributeOrderParams )
             .setEvents( operationParams.getEvents() )
             .setEnrollments( operationParams.getEnrollments() )
             .setIncludeDeleted( operationParams.isIncludeDeleted() );
@@ -397,5 +406,32 @@ public class EventOperationParamsMapper
                 "filterAttributes contains duplicate tracked entity attribute (TEA): %s. Multiple filters for the same TEA can be specified like 'uid:gt:2:lt:10'",
                 String.join( ", ", duplicates ) ) );
         }
+    }
+
+    private Map<String, SortDirection> getAttributesFromOrder( List<OrderCriteria> allOrders )
+    {
+        if ( allOrders == null )
+        {
+            return Collections.emptyMap();
+        }
+
+        Map<String, SortDirection> attributes = new HashMap<>();
+        for ( OrderCriteria orderCriteria : allOrders )
+        {
+            TrackedEntityAttribute attribute = trackedEntityAttributeService
+                .getTrackedEntityAttribute( orderCriteria.getField() );
+            if ( attribute != null )
+            {
+                attributes.put( orderCriteria.getField(), orderCriteria.getDirection() );
+            }
+        }
+        return attributes;
+    }
+
+    private List<OrderParam> mapToOrderParams( Map<String, SortDirection> orders )
+    {
+        return orders.entrySet().stream()
+            .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
+            .toList();
     }
 }

@@ -48,6 +48,7 @@ import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 /**
  * @author Lars Helge Overland
@@ -179,7 +180,7 @@ public class EventOperationParams
     private List<OrderParam> gridOrders = new ArrayList<>();
 
     @Builder.Default
-    private List<OrderParam> attributeOrders = new ArrayList<>();
+    private List<OrderCriteria> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
 
