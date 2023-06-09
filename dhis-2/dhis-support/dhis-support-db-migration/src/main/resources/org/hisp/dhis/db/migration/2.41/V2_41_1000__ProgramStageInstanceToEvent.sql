@@ -1,0 +1,1 @@
+alter table if exists programstageinstance rename to event;

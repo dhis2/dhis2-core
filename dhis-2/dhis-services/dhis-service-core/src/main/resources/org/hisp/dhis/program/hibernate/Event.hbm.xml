@@ -4,7 +4,7 @@
   "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
 
 <hibernate-mapping>
-  <class name="org.hisp.dhis.program.Event" table="programstageinstance">
+  <class name="org.hisp.dhis.program.Event" table="event">
 
     <id name="id" column="programstageinstanceid">
       <generator class="sequence">
