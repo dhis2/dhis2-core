@@ -34,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -189,6 +190,7 @@ class CopyServiceTest extends DhisConvenienceTest
 
         assertNotEquals( original.getUid(), programCopy.getUid() );
         assertTrue( CodeGenerator.isValidUid( programCopy.getUid() ) );
+        verify( enrollmentService, never() ).addEnrollment( any( Enrollment.class ) );
     }
 
     @Test
@@ -196,6 +198,7 @@ class CopyServiceTest extends DhisConvenienceTest
     {
         when( programService.getProgram( INVALID_PROGRAM_UID ) ).thenReturn( null );
         assertThrows(NotFoundException.class, () -> copyService.copyProgramFromUid( INVALID_PROGRAM_UID, Map.of() ));
+        verify( programService,never() ).addProgram( any( Program.class ) );
     }
 
     @Test
