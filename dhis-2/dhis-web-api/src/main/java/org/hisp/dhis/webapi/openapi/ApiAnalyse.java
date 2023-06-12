@@ -43,6 +43,7 @@ import java.lang.reflect.Parameter;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.lang.reflect.WildcardType;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.IdentityHashMap;
@@ -61,7 +62,6 @@ import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.Value;
 
 import org.hisp.dhis.common.EmbeddedObject;
 import org.hisp.dhis.common.IdentifiableObject;
@@ -105,26 +105,13 @@ final class ApiAnalyse
      * The included classes can be filtered based on REST API resource path or
      * {@link OpenApi.Tags} present on the controller class level. Method level
      * path and tags will not be considered for this filter.
+     *
+     * @param controllers controllers all potential controllers
+     * @param paths filter based on resource path (empty includes all)
+     * @param tags filter based on tags (empty includes all)
      */
-    @Value
-    static class Scope
+    record Scope( Set<Class<?>> controllers, Set<String> paths, Set<String> tags )
     {
-
-        /**
-         * controllers all potential controllers
-         *
-         */
-        Set<Class<?>> controllers;
-
-        /**
-         * filter based on resource path (empty includes all)
-         */
-        Set<String> paths;
-
-        /**
-         * filter based on tags (empty includes all)
-         */
-        Set<String> tags;
     }
 
     private static final Map<Class<?>, Api.SchemaGenerator> GENERATORS = new ConcurrentHashMap<>();
@@ -150,7 +137,6 @@ final class ApiAnalyse
 
     /**
      * Create an {@link Api} model from controller {@link Class}.
-     *
      *
      * @return the {@link Api} for all controllers matching both of the filters
      */
@@ -204,16 +190,16 @@ final class ApiAnalyse
             : Stream.concat( stream( source.getDeclaredMethods() ), methodsIn( source.getSuperclass() ) );
     }
 
-    private static Api.Endpoint analyseEndpoint( Api.Controller controller, Mapping mapping )
+    private static Api.Endpoint analyseEndpoint( Api.Controller controller, EndpointMapping mapping )
     {
-        Method source = mapping.getSource();
-        String name = mapping.getName().isEmpty() ? source.getName() : mapping.getName();
+        Method source = mapping.source();
+        String name = mapping.name().isEmpty() ? source.getName() : mapping.name();
         Class<?> entityClass = getAnnotated( source, OpenApi.EntityType.class, OpenApi.EntityType::value,
             c -> c != OpenApi.EntityType.class,
             controller::getEntityClass );
 
         // request media types
-        Set<MediaType> consumes = stream( mapping.getConsumes() ).map( MediaType::parseMediaType ).collect( toSet() );
+        Set<MediaType> consumes = mapping.consumes().stream().map( MediaType::parseMediaType ).collect( toSet() );
         if ( consumes.isEmpty() )
         {
             // assume JSON if nothing is set explicitly
@@ -224,10 +210,10 @@ final class ApiAnalyse
             ConsistentAnnotatedElement.of( source ).isAnnotationPresent( Deprecated.class ) ? Boolean.TRUE : null );
 
         whenAnnotated( source, OpenApi.Tags.class, a -> endpoint.getTags().addAll( List.of( a.value() ) ) );
-        Stream.of( mapping.getPath() )
+        mapping.path().stream()
             .map( path -> path.endsWith( "/" ) ? path.substring( 0, path.length() - 1 ) : path )
             .forEach( path -> endpoint.getPaths().add( path ) );
-        endpoint.getMethods().addAll( Set.of( mapping.method ) );
+        endpoint.getMethods().addAll( mapping.method );
 
         // request:
         analyseParameters( endpoint, consumes );
@@ -238,11 +224,11 @@ final class ApiAnalyse
         return endpoint;
     }
 
-    private static Map<HttpStatus, Api.Response> analyseResponses( Api.Endpoint endpoint, Mapping mapping,
+    private static Map<HttpStatus, Api.Response> analyseResponses( Api.Endpoint endpoint, EndpointMapping mapping,
         Set<MediaType> consumes )
     {
-        Method source = mapping.getSource();
-        Set<MediaType> produces = stream( mapping.getProduces() )
+        Method source = mapping.source();
+        Set<MediaType> produces = mapping.produces().stream()
             .map( MediaType::parseMediaType )
             .collect( toSet() );
         if ( produces.isEmpty() )
@@ -291,7 +277,7 @@ final class ApiAnalyse
     {
         List<HttpStatus> statuses = response.status().length == 0
             ? defaultStatuses
-            : stream( response.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() );
+            : stream( response.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).toList();
         Set<Api.Header> headers = stream( response.headers() )
             .map( header -> new Api.Header( header.name(), header.description(),
                 analyseParamSchema( endpoint, null, response.value() ) ) )
@@ -321,15 +307,15 @@ final class ApiAnalyse
             if ( p.isAnnotationPresent( OpenApi.Param.class ) )
             {
                 OpenApi.Param a = p.getAnnotation( OpenApi.Param.class );
-                Param param = getParam( p );
-                String name = firstNonEmpty( a.name(), param == null ? "" : param.getName(), p.getName() );
-                Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.getIn();
-                boolean required = param == null ? a.required() : param.isRequired();
+                EndpointParam param = getParam( p );
+                String name = firstNonEmpty( a.name(), param == null ? "" : param.name(), p.getName() );
+                Api.Parameter.In in = param == null ? Api.Parameter.In.QUERY : param.in();
+                boolean required = param == null ? a.required() : param.required();
                 Api.Schema type = analyseParamSchema( endpoint, p.getParameterizedType(), a.value() );
                 if ( in != Api.Parameter.In.BODY )
                 {
                     endpoint.getParameters().computeIfAbsent( name,
-                        key -> new Api.Parameter( p, null, key, in, required, type ) );
+                        key -> new Api.Parameter( p, key, in, required, type ) );
                 }
                 else
                 {
@@ -343,7 +329,7 @@ final class ApiAnalyse
                 PathVariable a = p.getAnnotation( PathVariable.class );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.PATH, a.required(),
+                    key -> new Api.Parameter( p, key, Api.Parameter.In.PATH, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestParam.class ) && p.getType() != Map.class )
@@ -351,7 +337,7 @@ final class ApiAnalyse
                 RequestParam a = p.getAnnotation( RequestParam.class );
                 String name = firstNonEmpty( a.name(), a.value(), p.getName() );
                 endpoint.getParameters().computeIfAbsent( name,
-                    key -> new Api.Parameter( p, null, key, Api.Parameter.In.QUERY, a.required(),
+                    key -> new Api.Parameter( p, key, Api.Parameter.In.QUERY, a.required(),
                         analyseInputSchema( endpoint, p.getParameterizedType() ) ) );
             }
             else if ( p.isAnnotationPresent( RequestBody.class ) )
@@ -386,7 +372,7 @@ final class ApiAnalyse
             return;
         }
         endpoint.getParameters().put( name,
-            new Api.Parameter( endpoint.getSource(), null, name, Api.Parameter.In.QUERY, required, wrapped ) );
+            new Api.Parameter( endpoint.getSource(), name, Api.Parameter.In.QUERY, required, wrapped ) );
     }
 
     private static void analyseParams( Api.Endpoint endpoint, OpenApi.Params params )
@@ -400,29 +386,41 @@ final class ApiAnalyse
         if ( isSharable( paramsObject, false ) )
         {
             OpenApi.Shared shared = paramsObject.getAnnotation( OpenApi.Shared.class );
-            Map<String, Api.Parameter> sharedParameters = endpoint.getIn().getIn().getParameters();
-            String baseName = shared.name().isEmpty() ? paramsObject.getSimpleName() : shared.name();
-            Function<Property, String> toName = property -> baseName + "." + property.getName();
-            properties.forEach( property -> sharedParameters
-                .computeIfAbsent( toName.apply( property ), name -> analyseParameter( endpoint, property, name ) ) );
-            properties.forEach( property -> endpoint.getParameters()
-                .computeIfAbsent( toName.apply( property ), sharedParameters::get ) );
+            Api api = endpoint.getIn().getIn();
+            Map<Class<?>, List<Api.Parameter>> sharedParameters = api.getComponents().getParameters();
+            properties.forEach( property -> {
+                Api.Parameter parameter = analyseParameter( endpoint, property );
+                parameter.getSharedName().setValue( getSharedName( paramsObject, shared ) );
+                sharedParameters.computeIfAbsent( paramsObject, e -> new ArrayList<>() ).add( parameter );
+                endpoint.getParameters().put( parameter.getName(), parameter );
+            } );
         }
         else
         {
             properties.forEach( property -> endpoint.getParameters()
-                .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property, null ) ) );
+                .computeIfAbsent( property.getName(), name -> analyseParameter( endpoint, property ) ) );
         }
     }
 
-    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property, String globalName )
+    private static String getSharedName( Class<?> type, OpenApi.Shared value )
+    {
+        if ( value == null )
+            return null;
+        if ( !value.name().isEmpty() )
+            return value.name();
+        if ( value.pattern() != OpenApi.Shared.Pattern.DEFAULT )
+            return String.format( value.pattern().getTemplate(), type.getSimpleName() );
+        return null;
+    }
+
+    private static Api.Parameter analyseParameter( Api.Endpoint endpoint, Property property )
     {
         AnnotatedElement member = (AnnotatedElement) property.getSource();
         Type type = property.getType();
         Api.Schema schema = type instanceof Class && isGeneratorType( (Class<?>) type )
             ? analyseGeneratorSchema( endpoint, type, member.getAnnotation( OpenApi.Property.class ).value() )
             : analyseInputSchema( endpoint, getSubstitutedType( endpoint, property, member ) );
-        return new Api.Parameter( member, globalName, property.getName(), Api.Parameter.In.QUERY, false, schema );
+        return new Api.Parameter( member, property.getName(), Api.Parameter.In.QUERY, false, schema );
     }
 
     private static Api.Schema analyseParamSchema( Api.Endpoint endpoint, Type source, Class<?>... oneOf )
@@ -483,7 +481,7 @@ final class ApiAnalyse
 
     /**
      * The centerpiece of the type analysis.
-     *
+     * <p>
      * Some important aspects to understand:
      * <ul>
      * <li>Only {@link Class} types (named types in Java) that never transform
@@ -512,6 +510,11 @@ final class ApiAnalyse
         }
         boolean sharable = isSharable( rawType, true );
         UnaryOperator<Api.Schema> resolvedTo = schema -> {
+            if ( schema.isShared() )
+            {
+                schema.getSharedName()
+                    .setValue( getSharedName( rawType, rawType.getAnnotation( OpenApi.Shared.class ) ) );
+            }
             resolving.put( rawType, schema );
             return schema;
         };
@@ -529,7 +532,7 @@ final class ApiAnalyse
             }
             boolean alwaysSimple = isSimpleType( type );
             Collection<Property> properties = alwaysSimple ? List.of() : getProperties( type );
-            boolean named = sharable && Api.Schema.isNamed( type );
+            boolean named = sharable && isShared( type );
             if ( alwaysSimple || properties.isEmpty() )
             {
                 return resolvedTo.apply( new Api.Schema( Api.Schema.Type.SIMPLE, named, type, type ) );
@@ -573,23 +576,21 @@ final class ApiAnalyse
     private static Api.Schema analyseTypeSchema( Api.Endpoint endpoint, Type source, boolean useRefs,
         Map<Class<?>, Api.Schema> resolving )
     {
-        if ( source instanceof Class<?> )
+        if ( source instanceof Class<?> type )
         {
-            Class<?> type = (Class<?>) source;
             if ( useRefs && isReferencableType( type ) )
             {
                 return Api.Schema.ref( type );
             }
             if ( useRefs && isReferencableArrayType( type ) )
             {
-                return new Api.Schema( Api.Schema.Type.ARRAY, type, type )
+                return new Api.Schema( Api.Schema.Type.ARRAY, false, type, type )
                     .withElements( Api.Schema.ref( type.getComponentType() ) );
             }
             return analyseClassSchema( endpoint, type, resolving );
         }
-        if ( source instanceof ParameterizedType )
+        if ( source instanceof ParameterizedType pt )
         {
-            ParameterizedType pt = (ParameterizedType) source;
             Class<?> rawType = (Class<?>) pt.getRawType();
             if ( rawType == Class.class )
             {
@@ -606,7 +607,7 @@ final class ApiAnalyse
             }
             if ( Map.class.isAssignableFrom( rawType ) && rawType.isInterface() )
             {
-                return new Api.Schema( Api.Schema.Type.OBJECT, source, rawType ).withEntries(
+                return new Api.Schema( Api.Schema.Type.OBJECT, isShared( rawType ), source, rawType ).withEntries(
                     analyseTypeSchema( endpoint, typeArg0, false, resolving ),
                     analyseTypeSchema( endpoint, pt.getActualTypeArguments()[1], useRefs, resolving ) );
             }
@@ -617,9 +618,8 @@ final class ApiAnalyse
             }
             return Api.Schema.unknown( source );
         }
-        if ( source instanceof WildcardType )
+        if ( source instanceof WildcardType wt )
         {
-            WildcardType wt = (WildcardType) source;
             if ( wt.getLowerBounds().length == 0
                 && Arrays.equals( wt.getUpperBounds(), new Type[] { Object.class } ) )
                 return Api.Schema.unknown( wt );
@@ -627,6 +627,17 @@ final class ApiAnalyse
             return analyseTypeSchema( endpoint, wt.getUpperBounds()[0], useRefs, resolving );
         }
         return Api.Schema.unknown( source );
+    }
+
+    private static boolean isShared( Class<?> source )
+    {
+        String name = source.getName();
+        return !source.isPrimitive()
+            && !source.isEnum()
+            && !source.isArray()
+            && !name.startsWith( "java.lang" )
+            && !name.startsWith( "java.util" )
+            && !OpenApiGenerator.isSimpleType( source );
     }
 
     private static boolean isReferencableType( Class<?> type )
@@ -744,7 +755,7 @@ final class ApiAnalyse
         return a != null && stream( firstNonEmpty( a.value(), a.path() ) ).anyMatch( included::contains );
     }
 
-    private static Mapping getMapping( Method source )
+    private static EndpointMapping getMapping( Method source )
     {
         if ( ConsistentAnnotatedElement.of( source ).isAnnotationPresent( OpenApi.Ignore.class ) )
         {
@@ -753,60 +764,60 @@ final class ApiAnalyse
         if ( source.isAnnotationPresent( RequestMapping.class ) )
         {
             RequestMapping a = source.getAnnotation( RequestMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 a.method(), a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( GetMapping.class ) )
         {
             GetMapping a = source.getAnnotation( GetMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.GET }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PutMapping.class ) )
         {
             PutMapping a = source.getAnnotation( PutMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.PUT }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PostMapping.class ) )
         {
             PostMapping a = source.getAnnotation( PostMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.POST }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( PatchMapping.class ) )
         {
             PatchMapping a = source.getAnnotation( PatchMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.PATCH }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         if ( source.isAnnotationPresent( DeleteMapping.class ) )
         {
             DeleteMapping a = source.getAnnotation( DeleteMapping.class );
-            return new Mapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
+            return new EndpointMapping( source, a.name(), firstNonEmpty( a.value(), a.path(), ROOT_PATH ),
                 new RequestMethod[] { RequestMethod.DELETE }, a.params(), a.headers(), a.consumes(), a.produces() );
         }
         return null;
     }
 
-    private static Param getParam( Parameter source )
+    private static EndpointParam getParam( Parameter source )
     {
         if ( source.isAnnotationPresent( PathVariable.class ) )
         {
             PathVariable a = source.getAnnotation( PathVariable.class );
-            return new Param( Api.Parameter.In.PATH, firstNonEmpty( a.name(), a.value() ), a.required() );
+            return new EndpointParam( Api.Parameter.In.PATH, firstNonEmpty( a.name(), a.value() ), a.required() );
         }
         if ( source.isAnnotationPresent( RequestParam.class ) )
         {
             RequestParam a = source.getAnnotation( RequestParam.class );
             boolean required = a.required()
                 && a.defaultValue().equals( "\n\t\t\n\t\t\n\ue000\ue001\ue002\n\t\t\t\t\n" );
-            return new Param( Api.Parameter.In.QUERY, firstNonEmpty( a.name(), a.value() ), required );
+            return new EndpointParam( Api.Parameter.In.QUERY, firstNonEmpty( a.name(), a.value() ), required );
         }
         if ( source.isAnnotationPresent( RequestBody.class ) )
         {
             RequestBody a = source.getAnnotation( RequestBody.class );
-            return new Param( Api.Parameter.In.BODY, "", a.required() );
+            return new EndpointParam( Api.Parameter.In.BODY, "", a.required() );
         }
         return null;
     }
@@ -852,35 +863,17 @@ final class ApiAnalyse
         return stream( samples ).filter( e -> e != to ).findFirst().orElse( samples[0] );
     }
 
-    @Value
-    static class Mapping
+    record EndpointMapping( Method source, String name, List<String> path, Set<RequestMethod> method, List<String> params,
+        List<String> headers, List<String> consumes, List<String> produces )
     {
-        Method source;
-
-        String name;
-
-        String[] path;
-
-        RequestMethod[] method;
-
-        String[] params;
-
-        String[] headers;
-
-        String[] consumes;
-
-        String[] produces;
+        EndpointMapping( Method source, String name, String[] path, RequestMethod[] method, String[] params,
+            String[] headers, String[] consumes, String[] produces) {
+            this(source, name, List.of(path), Set.of(method), List.of(params), List.of(headers), List.of(consumes), List.of(produces));
+        }
     }
 
-    @Value
-    static class Param
+    record EndpointParam( Api.Parameter.In in, String name, boolean required )
     {
-
-        Api.Parameter.In in;
-
-        String name;
-
-        boolean required;
     }
 
     /*

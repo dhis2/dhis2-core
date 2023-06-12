@@ -84,7 +84,11 @@ Get events with enrollments that were enrolled before given date.
 
 ### `*.parameter.EventRequestParams.status`
 
+### `*.parameter.EventRequestParams.attributeCategoryCombo`
+
 ### `*.parameter.EventRequestParams.attributeCc`
+
+**DEPRECATED as of 2.41:** Use parameter `attributeCategoryCombo` instead.
 
 ### `*.parameter.EventRequestParams.attributeCategoryOptions`
 
@@ -127,3 +131,73 @@ Supported properties are `assignedUser`, `assignedUserDisplayName`, `attributeOp
 `completedBy`, `createdAt`, `createdBy`, `deleted`, `enrolledAt`, `enrollment`, `enrollmentStatus`, `event`, `followup`,
 `occurredAt`, `orgUnit`, `orgUnitName`, `program`, `programStage`, `scheduleAt`, `status`, `storedBy`, `trackedEntity`,
 `updatedAt`, `updatedBy`.
+
+### `*.parameter.EventRequestParams.fields`
+
+Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+the JSON response and in some cases decrease the response time. Refer to
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
+for how to use it.
+
+NOTE: this query parameter has no effect on a CSV response!
+
+### `*.parameter.EventRequestParams.filter`
+
+`<filter1>[,<filter2>...]`
+
+Get events matching given filters on data values. A filter is a colon separated data element UID with operator and value
+pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` followed by a value. Special characters
+like `+` need to be percent-encoded so `%2B` instead of `+`. Multiple operator/value pairs for the same data element
+like `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same data element UID is not allowed.
+Operator and values are case-insensitive. A user needs metadata read access to the data element and data read access to
+the program (if the program is without registration) or the program stage (if the program is with registration).
+
+Valid operators are:
+
+- `EQ` - equal to
+- `IEQ` - equal to
+- `GE` - greater than or equal to
+- `GT` - greater than
+- `LE` - less than or equal to
+- `LT` - less than
+- `NE` - not equal to
+- `NEQ` - not equal to
+- `NIEQ` - not equal to
+- `IN` - equal to one of the multiple values separated by semicolon ";"
+- `ILIKE` - is like (case-insensitive)
+- `LIKE` - like (free text match)
+- `NILIKE` - not like
+- `NLIKE` - not like
+- `SW` - starts with
+- `EW` - ends with
+
+### `*.parameter.EventRequestParams.filterAttributes`
+
+`<filter1>[,<filter2>...]`
+
+Get events matching given filters on tracked entity attributes. A filter is a colon separated attribute UID with
+optional operator and value pairs. Example: `filter=H9IlTX2X6SL:sw:A` with operator starts with `sw` followed by a
+value. Special characters like `+` need to be percent-encoded so `%2B` instead of `+`. Multiple operator/value pairs for
+the same attribute like `filter=AuPLng5hLbE:gt:438901703:lt:448901704` are allowed. Repeating the same attribute UID is
+not allowed. Operator and values are case-insensitive. A user needs metadata read access to the attribute and data
+read access to the program (if the program is without registration) or to the program stage (if the program is with
+registration).
+
+Valid operators are:
+
+- `EQ` - equal to
+- `IEQ` - equal to
+- `GE` - greater than or equal to
+- `GT` - greater than
+- `LE` - less than or equal to
+- `LT` - less than
+- `NE` - not equal to
+- `NEQ` - not equal to
+- `NIEQ` - not equal to
+- `IN` - equal to one of the multiple values separated by semicolon ";"
+- `ILIKE` - is like (case-insensitive)
+- `LIKE` - like (free text match)
+- `NILIKE` - not like
+- `NLIKE` - not like
+- `SW` - starts with
+- `EW` - ends with

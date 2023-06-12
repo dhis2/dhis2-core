@@ -49,7 +49,7 @@ class OpenApiControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetOpenApiDocument()
     {
-        JsonObject doc = GET( "/openapi/openapi.json" ).content();
+        JsonObject doc = GET( "/openapi/openapi.json?failOnNameClash=true" ).content();
         assertTrue( doc.isObject() );
         assertGreaterOrEqual( 150, doc.getObject( "paths" ).size() );
         assertGreaterOrEqual( 0, doc.getObject( "security[0].basicAuth" ).size() );
