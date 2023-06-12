@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.programrule;
 
+import java.util.Map;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
@@ -240,13 +242,38 @@ public class ProgramRuleVariable
         this.valueType = valueType;
     }
 
-    public static ProgramRuleVariable copyOf( ProgramRuleVariable original, Program programCopy )
+    public static ProgramRuleVariable copyOf( ProgramRuleVariable original, Program programCopy,
+        Map<String, Program.ProgramStageTuple> stageMappings )
     {
         ProgramRuleVariable copy = new ProgramRuleVariable();
         copy.setProgram( programCopy );
+        copy.setProgramStageFromMapping( copy, original, stageMappings );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
+    }
+
+    /**
+     * This method will set the newly-copied {@link ProgramStage} for the
+     * {@link ProgramRuleVariable} if a mapping is found.
+     * 
+     * @param copy
+     * @param original
+     * @param stageMappings Map of all {@link ProgramStage} during the copying
+     *        process. The map key is the UID of the original
+     *        {@link ProgramStage}. The map value is a
+     *        {@link org.hisp.dhis.program.Program.ProgramStageTuple}, holding
+     *        an original and a copy.
+     */
+    private void setProgramStageFromMapping( ProgramRuleVariable copy, ProgramRuleVariable original,
+        Map<String, Program.ProgramStageTuple> stageMappings )
+    {
+        ProgramStage originalStage = original.getProgramStage();
+        if ( originalStage != null && stageMappings.containsKey( original.getProgramStage().getUid() ) )
+        {
+            ProgramStage copyStage = stageMappings.get( originalStage.getUid() ).copy();
+            copy.setProgramStage( copyStage );
+        }
     }
 
     private static void setShallowCopyValues( ProgramRuleVariable copy, ProgramRuleVariable original )
@@ -262,6 +289,5 @@ public class ProgramRuleVariable
         copy.setDataElement( original.getDataElement() );
         copy.setUseCodeForOptionSet( original.getUseCodeForOptionSet() );
         copy.setValueType( original.getValueType() );
-        copy.setProgramStage( original.getProgramStage() ); //TODO this should point to the newly-copied program stage
     }
 }

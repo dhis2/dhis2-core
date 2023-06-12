@@ -32,101 +32,87 @@ import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramStage;
-import org.hisp.dhis.program.ProgramStageDataElement;
 import org.hisp.dhis.program.ProgramStageSection;
-import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
-import org.hisp.dhis.webapi.controller.tracker.JsonEnrollment;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
 import org.hisp.dhis.webapi.json.domain.JsonProgramSection;
 import org.hisp.dhis.webapi.json.domain.JsonProgramStage;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * @author David Mackessy
  */
 class ProgramControllerTest extends DhisControllerConvenienceTest
 {
+
+    @Autowired
+    private ObjectMapper jsonMapper;
+
     public static final String PS1_UID = "ps1abcdes9i";
 
     public static final String PS2_UID = "ps2abcdes9i";
 
-    private OrganisationUnit orgUnit;
-
     @BeforeEach
     public void testSetup()
+        throws JsonProcessingException
     {
-        orgUnit = createOrganisationUnit( "Org 1" );
-        manager.save( orgUnit );
+
+        OrganisationUnit orgUnit = createOrganisationUnit( "Org 1 test" );
+        POST( "/organisationUnits", jsonMapper.writeValueAsString( orgUnit ) );
+
+        Program orignalProgram = createProgram( 'c', null, orgUnit );
+        POST( "/programs", jsonMapper.writeValueAsString( orignalProgram ) );
+
         CategoryOption option = createCategoryOption( 'y' );
-        manager.save( option );
+        POST( "/categoryOption", jsonMapper.writeValueAsString( option ) );
+
         Category category = createCategory( 'x', option );
-        manager.save( category );
-        ProgramStage stage1 = createProgramStage( 'a', 30 );
-        ProgramStage stage2 = createProgramStage( 'b', 30 );
-        manager.save( List.of( stage1, stage2 ) );
-        DataElement dataElement1 = createDataElement( 'p' );
-        DataElement dataElement2 = createDataElement( 'q' );
-        manager.save( List.of( dataElement1, dataElement2 ) );
-        ProgramStageDataElement psde1 = createProgramStageDataElement( stage1, dataElement1, 1 );
-        ProgramStageDataElement psde2 = createProgramStageDataElement( stage2, dataElement2, 2 );
-        manager.save( List.of( psde1, psde2 ) );
+        POST( "/category", jsonMapper.writeValueAsString( category ) );
+
+        ProgramStage stage1 = createProgramStage( 'a', orignalProgram );
+        ProgramStage stage2 = createProgramStage( 'b', orignalProgram );
+
+        POST( "/programStages", jsonMapper.writeValueAsString( stage1 ) );
+        POST( "/programStages", jsonMapper.writeValueAsString( stage2 ) );
 
         ProgramStageSection pss1 = createProgramStageSection( 'l', 3 );
+        pss1.setProgramStage( stage1 );
         ProgramStageSection pss2 = createProgramStageSection( 'm', 4 );
-        manager.save( List.of( pss1, pss2 ) );
+        pss2.setProgramStage( stage2 );
+        POST( "/programStageSections", jsonMapper.writeValueAsString( pss1 ) );
+        POST( "/programStageSections", jsonMapper.writeValueAsString( pss2 ) );
 
-        TrackedEntityAttribute tea = createTrackedEntityAttribute( 't' );
-        manager.save( tea );
         CategoryCombo categoryCombo = createCategoryCombo( 'z', category );
-        manager.save( categoryCombo );
-        Program program = createProgram( 'c', null, Set.of( tea ), Set.of( orgUnit ),
-            categoryCombo );
-        manager.save( program );
-        ProgramSection ps1 = createProgramSection( 'k', program );
+        POST( "/categoryCombos", jsonMapper.writeValueAsString( categoryCombo ) );
+
+        ProgramSection ps1 = createProgramSection( 'k', orignalProgram );
         ps1.setUid( PS1_UID );
-        ProgramSection ps2 = createProgramSection( 'l', program );
+        ProgramSection ps2 = createProgramSection( 'l', orignalProgram );
         ps2.setUid( PS2_UID );
-        program.setProgramSections( Set.of( ps1, ps2 ) );
-        manager.save( List.of( ps1, ps2 ) );
-        manager.save( program );
-        stage1.setProgramStageDataElements( Set.of( psde1, psde2 ) );
-        stage2.setProgramStageDataElements( Set.of( psde1, psde2 ) );
-        stage1.setProgramStageSections( Set.of( pss1, pss2 ) );
-        stage2.setProgramStageSections( Set.of( pss1, pss2 ) );
-        manager.save( stage1 );
-        manager.save( stage2 );
-        program.setProgramStages( Set.of( stage1, stage2 ) );
-        manager.save( program );
-        TrackedEntity tei1 = createTrackedEntity( 'd', orgUnit );
-        TrackedEntity tei2 = createTrackedEntity( 'e', orgUnit );
-        manager.save( List.of( tei1, tei2 ) );
-        Enrollment enrollment1 = createEnrollment( program, tei1, orgUnit );
-        Enrollment enrollment2 = createEnrollment( program, tei2, orgUnit );
-        manager.save( List.of( enrollment1, enrollment2 ) );
+        POST( "/programSections", jsonMapper.writeValueAsString( ps1 ) );
+        POST( "/programSections", jsonMapper.writeValueAsString( ps2 ) );
     }
 
     @Test
-    void testCopyProgramWith2ProgramStagesAnd2Enrollments()
+    void testCopyProgram()
     {
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( BASE_PR_UID + 'c' ) )
             .content( HttpStatus.CREATED )
@@ -143,7 +129,8 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         assertEquals( "ProgramShortc", copiedProgram.getShortName() );
         assertEquals( "Copy of Programc", copiedProgram.getName() );
         assertEquals( "Descriptionc", copiedProgram.getDescription() );
-        assertEquals( 2, copiedProgram.getProgramStages().size() );
+        assertEquals( 2, copiedStages.size() );
+        assertEquals( 2, copiedProgram.getProgramSections().size() );
 
         // ensure that copied stages have new uids
         Set<String> copiedStageUids = copiedStages.stream().map( JsonProgramStage::getUid )
@@ -151,24 +138,12 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         copiedStageUids.removeAll( Set.of( BASE_PG_UID + 'a', BASE_PG_UID + 'b' ) );
         assertEquals( 2, copiedStageUids.size() );
 
-        //check for copied enrollments with new program uid
-        JsonObject enrollments = GET( "/tracker/enrollments?orgUnit={orgUnitId}", orgUnit.getUid() )
-            .content( HttpStatus.OK )
-            .as( JsonObject.class );
-
-        JsonList<JsonEnrollment> instances = enrollments.getString( "instances" ).asList( JsonEnrollment.class );
-
-        long enrollmentsForNewProgramCount = instances.stream().map( JsonEnrollment::getProgram )
-            .filter( program -> program.equals( copiedProgramUid ) ).count();
-        assertEquals( 2, enrollmentsForNewProgramCount );
-
-        //check for new Program Stage Data Elements and Program Sections
+        //check for new Program Stage Sections
         JsonProgramStage copiedStage = copiedStages.get( 0 );
         JsonProgramStage jsonCopiedProgramStage = GET( "/programStages/" + copiedStage.getUid() )
             .content( HttpStatus.OK )
             .as( JsonProgramStage.class );
-        assertEquals( 2, jsonCopiedProgramStage.getProgramStageDataElements().size() );
-        assertEquals( 2, jsonCopiedProgramStage.getProgramStageSections().size() );
+        assertEquals( 1, jsonCopiedProgramStage.getProgramStageSections().size() );
     }
 
     @Test
@@ -193,11 +168,6 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             .collect( Collectors.toSet() );
         copiedSectionUids.removeAll( Set.of( PS1_UID, PS2_UID ) );
         assertEquals( 2, copiedSectionUids.size() );
-    }
-
-    Set<String> getUids( Set<JsonObject> jsonObjects )
-    {
-        return jsonObjects.stream().map( jo -> jo.getString( "id" ).string() ).collect( Collectors.toSet() );
     }
 
     @Test

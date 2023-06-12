@@ -926,6 +926,7 @@ public class Program
     {
         String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAccessLevel( original.getAccessLevel() );
+        copy.setProgramAttributes( new ArrayList<>() );
         copy.setCategoryCombo( original.getCategoryCombo() );
         copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
         copy.setDataEntryForm( original.getDataEntryForm() );
@@ -946,8 +947,6 @@ public class Program
         copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
         copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
         copy.setOrganisationUnits( copyOf( original.getOrganisationUnits() ) );
-        copy.setProgramIndicators( copyOf( original.getProgramIndicators() ) );
-        copy.setProgramRuleVariables( copyOf( original.getProgramRuleVariables() ) );
         copy.setProgramType( original.getProgramType() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setRelatedProgram( original.getRelatedProgram() );
@@ -986,11 +985,13 @@ public class Program
     }
 
     public static Set<ProgramRuleVariable> copyProgramRuleVariables( Program copy,
-        Set<ProgramRuleVariable> original )
+        Set<ProgramRuleVariable> original, Map<String, ProgramStageTuple> stageMappings )
     {
         return StreamUtils.streamOf( original ).filter( Objects::nonNull )
-            .map( programAttr -> ProgramRuleVariable.copyOf( programAttr, copy ) )
+            .map( programAttr -> ProgramRuleVariable.copyOf( programAttr, copy, stageMappings ) )
             .collect( toSet() );
     }
 
+    public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {
+    }
 }

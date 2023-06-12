@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,72 +29,60 @@ package org.hisp.dhis.program;
 
 import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Map;
 import java.util.Set;
 
-import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author Lars Helge Overland
+ * @author David Mackessy
  */
-class ProgramIndicatorTest
+class ProgramTrackedEntityAttributeTest
 {
-
-    @Test
-    void testHasFilter()
-    {
-        ProgramIndicator pi = new ProgramIndicator();
-        assertFalse( pi.hasFilter() );
-        pi.setFilter( "true" );
-        assertTrue( pi.hasFilter() );
-    }
 
     @Test
     void testCopyOf()
     {
         Program programOriginal = getNewProgram();
         Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
-        ProgramIndicator original = getNewProgramIndicator( programOriginal );
-        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy );
+        ProgramTrackedEntityAttribute original = getNewProgramAttribute( programOriginal );
+        ProgramTrackedEntityAttribute copy = ProgramTrackedEntityAttribute.copyOf( original, programCopy );
 
         assertNotEquals( original, copy );
         assertNotEquals( original.getUid(), copy.getUid() );
         assertNotEquals( original.getProgram().getUid(), copy.getProgram().getUid() );
         assertNotSame( original, copy );
 
-        assertEquals( original.getDecimals(), copy.getDecimals() );
-        assertEquals( original.getName(), copy.getName() );
+        assertEquals( original.getAttribute(), copy.getAttribute() );
+        assertEquals( "Copy of Program Name tracked entity attr 1", copy.getName() );
     }
 
-    private ProgramIndicator getNewProgramIndicator( Program program )
+    private ProgramTrackedEntityAttribute getNewProgramAttribute( Program program )
     {
-        ProgramIndicator pi = new ProgramIndicator();
-        pi.setAutoFields();
-        pi.setProgram( program );
-        pi.setName( "indicator 1" );
-        pi.setAccess( new Access() );
-        pi.setDecimals( 2 );
-        pi.setPublicAccess( "rw------" );
-        pi.setAttributeValues( Set.of() );
-        pi.setSharing( new Sharing() );
-        pi.setTranslations( Set.of() );
-        pi.setExpression( "expression" );
-        pi.setFilter( "filter" );
-        pi.setFormName( "form name" );
-        pi.setOrgUnitField( "org unit field" );
-        pi.setDisplayInForm( true );
-        pi.setAnalyticsPeriodBoundaries( Set.of() );
-        pi.setStyle( new ObjectStyle() );
-        pi.setShortName( "short name" );
-        pi.setDescription( "description" );
-        return pi;
+        ProgramTrackedEntityAttribute ptea = new ProgramTrackedEntityAttribute();
+        TrackedEntityAttribute tea = new TrackedEntityAttribute();
+        tea.setAutoFields();
+        tea.setName( "tracked entity attr 1" );
+
+        ptea.setAttribute( tea );
+        ptea.setAutoFields();
+        ptea.setProgram( program );
+        ptea.setName( "indicator 1" );
+        ptea.setSortOrder( 2 );
+        ptea.setMandatory( false );
+        ptea.setAllowFutureDate( false );
+        ptea.setSearchable( true );
+        ptea.setAccess( new Access() );
+        ptea.setPublicAccess( "rw------" );
+        ptea.setAttributeValues( Set.of() );
+        ptea.setSharing( new Sharing() );
+        ptea.setTranslations( Set.of() );
+        return ptea;
     }
 }

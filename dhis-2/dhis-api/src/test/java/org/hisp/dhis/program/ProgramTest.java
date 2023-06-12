@@ -36,7 +36,9 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -51,6 +53,8 @@ import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.period.PeriodTypeEnum;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
+import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
@@ -89,7 +93,7 @@ class ProgramTest
     @Test
     void testCopyOfWithPropertyValuesSet()
     {
-        Program original = getNewProgramWithNoNulls();
+        Program original = getNewProgram();
         Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
         //check for differences
@@ -101,7 +105,7 @@ class ProgramTest
         assertNotEquals( original.getUid(), copy.getUid() );
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
 
-        //check all others are equal
+        //check equal
         assertEquals( original.getAccess(), copy.getAccess() );
         assertEquals( original.getAccessLevel(), copy.getAccessLevel() );
         assertEquals( original.getAnalyticsDataElements(), copy.getAnalyticsDataElements() );
@@ -124,22 +128,25 @@ class ProgramTest
         assertEquals( original.getOnlyEnrollOnce(), copy.getOnlyEnrollOnce() );
         assertEquals( original.getOpenDaysAfterCoEndDate(), copy.getOpenDaysAfterCoEndDate() );
         assertEquals( original.getOrganisationUnits(), copy.getOrganisationUnits() );
-        assertEquals( original.getProgramAttributes(), copy.getProgramAttributes() );
-        assertEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
         assertEquals( original.getProgramType(), copy.getProgramType() );
         assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
         assertEquals( original.getSelectEnrollmentDatesInFuture(), copy.getSelectEnrollmentDatesInFuture() );
         assertEquals( original.getSelectIncidentDatesInFuture(), copy.getSelectIncidentDatesInFuture() );
         assertEquals( original.getStyle(), copy.getStyle() );
-        assertEquals( original.getTrackedEntityAttributes(), copy.getTrackedEntityAttributes() );
         assertEquals( original.getTrackedEntityType(), copy.getTrackedEntityType() );
         assertEquals( original.getTranslations(), copy.getTranslations() );
+
+        //check empty
+        assertTrue( copy.getProgramAttributes().isEmpty() );
+        assertTrue( copy.getProgramIndicators().isEmpty() );
+        assertTrue( copy.getProgramRuleVariables().isEmpty() );
+        assertTrue( copy.getProgramAttributes().isEmpty() );
     }
 
     @Test
     void testCopyOfWithCodeValue()
     {
-        Program original = getNewProgramWithNoNulls();
+        Program original = getNewProgram();
         original.setCode( "code123" );
         Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
@@ -149,7 +156,7 @@ class ProgramTest
     @Test
     void testCopyOfWithNullCodeValue()
     {
-        Program original = getNewProgramWithNoNulls();
+        Program original = getNewProgram();
         original.setCode( null );
         Program copy = Program.shallowCopy( original, Map.of( "prefix", "copy" ) );
 
@@ -186,12 +193,64 @@ class ProgramTest
         assertTrue( copy.getUserRoles().isEmpty() );
     }
 
+    @Test
+    void testCopySections()
+    {
+        Program original = getNewProgram();
+        Program programCopy = Program.shallowCopy( original, Map.of() );
+        Set<ProgramSection> copySections = Program.copyProgramSections( programCopy, original.getProgramSections() );
+
+        ProgramSection copySection = new ArrayList<>( copySections ).get( 0 );
+        assertEquals( programCopy.getUid(), copySection.getProgram().getUid() );
+        assertEquals( "section one", copySection.getName() );
+    }
+
+    @Test
+    void testCopyRuleVariable()
+    {
+        Program original = getNewProgram();
+        Program programCopy = Program.shallowCopy( original, Map.of() );
+        Set<ProgramRuleVariable> copyRules = Program.copyProgramRuleVariables( programCopy,
+            original.getProgramRuleVariables(), Map.of() );
+
+        ProgramRuleVariable copyRuleVariable = new ArrayList<>( copyRules ).get( 0 );
+        assertEquals( programCopy.getUid(), copyRuleVariable.getProgram().getUid() );
+        assertEquals( "rule variable one", copyRuleVariable.getName() );
+    }
+
+    @Test
+    void testCopyIndicators()
+    {
+        Program original = getNewProgram();
+        Program programCopy = Program.shallowCopy( original, Map.of() );
+        Set<ProgramIndicator> copyIndicators = Program.copyProgramIndicators( programCopy,
+            original.getProgramIndicators() );
+
+        ProgramIndicator copyIndicator = new ArrayList<>( copyIndicators ).get( 0 );
+        assertEquals( programCopy.getUid(), copyIndicator.getProgram().getUid() );
+        assertEquals( "indicator one", copyIndicator.getName() );
+    }
+
+    @Test
+    void testCopyAttributes()
+    {
+        Program original = getNewProgram();
+        Program programCopy = Program.shallowCopy( original, Map.of() );
+        List<ProgramTrackedEntityAttribute> copyAttributes = Program.copyProgramAttributes( programCopy,
+            original.getProgramAttributes() );
+
+        ProgramTrackedEntityAttribute copyAttribute = copyAttributes.get( 0 );
+        assertEquals( programCopy.getUid(), copyAttribute.getProgram().getUid() );
+        assertEquals( "Copy of Program Name attribute 1", copyAttribute.getName() );
+    }
+
     /**
      * This test checks the expected field count for {@link Program}. This is
-     * important due to {@link Program#deepCopy} functionality. If a new field
-     * is added then {@link Program#deepCopy} should be updated with the
-     * appropriate copying approach (Deep or shallow copy). If the field is not
-     * included in {@link Program#deepCopy} this may have unexpected results.
+     * important due to {@link Program#shallowCopy} functionality. If a new
+     * field is added then {@link Program#shallowCopy} should be updated with
+     * the appropriate copying approach (Deep or shallow copy). If the field is
+     * not included in {@link Program#shallowCopy} this may have unexpected
+     * results.
      */
     @Test
     void testExpectedFieldCount()
@@ -207,7 +266,7 @@ class ProgramTest
         return !original.equals( copy );
     }
 
-    public static Program getNewProgramWithNoNulls()
+    public static Program getNewProgram()
     {
         Program p = new Program();
         p.setAccessLevel( AccessLevel.OPEN );
@@ -234,10 +293,10 @@ class ProgramTest
         p.setOpenDaysAfterCoEndDate( 20 );
         p.setOrganisationUnits( Set.of( new OrganisationUnit( "Org One" ) ) );
         p.setPublicAccess( "rw------" );
-        p.setProgramAttributes( Collections.emptyList() );
-        p.setProgramIndicators( Collections.emptySet() );
-        p.setProgramRuleVariables( Collections.emptySet() );
-        p.setProgramSections( Collections.emptySet() );
+        p.setProgramAttributes( getAttributes() );
+        p.setProgramIndicators( getProgramIndicators() );
+        p.setProgramRuleVariables( getProgramRuleVariables() );
+        p.setProgramSections( getSections() );
         p.setProgramStages( getProgramStages() );
         p.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         p.setRelatedProgram( new Program( "Related Program" ) );
@@ -304,5 +363,40 @@ class ProgramTest
         stage.setAutoFields();
         stage.setName( "stage one" );
         return Set.of( stage );
+    }
+
+    private static Set<ProgramIndicator> getProgramIndicators()
+    {
+        ProgramIndicator indicator = new ProgramIndicator();
+        indicator.setAutoFields();
+        indicator.setName( "indicator one" );
+        return Set.of( indicator );
+    }
+
+    private static Set<ProgramRuleVariable> getProgramRuleVariables()
+    {
+        ProgramRuleVariable ruleVariable = new ProgramRuleVariable();
+        ruleVariable.setAutoFields();
+        ruleVariable.setName( "rule variable one" );
+        return Set.of( ruleVariable );
+    }
+
+    private static List<ProgramTrackedEntityAttribute> getAttributes()
+    {
+        ProgramTrackedEntityAttribute programAttribute = new ProgramTrackedEntityAttribute();
+        TrackedEntityAttribute attribute = new TrackedEntityAttribute();
+        attribute.setName( "attribute 1" );
+        programAttribute.setAutoFields();
+        programAttribute.setName( "rule variable one" );
+        programAttribute.setAttribute( attribute );
+        return List.of( programAttribute );
+    }
+
+    private static Set<ProgramSection> getSections()
+    {
+        ProgramSection section = new ProgramSection();
+        section.setAutoFields();
+        section.setName( "section one" );
+        return Set.of( section );
     }
 }

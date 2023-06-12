@@ -27,13 +27,16 @@
  */
 package org.hisp.dhis.copy;
 
+import static org.hisp.dhis.util.StreamUtils.streamOf;
+
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
@@ -49,6 +52,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -71,7 +76,7 @@ public class CopyService
     private final EnrollmentService enrollmentService;
 
     @Transactional
-    public String copyProgramFromUid( String uid, Map<String, String> copyOptions )
+    public Program copyProgramFromUid( String uid, Map<String, String> copyOptions )
         throws NotFoundException
     {
         Program original = programService.getProgram( uid );
@@ -82,27 +87,38 @@ public class CopyService
         throw new NotFoundException( Program.class, uid );
     }
 
-    private String applyAllProgramCopySteps( Program original, Map<String, String> copyOptions )
+    private Program applyAllProgramCopySteps( Program original, Map<String, String> copyOptions )
     {
         //shallow copy Program & save
         Program copy = Program.shallowCopy( original, copyOptions );
         programService.addProgram( copy );
 
-        copyStages( original, copy );
+        Map<String, Program.ProgramStageTuple> stageMappings = copyStages( original, copy );
         copyAndSaveSections( original, copy );
         copyAttributes( original, copy );
         copyAndSaveIndicators( original, copy );
-        copyAndSaveRuleVariables( original, copy );
+        copyAndSaveRuleVariables( original, copy, stageMappings );
+        copyAndSaveEnrollments( original, copy );
 
         programService.addProgram( copy );
 
-        return copy.getUid();
+        return copy;
     }
 
-    private void copyAndSaveRuleVariables( Program original, Program programCopy )
+    private void copyAndSaveEnrollments( Program original, Program copy )
+    {
+        List<Enrollment> enrollments = streamOf(
+            enrollmentService.getEnrollments( original ) )
+            .map( enrollment -> Enrollment.copyOf( enrollment, copy ) )
+            .toList();
+        enrollments.forEach( enrollmentService::addEnrollment );
+    }
+
+    private void copyAndSaveRuleVariables( Program original, Program programCopy,
+        Map<String, Program.ProgramStageTuple> stageMappings )
     {
         Set<ProgramRuleVariable> programRuleVariables = Program.copyProgramRuleVariables( programCopy,
-            original.getProgramRuleVariables() );
+            original.getProgramRuleVariables(), stageMappings );
         programRuleVariables.forEach( programRuleVariableService::addProgramRuleVariable );
         programCopy.setProgramRuleVariables( programRuleVariables );
     }
@@ -128,9 +144,10 @@ public class CopyService
         programCopy.setProgramSections( copySections );
     }
 
-    private void copyStages( Program original, Program programCopy )
+    private Map<String, Program.ProgramStageTuple> copyStages( Program original, Program programCopy )
     {
-        HashSet<ProgramStage> copyStages = new HashSet<>();
+        Map<String, Program.ProgramStageTuple> stageMappings = new HashMap<>();
+        Set<ProgramStage> copyStages = new HashSet<>();
         for ( ProgramStage stageOriginal : original.getProgramStages() )
         {
             //shallow copy PS & save
@@ -147,7 +164,9 @@ public class CopyService
 
             programStageService.saveProgramStage( stageCopyDeep );
             copyStages.add( stageCopyDeep );
+            stageMappings.put( stageOriginal.getUid(), new Program.ProgramStageTuple( stageOriginal, stageCopyDeep ) );
         }
         programCopy.setProgramStages( copyStages );
+        return stageMappings;
     }
 }

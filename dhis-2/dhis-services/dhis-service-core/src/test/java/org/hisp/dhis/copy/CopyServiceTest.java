@@ -29,10 +29,13 @@ package org.hisp.dhis.copy;
 
 import static org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
 import static org.hisp.dhis.program.notification.ProgramNotificationRecipient.WEB_HOOK;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Collections;
@@ -46,7 +49,6 @@ import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataentryform.DataEntryForm;
-import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.FeatureType;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -55,7 +57,9 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramIndicatorService;
+import org.hisp.dhis.program.ProgramSection;
 import org.hisp.dhis.program.ProgramSectionService;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -65,6 +69,7 @@ import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramType;
+import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.hisp.dhis.user.sharing.Sharing;
 import org.junit.jupiter.api.Test;
@@ -109,18 +114,9 @@ class CopyServiceTest extends DhisConvenienceTest
 
     private static final String INVALID_PROGRAM_UID = "123456789";
 
-    //    @BeforeEach
-    //    void setup()
-    //    {
-    //        copyService = new CopyService( programService, enrollmentService, programStageService,
-    //            programStageSectionService, programStageDataElementService, programSectionService,
-    //            programIndicatorService, programRuleVariableService );
-    //    }
-
     @Test
     void testCopyProgramFromUidWithValidProgram()
-        throws ConflictException,
-        NotFoundException
+        throws NotFoundException
     {
         Program original = createProgram();
         OrganisationUnit orgUnit = createOrganisationUnit( "New Org 1" );
@@ -129,25 +125,70 @@ class CopyServiceTest extends DhisConvenienceTest
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( originalEnrollments );
 
-        String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
 
-        assertNotEquals( original.getUid(), newProgramUid );
-        assertTrue( CodeGenerator.isValidUid( newProgramUid ) );
+        assertNotEquals( original.getUid(), programCopy.getUid() );
+        assertTrue( CodeGenerator.isValidUid( programCopy.getUid() ) );
+        verify( programService, times( 2 ) ).addProgram( programCopy );
+        verify( programStageService, times( 2 ) ).saveProgramStage( any( ProgramStage.class ) );
+        verify( programStageDataElementService, times( 2 ) )
+            .addProgramStageDataElement( any( ProgramStageDataElement.class ) );
+        verify( programStageSectionService, times( 2 ) )
+            .saveProgramStageSection( any( ProgramStageSection.class ) );
+        verify( programIndicatorService, times( 1 ) ).addProgramIndicator( any( ProgramIndicator.class ) );
+        verify( programRuleVariableService, times( 1 ) ).addProgramRuleVariable( any( ProgramRuleVariable.class ) );
+        verify( programSectionService, times( 1 ) ).addProgramSection( any( ProgramSection.class ) );
+        verify( enrollmentService, times( 1 ) ).addEnrollment( any( Enrollment.class ) );
+    }
+
+    @Test
+    void testCopyProgramFromUidCheckProgramAttributes()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+
+        assertEquals( 1, programCopy.getProgramAttributes().size() );
+    }
+
+    @Test
+    void testCopyProgramFromUidCheckProgramRuleVariables()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+
+        assertEquals( 1, programCopy.getProgramRuleVariables().size() );
+    }
+
+    @Test
+    void testCopyProgramFromUidCheckProgramIndicators()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+
+        assertEquals( 1, programCopy.getProgramIndicators().size() );
     }
 
     @Test
     void testCopyProgramFromUidWithValidProgramAndNullEnrollments()
-        throws ConflictException,
-        NotFoundException
+        throws NotFoundException
     {
         Program original = createProgram();
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( null );
 
-        String newProgramUid = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
 
-        assertNotEquals( original.getUid(), newProgramUid );
-        assertTrue( CodeGenerator.isValidUid( newProgramUid ) );
+        assertNotEquals( original.getUid(), programCopy.getUid() );
+        assertTrue( CodeGenerator.isValidUid( programCopy.getUid() ) );
     }
 
     @Test
@@ -176,12 +217,15 @@ class CopyServiceTest extends DhisConvenienceTest
         Program p = new Program();
         p.setAutoFields();
         p.setAccessLevel( AccessLevel.OPEN );
+        p.setCategoryCombo( createCategoryCombo( 'c' ) );
         p.setCompleteEventsExpiryDays( 22 );
+        p.setDataEntryForm( createDataEntryForm( 'd' ) );
         p.setDescription( "Program description" );
         p.setDisplayIncidentDate( true );
         p.setDisplayFrontPageList( true );
         p.setEnrollmentDateLabel( "enroll date" );
         p.setExpiryDays( 33 );
+        p.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
         p.setFeatureType( FeatureType.NONE );
         p.setFormName( "Form name" );
         p.setIgnoreOverdueEvents( true );
@@ -189,20 +233,9 @@ class CopyServiceTest extends DhisConvenienceTest
         p.setMaxTeiCountToReturn( 2 );
         p.setMinAttributesRequiredToSearch( 3 );
         p.setName( "Program Name" );
+        p.setNotificationTemplates( Set.of( createProgramNotificationTemplate( "not1", 20, ENROLLMENT, WEB_HOOK ) ) );
         p.setOnlyEnrollOnce( true );
         p.setOpenDaysAfterCoEndDate( 20 );
-        p.setProgramType( ProgramType.WITHOUT_REGISTRATION );
-        p.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
-        p.setShortName( "short name" );
-        p.setSelectEnrollmentDatesInFuture( true );
-        p.setSelectIncidentDatesInFuture( false );
-        p.setSkipOffline( true );
-        p.setUseFirstStageDuringRegistration( false );
-        p.setCategoryCombo( createCategoryCombo( 'c' ) );
-        p.setDataEntryForm( createDataEntryForm( 'd' ) );
-        p.setExpiryPeriodType( PeriodType.getPeriodType( PeriodTypeEnum.QUARTERLY ) );
-        p.setNotificationTemplates(
-            Set.of( createProgramNotificationTemplate( "not1", 20, ENROLLMENT, WEB_HOOK ) ) );
         p.setOrganisationUnits( Set.of( createOrganisationUnit( "Org 1" ) ) );
         p.setProgramAttributes( List.of(
             createProgramTrackedEntityAttribute( p, createTrackedEntityAttribute( 't' ) ) ) );
@@ -210,9 +243,16 @@ class CopyServiceTest extends DhisConvenienceTest
         p.setProgramRuleVariables( Set.of( createProgramRuleVariable( 'v', p ) ) );
         p.setProgramSections( Set.of( createProgramSection( 'x', p ) ) );
         p.setProgramStages( createProgramStages( p ) );
+        p.setProgramType( ProgramType.WITHOUT_REGISTRATION );
         p.setRelatedProgram( createProgram( 'P' ) );
+        p.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
+        p.setShortName( "short name" );
+        p.setSelectEnrollmentDatesInFuture( true );
+        p.setSelectIncidentDatesInFuture( false );
+        p.setSkipOffline( true );
         p.setStyle( new ObjectStyle() );
         p.setTrackedEntityType( createTrackedEntityType( 'A' ) );
+        p.setUseFirstStageDuringRegistration( false );
         p.setUserRoles( Set.of( createUserRole( "tester", "d" ) ) );
         return p;
     }

@@ -598,7 +598,8 @@ public class ProgramStage
 
     public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy )
     {
-        setDeepCopyValues( copy, original );
+        copyProgramStageDataElements( copy, original.getProgramStageDataElements() );
+        copyProgramStageSections( copy, original.getProgramStageSections() );
         return copy;
     }
 
@@ -636,12 +637,6 @@ public class ProgramStage
         copy.setStandardInterval( original.getStandardInterval() );
         copy.setStyle( original.getStyle() );
         copy.setValidationStrategy( original.getValidationStrategy() );
-    }
-
-    private static void setDeepCopyValues( ProgramStage copy, ProgramStage original )
-    {
-        copyProgramStageDataElements( copy, original.getProgramStageDataElements() );
-        copyProgramStageSections( copy, original.getProgramStageSections() );
     }
 
     private static void copyProgramStageDataElements( ProgramStage copy,

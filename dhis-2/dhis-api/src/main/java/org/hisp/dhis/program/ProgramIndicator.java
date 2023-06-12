@@ -461,28 +461,33 @@ public class ProgramIndicator
         copy.setProgram( programCopy );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
+        //        setDeepCopyValues( copy, original ); //TODO
         return copy;
     }
+
+    //    private static void setDeepCopyValues( ProgramIndicator copy, ProgramIndicator original )
+    //    {
+    //        original.getGroups().stream().map( group -> ProgramIndicatorGroup::copyOf ).collect( Collectors.toSet() );
+    //    }
 
     private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original )
     {
         copy.setAccess( original.getAccess() );
-        copy.setDecimals( original.getDecimals() );
-        copy.setPublicAccess( original.getPublicAccess() );
         copy.setAttributeValues( original.getAttributeValues() );
-        copy.setSharing( original.getSharing() );
-        copy.setTranslations( original.getTranslations() );
+        copy.setAnalyticsPeriodBoundaries( ObjectUtils.copyOf( original.getAnalyticsPeriodBoundaries() ) );
+        copy.setAnalyticsType( original.getAnalyticsType() );
+        copy.setDecimals( original.getDecimals() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayInForm( original.getDisplayInForm() );
         copy.setExpression( original.getExpression() );
         copy.setFilter( original.getFilter() );
         copy.setFormName( original.getFormName() );
-        copy.setOrgUnitField( original.getOrgUnitField() );
-        copy.setDisplayInForm( original.getDisplayInForm() );
-        copy.setAnalyticsType( original.getAnalyticsType() );
-        copy.setAnalyticsPeriodBoundaries( ObjectUtils.copyOf( original.getAnalyticsPeriodBoundaries() ) );
-        copy.setStyle( original.getStyle() );
-        copy.setGroups( ObjectUtils.copyOf( original.getGroups() ) ); //TODO does this need further deep copies?
         copy.setName( original.getName() );
+        copy.setOrgUnitField( original.getOrgUnitField() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setSharing( original.getSharing() );
         copy.setShortName( original.getShortName() );
-        copy.setDescription( original.getDescription() );
+        copy.setStyle( original.getStyle() );
+        copy.setTranslations( original.getTranslations() );
     }
 }

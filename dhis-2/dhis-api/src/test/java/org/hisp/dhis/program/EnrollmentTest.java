@@ -28,7 +28,7 @@
 package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
-import static org.hisp.dhis.program.ProgramTest.getNewProgramWithNoNulls;
+import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -54,7 +54,7 @@ class EnrollmentTest
     void testCopyOfWithPropertyValuesSet()
     {
         Enrollment original = getNewEnrollmentWithNoNulls();
-        Program copiedProgram = getNewProgramWithNoNulls();
+        Program copiedProgram = getNewProgram();
         Enrollment copy = Enrollment.copyOf( original, copiedProgram );
 
         assertNotSame( original, copy );
@@ -81,7 +81,7 @@ class EnrollmentTest
     void testCopyOfWithNullPropertyValues()
     {
         Enrollment original = getNewEnrollmentWithNulls();
-        Program copiedProgram = getNewProgramWithNoNulls();
+        Program copiedProgram = getNewProgram();
         Enrollment copy = Enrollment.copyOf( original, copiedProgram );
 
         assertNotSame( original, copy );
@@ -120,7 +120,7 @@ class EnrollmentTest
     private Enrollment getNewEnrollmentWithNoNulls()
     {
         Enrollment e = new Enrollment();
-        Program program = getNewProgramWithNoNulls();
+        Program program = getNewProgram();
         e.setAutoFields();
         e.setComments( List.of( new TrackedEntityComment( "comment1", "amin" ) ) );
         e.setCompletedBy( "admin" );

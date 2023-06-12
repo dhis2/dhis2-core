@@ -28,7 +28,7 @@
 package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
-import static org.hisp.dhis.program.ProgramTest.getNewProgramWithNoNulls;
+import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.hisp.dhis.program.ProgramTest.notEqualsOrBothNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -56,7 +56,7 @@ class ProgramSectionTest
     @Test
     void testCopyOfWithPropertyValuesSet()
     {
-        Program originalProgram = getNewProgramWithNoNulls();
+        Program originalProgram = getNewProgram();
         ProgramSection original = getNewProgramSection( originalProgram );
 
         Program copyProgram = Program.shallowCopy( originalProgram, Map.of() );
@@ -86,7 +86,7 @@ class ProgramSectionTest
     @Test
     void testCopyOfWithNullPropertyValues()
     {
-        Program originalProgram = getNewProgramWithNoNulls();
+        Program originalProgram = getNewProgram();
         ProgramSection original = getNewProgramSectionWithNulls();
 
         Program copyProgram = Program.shallowCopy( originalProgram, Map.of() );
