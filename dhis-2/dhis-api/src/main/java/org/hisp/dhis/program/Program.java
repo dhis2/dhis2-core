@@ -992,6 +992,7 @@ public class Program
             .collect( toSet() );
     }
 
-    public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {
+    public record ProgramStageTuple( ProgramStage original, ProgramStage copy )
+    {
     }
 }

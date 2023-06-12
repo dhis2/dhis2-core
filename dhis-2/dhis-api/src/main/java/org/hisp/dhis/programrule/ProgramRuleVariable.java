@@ -256,7 +256,7 @@ public class ProgramRuleVariable
     /**
      * This method will set the newly-copied {@link ProgramStage} for the
      * {@link ProgramRuleVariable} if a mapping is found.
-     * 
+     *
      * @param copy
      * @param original
      * @param stageMappings Map of all {@link ProgramStage} during the copying
