@@ -34,6 +34,8 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -48,8 +50,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * @author Abyot Asalefew
