@@ -34,8 +34,6 @@ import java.util.Set;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,6 +49,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.google.common.collect.Lists;
 
+import lombok.RequiredArgsConstructor;
+
 /**
  * @author Abyot Asalefew
  */
@@ -65,12 +65,6 @@ public class DefaultProgramService
 
     private final CurrentUserService currentUserService;
 
-    private final ProgramSectionService programSectionService;
-
-    private final ProgramStageSectionService programStageSectionService;
-
-    private final ProgramStageService programStageService;
-
     @Qualifier( "jdbcProgramOrgUnitAssociationsStore" )
     private final JdbcOrgUnitAssociationsStore jdbcOrgUnitAssociationsStore;
 
@@ -82,10 +76,6 @@ public class DefaultProgramService
     @Transactional
     public long addProgram( Program program )
     {
-        //        program.getProgramStages().forEach(
-        //            ps -> ps.getProgramStageSections().forEach( programStageSectionService::saveProgramStageSection ) );
-        //        program.getProgramStages().forEach( programStageService::saveProgramStage );
-        //        program.getProgramSections().forEach( programSectionService::addProgramSection );
         programStore.save( program );
         return program.getId();
     }
