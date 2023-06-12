@@ -461,14 +461,8 @@ public class ProgramIndicator
         copy.setProgram( programCopy );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
-        //        setDeepCopyValues( copy, original ); //TODO
         return copy;
     }
-
-    //    private static void setDeepCopyValues( ProgramIndicator copy, ProgramIndicator original )
-    //    {
-    //        original.getGroups().stream().map( group -> ProgramIndicatorGroup::copyOf ).collect( Collectors.toSet() );
-    //    }
 
     private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original )
     {
