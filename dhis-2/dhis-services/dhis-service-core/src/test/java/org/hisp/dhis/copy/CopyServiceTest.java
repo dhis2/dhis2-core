@@ -205,6 +205,7 @@ class CopyServiceTest extends DhisConvenienceTest
     void testCopyProgramFromUidWithDbException()
     {
         Program original = createProgram();
+        Map<String, String> options = Map.of();
         DataIntegrityViolationException error = new DataIntegrityViolationException( "DB ERROR",
             new Throwable( "DB ERROR" ) );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
@@ -212,7 +213,7 @@ class CopyServiceTest extends DhisConvenienceTest
             .thenThrow( error );
 
         assertThrows( DataIntegrityViolationException.class,
-            () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() ) );
+            () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, options ) );
     }
 
     Program createProgram()
