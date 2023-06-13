@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -50,6 +51,7 @@ import org.hisp.dhis.common.EnrollmentAnalyticsQueryCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.cache.CacheStrategy;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.setting.SettingKey;
@@ -109,7 +111,7 @@ public class EnrollmentAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, QUERY );
 
         Grid grid = analyticsService.getEnrollments( params );
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
@@ -131,7 +133,7 @@ public class EnrollmentAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_JSON,
             CacheStrategy.RESPECT_SYSTEM_SETTING );
@@ -147,7 +149,7 @@ public class EnrollmentAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_XML, CacheStrategy.RESPECT_SYSTEM_SETTING,
             "enrollments.xml", false );
@@ -163,7 +165,7 @@ public class EnrollmentAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_EXCEL, CacheStrategy.RESPECT_SYSTEM_SETTING,
             "enrollments.xls", true );
@@ -179,7 +181,7 @@ public class EnrollmentAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_CSV, CacheStrategy.RESPECT_SYSTEM_SETTING,
             "enrollments.csv", true );
@@ -195,7 +197,7 @@ public class EnrollmentAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
             "enrollments.html", false );
@@ -211,7 +213,7 @@ public class EnrollmentAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, ContextUtils.CONTENT_TYPE_HTML, CacheStrategy.RESPECT_SYSTEM_SETTING,
             "enrollments.html", false );
@@ -256,7 +258,8 @@ public class EnrollmentAnalyticsController
     }
 
     private EventQueryParams getEventQueryParams( @PathVariable String program,
-        EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly )
+        EnrollmentAnalyticsQueryCriteria criteria, DhisApiVersion apiVersion, boolean analyzeOnly,
+        EndpointAction endpointAction )
     {
         criteria.definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
@@ -264,7 +267,7 @@ public class EnrollmentAnalyticsController
             systemSettingManager.getSystemSetting( SettingKey.ANALYSIS_RELATIVE_PERIOD, RelativePeriodEnum.class ) );
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
-            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withQueryEndpointAction()
+            .fromCriteria( (EnrollmentAnalyticsQueryCriteria) criteria.withEndpointAction( endpointAction )
                 .withEndpointItem( RequestTypeAware.EndpointItem.ENROLLMENT ) )
             .program( program )
             .apiVersion( apiVersion )

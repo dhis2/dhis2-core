@@ -244,6 +244,8 @@ public class DefaultEventDataQueryService
             .withProgramStatuses( request.getProgramStatus() )
             .withApiVersion( request.getApiVersion() )
             .withEndpointItem( request.getEndpointItem() )
+            .withEndpointItem( request.getEndpointItem() )
+            .withEndpointAction( request.getEndpointAction() )
             .withLocale( locale );
 
         if ( analyzeOnly )

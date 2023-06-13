@@ -50,6 +50,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.analytics.EventOutputType;
 import org.hisp.dhis.analytics.SortOrder;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
+import org.hisp.dhis.common.RequestTypeAware.EndpointItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 
@@ -142,7 +144,9 @@ public class EventDataQueryRequest
 
     private boolean totalPages;
 
-    private RequestTypeAware.EndpointItem endpointItem;
+    private EndpointItem endpointItem;
+
+    private EndpointAction endpointAction;
 
     /**
      * Copies all properties of this request onto the given request.
@@ -192,6 +196,7 @@ public class EventDataQueryRequest
         queryRequest.paging = this.paging;
         queryRequest.totalPages = this.totalPages;
         queryRequest.endpointItem = this.endpointItem;
+        queryRequest.endpointAction = this.endpointAction;
         queryRequest.outputIdScheme = outputIdScheme;
         return request;
     }
@@ -249,7 +254,8 @@ public class EventDataQueryRequest
                 .coordinatesOnly( criteria.isCoordinatesOnly() )
                 .coordinateOuFallback( criteria.isCoordinateOuFallback() )
                 .totalPages( criteria.isTotalPages() )
-                .endpointItem( criteria.getEndpointItem() );
+                .endpointItem( criteria.getEndpointItem() )
+                .endpointAction( criteria.getEndpointAction() );
 
             if ( criteria.getDimension() == null )
             {
@@ -342,7 +348,8 @@ public class EventDataQueryRequest
                 .coordinateField( criteria.getCoordinateField() )
                 .sortOrder( criteria.getSortOrder() )
                 .totalPages( criteria.isTotalPages() )
-                .endpointItem( criteria.getEndpointItem() );
+                .endpointItem( criteria.getEndpointItem() )
+                .endpointAction( criteria.getEndpointAction() );
 
             if ( criteria.getDimension() == null )
             {
