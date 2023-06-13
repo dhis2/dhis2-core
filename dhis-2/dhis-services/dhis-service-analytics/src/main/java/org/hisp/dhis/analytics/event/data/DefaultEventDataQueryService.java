@@ -226,7 +226,8 @@ public class DefaultEventDataQueryService
             .withApiVersion( request.getApiVersion() )
             .withLocale( locale )
             .withEnhancedConditions( request.isEnhancedConditions() )
-            .withEndpointItem( request.getEndpointItem() );
+            .withEndpointItem( request.getEndpointItem() )
+            .withEndpointAction( request.getEndpointAction() );
 
         if ( analyzeOnly )
         {
