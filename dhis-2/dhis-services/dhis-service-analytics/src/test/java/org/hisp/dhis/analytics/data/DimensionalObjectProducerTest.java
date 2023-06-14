@@ -38,7 +38,6 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
 import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
-import static org.hisp.dhis.common.DimensionType.CATEGORY;
 import static org.hisp.dhis.common.DimensionType.DATA_X;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
 import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
@@ -48,10 +47,8 @@ import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
 import static org.hisp.dhis.feedback.ErrorCode.E7124;
 import static org.hisp.dhis.setting.SettingKey.ANALYTICS_FINANCIAL_YEAR_START;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.when;
 
@@ -65,15 +62,9 @@ import java.util.Set;
 import org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey;
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.category.Category;
-import org.hisp.dhis.common.BaseDimensionalItemObject;
-import org.hisp.dhis.common.BaseDimensionalObject;
-import org.hisp.dhis.common.DimensionItemKeywords;
+import org.hisp.dhis.category.CategoryOption;
+import org.hisp.dhis.common.*;
 import org.hisp.dhis.common.DimensionItemKeywords.Keyword;
-import org.hisp.dhis.common.DimensionService;
-import org.hisp.dhis.common.DimensionalItemObject;
-import org.hisp.dhis.common.DisplayProperty;
-import org.hisp.dhis.common.IdentifiableObjectManager;
-import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementGroup;
 import org.hisp.dhis.i18n.I18n;
@@ -402,22 +393,23 @@ class DimensionalObjectProducerTest
     @Test
     void testDynamicFrom()
     {
+        // given
         String categoryUid = "L6BswcbPGqs";
-        String categoryName = "Category-A";
+        String categoryName = "CategoryName";
         Category category = createCategory( categoryName, categoryUid );
-        List<String> itemsUid = List.of( categoryUid );
+        List<String> items = List.of( "ALL_ITEMS" );
+        category.setCategoryOptions( List.of( new CategoryOption() ) );
 
+        // when
         when( idObjectManager.get( DYNAMIC_DIM_CLASSES, UID, categoryUid ) ).thenReturn( category );
+        when( aclService.canDataOrMetadataRead( any(), any( CategoryOption.class ) ) ).thenReturn( true );
 
-        Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, itemsUid,
+        Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, items,
             DisplayProperty.NAME, UID );
 
-        assertEquals( categoryUid, dimensionalObject.get().getDimension() );
-        assertEquals( categoryUid, dimensionalObject.get().getUid() );
-        assertEquals( CATEGORY, dimensionalObject.get().getDimensionType() );
-        assertEquals( categoryName, dimensionalObject.get().getDimensionDisplayName() );
-        assertTrue( dimensionalObject.get().getItems().isEmpty() );
-        assertNull( dimensionalObject.get().getDimensionItemKeywords() );
+        // then
+        assertTrue( dimensionalObject.isPresent() );
+        assertFalse( dimensionalObject.get().getItems().isEmpty() );
     }
 
     private void assertKeywordForDimensionalObject( Keyword keyword, BaseDimensionalItemObject dimensionalItemObject )

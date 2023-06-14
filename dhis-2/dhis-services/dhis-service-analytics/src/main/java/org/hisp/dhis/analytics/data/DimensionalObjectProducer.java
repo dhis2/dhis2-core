@@ -571,7 +571,7 @@ public class DimensionalObjectProducer
     public Optional<BaseDimensionalObject> getDynamicDimension( String dimension, List<String> items,
         DisplayProperty displayProperty, IdScheme inputIdScheme )
     {
-        boolean allItems = items.isEmpty();
+        boolean allItems = items.isEmpty() || items.contains( "ALL_ITEMS" );
         DimensionalObject dimObject = idObjectManager.get( DYNAMIC_DIM_CLASSES, inputIdScheme, dimension );
 
         if ( dimObject != null && dimObject.isDataDimension() )
@@ -601,7 +601,9 @@ public class DimensionalObjectProducer
     private List<DimensionalItemObject> getReadableItems( User user, DimensionalObject object )
     {
         return object.getItems().stream()
-            .filter( o -> aclService.canDataOrMetadataRead( user, o ) )
+            .filter( o -> {
+                return aclService.canDataOrMetadataRead( user, o );
+            } )
             .collect( toList() );
     }
 }
