@@ -61,7 +61,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.user.UserRole;
-import org.hisp.dhis.util.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -961,38 +960,6 @@ public class Program
         copy.setUserRoles( copyOf( original.getUserRoles() ) );
     }
 
-    public static Set<ProgramSection> copyProgramSections( Program copy, Set<ProgramSection> original )
-    {
-        return StreamUtils.streamOf( original )
-            .map( programSection -> ProgramSection.copyOf( programSection, copy ) )
-            .collect( toSet() );
-    }
-
-    public static List<ProgramTrackedEntityAttribute> copyProgramAttributes( Program copy,
-        List<ProgramTrackedEntityAttribute> original )
-    {
-        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
-            .map( programAttr -> ProgramTrackedEntityAttribute.copyOf( programAttr, copy ) )
-            .toList();
-    }
-
-    public static Set<ProgramIndicator> copyProgramIndicators( Program copy,
-        Set<ProgramIndicator> original )
-    {
-        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
-            .map( programAttr -> ProgramIndicator.copyOf( programAttr, copy ) )
-            .collect( toSet() );
-    }
-
-    public static Set<ProgramRuleVariable> copyProgramRuleVariables( Program copy,
-        Set<ProgramRuleVariable> original, Map<String, ProgramStageTuple> stageMappings )
-    {
-        return StreamUtils.streamOf( original ).filter( Objects::nonNull )
-            .map( programAttr -> ProgramRuleVariable.copyOf( programAttr, copy, stageMappings ) )
-            .collect( toSet() );
-    }
-
-    public record ProgramStageTuple( ProgramStage original, ProgramStage copy )
-    {
+    public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {
     }
 }

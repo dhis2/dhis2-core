@@ -27,42 +27,22 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * @author David Mackessy
  */
-public interface JsonProgramStage extends JsonObject
+public interface JsonProgramStage extends JsonObject, JsonIdentifiableObject
 {
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
 
-    default String getName()
+    default JsonList<JsonProgramStageSection> getProgramStageSections()
     {
-        return getString( "name" ).string();
-    }
-
-    default String getShortName()
-    {
-        return getString( "shortName" ).string();
-    }
-
-    default JsonArray getProgramStageSections()
-    {
-        return getArray( "programStageSections" );
+        return getList( "programStageSections", JsonProgramStageSection.class );
     }
 
     default JsonList<JsonProgramStageDataElement> getProgramStageDataElements()
     {
         return getList( "programStageDataElements", JsonProgramStageDataElement.class );
-    }
-
-    default String getUid()
-    {
-        return getString( "id" ).string();
     }
 }

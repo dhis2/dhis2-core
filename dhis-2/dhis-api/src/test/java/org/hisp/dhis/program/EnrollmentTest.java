@@ -55,7 +55,7 @@ class EnrollmentTest
     {
         Enrollment original = getNewEnrollmentWithNoNulls();
         Program copiedProgram = getNewProgram();
-        Enrollment copy = Enrollment.copyOf( original, copiedProgram );
+        Enrollment copy = Enrollment.copyOf.apply( original, copiedProgram );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -82,7 +82,7 @@ class EnrollmentTest
     {
         Enrollment original = getNewEnrollmentWithNulls();
         Program copiedProgram = getNewProgram();
-        Enrollment copy = Enrollment.copyOf( original, copiedProgram );
+        Enrollment copy = Enrollment.copyOf.apply( original, copiedProgram );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -114,7 +114,7 @@ class EnrollmentTest
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( Enrollment.class );
-        assertEquals( 36, allClassFieldsIncludingInherited.length );
+        assertEquals( 37, allClassFieldsIncludingInherited.length );
     }
 
     private Enrollment getNewEnrollmentWithNoNulls()

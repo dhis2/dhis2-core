@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -457,13 +458,12 @@ public class Enrollment
             '}';
     }
 
-    public static Enrollment copyOf( Enrollment original, Program programCopy )
-    {
+    public static final BiFunction<Enrollment, Program, Enrollment> copyOf = ( original, prog ) -> {
         Enrollment copy = new Enrollment();
         copy.setAutoFields();
-        setShallowCopyValues( copy, original, programCopy );
+        setShallowCopyValues( copy, original, prog );
         return copy;
-    }
+    };
 
     private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
     {

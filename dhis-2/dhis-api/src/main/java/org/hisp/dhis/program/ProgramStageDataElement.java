@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -293,14 +294,14 @@ public class ProgramStageDataElement
             '}';
     }
 
-    public static ProgramStageDataElement copyOf( ProgramStageDataElement original, ProgramStage copyProgramStage )
-    {
+    public static final BiFunction<ProgramStageDataElement, ProgramStage, ProgramStageDataElement> copyOf = (
+        original, stage ) -> {
         ProgramStageDataElement copy = new ProgramStageDataElement();
-        copy.setProgramStage( copyProgramStage );
+        copy.setProgramStage( stage );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
-    }
+    };
 
     private static void setShallowCopyValues( ProgramStageDataElement copy, ProgramStageDataElement original )
     {

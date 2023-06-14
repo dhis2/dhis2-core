@@ -50,7 +50,6 @@ import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
 import org.hisp.dhis.util.ObjectUtils;
-import org.hisp.dhis.util.StreamUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -587,10 +586,10 @@ public class ProgramStage
         this.referral = referral;
     }
 
-    public static ProgramStage shallowCopy( ProgramStage original, Program programCopy )
+    public static ProgramStage shallowCopy( ProgramStage original, Program program )
     {
         ProgramStage copy = new ProgramStage();
-        copy.setProgram( programCopy );
+        copy.setProgram( program );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;
@@ -598,8 +597,10 @@ public class ProgramStage
 
     public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy )
     {
-        copyProgramStageDataElements( copy, original.getProgramStageDataElements() );
-        copyProgramStageSections( copy, original.getProgramStageSections() );
+        copy.setProgramStageDataElements(
+            copySet( copy, original.getProgramStageDataElements(), ProgramStageDataElement.copyOf ) );
+        copy.setProgramStageSections(
+            copySet( copy, original.getProgramStageSections(), ProgramStageSection.copyOf ) );
         return copy;
     }
 
@@ -637,23 +638,5 @@ public class ProgramStage
         copy.setStandardInterval( original.getStandardInterval() );
         copy.setStyle( original.getStyle() );
         copy.setValidationStrategy( original.getValidationStrategy() );
-    }
-
-    private static void copyProgramStageDataElements( ProgramStage copy,
-        Set<ProgramStageDataElement> original )
-    {
-        copy.setProgramStageDataElements(
-            StreamUtils.streamOf( original )
-                .map( element -> ProgramStageDataElement.copyOf( element, copy ) )
-                .collect( Collectors.toSet() ) );
-    }
-
-    private static void copyProgramStageSections( ProgramStage copy,
-        Set<ProgramStageSection> original )
-    {
-        copy.setProgramStageSections(
-            StreamUtils.streamOf( original )
-                .map( element -> ProgramStageSection.copyOf( element, copy ) )
-                .collect( Collectors.toSet() ) );
     }
 }

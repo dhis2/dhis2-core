@@ -27,9 +27,9 @@
  */
 package org.hisp.dhis.program;
 
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author David Mackessy
@@ -40,10 +40,6 @@ public class DefaultProgramSectionService
     implements ProgramSectionService
 {
     private final ProgramSectionStore programSectionStore;
-
-    // -------------------------------------------------------------------------
-    // Implementation methods
-    // -------------------------------------------------------------------------
 
     @Override
     public void addProgramSection( ProgramSection programSection )

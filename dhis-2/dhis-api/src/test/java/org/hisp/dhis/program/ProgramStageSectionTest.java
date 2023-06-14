@@ -58,7 +58,7 @@ class ProgramStageSectionTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSection( originalStage );
-        ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage );
+        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -90,7 +90,7 @@ class ProgramStageSectionTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSectionWithNulls();
-        ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage );
+        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -124,7 +124,7 @@ class ProgramStageSectionTest
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( ProgramStageSection.class );
-        assertEquals( 27, allClassFieldsIncludingInherited.length );
+        assertEquals( 28, allClassFieldsIncludingInherited.length );
     }
 
     public static ProgramStageSection getNewProgramStageSection( ProgramStage original )

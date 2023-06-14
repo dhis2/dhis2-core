@@ -29,6 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -186,14 +187,13 @@ public class ProgramSection
         this.renderType = renderType;
     }
 
-    public static ProgramSection copyOf( ProgramSection original, Program programCopy )
-    {
+    public static final BiFunction<ProgramSection, Program, ProgramSection> copyOf = ( section, prog ) -> {
         ProgramSection copy = new ProgramSection();
-        copy.setProgram( programCopy );
+        copy.setProgram( prog );
         copy.setAutoFields();
-        setShallowCopyValues( copy, original );
+        setShallowCopyValues( copy, section );
         return copy;
-    }
+    };
 
     private static void setShallowCopyValues( ProgramSection copy, ProgramSection original )
     {

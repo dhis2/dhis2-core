@@ -52,7 +52,7 @@ class ProgramTrackedEntityAttributeTest
         Program programOriginal = getNewProgram();
         Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
         ProgramTrackedEntityAttribute original = getNewProgramAttribute( programOriginal );
-        ProgramTrackedEntityAttribute copy = ProgramTrackedEntityAttribute.copyOf( original, programCopy );
+        ProgramTrackedEntityAttribute copy = ProgramTrackedEntityAttribute.copyOf.apply( original, programCopy );
 
         assertNotEquals( original, copy );
         assertNotEquals( original.getUid(), copy.getUid() );

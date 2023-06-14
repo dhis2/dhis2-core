@@ -53,7 +53,7 @@ class ProgramStageDataElementTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageDataElement original = getNewProgramStageDataElement( originalStage, "data el" );
-        ProgramStageDataElement copy = ProgramStageDataElement.copyOf( original, copyStage );
+        ProgramStageDataElement copy = ProgramStageDataElement.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -82,7 +82,7 @@ class ProgramStageDataElementTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageDataElement original = getNewProgramStageDataElementWithNulls();
-        ProgramStageDataElement copy = ProgramStageDataElement.copyOf( original, copyStage );
+        ProgramStageDataElement copy = ProgramStageDataElement.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -113,7 +113,7 @@ class ProgramStageDataElementTest
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( ProgramStageDataElement.class );
-        assertEquals( 27, allClassFieldsIncludingInherited.length );
+        assertEquals( 28, allClassFieldsIncludingInherited.length );
     }
 
     public static ProgramStageDataElement getNewProgramStageDataElement( ProgramStage original, String dataElementName )

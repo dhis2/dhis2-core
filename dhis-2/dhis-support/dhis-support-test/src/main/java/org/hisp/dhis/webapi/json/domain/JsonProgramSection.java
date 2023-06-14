@@ -32,10 +32,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramSection extends JsonObject
+public interface JsonProgramSection extends JsonObject, JsonIdentifiableObject
 {
-    default String getUid()
-    {
-        return getString( "id" ).string();
-    }
 }

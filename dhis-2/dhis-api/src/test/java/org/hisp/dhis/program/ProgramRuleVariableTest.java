@@ -65,11 +65,9 @@ class ProgramRuleVariableTest
         ProgramStage stageOriginal = original.getProgramStage();
         ProgramStage stageCopy = ProgramStage.shallowCopy( stageOriginal, originalProgram );
         stageCopy.setUid( copyStageUid );
-        Map<String, Program.ProgramStageTuple> stageMappings = Map.of( originalStageUid,
-            new Program.ProgramStageTuple( stageOriginal, stageCopy ) );
 
         Program copyProgram = Program.shallowCopy( originalProgram, Map.of() );
-        ProgramRuleVariable copy = ProgramRuleVariable.copyOf( original, copyProgram, stageMappings );
+        ProgramRuleVariable copy = ProgramRuleVariable.copyOf( original, copyProgram, stageCopy );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -98,9 +96,10 @@ class ProgramRuleVariableTest
     void testCopyOfCodeShouldBeNullWhenOriginalHasCode()
     {
         Program program = new Program( "Program 1" );
-        ProgramRuleVariable original = getNewProgramRuleVariable( program );
+        ProgramStage stage = new ProgramStage( "Stage 1", program );
+        ProgramRuleVariable original = getNewProgramRuleVariable( program, stage );
         original.setCode( "rule code" );
-        ProgramRuleVariable copy = ProgramRuleVariable.copyOf( original, program, Map.of() );
+        ProgramRuleVariable copy = ProgramRuleVariable.copyOf( original, program, stage );
 
         assertNull( copy.getCode() );
     }
@@ -108,9 +107,9 @@ class ProgramRuleVariableTest
     /**
      * This test checks the expected field count for
      * {@link ProgramRuleVariable}. This is important due to
-     * {@link ProgramRuleVariable#copyOf(ProgramRuleVariable, Program, Map)}
+     * {@link ProgramRuleVariable#copyOf(ProgramRuleVariable, Program, ProgramStage)}
      * functionality. If a new field is added then
-     * {@link ProgramRuleVariable#copyOf(ProgramRuleVariable, Program, Map)}
+     * {@link ProgramRuleVariable#copyOf(ProgramRuleVariable, Program, ProgramStage)}
      * should be updated with the appropriate copying approach.
      */
     @Test
@@ -120,29 +119,30 @@ class ProgramRuleVariableTest
         assertEquals( 23, allClassFieldsIncludingInherited.length );
     }
 
-    private ProgramRuleVariable getNewProgramRuleVariable( Program program )
+    private ProgramRuleVariable getNewProgramRuleVariable( Program program, ProgramStage programStage )
     {
         ProgramRuleVariable prv = new ProgramRuleVariable();
         prv.setAccess( new Access() );
+        prv.setAttribute( new TrackedEntityAttribute() );
+        prv.setAttributeValues( Set.of() );
+        prv.setDataElement( new DataElement() );
         prv.setName( "rule name" );
         prv.setPublicAccess( "rw------" );
         prv.setProgram( program );
-        prv.setAttributeValues( Set.of() );
-        prv.setTranslations( Set.of() );
+        prv.setProgramStage( programStage );
+        prv.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
         prv.setSourceType( DATAELEMENT_CURRENT_EVENT );
-        prv.setAttribute( new TrackedEntityAttribute() );
-        prv.setDataElement( new DataElement() );
+        prv.setTranslations( Set.of() );
         prv.setUseCodeForOptionSet( true );
         prv.setValueType( TEXT );
-        prv.setSharing( Sharing.builder().publicAccess( "yes" ).owner( "admin" ).build() );
         return prv;
     }
 
     private ProgramRuleVariable getNewProgramRuleVariableWithStage( Program program, String originalStageUid )
     {
-        ProgramRuleVariable prv = getNewProgramRuleVariable( program );
         ProgramStage stage = new ProgramStage( "stage test", program );
         stage.setUid( originalStageUid );
+        ProgramRuleVariable prv = getNewProgramRuleVariable( program, stage );
         prv.setProgramStage( stage );
         return prv;
     }

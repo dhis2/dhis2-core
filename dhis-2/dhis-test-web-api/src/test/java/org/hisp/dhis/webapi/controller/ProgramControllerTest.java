@@ -125,7 +125,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             .as( JsonProgram.class );
         JsonList<JsonProgramStage> copiedStages = copiedProgram.getProgramStages();
 
-        assertEquals( copiedProgramUid, copiedProgram.getUid() );
+        assertEquals( copiedProgramUid, copiedProgram.getId() );
         assertEquals( "ProgramShortc", copiedProgram.getShortName() );
         assertEquals( "Copy of Programc", copiedProgram.getName() );
         assertEquals( "Descriptionc", copiedProgram.getDescription() );
@@ -133,17 +133,19 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         assertEquals( 2, copiedProgram.getProgramSections().size() );
 
         // ensure that copied stages have new uids
-        Set<String> copiedStageUids = copiedStages.stream().map( JsonProgramStage::getUid )
+        Set<String> copiedStageUids = copiedStages.stream().map( JsonProgramStage::getId )
             .collect( Collectors.toSet() );
         copiedStageUids.removeAll( Set.of( BASE_PG_UID + 'a', BASE_PG_UID + 'b' ) );
         assertEquals( 2, copiedStageUids.size() );
 
-        //check for new Program Stage Sections
+        //check for new Program Stage Sections & Data Elements
         JsonProgramStage copiedStage = copiedStages.get( 0 );
-        JsonProgramStage jsonCopiedProgramStage = GET( "/programStages/" + copiedStage.getUid() )
+        JsonProgramStage jsonCopiedProgramStage = GET( "/programStages/" + copiedStage.getId() )
             .content( HttpStatus.OK )
             .as( JsonProgramStage.class );
+
         assertEquals( 1, jsonCopiedProgramStage.getProgramStageSections().size() );
+        assertEquals( 1, jsonCopiedProgramStage.getProgramStageDataElements().size() );
     }
 
     @Test
@@ -160,11 +162,11 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
             .as( JsonProgram.class );
         JsonList<JsonProgramSection> copiedSections = copiedProgram.getProgramSections();
 
-        assertEquals( copiedProgramUid, copiedProgram.getUid() );
+        assertEquals( copiedProgramUid, copiedProgram.getId() );
         assertEquals( 2, copiedProgram.getProgramSections().size() );
 
         // ensure that copied program sections have new uids
-        Set<String> copiedSectionUids = copiedSections.stream().map( JsonProgramSection::getUid )
+        Set<String> copiedSectionUids = copiedSections.stream().map( JsonProgramSection::getId )
             .collect( Collectors.toSet() );
         copiedSectionUids.removeAll( Set.of( PS1_UID, PS2_UID ) );
         assertEquals( 2, copiedSectionUids.size() );
@@ -184,7 +186,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
 
         JsonProgram newProgram = GET( "/programs/{id}", newUid ).content( HttpStatus.OK ).as( JsonProgram.class );
 
-        assertEquals( newUid, newProgram.getUid() );
+        assertEquals( newUid, newProgram.getId() );
         assertEquals( "ProgramShortc", newProgram.getShortName() );
         assertEquals( "add prefix Programc", newProgram.getName() );
         assertEquals( "Descriptionc", newProgram.getDescription() );

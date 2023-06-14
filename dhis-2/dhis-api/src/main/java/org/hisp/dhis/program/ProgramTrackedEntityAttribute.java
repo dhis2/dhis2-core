@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.function.BiFunction;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -274,15 +276,14 @@ public class ProgramTrackedEntityAttribute
         this.renderType = renderType;
     }
 
-    public static ProgramTrackedEntityAttribute copyOf( ProgramTrackedEntityAttribute original,
-        Program programCopy )
-    {
+    public static final BiFunction<ProgramTrackedEntityAttribute, Program, ProgramTrackedEntityAttribute> copyOf = (
+        attr, prog ) -> {
         ProgramTrackedEntityAttribute copy = new ProgramTrackedEntityAttribute();
-        copy.setProgram( programCopy );
+        copy.setProgram( prog );
         copy.setAutoFields();
-        setShallowCopyValues( copy, original );
+        setShallowCopyValues( copy, attr );
         return copy;
-    }
+    };
 
     private static void setShallowCopyValues( ProgramTrackedEntityAttribute copy,
         ProgramTrackedEntityAttribute original )

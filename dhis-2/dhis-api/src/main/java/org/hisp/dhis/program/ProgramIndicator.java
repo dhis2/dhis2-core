@@ -455,10 +455,10 @@ public class ProgramIndicator
         this.orgUnitField = orgUnitField;
     }
 
-    public static ProgramIndicator copyOf( ProgramIndicator original, Program programCopy )
+    public static ProgramIndicator copyOf( ProgramIndicator original, Program program )
     {
         ProgramIndicator copy = new ProgramIndicator();
-        copy.setProgram( programCopy );
+        copy.setProgram( program );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
         return copy;

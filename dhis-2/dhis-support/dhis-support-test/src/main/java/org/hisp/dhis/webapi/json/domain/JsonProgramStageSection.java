@@ -32,20 +32,6 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramStageSection extends JsonObject
+public interface JsonProgramStageSection extends JsonObject, JsonNameableObject
 {
-    default String getDescription()
-    {
-        return getString( "description" ).string();
-    }
-
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
-
-    default String getUid()
-    {
-        return getString( "id" ).string();
-    }
 }

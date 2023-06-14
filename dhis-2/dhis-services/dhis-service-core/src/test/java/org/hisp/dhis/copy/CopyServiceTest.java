@@ -43,6 +43,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.common.AccessLevel;
@@ -126,7 +127,7 @@ class CopyServiceTest extends DhisConvenienceTest
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( originalEnrollments );
 
-        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
 
         assertNotEquals( original.getUid(), programCopy.getUid() );
         assertTrue( CodeGenerator.isValidUid( programCopy.getUid() ) );
@@ -143,13 +144,38 @@ class CopyServiceTest extends DhisConvenienceTest
     }
 
     @Test
+    void testCopyProgramWithCorrectlyMappedStageForRuleVariable()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        ProgramStage stage1 = createProgramStage( original, "stage 1" );
+        ProgramStage stage2 = createProgramStage( original, "stage 2" );
+        original.setProgramStages( Set.of( stage1, stage2 ) );
+
+        ProgramRuleVariable ruleVariable1 = createProgramRuleVariable( original, stage1 );
+        ProgramRuleVariable ruleVariable2 = createProgramRuleVariable( original, stage2 );
+        original.setProgramRuleVariables( Set.of( ruleVariable1, ruleVariable2 ) );
+
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+
+        Set<String> stageUidsLinkedToRuleVariables = programCopy.getProgramRuleVariables().stream()
+            .map( prv -> prv.getProgramStage().getUid() ).collect( Collectors.toSet() );
+        Set<String> originalStageUids = Set.of( stage1.getUid(), stage2.getUid() );
+
+        stageUidsLinkedToRuleVariables.retainAll( originalStageUids );
+        assertTrue( stageUidsLinkedToRuleVariables.isEmpty() );
+    }
+
+    @Test
     void testCopyProgramFromUidCheckProgramAttributes()
         throws NotFoundException
     {
         Program original = createProgram();
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
-        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
 
         assertEquals( 1, programCopy.getProgramAttributes().size() );
     }
@@ -161,7 +187,7 @@ class CopyServiceTest extends DhisConvenienceTest
         Program original = createProgram();
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
-        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
 
         assertEquals( 1, programCopy.getProgramRuleVariables().size() );
     }
@@ -173,7 +199,7 @@ class CopyServiceTest extends DhisConvenienceTest
         Program original = createProgram();
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
-        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
 
         assertEquals( 1, programCopy.getProgramIndicators().size() );
     }
@@ -186,7 +212,7 @@ class CopyServiceTest extends DhisConvenienceTest
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
         when( enrollmentService.getEnrollments( original ) ).thenReturn( null );
 
-        Program programCopy = copyService.copyProgramFromUid( VALID_PROGRAM_UID, Map.of() );
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
 
         assertNotEquals( original.getUid(), programCopy.getUid() );
         assertTrue( CodeGenerator.isValidUid( programCopy.getUid() ) );
@@ -194,11 +220,10 @@ class CopyServiceTest extends DhisConvenienceTest
     }
 
     @Test
-    void testCopyProgramFromUidWithNullProgram()
-    {
-        when( programService.getProgram( INVALID_PROGRAM_UID ) ).thenReturn( null );
-        assertThrows(NotFoundException.class, () -> copyService.copyProgramFromUid( INVALID_PROGRAM_UID, Map.of() ));
-        verify( programService,never() ).addProgram( any( Program.class ) );
+    void testCopyProgramFromUidWithNullProgram() {
+        when(programService.getProgram(INVALID_PROGRAM_UID)).thenReturn(null);
+        assertThrows(NotFoundException.class, () -> copyService.copyProgram(INVALID_PROGRAM_UID, Map.of()));
+        verify(programService, never()).addProgram(any(Program.class));
     }
 
     @Test
@@ -213,7 +238,7 @@ class CopyServiceTest extends DhisConvenienceTest
             .thenThrow( error );
 
         assertThrows( DataIntegrityViolationException.class,
-            () -> copyService.copyProgramFromUid( VALID_PROGRAM_UID, options ) );
+            () -> copyService.copyProgram( VALID_PROGRAM_UID, options ) );
     }
 
     Program createProgram()
@@ -263,11 +288,11 @@ class CopyServiceTest extends DhisConvenienceTest
 
     private Set<ProgramStage> createProgramStages( Program program )
     {
-        ProgramStage stage = createProgramStage( program );
+        ProgramStage stage = createProgramStage( program, "stage name" );
         return Set.of( stage );
     }
 
-    private ProgramStage createProgramStage( Program program )
+    private ProgramStage createProgramStage( Program program, String name )
     {
         ProgramStage ps = new ProgramStage();
         ps.setAutoFields();
@@ -307,5 +332,12 @@ class CopyServiceTest extends DhisConvenienceTest
         ProgramStageDataElement psde1 = createProgramStageDataElement( programStage, createDataElement( 'k' ), 3 );
         ProgramStageDataElement psde2 = createProgramStageDataElement( programStage, createDataElement( 'y' ), 3 );
         return Set.of( psde1, psde2 );
+    }
+
+    private ProgramRuleVariable createProgramRuleVariable( Program program, ProgramStage programStage )
+    {
+        ProgramRuleVariable ruleVariable = createProgramRuleVariable( 'a', program );
+        ruleVariable.setProgramStage( programStage );
+        return ruleVariable;
     }
 }

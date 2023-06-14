@@ -33,11 +33,8 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-
-import lombok.RequiredArgsConstructor;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
@@ -71,6 +68,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -149,12 +148,12 @@ public class ProgramController
         Program programCopy = null;
         try
         {
-            programCopy = copyService.copyProgramFromUid( uid, copyOptions );
+            programCopy = copyService.copyProgram( uid, copyOptions );
         }
         catch ( DataIntegrityViolationException dive )
         {
-            throw new ConflictException(
-                Objects.requireNonNull( dive.getRootCause() ).getMessage() );
+            String exceptionMessage = getRootCauseMessageIfPossible( dive );
+            throw new ConflictException( exceptionMessage );
         }
         return created( ("Program created: '%s'".formatted( programCopy.getUid() )) )
             .setLocation( "/programs/" + programCopy.getUid() );
@@ -170,6 +169,22 @@ public class ProgramController
             .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
             .map( SetValuedMap::asMap )
             .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
+    }
+
+    private String getRootCauseMessageIfPossible( DataIntegrityViolationException dive )
+    {
+        String exceptionMessage = "";
+        if ( null != dive.getRootCause() )
+        {
+            Throwable throwable = dive.getRootCause();
+            if ( null != throwable )
+                exceptionMessage = throwable.getMessage();
+        }
+        else
+        {
+            exceptionMessage = dive.getMessage();
+        }
+        return exceptionMessage;
     }
 
 }

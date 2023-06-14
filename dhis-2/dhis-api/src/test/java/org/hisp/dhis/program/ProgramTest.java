@@ -28,6 +28,8 @@
 package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
+import static org.hisp.dhis.common.BaseIdentifiableObject.copyList;
+import static org.hisp.dhis.common.BaseIdentifiableObject.copySet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -198,7 +200,8 @@ class ProgramTest
     {
         Program original = getNewProgram();
         Program programCopy = Program.shallowCopy( original, Map.of() );
-        Set<ProgramSection> copySections = Program.copyProgramSections( programCopy, original.getProgramSections() );
+        Set<ProgramSection> copySections = copySet( programCopy, original.getProgramSections(),
+            ProgramSection.copyOf );
 
         ProgramSection copySection = new ArrayList<>( copySections ).get( 0 );
         assertEquals( programCopy.getUid(), copySection.getProgram().getUid() );
@@ -206,38 +209,12 @@ class ProgramTest
     }
 
     @Test
-    void testCopyRuleVariable()
-    {
-        Program original = getNewProgram();
-        Program programCopy = Program.shallowCopy( original, Map.of() );
-        Set<ProgramRuleVariable> copyRules = Program.copyProgramRuleVariables( programCopy,
-            original.getProgramRuleVariables(), Map.of() );
-
-        ProgramRuleVariable copyRuleVariable = new ArrayList<>( copyRules ).get( 0 );
-        assertEquals( programCopy.getUid(), copyRuleVariable.getProgram().getUid() );
-        assertEquals( "rule variable one", copyRuleVariable.getName() );
-    }
-
-    @Test
-    void testCopyIndicators()
-    {
-        Program original = getNewProgram();
-        Program programCopy = Program.shallowCopy( original, Map.of() );
-        Set<ProgramIndicator> copyIndicators = Program.copyProgramIndicators( programCopy,
-            original.getProgramIndicators() );
-
-        ProgramIndicator copyIndicator = new ArrayList<>( copyIndicators ).get( 0 );
-        assertEquals( programCopy.getUid(), copyIndicator.getProgram().getUid() );
-        assertEquals( "indicator one", copyIndicator.getName() );
-    }
-
-    @Test
     void testCopyAttributes()
     {
         Program original = getNewProgram();
         Program programCopy = Program.shallowCopy( original, Map.of() );
-        List<ProgramTrackedEntityAttribute> copyAttributes = Program.copyProgramAttributes( programCopy,
-            original.getProgramAttributes() );
+        List<ProgramTrackedEntityAttribute> copyAttributes = copyList( programCopy,
+            original.getProgramAttributes(), ProgramTrackedEntityAttribute.copyOf );
 
         ProgramTrackedEntityAttribute copyAttribute = copyAttributes.get( 0 );
         assertEquals( programCopy.getUid(), copyAttribute.getProgram().getUid() );
