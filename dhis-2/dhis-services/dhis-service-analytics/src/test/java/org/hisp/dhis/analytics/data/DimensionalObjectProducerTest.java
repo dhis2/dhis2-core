@@ -398,7 +398,7 @@ class DimensionalObjectProducerTest
         when( idObjectManager.get( DYNAMIC_DIM_CLASSES, UID, categoryUid ) ).thenReturn( category );
 
         Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, itemsUid,
-                DisplayProperty.NAME, UID );
+            DisplayProperty.NAME, UID );
 
         assertEquals( categoryUid, dimensionalObject.get().getDimension() );
         assertEquals( categoryUid, dimensionalObject.get().getUid() );
