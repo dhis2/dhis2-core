@@ -29,7 +29,9 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseQueryItem;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +49,8 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -100,6 +104,8 @@ public class EventOperationParamsMapper
 
     private final TrackedEntityAttributeService trackedEntityAttributeService;
 
+    private final DataElementService dataElementService;
+
     //For now this maps to EventSearchParams. We should create a new EventQueryParams class that should be used in the persistence layer
     @Transactional( readOnly = true )
     public EventSearchParams map( EventOperationParams operationParams )
@@ -128,6 +134,22 @@ public class EventOperationParamsMapper
         List<QueryItem> filterAttributes = parseFilterAttributes( operationParams.getFilterAttributes(),
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
+
+        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( operationParams.getOrders() );
+
+        List<QueryItem> dataElements = new ArrayList<>();
+        for ( String order : dataElementOrders.keySet() )
+        {
+            dataElements.add( parseQueryItem( order, this::dataElementToQueryItem ) );
+        }
+
+        List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
+
+        List<QueryItem> filters = new ArrayList<>();
+        for ( String eventCriteria : operationParams.getFilters() )
+        {
+            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
+        }
 
         EventSearchParams searchParams = new EventSearchParams();
 
@@ -161,11 +183,11 @@ public class EventOperationParamsMapper
             .setSkipEventId( operationParams.getSkipEventId() )
             .setIncludeAttributes( false )
             .setIncludeAllDataElements( false )
-            .addDataElements( operationParams.getDataElements() )
-            .addFilters( operationParams.getFilters() )
+            .addDataElements( new HashSet<>( dataElements ) )
+            .addFilters( filters )
             .addFilterAttributes( filterAttributes )
             .addOrders( operationParams.getOrders() )
-            .addGridOrders( operationParams.getGridOrders() )
+            .addGridOrders( dataElementOrderParams )
             .addAttributeOrders( attributeOrderParams )
             .setEvents( operationParams.getEvents() )
             .setEnrollments( operationParams.getEnrollments() )
@@ -433,5 +455,37 @@ public class EventOperationParamsMapper
         return orders.entrySet().stream()
             .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
             .toList();
+    }
+
+    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderParam> allOrders )
+    {
+        if ( allOrders == null )
+        {
+            return Collections.emptyMap();
+        }
+
+        Map<String, SortDirection> dataElements = new HashMap<>();
+        for ( OrderParam orderParam : allOrders )
+        {
+            DataElement de = dataElementService.getDataElement( orderParam.getField() );
+            if ( de != null )
+            {
+                dataElements.put( orderParam.getField(), orderParam.getDirection() );
+            }
+        }
+        return dataElements;
+    }
+
+    private QueryItem dataElementToQueryItem( String item )
+        throws BadRequestException
+    {
+        DataElement de = dataElementService.getDataElement( item );
+
+        if ( de == null )
+        {
+            throw new BadRequestException( "Data element does not exist: " + item );
+        }
+
+        return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 }

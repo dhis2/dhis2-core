@@ -28,26 +28,18 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.CodeGenerator;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.commons.collection.CollectionUtils;
-import org.hisp.dhis.dataelement.DataElement;
-import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.JdbcEventStore;
@@ -55,7 +47,6 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper;
-import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.springframework.stereotype.Component;
 
@@ -69,8 +60,6 @@ import org.springframework.stereotype.Component;
 class EventRequestParamsMapper
 {
     private static final Set<String> SORTABLE_PROPERTIES = JdbcEventStore.QUERY_PARAM_COL_MAP.keySet();
-
-    private final DataElementService dataElementService;
 
     public EventOperationParams map( RequestParams requestParams )
         throws BadRequestException
@@ -92,22 +81,6 @@ class EventRequestParamsMapper
         Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
             "assignedUsers",
             requestParams.getAssignedUsers() );
-
-        Map<String, SortDirection> dataElementOrders = getDataElementsFromOrder( requestParams.getOrder() );
-
-        List<QueryItem> dataElements = new ArrayList<>();
-        for ( String order : dataElementOrders.keySet() )
-        {
-            dataElements.add( parseQueryItem( order, this::dataElementToQueryItem ) );
-        }
-
-        List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
-
-        List<QueryItem> filters = new ArrayList<>();
-        for ( String eventCriteria : requestParams.getFilter() )
-        {
-            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
-        }
 
         validateUpdateDurationParams( requestParams );
 
@@ -145,11 +118,9 @@ class EventRequestParamsMapper
             .skipEventId( requestParams.getSkipEventId() )
             .includeAttributes( false )
             .includeAllDataElements( false )
-            .dataElements( new HashSet<>( dataElements ) )
-            .filters( filters )
+            .filters( requestParams.getFilter() )
             .filterAttributes( requestParams.getFilterAttributes() )
             .orders( getOrderParams( requestParams.getOrder() ) )
-            .gridOrders( dataElementOrderParams )
             .attributeOrders( requestParams.getOrder() )
             .events( UID.toValueSet( eventUids ) )
             .enrollments( UID.toValueSet( requestParams.getEnrollments() ) )
@@ -163,38 +134,6 @@ class EventRequestParamsMapper
         {
             throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
         }
-    }
-
-    private Map<String, SortDirection> getDataElementsFromOrder( List<OrderCriteria> allOrders )
-    {
-        if ( allOrders == null )
-        {
-            return Collections.emptyMap();
-        }
-
-        Map<String, SortDirection> dataElements = new HashMap<>();
-        for ( OrderCriteria orderCriteria : allOrders )
-        {
-            DataElement de = dataElementService.getDataElement( orderCriteria.getField() );
-            if ( de != null )
-            {
-                dataElements.put( orderCriteria.getField(), orderCriteria.getDirection() );
-            }
-        }
-        return dataElements;
-    }
-
-    private QueryItem dataElementToQueryItem( String item )
-        throws BadRequestException
-    {
-        DataElement de = dataElementService.getDataElement( item );
-
-        if ( de == null )
-        {
-            throw new BadRequestException( "Data element does not exist: " + item );
-        }
-
-        return new QueryItem( de, null, de.getValueType(), de.getAggregationType(), de.getOptionSet() );
     }
 
     private List<OrderParam> getOrderParams( List<OrderCriteria> order )
@@ -224,13 +163,6 @@ class EventRequestParamsMapper
                 String.format( "Order by property `%s` is not supported. Supported are `%s`",
                     String.join( ", ", requestProperties ), String.join( ", ", SORTABLE_PROPERTIES ) ) );
         }
-    }
-
-    private List<OrderParam> mapToOrderParams( Map<String, SortDirection> orders )
-    {
-        return orders.entrySet().stream()
-            .map( e -> new OrderParam( e.getKey(), e.getValue() ) )
-            .toList();
     }
 
     private void validateUpdateDurationParams( RequestParams requestParams )

@@ -43,7 +43,6 @@ import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
-import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
@@ -177,9 +176,6 @@ public class EventOperationParams
     private List<OrderParam> orders = new ArrayList<>();
 
     @Builder.Default
-    private List<OrderParam> gridOrders = new ArrayList<>();
-
-    @Builder.Default
     private List<OrderCriteria> attributeOrders = new ArrayList<>();
 
     private boolean includeAttributes;
@@ -195,17 +191,10 @@ public class EventOperationParams
      * Filters for the response.
      */
     @Builder.Default
-    private List<QueryItem> filters = new ArrayList<>();
+    private Set<String> filters = new HashSet<>();
 
     @Builder.Default
     private Set<String> filterAttributes = new HashSet<>();
-
-    /**
-     * DataElements to be included in the response. Can be used to filter
-     * response.
-     */
-    @Builder.Default
-    private Set<QueryItem> dataElements = new HashSet<>();
 
     private boolean includeDeleted;
 

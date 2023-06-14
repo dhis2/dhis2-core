@@ -48,6 +48,8 @@ import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
+import org.hisp.dhis.dataelement.DataElement;
+import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -75,6 +77,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith( MockitoExtension.class )
 class EventOperationsMapperTest
 {
+    private static final String DE_1_UID = "OBzmpRP6YUh";
+
+    private static final String DE_2_UID = "KSd4PejqBf9";
+
     private static final String TEA_1_UID = "TvjwTPToKHO";
 
     private static final String TEA_2_UID = "cy2oRh2sNr6";
@@ -104,6 +110,9 @@ class EventOperationsMapperTest
 
     @Mock
     private TrackedEntityAttributeService trackedEntityAttributeService;
+
+    @Mock
+    private DataElementService dataElementService;
 
     @InjectMocks
     private EventOperationParamsMapper mapper;
@@ -392,4 +401,90 @@ class EventOperationsMapperTest
                 List.of( new OrderParam( TEA_1_UID, SortDirection.ASC ) ) ) );
     }
 
+    @Test
+    void testFilter()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        DataElement de1 = new DataElement();
+        de1.setUid( DE_1_UID );
+        when( dataElementService.getDataElement( DE_1_UID ) ).thenReturn( de1 );
+        DataElement de2 = new DataElement();
+        de2.setUid( DE_2_UID );
+        when( dataElementService.getDataElement( DE_2_UID ) ).thenReturn( de2 );
+
+        EventOperationParams requestParams = EventOperationParams.builder()
+            .filters( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) )
+            .build();
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID,
+            DE_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        // the following block is needed because of that
+        // assertion is order independent as the order of QueryItems is not
+        // guaranteed
+        Map<String, QueryFilter> expectedFilters = Map.of(
+            DE_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
+            DE_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
+        assertAll( items.stream().map( i -> (Executable) () -> {
+            String uid = i.getItem().getUid();
+            QueryFilter expected = expectedFilters.get( uid );
+            assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
+                () -> String.format( "QueryFilter mismatch for DE with UID %s", uid ) );
+        } ).collect( Collectors.toList() ) );
+    }
+
+    @Test
+    void testFilterWhenDEHasMultipleFilters()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        DataElement de1 = new DataElement();
+        de1.setUid( DE_1_UID );
+        when( dataElementService.getDataElement( DE_1_UID ) ).thenReturn( de1 );
+
+        EventOperationParams requestParams = EventOperationParams.builder()
+            .filters( Set.of( DE_1_UID + ":gt:10:lt:20" ) )
+            .build();
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
+    void shouldFailWithBadRequestExceptionWhenCriteriaDataElementDoesNotExist()
+    {
+        String filterName = "filter";
+        EventOperationParams requestParams = EventOperationParams.builder()
+            .filters( Set.of( filterName ) )
+            .build();
+
+        when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( requestParams ) );
+
+        assertEquals( "Data element does not exist: " + filterName, exception.getMessage() );
+    }
 }

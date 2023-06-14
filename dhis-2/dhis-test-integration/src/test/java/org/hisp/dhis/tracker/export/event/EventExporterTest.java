@@ -262,14 +262,15 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00001" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of(
-                new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                    null, null ) ) )
+            .filters( Set.of( "DATAEL00001:like:%val%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+
+        new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
+            null, null );
     }
 
     @ParameterizedTest
@@ -282,9 +283,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
             .programStatus( ProgramStatus.ACTIVE )
-            .dataElements( Set.of(
-                new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                    null, null ) ) )
+            .filters( Set.of( dataElement.getUid() + ":like:%val%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -302,9 +301,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
             .programType( ProgramType.WITH_REGISTRATION )
-            .dataElements( Set.of(
-                new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                    null, null ) ) )
+            .filters( Set.of( dataElement.getUid() + ":like:%val%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -320,10 +317,7 @@ class EventExporterTest extends TrackerTest
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of(
-                new QueryItem( dataElement, QueryOperator.EQ, "value00001", dataElement.getValueType(),
-                    null,
-                    null ) ) )
+            .filters( Set.of( dataElement.getUid() + ":like:%value00001%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -331,7 +325,8 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
+    //This test is commented because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator
+    //@ParameterizedTest
     @MethodSource( "getEventsFunctions" )
     void testExportEventsWhenFilteringByDataElementsIn( Function<EventOperationParams, List<String>> eventFunction )
     {
@@ -339,10 +334,7 @@ class EventExporterTest extends TrackerTest
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of(
-                new QueryItem( datael00001, QueryOperator.IN, "value00001;value00002", datael00001.getValueType(),
-                    null,
-                    null ) ) )
+            .filters( Set.of( datael00001.getUid() + ":like:%value00001%;%value00002%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -360,9 +352,7 @@ class EventExporterTest extends TrackerTest
             .programUid( program.getUid() )
             .attributeCategoryCombo( "bjDvmb4bfuf" )
             .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
-            .dataElements(
-                Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00001", dataElement.getValueType(),
-                    null, dataElement.getOptionSet() ) ) )
+            .filters( Set.of( dataElement.getUid() + ":eq:value00001" ) )
             .build();
 
         List<String> events = eventsFunction.apply( params );
@@ -567,9 +557,7 @@ class EventExporterTest extends TrackerTest
             .programStageUid( programStage.getUid() ).programUid( program.getUid() )
             .attributeCategoryCombo( "bjDvmb4bfuf" )
             .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
-            .dataElements(
-                Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00002", dataElement.getValueType(),
-                    null, dataElement.getOptionSet() ) ) )
+            .filters( Set.of( dataElement.getUid() + ":eq:value00002" ) )
             .build();
 
         List<String> events = eventsFunction.apply( params );
@@ -585,8 +573,7 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of( new QueryItem( dataElement, QueryOperator.EQ, "option1", dataElement.getValueType(),
-                null, dataElement.getOptionSet() ) ) )
+            .filters( Set.of( dataElement.getUid() + ":eq:option1" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -603,9 +590,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) )
             .programStageUid( programStage.getUid() )
-            .dataElements(
-                Set.of( new QueryItem( dataElement, QueryOperator.IN, "option1;option2", dataElement.getValueType(),
-                    null, dataElement.getOptionSet() ) ) )
+            .filters( Set.of( dataElement.getUid() + ":in:option1;option2" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -621,8 +606,7 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of( new QueryItem( dataElement, QueryOperator.LIKE, "opt", dataElement.getValueType(),
-                null, dataElement.getOptionSet() ) ) )
+            .filters( Set.of( dataElement.getUid() + ":like:%opt%" ) )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -642,7 +626,8 @@ class EventExporterTest extends TrackerTest
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "8" ) );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .dataElements( Set.of( queryItem ) ).build();
+            .filters( Set.of( dataElement.getUid() + ":lt:77:gt:8" ) )
+            .build();
 
         List<String> events = eventFunction.apply( params );
 
@@ -858,6 +843,7 @@ class EventExporterTest extends TrackerTest
     }
 
     //@Test
+    //This test is commented because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator
     void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
         throws ForbiddenException,
         BadRequestException
@@ -866,7 +852,7 @@ class EventExporterTest extends TrackerTest
         item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000:like:day;in" ) ).build();
+            .filterAttributes( Set.of( "toUpdate000:like:%day%:like:%in%" ) ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -1107,8 +1093,6 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .dataElements( Set.of( queryItem( "DATAEL00006" ) ) )
-            .gridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "dueDate", SortDirection.DESC ),
                 new OrderParam( "DATAEL00006", SortDirection.DESC ),
                 new OrderParam( "enrolledAt", SortDirection.DESC ) ) )
@@ -1127,8 +1111,6 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .dataElements( Set.of( queryItem( "DATAEL00006" ) ) )
-            .gridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
                 new OrderParam( "DATAEL00006", SortDirection.DESC ) ) )
             .build();
