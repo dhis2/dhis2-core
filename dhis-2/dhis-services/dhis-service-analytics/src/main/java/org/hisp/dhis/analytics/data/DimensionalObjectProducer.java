@@ -601,9 +601,7 @@ public class DimensionalObjectProducer
     private List<DimensionalItemObject> getReadableItems( User user, DimensionalObject object )
     {
         return object.getItems().stream()
-            .filter( o -> {
-                return aclService.canDataOrMetadataRead( user, o );
-            } )
+            .filter( o -> aclService.canDataOrMetadataRead( user, o ) )
             .collect( toList() );
     }
 }
