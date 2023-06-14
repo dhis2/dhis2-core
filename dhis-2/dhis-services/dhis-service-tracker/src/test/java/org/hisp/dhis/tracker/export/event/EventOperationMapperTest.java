@@ -75,7 +75,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith( MockitoExtension.class )
-class EventOperationsMapperTest
+class EventOperationMapperTest
 {
     private static final String DE_1_UID = "OBzmpRP6YUh";
 

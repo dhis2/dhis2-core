@@ -49,9 +49,6 @@ import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
-/**
- * @author Lars Helge Overland
- */
 @Getter
 @Builder( toBuilder = true )
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
@@ -211,10 +208,6 @@ public class EventOperationParams
     private Date skipChangedBefore;
 
     private Set<String> enrollments;
-
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
 
     // -------------------------------------------------------------------------
     // Logic

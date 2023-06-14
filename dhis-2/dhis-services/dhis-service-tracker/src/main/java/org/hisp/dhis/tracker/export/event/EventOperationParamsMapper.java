@@ -126,7 +126,7 @@ public class EventOperationParamsMapper
 
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
-        validateOperationParams( operationParams, user, program );
+        validateOrgUnitSelectionMode( operationParams, user, program );
 
         Map<String, SortDirection> attributeOrders = getAttributesFromOrder( operationParams.getAttributeOrders() );
         List<OrderParam> attributeOrderParams = mapToOrderParams( attributeOrders );
@@ -292,12 +292,12 @@ public class EventOperationParamsMapper
         }
     }
 
-    private void validateOperationParams( EventOperationParams params, User user, Program program )
+    private void validateOrgUnitSelectionMode( EventOperationParams params, User user, Program program )
         throws BadRequestException
     {
         if ( params.getOrgUnitSelectionMode() != null )
         {
-            String violation = getOuModeViolation( params, user, program );
+            String violation = getOrgUnitModeViolation( params, user, program );
             if ( violation != null )
             {
                 throw new BadRequestException( violation );
@@ -305,7 +305,7 @@ public class EventOperationParamsMapper
         }
     }
 
-    private String getOuModeViolation( EventOperationParams params, User user, Program program )
+    private String getOrgUnitModeViolation( EventOperationParams params, User user, Program program )
     {
         OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
 
