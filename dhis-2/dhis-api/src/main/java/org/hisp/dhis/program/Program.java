@@ -960,6 +960,7 @@ public class Program
         copy.setUserRoles( copyOf( original.getUserRoles() ) );
     }
 
-    public record ProgramStageTuple(ProgramStage original, ProgramStage copy) {
+    public record ProgramStageTuple( ProgramStage original, ProgramStage copy )
+    {
     }
 }

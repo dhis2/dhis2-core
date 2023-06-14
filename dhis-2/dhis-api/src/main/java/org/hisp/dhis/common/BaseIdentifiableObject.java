@@ -744,7 +744,7 @@ public class BaseIdentifiableObject
     /**
      * Method that allows copying of a Collection which requires a parent object
      * of each element to be used in the copying logic.
-     * 
+     *
      * @param parent Object to be used as part of the copying logic
      * @param original Collection to be copied
      * @param copy BiFunction which applies the copying logic
