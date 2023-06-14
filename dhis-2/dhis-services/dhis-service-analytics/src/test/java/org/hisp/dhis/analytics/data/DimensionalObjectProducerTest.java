@@ -38,10 +38,7 @@ import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnitGroup;
 import static org.hisp.dhis.analytics.AnalyticsFinancialYearStartKey.FINANCIAL_YEAR_APRIL;
 import static org.hisp.dhis.analytics.DataQueryParams.DYNAMIC_DIM_CLASSES;
-import static org.hisp.dhis.common.DimensionType.DATA_X;
-import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT;
-import static org.hisp.dhis.common.DimensionType.ORGANISATION_UNIT_GROUP;
-import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.DimensionType.*;
 import static org.hisp.dhis.common.DisplayProperty.SHORTNAME;
 import static org.hisp.dhis.common.IdScheme.NAME;
 import static org.hisp.dhis.common.IdScheme.UID;
@@ -392,6 +389,27 @@ class DimensionalObjectProducerTest
 
     @Test
     void testDynamicFrom()
+    {
+        String categoryUid = "L6BswcbPGqs";
+        String categoryName = "Category-A";
+        Category category = createCategory( categoryName, categoryUid );
+        List<String> itemsUid = List.of( categoryUid );
+
+        when( idObjectManager.get( DYNAMIC_DIM_CLASSES, UID, categoryUid ) ).thenReturn( category );
+
+        Optional<BaseDimensionalObject> dimensionalObject = target.getDynamicDimension( categoryUid, itemsUid,
+                DisplayProperty.NAME, UID );
+
+        assertEquals( categoryUid, dimensionalObject.get().getDimension() );
+        assertEquals( categoryUid, dimensionalObject.get().getUid() );
+        assertEquals( CATEGORY, dimensionalObject.get().getDimensionType() );
+        assertEquals( categoryName, dimensionalObject.get().getDimensionDisplayName() );
+        assertTrue( dimensionalObject.get().getItems().isEmpty() );
+        assertNull( dimensionalObject.get().getDimensionItemKeywords() );
+    }
+
+    @Test
+    void testDynamicFromWithAllItems()
     {
         // given
         String categoryUid = "L6BswcbPGqs";
