@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -145,7 +146,7 @@ public final class JsonBuilder
     {
         if ( e instanceof Object[] )
         {
-            return jackson.valueToTree( cleanValue( ((Object[]) e)[0] ) );
+            return toJsonNode( ((Object[]) e)[0] );
         }
         else if ( e instanceof Collection && ((Collection<?>) e).size() == 1 )
         {
@@ -176,7 +177,7 @@ public final class JsonBuilder
     {
         if ( !skipValue( value ) )
         {
-            JsonNode node = jackson.valueToTree( cleanValue( value ) );
+            JsonNode node = toJsonNode( value );
             if ( name.contains( "." ) )
             {
                 String member = name.substring( 0, name.indexOf( '.' ) );
@@ -235,5 +236,32 @@ public final class JsonBuilder
             return ((Object[]) value).length == 0 && is( Preference.SKIP_EMPTY_ARRAYS );
         }
         return false;
+    }
+
+    private JsonNode toJsonNode( Object value )
+    {
+        if ( value instanceof org.hisp.dhis.jsontree.JsonNode[] nodes )
+        {
+            ArrayNode arr = jackson.createArrayNode();
+            Stream.of( nodes ).forEach( node -> arr.add( readNode( node.getDeclaration() ) ) );
+            return arr;
+        }
+        if ( value instanceof org.hisp.dhis.jsontree.JsonNode node )
+        {
+            return readNode( node.getDeclaration() );
+        }
+        return jackson.valueToTree( cleanValue( value ) );
+    }
+
+    private JsonNode readNode( String json )
+    {
+        try
+        {
+            return jackson.readTree( json );
+        }
+        catch ( Exception ex )
+        {
+            throw new IllegalArgumentException( ex );
+        }
     }
 }

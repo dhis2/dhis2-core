@@ -46,6 +46,7 @@ import org.hisp.dhis.scheduling.parameters.DataIntegrityJobParameters;
 import org.hisp.dhis.scheduling.parameters.DataSynchronizationJobParameters;
 import org.hisp.dhis.scheduling.parameters.DisableInactiveUsersJobParameters;
 import org.hisp.dhis.scheduling.parameters.EventProgramsDataSynchronizationJobParameters;
+import org.hisp.dhis.scheduling.parameters.LockExceptionCleanupJobParameters;
 import org.hisp.dhis.scheduling.parameters.MetadataSyncJobParameters;
 import org.hisp.dhis.scheduling.parameters.MonitoringJobParameters;
 import org.hisp.dhis.scheduling.parameters.PredictorJobParameters;
@@ -342,6 +343,7 @@ public class JobConfiguration extends BaseIdentifiableObject implements Secondar
         @JsonSubTypes.Type( value = DataIntegrityJobParameters.class, name = "DATA_INTEGRITY" ),
         @JsonSubTypes.Type( value = AggregateDataExchangeJobParameters.class, name = "AGGREGATE_DATA_EXCHANGE" ),
         @JsonSubTypes.Type( value = SqlViewUpdateParameters.class, name = "SQL_VIEW_UPDATE" ),
+        @JsonSubTypes.Type( value = LockExceptionCleanupJobParameters.class, name = "LOCK_EXCEPTION_CLEANUP" ),
         @JsonSubTypes.Type( value = TestJobParameters.class, name = "TEST" )
     } )
     public JobParameters getJobParameters()

@@ -39,7 +39,6 @@ import org.hisp.dhis.icon.CustomIconStore;
 import org.hisp.dhis.user.User;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Slf4j
@@ -48,8 +47,6 @@ import org.springframework.stereotype.Repository;
 public class JdbcCustomIconStore implements CustomIconStore
 {
     private final JdbcTemplate jdbcTemplate;
-
-    private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
     private static final RowMapper<CustomIcon> customIconRowMapper = ( rs, rowNum ) -> {
         CustomIcon customIcon = new CustomIcon();
