@@ -45,6 +45,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
+import org.hisp.dhis.user.CurrentUserDetails;
+import org.hisp.dhis.user.CurrentUserUtil;
 import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -68,11 +70,29 @@ public final class QueryUtils
         return parseValue( klass, null, objectValue );
     }
 
+    private static Object replaceShortcutConstants( String stringValue )
+    {
+        if ( stringValue.equals( "MY_ID" ) )
+        {
+            CurrentUserDetails currentUserDetails = CurrentUserUtil.getCurrentUserDetails();
+            if ( currentUserDetails != null )
+            {
+                return currentUserDetails.getUid();
+            }
+        }
+        return stringValue;
+    }
+
     @SuppressWarnings( "unchecked" )
     public static <T> T parseValue( Class<?> klass, Class<?> secondaryKlass, Object objectValue )
     {
         if ( klass.isInstance( objectValue ) )
         {
+            if ( objectValue instanceof String stringValue )
+            {
+                objectValue = replaceShortcutConstants( stringValue );
+            }
+
             return (T) objectValue;
         }
 
