@@ -29,10 +29,14 @@ package org.hisp.dhis.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+
+import javax.annotation.Nonnull;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -192,5 +196,37 @@ public class ObjectUtils
         }
 
         return object;
+    }
+
+    /**
+     * Util method that always returns a new Set, either instantiated from a
+     * non-null Set passed as an argument, or if a null arg is passed then
+     * returning an empty Set. This helps reduce possible NullPointerExceptions
+     * when trying to instantiate a Set with a null value.
+     *
+     * @param set
+     * @return
+     * @param <T>
+     */
+    @Nonnull
+    public static <T> Set<T> copyOf( Set<T> set )
+    {
+        return set != null ? new HashSet<>( set ) : new HashSet<>();
+    }
+
+    /**
+     * Util method that always returns a new List, either instantiated from a
+     * non-null Set passed as an argument, or if a null arg is passed then
+     * returning an empty Set. This helps reduce possible NullPointerExceptions
+     * when trying to instantiate a Set with a null value.
+     *
+     * @param list
+     * @return
+     * @param <T>
+     */
+    @Nonnull
+    public static <T> List<T> copyOf( List<T> list )
+    {
+        return list != null ? new ArrayList<>( list ) : new ArrayList<>();
     }
 }
