@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -183,7 +184,7 @@ public class EventOperationParamsMapper
             .setSkipEventId( operationParams.getSkipEventId() )
             .setIncludeAttributes( false )
             .setIncludeAllDataElements( false )
-            .addDataElements( new HashSet<>( dataElements ) )
+            .addDataElements( new LinkedHashSet<>( dataElements ) )
             .addFilters( filters )
             .addFilterAttributes( filterAttributes )
             .addOrders( operationParams.getOrders() )

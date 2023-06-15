@@ -317,12 +317,6 @@ public class EventSearchParams
         return items;
     }
 
-    public EventSearchParams addDataElements( Set<QueryItem> des )
-    {
-        dataElements.addAll( des );
-        return this;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -752,9 +746,9 @@ public class EventSearchParams
         return dataElements;
     }
 
-    public EventSearchParams setDataElements( Set<QueryItem> dataElements )
+    public EventSearchParams addDataElements( Set<QueryItem> des )
     {
-        this.dataElements = dataElements;
+        dataElements.addAll( des );
         return this;
     }
 
