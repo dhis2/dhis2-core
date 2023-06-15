@@ -69,7 +69,7 @@
     <!-- HISP Quick and Staxwax -->
     <dhis-hisp-quick.version>1.4.1</dhis-hisp-quick.version>
     <dhis-hisp-staxwax.version>2.0.0</dhis-hisp-staxwax.version>
-    <dhis-json-tree.version>0.8.0</dhis-json-tree.version>
+    <dhis-json-tree.version>0.9.0</dhis-json-tree.version>
 
     <!-- Security -->
     <spring-security.version>5.8.3</spring-security.version>
@@ -93,7 +93,7 @@
     <lettuce.version>6.2.4.RELEASE</lettuce.version>
 
     <!--DBMS -->
-    <flyway-core.version>9.19.3</flyway-core.version>
+    <flyway-core.version>9.19.4</flyway-core.version>
     <hibernate.version>5.6.15.Final</hibernate.version>
     <hibernate-types.version>2.21.1</hibernate-types.version>
     <!-- Data sources,db pools and db drivers -->
@@ -157,7 +157,7 @@
 
     <!-- Div. utils -->
     <version.debezium>2.2.1.Final</version.debezium>
-    <guava.version>32.0.0-jre</guava.version>
+    <guava.version>32.0.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>

@@ -138,6 +138,17 @@ class JobConfigurationControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testLOCK_EXCEPTION_CLEANUP()
+    {
+        String jobId = assertStatus( HttpStatus.CREATED,
+            POST( "/jobConfigurations",
+                "{'name':'test','jobType':'LOCK_EXCEPTION_CLEANUP','cronExpression':'0 0 12 ? * MON-FRI',"
+                    + "'jobParameters':{'expiresAfterMonths':'3'}}" ) );
+        JsonObject parameters = assertJobConfigurationExists( jobId, "LOCK_EXCEPTION_CLEANUP" );
+        assertEquals( 3, parameters.getNumber( "expiresAfterMonths" ).intValue() );
+    }
+
+    @Test
     void testGetJobTypeInfo()
     {
         for ( JsonObject e : GET( "/jobConfigurations/jobTypes" ).content()

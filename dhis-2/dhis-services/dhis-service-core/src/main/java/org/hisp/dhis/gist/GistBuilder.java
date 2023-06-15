@@ -57,6 +57,7 @@ import java.util.TreeMap;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -71,6 +72,7 @@ import org.hisp.dhis.gist.GistQuery.Comparison;
 import org.hisp.dhis.gist.GistQuery.Field;
 import org.hisp.dhis.gist.GistQuery.Filter;
 import org.hisp.dhis.gist.GistQuery.Owner;
+import org.hisp.dhis.jsontree.JsonNode;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodType;
 import org.hisp.dhis.query.JpaQueryUtils;
@@ -671,6 +673,11 @@ final class GistBuilder
 
     private String createPluckTransformerHQL( int index, Field field, Property property )
     {
+        String plucked = field.getTransformationArgument();
+        if ( plucked != null && plucked.contains( "," ) )
+        {
+            return createMultiPluckTransformerHQL( index, field, property );
+        }
         String tableName = "t_" + index;
         RelativePropertyContext itemContext = context.switchedTo( property.getItemKlass() );
         String propertyName = determineReferenceProperty( field, itemContext, true );
@@ -683,6 +690,27 @@ final class GistBuilder
         return String.format(
             "(select array_agg(%1$s.%2$s) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
             tableName, propertyName, property.getItemKlass().getSimpleName(),
+            getMemberPath( field.getPropertyPath() ), accessFilter );
+    }
+
+    private String createMultiPluckTransformerHQL( int index, Field field, Property property )
+    {
+        String tableName = "t_" + index;
+        RelativePropertyContext itemContext = context.switchedTo( property.getItemKlass() );
+        List<Property> plucked = Stream.of( field.getTransformationArgument().split( "," ) )
+            .map( itemContext::resolveMandatory ).toList();
+
+        String pluckedObj = plucked.stream()
+            .map( p -> String.format( "'%3$s', %1$s.%2$s", tableName, p.getFieldName(), p.getName() ) )
+            .collect( joining( "," ) );
+        String accessFilter = createAccessFilterHQL( itemContext, tableName );
+
+        addTransformer(
+            row -> row[index] = Stream.of( (String[]) row[index] ).map( JsonNode::of ).toArray( JsonNode[]::new ) );
+
+        return String.format(
+            "(select array_agg(json_build_object(%2$s)) from %3$s %1$s where %1$s in elements(e.%4$s) and %5$s)",
+            tableName, pluckedObj, property.getItemKlass().getSimpleName(),
             getMemberPath( field.getPropertyPath() ), accessFilter );
     }
 
@@ -721,7 +749,11 @@ final class GistBuilder
 
     private String getPluckPropertyName( Field field, Class<?> ownerType, boolean forceTextual )
     {
-        String propertyName = field.getTransformationArgument();
+        return getPluckPropertyName( field.getTransformationArgument(), ownerType, forceTextual );
+    }
+
+    private String getPluckPropertyName( String propertyName, Class<?> ownerType, boolean forceTextual )
+    {
         Property property = context.switchedTo( ownerType ).resolveMandatory( propertyName );
         if ( forceTextual && property.getKlass() != String.class )
         {

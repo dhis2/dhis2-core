@@ -29,12 +29,18 @@ package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -179,5 +185,29 @@ public class ProgramSection
         DeviceRenderTypeMap<SectionRenderingObject> renderType )
     {
         this.renderType = renderType;
+    }
+
+    public static final BiFunction<ProgramSection, Program, ProgramSection> copyOf = ( section, prog ) -> {
+        ProgramSection copy = new ProgramSection();
+        copy.setProgram( prog );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, section );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramSection copy, ProgramSection original )
+    {
+        copy.setAccess( original.getAccess() );
+        copy.setDescription( original.getDescription() );
+        copy.setFormName( original.getFormName() );
+        copy.setName( original.getName() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setStyle( original.getStyle() );
+        copy.setTrackedEntityAttributes( ObjectUtils.copyOf( original.getTrackedEntityAttributes() ) );
+        copy.setTranslations( original.getTranslations() );
     }
 }

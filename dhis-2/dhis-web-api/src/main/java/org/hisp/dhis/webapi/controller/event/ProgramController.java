@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
+import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.created;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 
 import java.util.Collection;
@@ -35,11 +36,17 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.copy.CopyService;
 import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
+import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
@@ -50,14 +57,17 @@ import org.hisp.dhis.schema.descriptors.ProgramSchemaDescriptor;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.webdomain.WebMetadata;
 import org.hisp.dhis.webapi.webdomain.WebOptions;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
 
@@ -67,11 +77,13 @@ import com.google.common.collect.Lists;
 @OpenApi.Tags( "tracker" )
 @Controller
 @RequestMapping( value = ProgramSchemaDescriptor.API_ENDPOINT )
+@RequiredArgsConstructor
 public class ProgramController
     extends AbstractCrudController<Program>
 {
-    @Autowired
-    private ProgramService programService;
+    private final ProgramService programService;
+
+    private final CopyService copyService;
 
     @Override
     @SuppressWarnings( "unchecked" )
@@ -125,6 +137,28 @@ public class ProgramController
         return ResponseEntity.ok( exportParams );
     }
 
+    @PostMapping( "/{uid}/copy" )
+    @ResponseStatus( HttpStatus.CREATED )
+    @ResponseBody
+    public WebMessage copyProgram( @PathVariable( "uid" ) String uid,
+        @RequestParam( required = false ) Map<String, String> copyOptions )
+        throws NotFoundException,
+        ConflictException
+    {
+        Program programCopy = null;
+        try
+        {
+            programCopy = copyService.copyProgram( uid, copyOptions );
+        }
+        catch ( DataIntegrityViolationException dive )
+        {
+            String exceptionMessage = getRootCauseMessageIfPossible( dive );
+            throw new ConflictException( exceptionMessage );
+        }
+        return created( ("Program created: '%s'".formatted( programCopy.getUid() )) )
+            .setLocation( "/programs/" + programCopy.getUid() );
+    }
+
     @ResponseBody
     @GetMapping( value = "orgUnits" )
     public Map<String, Collection<String>> getOrgUnitsAssociations(
@@ -135,6 +169,22 @@ public class ProgramController
             .map( programService::getProgramOrganisationUnitsAssociationsForCurrentUser )
             .map( SetValuedMap::asMap )
             .orElseThrow( () -> new IllegalArgumentException( "At least one program uid must be specified" ) );
+    }
+
+    private String getRootCauseMessageIfPossible( DataIntegrityViolationException dive )
+    {
+        String exceptionMessage = "";
+        if ( null != dive.getRootCause() )
+        {
+            Throwable throwable = dive.getRootCause();
+            if ( null != throwable )
+                exceptionMessage = throwable.getMessage();
+        }
+        else
+        {
+            exceptionMessage = dive.getMessage();
+        }
+        return exceptionMessage;
     }
 
 }

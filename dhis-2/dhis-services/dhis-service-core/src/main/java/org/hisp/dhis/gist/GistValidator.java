@@ -122,11 +122,14 @@ final class GistValidator
         String transArgs = f.getTransformationArgument();
         if ( transformation == Transform.PLUCK && transArgs != null )
         {
-            Property plucked = context.switchedTo( getBaseType( field ) ).resolveMandatory( transArgs );
-            if ( !plucked.isPersisted() )
+            for ( String arg : transArgs.split( "," ) )
             {
-                throw createIllegalProperty( plucked,
-                    "Property `%s` cannot be plucked as it is not a persistent field." );
+                Property plucked = context.switchedTo( getBaseType( field ) ).resolveMandatory( arg );
+                if ( !plucked.isPersisted() )
+                {
+                    throw createIllegalProperty( plucked,
+                        "Property `%s` cannot be plucked as it is not a persistent field." );
+                }
             }
         }
         if ( transformation == Transform.FROM )
