@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
+import static org.hisp.dhis.program.Program.PREFIX_KEY;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -455,17 +458,19 @@ public class ProgramIndicator
         this.orgUnitField = orgUnitField;
     }
 
-    public static ProgramIndicator copyOf( ProgramIndicator original, Program program )
+    public static ProgramIndicator copyOf( ProgramIndicator original, Program program, Map<String, String> copyOptions )
     {
         ProgramIndicator copy = new ProgramIndicator();
         copy.setProgram( program );
         copy.setAutoFields();
-        setShallowCopyValues( copy, original );
+        setShallowCopyValues( copy, original, copyOptions );
         return copy;
     }
 
-    private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original )
+    private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original,
+        Map<String, String> copyOptions )
     {
+        String prefix = copyOptions.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
         copy.setAccess( original.getAccess() );
         copy.setAttributeValues( original.getAttributeValues() );
         copy.setAnalyticsPeriodBoundaries( ObjectUtils.copyOf( original.getAnalyticsPeriodBoundaries() ) );
@@ -476,7 +481,7 @@ public class ProgramIndicator
         copy.setExpression( original.getExpression() );
         copy.setFilter( original.getFilter() );
         copy.setFormName( original.getFormName() );
-        copy.setName( original.getName() );
+        copy.setName( prefix + original.getName() );
         copy.setOrgUnitField( original.getOrgUnitField() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setSharing( original.getSharing() );

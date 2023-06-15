@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
+import static org.hisp.dhis.program.Program.PREFIX_KEY;
 import static org.hisp.dhis.program.ProgramTest.getNewProgram;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -63,7 +65,7 @@ class ProgramIndicatorTest
         Program programOriginal = getNewProgram();
         Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
         ProgramIndicator original = getNewProgramIndicator( programOriginal );
-        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy );
+        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy, Map.of() );
 
         assertNotEquals( original, copy );
         assertNotEquals( original.getUid(), copy.getUid() );
@@ -71,7 +73,25 @@ class ProgramIndicatorTest
         assertNotSame( original, copy );
 
         assertEquals( original.getDecimals(), copy.getDecimals() );
-        assertEquals( original.getName(), copy.getName() );
+        assertEquals( DEFAULT_PREFIX + original.getName(), copy.getName() );
+    }
+
+    @Test
+    void testCopyOfWithPrefix()
+    {
+        String customPrefix = "use this ";
+        Program programOriginal = getNewProgram();
+        Program programCopy = Program.shallowCopy( programOriginal, Map.of() );
+        ProgramIndicator original = getNewProgramIndicator( programOriginal );
+        ProgramIndicator copy = ProgramIndicator.copyOf( original, programCopy, Map.of( PREFIX_KEY, customPrefix ) );
+
+        assertNotEquals( original, copy );
+        assertNotEquals( original.getUid(), copy.getUid() );
+        assertNotEquals( original.getProgram().getUid(), copy.getProgram().getUid() );
+        assertNotSame( original, copy );
+
+        assertEquals( original.getDecimals(), copy.getDecimals() );
+        assertEquals( customPrefix + original.getName(), copy.getName() );
     }
 
     private ProgramIndicator getNewProgramIndicator( Program program )

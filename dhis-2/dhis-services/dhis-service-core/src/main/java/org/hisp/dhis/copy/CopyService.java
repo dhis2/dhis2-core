@@ -39,8 +39,6 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -59,6 +57,8 @@ import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service that allows copying of a {@link Program} and other {@link Program}
@@ -141,9 +141,10 @@ public class CopyService
         return stageCopyDeep;
     }
 
-    public ProgramIndicator copyProgramIndicator( @Nonnull ProgramIndicator original, @Nonnull Program program )
+    public ProgramIndicator copyProgramIndicator( @Nonnull ProgramIndicator original, @Nonnull Program program,
+        Map<String, String> copyOptions )
     {
-        ProgramIndicator copy = ProgramIndicator.copyOf( original, program );
+        ProgramIndicator copy = ProgramIndicator.copyOf( original, program, copyOptions );
         programIndicatorService.addProgramIndicator( copy );
         return copy;
     }
@@ -182,7 +183,7 @@ public class CopyService
         copySections( original, copy );
         copyAttributes( original, copy );
 
-        Set<ProgramIndicator> programIndicators = copyIndicators( original );
+        Set<ProgramIndicator> programIndicators = copyIndicators( original, copyOptions );
         copy.setProgramIndicators( programIndicators );
 
         Set<ProgramRuleVariable> programRuleVariables = copyRuleVariables( original, copy, stageMappings );
@@ -255,9 +256,10 @@ public class CopyService
         return ruleVariables;
     }
 
-    private Set<ProgramIndicator> copyIndicators( Program original )
+    private Set<ProgramIndicator> copyIndicators( Program original, Map<String, String> copyOptions )
     {
-        return original.getProgramIndicators().stream().map( indicator -> copyProgramIndicator( indicator, original ) )
+        return original.getProgramIndicators().stream()
+            .map( indicator -> copyProgramIndicator( indicator, original, copyOptions ) )
             .collect( Collectors.toSet() );
     }
 
