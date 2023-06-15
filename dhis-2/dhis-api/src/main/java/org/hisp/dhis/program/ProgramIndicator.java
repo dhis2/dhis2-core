@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.program;
 
+import static org.hisp.dhis.program.Program.DEFAULT_PREFIX;
+import static org.hisp.dhis.program.Program.PREFIX_KEY;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -42,6 +45,7 @@ import org.hisp.dhis.common.DimensionItemType;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.util.ObjectUtils;
 import org.springframework.util.Assert;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -452,5 +456,37 @@ public class ProgramIndicator
     public void setOrgUnitField( String orgUnitField )
     {
         this.orgUnitField = orgUnitField;
+    }
+
+    public static ProgramIndicator copyOf( ProgramIndicator original, Program program, Map<String, String> copyOptions )
+    {
+        ProgramIndicator copy = new ProgramIndicator();
+        copy.setProgram( program );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original, copyOptions );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramIndicator copy, ProgramIndicator original,
+        Map<String, String> copyOptions )
+    {
+        String prefix = copyOptions.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
+        copy.setAccess( original.getAccess() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setAnalyticsPeriodBoundaries( ObjectUtils.copyOf( original.getAnalyticsPeriodBoundaries() ) );
+        copy.setAnalyticsType( original.getAnalyticsType() );
+        copy.setDecimals( original.getDecimals() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayInForm( original.getDisplayInForm() );
+        copy.setExpression( original.getExpression() );
+        copy.setFilter( original.getFilter() );
+        copy.setFormName( original.getFormName() );
+        copy.setName( prefix + original.getName() );
+        copy.setOrgUnitField( original.getOrgUnitField() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( prefix + original.getShortName() );
+        copy.setStyle( original.getStyle() );
+        copy.setTranslations( original.getTranslations() );
     }
 }
