@@ -485,7 +485,7 @@ public class ProgramIndicator
         copy.setOrgUnitField( original.getOrgUnitField() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setSharing( original.getSharing() );
-        copy.setShortName( original.getShortName() );
+        copy.setShortName( prefix + original.getShortName() );
         copy.setStyle( original.getStyle() );
         copy.setTranslations( original.getTranslations() );
     }

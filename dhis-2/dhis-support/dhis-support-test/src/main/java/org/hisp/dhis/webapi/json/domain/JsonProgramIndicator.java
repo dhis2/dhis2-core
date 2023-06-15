@@ -27,38 +27,11 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
  * @author David Mackessy
  */
-public interface JsonProgram extends JsonObject, JsonNameableObject
+public interface JsonProgramIndicator extends JsonObject, JsonNameableObject
 {
-
-    default JsonList<JsonProgramStage> getProgramStages()
-    {
-        return getList( "programStages", JsonProgramStage.class );
-    }
-
-    default JsonList<JsonProgramSection> getProgramSections()
-    {
-        return getList( "programSections", JsonProgramSection.class );
-    }
-
-    default JsonList<JsonProgramIndicator> getProgramIndicators()
-    {
-        return getList( "programIndicators", JsonProgramIndicator.class );
-    }
-
-    default JsonList<JsonProgramRuleVariable> getProgramRuleVariables()
-    {
-        return getList( "programRuleVariables", JsonProgramRuleVariable.class );
-    }
-
-    default JsonList<JsonProgramTrackedEntityAttribute> getProgramTrackedEntityAttributes()
-    {
-        return getList( "programTrackedEntityAttributes", JsonProgramTrackedEntityAttribute.class );
-    }
-
 }

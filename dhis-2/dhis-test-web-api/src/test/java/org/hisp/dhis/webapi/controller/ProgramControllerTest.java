@@ -43,8 +43,11 @@ import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonProgram;
+import org.hisp.dhis.webapi.json.domain.JsonProgramIndicator;
+import org.hisp.dhis.webapi.json.domain.JsonProgramRuleVariable;
 import org.hisp.dhis.webapi.json.domain.JsonProgramSection;
 import org.hisp.dhis.webapi.json.domain.JsonProgramStage;
+import org.hisp.dhis.webapi.json.domain.JsonProgramTrackedEntityAttribute;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -131,7 +134,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testCopyProgramWith2ProgramSections()
+    void testCopyProgramWith2ProgramSectionsVariablesIndicatorsAttributes()
     {
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
             .content( HttpStatus.CREATED )
@@ -143,15 +146,38 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         JsonProgram copiedProgram = GET( "/programs/{id}", copiedProgramUid ).content( HttpStatus.OK )
             .as( JsonProgram.class );
         JsonList<JsonProgramSection> copiedSections = copiedProgram.getProgramSections();
+        JsonList<JsonProgramIndicator> copiedIndicators = copiedProgram.getProgramIndicators();
+        JsonList<JsonProgramRuleVariable> copiedRuleVariables = copiedProgram.getProgramRuleVariables();
+        JsonList<JsonProgramTrackedEntityAttribute> copiedTrackedAttributes = copiedProgram
+            .getProgramTrackedEntityAttributes();
 
         assertEquals( copiedProgramUid, copiedProgram.getId() );
-        assertEquals( 2, copiedProgram.getProgramSections().size() );
+        assertEquals( 2, copiedSections.size() );
+        assertEquals( 2, copiedIndicators.size() );
+        assertEquals( 2, copiedRuleVariables.size() );
+        assertEquals( 2, copiedTrackedAttributes.size() );
 
-        // ensure that copied program sections have new uids
+        // ensure that all copied program properties have new uids
         Set<String> copiedSectionUids = copiedSections.stream().map( JsonProgramSection::getId )
             .collect( Collectors.toSet() );
         copiedSectionUids.removeAll( Set.of( "PSSzMWi7rBa", "PSSzMWi7rBb" ) );
         assertEquals( 2, copiedSectionUids.size() );
+
+        Set<String> copiedIndicatorsUids = copiedIndicators.stream().map( JsonProgramIndicator::getId )
+            .collect( Collectors.toSet() );
+        copiedIndicatorsUids.removeAll( Set.of( "PInmWi7rBga", "PInmWi7rBgb" ) );
+        assertEquals( 2, copiedIndicatorsUids.size() );
+
+        Set<String> copiedRuleVariablesUids = copiedRuleVariables.stream().map( JsonProgramRuleVariable::getId )
+            .collect( Collectors.toSet() );
+        copiedRuleVariablesUids.removeAll( Set.of( "PRVmWi7rBga", "PRVmWi7rBgb" ) );
+        assertEquals( 2, copiedRuleVariablesUids.size() );
+
+        Set<String> copiedTrackedEntityAttributesUids = copiedTrackedAttributes.stream()
+            .map( JsonProgramTrackedEntityAttribute::getId )
+            .collect( Collectors.toSet() );
+        copiedTrackedEntityAttributesUids.removeAll( Set.of( "PTEAmWi7rBa", "PTEAmWi7rBb" ) );
+        assertEquals( 2, copiedTrackedEntityAttributesUids.size() );
     }
 
     @Test

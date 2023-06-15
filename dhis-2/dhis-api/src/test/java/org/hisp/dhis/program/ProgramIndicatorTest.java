@@ -74,6 +74,7 @@ class ProgramIndicatorTest
 
         assertEquals( original.getDecimals(), copy.getDecimals() );
         assertEquals( DEFAULT_PREFIX + original.getName(), copy.getName() );
+        assertEquals( DEFAULT_PREFIX + original.getShortName(), copy.getShortName() );
     }
 
     @Test
@@ -92,6 +93,7 @@ class ProgramIndicatorTest
 
         assertEquals( original.getDecimals(), copy.getDecimals() );
         assertEquals( customPrefix + original.getName(), copy.getName() );
+        assertEquals( customPrefix + original.getShortName(), copy.getShortName() );
     }
 
     private ProgramIndicator getNewProgramIndicator( Program program )
