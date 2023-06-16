@@ -1,0 +1,316 @@
+{
+  "categories":
+  [
+    {
+      "code": "default",
+      "name": "default",
+      "created": "2012-11-21T12:15:18.537",
+      "lastUpdated": "2023-05-18T15:04:00.104",
+      "translations":
+      [],
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rw------"
+      },
+      "shortName": "default",
+      "dataDimensionType": "DISAGGREGATION",
+      "dataDimension": false,
+      "categoryOptions":
+      [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "id": "GLevLNI9wkl",
+      "attributeValues":
+      []
+    }
+  ],
+  "categoryCombos":
+  [
+    {
+      "code": "default",
+      "name": "default",
+      "created": "2011-12-24T12:24:25.203",
+      "lastUpdated": "2016-04-12T20:37:49.126",
+      "translations":
+      [],
+      "sharing":
+      {
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rw------"
+      },
+      "categories":
+      [
+        {
+          "id": "GLevLNI9wkl"
+        }
+      ],
+      "dataDimensionType": "DISAGGREGATION",
+      "skipTotal": false,
+      "id": "bjDvmb4bfuf"
+    }
+  ],
+  "programs":
+  [
+    {
+      "name": "test",
+      "created": "2023-05-18T15:24:15.623",
+      "lastUpdated": "2023-05-18T15:24:15.623",
+      "translations":
+      [],
+      "createdBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "lastUpdatedBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rw------"
+      },
+      "shortName": "test",
+      "version": 0,
+      "programType": "WITH_REGISTRATION",
+      "displayIncidentDate": true,
+      "ignoreOverdueEvents": false,
+      "onlyEnrollOnce": false,
+      "notificationTemplates":
+      [],
+      "selectEnrollmentDatesInFuture": false,
+      "selectIncidentDatesInFuture": false,
+      "trackedEntityType":
+      {
+        "id": "nEenWmSyUEp"
+      },
+      "categoryCombo":
+      {
+        "id": "bjDvmb4bfuf"
+      },
+      "skipOffline": false,
+      "displayFrontPageList": false,
+      "useFirstStageDuringRegistration": false,
+      "expiryDays": 0,
+      "completeEventsExpiryDays": 0,
+      "openDaysAfterCoEndDate": 0,
+      "minAttributesRequiredToSearch": 1,
+      "maxTeiCountToReturn": 0,
+      "accessLevel": "OPEN",
+      "id": "SkV0iNXNJ2S",
+      "attributeValues":
+      [],
+      "organisationUnits":
+      [],
+      "programStages":
+      [
+        {
+          "id": "LloQNgtkrbt"
+        }
+      ],
+      "programSections":
+      [],
+      "programTrackedEntityAttributes":
+      []
+    }
+  ],
+  "trackedEntityTypes":
+  [
+    {
+      "name": "Person",
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rwrw----"
+      },
+      "description": "Person",
+      "featureType": "NONE",
+      "minAttributesRequiredToSearch": 1,
+      "maxTeiCountToReturn": 0,
+      "allowAuditLog": false,
+      "id": "nEenWmSyUEp"
+    }
+  ],
+  "trackedEntityAttributes": [
+    {
+      "id": "sB1IHYu2xQT",
+      "programScope": false,
+      "displayInListNoProgram": false,
+      "unique": false,
+      "inherit": false,
+      "confidential": false,
+      "shortName": "TrackedEntityAttributeA",
+      "displayOnVisitSchedule": false,
+      "name": "TrackedEntityAttributeA",
+      "attributeValues": [],
+      "valueType": "TEXT",
+      "aggregationType": "NONE",
+      "orgunitScope": false,
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI",
+        "users": {},
+        "userGroups": {}
+      }
+    }
+  ],
+  "programStages":
+  [
+    {
+      "name": "test",
+      "created": "2023-05-18T15:24:15.573",
+      "lastUpdated": "2023-05-18T15:24:55.934",
+      "translations":
+      [],
+      "createdBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "lastUpdatedBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "r-------"
+      },
+      "minDaysFromStart": 0,
+      "program":
+      {
+        "id": "SkV0iNXNJ2S"
+      },
+      "autoGenerateEvent": true,
+      "validationStrategy": "ON_COMPLETE",
+      "displayGenerateEventBox": true,
+      "blockEntryForm": false,
+      "preGenerateUID": false,
+      "remindCompleted": false,
+      "generatedByEnrollmentDate": false,
+      "allowGenerateNextVisit": false,
+      "openAfterEnrollment": false,
+      "sortOrder": 1,
+      "hideDueDate": false,
+      "enableUserAssignment": false,
+      "referral": false,
+      "id": "LloQNgtkrbt",
+      "attributeValues":
+      [],
+      "repeatable": false,
+      "programStageSections":
+      [],
+      "notificationTemplates":
+      []
+    }
+  ],
+  "categoryOptions":
+  [
+    {
+      "code": "default",
+      "name": "default",
+      "created": "2011-12-24T12:24:24.149",
+      "lastUpdated": "2016-04-12T20:37:48.414",
+      "translations":
+      [
+        {
+          "locale": "en_GB",
+          "property": "NAME",
+          "value": "default"
+        }
+      ],
+      "createdBy":
+      {
+        "id": "M5zQapPyTZI",
+        "code": null,
+        "name": "Tom Wakiki",
+        "displayName": "Tom Wakiki",
+        "username": "system"
+      },
+      "sharing":
+      {
+        "owner": "M5zQapPyTZI",
+        "external": false,
+        "users":
+        {},
+        "userGroups":
+        {},
+        "public": "rwrw----"
+      },
+      "shortName": "default",
+      "organisationUnits":
+      [],
+      "id": "xYerKDKCefk",
+      "attributeValues":
+      []
+    }
+  ],
+  "categoryOptionCombos":
+  [
+    {
+      "code": "default",
+      "name": "default",
+      "created": "2011-12-24T12:24:25.319",
+      "lastUpdated": "2011-12-24T12:24:25.319",
+      "translations":
+      [],
+      "categoryCombo":
+      {
+        "id": "bjDvmb4bfuf"
+      },
+      "categoryOptions":
+      [
+        {
+          "id": "xYerKDKCefk"
+        }
+      ],
+      "ignoreApproval": false,
+      "id": "HllvX50cXC0",
+      "attributeValues":
+      []
+    }
+  ]
+}

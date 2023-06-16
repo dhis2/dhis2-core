@@ -254,7 +254,7 @@ public enum ErrorCode
     /* Metadata Validation (continued) */
     E4060( "Object could not be deleted: {0}" ),
     E4061(
-        "DashboardItem `{0}` object reference `{1}` with id `{2}` not found or not accessible" ),
+        "DashboardItem `{0}` object reference `{1}` with id `{2}` not found" ),
     E4062( "Start date or end date have to be specified when date period type is set to ABSOLUTE for item `{0}`" ),
     E4063( "Assigned users cannot be empty when assigned user mode is set to PROVIDED" ),
     E4064( "Organisation unit cannot be empty with `{0}` org unit mode" ),
@@ -262,6 +262,8 @@ public enum ErrorCode
     E4066( "No data element found for item: `{0}`" ),
     E4067( "Attribute UID is missing in filter" ),
     E4068( "No tracked entity attribute found for attribute: `{0}`" ),
+    E4069(
+        "DashboardItem `{0}` object reference `{1}` with id `{2}` not accessible" ),
 
     /* SQL views */
     E4300( "SQL query is null" ),
@@ -290,6 +292,7 @@ public enum ErrorCode
     E5005( "Properties `{0}` in objects `{1}` must be unique within the payload" ),
     E5006( "Non-owner reference {0} on object {1} for association `{2}` disallowed for payload for ERRORS_NOT_OWNER" ),
     E5007( "Duplicate reference {0} on object {1} for association `{2}`" ),
+    E5008( "READ access is required for reference {0} on object {1} for association `{2}`" ),
 
     /* Metadata import */
     E6000( "Program `{0}` has more than one Enrollment" ),
