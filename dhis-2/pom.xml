@@ -156,7 +156,6 @@
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <version.debezium>2.2.1.Final</version.debezium>
     <guava.version>32.0.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
@@ -726,7 +725,6 @@
               <ignoredUsedUndeclaredDependency>io.micrometer:micrometer-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.activemq:artemis-commons</ignoredUsedUndeclaredDependency>
-              <ignoredUsedUndeclaredDependency>io.debezium:debezium-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.apache.kafka:connect-api</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>io.prometheus:simpleclient_common</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework:spring-jcl</ignoredUsedUndeclaredDependency>
