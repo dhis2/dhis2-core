@@ -40,10 +40,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.event.EventAnalyticsDimensionsService;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -51,6 +54,7 @@ import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
@@ -65,6 +69,8 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
 {
     private final ProgramStageService programStageService;
 
+    private final ProgramService programService;
+
     private final CategoryService categoryService;
 
     private final AclService aclService;
@@ -72,34 +78,69 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     private final CurrentUserService currentUserService;
 
     @Override
-    public List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programStageId )
+    public List<PrefixedDimension> getQueryDimensionsByProgramStageId( String programId, String programStageId )
     {
-        Optional<ProgramStage> programStage = Optional.of( programStageId )
-            .map( programStageService::getProgramStage );
 
-        if ( programStage.isPresent() )
+        Collection<ProgramStage> programStages = getProgramStages( programId, programStageId );
+
+        if ( CollectionUtils.isNotEmpty( programStages ) )
         {
-            User user = currentUserService.getCurrentUser();
-
-            return programStage
-                .map( ProgramStage::getProgram )
-                .map( p -> collectDimensions(
-                    List.of(
-                        ofProgramIndicators( p.getProgramIndicators()
-                            .stream()
-                            .filter( pi -> aclService.canRead( user, pi ) )
-                            .collect( Collectors.toSet() ) ),
-                        filterByValueType(
-                            QUERY,
-                            ofDataElements( programStage.get() ) ),
-                        filterByValueType(
-                            QUERY,
-                            ofItemsWithProgram( p, getTeasIfRegistrationAndNotConfidential( p ) ) ),
-                        ofItemsWithProgram( p, getCategoriesIfNeeded( p ) ),
-                        ofItemsWithProgram( p, getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) ) )
-                .orElse( Collections.emptyList() );
+            return programStages.stream()
+                .map( this::dimensions )
+                .flatMap( Collection::stream )
+                .toList();
         }
         return Collections.emptyList();
+    }
+
+    private Collection<ProgramStage> getProgramStages( String programId, String programStageId )
+    {
+        checkProgramStageIsInProgramIfNecessary( programId, programStageId );
+        return Optional.of( programStageId )
+            .filter( StringUtils::isNotBlank )
+            .map( programStageService::getProgramStage )
+            .map( Set::of )
+            .orElseGet( () -> Optional.of( programId )
+                .filter( StringUtils::isNotBlank )
+                .map( programService::getProgram )
+                .map( Program::getProgramStages )
+                .orElse( Collections.emptySet() ) );
+    }
+
+    private void checkProgramStageIsInProgramIfNecessary( String programId, String programStageId )
+    {
+        if ( StringUtils.isNotBlank( programStageId ) && StringUtils.isNotBlank( programId ) )
+        {
+            Optional.of( programStageId )
+                .map( programStageService::getProgramStage )
+                .map( ProgramStage::getProgram )
+                .map( Program::getUid )
+                .filter( programId::equals )
+                .orElseThrow( () -> new IllegalArgumentException( "Program stage is not in program" ) );
+        }
+    }
+
+    private List<PrefixedDimension> dimensions( ProgramStage programStage )
+    {
+        User user = currentUserService.getCurrentUser();
+
+        return Optional.of( programStage )
+            .map( ProgramStage::getProgram )
+            .map( p -> collectDimensions(
+                List.of(
+                    ofProgramIndicators( p.getProgramIndicators()
+                        .stream()
+                        .filter( pi -> aclService.canRead( user, pi ) )
+                        .collect( Collectors.toSet() ) ),
+                    filterByValueType(
+                        QUERY,
+                        ofDataElements( programStage ) ),
+                    filterByValueType(
+                        QUERY,
+                        ofItemsWithProgram( p, getTeasIfRegistrationAndNotConfidential( p ) ) ),
+                    ofItemsWithProgram( p, getCategoriesIfNeeded( p ) ),
+                    ofItemsWithProgram( p, getAttributeCategoryOptionGroupSetsIfNeeded( p ) ) ) ) )
+            .orElse( Collections.emptyList() );
     }
 
     @Override
