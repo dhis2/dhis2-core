@@ -32,8 +32,12 @@ import java.util.Objects;
 
 import lombok.extern.slf4j.Slf4j;
 
+import org.hibernate.SessionFactory;
+import org.hisp.dhis.cache.PaginationCacheManager;
+import org.hisp.dhis.cache.QueryCacheManager;
 import org.hisp.dhis.cacheinvalidation.BaseCacheEvictionService;
 import org.hisp.dhis.category.CategoryOptionCombo;
+import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataset.CompleteDataSetRegistration;
 import org.hisp.dhis.dataset.DataSet;
@@ -41,10 +45,12 @@ import org.hisp.dhis.datastatistics.DataStatisticsEvent;
 import org.hisp.dhis.datavalue.DataValue;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
+import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
+import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
@@ -66,10 +72,23 @@ public class CacheInvalidationListener
     extends BaseCacheEvictionService
     implements RedisPubSubListener<String, String>
 {
-
-    @Autowired
-    @Qualifier( "cacheInvalidationServerId" )
     protected String serverInstanceId;
+
+    public CacheInvalidationListener( SessionFactory sessionFactory,
+        PaginationCacheManager paginationCacheManager,
+        QueryCacheManager queryCacheManager,
+        IdentifiableObjectManager idObjectManager,
+        TrackedEntityAttributeService trackedEntityAttributeService,
+        TrackedEntityService trackedEntityService,
+        PeriodService periodService,
+        @Qualifier( "cacheInvalidationServerId" ) String serverInstanceId )
+    {
+        super( sessionFactory, paginationCacheManager, queryCacheManager, idObjectManager,
+            trackedEntityAttributeService,
+            trackedEntityService, periodService );
+
+        this.serverInstanceId = serverInstanceId;
+    }
 
     @Override
     public void message( String channel, String message )

@@ -38,8 +38,6 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.cache.PaginationCacheManager;
 import org.hisp.dhis.cache.QueryCacheManager;
-import org.hisp.dhis.cacheinvalidation.debezium.KnownTransactionsService;
-import org.hisp.dhis.cacheinvalidation.debezium.TableNameToEntityMapping;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
@@ -53,16 +51,10 @@ public class BaseCacheEvictionService
     protected SessionFactory sessionFactory;
 
     @Autowired
-    protected KnownTransactionsService knownTransactionsService;
-
-    @Autowired
     protected PaginationCacheManager paginationCacheManager;
 
     @Autowired
     protected QueryCacheManager queryCacheManager;
-
-    @Autowired
-    protected TableNameToEntityMapping tableNameToEntityMapping;
 
     @Autowired
     protected IdentifiableObjectManager idObjectManager;
@@ -75,6 +67,22 @@ public class BaseCacheEvictionService
 
     @Autowired
     protected PeriodService periodService;
+
+    public BaseCacheEvictionService( SessionFactory sessionFactory, PaginationCacheManager paginationCacheManager,
+        QueryCacheManager queryCacheManager, IdentifiableObjectManager idObjectManager,
+        TrackedEntityAttributeService trackedEntityAttributeService, TrackedEntityService trackedEntityService,
+        PeriodService periodService )
+    {
+
+        this.sessionFactory = sessionFactory;
+        this.paginationCacheManager = paginationCacheManager;
+        this.queryCacheManager = queryCacheManager;
+        this.idObjectManager = idObjectManager;
+        this.trackedEntityAttributeService = trackedEntityAttributeService;
+        this.trackedEntityService = trackedEntityService;
+        this.periodService = periodService;
+
+    }
 
     protected void tryFetchNewEntity( Serializable entityId, Class<?> entityClass )
     {
