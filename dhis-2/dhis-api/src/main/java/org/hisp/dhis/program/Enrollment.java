@@ -33,6 +33,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.audit.AuditAttribute;
 import org.hisp.dhis.audit.AuditScope;
@@ -45,6 +46,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
+import org.hisp.dhis.util.ObjectUtils;
 import org.locationtech.jts.geom.Geometry;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -454,5 +456,37 @@ public class Enrollment
             ", deleted=" + isDeleted() +
             ", storedBy='" + storedBy + '\'' +
             '}';
+    }
+
+    public static final BiFunction<Enrollment, Program, Enrollment> copyOf = ( original, prog ) -> {
+        Enrollment copy = new Enrollment();
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original, prog );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( Enrollment copy, Enrollment original, Program programCopy )
+    {
+        copy.setComments( ObjectUtils.copyOf( original.getComments() ) );
+        copy.setCompletedBy( original.getCompletedBy() );
+        copy.setCreatedAtClient( original.getCreatedAtClient() );
+        copy.setCreatedByUserInfo( original.getCreatedByUserInfo() );
+        copy.setEndDate( original.getEndDate() );
+        copy.setEnrollmentDate( original.getEnrollmentDate() );
+        copy.setEvents( new HashSet<>() );
+        copy.setFollowup( original.getFollowup() );
+        copy.setGeometry( original.getGeometry() );
+        copy.setIncidentDate( original.getIncidentDate() );
+        copy.setLastUpdatedAtClient( original.getLastUpdatedAtClient() );
+        copy.setLastUpdatedByUserInfo( original.getLastUpdatedByUserInfo() );
+        copy.setMessageConversations( ObjectUtils.copyOf( original.getMessageConversations() ) );
+        copy.setName( original.getName() );
+        copy.setOrganisationUnit( original.getOrganisationUnit() );
+        copy.setProgram( programCopy );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRelationshipItems( ObjectUtils.copyOf( original.getRelationshipItems() ) );
+        copy.setStatus( original.getStatus() );
+        copy.setStoredBy( original.getStoredBy() );
+        copy.setTrackedEntity( original.getTrackedEntity() );
     }
 }

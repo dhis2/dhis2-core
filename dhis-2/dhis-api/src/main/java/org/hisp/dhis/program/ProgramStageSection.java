@@ -29,12 +29,18 @@ package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiFunction;
 
-import org.hisp.dhis.common.*;
+import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.common.BaseNameableObject;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.MetadataObject;
+import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.common.adapter.DeviceRenderTypeMapSerializer;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
 import org.hisp.dhis.render.type.SectionRenderingObject;
+import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
@@ -207,5 +213,30 @@ public class ProgramStageSection
     public void setRenderType( DeviceRenderTypeMap<SectionRenderingObject> renderType )
     {
         this.renderType = renderType;
+    }
+
+    public static final BiFunction<ProgramStageSection, ProgramStage, ProgramStageSection> copyOf = ( original,
+        stage ) -> {
+        ProgramStageSection copy = new ProgramStageSection();
+        copy.setProgramStage( stage );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
+    {
+        copy.setDataElements( ObjectUtils.copyOf( original.getDataElements() ) );
+        copy.setDescription( original.getDescription() );
+        copy.setFormName( original.getFormName() );
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
+        copy.setName( original.getName() );
+        copy.setProgramIndicators( ObjectUtils.copyOf( original.getProgramIndicators() ) );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setStyle( original.getStyle() );
     }
 }

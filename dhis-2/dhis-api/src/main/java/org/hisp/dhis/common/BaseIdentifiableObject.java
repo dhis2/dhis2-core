@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.common;
 
+import static java.util.stream.Collectors.toSet;
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
 import java.util.Collection;
@@ -34,11 +35,14 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BiFunction;
+import java.util.stream.Stream;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -735,6 +739,42 @@ public class BaseIdentifiableObject
         }
 
         return defaultValue;
+    }
+
+    /**
+     * Method that allows copying of a Collection which requires a parent object
+     * of each element to be used in the copying logic.
+     *
+     * @param parent Object to be used as part of the copying logic
+     * @param original Collection to be copied
+     * @param copy BiFunction which applies the copying logic
+     * @return Copied Set
+     * @param <T> parent
+     * @param <E> element
+     */
+    public static <T, E> Set<E> copySet( T parent, Collection<E> original, BiFunction<E, T, E> copy )
+    {
+        return original == null
+            ? Stream.<E> empty().collect( toSet() )
+            : original.stream().filter( Objects::nonNull ).map( e -> copy.apply( e, parent ) ).collect( toSet() );
+    }
+
+    /**
+     * Method that allows copying of a Collection which requires a parent object
+     * of each element to be used in the copying logic.
+     *
+     * @param parent Object to be used as part of the copying logic
+     * @param original Collection to be copied
+     * @param copy BiFunction which applies the copying logic
+     * @return Copied List
+     * @param <T> parent
+     * @param <E> element
+     */
+    public static <T, E> List<E> copyList( T parent, Collection<E> original, BiFunction<E, T, E> copy )
+    {
+        return original == null
+            ? Stream.<E> empty().toList()
+            : original.stream().filter( Objects::nonNull ).map( e -> copy.apply( e, parent ) ).toList();
     }
 
 }
