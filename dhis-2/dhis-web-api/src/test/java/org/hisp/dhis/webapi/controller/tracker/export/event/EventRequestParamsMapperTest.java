@@ -491,8 +491,8 @@ class EventRequestParamsMapperTest
     void testMutualExclusionOfEventsAndFilter()
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
-        requestParams.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        requestParams.setFilter( DE_1_UID + ":ge:1:le:2" );
+        requestParams.setEvent( DE_1_UID + ";" + DE_2_UID );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( requestParams ) );
@@ -538,7 +538,7 @@ class EventRequestParamsMapperTest
         ForbiddenException
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilter( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) );
+        requestParams.setFilter( DE_1_UID + ":eq:2" + "," + DE_2_UID + ":like:foo" );
 
         EventSearchParams params = mapper.map( requestParams );
 
@@ -571,9 +571,8 @@ class EventRequestParamsMapperTest
         throws BadRequestException,
         ForbiddenException
     {
-
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) );
+        requestParams.setFilterAttributes( TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo" );
 
         EventSearchParams params = mapper.map( requestParams );
 
@@ -607,7 +606,7 @@ class EventRequestParamsMapperTest
         ForbiddenException
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilter( Set.of( DE_1_UID + ":gt:10:lt:20" ) );
+        requestParams.setFilter( DE_1_UID + ":gt:10:lt:20" );
 
         EventSearchParams params = mapper.map( requestParams );
 
@@ -632,7 +631,7 @@ class EventRequestParamsMapperTest
         ForbiddenException
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) );
+        requestParams.setFilterAttributes( TEA_1_UID + ":gt:10:lt:20" );
 
         EventSearchParams params = mapper.map( requestParams );
 
@@ -656,7 +655,8 @@ class EventRequestParamsMapperTest
     {
         RequestParams requestParams = new RequestParams();
         String filterName = "filter";
-        requestParams.setFilter( Set.of( filterName ) );
+
+        requestParams.setFilter( filterName );
         when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -670,7 +670,7 @@ class EventRequestParamsMapperTest
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setFilterAttributes(
-            Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) );
+            "TvjwTPToKHO:lt:20" + "," + "cy2oRh2sNr6:lt:20" + "," + "TvjwTPToKHO:gt:30" + "," + "cy2oRh2sNr6:gt:30" );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( requestParams ) );
@@ -689,7 +689,7 @@ class EventRequestParamsMapperTest
         ForbiddenException
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilterAttributes( Set.of( TEA_1_UID ) );
+        requestParams.setFilterAttributes( TEA_1_UID );
 
         EventSearchParams params = mapper.map( requestParams );
 
@@ -770,42 +770,20 @@ class EventRequestParamsMapperTest
     }
 
     @Test
-    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCos()
-    {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCos( "tqrzUqNMHib;bT6OSf4qnnk" );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
-
-        Exception exception = assertThrows( ForbiddenException.class,
-            () -> mapper.map( requestParams ) );
-
-        assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
-            exception.getMessage() );
-    }
-
-    @Test
-    void shouldMapGivenAttributeCosWhenUserHasAccessToCategoryCombo()
+    void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithSplitChars()
         throws ForbiddenException,
         BadRequestException
     {
-        RequestParams requestParams = new RequestParams();
-        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
-        requestParams.setAttributeCos( "tqrzUqNMHib;bT6OSf4qnnk" );
-        CategoryOptionCombo combo = new CategoryOptionCombo();
-        combo.setUid( "uid" );
-        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
-            true ) )
-            .thenReturn( combo );
-        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( true );
+        RequestParams criteria = new RequestParams();
+        criteria.setFilterAttributes( TEA_1_UID + ":like:value/,with/,comma" + "," + TEA_2_UID + ":eq:value/:x" );
 
-        EventSearchParams params = mapper.map( requestParams );
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilterAttributes().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
 
-        assertEquals( combo, params.getCategoryOptionCombo() );
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
+            new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
+
     }
 }

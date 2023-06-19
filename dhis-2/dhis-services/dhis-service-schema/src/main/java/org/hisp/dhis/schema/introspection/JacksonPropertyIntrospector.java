@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -142,7 +143,8 @@ public class JacksonPropertyIntrospector implements PropertyIntrospector
     private static boolean isSimple( Class<?> type )
     {
         return Primitives.allPrimitiveTypes().contains( type ) || Primitives.allWrapperTypes().contains( type )
-            || String.class.isAssignableFrom( type ) || Enum.class.isAssignableFrom( type );
+            || String.class.isAssignableFrom( type ) || Enum.class.isAssignableFrom( type )
+            || Date.class.isAssignableFrom( type );
     }
 
     private static void initFromDescription( Property property )

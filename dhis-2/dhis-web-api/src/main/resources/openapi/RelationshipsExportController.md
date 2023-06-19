@@ -1,14 +1,27 @@
 # Get Relationships
 
-## `getRelationships`
+## Specific endpoints
+
+### `getRelationships`
 
 Get relationships matching the given query parameters.
 
 Exactly one parameter of `trackedEntity` (`tei`), `enrollment` or `event` has to be specified.
 
-## `getRelationshipByUid`
+### `getRelationshipByUid`
 
 Get a relationship with the given UID.
+
+### `getRelationshipByUid.parameter.uid`
+
+Get a relationship with the given UID.
+
+### `getRelationshipByUid.parameter.fields`
+
+Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+the response and in some cases decrease the response time. Refer to
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
+for how to use it.
 
 ## Common for all endpoints
 

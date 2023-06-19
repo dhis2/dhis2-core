@@ -1,14 +1,29 @@
 # Get Tracked Entities
 
-## `getTrackedEntities`
+## Specific endpoints
+
+### `getTrackedEntities`
 
 Get tracked entities matching given query parameters.
 
-## `getTrackedEntityByUid`
+### `getTrackedEntityByUid`
+
+Get a tracked entity with given UID.
+
+### `getTrackedEntityByUid.parameter.uid`
 
 Get a tracked entity with given UID.
 
 ### `getTrackedEntityByUid.parameter.program`
+
+### `getTrackedEntityByUid.parameter.fields`
+
+Get only the specified fields in the JSON response. This query parameter allows you to remove unnecessary fields from
+the response and in some cases decrease the response time. Refer to
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/metadata.html#webapi_metadata_field_filter
+for how to use it.
+
+NOTE: this query parameter has no effect on a response in CSV!
 
 ## Common for all endpoints
 
