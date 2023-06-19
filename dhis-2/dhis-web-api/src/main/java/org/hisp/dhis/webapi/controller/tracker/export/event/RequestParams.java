@@ -168,9 +168,15 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 
     private Boolean skipEventId;
 
-    private Set<String> filter = new HashSet<>();
+    /**
+     * Comma separated list of data element filters
+     */
+    private String filter;
 
-    private Set<String> filterAttributes = new HashSet<>();
+    /**
+     * Comma separated list of attribute filters
+     */
+    private String filterAttributes;
 
     @OpenApi.Property( { UID[].class, Enrollment.class } )
     private Set<UID> enrollments = new HashSet<>();

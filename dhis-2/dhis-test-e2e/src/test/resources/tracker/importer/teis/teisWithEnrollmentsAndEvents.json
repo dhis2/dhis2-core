@@ -126,13 +126,13 @@
           "displayName": "TA Last name",
           "valueType": "TEXT",
           "attribute": "kZeSYCgaHTk",
-          "value": "Test"
+          "value": "Test,Test"
         },
         {
           "displayName": "TA First name",
           "valueType": "TEXT",
           "attribute": "dIVt4l5vIOa",
-          "value": "Test"
+          "value": "Test:Test"
         }
       ],
       "potentialDuplicate": true

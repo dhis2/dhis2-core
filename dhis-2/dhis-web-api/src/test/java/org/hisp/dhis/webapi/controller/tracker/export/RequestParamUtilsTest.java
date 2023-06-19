@@ -138,7 +138,7 @@ class RequestParamUtilsTest
         Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
+            () -> RequestParamUtils.parseAttributeQueryItems( param, attributes ) );
         assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
 
@@ -148,7 +148,7 @@ class RequestParamUtilsTest
         String param = "JM5zWuf1mkb:eq:2";
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
+            () -> RequestParamUtils.parseAttributeQueryItems( param, attributes ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 
@@ -157,7 +157,7 @@ class RequestParamUtilsTest
         throws BadRequestException
     {
         assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            RequestParamUtils.parseQueryFilter( "like:project:x" ) );
+            RequestParamUtils.parseQueryFilter( "like:project/:x" ) );
     }
 
     private TrackedEntityAttribute trackedEntityAttribute( String uid )
