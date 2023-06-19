@@ -468,7 +468,7 @@ class ExpressionService2Test extends DhisConvenienceTest
     @Test
     void testGetExpressionElementAndOptionComboIds()
     {
-        Set<String> ids = target.getExpressionElementAndOptionComboIds( expressionC, VALIDATION_RULE_EXPRESSION );
+        Set<String> ids = target.getExpressionElementAndOptionComboIds( expressionC );
 
         assertEquals( 2, ids.size() );
         assertTrue( ids.contains( deA.getUid() + SEPARATOR + coc.getUid() ) );

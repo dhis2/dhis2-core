@@ -131,6 +131,8 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.lib.expression.Expression.Mode;
+import org.hisp.dhis.lib.expression.spi.DataItemType;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -559,12 +561,13 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType )
+    public Set<String> getExpressionElementAndOptionComboIds( String expression )
     {
-        return getExpressionDimensionalItemIds( expression, parseType ).stream()
-            .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> i.getId0() + (i.getId1() == null ? "" : Expression.SEPARATOR + i.getId1()) )
-            .collect( Collectors.toSet() );
+        org.hisp.dhis.lib.expression.Expression expr = new org.hisp.dhis.lib.expression.Expression( expression, Mode.VALIDATION_RULE_EXPRESSION );
+        return expr.collectDataItems().stream()
+            .filter( item -> item.getType() == DataItemType.DATA_ELEMENT )
+            .map( item -> item.getUid0().getValue()+ (item.getUid1().isEmpty() ? "": Expression.SEPARATOR+item.getUid1().get( 0 ).getValue()))
+            .collect( Collectors.toSet());
     }
 
     @Override

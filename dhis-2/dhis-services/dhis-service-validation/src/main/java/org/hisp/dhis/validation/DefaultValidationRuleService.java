@@ -198,9 +198,9 @@ public class DefaultValidationRuleService
         for ( ValidationRule rule : getAllFormValidationRules() )
         {
             Set<String> leftSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
-                rule.getLeftSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+                rule.getLeftSide().getExpression() );
             Set<String> rightSideElementsAndCombos = expressionService.getExpressionElementAndOptionComboIds(
-                rule.getRightSide().getExpression(), VALIDATION_RULE_EXPRESSION );
+                rule.getRightSide().getExpression() );
 
             if ( !Sets.intersection( leftSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() ||
                 !Sets.intersection( rightSideElementsAndCombos, elementsAndOptionCombos ).isEmpty() )

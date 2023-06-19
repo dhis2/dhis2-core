@@ -237,10 +237,9 @@ public interface ExpressionService
      * If an Option Combo is present, returns dataElementUID.optionComboUID.
      *
      * @param expression the expression string.
-     * @param parseType the type of expression to parse.
      * @return a Set of data element identifiers.
      */
-    Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType );
+    Set<String> getExpressionElementAndOptionComboIds( String expression );
 
     /**
      * Returns all data element ids found in the given expression string,
