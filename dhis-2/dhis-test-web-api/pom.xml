@@ -458,7 +458,13 @@
     <dependency>
       <groupId>io.swagger.parser.v3</groupId>
       <artifactId>swagger-parser</artifactId>
-      <version>2.1.15</version>
+      <version>${swagger.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.swagger.parser.v3</groupId>
+      <artifactId>swagger-parser-core</artifactId>
+      <version>${swagger.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
