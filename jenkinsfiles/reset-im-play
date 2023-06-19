@@ -1,0 +1,58 @@
+#!/usr/bin/env groovy
+
+@Library('pipeline-library') _
+
+pipeline {
+    agent {
+        label 'ec2-jdk11'
+    }
+
+    options {
+        buildDiscarder(logRotator(daysToKeepStr: '5'))
+        timeout(time: 3)
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Reset IM Play dev instance') {
+            environment {
+                HTTP = "http --check-status"
+                IM_HOST = "https://api.im.prod.test.c.dhis2.org"
+                INSTANCE_URL = "https://play.im.prod.test.c.dhis2.org/dev"
+            }
+            steps {
+                script {
+                    if (env.GIT_BRANCH == 'master') {
+                        withCredentials([usernamePassword(credentialsId: 'dhis2-im-bot', passwordVariable: 'PASSWORD', usernameVariable: 'USER_EMAIL')]) {
+                            dir('im-manager') {
+                                gitHelper.sparseCheckout('https://github.com/dhis2-sre/im-manager', 'master', '/scripts')
+
+                                dir('scripts/instances') {
+                                    echo 'Resetting IM Play Dev...'
+                                    sh './reset.sh play dev'
+                                    timeout(5) {
+                                        waitFor.statusOk("${env.INSTANCE_URL}")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        failure {
+            script {
+                slack.sendFailureMessage()
+            }
+        }
+
+        aborted {
+            script {
+                slack.sendTimedoutMessage()
+            }
+        }
+    }
+}
