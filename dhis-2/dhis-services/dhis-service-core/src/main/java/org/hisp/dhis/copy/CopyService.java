@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
@@ -123,16 +122,21 @@ public class CopyService
      *        {@link ProgramStage} copy
      * @return {@link ProgramStage} copy
      */
-    public ProgramStage copyProgramStage( @Nonnull ProgramStage original, @Nonnull Program program )
+    public ProgramStage copyProgramStage( @Nonnull ProgramStage original, @Nonnull Program program,
+        @Nonnull Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings,
+        Map<String, String> copyOptions )
     {
         //shallow copy PS & save
         ProgramStage copy = ProgramStage.shallowCopy( original, program );
         programStageService.saveProgramStage( copy );
 
         //deep copy PS & save
-        ProgramStage stageCopyDeep = ProgramStage.deepCopy( original, copy );
+        ProgramStage stageCopyDeep = ProgramStage.deepCopy( original, copy, indicatorMappings, copyOptions );
         stageCopyDeep.getProgramStageDataElements()
             .forEach( programStageDataElementService::addProgramStageDataElement );
+
+        stageCopyDeep.getProgramStageSections()
+            .forEach( pss -> pss.getProgramIndicators().forEach( programIndicatorService::addProgramIndicator ) );
 
         stageCopyDeep.getProgramStageSections()
             .forEach( programStageSectionService::saveProgramStageSection );
@@ -175,20 +179,17 @@ public class CopyService
      */
     private Program applyAllProgramCopySteps( Program original, Map<String, String> copyOptions )
     {
-        //shallow copy Program & save
         Program copy = Program.shallowCopy( original, copyOptions );
         programService.addProgram( copy );
 
-        Map<String, Program.ProgramStageTuple> stageMappings = copyStages( original, copy );
+        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings = copyIndicators( original, copy,
+            copyOptions );
+
+        Map<String, Program.ProgramStageTuple> stageMappings = copyStages( original, copy, indicatorMappings,
+            copyOptions );
         copySections( original, copy );
         copyAttributes( original, copy );
-
-        Set<ProgramIndicator> programIndicators = copyIndicators( original, copyOptions );
-        copy.setProgramIndicators( programIndicators );
-
-        Set<ProgramRuleVariable> programRuleVariables = copyRuleVariables( original, copy, stageMappings );
-        copy.setProgramRuleVariables( programRuleVariables );
-
+        copyRuleVariables( original, copy, stageMappings );
         copyEnrollments( original, copy );
 
         programService.addProgram( copy );
@@ -196,13 +197,14 @@ public class CopyService
         return copy;
     }
 
-    private Map<String, Program.ProgramStageTuple> copyStages( Program original, Program programCopy )
+    private Map<String, Program.ProgramStageTuple> copyStages( Program original, Program programCopy,
+        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
     {
         Map<String, Program.ProgramStageTuple> stageMappings = new HashMap<>();
         Set<ProgramStage> copyStages = new HashSet<>();
         for ( ProgramStage stageOriginal : original.getProgramStages() )
         {
-            ProgramStage copy = copyProgramStage( stageOriginal, programCopy );
+            ProgramStage copy = copyProgramStage( stageOriginal, programCopy, indicatorMappings, copyOptions );
             copyStages.add( copy );
             stageMappings.put( stageOriginal.getUid(), new Program.ProgramStageTuple( stageOriginal, copy ) );
         }
@@ -253,14 +255,26 @@ public class CopyService
             ProgramRuleVariable copy = copyProgramRuleVariable( ruleVariable, programCopy, programStage );
             ruleVariables.add( copy );
         }
+        programCopy.setProgramRuleVariables( ruleVariables );
         return ruleVariables;
     }
 
-    private Set<ProgramIndicator> copyIndicators( Program original, Map<String, String> copyOptions )
+    private Map<String, ProgramIndicator.ProgramIndicatorTuple> copyIndicators( Program original, Program programCopy,
+        Map<String, String> copyOptions )
     {
-        return original.getProgramIndicators().stream()
-            .map( indicator -> copyProgramIndicator( indicator, original, copyOptions ) )
-            .collect( Collectors.toSet() );
+        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings = new HashMap<>();
+        Set<ProgramIndicator> copyIndicators = new HashSet<>();
+
+        for ( ProgramIndicator indicatorOriginal : original.getProgramIndicators() )
+        {
+            ProgramIndicator copy = copyProgramIndicator( indicatorOriginal, programCopy, copyOptions );
+            copyIndicators.add( copy );
+            indicatorMappings.put( indicatorOriginal.getUid(),
+                new ProgramIndicator.ProgramIndicatorTuple( indicatorOriginal, copy ) );
+        }
+
+        programCopy.setProgramIndicators( copyIndicators );
+        return indicatorMappings;
     }
 
     private void copyAttributes( Program original, Program programCopy )

@@ -31,6 +31,7 @@ import static org.hisp.dhis.program.notification.NotificationTrigger.ENROLLMENT;
 import static org.hisp.dhis.program.notification.ProgramNotificationRecipient.WEB_HOOK;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,6 +40,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +72,7 @@ import org.hisp.dhis.program.ProgramStageDataElementService;
 import org.hisp.dhis.program.ProgramStageSection;
 import org.hisp.dhis.program.ProgramStageSectionService;
 import org.hisp.dhis.program.ProgramStageService;
+import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
@@ -137,7 +140,7 @@ class CopyServiceTest extends DhisConvenienceTest
             .addProgramStageDataElement( any( ProgramStageDataElement.class ) );
         verify( programStageSectionService, times( 2 ) )
             .saveProgramStageSection( any( ProgramStageSection.class ) );
-        verify( programIndicatorService, times( 1 ) ).addProgramIndicator( any( ProgramIndicator.class ) );
+        verify( programIndicatorService, times( 3 ) ).addProgramIndicator( any( ProgramIndicator.class ) );
         verify( programRuleVariableService, times( 1 ) ).addProgramRuleVariable( any( ProgramRuleVariable.class ) );
         verify( programSectionService, times( 1 ) ).addProgramSection( any( ProgramSection.class ) );
         verify( enrollmentService, times( 1 ) ).addEnrollment( any( Enrollment.class ) );
@@ -169,15 +172,88 @@ class CopyServiceTest extends DhisConvenienceTest
     }
 
     @Test
+    void testCopyProgramFromUidCheckProgramStages()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        ProgramStage stageOriginal = new ArrayList<>( original.getProgramStages() ).get( 0 );
+        ProgramStageSection pssOriginal = new ArrayList<>( stageOriginal.getProgramStageSections() ).get( 0 );
+        ProgramStageDataElement psdeOriginal = new ArrayList<>( stageOriginal.getProgramStageDataElements() ).get( 0 );
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+        ProgramStage stageCopy = new ArrayList<>( programCopy.getProgramStages() ).get( 0 );
+        ProgramStageSection pssCopy = new ArrayList<>( stageCopy.getProgramStageSections() ).get( 0 );
+        ProgramStageDataElement psdeCopy = new ArrayList<>( stageCopy.getProgramStageDataElements() ).get( 0 );
+
+        assertEquals( 1, programCopy.getProgramStages().size() );
+        assertNotSame( stageOriginal.getUid(),
+            stageCopy.getUid() );
+        assertNotSame( stageOriginal.getProgram().getUid(),
+            stageCopy.getProgram().getUid() );
+
+        assertNotSame( pssOriginal.getUid(),
+            pssCopy.getUid() );
+        assertNotSame( pssOriginal.getProgramStage().getUid(),
+            pssCopy.getProgramStage().getUid() );
+
+        assertNotSame( psdeOriginal.getUid(),
+            psdeCopy.getUid() );
+        assertNotSame( psdeOriginal.getProgramStage().getUid(),
+            psdeCopy.getProgramStage().getUid() );
+
+        Set<String> originalProgramStageSectionIndicators = original.getProgramStages().stream()
+            .flatMap(
+                ps -> ps.getProgramStageSections().stream()
+                    .flatMap( pss -> pss.getProgramIndicators().stream() ) )
+            .map( ProgramIndicator::getUid ).collect( Collectors.toSet() );
+
+        Set<String> copyProgramStageSectionIndicators = programCopy.getProgramStages().stream()
+            .flatMap(
+                ps -> ps.getProgramStageSections().stream()
+                    .flatMap( pss -> pss.getProgramIndicators().stream() ) )
+            .map( ProgramIndicator::getUid ).collect( Collectors.toSet() );
+
+        assertEquals( 2, originalProgramStageSectionIndicators.size() );
+        assertEquals( 2, copyProgramStageSectionIndicators.size() );
+        originalProgramStageSectionIndicators.retainAll( copyProgramStageSectionIndicators );
+        assertTrue( originalProgramStageSectionIndicators.isEmpty() );
+    }
+
+    @Test
+    void testCopyProgramFromUidCheckProgramSections()
+        throws NotFoundException
+    {
+        Program original = createProgram();
+        ProgramSection sectionOriginal = new ArrayList<>( original.getProgramSections() ).get( 0 );
+        when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
+
+        Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+        ProgramSection sectionCopy = new ArrayList<>( programCopy.getProgramSections() ).get( 0 );
+
+        assertEquals( 1, programCopy.getProgramSections().size() );
+        assertNotSame( sectionOriginal.getUid(),
+            sectionCopy.getUid() );
+        assertNotSame( sectionOriginal.getProgram().getUid(),
+            sectionCopy.getProgram().getUid() );
+    }
+
+    @Test
     void testCopyProgramFromUidCheckProgramAttributes()
         throws NotFoundException
     {
         Program original = createProgram();
+        ProgramTrackedEntityAttribute pteaOriginal = original.getProgramAttributes().get( 0 );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
         Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+        ProgramTrackedEntityAttribute pteaCopy = programCopy.getProgramAttributes().get( 0 );
 
-        assertEquals( 1, programCopy.getProgramAttributes().size() );
+        assertEquals( 2, programCopy.getProgramAttributes().size() );
+        assertNotSame( pteaOriginal.getUid(),
+            pteaCopy.getUid() );
+        assertNotSame( pteaOriginal.getProgram().getUid(),
+            pteaCopy.getProgram().getUid() );
     }
 
     @Test
@@ -185,11 +261,17 @@ class CopyServiceTest extends DhisConvenienceTest
         throws NotFoundException
     {
         Program original = createProgram();
+        ProgramRuleVariable prvOriginal = new ArrayList<>( original.getProgramRuleVariables() ).get( 0 );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
         Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+        ProgramRuleVariable prvCopy = new ArrayList<>( programCopy.getProgramRuleVariables() ).get( 0 );
 
         assertEquals( 1, programCopy.getProgramRuleVariables().size() );
+        assertNotSame( prvOriginal.getUid(),
+            prvCopy.getUid() );
+        assertNotSame( prvOriginal.getProgram().getUid(),
+            prvCopy.getProgram().getUid() );
     }
 
     @Test
@@ -197,11 +279,17 @@ class CopyServiceTest extends DhisConvenienceTest
         throws NotFoundException
     {
         Program original = createProgram();
+        ProgramIndicator indicatorOrig = new ArrayList<>( original.getProgramIndicators() ).get( 0 );
         when( programService.getProgram( VALID_PROGRAM_UID ) ).thenReturn( original );
 
         Program programCopy = copyService.copyProgram( VALID_PROGRAM_UID, Map.of() );
+        ProgramIndicator indicatorCopy = new ArrayList<>( programCopy.getProgramIndicators() ).get( 0 );
 
         assertEquals( 1, programCopy.getProgramIndicators().size() );
+        assertNotSame( indicatorOrig.getUid(),
+            indicatorCopy.getUid() );
+        assertNotSame( indicatorOrig.getProgram().getUid(),
+            indicatorCopy.getProgram().getUid() );
     }
 
     @Test
@@ -266,9 +354,8 @@ class CopyServiceTest extends DhisConvenienceTest
         p.setOnlyEnrollOnce( true );
         p.setOpenDaysAfterCoEndDate( 20 );
         p.setOrganisationUnits( Set.of( createOrganisationUnit( "Org 1" ) ) );
-        p.setProgramAttributes( List.of(
-            createProgramTrackedEntityAttribute( p, createTrackedEntityAttribute( 't' ) ) ) );
-        p.setProgramIndicators( Set.of( createProgramIndicator( 'i', p, "exp", "ind" ) ) );
+        p.setProgramAttributes( createProgramAttributes( p ) );
+        p.setProgramIndicators( createIndicators( p ) );
         p.setProgramRuleVariables( Set.of( createProgramRuleVariable( 'v', p ) ) );
         p.setProgramSections( Set.of( createProgramSection( 'x', p ) ) );
         p.setProgramStages( createProgramStages( p ) );
@@ -284,6 +371,21 @@ class CopyServiceTest extends DhisConvenienceTest
         p.setUseFirstStageDuringRegistration( false );
         p.setUserRoles( Set.of( createUserRole( "tester", "d" ) ) );
         return p;
+    }
+
+    private List<ProgramTrackedEntityAttribute> createProgramAttributes( Program program )
+    {
+        ProgramTrackedEntityAttribute ptea1 = createProgramTrackedEntityAttribute( program,
+            createTrackedEntityAttribute( 't' ) );
+        ProgramTrackedEntityAttribute ptea2 = createProgramTrackedEntityAttribute( program,
+            createTrackedEntityAttribute( 'p' ) );
+        return List.of( ptea1, ptea2 );
+    }
+
+    private Set<ProgramIndicator> createIndicators( Program program )
+    {
+        ProgramIndicator pi = createProgramIndicator( 'a', program, "exp", "ind" );
+        return Set.of( pi );
     }
 
     private Set<ProgramStage> createProgramStages( Program program )
@@ -322,8 +424,12 @@ class CopyServiceTest extends DhisConvenienceTest
     {
         ProgramStageSection pss1 = createProgramStageSection( 'w', 7 );
         pss1.setProgramStage( programStage );
+        ProgramIndicator pi1 = createProgramIndicator( 'a', programStage.getProgram(), "expression", "filter" );
+        ProgramIndicator pi2 = createProgramIndicator( 'b', programStage.getProgram(), "expression", "filter" );
+        pss1.setProgramIndicators( List.of( pi1 ) );
         ProgramStageSection pss2 = createProgramStageSection( 'q', 6 );
         pss2.setProgramStage( programStage );
+        pss2.setProgramIndicators( List.of( pi2 ) );
         return Set.of( pss1, pss2 );
     }
 
