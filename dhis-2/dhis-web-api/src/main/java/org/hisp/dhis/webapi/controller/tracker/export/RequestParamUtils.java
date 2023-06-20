@@ -300,6 +300,37 @@ public class RequestParamUtils
         return filter.toString();
     }
 
+    /**
+     * Parse request parameter to filter data elements using UID, operator and
+     * values. Refer to {@link #parseQueryItem(String, CheckedFunction)} for
+     * details on the expected item format.
+     *
+     * @param filterItem query item strings each composed of UID, operator and
+     *        value
+     * @param uidToQueryItem function to translate the data element UID to a
+     *        QueryItem
+     * @return query items each of a data element with attached query filters
+     */
+    public static List<QueryItem> parseDataElementQueryItems( String filterItem,
+        CheckedFunction<String, QueryItem> uidToQueryItem )
+        throws BadRequestException
+    {
+        if ( StringUtils.isEmpty( filterItem ) )
+        {
+            return List.of();
+        }
+
+        List<String> uidOperatorValues = filterList( filterItem );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String uidOperatorValue : uidOperatorValues )
+        {
+            itemList.add( parseQueryItem( uidOperatorValue, uidToQueryItem ) );
+        }
+
+        return itemList;
+    }
+
     private static QueryItem attributeToQueryItem( String uid, Map<String, TrackedEntityAttribute> attributes )
         throws BadRequestException
     {
