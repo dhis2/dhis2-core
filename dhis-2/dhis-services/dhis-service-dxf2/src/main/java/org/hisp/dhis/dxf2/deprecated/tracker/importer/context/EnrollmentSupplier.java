@@ -224,7 +224,7 @@ public class EnrollmentSupplier extends AbstractSupplier<Map<String, Enrollment>
             + "ou.uid as tei_ou_uid, ou.path as tei_ou_path from programinstance pi "
             + "left outer join trackedentityinstance t on pi.trackedentityinstanceid = t.trackedentityinstanceid "
             + "left join organisationunit ou on t.organisationunitid = ou.organisationunitid "
-            + "join programstageinstance psi on pi.programinstanceid = psi.programinstanceid "
+            + "join event psi on pi.programinstanceid = psi.programinstanceid "
             + "where psi.uid in (:ids)";
 
         MapSqlParameterSource parameters = new MapSqlParameterSource();

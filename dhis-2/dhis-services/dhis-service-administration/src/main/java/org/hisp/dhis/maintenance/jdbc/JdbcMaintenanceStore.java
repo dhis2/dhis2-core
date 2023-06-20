@@ -92,14 +92,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     public int deleteSoftDeletedEvents()
     {
         List<String> deletedEvents = getDeletionEntities(
-            "(select uid from programstageinstance where deleted is true)" );
+            "(select uid from event where deleted is true)" );
 
         if ( deletedEvents.isEmpty() )
         {
             return 0;
         }
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
+        String eventSelect = "(select programstageinstanceid from event where deleted is true)";
 
         String pmSelect = "(select id from programmessage where programstageinstanceid in " + eventSelect + " )";
 
@@ -120,7 +120,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + eventSelect,
             "delete from programmessage where programstageinstanceid in " + eventSelect,
             // finally delete the PSIs
-            "delete from programstageinstance where deleted is true" };
+            "delete from event where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
@@ -175,9 +175,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         }
 
         List<String> associatedEvents = getDeletionEntities(
-            "select uid from programstageinstance where programinstanceid in " + enrollmentSelect );
+            "select uid from event where programinstanceid in " + enrollmentSelect );
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+        String eventSelect = "(select programstageinstanceid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String pmSelect = "(select id from programmessage where programinstanceid in " + enrollmentSelect + " )";
@@ -203,7 +203,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             // delete other entries linked to enrollments
             "delete from relationshipitem where programinstanceid in " + enrollmentSelect,
             "delete from programmessage where programinstanceid in " + enrollmentSelect,
-            "delete from programstageinstance where programinstanceid in " + enrollmentSelect,
+            "delete from event where programinstanceid in " + enrollmentSelect,
             // finally delete the enrollments themselves
             "delete from programinstance where deleted is true" };
 
@@ -238,13 +238,13 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "select uid from programinstance where trackedentityinstanceid in " + teiSelect );
 
         List<String> associatedEvents = getDeletionEntities(
-            "select uid from programstageinstance where programinstanceid in " + enrollmentSelect );
+            "select uid from event where programinstanceid in " + enrollmentSelect );
 
         /*
          * Prepare filter queries for hard delete
          */
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+        String eventSelect = "(select programstageinstanceid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String teiPmSelect = "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";
@@ -278,7 +278,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "delete from trackedentitydatavalueaudit where programstageinstanceid in " + eventSelect,
             // delete other objects related to obsolete enrollments
             "delete from programmessage where programinstanceid in " + enrollmentSelect,
-            "delete from programstageinstance where programinstanceid in " + enrollmentSelect,
+            "delete from event where programinstanceid in " + enrollmentSelect,
             // delete other objects related to obsolete TEIs
             "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from relationshipitem where trackedentityinstanceid in " + teiSelect,

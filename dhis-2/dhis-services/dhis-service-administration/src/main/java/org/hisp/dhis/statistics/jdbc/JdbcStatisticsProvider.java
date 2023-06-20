@@ -86,7 +86,7 @@ public class JdbcStatisticsProvider
         Long enrollments = approximateCount( "programinstance" );
         map.put( Objects.ENROLLMENT, enrollments );
         map.put( Objects.PROGRAMINSTANCE, enrollments );
-        Long events = approximateCount( "programstageinstance" );
+        Long events = approximateCount( "event" );
         map.put( Objects.EVENT, events );
         map.put( Objects.PROGRAMSTAGEINSTANCE, events );
 

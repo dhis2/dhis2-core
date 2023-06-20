@@ -88,7 +88,7 @@ public class EnrollmentRepeatableStageCheck implements Checker
         // @formatter:off
         final String sql = "select exists( " +
                 "select * " +
-                "from programstageinstance psi " +
+                "from event psi " +
                 "  join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
                 "where pi.programinstanceid = ? " +
                 "  and psi.programstageid = ? " +

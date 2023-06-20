@@ -61,7 +61,7 @@ public class DefaultEventStore
 
     private static final String GET_DATAVALUES_SQL = "select psi.uid as key, " +
         "psi.eventdatavalues " +
-        "from programstageinstance psi " +
+        "from event psi " +
         "where psi.programstageinstanceid in (:ids)";
 
     private static final String GET_NOTES_SQL = "select psi.uid as key, tec.uid, tec.commenttext, " +
@@ -69,7 +69,7 @@ public class DefaultEventStore
         "from trackedentitycomment tec " +
         "join programstageinstancecomments psic " +
         "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
-        "join programstageinstance psi on psic.programstageinstanceid = psi.programstageinstanceid " +
+        "join event psi on psic.programstageinstanceid = psi.programstageinstanceid " +
         "where psic.programstageinstanceid in (:ids)";
 
     private static final String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +

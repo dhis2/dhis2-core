@@ -767,7 +767,7 @@ public class JdbcEventStore implements EventStore
     private StringBuilder getFromWhereClause( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
         User user, SqlHelper hlp, StringBuilder dataElementAndFiltersSql )
     {
-        StringBuilder fromBuilder = new StringBuilder( " from programstageinstance psi " )
+        StringBuilder fromBuilder = new StringBuilder( " from event psi " )
             .append( "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid " )
             .append( "inner join program p on p.programid=pi.programid " )
             .append( "inner join programstage ps on ps.programstageid=psi.programstageid " );
@@ -1196,7 +1196,7 @@ public class JdbcEventStore implements EventStore
         MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp )
     {
         StringBuilder sqlBuilder = new StringBuilder().append(
-            " from programstageinstance psi "
+            " from event psi "
                 + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
                 + "inner join program p on p.programid = pi.programid "
                 + "inner join programstage ps on ps.programstageid = psi.programstageid "

@@ -97,7 +97,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
             "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.duedate, psi.executiondate, " +
             "psi.completeddate, psi.attributeoptioncomboid, psi.geometry, " +
             "ou.organisationunitid, ou.uid, ou.code, ou.name, psi.attributeoptioncomboid,  c.uid as coc_uid  " +
-            "from programstageinstance psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
+            "from event psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
             +
             "join categoryoptioncombo c on psi.attributeoptioncomboid = c.categoryoptioncomboid " +
             "where psi.uid in (:ids)";

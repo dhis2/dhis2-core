@@ -305,7 +305,7 @@ public class JdbcEventStore implements EventStore
 
     static
     {
-        INSERT_EVENT_SQL = "insert into programstageinstance (" +
+        INSERT_EVENT_SQL = "insert into event (" +
             String.join( ",", INSERT_COLUMNS ) + ") " +
             "values ( nextval('programstageinstance_sequence'), " +
             INSERT_COLUMNS.stream()
@@ -314,7 +314,7 @@ public class JdbcEventStore implements EventStore
                 .collect( Collectors.joining( "," ) )
             + ")";
 
-        UPDATE_EVENT_SQL = "update programstageinstance set " +
+        UPDATE_EVENT_SQL = "update event set " +
             UPDATE_COLUMNS.stream()
                 .map( column -> column + " = :" + column )
                 .limit( UPDATE_COLUMNS.size() - 1L )
@@ -1093,7 +1093,7 @@ public class JdbcEventStore implements EventStore
     private StringBuilder getFromWhereClause( EventSearchParams params, MapSqlParameterSource mapSqlParameterSource,
         User user, SqlHelper hlp, StringBuilder dataElementAndFiltersSql )
     {
-        StringBuilder fromBuilder = new StringBuilder( " from programstageinstance psi " )
+        StringBuilder fromBuilder = new StringBuilder( " from event psi " )
             .append( "inner join programinstance pi on pi.programinstanceid=psi.programinstanceid " )
             .append( "inner join program p on p.programid=pi.programid " )
             .append( "inner join programstage ps on ps.programstageid=psi.programstageid " );
@@ -1522,7 +1522,7 @@ public class JdbcEventStore implements EventStore
         MapSqlParameterSource mapSqlParameterSource, SqlHelper hlp )
     {
         StringBuilder sqlBuilder = new StringBuilder().append(
-            " from programstageinstance psi "
+            " from event psi "
                 + "inner join programinstance pi on pi.programinstanceid = psi.programinstanceid "
                 + "inner join program p on p.programid = pi.programid "
                 + "inner join programstage ps on ps.programstageid = psi.programstageid "
@@ -2004,7 +2004,7 @@ public class JdbcEventStore implements EventStore
             /* a Map where [key] -> PSI UID , [value] -> PSI ID */
             Map<String, Long> persisted = jdbcTemplate
                 .queryForList(
-                    "SELECT uid, programstageinstanceid from programstageinstance where programstageinstanceid in ( "
+                    "SELECT uid, programstageinstanceid from event where programstageinstanceid in ( "
                         + Joiner.on( ";" ).join( eventIds )
                         + ")",
                     Maps.newHashMap() )
@@ -2202,7 +2202,7 @@ public class JdbcEventStore implements EventStore
                 .map( org.hisp.dhis.dxf2.deprecated.tracker.event.Event::getEvent )
                 .collect( toList() );
 
-            jdbcTemplate.update( "UPDATE programstageinstance SET deleted = true where uid in (:uids)",
+            jdbcTemplate.update( "UPDATE event SET deleted = true where uid in (:uids)",
                 new MapSqlParameterSource().addValue( "uids", psiUids ) );
         }
     }

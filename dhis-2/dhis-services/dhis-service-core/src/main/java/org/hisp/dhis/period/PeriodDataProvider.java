@@ -54,9 +54,9 @@ public class PeriodDataProvider
     private final JdbcTemplate jdbcTemplate;
 
     /**
-     * Returns a distinct union of all years available in the
-     * "programstageinstance" table + "period" table, both from aggregate and
-     * tracker, with 5 years previous and future additions.
+     * Returns a distinct union of all years available in the "event" table +
+     * "period" table, both from aggregate and tracker, with 5 years previous
+     * and future additions.
      *
      * ie: [extra_5_previous_years, data_years, extra_5_future_year]
      *
@@ -88,7 +88,7 @@ public class PeriodDataProvider
 
     /**
      * Queries the database in order to fetch all years available in the
-     * "period" and "programstageinstance" tables.
+     * "period" and "event" tables.
      *
      * @return the list of distinct years found.
      */
@@ -101,7 +101,7 @@ public class PeriodDataProvider
             " ( select distinct (extract(year from pe.enddate)) as datayear from period pe )" +
             " union" +
             " ( select distinct (extract(year from " + dueDateOrExecutionDate + ")) as datayear" +
-            " from programstageinstance psi" +
+            " from event psi" +
             " where " + dueDateOrExecutionDate + " is not null" +
             " and psi.deleted is false ) order by datayear asc";
 

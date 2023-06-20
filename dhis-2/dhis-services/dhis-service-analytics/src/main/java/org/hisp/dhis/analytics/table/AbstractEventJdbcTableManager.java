@@ -138,7 +138,7 @@ public abstract class AbstractEventJdbcTableManager
         // and were removed later
 
         String sql = "select programstageinstanceid " +
-            "from programstageinstance " +
+            "from event " +
             "where eventdatavalues != '{}' limit 1;";
 
         boolean hasData = jdbcTemplate.queryForRowSet( sql ).next();
