@@ -481,6 +481,7 @@ public class ProgramIndicator
         copy.setExpression( original.getExpression() );
         copy.setFilter( original.getFilter() );
         copy.setFormName( original.getFormName() );
+        copy.setGroups( new HashSet<>() );
         copy.setName( prefix + original.getName() );
         copy.setOrgUnitField( original.getOrgUnitField() );
         copy.setPublicAccess( original.getPublicAccess() );
