@@ -54,50 +54,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 @AllArgsConstructor( access = AccessLevel.PRIVATE )
 public class EventOperationParams
 {
-    public static final String EVENT_ID = "event";
-
-    public static final String EVENT_ENROLLMENT_ID = "enrollment";
-
-    public static final String EVENT_CREATED_AT_ID = "createdAt";
-
-    public static final String EVENT_CREATED_BY_ID = "createdBy";
-
-    public static final String EVENT_UPDATED_AT_ID = "updatedAt";
-
-    public static final String EVENT_UPDATED_BY = "updatedBy";
-
-    public static final String EVENT_STORED_BY_ID = "storedBy";
-
-    public static final String EVENT_COMPLETED_BY_ID = "completedBy";
-
-    public static final String EVENT_COMPLETED_AT_ID = "completedAt";
-
-    public static final String EVENT_SCHEDULE_AT_DATE_ID = "scheduleAt";
-
-    public static final String EVENT_OCCURRED_AT_DATE_ID = "occurredAt";
-
-    public static final String EVENT_ORG_UNIT_ID = "orgUnit";
-
-    public static final String EVENT_ORG_UNIT_NAME = "orgUnitName";
-
-    public static final String EVENT_STATUS_ID = "status";
-
-    public static final String EVENT_LONGITUDE_ID = "longitude";
-
-    public static final String EVENT_LATITUDE_ID = "latitude";
-
-    public static final String EVENT_PROGRAM_STAGE_ID = "programStage";
-
-    public static final String EVENT_PROGRAM_ID = "program";
-
-    public static final String EVENT_ATTRIBUTE_OPTION_COMBO_ID = "attributeOptionCombo";
-
-    public static final String EVENT_DELETED = "deleted";
-
-    public static final String EVENT_GEOMETRY = "geometry";
-
-    public static final String PAGER_META_KEY = "pager";
-
     public static final int DEFAULT_PAGE = 1;
 
     public static final int DEFAULT_PAGE_SIZE = 50;

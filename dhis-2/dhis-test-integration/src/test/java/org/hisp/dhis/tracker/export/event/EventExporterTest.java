@@ -81,6 +81,7 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -325,9 +326,9 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    //This test is commented because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator
-    //@ParameterizedTest
+    @ParameterizedTest
     @MethodSource( "getEventsFunctions" )
+    @Disabled( "This test is disabled because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator" )
     void testExportEventsWhenFilteringByDataElementsIn( Function<EventOperationParams, List<String>> eventFunction )
     {
         DataElement datael00001 = dataElement( "DATAEL00001" );
@@ -842,8 +843,8 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
-    //@Test
-    //This test is commented because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator
+    @Test
+    @Disabled( "This test is disabled because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator" )
     void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
         throws ForbiddenException,
         BadRequestException

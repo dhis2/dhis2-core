@@ -319,7 +319,6 @@ public class EventOperationParamsMapper
         case CHILDREN, SELECTED, DESCENDANTS -> params.getOrgUnitUid() == null
             ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
             : null;
-        default -> "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
         };
     }
 

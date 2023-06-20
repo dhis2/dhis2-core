@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -49,7 +48,6 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -110,11 +108,6 @@ class EventsExportController
     {
         EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
-        {
-            return new PagingWrapper<ObjectNode>().withInstances( Collections.emptyList() );
-        }
-
         Events events = eventService.getEvents( eventOperationParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
@@ -142,11 +135,6 @@ class EventsExportController
     {
         EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventOperationParams ) )
-        {
-            return;
-        }
-
         Events events = eventService.getEvents( eventOperationParams );
 
         OutputStream outputStream = response.getOutputStream();
@@ -162,12 +150,6 @@ class EventsExportController
         }
 
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
-    }
-
-    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventOperationParams eventOperationParams )
-    {
-        return !CollectionUtils.isEmpty( requestParams.getEnrollments() ) &&
-            CollectionUtils.isEmpty( eventOperationParams.getEnrollments() );
     }
 
     @OpenApi.Response( OpenApi.EntityType.class )
