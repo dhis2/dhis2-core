@@ -118,9 +118,10 @@ class DataSetControllerTest extends DhisControllerConvenienceTest
         deB.setUid( "fbfJHSPpUQD" );
         manager.save( deA );
         manager.save( deB );
+        String dataSetId = "Tl0gpmhQOmr";
 
-        String dataSetId = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets/", Body( "dataset/dataset_with_compulsoryDataElementOperand.json" ) ) );
+        assertStatus( HttpStatus.OK,
+            POST( "/metadata/", Body( "dataset/dataset_with_compulsoryDataElementOperand.json" ) ) );
 
         DataSet dataSet = manager.get( DataSet.class, dataSetId );
 

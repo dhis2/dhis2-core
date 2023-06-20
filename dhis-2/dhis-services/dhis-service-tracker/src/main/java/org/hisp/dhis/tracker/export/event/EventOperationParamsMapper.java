@@ -29,6 +29,7 @@ package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseQueryItem;
 
 import java.util.ArrayList;
@@ -146,11 +147,8 @@ public class EventOperationParamsMapper
 
         List<OrderParam> dataElementOrderParams = mapToOrderParams( dataElementOrders );
 
-        List<QueryItem> filters = new ArrayList<>();
-        for ( String eventCriteria : operationParams.getFilters() )
-        {
-            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
-        }
+        List<QueryItem> filters = parseDataElementQueryItems( operationParams.getFilters(),
+            this::dataElementToQueryItem );
 
         EventSearchParams searchParams = new EventSearchParams();
 
@@ -373,7 +371,7 @@ public class EventOperationParamsMapper
             || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
     }
 
-    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
+    private List<QueryItem> parseFilterAttributes( String filterAttributes, List<OrderParam> attributeOrderParams )
         throws BadRequestException
     {
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()

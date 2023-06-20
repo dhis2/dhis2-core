@@ -141,13 +141,14 @@ public class EventOperationParams
     private Boolean skipEventId;
 
     /**
-     * Filters for the response.
+     * Comma separated list of data element filters
      */
-    @Builder.Default
-    private Set<String> filters = new HashSet<>();
+    private String filters;
 
-    @Builder.Default
-    private Set<String> filterAttributes = new HashSet<>();
+    /**
+     * Comma separated list of attribute filters
+     */
+    private String filterAttributes;
 
     private boolean includeDeleted;
 

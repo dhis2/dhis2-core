@@ -38,6 +38,7 @@ import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -127,10 +128,10 @@ class EventRequestParamsMapper
             .includeDeleted( requestParams.isIncludeDeleted() ).build();
     }
 
-    private static void validateFilter( Set<String> filters, Set<UID> eventIds )
+    private static void validateFilter( String filter, Set<UID> eventIds )
         throws BadRequestException
     {
-        if ( !CollectionUtils.isEmpty( eventIds ) && !CollectionUtils.isEmpty( filters ) )
+        if ( !CollectionUtils.isEmpty( eventIds ) && !StringUtils.isEmpty( filter ) )
         {
             throw new BadRequestException( "Event UIDs and filters can not be specified at the same time" );
         }

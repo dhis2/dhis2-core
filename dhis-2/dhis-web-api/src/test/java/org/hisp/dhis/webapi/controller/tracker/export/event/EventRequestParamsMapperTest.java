@@ -41,9 +41,15 @@ import static org.mockito.Mockito.when;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
+import org.hisp.dhis.common.QueryFilter;
+import org.hisp.dhis.common.QueryItem;
+import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -408,8 +414,8 @@ class EventRequestParamsMapperTest
     void testMutualExclusionOfEventsAndFilter()
     {
         RequestParams requestParams = new RequestParams();
-        requestParams.setFilter( Set.of( "qrur9Dvnyt5:ge:1:le:2" ) );
-        requestParams.setEvent( "XKrcfuM4Hcw;M4pNmLabtXl" );
+        requestParams.setFilter( DE_1_UID + ":ge:1:le:2" );
+        requestParams.setEvent( DE_1_UID + ";" + DE_2_UID );
 
         Exception exception = assertThrows( BadRequestException.class,
             () -> mapper.map( requestParams ) );
@@ -446,5 +452,260 @@ class EventRequestParamsMapperTest
             // contains
             () -> assertContains( "unsupportedProperty1", exception.getMessage() ),
             () -> assertContains( "unsupportedProperty2", exception.getMessage() ) );
+    }
+
+    @Test
+    void testFilter()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilter( DE_1_UID + ":eq:2" + "," + DE_2_UID + ":like:foo" );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID,
+            DE_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        // the following block is needed because of that
+        // assertion is order independent as the order of QueryItems is not
+        // guaranteed
+        Map<String, QueryFilter> expectedFilters = Map.of(
+            DE_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
+            DE_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
+        assertAll( items.stream().map( i -> (Executable) () -> {
+            String uid = i.getItem().getUid();
+            QueryFilter expected = expectedFilters.get( uid );
+            assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
+                () -> String.format( "QueryFilter mismatch for DE with UID %s", uid ) );
+        } ).collect( Collectors.toList() ) );
+    }
+
+    @Test
+    void testFilterAttributes()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilterAttributes( TEA_1_UID + ":eq:2" + "," + TEA_2_UID + ":like:foo" );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilterAttributes();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( TEA_1_UID,
+            TEA_2_UID ), items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        // the following block is needed because of that
+        // assertion is order independent as the order of QueryItems is not
+        // guaranteed
+        Map<String, QueryFilter> expectedFilters = Map.of(
+            TEA_1_UID, new QueryFilter( QueryOperator.EQ, "2" ),
+            TEA_2_UID, new QueryFilter( QueryOperator.LIKE, "foo" ) );
+        assertAll( items.stream().map( i -> (Executable) () -> {
+            String uid = i.getItem().getUid();
+            QueryFilter expected = expectedFilters.get( uid );
+            assertEquals( expected.getOperator().getValue() + " " + expected.getFilter(), i.getFiltersAsString(),
+                () -> String.format( "QueryFilter mismatch for TEA with UID %s", uid ) );
+        } ).collect( Collectors.toList() ) );
+    }
+
+    @Test
+    void testFilterWhenDEHasMultipleFilters()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilter( DE_1_UID + ":gt:10:lt:20" );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilters();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( DE_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
+    void testFilterAttributesWhenTEAHasMultipleFilters()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilterAttributes( TEA_1_UID + ":gt:10:lt:20" );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        List<QueryItem> items = params.getFilterAttributes();
+        assertNotNull( items );
+        // mapping to UIDs as the error message by just relying on QueryItem
+        // equals() is not helpful
+        assertContainsOnly( List.of( TEA_1_UID ),
+            items.stream().map( i -> i.getItem().getUid() ).collect( Collectors.toList() ) );
+
+        // QueryItem equals() does not take the QueryFilter into account so
+        // assertContainsOnly alone does not ensure operators and filter value
+        // are correct
+        assertContainsOnly( Set.of(
+            new QueryFilter( QueryOperator.GT, "10" ),
+            new QueryFilter( QueryOperator.LT, "20" ) ), items.get( 0 ).getFilters() );
+    }
+
+    @Test
+    void shouldFailWithBadRequestExceptionWhenCriteriaDataElementDoesNotExist()
+    {
+        RequestParams requestParams = new RequestParams();
+        String filterName = "filter";
+
+        requestParams.setFilter( filterName );
+        when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( requestParams ) );
+
+        assertEquals( "Data element does not exist: " + filterName, exception.getMessage() );
+    }
+
+    @Test
+    void testFilterAttributesWhenTEAUidIsDuplicated()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilterAttributes(
+            "TvjwTPToKHO:lt:20" + "," + "cy2oRh2sNr6:lt:20" + "," + "TvjwTPToKHO:gt:30" + "," + "cy2oRh2sNr6:gt:30" );
+
+        Exception exception = assertThrows( BadRequestException.class,
+            () -> mapper.map( requestParams ) );
+        assertAll(
+            () -> assertStartsWith( "filterAttributes contains duplicate tracked entity attribute",
+                exception.getMessage() ),
+            // order of TEA UIDs might not always be the same; therefore using
+            // contains
+            () -> assertContains( TEA_1_UID, exception.getMessage() ),
+            () -> assertContains( TEA_2_UID, exception.getMessage() ) );
+    }
+
+    @Test
+    void testFilterAttributesUsingOnlyUID()
+        throws BadRequestException,
+        ForbiddenException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setFilterAttributes( TEA_1_UID );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        assertContainsOnly(
+            List.of( new QueryItem( tea1, null, tea1.getValueType(), tea1.getAggregationType(), tea1.getOptionSet(),
+                tea1.isUnique() ) ),
+            params.getFilterAttributes() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgram()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setProgram( UID.of( program ) );
+        User user = new User();
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( aclService.canDataRead( user, program ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( requestParams ) );
+
+        assertEquals( "User has no access to program: " + program.getUid(), exception.getMessage() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToProgramStage()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setProgramStage( UID.of( programStage ) );
+        User user = new User();
+        when( currentUserService.getCurrentUser() ).thenReturn( user );
+        when( aclService.canDataRead( user, programStage ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( requestParams ) );
+
+        assertEquals( "User has no access to program stage: " + programStage.getUid(), exception.getMessage() );
+    }
+
+    @Test
+    void shouldMapGivenAttributeCategoryOptionsWhenUserHasAccessToCategoryCombo()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
+        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
+        CategoryOptionCombo combo = new CategoryOptionCombo();
+        combo.setUid( "uid" );
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
+            true ) )
+            .thenReturn( combo );
+        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( true );
+
+        EventSearchParams params = mapper.map( requestParams );
+
+        assertEquals( combo, params.getCategoryOptionCombo() );
+    }
+
+    @Test
+    void shouldFailWithForbiddenExceptionWhenUserHasNoAccessToCategoryComboGivenAttributeCategoryOptions()
+    {
+        RequestParams requestParams = new RequestParams();
+        requestParams.setAttributeCc( UID.of( "NeU85luyD4w" ) );
+        requestParams.setAttributeCategoryOptions( Set.of( UID.of( "tqrzUqNMHib" ), UID.of( "bT6OSf4qnnk" ) ) );
+        CategoryOptionCombo combo = new CategoryOptionCombo();
+        combo.setUid( "uid" );
+        when( categoryOptionComboService.getAttributeOptionCombo( "NeU85luyD4w", Set.of( "tqrzUqNMHib", "bT6OSf4qnnk" ),
+            true ) )
+            .thenReturn( combo );
+        when( aclService.canDataRead( any( User.class ), any( CategoryOptionCombo.class ) ) ).thenReturn( false );
+
+        Exception exception = assertThrows( ForbiddenException.class,
+            () -> mapper.map( requestParams ) );
+
+        assertEquals( "User has no access to attribute category option combo: " + combo.getUid(),
+            exception.getMessage() );
+    }
+
+    @Test
+    void shouldCreateQueryFilterWhenCriteriaHasMultipleFiltersAndFilterValueWithSplitChars()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        RequestParams criteria = new RequestParams();
+        criteria.setFilterAttributes( TEA_1_UID + ":like:value/,with/,comma" + "," + TEA_2_UID + ":eq:value/:x" );
+
+        List<QueryFilter> actualFilters = mapper.map( criteria ).getFilterAttributes().stream()
+            .flatMap( f -> f.getFilters().stream() )
+            .collect( Collectors.toList() );
+
+        assertContainsOnly( List.of(
+            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
+            new QueryFilter( QueryOperator.EQ, "value:x" ) ), actualFilters );
+
     }
 }

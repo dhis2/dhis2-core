@@ -31,13 +31,15 @@ import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -52,6 +54,17 @@ public class EventOperationParamUtils
     {
         throw new IllegalStateException( "Utility class" );
     }
+
+    private static final char COMMA_SEPARATOR = ',';
+
+    private static final char ESCAPE = '/';
+
+    /**
+     * Negative lookahead to avoid wrong split of comma-separated list of
+     * filters when one or more filter value contain comma. It skips comma
+     * escaped by slash
+     */
+    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + COMMA_SEPARATOR );
 
     private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
         .filter( QueryOperator::isComparison ).map( Enum::toString )
@@ -96,26 +109,32 @@ public class EventOperationParamUtils
         .compile( SINGLE_OPERAND_REG_EX );
 
     /**
-     * Parse request parameter to filter tracked entity attributes using
-     * identifier, operator and values. Refer to
+     * Parse request parameter to filter tracked entity attributes using UID,
+     * operator and values. Refer to
      * {@link #parseQueryItem(String, CheckedFunction)} for details on the
      * expected item format.
      *
-     * @param items query item strings each composed of identifier, operator and
+     * @param filterItem query item strings each composed of UID, operator and
      *        value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
+     * @param attributes tracked entity attribute map from UIDs to attributes
      * @return query items each of a tracked entity attribute with attached
      *         query filters
      */
-    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
+    public static List<QueryItem> parseAttributeQueryItems( String filterItem,
         Map<String, TrackedEntityAttribute> attributes )
         throws BadRequestException
     {
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String item : items )
+        if ( StringUtils.isEmpty( filterItem ) )
         {
-            itemList.add( parseAttributeQueryItem( item, attributes ) );
+            return List.of();
+        }
+
+        List<String> uidOperatorValues = filterList( filterItem );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String uidOperatorValue : uidOperatorValues )
+        {
+            itemList.add( parseQueryItem( uidOperatorValue, id -> attributeToQueryItem( id, attributes ) ) );
         }
 
         return itemList;
@@ -192,6 +211,109 @@ public class EventOperationParamUtils
         }
 
         return queryItem;
+    }
+
+    /**
+     * Parse request parameter to filter data elements using UID, operator and
+     * values. Refer to {@link #parseQueryItem(String, CheckedFunction)} for
+     * details on the expected item format.
+     *
+     * @param filterItem query item strings each composed of UID, operator and
+     *        value
+     * @param uidToQueryItem function to translate the data element UID to a
+     *        QueryItem
+     * @return query items each of a data element with attached query filters
+     */
+    public static List<QueryItem> parseDataElementQueryItems( String filterItem,
+        CheckedFunction<String, QueryItem> uidToQueryItem )
+        throws BadRequestException
+    {
+        if ( StringUtils.isEmpty( filterItem ) )
+        {
+            return List.of();
+        }
+
+        List<String> uidOperatorValues = filterList( filterItem );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String uidOperatorValue : uidOperatorValues )
+        {
+            itemList.add( parseQueryItem( uidOperatorValue, uidToQueryItem ) );
+        }
+
+        return itemList;
+    }
+
+    /**
+     * Given an attribute filter list, first, it removes the escape chars in
+     * order to be able to split by comma and collect the filter list. Then, it
+     * recreates the original filters by restoring the escapes chars if any.
+     *
+     * @param filterItem
+     * @return a filter list split by comma
+     */
+    private static List<String> filterList( String filterItem )
+    {
+        Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+
+        StringBuilder filterListToEscape = new StringBuilder( filterItem );
+
+        List<String> filters = new LinkedList<>();
+
+        for ( int i = 0; i < filterListToEscape.length() - 1; i++ )
+        {
+            if ( filterListToEscape.charAt( i ) == ESCAPE
+                && filterListToEscape.charAt( i + 1 ) == ESCAPE )
+            {
+                filterListToEscape.delete( i, i + 2 );
+                escapesToRestore.put( i, false );
+            }
+        }
+
+        String[] escapedFilterList = FILTER_LIST_SPLIT
+            .split( filterListToEscape );
+
+        int beginning = 0;
+
+        for ( String escapedFilter : escapedFilterList )
+        {
+            filters.add( restoreEscape( escapesToRestore, new StringBuilder( escapedFilter ), beginning,
+                escapedFilter.length() ) );
+            beginning += escapedFilter.length() + 1;
+        }
+
+        return filters;
+    }
+
+    /**
+     * Restores the escape char in a filter based on the position in the
+     * original filter. It uses a pad as in a filter there can be more than one
+     * escape char removed.
+     *
+     * @param escapesToRestore
+     * @param filter
+     * @param beginning
+     * @param end
+     * @return a filter with restored escape chars
+     */
+    private static String restoreEscape( Map<Integer, Boolean> escapesToRestore, StringBuilder filter,
+        int beginning,
+        int end )
+    {
+        int pad = 0;
+        for ( Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet() )
+        {
+            if ( !slashPositionInFilter.getValue() )
+            {
+                if ( slashPositionInFilter.getKey() <= (beginning + end) )
+                {
+                    filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
+                    escapesToRestore.put( slashPositionInFilter.getKey(), true );
+                }
+            }
+        }
+
+        return filter.toString();
     }
 
     private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
