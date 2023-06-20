@@ -175,20 +175,14 @@ public class CopyService
      */
     private Program applyAllProgramCopySteps( Program original, Map<String, String> copyOptions )
     {
-        //shallow copy Program & save
         Program copy = Program.shallowCopy( original, copyOptions );
         programService.addProgram( copy );
 
+        copyIndicators( original, copy, copyOptions );
         Map<String, Program.ProgramStageTuple> stageMappings = copyStages( original, copy );
         copySections( original, copy );
         copyAttributes( original, copy );
-
-        Set<ProgramIndicator> programIndicators = copyIndicators( original, copyOptions );
-        copy.setProgramIndicators( programIndicators );
-
-        Set<ProgramRuleVariable> programRuleVariables = copyRuleVariables( original, copy, stageMappings );
-        copy.setProgramRuleVariables( programRuleVariables );
-
+        copyRuleVariables( original, copy, stageMappings );
         copyEnrollments( original, copy );
 
         programService.addProgram( copy );
@@ -253,14 +247,17 @@ public class CopyService
             ProgramRuleVariable copy = copyProgramRuleVariable( ruleVariable, programCopy, programStage );
             ruleVariables.add( copy );
         }
+        programCopy.setProgramRuleVariables( ruleVariables );
         return ruleVariables;
     }
 
-    private Set<ProgramIndicator> copyIndicators( Program original, Map<String, String> copyOptions )
+    private void copyIndicators( Program original, Program programCopy,
+        Map<String, String> copyOptions )
     {
-        return original.getProgramIndicators().stream()
-            .map( indicator -> copyProgramIndicator( indicator, original, copyOptions ) )
+        Set<ProgramIndicator> indicators = original.getProgramIndicators().stream()
+            .map( indicator -> copyProgramIndicator( indicator, programCopy, copyOptions ) )
             .collect( Collectors.toSet() );
+        programCopy.setProgramIndicators( indicators );
     }
 
     private void copyAttributes( Program original, Program programCopy )

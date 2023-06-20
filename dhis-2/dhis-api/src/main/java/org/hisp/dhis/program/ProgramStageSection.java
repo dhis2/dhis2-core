@@ -231,7 +231,7 @@ public class ProgramStageSection
         copy.setFormName( original.getFormName() );
         copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setName( original.getName() );
-        copy.setProgramIndicators( ObjectUtils.copyOf( original.getProgramIndicators() ) );
+        copy.setProgramIndicators( new ArrayList<>() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );
