@@ -263,7 +263,7 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00001" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( "DATAEL00001:like:%val%" ) )
+            .filters( "DATAEL00001:like:%val%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -284,7 +284,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
             .programStatus( ProgramStatus.ACTIVE )
-            .filters( Set.of( dataElement.getUid() + ":like:%val%" ) )
+            .filters( dataElement.getUid() + ":like:%val%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -302,7 +302,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
             .programType( ProgramType.WITH_REGISTRATION )
-            .filters( Set.of( dataElement.getUid() + ":like:%val%" ) )
+            .filters( dataElement.getUid() + ":like:%val%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -318,7 +318,7 @@ class EventExporterTest extends TrackerTest
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( dataElement.getUid() + ":like:%value00001%" ) )
+            .filters( dataElement.getUid() + ":like:%value00001%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -335,7 +335,7 @@ class EventExporterTest extends TrackerTest
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( datael00001.getUid() + ":like:%value00001%;%value00002%" ) )
+            .filters( datael00001.getUid() + ":like:%value00001%;%value00002%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -353,7 +353,7 @@ class EventExporterTest extends TrackerTest
             .programUid( program.getUid() )
             .attributeCategoryCombo( "bjDvmb4bfuf" )
             .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
-            .filters( Set.of( dataElement.getUid() + ":eq:value00001" ) )
+            .filters( dataElement.getUid() + ":eq:value00001" )
             .build();
 
         List<String> events = eventsFunction.apply( params );
@@ -558,7 +558,7 @@ class EventExporterTest extends TrackerTest
             .programStageUid( programStage.getUid() ).programUid( program.getUid() )
             .attributeCategoryCombo( "bjDvmb4bfuf" )
             .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
-            .filters( Set.of( dataElement.getUid() + ":eq:value00002" ) )
+            .filters( dataElement.getUid() + ":eq:value00002" )
             .build();
 
         List<String> events = eventsFunction.apply( params );
@@ -574,7 +574,7 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( dataElement.getUid() + ":eq:option1" ) )
+            .filters( dataElement.getUid() + ":eq:option1" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -591,7 +591,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) )
             .programStageUid( programStage.getUid() )
-            .filters( Set.of( dataElement.getUid() + ":in:option1;option2" ) )
+            .filters( dataElement.getUid() + ":in:option1;option2" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -607,7 +607,7 @@ class EventExporterTest extends TrackerTest
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( dataElement.getUid() + ":like:%opt%" ) )
+            .filters( dataElement.getUid() + ":like:%opt%" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -627,7 +627,7 @@ class EventExporterTest extends TrackerTest
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "8" ) );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .filters( Set.of( dataElement.getUid() + ":lt:77:gt:8" ) )
+            .filters( dataElement.getUid() + ":lt:77:gt:8" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -804,7 +804,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "numericAttr:lt:77:gt:8" ) ).build();
+            .filterAttributes( "numericAttr:lt:77:gt:8" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -819,7 +819,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000:eq:summer day" ) ).build();
+            .filterAttributes( "toUpdate000:eq:summer day" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -834,7 +834,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000:eq:rainy day", "notUpdated0:eq:winter day" ) ).build();
+            .filterAttributes( "toUpdate000:eq:rainy day,notUpdated0:eq:winter day" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -853,7 +853,7 @@ class EventExporterTest extends TrackerTest
         item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000:like:%day%:like:%in%" ) ).build();
+            .filterAttributes( "toUpdate000:like:%day%:like:%in%" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -868,7 +868,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000" ) )
+            .filterAttributes( "toUpdate000" )
             .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) ).build();
 
@@ -885,7 +885,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000" ) )
+            .filterAttributes( "toUpdate000" )
             .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) ).build();
 
@@ -902,7 +902,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000", "toDelete000" ) )
+            .filterAttributes( "toUpdate000,toDelete000" )
             .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
                 OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
@@ -922,7 +922,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000", "toDelete000" ) )
+            .filterAttributes( "toUpdate000,toDelete000" )
             .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
                 OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
@@ -1056,7 +1056,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000" ) )
+            .filterAttributes( "toUpdate000" )
             .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
             .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ),
                 new OrderParam( "enrolledAt", SortDirection.ASC ) ) )
@@ -1075,7 +1075,7 @@ class EventExporterTest extends TrackerTest
         BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( Set.of( "toUpdate000" ) )
+            .filterAttributes( "toUpdate000" )
             .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
             .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
                 new OrderParam( "toUpdate000", SortDirection.DESC ) ) )

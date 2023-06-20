@@ -280,7 +280,7 @@ class EventOperationMapperTest
         tea2.setUid( TEA_2_UID );
         when( trackedEntityAttributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
         EventOperationParams requestParams = EventOperationParams.builder()
-            .filterAttributes( Set.of( TEA_1_UID + ":eq:2", TEA_2_UID + ":like:foo" ) ).build();
+            .filterAttributes( TEA_1_UID + ":eq:2," + TEA_2_UID + ":like:foo" ).build();
 
         EventSearchParams searchParams = mapper.map( requestParams );
 
@@ -317,7 +317,7 @@ class EventOperationMapperTest
         tea1.setUid( TEA_1_UID );
         when( trackedEntityAttributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1 ) );
         EventOperationParams operationParams = EventOperationParams.builder()
-            .filterAttributes( Set.of( TEA_1_UID + ":gt:10:lt:20" ) ).build();
+            .filterAttributes( TEA_1_UID + ":gt:10:lt:20" ).build();
 
         EventSearchParams searchParams = mapper.map( operationParams );
 
@@ -344,7 +344,7 @@ class EventOperationMapperTest
         TrackedEntityAttribute tea1 = new TrackedEntityAttribute();
         tea1.setUid( TEA_1_UID );
         when( trackedEntityAttributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1 ) );
-        EventOperationParams operationParams = EventOperationParams.builder().filterAttributes( Set.of( TEA_1_UID ) )
+        EventOperationParams operationParams = EventOperationParams.builder().filterAttributes( TEA_1_UID )
             .build();
 
         EventSearchParams params = mapper.map( operationParams );
@@ -365,7 +365,7 @@ class EventOperationMapperTest
         when( trackedEntityAttributeService.getAllTrackedEntityAttributes() ).thenReturn( List.of( tea1, tea2 ) );
         EventOperationParams operationParams = EventOperationParams.builder()
             .filterAttributes(
-                Set.of( "TvjwTPToKHO:lt:20", "cy2oRh2sNr6:lt:20", "TvjwTPToKHO:gt:30", "cy2oRh2sNr6:gt:30" ) )
+                "TvjwTPToKHO:lt:20," + "cy2oRh2sNr6:lt:20," + "TvjwTPToKHO:gt:30," + "cy2oRh2sNr6:gt:30" )
             .build();
 
         Exception exception = assertThrows( BadRequestException.class,
@@ -391,7 +391,7 @@ class EventOperationMapperTest
         EventOperationParams operationParams = EventOperationParams.builder()
             .attributeOrders( List.of( OrderCriteria.of( TEA_1_UID, SortDirection.ASC ),
                 OrderCriteria.of( "unknownAtt1", SortDirection.ASC ) ) )
-            .filterAttributes( Set.of( TEA_1_UID ) )
+            .filterAttributes( TEA_1_UID )
             .build();
 
         EventSearchParams params = mapper.map( operationParams );
@@ -414,7 +414,7 @@ class EventOperationMapperTest
         when( dataElementService.getDataElement( DE_2_UID ) ).thenReturn( de2 );
 
         EventOperationParams requestParams = EventOperationParams.builder()
-            .filters( Set.of( DE_1_UID + ":eq:2", DE_2_UID + ":like:foo" ) )
+            .filters( DE_1_UID + ":eq:2," + DE_2_UID + ":like:foo" )
             .build();
         EventSearchParams params = mapper.map( requestParams );
 
@@ -452,7 +452,7 @@ class EventOperationMapperTest
         when( dataElementService.getDataElement( DE_1_UID ) ).thenReturn( de1 );
 
         EventOperationParams requestParams = EventOperationParams.builder()
-            .filters( Set.of( DE_1_UID + ":gt:10:lt:20" ) )
+            .filters( DE_1_UID + ":gt:10:lt:20" )
             .build();
 
         EventSearchParams params = mapper.map( requestParams );
@@ -477,7 +477,7 @@ class EventOperationMapperTest
     {
         String filterName = "filter";
         EventOperationParams requestParams = EventOperationParams.builder()
-            .filters( Set.of( filterName ) )
+            .filters( filterName )
             .build();
 
         when( dataElementService.getDataElement( filterName ) ).thenReturn( null );
