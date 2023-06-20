@@ -196,18 +196,6 @@ public interface ExpressionService
     Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType );
 
     /**
-     * Gets the item descriptions that need to be substituted in an expression
-     * to form the expression description, for an expression that will return
-     * the specified data type.
-     *
-     * @param expression the expression string.
-     * @param parseType the type of expression to parse.
-     * @param dataType the data type for the expression to return.
-     * @return A {@link Map} of item descriptions.
-     */
-    Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType, DataType dataType );
-
-    /**
      * Gets information we need from an expression string.
      *
      * @param params the expression parameters.
@@ -239,7 +227,7 @@ public interface ExpressionService
      * @param expression the expression string.
      * @return a Set of data element identifiers.
      */
-    Set<String> getExpressionElementAndOptionComboIds( String expression );
+    Set<String> getValidationRuleExpressionElementAndOptionComboIds( String expression );
 
     /**
      * Returns all data element ids found in the given expression string,

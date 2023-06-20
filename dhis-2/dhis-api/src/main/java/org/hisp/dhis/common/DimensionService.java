@@ -32,7 +32,9 @@ import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.feedback.NotFoundException;
+import org.hisp.dhis.lib.expression.spi.DataItem;
 import org.hisp.dhis.user.User;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -110,4 +112,6 @@ public interface DimensionService
      */
     Map<DimensionalItemId, DimensionalItemObject> getNoAclDataDimensionalItemObjectMap(
         Set<DimensionalItemId> itemIds );
+
+    Map<DataItem, DimensionalItemObject> getNoAclDataItemObjectMap( Set<DataItem> itemIds );
 }

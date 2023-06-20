@@ -29,30 +29,27 @@ package org.hisp.dhis.expression;
 
 import static org.hisp.dhis.analytics.DataType.*;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.hisp.dhis.analytics.DataType;
+import org.hisp.dhis.lib.expression.Expression;
 
 /**
  * Type of expression that can be parsed by the Expression Service
  *
  * @author Jim Grace
  */
+@AllArgsConstructor
+@Getter
 public enum ParseType
 {
-    INDICATOR_EXPRESSION( NUMERIC ),
-    VALIDATION_RULE_EXPRESSION( NUMERIC ),
-    PREDICTOR_EXPRESSION( NUMERIC ),
-    PREDICTOR_SKIP_TEST( BOOLEAN ),
-    SIMPLE_TEST( BOOLEAN );
+    INDICATOR_EXPRESSION( NUMERIC, Expression.Mode.INDICATOR_EXPRESSION ),
+    VALIDATION_RULE_EXPRESSION( NUMERIC, Expression.Mode.VALIDATION_RULE_EXPRESSION ),
+    PREDICTOR_EXPRESSION( NUMERIC, Expression.Mode.PREDICTOR_GENERATOR_EXPRESSION ),
+    PREDICTOR_SKIP_TEST( BOOLEAN, Expression.Mode.PREDICTOR_SKIP_TEST ),
+    SIMPLE_TEST( BOOLEAN, Expression.Mode.VALIDATION_RULE_RESULT_TEST );
 
-    private DataType dataType;
-
-    ParseType( DataType dataType )
-    {
-        this.dataType = dataType;
-    }
-
-    public DataType getDataType()
-    {
-        return dataType;
-    }
+    private final DataType dataType;
+    private final Expression.Mode mode;
 }

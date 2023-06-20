@@ -98,6 +98,7 @@ import org.hisp.dhis.eventvisualization.EventRepetition;
 import org.hisp.dhis.expression.ExpressionService;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.legend.LegendSet;
+import org.hisp.dhis.lib.expression.spi.DataItem;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroupSet;
@@ -445,6 +446,18 @@ public class DefaultDimensionService
             .getNoAclAtomicObjects( atomicIds );
 
         return dataDimensionExtractor.getItemObjectMap( itemIds, atomicObjects );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public Map<DataItem, DimensionalItemObject> getNoAclDataItemObjectMap( Set<DataItem> items )
+    {
+        SetMap<Class<? extends IdentifiableObject>, String> atomicIds = dataDimensionExtractor.getAtomicIds( items );
+
+        MapMap<Class<? extends IdentifiableObject>, String, IdentifiableObject> atomicObjects = dataDimensionExtractor
+            .getNoAclAtomicObjects( atomicIds );
+
+        return dataDimensionExtractor.getItemObjectMap( items, atomicObjects );
     }
 
     // --------------------------------------------------------------------------
