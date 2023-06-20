@@ -51,8 +51,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.api.StatefulRedisConnection;
-
 /**
  * Listens to Hibernate events and publishes a message to Redis when a
  * collection is updated.
