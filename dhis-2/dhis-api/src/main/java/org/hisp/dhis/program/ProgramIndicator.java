@@ -490,8 +490,4 @@ public class ProgramIndicator
         copy.setStyle( original.getStyle() );
         copy.setTranslations( original.getTranslations() );
     }
-
-    public record ProgramIndicatorTuple( ProgramIndicator original, ProgramIndicator copy )
-    {
-    }
 }

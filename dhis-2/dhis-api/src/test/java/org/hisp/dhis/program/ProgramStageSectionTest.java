@@ -41,6 +41,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
@@ -61,19 +62,19 @@ class ProgramStageSectionTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSection( originalStage, originalProgram );
-        ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage, Map.of(), Map.of() );
+        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
         assertNotEquals( original.getUid(), copy.getUid() );
-        Set<String> originalIndicators = original.getProgramIndicators().stream().map( pi -> pi.getProgram().getUid() )
+        Set<String> originalIndicators = original.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
-        Set<String> copyIndicators = copy.getProgramIndicators().stream().map( pi -> pi.getProgram().getUid() )
+        Set<String> copyIndicators = copy.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
             .collect( Collectors.toSet() );
-        originalIndicators.retainAll( copyIndicators );
-        assertTrue( originalIndicators.isEmpty() );
+        assertEquals( 1, originalIndicators.size() );
+        assertEquals( 0, copyIndicators.size() );
         assertNotEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
 
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
@@ -99,7 +100,7 @@ class ProgramStageSectionTest
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
         ProgramStageSection original = getNewProgramStageSectionWithNulls();
-        ProgramStageSection copy = ProgramStageSection.copyOf( original, copyStage, Map.of(), Map.of() );
+        ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
         assertNotEquals( original, copy );
@@ -133,7 +134,7 @@ class ProgramStageSectionTest
     void testExpectedFieldCount()
     {
         Field[] allClassFieldsIncludingInherited = getAllFields( ProgramStageSection.class );
-        assertEquals( 27, allClassFieldsIncludingInherited.length );
+        assertEquals( 28, allClassFieldsIncludingInherited.length );
     }
 
     public static ProgramStageSection getNewProgramStageSection( ProgramStage original, Program program )

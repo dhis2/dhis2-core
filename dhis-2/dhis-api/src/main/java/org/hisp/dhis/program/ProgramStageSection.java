@@ -29,8 +29,7 @@ package org.hisp.dhis.program;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.BaseNameableObject;
@@ -216,68 +215,14 @@ public class ProgramStageSection
         this.renderType = renderType;
     }
 
-    public static ProgramStageSection copyOf( ProgramStageSection original, ProgramStage stage,
-        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
-    {
+    public static final BiFunction<ProgramStageSection, ProgramStage, ProgramStageSection> copyOf = ( original,
+        stage ) -> {
         ProgramStageSection copy = new ProgramStageSection();
         copy.setProgramStage( stage );
         copy.setAutoFields();
         setShallowCopyValues( copy, original );
-        setDeepCopyValues( copy, original, indicatorMappings, copyOptions );
         return copy;
-    }
-
-    private static void setDeepCopyValues( ProgramStageSection copy, ProgramStageSection original,
-        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
-    {
-        copyIndicators( copy, original, indicatorMappings, copyOptions );
-    }
-
-    /**
-     * This method copies the List of {@link ProgramIndicator} in the
-     * {@link ProgramStageSection}. It takes in a mapping of
-     * {@link ProgramIndicator} as a param, so it can use an existing mapping if
-     * found. If no mapping is found then a new {@link ProgramIndicator} is
-     * created.
-     *
-     * @param copy The {@link ProgramStageSection} copy which will have its List
-     *        of {@link ProgramIndicator} set.
-     * @param original {@link ProgramStageSection} to copy
-     * @param indicatorMappings Mapping of {@link ProgramIndicator} with the
-     *        original {@link ProgramIndicator} UID as key and the
-     *        {@link org.hisp.dhis.program.ProgramIndicator.ProgramIndicatorTuple}
-     *        as the value.
-     * @param copyOptions Map of copy options to apply to a
-     *        {@link ProgramIndicator}
-     */
-    private static void copyIndicators( ProgramStageSection copy, ProgramStageSection original,
-        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
-    {
-        List<ProgramIndicator> copyIndicators = new ArrayList<>();
-        List<ProgramIndicator> originalIndicators = original.getProgramIndicators();
-        if ( Objects.nonNull( originalIndicators ) )
-        {
-            for ( ProgramIndicator pi : originalIndicators )
-            {
-                ProgramIndicator indicatorCopy;
-                if ( indicatorMappings.containsKey( pi.getUid() ) )
-                {
-                    indicatorCopy = indicatorMappings.get( pi.getUid() ).copy();
-                }
-                else
-                {
-                    indicatorCopy = ProgramIndicator.copyOf( pi, getParentProgram( copy ), copyOptions );
-                }
-                copyIndicators.add( indicatorCopy );
-            }
-        }
-        copy.setProgramIndicators( copyIndicators );
-    }
-
-    private static Program getParentProgram( ProgramStageSection copy )
-    {
-        return copy.getProgramStage().getProgram();
-    }
+    };
 
     private static void setShallowCopyValues( ProgramStageSection copy, ProgramStageSection original )
     {
@@ -286,7 +231,7 @@ public class ProgramStageSection
         copy.setFormName( original.getFormName() );
         copy.setLastUpdatedBy( original.getLastUpdatedBy() );
         copy.setName( original.getName() );
-
+        copy.setProgramIndicators( new ArrayList<>() );
         copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderType( original.getRenderType() );
         copy.setSharing( original.getSharing() );

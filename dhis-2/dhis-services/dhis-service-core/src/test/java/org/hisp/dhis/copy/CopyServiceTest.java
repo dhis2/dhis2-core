@@ -140,7 +140,7 @@ class CopyServiceTest extends DhisConvenienceTest
             .addProgramStageDataElement( any( ProgramStageDataElement.class ) );
         verify( programStageSectionService, times( 2 ) )
             .saveProgramStageSection( any( ProgramStageSection.class ) );
-        verify( programIndicatorService, times( 3 ) ).addProgramIndicator( any( ProgramIndicator.class ) );
+        verify( programIndicatorService, times( 1 ) ).addProgramIndicator( any( ProgramIndicator.class ) );
         verify( programRuleVariableService, times( 1 ) ).addProgramRuleVariable( any( ProgramRuleVariable.class ) );
         verify( programSectionService, times( 1 ) ).addProgramSection( any( ProgramSection.class ) );
         verify( enrollmentService, times( 1 ) ).addEnrollment( any( Enrollment.class ) );
@@ -215,9 +215,7 @@ class CopyServiceTest extends DhisConvenienceTest
             .map( ProgramIndicator::getUid ).collect( Collectors.toSet() );
 
         assertEquals( 2, originalProgramStageSectionIndicators.size() );
-        assertEquals( 2, copyProgramStageSectionIndicators.size() );
-        originalProgramStageSectionIndicators.retainAll( copyProgramStageSectionIndicators );
-        assertTrue( originalProgramStageSectionIndicators.isEmpty() );
+        assertEquals( 0, copyProgramStageSectionIndicators.size() );
     }
 
     @Test

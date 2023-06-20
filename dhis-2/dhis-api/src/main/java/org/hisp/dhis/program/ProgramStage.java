@@ -28,7 +28,6 @@
 package org.hisp.dhis.program;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -596,26 +595,13 @@ public class ProgramStage
         return copy;
     }
 
-    public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy,
-        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
+    public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy )
     {
         copy.setProgramStageDataElements(
             copySet( copy, original.getProgramStageDataElements(), ProgramStageDataElement.copyOf ) );
-        copyStageSections( copy, original.getProgramStageSections(), indicatorMappings, copyOptions );
+        copy.setProgramStageSections(
+            copySet( copy, original.getProgramStageSections(), ProgramStageSection.copyOf ) );
         return copy;
-    }
-
-    private static void copyStageSections( ProgramStage copy, Set<ProgramStageSection> originalStageSections,
-        Map<String, ProgramIndicator.ProgramIndicatorTuple> indicatorMappings, Map<String, String> copyOptions )
-    {
-
-        Set<ProgramStageSection> stageSections = new HashSet<>();
-        for ( ProgramStageSection pss : originalStageSections )
-        {
-            ProgramStageSection copySection = ProgramStageSection.copyOf( pss, copy, indicatorMappings, copyOptions );
-            stageSections.add( copySection );
-        }
-        copy.setProgramStageSections( stageSections );
     }
 
     private static void setShallowCopyValues( ProgramStage copy, ProgramStage original )
