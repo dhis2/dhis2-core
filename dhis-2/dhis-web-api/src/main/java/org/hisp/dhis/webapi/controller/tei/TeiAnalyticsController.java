@@ -74,11 +74,9 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 @OpenApi.Tags( "analytics" )
 @RestController
 @RequiredArgsConstructor
-@RequestMapping( TeiAnalyticsController.TRACKED_ENTITIES )
+@RequestMapping( "/analytics/trackedEntities" )
 class TeiAnalyticsController
 {
-    static final String TRACKED_ENTITIES = "analytics/trackedEntities";
-
     @Nonnull
     private final TeiAnalyticsQueryService teiAnalyticsQueryService;
 
@@ -103,7 +101,7 @@ class TeiAnalyticsController
     @Nonnull
     private final ContextUtils contextUtils;
 
-    @GetMapping( value = "query/{trackedEntityType}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
+    @GetMapping( value = "/query/{trackedEntityType}", produces = { APPLICATION_JSON_VALUE, "application/javascript" } )
     Grid getGrid(
         @PathVariable String trackedEntityType,
         TeiQueryRequest teiQueryRequest,
@@ -113,7 +111,7 @@ class TeiAnalyticsController
     }
 
     @PreAuthorize( "hasRole('ALL') or hasRole('F_PERFORM_ANALYTICS_EXPLAIN')" )
-    @GetMapping( value = "query/{trackedEntityType}/explain", produces = { APPLICATION_JSON_VALUE,
+    @GetMapping( value = "/query/{trackedEntityType}/explain", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     Grid getGridExplain(
         @PathVariable String trackedEntityType,
