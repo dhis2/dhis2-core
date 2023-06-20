@@ -112,14 +112,14 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest
             "  'incidentDate': '2023-06-16'\n" +
             "}" ) );
 
-        JsonWebMessage msg = (POST( "/enrollments", "{\n" +
+        POST( "/enrollments", "{\n" +
             "  'trackedEntityInstance': '" + teiId + "',\n" +
             "  'program': 'PrZMWi7rBga',\n" +
             "  'status': 'ACTIVE',\n" +
             "  'orgUnit': '" + ORG_UNIT_UID + "',\n" +
             "  'enrollmentDate': '2023-06-16',\n" +
             "  'incidentDate': '2023-06-16'\n" +
-            "}" )).content().as( JsonWebMessage.class );
+            "}" ).content( HttpStatus.CREATED );
 
         POST(
             "/programs/%s/copy".formatted( PROGRAM_UID ) )

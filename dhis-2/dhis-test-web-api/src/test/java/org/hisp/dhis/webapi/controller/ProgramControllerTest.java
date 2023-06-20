@@ -180,9 +180,8 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     void testCopyProgramIndicatorDbConstraintsWithNoCopyOptions()
     {
         //1st copy with no copy option request param succeeds
-        JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
-            .content( HttpStatus.CREATED )
-            .as( JsonWebMessage.class );
+        POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
+            .content( HttpStatus.CREATED );
 
         //2nd copy with no copy option request param should fail
         JsonWebMessage response2 = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
