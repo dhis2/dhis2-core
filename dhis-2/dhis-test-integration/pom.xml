@@ -158,11 +158,6 @@
         </dependency>
         <dependency>
             <groupId>org.hisp.dhis</groupId>
-            <artifactId>dhis-support-cache-invalidation</artifactId>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.hisp.dhis</groupId>
             <artifactId>dhis-support-commons</artifactId>
             <scope>compile</scope>
         </dependency>
@@ -193,6 +188,11 @@
         </dependency>
 
         <!-- Test -->
+        <dependency>
+            <groupId>org.hisp.dhis</groupId>
+            <artifactId>dhis-support-cache-invalidation</artifactId>
+            <scope>test</scope>
+        </dependency>
         <dependency>
             <groupId>org.hisp.dhis.rules</groupId>
             <artifactId>rule-engine</artifactId>
