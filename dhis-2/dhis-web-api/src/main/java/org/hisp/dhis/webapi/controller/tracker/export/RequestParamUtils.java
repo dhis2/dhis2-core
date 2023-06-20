@@ -30,12 +30,12 @@ package org.hisp.dhis.webapi.controller.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -66,47 +66,28 @@ public class RequestParamUtils
         throw new IllegalStateException( "Utility class" );
     }
 
-    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
-        .filter( QueryOperator::isComparison ).map( Enum::toString )
-        .collect( Collectors.joining( "|" ) );
+    private static final char ESCAPE = '/';
+
+    private static final char COMMA_SEPARATOR = ',';
+
+    private static final String COMMA_STRING = Character.toString( COMMA_SEPARATOR );
+
+    private static final String ESCAPE_COMMA = ESCAPE + COMMA_STRING;
+
+    private static final String ESCAPE_COLON = ESCAPE + DIMENSION_NAME_SEP;
 
     /**
-     * For multi operand, we support digits and dates
-     * {@link org.hisp.dhis.util.DateUtils}.
+     * Negative lookahead to avoid wrong split when filter value contains colon.
+     * It skips colon escaped by slash
      */
-    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
-
-    private static final Pattern MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN = Pattern
-        .compile( "(?i)(" + COMPARISON_OPERATOR + ")" + DIMENSION_NAME_SEP
-            + DIGITS_DATES_VALUES_REG_EX + "(?!" + "(?i)(" + COMPARISON_OPERATOR + ")"
-            + ")" );
-
-    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
-        + DIMENSION_NAME_SEP
-        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
+    private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP );
 
     /**
-     * RegEx to search and validate multiple operand
-     * {operator}:{value}[:{operator}:{value}], We allow comparison for digits
-     * and dates,
+     * Negative lookahead to avoid wrong split of comma-separated list of
+     * filters when one or more filter value contain comma. It skips comma
+     * escaped by slash
      */
-    private static final Pattern MULTI_OPERAND_VALUE_PATTERN = Pattern
-        .compile(
-            MULTI_OPERAND_VALUE_REG_EX
-                + DIMENSION_NAME_SEP
-                + MULTI_OPERAND_VALUE_REG_EX );
-
-    /**
-     * RegEx to validate and match {operator}:{value} in a filter
-     */
-    private static final String SINGLE_OPERAND_REG_EX = "(?i)("
-        + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
-            .collect( Collectors.joining( "|" ) )
-        + ")" +
-        DIMENSION_NAME_SEP + "(.)+";
-
-    private static final Pattern SINGLE_OPERAND_VALIDATION_PATTERN = Pattern
-        .compile( SINGLE_OPERAND_REG_EX );
+    private static final Pattern FILTER_LIST_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + COMMA_SEPARATOR );
 
     /**
      * Apply func to given arg only if given arg is not empty otherwise return
@@ -216,62 +197,152 @@ public class RequestParamUtils
     }
 
     /**
-     * Parse request parameter to filter tracked entity attributes using
-     * identifier, operator and values. Refer to
+     * Parse request parameter to filter tracked entity attributes using UID,
+     * operator and values. Refer to
      * {@link #parseQueryItem(String, CheckedFunction)} for details on the
      * expected item format.
      *
-     * @param items query item strings each composed of identifier, operator and
+     * @param filterItem query item strings each composed of UID, operator and
      *        value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
+     * @param attributes tracked entity attribute map from UIDs to attributes
      * @return query items each of a tracked entity attribute with attached
      *         query filters
      */
-    public static List<QueryItem> parseAttributeQueryItems( Set<String> items,
+    public static List<QueryItem> parseAttributeQueryItems( String filterItem,
         Map<String, TrackedEntityAttribute> attributes )
         throws BadRequestException
     {
-        List<QueryItem> itemList = new ArrayList<>();
-        for ( String item : items )
+        if ( StringUtils.isEmpty( filterItem ) )
         {
-            itemList.add( parseAttributeQueryItem( item, attributes ) );
+            return List.of();
+        }
+
+        List<String> uidOperatorValues = filterList( filterItem );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String uidOperatorValue : uidOperatorValues )
+        {
+            itemList.add( parseQueryItem( uidOperatorValue, id -> attributeToQueryItem( id, attributes ) ) );
         }
 
         return itemList;
     }
 
     /**
-     * Parse request parameter to filter tracked entity attributes using
-     * identifier, operator and values. Refer to
-     * {@link #parseQueryItem(String, CheckedFunction)} for details on the
-     * expected item format.
+     * Given an attribute filter list, first, it removes the escape chars in
+     * order to be able to split by comma and collect the filter list. Then, it
+     * recreates the original filters by restoring the escapes chars if any.
      *
-     * @param item query item string composed of identifier, operator and value
-     * @param attributes tracked entity attribute map from identifiers to
-     *        attributes
-     * @return query item of tracked entity attribute with attached query
-     *         filters
+     * @param filterItem
+     * @return a filter list split by comma
      */
-
-    public static QueryItem parseAttributeQueryItem( String item, Map<String, TrackedEntityAttribute> attributes )
-        throws BadRequestException
+    private static List<String> filterList( String filterItem )
     {
-        return parseQueryItem( item, id -> attributeToQueryItem( id, attributes ) );
+        Map<Integer, Boolean> escapesToRestore = new HashMap<>();
+
+        StringBuilder filterListToEscape = new StringBuilder( filterItem );
+
+        List<String> filters = new LinkedList<>();
+
+        for ( int i = 0; i < filterListToEscape.length() - 1; i++ )
+        {
+            if ( filterListToEscape.charAt( i ) == ESCAPE
+                && filterListToEscape.charAt( i + 1 ) == ESCAPE )
+            {
+                filterListToEscape.delete( i, i + 2 );
+                escapesToRestore.put( i, false );
+            }
+        }
+
+        String[] escapedFilterList = FILTER_LIST_SPLIT
+            .split( filterListToEscape );
+
+        int beginning = 0;
+
+        for ( String escapedFilter : escapedFilterList )
+        {
+            filters.add( restoreEscape( escapesToRestore, new StringBuilder( escapedFilter ), beginning,
+                escapedFilter.length() ) );
+            beginning += escapedFilter.length() + 1;
+        }
+
+        return filters;
     }
 
-    private static QueryItem attributeToQueryItem( String identifier, Map<String, TrackedEntityAttribute> attributes )
+    /**
+     * Restores the escape char in a filter based on the position in the
+     * original filter. It uses a pad as in a filter there can be more than one
+     * escape char removed.
+     *
+     * @param escapesToRestore
+     * @param filter
+     * @param beginning
+     * @param end
+     * @return a filter with restored escape chars
+     */
+    private static String restoreEscape( Map<Integer, Boolean> escapesToRestore, StringBuilder filter,
+        int beginning,
+        int end )
+    {
+        int pad = 0;
+        for ( Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet() )
+        {
+            if ( !slashPositionInFilter.getValue() )
+            {
+                if ( slashPositionInFilter.getKey() <= (beginning + end) )
+                {
+                    filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
+                    escapesToRestore.put( slashPositionInFilter.getKey(), true );
+                }
+            }
+        }
+
+        return filter.toString();
+    }
+
+    /**
+     * Parse request parameter to filter data elements using UID, operator and
+     * values. Refer to {@link #parseQueryItem(String, CheckedFunction)} for
+     * details on the expected item format.
+     *
+     * @param filterItem query item strings each composed of UID, operator and
+     *        value
+     * @param uidToQueryItem function to translate the data element UID to a
+     *        QueryItem
+     * @return query items each of a data element with attached query filters
+     */
+    public static List<QueryItem> parseDataElementQueryItems( String filterItem,
+        CheckedFunction<String, QueryItem> uidToQueryItem )
+        throws BadRequestException
+    {
+        if ( StringUtils.isEmpty( filterItem ) )
+        {
+            return List.of();
+        }
+
+        List<String> uidOperatorValues = filterList( filterItem );
+
+        List<QueryItem> itemList = new ArrayList<>();
+        for ( String uidOperatorValue : uidOperatorValues )
+        {
+            itemList.add( parseQueryItem( uidOperatorValue, uidToQueryItem ) );
+        }
+
+        return itemList;
+    }
+
+    private static QueryItem attributeToQueryItem( String uid, Map<String, TrackedEntityAttribute> attributes )
         throws BadRequestException
     {
         if ( attributes.isEmpty() )
         {
-            throw new BadRequestException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + uid );
         }
 
-        TrackedEntityAttribute at = attributes.get( identifier );
+        TrackedEntityAttribute at = attributes.get( uid );
         if ( at == null )
         {
-            throw new BadRequestException( "Attribute does not exist: " + identifier );
+            throw new BadRequestException( "Attribute does not exist: " + uid );
         }
 
         return new QueryItem( at, null, at.getValueType(), at.getAggregationType(), at.getOptionSet(), at.isUnique() );
@@ -279,53 +350,48 @@ public class RequestParamUtils
 
     /**
      * Creates a QueryItem with QueryFilters from the given item string.
-     * Expected item format is
-     * {identifier}:{operator}:{value}[:{operator}:{value}]. Only the identifier
-     * is mandatory. Multiple operator:value pairs are allowed, If is not a
-     * multiple operand, a single operator:value filter will be created.
-     * Otherwise, the query item is not valid.
+     * Expected item format is {uid}:{operator}:{value}[:{operator}:{value}].
+     * Only the UID is mandatory. Multiple operator:value pairs are allowed.
      * <p>
-     * The identifier is passed to given map function which translates the
-     * identifier to a QueryItem. A QueryFilter for each operator:value pair is
-     * then added to this QueryItem.
+     * The UID is passed to given map function which translates UID to a
+     * QueryItem. A QueryFilter for each operator:value pair is then added to
+     * this QueryItem.
      *
-     * @throws BadRequestException given invalid query item
+     * @throws BadRequestException filter is neither multiple nor single
+     *         operator:value format
      */
-    public static QueryItem parseQueryItem( String fullPath, CheckedFunction<String, QueryItem> map )
+    public static QueryItem parseQueryItem( String items, CheckedFunction<String, QueryItem> uidToQueryItem )
         throws BadRequestException
     {
-        int identifierIndex = fullPath.indexOf( DIMENSION_NAME_SEP ) + 1;
+        int uidIndex = items.indexOf( DIMENSION_NAME_SEP ) + 1;
 
-        if ( identifierIndex == 0 || fullPath.length() == identifierIndex )
+        if ( uidIndex == 0 || items.length() == uidIndex )
         {
-            return map.apply( fullPath.replace( DIMENSION_NAME_SEP, "" ) );
+            return uidToQueryItem.apply( items.replace( DIMENSION_NAME_SEP, "" ) );
         }
 
-        QueryItem queryItem = map.apply( fullPath.substring( 0, identifierIndex - 1 ) );
+        QueryItem queryItem = uidToQueryItem.apply( items.substring( 0, uidIndex - 1 ) );
 
-        String filter = fullPath.substring( identifierIndex );
+        String[] filters = FILTER_ITEM_SPLIT.split( items.substring( uidIndex ) );
 
-        if ( MULTI_OPERAND_VALUE_PATTERN
-            .matcher( filter ).matches() )
+        // single operator
+        if ( filters.length == 2 )
         {
-            Matcher matcher = MULTIPLE_OPERAND_VALUE_REG_EX_PATTERN.matcher( filter );
-
-            while ( matcher.find() )
+            queryItem.getFilters()
+                .add( operatorValueQueryFilter( filters[0], filters[1], items ) );
+        }
+        // multiple operator
+        else if ( filters.length == 4 )
+        {
+            for ( int i = 0; i < filters.length; i += 2 )
             {
-                queryItem.getFilters().add( singleOperatorValueFilter( matcher.group() ) );
+                queryItem.getFilters()
+                    .add( operatorValueQueryFilter( filters[i], filters[i + 1], items ) );
             }
-
-            return queryItem;
-        }
-
-        if ( SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( filter ).matches() )
-        {
-            queryItem.getFilters().add( singleOperatorValueFilter( filter ) );
         }
         else
         {
-            throw new BadRequestException( "Query item or filter is invalid: " + fullPath );
+            throw new BadRequestException( "Query item or filter is invalid: " + items );
         }
 
         return queryItem;
@@ -340,32 +406,61 @@ public class RequestParamUtils
      *
      * @throws BadRequestException given invalid query string
      */
-    public static QueryFilter parseQueryFilter( String query )
+    public static QueryFilter parseQueryFilter( String filter )
         throws BadRequestException
     {
-        if ( query == null || query.isEmpty() )
+        if ( StringUtils.isEmpty( filter ) )
         {
             return null;
         }
 
-        if ( !query.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
+        if ( !filter.contains( DimensionalObject.DIMENSION_NAME_SEP ) )
         {
-            return new QueryFilter( QueryOperator.EQ, query );
+            return new QueryFilter( QueryOperator.EQ, filter );
         }
 
-        if ( !SINGLE_OPERAND_VALIDATION_PATTERN
-            .matcher( query ).matches() )
-        {
-            throw new BadRequestException( "Query has invalid format: " + query );
-        }
-
-        return singleOperatorValueFilter( query );
+        return operatorValueQueryFilter( FILTER_ITEM_SPLIT.split( filter ), filter );
     }
 
-    private static QueryFilter singleOperatorValueFilter( String operatorValue )
+    private static QueryFilter operatorValueQueryFilter( String[] operatorValue, String filter )
+        throws BadRequestException
     {
-        String[] operatorValueSplit = operatorValue.split( DIMENSION_NAME_SEP, 2 );
+        if ( null == operatorValue || operatorValue.length < 2 )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
 
-        return new QueryFilter( QueryOperator.fromString( operatorValueSplit[0] ), operatorValueSplit[1] );
+        return operatorValueQueryFilter( operatorValue[0], operatorValue[1], filter );
+    }
+
+    private static QueryFilter operatorValueQueryFilter( String operator, String value, String filter )
+        throws BadRequestException
+    {
+        if ( StringUtils.isEmpty( operator ) || StringUtils.isEmpty( value ) )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
+
+        try
+        {
+            return new QueryFilter( QueryOperator.fromString( operator ), escapedFilterValue( value ) );
+
+        }
+        catch ( IllegalArgumentException exception )
+        {
+            throw new BadRequestException( "Query item or filter is invalid: " + filter );
+        }
+    }
+
+    /**
+     * Replace escaped comma or colon
+     *
+     * @param value
+     * @return
+     */
+    private static String escapedFilterValue( String value )
+    {
+        return value.replace( ESCAPE_COMMA, COMMA_STRING )
+            .replace( ESCAPE_COLON, DIMENSION_NAME_SEP );
     }
 }
