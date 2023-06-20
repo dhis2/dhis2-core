@@ -114,6 +114,7 @@ class EventExporterTest extends TrackerTest
     private Program program;
 
     final Function<EventOperationParams, List<String>> eventsFunction = ( params ) -> {
+        //We should analyze if it's possible to remove this try/catch when refactoring the event service layer in the epic https://dhis2.atlassian.net/browse/TECH-1534
         try
         {
             return eventService.getEvents( params )
@@ -328,7 +329,7 @@ class EventExporterTest extends TrackerTest
 
     @ParameterizedTest
     @MethodSource( "getEventsFunctions" )
-    @Disabled( "This test is disabled because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator" )
+    @Disabled( "This test is disabled because it doesn't look like we offer the feature to filter by multiple values with the like operator" )
     void testExportEventsWhenFilteringByDataElementsIn( Function<EventOperationParams, List<String>> eventFunction )
     {
         DataElement datael00001 = dataElement( "DATAEL00001" );
@@ -844,7 +845,7 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
-    @Disabled( "This test is disabled because it doesn't seem like we don't offer the feature to filter by multiple values with the like operator" )
+    @Disabled( "This test is disabled because it doesn't look like we offer the feature to filter by multiple values with the like operator" )
     void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
         throws ForbiddenException,
         BadRequestException
