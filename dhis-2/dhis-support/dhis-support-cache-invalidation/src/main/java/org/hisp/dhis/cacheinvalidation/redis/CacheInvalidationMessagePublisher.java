@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,25 +27,10 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
+public interface CacheInvalidationMessagePublisher
 {
-    @Autowired
-    private RedisCacheInvalidationSubscriptionService subscriptionService;
-
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        subscriptionService.start();
-    }
+    void publish( String channel, String message );
 }

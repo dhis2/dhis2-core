@@ -27,13 +27,19 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.hisp.dhis.cacheinvalidation.redis.RedisCacheInvalidationConfiguration.EXCLUDE_LIST;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.CHANNEL_NAME;
+import static org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationConfiguration.EXCLUDE_LIST;
 
 import java.io.Serializable;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.event.spi.*;
+import org.hibernate.event.spi.PostCommitDeleteEventListener;
+import org.hibernate.event.spi.PostCommitInsertEventListener;
+import org.hibernate.event.spi.PostCommitUpdateEventListener;
+import org.hibernate.event.spi.PostDeleteEvent;
+import org.hibernate.event.spi.PostInsertEvent;
+import org.hibernate.event.spi.PostUpdateEvent;
 import org.hibernate.persister.entity.EntityPersister;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -51,8 +57,6 @@ import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
-import io.lettuce.core.api.StatefulRedisConnection;
-
 /**
  * It listens for events from Hibernate and publishes a message to Redis when an
  * event occurs
@@ -62,7 +66,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 @Slf4j
 @Component
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Conditional( value = CacheInvalidationEnabledCondition.class )
 public class PostCacheEventPublisher
     implements PostCommitUpdateEventListener,
     PostCommitInsertEventListener,
@@ -82,12 +86,16 @@ public class PostCacheEventPublisher
     protected TrackedEntityService trackedEntityService;
 
     @Autowired
+    private CacheInvalidationMessagePublisher messagePublisher;
+
+    @Autowired
     @Qualifier( "cacheInvalidationServerId" )
     private String serverInstanceId;
 
-    @Autowired
-    @Qualifier( "redisConnection" )
-    private transient StatefulRedisConnection<String, String> redisConnection;
+    public CacheInvalidationMessagePublisher getMessagePublisher()
+    {
+        return messagePublisher;
+    }
 
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
@@ -147,7 +155,7 @@ public class PostCacheEventPublisher
     {
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {
-            redisConnection.async().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+            messagePublisher.publish( CHANNEL_NAME, message );
 
             log.debug( "Published message: " + message );
         }

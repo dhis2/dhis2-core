@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,7 +62,7 @@ import io.lettuce.core.api.StatefulRedisConnection;
 @Slf4j
 @Component
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Conditional( value = CacheInvalidationEnabledCondition.class )
 public class PostCollectionCacheEventPublisher
     implements PostCollectionRecreateEventListener,
     PreCollectionRemoveEventListener, PreCollectionUpdateEventListener
@@ -72,8 +72,7 @@ public class PostCollectionCacheEventPublisher
     private String serverInstanceId;
 
     @Autowired
-    @Qualifier( "redisConnection" )
-    private transient StatefulRedisConnection<String, String> redisConnection;
+    private CacheInvalidationMessagePublisher messagePublisher;
 
     @Override
     public void onPreUpdateCollection( PreCollectionUpdateEvent event )
@@ -123,9 +122,7 @@ public class PostCollectionCacheEventPublisher
             String message = serverInstanceId + ":" + op + ":" + affectedOwnerEntityName + ":" + role + ":"
                 + affectedOwnerIdOrNull;
 
-            redisConnection.sync().publish( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
-
-            log.debug( "Published message: " + message );
+            messagePublisher.publish( CacheInvalidationConfiguration.CHANNEL_NAME, message );
         }
     }
 

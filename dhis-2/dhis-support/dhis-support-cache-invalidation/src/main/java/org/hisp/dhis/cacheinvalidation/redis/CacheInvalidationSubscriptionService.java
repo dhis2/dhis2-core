@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,51 +27,42 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
-
 import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
+@Service
+@Profile( { "!test-postgres", "!test", "!test-h2", "!cache-invalidation-test" } )
+@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
+public class CacheInvalidationSubscriptionService
 {
-    @PersistenceUnit
-    private EntityManagerFactory entityManagerFactory;
+    @Autowired
+    private CacheInvalidationListener cacheInvalidationListener;
 
     @Autowired
-    PostCacheEventPublisher postCacheEventPublisher;
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    @Autowired
-    PostCollectionCacheEventPublisher postCollectionCacheEventPublisher;
-
-    @Override
-    public void execute()
-        throws Exception
+    public void start()
     {
-        log.info( "Executing RedisCacheInvalidationPreStartupRoutine" );
+        log.info( "RedisCacheInvalidationSubscriptionService starting" );
 
-        SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+        pubSubConnection.addListener( cacheInvalidationListener );
 
-        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COMMIT_INSERT, postCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COMMIT_DELETE, postCacheEventPublisher );
+        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+        async.subscribe( CacheInvalidationConfiguration.CHANNEL_NAME );
 
-        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, postCollectionCacheEventPublisher );
+        log.debug( "Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }

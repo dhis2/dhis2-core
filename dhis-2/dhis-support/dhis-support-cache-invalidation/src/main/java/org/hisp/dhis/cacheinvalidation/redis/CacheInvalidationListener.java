@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2004, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -67,7 +67,7 @@ import io.lettuce.core.pubsub.RedisPubSubListener;
 @Slf4j
 @Component
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
+@Conditional( value = CacheInvalidationEnabledCondition.class )
 public class CacheInvalidationListener
     extends BaseCacheEvictionService
     implements RedisPubSubListener<String, String>
@@ -140,7 +140,7 @@ public class CacheInvalidationListener
 
         if ( CacheEventOperation.INSERT == operationType )
         {
-            // Make sure queries will re-fetch to capture the new object.
+            // Make sure queries will refetch to capture the new object.
             queryCacheManager.evictQueryCache( sessionFactory.getCache(), entityClass );
             paginationCacheManager.evictCache( entityClass.getName() );
             // Try to fetch the new entity, so it might get cached.
