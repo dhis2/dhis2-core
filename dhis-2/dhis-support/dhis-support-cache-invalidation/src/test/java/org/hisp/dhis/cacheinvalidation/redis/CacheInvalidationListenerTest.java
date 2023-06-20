@@ -117,7 +117,7 @@ class CacheInvalidationListenerTest
     void testCollectionMessage()
     {
         String message = "SERVER_B" + ":" + "COLLECTION" + ":" + "org.hisp.dhis.user.User" + ":" + "ROLE" + ":" + "1";
-        cacheInvalidationListener.message( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
 
         verify( queryCacheManager, times( 0 ) ).evictQueryCache( any(), any() );
         verify( sessionFactory.getCache(), times( 1 ) ).evictCollectionData( any(), any() );
@@ -129,7 +129,7 @@ class CacheInvalidationListenerTest
     void testInsertMessage()
     {
         String message = "SERVER_B" + ":" + "INSERT" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
 
         verify( queryCacheManager, times( 1 ) ).evictQueryCache( any(), any() );
         verify( sessionFactory.getCache(), times( 0 ) ).evict( any(), any() );
@@ -141,7 +141,7 @@ class CacheInvalidationListenerTest
     void testUpdateMessage()
     {
         String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
 
         verify( sessionFactory.getCache(), times( 1 ) ).evict( any(), any() );
     }
@@ -151,7 +151,7 @@ class CacheInvalidationListenerTest
     void testDeleteMessage()
     {
         String message = "SERVER_B" + ":" + "DELETE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( RedisCacheInvalidationConfiguration.CHANNEL_NAME, message );
+        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
 
         verify( queryCacheManager, times( 1 ) ).evictQueryCache( any(), any() );
         verify( sessionFactory.getCache(), times( 1 ) ).evict( any(), any() );
