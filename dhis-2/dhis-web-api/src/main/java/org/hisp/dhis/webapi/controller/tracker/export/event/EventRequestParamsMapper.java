@@ -28,9 +28,6 @@
 package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
@@ -75,8 +72,6 @@ class EventRequestParamsMapper
             requestParams.getAttributeCos(),
             "attributeCategoryOptions",
             requestParams.getAttributeCategoryOptions() );
-
-        List<QueryItem> filters = parseDataElementQueryItems( requestParams.getFilter(), this::dataElementToQueryItem );
 
         Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
             "events",
