@@ -49,6 +49,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.event.csv.CsvEventService;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
@@ -134,16 +135,16 @@ public class TrackerTrackedEntitiesExportController
         if ( criteria.isPagingRequest() )
         {
 
-            Long count = criteria.isTotalPages()
-                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true )
-                : null;
+            Long count = 0L;
 
-            pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( queryParams.getPageWithDefault() )
-                    .total( count )
-                    .pageSize( queryParams.getPageSizeWithDefault() )
-                    .build() );
+            if ( criteria.isTotalPages() )
+            {
+                count = (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
+            }
+
+            Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
+
+            pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.fromLegacy( criteria, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );
