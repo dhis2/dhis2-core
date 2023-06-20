@@ -179,6 +179,36 @@ public class RequestParamUtils
     }
 
     /**
+     * Helps us transition mandatory request parameters from a deprecated to a
+     * new one. At least one parameter must be non-empty as the deprecated one
+     * was mandatory.
+     *
+     * @param deprecatedParamName request parameter name of deprecated parameter
+     * @param deprecatedParam value of deprecated request parameter
+     * @param newParamName new request parameter replacing deprecated request
+     *        parameter
+     * @param newParam value of the request parameter
+     * @return value of the one request parameter that is non-empty
+     * @throws IllegalArgumentException when both deprecated and new request
+     *         parameter are non-empty
+     * @throws IllegalArgumentException when both deprecated and new request
+     *         parameter are empty
+     */
+    public static UID validateMandatoryDeprecatedUidParameter( String deprecatedParamName, UID deprecatedParam,
+        String newParamName, UID newParam )
+    {
+        UID uid = validateDeprecatedUidParameter( deprecatedParamName, deprecatedParam, newParamName, newParam );
+
+        if ( uid == null )
+        {
+            throw new IllegalArgumentException(
+                String.format( "Required request parameter '%s' is not present", newParamName ) );
+        }
+
+        return uid;
+    }
+
+    /**
      * Parse semicolon separated string of UIDs.
      *
      * @param input string to parse

@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller.event;
 
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateMandatoryDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import org.hisp.dhis.common.DhisApiVersion;
@@ -39,6 +40,7 @@ import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
 import org.hisp.dhis.user.CurrentUserService;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,23 +90,34 @@ public class TrackerOwnershipController
 
     @PutMapping( value = "/transfer", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage updateTrackerProgramOwner( @RequestParam String trackedEntityInstance,
+    public WebMessage updateTrackerProgramOwner(
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID trackedEntityInstance,
+        @RequestParam( required = false ) UID trackedEntity,
         @RequestParam String program,
         @RequestParam String ou )
     {
+        UID trackedEntityUid = validateMandatoryDeprecatedUidParameter( "trackedEntityInstance", trackedEntityInstance,
+            "trackedEntity", trackedEntity );
+
         trackerOwnershipAccessManager.transferOwnership(
-            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityUid.getValue() ),
             programService.getProgram( program ), organisationUnitService.getOrganisationUnit( ou ), false, false );
         return ok( "Ownership transferred" );
     }
 
     @PostMapping( value = "/override", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
-    public WebMessage overrideOwnershipAccess( @RequestParam String trackedEntityInstance, @RequestParam String reason,
+    public WebMessage overrideOwnershipAccess(
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID trackedEntityInstance,
+        @RequestParam( required = false ) UID trackedEntity,
+        @RequestParam String reason,
         @RequestParam String program )
     {
+        UID trackedEntityUid = validateMandatoryDeprecatedUidParameter( "trackedEntityInstance", trackedEntityInstance,
+            "trackedEntity", trackedEntity );
+
         trackerOwnershipAccessManager.grantTemporaryOwnership(
-            trackedEntityService.getTrackedEntity( trackedEntityInstance ),
+            trackedEntityService.getTrackedEntity( trackedEntityUid.getValue() ),
             programService.getProgram( program ), currentUserService.getCurrentUser(), reason );
 
         return ok( "Temporary Ownership granted" );
