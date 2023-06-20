@@ -132,16 +132,17 @@ public class RequestParamUtils
      *        parameter
      * @param newParamUids new request parameter uids
      * @return uids from the request parameter containing uids
-     * @throws IllegalArgumentException when both deprecated and new request
+     * @throws BadRequestException when both deprecated and new request
      *         parameter contain uids
      */
     public static Set<UID> validateDeprecatedUidsParameter( String deprecatedParamName, String deprecatedParamUids,
         String newParamName, Set<UID> newParamUids )
+        throws BadRequestException
     {
         Set<String> deprecatedParamParsedUids = parseUids( deprecatedParamUids );
         if ( !deprecatedParamParsedUids.isEmpty() && !newParamUids.isEmpty() )
         {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format(
                     "Only one parameter of '%s' (deprecated; semicolon separated UIDs) and '%s' (comma separated UIDs) must be specified. Prefer '%s' as '%s' will be removed.",
                     deprecatedParamName, newParamName, newParamName, deprecatedParamName ) );
@@ -161,15 +162,16 @@ public class RequestParamUtils
      *        parameter
      * @param newParam value of the request parameter
      * @return value of the one request parameter that is non-empty
-     * @throws IllegalArgumentException when both deprecated and new request
+     * @throws BadRequestException when both deprecated and new request
      *         parameter are non-empty
      */
     public static UID validateDeprecatedUidParameter( String deprecatedParamName, UID deprecatedParam,
         String newParamName, UID newParam )
+        throws BadRequestException
     {
         if ( newParam != null && deprecatedParam != null )
         {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format(
                     "Only one parameter of '%s' and '%s' must be specified. Prefer '%s' as '%s' will be removed.",
                     deprecatedParamName, newParamName, newParamName, deprecatedParamName ) );
@@ -189,19 +191,20 @@ public class RequestParamUtils
      *        parameter
      * @param newParam value of the request parameter
      * @return value of the one request parameter that is non-empty
-     * @throws IllegalArgumentException when both deprecated and new request
+     * @throws BadRequestException when both deprecated and new request
      *         parameter are non-empty
-     * @throws IllegalArgumentException when both deprecated and new request
+     * @throws BadRequestException when both deprecated and new request
      *         parameter are empty
      */
     public static UID validateMandatoryDeprecatedUidParameter( String deprecatedParamName, UID deprecatedParam,
         String newParamName, UID newParam )
+        throws BadRequestException
     {
         UID uid = validateDeprecatedUidParameter( deprecatedParamName, deprecatedParam, newParamName, newParam );
 
         if ( uid == null )
         {
-            throw new IllegalArgumentException(
+            throw new BadRequestException(
                 String.format( "Required request parameter '%s' is not present", newParamName ) );
         }
 
