@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -59,8 +59,8 @@ import io.lettuce.core.resource.DefaultClientResources;
 @Configuration
 @ComponentScan( basePackages = { "org.hisp.dhis" } )
 @Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationConfiguration
+@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
+public class CacheInvalidationConfiguration
 {
     public static final List<Class<?>> EXCLUDE_LIST = List.of( JobConfiguration.class );
 
@@ -153,9 +153,9 @@ public class RedisCacheInvalidationConfiguration
     }
 
     @Bean
-    public RedisCacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine()
+    public CacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine()
     {
-        RedisCacheInvalidationPreStartupRoutine routine = new RedisCacheInvalidationPreStartupRoutine();
+        CacheInvalidationPreStartupRoutine routine = new CacheInvalidationPreStartupRoutine();
         routine.setName( "redisPreStartupRoutine" );
         routine.setRunlevel( 20 );
         routine.setSkipInTests( true );
@@ -163,9 +163,9 @@ public class RedisCacheInvalidationConfiguration
     }
 
     @Bean
-    public StartupRedisCacheInvalidationServiceRoutine redisCacheInvalidationServiceRoutine()
+    public StartupCacheInvalidationServiceRoutine redisCacheInvalidationServiceRoutine()
     {
-        StartupRedisCacheInvalidationServiceRoutine routine = new StartupRedisCacheInvalidationServiceRoutine();
+        StartupCacheInvalidationServiceRoutine routine = new StartupCacheInvalidationServiceRoutine();
         routine.setName( "redisCacheInvalidationPreStartupRoutine" );
         routine.setRunlevel( 1 );
         routine.setSkipInTests( true );

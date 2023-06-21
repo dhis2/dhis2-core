@@ -61,7 +61,6 @@ class DhisConfigurationProviderTest
         configProvider.init();
         assertFalse( configProvider.isEnabled( ConfigurationKey.REDIS_ENABLED ) );
         assertFalse( configProvider.isEnabled( ConfigurationKey.MONITORING_API_ENABLED ) );
-        assertTrue( configProvider.isEnabled( ConfigurationKey.DEBEZIUM_ENABLED ) );
         assertTrue( configProvider.isEnabled( ConfigurationKey.ENABLE_QUERY_LOGGING ) );
         assertFalse( configProvider.isEnabled( ConfigurationKey.METHOD_QUERY_LOGGING_ENABLED ) );
     }

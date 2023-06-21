@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
+import org.hisp.dhis.commons.util.SystemUtils;
 import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.springframework.context.annotation.ConditionContext;
@@ -35,12 +36,17 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
+public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
     @Override
     public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
     {
-        if ( isTestRun( context ) )
+        if ( SystemUtils.isCacheInvalidationInTest( context.getEnvironment().getActiveProfiles() ) )
+        {
+            return true;
+        }
+
+        if ( SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() ) )
         {
             return false;
         }
