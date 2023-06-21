@@ -27,12 +27,7 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
-import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -43,6 +38,8 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.io.Serializable;
 
 @Slf4j
 public class BaseCacheEvictionService
@@ -104,34 +101,6 @@ public class BaseCacheEvictionService
             }
 
             throw e;
-        }
-    }
-
-    /**
-     * It evicts the entity and all its collections from the cache
-     *
-     * @param entityAndRoles A list of Object arrays, each containing the entity
-     *        class and the role name.
-     * @param id The id of the entity to evict
-     */
-    protected void evictCollections( List<Object[]> entityAndRoles, Serializable id )
-    {
-        Object[] firstEntityAndRole = entityAndRoles.get( 0 );
-        Objects.requireNonNull( firstEntityAndRole, "firstEntityAndRole can't be null!" );
-
-        // It's only a collection if we also have a role mapped
-        if ( firstEntityAndRole.length == 2 )
-        {
-            for ( Object[] entityAndRole : entityAndRoles )
-            {
-                Class<?> eKlass = (Class<?>) entityAndRole[0];
-                sessionFactory.getCache().evict( eKlass, id );
-                queryCacheManager.evictQueryCache( sessionFactory.getCache(), eKlass );
-                paginationCacheManager.evictCache( eKlass.getName() );
-
-                String role = (String) entityAndRole[1];
-                sessionFactory.getCache().evictCollectionData( role, id );
-            }
         }
     }
 }
