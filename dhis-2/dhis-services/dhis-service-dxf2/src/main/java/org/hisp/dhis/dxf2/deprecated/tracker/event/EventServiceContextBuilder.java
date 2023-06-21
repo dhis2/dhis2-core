@@ -39,6 +39,7 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
+import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -78,10 +79,10 @@ public class EventServiceContextBuilder
             .distinct()
             .collect( Collectors.toList() );
 
-        Map<String, EventContext.TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
+        Map<String, TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
             .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids, user ).stream()
             .collect( Collectors.toMap(
-                EventContext.TrackedEntityOuInfo::getTrackedEntityUid,
+                TrackedEntityOuInfo::trackedEntityUid,
                 trackedEntityOuInfo -> trackedEntityOuInfo ) );
 
         Map<String, Program> programsByUid = programService.getPrograms(
@@ -99,7 +100,7 @@ public class EventServiceContextBuilder
                     .map( EventRow::getTrackedEntityInstance )
                     .filter( Objects::nonNull )
                     .map( trackedEntityInstanceByUid::get )
-                    .map( EventContext.TrackedEntityOuInfo::getTrackerEntityId )
+                    .map( TrackedEntityOuInfo::trackerEntityId )
                     .distinct()
                     .collect( Collectors.toList() ),
                 programsByUid.get( programUid ) ).stream() )

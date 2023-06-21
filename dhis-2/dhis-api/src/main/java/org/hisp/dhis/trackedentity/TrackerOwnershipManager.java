@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramType;
@@ -73,8 +72,7 @@ public interface TrackerOwnershipManager
 
     boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
 
-    boolean hasAccessUsingContext( User user, String trackedEntityUid, String programUid,
-        EventContext eventContext );
+    boolean hasAccess( User user, Program program, TrackedEntityOuInfo trackedEntityOuInfo, OrganisationUnit ou );
 
     /**
      * Grant temporary ownership for a user for a specific tei-program

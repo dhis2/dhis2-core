@@ -29,12 +29,10 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 
 import java.util.Map;
 
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 
 /**
  * @deprecated this is a class related to "old" (deprecated) tracker which will
@@ -81,16 +79,5 @@ public class EventContext
     public Map<String, OrganisationUnit> getOrgUnitsByUid()
     {
         return orgUnitsByUid;
-    }
-
-    @Data
-    @RequiredArgsConstructor
-    public static class TrackedEntityOuInfo
-    {
-        private final Long trackerEntityId;
-
-        private final String trackedEntityUid;
-
-        private final Long orgUnitId;
     }
 }

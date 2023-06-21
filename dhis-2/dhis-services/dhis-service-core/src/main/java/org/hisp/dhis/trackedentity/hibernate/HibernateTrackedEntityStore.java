@@ -83,7 +83,6 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.hibernate.SoftDeleteHibernateObjectStore;
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.SqlHelper;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.jdbc.StatementBuilder;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -92,6 +91,7 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
+import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -1536,11 +1536,11 @@ public class HibernateTrackedEntityStore
     }
 
     @Override
-    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 
-        List<EventContext.TrackedEntityOuInfo> instances = new ArrayList<>();
+        List<TrackedEntityOuInfo> instances = new ArrayList<>();
 
         String hql = "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntity tei where tei.uid in (:uids)";
 
@@ -1561,9 +1561,9 @@ public class HibernateTrackedEntityStore
         return instances;
     }
 
-    private EventContext.TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
+    private TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
     {
-        return new EventContext.TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
+        return new TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
     }
 
     @Override
