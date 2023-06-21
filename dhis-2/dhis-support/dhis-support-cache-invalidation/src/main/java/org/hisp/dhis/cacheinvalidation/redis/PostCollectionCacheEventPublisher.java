@@ -39,10 +39,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.hibernate.collection.spi.PersistentCollection;
 import org.hibernate.engine.spi.CollectionEntry;
 import org.hibernate.event.spi.AbstractCollectionEvent;
-import org.hibernate.event.spi.PostCollectionRecreateEvent;
-import org.hibernate.event.spi.PostCollectionRecreateEventListener;
-import org.hibernate.event.spi.PreCollectionRemoveEvent;
-import org.hibernate.event.spi.PreCollectionRemoveEventListener;
 import org.hibernate.event.spi.PreCollectionUpdateEvent;
 import org.hibernate.event.spi.PreCollectionUpdateEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,8 +58,7 @@ import org.springframework.stereotype.Component;
 @Profile( { "!test", "!test-h2" } )
 @Conditional( value = CacheInvalidationEnabledCondition.class )
 public class PostCollectionCacheEventPublisher
-    implements PostCollectionRecreateEventListener,
-    PreCollectionRemoveEventListener, PreCollectionUpdateEventListener
+    implements PreCollectionUpdateEventListener
 {
     @Autowired
     @Qualifier( "cacheInvalidationServerId" )
@@ -75,42 +70,25 @@ public class PostCollectionCacheEventPublisher
     @Override
     public void onPreUpdateCollection( PreCollectionUpdateEvent event )
     {
-        log.debug( "onPostUpdateCollection" );
         CollectionEntry collectionEntry = getCollectionEntry( event );
         onCollectionAction( event, event.getCollection(), collectionEntry.getSnapshot() );
-    }
-
-    @Override
-    public void onPreRemoveCollection( PreCollectionRemoveEvent event )
-    {
-        log.debug( "onPostRemoveCollection" );
-        CollectionEntry collectionEntry = getCollectionEntry( event );
-        onCollectionAction( event, null, collectionEntry.getSnapshot() );
-    }
-
-    @Override
-    public void onPostRecreateCollection( PostCollectionRecreateEvent event )
-    {
-        log.debug( "onPostRecreateCollection" );
-        onCollectionAction( event, event.getCollection(), null );
     }
 
     protected void onCollectionAction( AbstractCollectionEvent event, PersistentCollection newColl,
         Serializable oldColl )
     {
-        Integer numberOfAddedElements = null;
-        Integer numberOfRemovedElements = null;
+        Integer addedElements = null;
 
         if ( newColl instanceof Collection )
         {
             Collection<?> newCollection = (Collection<?>) newColl;
-            numberOfAddedElements = newCollection.size();
+            addedElements = newCollection.size();
         }
 
-        numberOfRemovedElements = getNumberOfRemovedElements( oldColl, numberOfRemovedElements );
+        Integer removedElements = getNumberOfRemovedElements( oldColl );
 
-        if ( (numberOfAddedElements != null && numberOfRemovedElements != null)
-            && !Objects.equals( numberOfAddedElements, numberOfRemovedElements ) )
+        if ( (addedElements != null && removedElements != null)
+            && !Objects.equals( addedElements, removedElements ) )
         {
             String affectedOwnerEntityName = event.getAffectedOwnerEntityName();
             String role = event.getCollection().getRole();
@@ -124,12 +102,14 @@ public class PostCollectionCacheEventPublisher
         }
     }
 
-    private static Integer getNumberOfRemovedElements( Serializable oldCollection, Integer removed )
+    private static Integer getNumberOfRemovedElements( Serializable oldCollection )
     {
         boolean isCollection = oldCollection instanceof Collection;
         boolean isList = oldCollection instanceof List;
         boolean isMap = oldCollection instanceof Map;
         boolean isSet = oldCollection instanceof Set;
+
+        Integer removed = null;
 
         if ( isCollection )
         {

@@ -49,7 +49,7 @@ import org.springframework.test.context.ActiveProfiles;
  */
 @Slf4j
 @ActiveProfiles( { "test-postgres", "cache-invalidation-test" } )
-public class CacheInvalidationMessagePublisherTest extends IntegrationTestBase
+class CacheInvalidationMessagePublisherTest extends IntegrationTestBase
 {
     @Autowired
     private PostCacheEventPublisher postCacheEventPublisher;

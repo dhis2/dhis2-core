@@ -57,7 +57,7 @@ public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
     public void execute()
         throws Exception
     {
-        log.info( "Executing RedisCacheInvalidationPreStartupRoutine" );
+        log.info( "Executing CacheInvalidationPreStartupRoutine" );
 
         SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
@@ -67,7 +67,5 @@ public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
         registry.appendListeners( EventType.POST_COMMIT_DELETE, postCacheEventPublisher );
 
         registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, postCollectionCacheEventPublisher );
     }
 }

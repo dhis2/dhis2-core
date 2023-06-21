@@ -100,21 +100,18 @@ public class PostCacheEventPublisher
     @Override
     public void onPostUpdate( PostUpdateEvent postUpdateEvent )
     {
-        log.debug( "onPostUpdate" );
         handleMessage( CacheEventOperation.UPDATE, postUpdateEvent.getEntity(), postUpdateEvent.getId() );
     }
 
     @Override
     public void onPostInsert( PostInsertEvent postInsertEvent )
     {
-        log.debug( "onPostInsert" );
         handleMessage( CacheEventOperation.INSERT, postInsertEvent.getEntity(), postInsertEvent.getId() );
     }
 
     @Override
     public void onPostDelete( PostDeleteEvent postDeleteEvent )
     {
-        log.debug( "onPostDelete" );
         handleMessage( CacheEventOperation.DELETE, postDeleteEvent.getEntity(), postDeleteEvent.getId() );
     }
 
@@ -156,8 +153,6 @@ public class PostCacheEventPublisher
         if ( !EXCLUDE_LIST.contains( realClass ) )
         {
             messagePublisher.publish( CHANNEL_NAME, message );
-
-            log.debug( "Published message: " + message );
         }
         else
         {
