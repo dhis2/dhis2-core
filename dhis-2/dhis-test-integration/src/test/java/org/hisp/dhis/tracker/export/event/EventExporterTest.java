@@ -756,9 +756,10 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
     }
 
-    @SneakyThrows
     @Test
     void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
@@ -785,9 +786,10 @@ class EventExporterTest extends TrackerTest
         assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
     }
 
-    @SneakyThrows
     @Test
     void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) ).build();
