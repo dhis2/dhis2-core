@@ -39,6 +39,8 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
+import lombok.RequiredArgsConstructor;
+
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -60,8 +62,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * Service that allows copying of a {@link Program} and other {@link Program}
