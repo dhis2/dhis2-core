@@ -193,8 +193,8 @@ class ProgramStageTest
 
     private Set<ProgramStageSection> getProgramStageSections( ProgramStage programStage )
     {
-        ProgramStageSection pss1 = getNewProgramStageSection( programStage );
-        ProgramStageSection pss2 = getNewProgramStageSection( programStage );
+        ProgramStageSection pss1 = getNewProgramStageSection( programStage, programStage.getProgram() );
+        ProgramStageSection pss2 = getNewProgramStageSection( programStage, programStage.getProgram() );
         return Set.of( pss1, pss2 );
     }
 
