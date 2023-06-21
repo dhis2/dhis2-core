@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.cacheinvalidation;
 
+import java.io.Serializable;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -38,8 +41,6 @@ import org.hisp.dhis.period.PeriodService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.io.Serializable;
 
 @Slf4j
 public class BaseCacheEvictionService
