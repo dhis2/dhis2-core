@@ -81,7 +81,6 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -329,14 +328,13 @@ class EventExporterTest extends TrackerTest
 
     @ParameterizedTest
     @MethodSource( "getEventsFunctions" )
-    @Disabled( "This test is disabled because it doesn't look like we offer the feature to filter by multiple values with the like operator" )
     void testExportEventsWhenFilteringByDataElementsIn( Function<EventOperationParams, List<String>> eventFunction )
     {
         DataElement datael00001 = dataElement( "DATAEL00001" );
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
-            .filters( datael00001.getUid() + ":like:%value00001%;%value00002%" )
+            .filters( datael00001.getUid() + ":in:value00001;value00002" )
             .build();
 
         List<String> events = eventFunction.apply( params );
@@ -847,7 +845,6 @@ class EventExporterTest extends TrackerTest
     }
 
     @Test
-    @Disabled( "This test is disabled because it doesn't look like we offer the feature to filter by multiple values with the like operator" )
     void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
         throws ForbiddenException,
         BadRequestException
@@ -856,7 +853,7 @@ class EventExporterTest extends TrackerTest
         item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
 
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
-            .filterAttributes( "toUpdate000:like:%day%:like:%in%" ).build();
+            .filterAttributes( "toUpdate000:like:day:like:in" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
