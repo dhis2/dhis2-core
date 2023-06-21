@@ -36,8 +36,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.SetValuedMap;
 import org.hisp.dhis.common.OpenApi;
@@ -46,6 +44,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
@@ -70,6 +69,8 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 import com.google.common.collect.Lists;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -138,12 +139,14 @@ public class ProgramController
     }
 
     @PostMapping( "/{uid}/copy" )
+    //    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_PRIVATE_ADD')" )
     @ResponseStatus( HttpStatus.CREATED )
     @ResponseBody
     public WebMessage copyProgram( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Map<String, String> copyOptions )
         throws NotFoundException,
-        ConflictException
+        ConflictException,
+        ForbiddenException
     {
         Program programCopy = null;
         try

@@ -39,8 +39,7 @@ import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 
-import lombok.RequiredArgsConstructor;
-
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -57,8 +56,12 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * Service that allows copying of a {@link Program} and other {@link Program}
@@ -93,6 +96,10 @@ public class CopyService
 
     private final EnrollmentService enrollmentService;
 
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
+
     /**
      * Method to copy a {@link Program} from a UID
      *
@@ -105,12 +112,17 @@ public class CopyService
      */
     @Transactional
     public Program copyProgram( String uid, Map<String, String> copyOptions )
-        throws NotFoundException
+        throws NotFoundException,
+        ForbiddenException
     {
         Program original = programService.getProgram( uid );
         if ( original != null )
         {
-            return applyAllProgramCopySteps( original, copyOptions );
+            if ( aclService.canWrite( currentUserService.getCurrentUser(), original ) )
+            {
+                return applyAllProgramCopySteps( original, copyOptions );
+            }
+            throw new ForbiddenException( "You don't have write permissions for Program " + uid );
         }
         throw new NotFoundException( Program.class, uid );
     }
