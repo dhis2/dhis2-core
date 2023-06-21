@@ -28,9 +28,9 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseDataElementQueryItems;
-import static org.hisp.dhis.tracker.export.event.EventOperationParamUtils.parseQueryItem;
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 
 import java.util.ArrayList;
 import java.util.Collections;
