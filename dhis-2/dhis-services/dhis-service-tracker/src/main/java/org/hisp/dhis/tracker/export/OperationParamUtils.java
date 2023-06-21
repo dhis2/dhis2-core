@@ -30,13 +30,11 @@ package org.hisp.dhis.tracker.export;
 import static org.hisp.dhis.common.DimensionalObject.DIMENSION_NAME_SEP;
 
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.DimensionalObject;
@@ -71,29 +69,6 @@ public class OperationParamUtils
      * It skips colon escaped by slash
      */
     private static final Pattern FILTER_ITEM_SPLIT = Pattern.compile( "(?<!" + ESCAPE + ")" + DIMENSION_NAME_SEP );
-
-    private static final String COMPARISON_OPERATOR = EnumSet.allOf( QueryOperator.class ).stream()
-        .filter( QueryOperator::isComparison ).map( Enum::toString )
-        .collect( Collectors.joining( "|" ) );
-
-    /**
-     * For multi operand, we support digits and dates
-     * {@link org.hisp.dhis.util.DateUtils}.
-     */
-    private static final String DIGITS_DATES_VALUES_REG_EX = "[\\s\\d\\-+.:T]+";
-
-    private static final String MULTI_OPERAND_VALUE_REG_EX = "(?i)(" + COMPARISON_OPERATOR + ")"
-        + DIMENSION_NAME_SEP
-        + "(" + DIGITS_DATES_VALUES_REG_EX + ")";
-
-    /**
-     * RegEx to validate and match {operator}:{value} in a filter
-     */
-    private static final String SINGLE_OPERAND_REG_EX = "(?i)("
-        + EnumSet.allOf( QueryOperator.class ).stream().map( Enum::toString )
-            .collect( Collectors.joining( "|" ) )
-        + ")" +
-        DIMENSION_NAME_SEP + "(.)+";
 
     private static final String COMMA_STRING = Character.toString( COMMA_SEPARATOR );
 
@@ -339,13 +314,10 @@ public class OperationParamUtils
         int pad = 0;
         for ( Map.Entry<Integer, Boolean> slashPositionInFilter : escapesToRestore.entrySet() )
         {
-            if ( !slashPositionInFilter.getValue() )
+            if ( !slashPositionInFilter.getValue() && slashPositionInFilter.getKey() <= (beginning + end) )
             {
-                if ( slashPositionInFilter.getKey() <= (beginning + end) )
-                {
-                    filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
-                    escapesToRestore.put( slashPositionInFilter.getKey(), true );
-                }
+                filter.insert( slashPositionInFilter.getKey() - beginning + pad++, ESCAPE );
+                escapesToRestore.put( slashPositionInFilter.getKey(), true );
             }
         }
 
