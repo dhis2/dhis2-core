@@ -139,7 +139,6 @@ public class ProgramController
     }
 
     @PostMapping( "/{uid}/copy" )
-    //    @PreAuthorize( "hasRole('ALL') or hasRole('F_PROGRAM_PRIVATE_ADD')" )
     @ResponseStatus( HttpStatus.CREATED )
     @ResponseBody
     public WebMessage copyProgram( @PathVariable( "uid" ) String uid,

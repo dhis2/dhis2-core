@@ -109,6 +109,8 @@ public class CopyService
      *        {@link Program} name property.
      * @return {@link Program} copy
      * @throws NotFoundException if the {@link Program} is not found.
+     * @throws ForbiddenException if {@link org.hisp.dhis.user.User} has no
+     *         write access to {@link Program}
      */
     @Transactional
     public Program copyProgram( String uid, Map<String, String> copyOptions )
