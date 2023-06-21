@@ -736,7 +736,7 @@ class RequestParamsMapperTest
         requestParams.setOrgUnit( "IsdLBTOBzMi" );
         requestParams.setOrgUnits( Set.of( UID.of( "IsdLBTOBzMi" ) ) );
 
-        assertThrows( IllegalArgumentException.class, () -> mapper.map( requestParams ) );
+        assertThrows( BadRequestException.class, () -> mapper.map( requestParams ) );
     }
 
     @Test
@@ -745,6 +745,6 @@ class RequestParamsMapperTest
         requestParams.setTrackedEntity( "IsdLBTOBzMi" );
         requestParams.setTrackedEntities( Set.of( UID.of( "IsdLBTOBzMi" ) ) );
 
-        assertThrows( IllegalArgumentException.class, () -> mapper.map( requestParams ) );
+        assertThrows( BadRequestException.class, () -> mapper.map( requestParams ) );
     }
 }

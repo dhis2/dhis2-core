@@ -33,19 +33,9 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-system</artifactId>
     </dependency>
-
-    <!-- Debezium -->
     <dependency>
-      <groupId>io.debezium</groupId>
-      <artifactId>debezium-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.debezium</groupId>
-      <artifactId>debezium-embedded</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.debezium</groupId>
-      <artifactId>debezium-connector-postgres</artifactId>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>dhis-support-commons</artifactId>
     </dependency>
 
     <!-- Redis Lettuce -->
@@ -71,16 +61,8 @@
       <artifactId>spring-security-core</artifactId>
     </dependency>
     <dependency>
-      <groupId>javax.annotation</groupId>
-      <artifactId>javax.annotation-api</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.google.guava</groupId>
-      <artifactId>guava</artifactId>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -103,7 +85,11 @@
       <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
-
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <properties>
     <rootDir>../../</rootDir>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,44 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import lombok.extern.slf4j.Slf4j;
 
-import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
 
-import io.debezium.connector.postgresql.PostgresConnector;
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
 /**
- * Test to make sure that the Debezium Postgres connector is available. It is
- * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
- *
- * @author Jim Grace
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class DebeziumPostgresConnectorTest
+@Slf4j
+@Service
+@Profile( { "!test-postgres", "!test", "!test-h2", "!cache-invalidation-test" } )
+@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
+public class CacheInvalidationSubscriptionService
 {
-    @Test
-    void testDebeziumPostgresConnectorPresent()
+    @Autowired
+    private CacheInvalidationListener cacheInvalidationListener;
+
+    @Autowired
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
+
+    public void start()
     {
-        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
+        log.info( "CacheInvalidationSubscriptionService starting..." );
+
+        pubSubConnection.addListener( cacheInvalidationListener );
+
+        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+        async.subscribe( CacheInvalidationConfiguration.CHANNEL_NAME );
+
+        log.debug( "Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }
