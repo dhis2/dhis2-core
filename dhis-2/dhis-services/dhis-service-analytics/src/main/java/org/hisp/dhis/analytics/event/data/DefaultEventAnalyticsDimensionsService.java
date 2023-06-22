@@ -52,7 +52,10 @@ import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
 import org.hisp.dhis.category.CategoryService;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.PrefixedDimension;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
@@ -111,12 +114,16 @@ public class DefaultEventAnalyticsDimensionsService implements EventAnalyticsDim
     {
         if ( StringUtils.isNotBlank( programStageId ) && StringUtils.isNotBlank( programId ) )
         {
-            Optional.of( programStageId )
+            Optional<String> matchingProgramUid = Optional.of( programStageId )
                 .map( programStageService::getProgramStage )
                 .map( ProgramStage::getProgram )
                 .map( Program::getUid )
-                .filter( programId::equals )
-                .orElseThrow( () -> new IllegalArgumentException( "Program stage is not in program" ) );
+                .filter( programId::equals );
+
+            if ( matchingProgramUid.isEmpty() )
+            {
+                throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7236, programStageId, programId ) );
+            }
         }
     }
 
