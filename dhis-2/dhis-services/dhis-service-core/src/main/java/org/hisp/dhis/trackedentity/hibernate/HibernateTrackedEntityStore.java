@@ -70,7 +70,6 @@ import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.SessionFactory;
-import org.hibernate.annotations.QueryHints;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -91,7 +90,6 @@ import org.hisp.dhis.security.acl.AclService;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.user.CurrentUserService;
@@ -1533,37 +1531,6 @@ public class HibernateTrackedEntityStore
         }
 
         return instances;
-    }
-
-    @Override
-    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
-    {
-        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
-
-        List<TrackedEntityOuInfo> instances = new ArrayList<>();
-
-        String hql = "select tei.id, tei.uid, tei.organisationUnit.id from TrackedEntity tei where tei.uid in (:uids)";
-
-        for ( List<String> partition : uidPartitions )
-        {
-            List<Object[]> resultList = getSession()
-                .createQuery( hql, Object[].class )
-                .setParameter( "uids", partition )
-                .setCacheable( cacheable ).setHint( QueryHints.CACHEABLE, cacheable )
-                .getResultList();
-
-            instances.addAll( resultList.stream()
-                .map( this::toTrackedEntityOuInfo )
-                .collect( Collectors.toList() ) );
-
-        }
-
-        return instances;
-    }
-
-    private TrackedEntityOuInfo toTrackedEntityOuInfo( Object[] objects )
-    {
-        return new TrackedEntityOuInfo( (Long) objects[0], (String) objects[1], (Long) objects[2] );
     }
 
     @Override

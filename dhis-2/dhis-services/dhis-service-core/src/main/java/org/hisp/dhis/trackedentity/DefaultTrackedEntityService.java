@@ -822,17 +822,6 @@ public class DefaultTrackedEntityService
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
-    {
-        if ( uids == null || uids.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-        return trackedEntityStore.getTrackedEntityOuInfoByUid( uids, user );
-    }
-
-    @Override
     @Transactional
     public void updateTrackedEntity( TrackedEntity trackedEntity )
     {

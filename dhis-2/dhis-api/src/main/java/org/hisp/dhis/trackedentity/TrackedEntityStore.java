@@ -101,6 +101,4 @@ public interface TrackedEntityStore
     void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated );
 
     List<TrackedEntity> getTrackedEntityByUid( List<String> uids, User user );
-
-    List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
 }

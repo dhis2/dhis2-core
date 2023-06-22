@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -37,12 +38,15 @@ import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.OwnedTeiMapper;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.TrackedEntityAttributeRowCallbackHandler;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.TeiAttributeQuery;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.TrackedEntityInstanceQuery;
+import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
+import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -195,5 +199,58 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
         jdbcTemplate.query( sql, paramSource, handler );
 
         return handler.getItems();
+    }
+
+    @Override
+    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
+
+        List<TrackedEntityOuInfo> instances = new ArrayList<>();
+
+        String sql = "select tei.trackedentityinstanceid teiid, tei.uid teiuid, tei.organisationunitid teiorgunit from trackedentityinstance tei where tei.uid in (:uids)";
+
+        for ( List<String> partition : uidPartitions )
+        {
+            MapSqlParameterSource parameters = new MapSqlParameterSource();
+            parameters.addValue( "uids", partition );
+            List<TrackedEntityOuInfo> infos = jdbcTemplate.query( sql, parameters,
+                ( rs, rowNum ) -> new TrackedEntityOuInfo(
+                    rs.getLong( "teiid" ),
+                    rs.getString( "teiuid" ),
+                    rs.getLong( "teiorgunit" ) ) );
+            instances.addAll( infos );
+        }
+
+        return instances;
+    }
+
+    @Override
+    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId )
+    {
+        List<TrackedEntityProgramOwnerIds> instances = new ArrayList<>();
+        List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );
+        String sql = """
+              select te.uid teuid, p.uid programuid, ou.uid orgunituid
+                from trackedentityprogramowner tepo
+                join trackedentityinstance te on tepo.trackedentityinstanceid = te.trackedentityinstanceid
+                join program p on tepo.programid = p.programid
+                join organisationunit ou on te.organisationunitid = ou.organisationunitid
+                where tepo.trackedentityinstanceid in (:teiIds) and tepo.programid = :programId
+            """;
+        for ( List<Long> partition : teiIdsPartitions )
+        {
+            MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue( "programId", programId )
+                .addValue( "teiIds", partition );
+            List<TrackedEntityProgramOwnerIds> uids = jdbcTemplate.query( sql, parameters,
+                ( rs, rowNum ) -> new TrackedEntityProgramOwnerIds(
+                    rs.getString( "teuid" ),
+                    rs.getString( "programuid" ),
+                    rs.getString( "orgunituid" ) ) );
+            instances.addAll( uids );
+        }
+        return instances;
+
     }
 }

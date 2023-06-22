@@ -60,6 +60,7 @@ import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.RelationshipParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.TrackedEntityInstanceAggregate;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -91,6 +92,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
+import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -119,6 +121,8 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
     // -------------------------------------------------------------------------
     // Dependencies
     // -------------------------------------------------------------------------
+
+    protected TrackedEntityInstanceStore trackedEntityInstanceStore;
 
     protected TrackedEntityService teiService;
 
@@ -384,6 +388,29 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
         updateDateFields( dtoEntityInstance, daoEntityInstance );
 
         return daoEntityInstance;
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    {
+        if ( uids == null || uids.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids, user );
+    }
+
+    @Override
+    @Transactional( readOnly = true )
+    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId( List<Long> teiIds,
+        Program program )
+    {
+        if ( teiIds.isEmpty() )
+        {
+            return Collections.emptyList();
+        }
+        return trackedEntityInstanceStore.getTrackedEntityProgramOwnersUids( teiIds, program.getId() );
     }
 
     // -------------------------------------------------------------------------

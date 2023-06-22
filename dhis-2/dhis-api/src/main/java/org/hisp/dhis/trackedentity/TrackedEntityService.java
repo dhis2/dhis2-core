@@ -280,7 +280,4 @@ public interface TrackedEntityService
     long createTrackedEntity( TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues );
 
     List<TrackedEntity> getTrackedEntitiesByUid( List<String> uids, User user );
-
-    List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user );
-
 }
