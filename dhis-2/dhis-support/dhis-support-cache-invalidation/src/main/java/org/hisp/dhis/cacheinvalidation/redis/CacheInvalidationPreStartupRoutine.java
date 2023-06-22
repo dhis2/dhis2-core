@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,32 +25,47 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.PersistenceUnit;
+
+import lombok.extern.slf4j.Slf4j;
+
+import org.hibernate.event.service.spi.EventListenerRegistry;
+import org.hibernate.event.spi.EventType;
+import org.hibernate.internal.SessionFactoryImpl;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 
 /**
- * Startup routine responsible for starting the Debezium engine service. The
- * {@link DebeziumPreStartupRoutine} is called first so that the
- * {@link TableNameToEntityMapping} is already been initialized, see
- * {@link TableNameToEntityMapping#init}
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class StartupDebeziumServiceRoutine extends AbstractStartupRoutine
+@Slf4j
+public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
 {
+    @PersistenceUnit
+    private EntityManagerFactory entityManagerFactory;
+
     @Autowired
-    private DebeziumService debeziumService;
+    PostCacheEventPublisher postCacheEventPublisher;
+
+    @Autowired
+    PostCollectionCacheEventPublisher postCollectionCacheEventPublisher;
 
     @Override
     public void execute()
-        throws InterruptedException
+        throws Exception
     {
-        debeziumService.startDebeziumEngine();
+        log.info( "Executing CacheInvalidationPreStartupRoutine" );
+
+        SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap( SessionFactoryImpl.class );
+        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
+
+        registry.appendListeners( EventType.POST_COMMIT_UPDATE, postCacheEventPublisher );
+        registry.appendListeners( EventType.POST_COMMIT_INSERT, postCacheEventPublisher );
+        registry.appendListeners( EventType.POST_COMMIT_DELETE, postCacheEventPublisher );
+
+        registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher );
     }
 }

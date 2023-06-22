@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,51 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.cache;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
+import static org.hisp.dhis.common.CodeGenerator.generateUid;
+
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationEnabledCondition;
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationPreStartupRoutine;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
+import org.springframework.security.core.session.SessionRegistryImpl;
 
 /**
+ * It configures the Redis client and the connection to the Redis server
+ *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
+@Order( 10002 )
+@Configuration
+@ComponentScan( basePackages = { "org.hisp.dhis" } )
+@Profile( { "cache-invalidation-test" } )
+@Conditional( value = CacheInvalidationEnabledCondition.class )
+public class TestableCacheInvalidationConfiguration
 {
-    @Autowired
-    private RedisCacheInvalidationSubscriptionService subscriptionService;
-
-    @Override
-    public void execute()
-        throws InterruptedException
+    @Bean
+    public static SessionRegistryImpl sessionRegistry()
     {
-        subscriptionService.start();
+        return new SessionRegistryImpl();
+    }
+
+    @Bean( name = "cacheInvalidationServerId" )
+    public String getCacheInvalidationServerId()
+    {
+        return generateUid();
+    }
+
+    @Bean
+    public CacheInvalidationPreStartupRoutine redisCacheInvalidationPreStartupRoutine()
+    {
+        CacheInvalidationPreStartupRoutine routine = new CacheInvalidationPreStartupRoutine();
+        routine.setName( "redisPreStartupRoutine" );
+        routine.setRunlevel( 20 );
+        routine.setSkipInTests( false );
+        return routine;
     }
 }

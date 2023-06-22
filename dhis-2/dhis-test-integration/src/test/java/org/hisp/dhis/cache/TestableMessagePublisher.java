@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,47 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cache;
 
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.annotation.Order;
-import org.springframework.security.core.session.SessionRegistryImpl;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Order( 101 )
-@ComponentScan( basePackages = { "org.hisp.dhis" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Configuration
-public class DebeziumSpringConfiguration
+@Component
+@Profile( { "cache-invalidation-test" } )
+public class TestableMessagePublisher implements CacheInvalidationMessagePublisher
 {
-    @Bean
-    public static SessionRegistryImpl sessionRegistry()
+    private final List<String> messages = new ArrayList<>();
+
+    @Override
+    public void publish( String channel, String message )
     {
-        return new SessionRegistryImpl();
+        messages.add( message );
     }
 
-    @Bean
-    public DebeziumPreStartupRoutine debeziumPreStartupRoutine()
+    public List<String> getMessages()
     {
-        DebeziumPreStartupRoutine routine = new DebeziumPreStartupRoutine();
-        routine.setName( "debeziumPreStartupRoutine" );
-        routine.setRunlevel( 1 );
-        routine.setSkipInTests( true );
-        return routine;
-    }
-
-    @Bean
-    public StartupDebeziumServiceRoutine startupDebeziumServiceRoutine()
-    {
-        StartupDebeziumServiceRoutine routine = new StartupDebeziumServiceRoutine();
-        routine.setName( "StartupDebeziumServiceRoutine" );
-        routine.setRunlevel( 20 );
-        routine.setSkipInTests( true );
-        return routine;
+        return messages;
     }
 }

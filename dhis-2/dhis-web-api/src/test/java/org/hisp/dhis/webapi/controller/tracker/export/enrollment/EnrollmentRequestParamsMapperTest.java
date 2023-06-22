@@ -39,6 +39,7 @@ import static org.mockito.Mockito.when;
 import java.util.List;
 import java.util.Set;
 
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfiltering.FieldFilterParser;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentParams;
@@ -84,6 +85,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingDoesNotFetchOptionalEmptyQueryParametersFromDB()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 
@@ -94,6 +96,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingOrgUnit()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setOrgUnit( ORG_UNIT_1_UID + ";" + ORG_UNIT_2_UID );
@@ -106,6 +109,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingOrgUnits()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setOrgUnits( Set.of( UID.of( ORG_UNIT_1_UID ), UID.of( ORG_UNIT_2_UID ) ) );
@@ -118,6 +122,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingProgram()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setProgram( UID.of( PROGRAM_UID ) );
@@ -129,6 +134,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingTrackedEntityType()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntityType( UID.of( TRACKED_ENTITY_TYPE_UID ) );
@@ -140,6 +146,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingTrackedEntity()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         requestParams.setTrackedEntity( UID.of( TRACKED_ENTITY_UID ) );
@@ -151,6 +158,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingOrderParams()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
         OrderCriteria order1 = OrderCriteria.of( "field1", SortDirection.ASC );
@@ -166,6 +174,7 @@ class EnrollmentRequestParamsMapperTest
 
     @Test
     void testMappingOrderParamsNoOrder()
+        throws BadRequestException
     {
         RequestParams requestParams = new RequestParams();
 

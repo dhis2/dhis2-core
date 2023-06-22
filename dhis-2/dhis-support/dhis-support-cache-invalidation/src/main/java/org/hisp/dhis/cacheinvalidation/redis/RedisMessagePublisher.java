@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,49 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.PersistenceUnit;
+import lombok.extern.slf4j.Slf4j;
 
-import org.hibernate.event.service.spi.EventListenerRegistry;
-import org.hibernate.event.spi.EventType;
-import org.hibernate.internal.SessionFactoryImpl;
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
 import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+import io.lettuce.core.api.StatefulRedisConnection;
 
 /**
- * Startup routine responsible for pre-populating the table name to entity
- * lookup table {@link TableNameToEntityMapping} This class is executed before
- * the {@link StartupDebeziumServiceRoutine} which starts the Debezium engine
- * itself.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-public class DebeziumPreStartupRoutine extends AbstractStartupRoutine
+@Slf4j
+@Service
+@Profile( { "!test-postgres", "!test", "!test-h2", "!cache-invalidation-test" } )
+@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
+public class RedisMessagePublisher implements CacheInvalidationMessagePublisher
 {
-    @PersistenceUnit
-    private EntityManagerFactory emf;
-
     @Autowired
-    private HibernateFlushListener hibernateFlushListener;
-
-    @Autowired
-    private TableNameToEntityMapping tableNameToEntityMapping;
+    @Qualifier( "redisConnection" )
+    private StatefulRedisConnection<String, String> redisConnection;
 
     @Override
-
-    public void execute()
-        throws Exception
+    public void publish( String channel, String message )
     {
-        tableNameToEntityMapping.init();
-
-        SessionFactoryImpl sessionFactory = emf.unwrap( SessionFactoryImpl.class );
-        EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
-        registry.getEventListenerGroup( EventType.FLUSH ).appendListener( hibernateFlushListener );
+        redisConnection.async().publish( CacheInvalidationConfiguration.CHANNEL_NAME, message );
+        log.debug( "Published message: " + message );
     }
 }
