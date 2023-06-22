@@ -260,9 +260,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     void testCopyProgramWithUserWithNoAuthorities()
     {
         User userWithNoAuthorities = switchToNewUser( "test1" );
-        Set<String> authorities = userWithNoAuthorities.getUserRoles().stream()
-            .flatMap( role -> role.getAuthorities().stream() )
-            .collect( Collectors.toSet() );
+        Set<String> authorities = userWithNoAuthorities.getAllAuthorities();
         assertEquals( 0, authorities.size() );
 
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
@@ -275,9 +273,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     void testCopyProgramWithUserWithProgramPrivateAddAuthority()
     {
         User userWithInsufficientAuthorities = switchToNewUser( "test1", "F_PROGRAM_PRIVATE_ADD" );
-        Set<String> authorities = userWithInsufficientAuthorities.getUserRoles().stream()
-            .flatMap( role -> role.getAuthorities().stream() )
-            .collect( Collectors.toSet() );
+        Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
         assertEquals( 1, authorities.size() );
 
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
@@ -290,9 +286,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     void testCopyProgramWithUserWithProgramAuthorityOnly()
     {
         User userWithInsufficientAuthorities = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD" );
-        Set<String> authorities = userWithInsufficientAuthorities.getUserRoles().stream()
-            .flatMap( role -> role.getAuthorities().stream() )
-            .collect( Collectors.toSet() );
+        Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
         assertEquals( 1, authorities.size() );
 
         assertStatus( HttpStatus.FORBIDDEN, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
@@ -303,9 +297,7 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
     {
         User userWithRequiredAuthorities = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
             "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
-        Set<String> authorities = userWithRequiredAuthorities.getUserRoles().stream()
-            .flatMap( role -> role.getAuthorities().stream() )
-            .collect( Collectors.toSet() );
+        Set<String> authorities = userWithRequiredAuthorities.getAllAuthorities();
         assertEquals( 2, authorities.size() );
 
         assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
