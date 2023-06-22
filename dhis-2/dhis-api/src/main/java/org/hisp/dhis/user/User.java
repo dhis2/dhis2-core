@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.user;
 
+import static org.apache.commons.collections4.CollectionUtils.emptyIfNull;
 import static org.springframework.beans.BeanUtils.copyProperties;
 
 import java.beans.IntrospectionException;
@@ -36,12 +37,12 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -298,16 +299,9 @@ public class User
      */
     public Set<String> getAllAuthorities()
     {
-        Set<String> authorities = new HashSet<>();
-
-        for ( UserRole group : userRoles )
-        {
-            authorities.addAll( group.getAuthorities() );
-        }
-
-        authorities = Collections.unmodifiableSet( authorities );
-
-        return authorities;
+        return emptyIfNull( userRoles ).stream()
+            .flatMap( role -> emptyIfNull( role.getAuthorities() ).stream() )
+            .collect( Collectors.toUnmodifiableSet() );
     }
 
     /**
@@ -317,16 +311,9 @@ public class User
      */
     public Set<String> getAllRestrictions()
     {
-        Set<String> restrictions = new HashSet<>();
-
-        for ( UserRole group : userRoles )
-        {
-            restrictions.addAll( group.getRestrictions() );
-        }
-
-        restrictions = Collections.unmodifiableSet( restrictions );
-
-        return restrictions;
+        return emptyIfNull( userRoles ).stream()
+            .flatMap( role -> emptyIfNull( role.getRestrictions() ).stream() )
+            .collect( Collectors.toUnmodifiableSet() );
     }
 
     /**
@@ -335,15 +322,7 @@ public class User
      */
     public boolean hasAuthorities()
     {
-        for ( UserRole group : userRoles )
-        {
-            if ( group != null && group.getAuthorities() != null && !group.getAuthorities().isEmpty() )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return !this.getAllAuthorities().isEmpty();
     }
 
     /**
@@ -1024,27 +1003,14 @@ public class User
 
     public Set<UserGroup> getManagedGroups()
     {
-        Set<UserGroup> managedGroups = new HashSet<>();
-
-        for ( UserGroup group : groups )
-        {
-            managedGroups.addAll( group.getManagedGroups() );
-        }
-
-        return managedGroups;
+        return emptyIfNull( groups ).stream()
+            .flatMap( group -> emptyIfNull( group.getManagedGroups() ).stream() )
+            .collect( Collectors.toUnmodifiableSet() );
     }
 
     public boolean hasManagedGroups()
     {
-        for ( UserGroup group : groups )
-        {
-            if ( group != null && group.getManagedGroups() != null && !group.getManagedGroups().isEmpty() )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return !getManagedGroups().isEmpty();
     }
 
     /**

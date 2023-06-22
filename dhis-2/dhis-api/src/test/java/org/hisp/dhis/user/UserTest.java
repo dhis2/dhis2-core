@@ -28,6 +28,7 @@
 package org.hisp.dhis.user;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -124,5 +125,121 @@ class UserTest
             .setUserRoles( new HashSet<>( Arrays.asList( userRole1, userRole2 ) ) );
         Set<String> authorities2 = user.getAllAuthorities();
         assertThat( authorities2, Matchers.containsInAnyOrder( "x1", "x2", "y1", "y2" ) );
+    }
+
+    @Test
+    void testGetAllAuthoritiesWhenUserRolesNull()
+    {
+        final User user = new User();
+        user.setUserRoles( null );
+        Set<String> authorities = assertDoesNotThrow( user::getAllAuthorities );
+        assertTrue( authorities.isEmpty() );
+    }
+
+    @Test
+    void testGetAllAuthoritiesWhenUserRoleAuthoritiesNull()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setAuthorities( null );
+        user.setUserRoles( Set.of( userRole ) );
+        Set<String> authorities = assertDoesNotThrow( user::getAllAuthorities );
+        assertTrue( authorities.isEmpty() );
+    }
+
+    @Test
+    void testHasAuthoritiesWhenUserRolesNull()
+    {
+        final User user = new User();
+        user.setUserRoles( null );
+        assertFalse( user.hasAuthorities() );
+    }
+
+    @Test
+    void testHasAuthoritiesWhenHasUserRole()
+    {
+        final User user = new User();
+        user.setUserRoles( new HashSet<>( Arrays.asList( userRole1 ) ) );
+        assertTrue( user.hasAuthorities() );
+    }
+
+    @Test
+    void testGetAllRestrictionsWhenUserRolesNull()
+    {
+        final User user = new User();
+        user.setUserRoles( null );
+        Set<String> restrictions = assertDoesNotThrow( user::getAllRestrictions );
+        assertTrue( restrictions.isEmpty() );
+    }
+
+    @Test
+    void testGetAllRestrictionsWhenUserRoleRestrictionsNull()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setRestrictions( null );
+        user.setUserRoles( Set.of( userRole ) );
+        Set<String> restrictions = assertDoesNotThrow( user::getAllRestrictions );
+        assertTrue( restrictions.isEmpty() );
+    }
+
+    @Test
+    void testGetAllRestrictions()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setRestrictions( Set.of( "R1", "R2" ) );
+        user.setUserRoles( Set.of( userRole ) );
+        Set<String> restrictions = user.getAllRestrictions();
+        assertEquals( 2, restrictions.size() );
+    }
+
+    @Test
+    void testGetManagedGroups()
+    {
+        final User user = new User();
+        UserGroup group = new UserGroup( "group 1" );
+        UserGroup managedGroup1 = new UserGroup( "managed group 1" );
+        UserGroup managedGroup2 = new UserGroup( "managed group 2" );
+        group.setManagedGroups( Set.of( managedGroup1, managedGroup2 ) );
+        user.setGroups( Set.of( group ) );
+
+        Set<UserGroup> groups = user.getManagedGroups();
+        assertEquals( 2, groups.size() );
+    }
+
+    @Test
+    void testGetManagedGroupsWhenGroupsNull()
+    {
+        final User user = new User();
+        user.setGroups( null );
+
+        Set<UserGroup> groups = assertDoesNotThrow( user::getManagedGroups );
+        assertTrue( groups.isEmpty() );
+    }
+
+    @Test
+    void testGetManagedGroupsWhenGroupManagedGroupsNull()
+    {
+        final User user = new User();
+        UserGroup group = new UserGroup( "group 1" );
+        group.setManagedGroups( null );
+        user.setGroups( Set.of( group ) );
+
+        Set<UserGroup> groups = assertDoesNotThrow( user::getManagedGroups );
+        assertTrue( groups.isEmpty() );
+    }
+
+    @Test
+    void testHasManagedGroups()
+    {
+        final User user = new User();
+        UserGroup group = new UserGroup( "group 1" );
+        UserGroup managedGroup1 = new UserGroup( "managed group 1" );
+        UserGroup managedGroup2 = new UserGroup( "managed group 2" );
+        group.setManagedGroups( Set.of( managedGroup1, managedGroup2 ) );
+        user.setGroups( Set.of( group ) );
+
+        assertTrue( user.hasManagedGroups() );
     }
 }
