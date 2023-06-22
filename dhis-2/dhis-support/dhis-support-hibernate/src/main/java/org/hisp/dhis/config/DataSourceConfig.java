@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.CLICK_HOUSE;
+
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -42,6 +44,7 @@ import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
@@ -89,6 +92,26 @@ public class DataSourceConfig
         return jdbcTemplate;
     }
 
+    @Bean( "clickHouseJdbcTemplate" )
+    @DependsOn( "clickHouseDataSource" )
+    public JdbcTemplate clickHouseJdbcTemplate( @Qualifier( "clickHouseDataSource" ) DataSource dataSource )
+    {
+        if ( dataSource == null )
+        {
+            // TODO: this is a workaround to not configure clickHouse jdbcTemplate when no JDBC url is provided
+            // however this is not a good solution, as it might cause NPEs, and all dependant components
+            // should be able to handle null datasource
+            // we should rather use a proper @Conditional annotation which could check if the property is present
+            // and only then create the bean. However this is not possible at the moment, as the property is
+            // not available in the Spring context at the time of bean creation.
+            // Investigate how to improve this
+            return null;
+        }
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
     @Bean( "executionPlanJdbcTemplate" )
     @DependsOn( "dataSource" )
     public JdbcTemplate executionPlanJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
@@ -110,6 +133,47 @@ public class DataSourceConfig
         jdbcTemplate.setFetchSize( 1000 );
 
         return jdbcTemplate;
+    }
+
+    @Bean( "clickHouseDataSource" )
+    public DataSource clickHouseDataSource()
+    {
+        String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CLICK_HOUSE_CONNECTION_URL );
+
+        if ( StringUtils.isBlank( jdbcUrl ) )
+        {
+            // TODO: this is a workaround to not configure clickHouse datasource when no JDBC url is provided
+            // however this is not a good solution, as it might cause NPEs, and all dependant components
+            // should be able to handle null datasource
+            // we should rather use a proper @Conditional annotation which could check if the property is present
+            // and only then create the bean. However this is not possible at the moment, as the property is
+            // not available in the Spring context at the time of bean creation.
+            // Investigate how to improve this
+            return null;
+        }
+
+        String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
+
+        DatabasePoolUtils.PoolConfig poolConfig = DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig( dhisConfig )
+            .mapper( CLICK_HOUSE )
+            .dbPoolType( dbPoolType )
+            .build();
+
+        try
+        {
+            return DatabasePoolUtils.createDbPool( poolConfig );
+        }
+        catch ( SQLException | PropertyVetoException e )
+        {
+            String message = String.format( "Connection test failed for Click House database pool, " +
+                "jdbcUrl: '%s'", jdbcUrl );
+
+            log.error( message );
+            log.error( DebugUtils.getStackTrace( e ) );
+
+            throw new IllegalStateException( message, e );
+        }
     }
 
     @Bean( "actualDataSource" )
