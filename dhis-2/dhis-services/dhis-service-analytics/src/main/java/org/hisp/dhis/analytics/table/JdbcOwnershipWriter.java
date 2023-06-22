@@ -73,9 +73,9 @@ public class JdbcOwnershipWriter
 
     public static final String OU = quote( "ou" );
 
-    static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
+    private static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
 
-    static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
+    private static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
 
     /**
      * Gets instance by a factory method (so it can be mocked).
