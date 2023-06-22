@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Calendar.FEBRUARY;
 import static java.util.Calendar.JANUARY;
+import static org.apache.commons.lang3.reflect.FieldUtils.writeField;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.ENDDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
@@ -40,7 +41,6 @@ import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -197,10 +197,11 @@ class JdbcOwnershipWriterTest
 
     @Test
     void testWriteWhenEndDateIsNull()
+        throws IllegalAccessException
     {
         JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
         Map<String, Object> prevRow = new HashMap<>();
-        setField( writer, "prevRow", prevRow );
+        writeField( writer, "prevRow", prevRow, true );
 
         writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, null ) );
 
