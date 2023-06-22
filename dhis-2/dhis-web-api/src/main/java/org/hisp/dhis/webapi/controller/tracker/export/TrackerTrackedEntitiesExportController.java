@@ -132,9 +132,15 @@ public class TrackerTrackedEntitiesExportController
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
-        if ( criteria.isPagingRequest() || criteria.isTotalPages() )
+        if ( criteria.isPagingRequest() )
         {
-            Long count = (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
+
+            Long count = 0L;
+
+            if ( criteria.isTotalPages() )
+            {
+                count = (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
+            }
 
             Pager pager = new Pager( queryParams.getPageWithDefault(), count, queryParams.getPageSizeWithDefault() );
 
