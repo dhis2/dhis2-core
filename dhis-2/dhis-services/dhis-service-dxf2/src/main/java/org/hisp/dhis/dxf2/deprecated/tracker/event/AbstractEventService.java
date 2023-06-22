@@ -103,6 +103,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -128,7 +129,6 @@ import org.hisp.dhis.system.notification.NotificationLevel;
 import org.hisp.dhis.system.notification.Notifier;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.trackedentity.TrackerOwnershipManager;
@@ -548,7 +548,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.depreca
 
         List<EventRow> eventRowList = eventStore.getEventRows( params );
 
-        EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
+        EventContext eventContext = eventServiceContextBuilder.build( eventRowList );
 
         for ( EventRow eventRow : eventRowList )
         {
@@ -561,7 +561,7 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.depreca
                 .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
                 .orElseGet( () -> organisationUnitService.getOrganisationUnit( trackedEntityOuInfo.orgUnitId() ) );
 
-            if ( trackerOwnershipAccessManager.hasAccess( user, program, trackedEntityOuInfo, ou ) )
+            if ( trackerOwnershipAccessManager.hasAccess( user, trackedEntityOuInfo.trackedEntityUid(), ou, program ) )
             {
                 eventRows.getEventRows().add( eventRow );
             }

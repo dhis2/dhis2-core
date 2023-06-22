@@ -38,6 +38,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.AggregateContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.OwnedTeiMapper;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.ProgramOwnerRowCallbackHandler;
@@ -45,8 +46,6 @@ import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.TrackedE
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.mapper.TrackedEntityInstanceRowCallbackHandler;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.TeiAttributeQuery;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.query.TrackedEntityInstanceQuery;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
-import org.hisp.dhis.user.User;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -202,7 +201,7 @@ public class DefaultTrackedEntityInstanceStore extends AbstractStore implements 
     }
 
     @Override
-    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids )
     {
         List<List<String>> uidPartitions = Lists.partition( uids, 20000 );
 

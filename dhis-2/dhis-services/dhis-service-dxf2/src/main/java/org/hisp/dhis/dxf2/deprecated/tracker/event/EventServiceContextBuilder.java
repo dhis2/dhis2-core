@@ -38,14 +38,13 @@ import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -61,7 +60,7 @@ public class EventServiceContextBuilder
 
     private final OrganisationUnitService organisationUnitService;
 
-    public EventContext build( List<EventRow> eventRowList, User user )
+    public EventContext build( List<EventRow> eventRowList )
     {
         Map<String, List<EventRow>> eventsByProgramUid = eventRowList.stream()
             .collect( Collectors.groupingBy( EventRow::getProgram ) );
@@ -73,7 +72,7 @@ public class EventServiceContextBuilder
             .collect( Collectors.toList() );
 
         Map<String, TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
-            .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids, user ).stream()
+            .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids ).stream()
             .collect( Collectors.toMap(
                 TrackedEntityOuInfo::trackedEntityUid,
                 trackedEntityOuInfo -> trackedEntityOuInfo ) );

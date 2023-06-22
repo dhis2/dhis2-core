@@ -286,31 +286,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean hasAccess( User user, Program program, TrackedEntityOuInfo trackedEntityOuInfo, OrganisationUnit ou )
-    {
-        if ( canSkipOwnershipCheck( user, program ) )
-        {
-            return true;
-        }
-
-        if ( trackedEntityOuInfo == null )
-        {
-            return true;
-        }
-
-        if ( program.isOpen() || program.isAudited() )
-        {
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
-        }
-        else
-        {
-            return organisationUnitService.isInUserHierarchyCached( user, ou )
-                || hasTemporaryAccess( trackedEntityOuInfo, program, user );
-        }
-    }
-
-    @Override
     public boolean canSkipOwnershipCheck( User user, Program program )
     {
         return program == null || canSkipOwnershipCheck( user, program.getProgramType() );
@@ -417,29 +392,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 }
                 return (programTempOwnerService.getValidTempOwnerRecordCount( program, trackedEntity, user ) > 0);
             } );
-    }
-
-    /**
-     * Check if the user has temporary access for a specific TEI-program
-     * combination.
-     *
-     * @param trackedEntityOuInfo The tracked entity instance object
-     * @param program The program object
-     * @param user The user object against which the check has to be performed
-     * @return true if the user has temporary access, false otherwise
-     */
-    private boolean hasTemporaryAccess( TrackedEntityOuInfo trackedEntityOuInfo,
-        Program program, User user )
-    {
-        if ( canSkipOwnershipCheck( user, program ) || trackedEntityOuInfo == null )
-        {
-            return true;
-        }
-
-        return tempOwnerCache
-            .get( getTempOwnershipCacheKey(
-                trackedEntityOuInfo.trackedEntityUid(), program.getUid(), user.getUid() ) )
-            .orElse( false );
     }
 
     /**

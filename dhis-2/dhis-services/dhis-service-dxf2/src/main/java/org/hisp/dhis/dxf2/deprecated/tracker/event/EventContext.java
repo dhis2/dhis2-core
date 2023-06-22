@@ -30,9 +30,9 @@ package org.hisp.dhis.dxf2.deprecated.tracker.event;
 import java.util.Map;
 
 import org.apache.commons.lang3.tuple.Pair;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Program;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 
 /**
  * @deprecated this is a class related to "old" (deprecated) tracker which will

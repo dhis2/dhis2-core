@@ -92,7 +92,6 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeService;
 import org.hisp.dhis.trackedentity.TrackedEntityAttributeStore;
 import org.hisp.dhis.trackedentity.TrackedEntityAuditService;
-import org.hisp.dhis.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
 import org.hisp.dhis.trackedentity.TrackedEntityQueryParams;
 import org.hisp.dhis.trackedentity.TrackedEntityService;
@@ -392,13 +391,13 @@ public abstract class AbstractTrackedEntityInstanceService implements TrackedEnt
 
     @Override
     @Transactional( readOnly = true )
-    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
+    public List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids )
     {
         if ( uids == null || uids.isEmpty() )
         {
             return Collections.emptyList();
         }
-        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids, user );
+        return trackedEntityInstanceStore.getTrackedEntityOuInfoByUid( uids );
     }
 
     @Override
