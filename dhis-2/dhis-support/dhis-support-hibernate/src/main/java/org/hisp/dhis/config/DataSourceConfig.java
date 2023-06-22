@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.config;
 
+import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.ANALYTICS;
+
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 import java.util.Objects;
@@ -87,6 +89,46 @@ public class DataSourceConfig
         JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
         jdbcTemplate.setFetchSize( 1000 );
         return jdbcTemplate;
+    }
+
+    @Bean( "analyticsJdbcTemplate" )
+    @DependsOn( "analyticsDataSource" )
+    @ConditionalOnAnalyticsDatabaseEnabled
+    public JdbcTemplate analyticsJdbcTemplate( @Qualifier( "analyticsDataSource" ) DataSource dataSource )
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        return jdbcTemplate;
+    }
+
+    @Bean( "analyticsDataSource" )
+    @ConditionalOnAnalyticsDatabaseEnabled
+    public DataSource analyticsDataSource()
+    {
+        String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.ANALYTICS_CONNECTION_URL );
+
+        String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
+
+        DatabasePoolUtils.PoolConfig poolConfig = DatabasePoolUtils.PoolConfig.builder()
+            .dhisConfig( dhisConfig )
+            .mapper( ANALYTICS )
+            .dbPoolType( dbPoolType )
+            .build();
+
+        try
+        {
+            return DatabasePoolUtils.createDbPool( poolConfig );
+        }
+        catch ( SQLException | PropertyVetoException e )
+        {
+            String message = String.format( "Connection test failed for Click House database pool, " +
+                "jdbcUrl: '%s'", jdbcUrl );
+
+            log.error( message );
+            log.error( DebugUtils.getStackTrace( e ) );
+
+            throw new IllegalStateException( message, e );
+        }
     }
 
     @Bean( "executionPlanJdbcTemplate" )
