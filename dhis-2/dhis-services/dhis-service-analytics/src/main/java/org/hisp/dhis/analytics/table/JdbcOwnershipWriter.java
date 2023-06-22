@@ -40,10 +40,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
-
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+
+import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 /**
  * Writer of rows to the analytics_ownership temp tables.
