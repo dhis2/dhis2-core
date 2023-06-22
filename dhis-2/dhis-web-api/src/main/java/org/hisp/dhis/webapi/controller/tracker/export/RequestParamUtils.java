@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 
 import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.commons.util.TextUtils;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.webapi.common.UID;
 
 /**
