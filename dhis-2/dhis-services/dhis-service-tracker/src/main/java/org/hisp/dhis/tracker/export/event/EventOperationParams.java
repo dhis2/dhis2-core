@@ -194,29 +194,4 @@ public class EventOperationParams
         this.pageSize = DEFAULT_PAGE_SIZE;
         this.skipPaging = false;
     }
-
-    /**
-     * Indicates whether this parameters specifies a last updated start date.
-     */
-    public boolean hasUpdatedAtStartDate()
-    {
-        return updatedAfter != null;
-    }
-
-    /**
-     * Indicates whether this parameters specifies a last updated end date.
-     */
-    public boolean hasUpdatedAtEndDate()
-    {
-        return updatedBefore != null;
-    }
-
-    /**
-     * Indicates whether this parameters has a UpdatedAtDuration filter.
-     */
-    public boolean hasUpdatedAtDuration()
-    {
-        return updatedWithin != null;
-    }
-
 }

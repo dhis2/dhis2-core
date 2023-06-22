@@ -45,11 +45,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import lombok.SneakyThrows;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
@@ -83,9 +79,6 @@ import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -111,20 +104,6 @@ class EventExporterTest extends TrackerTest
     private ProgramStage programStage;
 
     private Program program;
-
-    final Function<EventOperationParams, List<String>> eventsFunction = ( params ) -> {
-        //We should analyze if it's possible to remove this try/catch when refactoring the event service layer in the epic https://dhis2.atlassian.net/browse/TECH-1534
-        try
-        {
-            return eventService.getEvents( params )
-                .getEvents()
-                .stream().map( Event::getUid ).collect( Collectors.toList() );
-        }
-        catch ( BadRequestException | ForbiddenException e )
-        {
-            throw new RuntimeException( e );
-        }
-    };
 
     private TrackedEntity trackedEntity;
 
@@ -156,12 +135,6 @@ class EventExporterTest extends TrackerTest
         injectAdminUser();
     }
 
-    private Stream<Arguments> getEventsFunctions()
-    {
-        return Stream.of(
-            Arguments.of( eventsFunction ) );
-    }
-
     @Test
     void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
         throws ForbiddenException,
@@ -176,71 +149,78 @@ class EventExporterTest extends TrackerTest
             events.get( 0 ).getAssignedUser() );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEvents( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEvents()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .programStageUid( programStage.getUid() ).build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithTotalPages( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithTotalPages()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .programStageUid( programStage.getUid() ).totalPages( true ).build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void testExportEventsWhenFilteringByEnrollment()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .trackedEntityUid( trackedEntity.getUid() ).enrollments( Set.of( "TvctPPhpD8z" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithExecutionAndUpdateDates( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithExecutionAndUpdateDates()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
             .startDate( getDate( 2018, 1, 1 ) ).endDate( getDate( 2020, 1, 29 ) )
             .skipChangedBefore( getDate( 2018, 1, 1 ) ).build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithLastUpdateDuration( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithLastUpdateDuration()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() ).updatedWithin( "1d" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithLastUpdateDates( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithLastUpdateDates()
+        throws ForbiddenException,
+        BadRequestException
     {
         Date date = new Date();
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
@@ -251,14 +231,15 @@ class EventExporterTest extends TrackerTest
                 date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsLike( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsLike()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00001" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
@@ -266,7 +247,7 @@ class EventExporterTest extends TrackerTest
             .filters( "DATAEL00001:like:%val%" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
 
@@ -274,10 +255,10 @@ class EventExporterTest extends TrackerTest
             null, null );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithStatusFilter(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -287,15 +268,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":like:%val%" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -305,14 +286,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":like:%val%" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsEqual( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsEqual()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -321,14 +303,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":like:%value00001%" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsIn( Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsIn()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement datael00001 = dataElement( "DATAEL00001" );
 
@@ -337,13 +320,15 @@ class EventExporterTest extends TrackerTest
             .filters( datael00001.getUid() + ":in:value00001;value00002" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00001" );
 
@@ -355,7 +340,7 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":eq:value00001" )
             .build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
@@ -384,6 +369,8 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnNoEventsGivenUserHasNoAccess()
+        throws ForbiddenException,
+        BadRequestException
     {
         // given events have a COC which has a CO (OUUdG3sdOqb/yMj2MnmNI8L) which are not publicly readable, user is not the owner and has no user access
         injectSecurityContext( userService.getUser( "CYVgFNKCaUS" ) );
@@ -391,7 +378,7 @@ class EventExporterTest extends TrackerTest
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" )
             .events( Set.of( "lumVtWwwy0O", "cadc5eGj0j7" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
@@ -426,7 +413,7 @@ class EventExporterTest extends TrackerTest
         params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() ).programUid( program.getUid() )
             .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).page( 3 ).pageSize( 3 ).build();
 
-        assertIsEmpty( eventsFunction.apply( params ) );
+        assertIsEmpty( getEvents( params ) );
     }
 
     @Test
@@ -547,6 +534,8 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
+        throws ForbiddenException,
+        BadRequestException
     {
         injectSecurityContext( createAndAddUser( false, "user", Set.of( orgUnit ), Set.of( orgUnit ),
             "F_EXPORT_DATA" ) );
@@ -560,15 +549,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":eq:value00002" )
             .build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
@@ -576,15 +565,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":eq:option1" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
@@ -593,15 +582,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":in:option1;option2" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00005" );
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
@@ -609,15 +598,15 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":like:%opt%" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByNumericDataElements(
-        Function<EventOperationParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByNumericDataElements()
+        throws ForbiddenException,
+        BadRequestException
     {
         DataElement dataElement = dataElement( "DATAEL00006" );
         QueryItem queryItem = new QueryItem( dataElement, null, dataElement.getValueType(), null,
@@ -629,7 +618,7 @@ class EventExporterTest extends TrackerTest
             .filters( dataElement.getUid() + ":lt:77:gt:8" )
             .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
@@ -981,9 +970,10 @@ class EventExporterTest extends TrackerTest
         assertEquals( List.of( "nxP7UnKhomJ", "TvctPPhpD8z" ), enrollments );
     }
 
-    @SneakyThrows
     @Test
     void testOrderByOccurredAtDesc()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).build();
@@ -1008,44 +998,52 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .scheduledAfter( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
 
     @Test
     void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .scheduledAfter( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .scheduledBefore( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
 
     @Test
     void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
         EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
             .scheduledBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
@@ -1140,11 +1138,6 @@ class EventExporterTest extends TrackerTest
         return queryItem( teaUid, ValueType.TEXT );
     }
 
-    private static QueryItem numericQueryItem( String teaUid )
-    {
-        return queryItem( teaUid, ValueType.INTEGER );
-    }
-
     private static QueryItem queryItem( String teaUid, ValueType valueType )
     {
         TrackedEntityAttribute at = new TrackedEntityAttribute();
@@ -1186,5 +1179,14 @@ class EventExporterTest extends TrackerTest
             () -> assertEquals( pageNumber, pager.getPage(), "number of current page" ),
             () -> assertEquals( pageSize, pager.getPageSize(), "page size" ),
             () -> assertEquals( totalCount, pager.getTotal(), "total page count" ) );
+    }
+
+    private List<String> getEvents( EventOperationParams params )
+        throws ForbiddenException,
+        BadRequestException
+    {
+        return eventService.getEvents( params )
+            .getEvents()
+            .stream().map( Event::getUid ).collect( Collectors.toList() );
     }
 }
