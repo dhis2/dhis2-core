@@ -213,7 +213,7 @@ pipeline {
                                 dir('scripts/databases') {
                                     env.DATABASE_ID = sh(
                                             returnStdout: true,
-                                            script: "./list.sh | jq -r '.[] | select(.Name == \"whoami\") | .Databases[] | select(.Name == \"Sierra Leone - dev.sql.gz\") | .ID'"
+                                            script: "./list.sh | jq -r '.[] | select(.name == \"whoami\") | .databases[] | select(.name == \"Sierra Leone - dev.sql.gz\") | .id'"
                                     ).trim()
 
                                     sh '[ -n "$DATABASE_ID" ]'
