@@ -439,6 +439,8 @@ public enum ErrorCode
     E7231( "Legacy `{0}` can be updated only through event visualizations" ),
     E7232( "Fallback coordinate field is invalid: `{0}`" ),
     E7234( "Query filter: `{0}` not valid for query item value type: `{1}`" ),
+    E7235( "Either programId or programStageId must be specified" ),
+    E7236( "Program stage '{0}' is not associated to program '{0}'" ),
 
     /* TEI analytics */
     E7250( "Dimension is not a fully qualified: `{0}`" ),
