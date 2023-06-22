@@ -268,7 +268,6 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
             .content( HttpStatus.FORBIDDEN )
             .as( JsonWebMessage.class );
-        System.out.println( response );
         assertEquals( "You don't have write permissions for Program PrZMWi7rBga", response.getMessage() );
     }
 
@@ -310,5 +309,24 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         assertEquals( 2, authorities.size() );
 
         assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharing()
+    {
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------'\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        assertStatus( HttpStatus.NOT_FOUND, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
     }
 }
