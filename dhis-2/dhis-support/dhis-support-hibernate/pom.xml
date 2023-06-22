@@ -75,6 +75,12 @@
       <artifactId>postgresql</artifactId>
     </dependency>
 
+    <!-- Greenplum JDBC -->
+    <dependency>
+      <groupId>com.pivotal</groupId>
+      <artifactId>greenplum-jdbc</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>org.hamcrest</groupId>

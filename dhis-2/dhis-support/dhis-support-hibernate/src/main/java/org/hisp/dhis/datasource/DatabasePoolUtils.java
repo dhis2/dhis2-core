@@ -27,7 +27,45 @@
  */
 package org.hisp.dhis.datasource;
 
-import com.google.common.base.MoreObjects;
+import static com.google.common.base.MoreObjects.firstNonNull;
+import static java.lang.Integer.parseInt;
+import static java.lang.Long.parseLong;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_DRIVER_CLASS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_PASSWORD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_INITIAL_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MAX_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_MIN_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_NUM_THREADS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TEST_QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.ANALYTICS_CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MAX_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_MIN_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_NUM_THREADS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TEST_QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_USERNAME;
+
+import com.google.common.collect.ImmutableMap;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -35,10 +73,14 @@ import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.sql.DataSource;
 import lombok.Builder;
 import lombok.Data;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.external.conf.ConfigurationKey;
@@ -50,6 +92,44 @@ import org.hisp.dhis.hibernate.HibernateConfigurationProvider;
  */
 @Slf4j
 public class DatabasePoolUtils {
+
+  @RequiredArgsConstructor
+  public enum ConfigKeyMapper {
+    ANALYTICS(
+        ImmutableMap.<ConfigurationKey, ConfigurationKey>builder()
+            /* common */
+            .put(CONNECTION_URL, ANALYTICS_CONNECTION_URL)
+            .put(CONNECTION_USERNAME, ANALYTICS_CONNECTION_USERNAME)
+            .put(CONNECTION_PASSWORD, ANALYTICS_CONNECTION_PASSWORD)
+            .put(CONNECTION_DRIVER_CLASS, ANALYTICS_CONNECTION_DRIVER_CLASS)
+            .put(CONNECTION_POOL_MAX_SIZE, ANALYTICS_CONNECTION_POOL_MAX_SIZE)
+            .put(CONNECTION_POOL_TEST_QUERY, ANALYTICS_CONNECTION_POOL_TEST_QUERY)
+            /* hikari-specific */
+            .put(CONNECTION_POOL_TIMEOUT, ANALYTICS_CONNECTION_POOL_TIMEOUT)
+            .put(CONNECTION_POOL_VALIDATION_TIMEOUT, ANALYTICS_CONNECTION_POOL_VALIDATION_TIMEOUT)
+            /* C3P0-specific */
+            .put(CONNECTION_POOL_ACQUIRE_INCR, ANALYTICS_CONNECTION_POOL_ACQUIRE_INCR)
+            .put(CONNECTION_POOL_MAX_IDLE_TIME, ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME)
+            .put(CONNECTION_POOL_MIN_SIZE, ANALYTICS_CONNECTION_POOL_MIN_SIZE)
+            .put(CONNECTION_POOL_INITIAL_SIZE, ANALYTICS_CONNECTION_POOL_INITIAL_SIZE)
+            .put(CONNECTION_POOL_TEST_ON_CHECKIN, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKIN)
+            .put(CONNECTION_POOL_TEST_ON_CHECKOUT, ANALYTICS_CONNECTION_POOL_TEST_ON_CHECKOUT)
+            .put(
+                CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON,
+                ANALYTICS_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON)
+            .put(
+                CONNECTION_POOL_IDLE_CON_TEST_PERIOD,
+                ANALYTICS_CONNECTION_POOL_IDLE_CON_TEST_PERIOD)
+            .put(CONNECTION_POOL_NUM_THREADS, ANALYTICS_CONNECTION_POOL_NUM_THREADS)
+            .build()),
+    POSTGRESQL(Collections.emptyMap());
+
+    private final Map<ConfigurationKey, ConfigurationKey> keyMap;
+
+    public ConfigurationKey getConfigKey(ConfigurationKey key) {
+      return keyMap.getOrDefault(key, key);
+    }
+  }
 
   public enum dbPoolTypes {
     C3P0,
@@ -76,6 +156,12 @@ public class DatabasePoolUtils {
     private String acquireIncrement;
 
     private String maxIdleTime;
+
+    private ConfigKeyMapper mapper;
+
+    public ConfigKeyMapper getMapper() {
+      return Optional.ofNullable(mapper).orElse(ConfigKeyMapper.POSTGRESQL);
+    }
   }
 
   public static DataSource createDbPool(PoolConfig config)
@@ -99,30 +185,39 @@ public class DatabasePoolUtils {
     throw new IllegalArgumentException(msg);
   }
 
-  public static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
+  private static DataSource createHikariDbPool(PoolConfig config) throws SQLException {
+    ConfigKeyMapper mapper = config.getMapper();
+
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
-    final String driverClassName = dhisConfig.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
+    final String driverClassName =
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
+
     final String jdbcUrl =
-        MoreObjects.firstNonNull(
-            config.getJdbcUrl(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL));
+        firstNonNull(
+            config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
+
     final String username =
-        MoreObjects.firstNonNull(
-            config.getUsername(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME));
+        firstNonNull(
+            config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
+
     final String password =
-        MoreObjects.firstNonNull(
-            config.getPassword(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+        firstNonNull(
+            config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
+
     final long connectionTimeout =
-        Long.parseLong(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_TIMEOUT));
+        parseLong(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TIMEOUT)));
     final long validationTimeout =
-        Long.parseLong(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_VALIDATION_TIMEOUT));
+        parseLong(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_VALIDATION_TIMEOUT)));
+
     final int maxPoolSize =
         Integer.parseInt(
-            MoreObjects.firstNonNull(
+            firstNonNull(
                 config.getMaxPoolSize(),
-                dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE)));
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
+
     final String connectionTestQuery =
-        dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_TEST_QUERY);
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
 
     HikariConfig hc = new HikariConfig();
     hc.setPoolName("HikariDataSource_" + CodeGenerator.generateCode(10));
@@ -145,53 +240,56 @@ public class DatabasePoolUtils {
     return ds;
   }
 
-  public static DataSource createC3p0DbPool(PoolConfig config)
+  private static DataSource createC3p0DbPool(PoolConfig config)
       throws PropertyVetoException, SQLException {
+    ConfigKeyMapper mapper = config.getMapper();
+
     DhisConfigurationProvider dhisConfig = config.getDhisConfig();
 
-    final String driverClassName = dhisConfig.getProperty(ConfigurationKey.CONNECTION_DRIVER_CLASS);
+    final String driverClassName =
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_DRIVER_CLASS));
     final String jdbcUrl =
-        MoreObjects.firstNonNull(
-            config.getJdbcUrl(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_URL));
+        firstNonNull(
+            config.getJdbcUrl(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_URL)));
     final String username =
-        MoreObjects.firstNonNull(
-            config.getUsername(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_USERNAME));
+        firstNonNull(
+            config.getUsername(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_USERNAME)));
     final String password =
-        MoreObjects.firstNonNull(
-            config.getPassword(), dhisConfig.getProperty(ConfigurationKey.CONNECTION_PASSWORD));
+        firstNonNull(
+            config.getPassword(), dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_PASSWORD)));
     final int maxPoolSize =
-        Integer.parseInt(
-            MoreObjects.firstNonNull(
+        parseInt(
+            firstNonNull(
                 config.getMaxPoolSize(),
-                dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_SIZE)));
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_SIZE))));
     final int acquireIncrement =
-        Integer.parseInt(
-            MoreObjects.firstNonNull(
+        parseInt(
+            firstNonNull(
                 config.getAcquireIncrement(),
-                dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR)));
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_ACQUIRE_INCR))));
     final int maxIdleTime =
-        Integer.parseInt(
-            MoreObjects.firstNonNull(
+        parseInt(
+            firstNonNull(
                 config.maxIdleTime,
-                dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME)));
+                dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME))));
 
     final int minPoolSize =
-        Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_MIN_SIZE));
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MIN_SIZE)));
     final int initialSize =
-        Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_INITIAL_SIZE));
-    boolean testOnCheckIn = dhisConfig.isEnabled(ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKIN);
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_INITIAL_SIZE)));
+    boolean testOnCheckIn =
+        dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKIN));
     boolean testOnCheckOut =
-        dhisConfig.isEnabled(ConfigurationKey.CONNECTION_POOL_TEST_ON_CHECKOUT);
+        dhisConfig.isEnabled(mapper.getConfigKey(CONNECTION_POOL_TEST_ON_CHECKOUT));
     final int maxIdleTimeExcessConnections =
-        Integer.parseInt(
-            dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON));
+        parseInt(
+            dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON)));
     final int idleConnectionTestPeriod =
-        Integer.parseInt(
-            dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_IDLE_CON_TEST_PERIOD));
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_IDLE_CON_TEST_PERIOD)));
     final String preferredTestQuery =
-        dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_TEST_QUERY);
+        dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_TEST_QUERY));
     final int numHelperThreads =
-        Integer.parseInt(dhisConfig.getProperty(ConfigurationKey.CONNECTION_POOL_NUM_THREADS));
+        parseInt(dhisConfig.getProperty(mapper.getConfigKey(CONNECTION_POOL_NUM_THREADS)));
 
     ComboPooledDataSource dataSource = new ComboPooledDataSource();
     dataSource.setDriverClass(driverClassName);
