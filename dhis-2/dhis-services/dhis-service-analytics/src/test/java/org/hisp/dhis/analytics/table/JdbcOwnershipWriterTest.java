@@ -34,11 +34,13 @@ import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.OU;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.STARTDATE;
 import static org.hisp.dhis.analytics.table.JdbcOwnershipWriter.TEIUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mockingDetails;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.util.ReflectionTestUtils.setField;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -134,7 +136,6 @@ class JdbcOwnershipWriterTest
 
     @Test
     void testWriteOneOwnershipChange()
-        throws SQLException
     {
         writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
         writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_02 ) );
@@ -154,7 +155,6 @@ class JdbcOwnershipWriterTest
 
     @Test
     void testWriteTwoOwnershipChanges()
-        throws SQLException
     {
         writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
         writer.write( mapOf( TEIUID, teiA, OU, ouB, ENDDATE, date_2022_02 ) );
@@ -175,7 +175,6 @@ class JdbcOwnershipWriterTest
 
     @Test
     void testWriteThreeOwnershipChanges()
-        throws SQLException
     {
         writer.write( mapOf( TEIUID, teiA, OU, ouA, ENDDATE, date_2022_01 ) );
         writer.write( mapOf( TEIUID, teiA, OU, ouB, ENDDATE, date_2022_02 ) );
@@ -194,6 +193,18 @@ class JdbcOwnershipWriterTest
                 "('teiBbbbbbbb','ouAaaaaaaaa','1000-01-01','2022-02-01')," +
                 "('teiBbbbbbbb','ouBbbbbbbbb','2022-02-02','9999-12-31')",
             getUpdateSql() );
+    }
+
+    @Test
+    void testWriteWhenEndDateIsNull()
+    {
+        JdbcOwnershipWriter writer = JdbcOwnershipWriter.getInstance( batchHandler );
+        Map<String, Object> prevRow = new HashMap<>();
+        setField( writer, "prevRow", prevRow );
+
+        writer.write( mapOf( TEIUID, teiB, OU, ouB, ENDDATE, null ) );
+
+        assertNotNull( prevRow.get( ENDDATE ) );
     }
 
     // -------------------------------------------------------------------------

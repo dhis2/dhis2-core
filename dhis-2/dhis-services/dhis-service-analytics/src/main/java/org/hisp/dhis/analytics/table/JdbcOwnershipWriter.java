@@ -38,11 +38,12 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+
+import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.jdbc.batchhandler.MappingBatchHandler;
 
 /**
  * Writer of rows to the analytics_ownership temp tables.
@@ -72,9 +73,9 @@ public class JdbcOwnershipWriter
 
     public static final String OU = quote( "ou" );
 
-    private static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
+    static final Date FAR_PAST_DATE = new GregorianCalendar( 1000, JANUARY, 1 ).getTime();
 
-    private static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
+    static final Date FAR_FUTURE_DATE = new GregorianCalendar( 9999, DECEMBER, 31 ).getTime();
 
     /**
      * Gets instance by a factory method (so it can be mocked).
@@ -122,12 +123,16 @@ public class JdbcOwnershipWriter
     // -------------------------------------------------------------------------
 
     /**
-     * Process the first row for a TEI. For now just save it as the previous row
-     * and set the start date for far in the past.
+     * Process the first row for a TEI. Save it as the previous row and set the
+     * start date for far in the past. If the previous row does not have an
+     * "enddate", we enforce a default one.
      */
     private void startNewTei()
     {
         prevRow = newRow;
+
+        // Ensure a default "enddate" value.
+        prevRow.putIfAbsent( ENDDATE, FAR_FUTURE_DATE );
 
         prevRow.put( STARTDATE, FAR_PAST_DATE );
     }
@@ -206,6 +211,6 @@ public class JdbcOwnershipWriter
      */
     private boolean sameValue( String colName )
     {
-        return prevRow.get( colName ).equals( newRow.get( colName ) );
+        return Objects.equals( prevRow.get( colName ), newRow.get( colName ) );
     }
 }
