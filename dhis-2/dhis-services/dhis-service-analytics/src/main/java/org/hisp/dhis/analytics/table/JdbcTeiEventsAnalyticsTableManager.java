@@ -191,7 +191,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
             .append( " from trackedentityinstance tei " )
             .append( " inner join trackedentitytype tet on tet.trackedentitytypeid = tei.trackedentitytypeid " )
             .append( " inner join programinstance pi on pi.trackedentityinstanceid = tei.trackedentityinstanceid " )
-            .append( " inner join programstageinstance psi on psi.programinstanceid = pi.programinstanceid" )
+            .append( " inner join event psi on psi.programinstanceid = pi.programinstanceid" )
             .append( " where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " )
             .append( " and tet.trackedentitytypeid = " + tet.getId() + " " )
             .append( AND + getDateLinkedToStatus() + ") is not null " )
@@ -303,7 +303,7 @@ public class JdbcTeiEventsAnalyticsTableManager extends AbstractJdbcTableManager
         }
 
         removeLastComma( sql )
-            .append( " from programstageinstance psi" )
+            .append( " from event psi" )
             .append( " inner join programinstance pi on pi.programinstanceid = psi.programinstanceid" +
                 " and pi.deleted is false" )
             .append(

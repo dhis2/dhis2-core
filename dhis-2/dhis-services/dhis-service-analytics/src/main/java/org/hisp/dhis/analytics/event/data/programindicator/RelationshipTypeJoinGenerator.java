@@ -84,7 +84,7 @@ public class RelationshipTypeJoinGenerator
         case TRACKED_ENTITY_INSTANCE:
             return sql + "trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
         case PROGRAM_STAGE_INSTANCE:
-            return sql + "programstageinstance psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+            return sql + "event psi on psi.programstageinstanceid = ri2.programstageinstanceid";
         case PROGRAM_INSTANCE:
             return sql + "programinstance pi on pi.programinstanceid = ri2.programinstanceid";
         default:
@@ -120,7 +120,7 @@ public class RelationshipTypeJoinGenerator
 
     private static String getEvent( String alias )
     {
-        return " " + alias + ".psi in (select psi.uid from programstageinstance psi"
+        return " " + alias + ".psi in (select psi.uid from event psi"
             + " LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid ";
     }
 

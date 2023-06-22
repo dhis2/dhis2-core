@@ -338,7 +338,7 @@ public class JdbcEventAnalyticsTableManager
     private boolean hasUpdatedLatestData( Date startDate, Date endDate, Program program )
     {
         String sql = "select psi.programstageinstanceid " +
-            "from programstageinstance psi " +
+            "from event psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "where pi.programid = " + program.getId() + " " +
             "and psi.lastupdated >= '" + getLongDateString( startDate ) + "' " +
@@ -358,7 +358,7 @@ public class JdbcEventAnalyticsTableManager
             String sql = "delete from " + quote( table.getTableName() ) + " ax " +
                 "where ax.psi in (" +
                 "select psi.uid " +
-                "from programstageinstance psi " +
+                "from event psi " +
                 "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
                 "where pi.programid = " + table.getProgram().getId() + " " +
                 "and psi.lastupdated >= '" + getLongDateString( partition.getStartDate() ) + "' " +
@@ -394,7 +394,7 @@ public class JdbcEventAnalyticsTableManager
             : "and " + "(" + getDateLinkedToStatus() + ") >= '" + start + "' "
                 + "and " + "(" + getDateLinkedToStatus() + ") < '" + end + "' ";
 
-        String fromClause = "from programstageinstance psi " +
+        String fromClause = "from event psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "inner join programstage ps on psi.programstageid=ps.programstageid " +
             "inner join program pr on pi.programid=pr.programid and pi.deleted is false " +
@@ -598,7 +598,7 @@ public class JdbcEventAnalyticsTableManager
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
     {
         return format(
-            "(select %s from programstageinstance where programstageinstanceid=psi.programstageinstanceid " +
+            "(select %s from event where programstageinstanceid=psi.programstageinstanceid " +
                 dataClause + ")" + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ),
             fromType );
     }
@@ -618,7 +618,7 @@ public class JdbcEventAnalyticsTableManager
             String column = quote( dataElement.getUid() + PartitionUtils.SEP + ls.getUid() );
 
             String sql = "(select l.uid from maplegend l " +
-                "inner join programstageinstance on l.startvalue <= " + select + " " +
+                "inner join event on l.startvalue <= " + select + " " +
                 "and l.endvalue > " + select + " " +
                 "and l.maplegendsetid=" + ls.getId() + " " +
                 "and programstageinstanceid=psi.programstageinstanceid " +
@@ -645,7 +645,7 @@ public class JdbcEventAnalyticsTableManager
     {
         String sql = "select temp.supportedyear from " +
             "(select distinct extract(year from " + getDateLinkedToStatus() + ") as supportedyear " +
-            "from programstageinstance psi " +
+            "from event psi " +
             "inner join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
             "where psi.lastupdated <= '" + getLongDateString( params.getStartTime() ) + "' " +
             "and pi.programid = " + program.getId() + " " +
