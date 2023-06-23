@@ -754,14 +754,14 @@ public class EventVisualization extends BaseAnalyticalObject
         List<String> columns = getColumnDimensions();
         List<Sorting> sortings = getSorting().stream().toList();
 
-        sortings.forEach( sorting -> {
-            if ( isBlank( sorting.getDimension() ) || sorting.getDirection() == null )
+        sortings.forEach( s -> {
+            if ( isBlank( s.getDimension() ) || s.getDirection() == null )
             {
                 throw new IllegalArgumentException( "Sorting is not valid" );
             }
-            else if ( !columns.contains( sorting.getDimension() ) )
+            else if ( !columns.contains( s.getDimension() ) )
             {
-                throw new IllegalStateException( sorting.getDimension() );
+                throw new IllegalStateException( s.getDimension() );
             }
         } );
     }
