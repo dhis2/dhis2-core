@@ -40,6 +40,7 @@ import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dbms.DbmsManager;
 import org.hisp.dhis.dxf2.common.ImportOptions;
 import org.hisp.dhis.dxf2.deprecated.tracker.aggregates.TrackedEntityInstanceAggregate;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.store.TrackedEntityInstanceStore;
 import org.hisp.dhis.dxf2.importsummary.ImportSummary;
 import org.hisp.dhis.fileresource.FileResourceService;
 import org.hisp.dhis.program.EnrollmentService;
@@ -81,6 +82,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
     private final RelationshipTypeService relationshipTypeService;
 
     public JacksonTrackedEntityInstanceService(
+        TrackedEntityInstanceStore trackedEntityInstanceStore,
         TrackedEntityService teiService,
         TrackedEntityAttributeService trackedEntityAttributeService,
         RelationshipService _relationshipService,
@@ -132,6 +134,7 @@ public class JacksonTrackedEntityInstanceService extends AbstractTrackedEntityIn
         checkNotNull( jsonMapper );
         checkNotNull( xmlMapper );
 
+        this.trackedEntityInstanceStore = trackedEntityInstanceStore;
         this.teiService = teiService;
         this.trackedEntityAttributeService = trackedEntityAttributeService;
         this._relationshipService = _relationshipService;
