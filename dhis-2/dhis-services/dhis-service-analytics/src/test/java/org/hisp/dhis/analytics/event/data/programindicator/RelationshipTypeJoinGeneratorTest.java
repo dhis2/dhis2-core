@@ -59,13 +59,13 @@ class RelationshipTypeJoinGeneratorTest
         + ".pi in (select pi.uid from programinstance pi LEFT JOIN relationshipitem ri on pi.programinstanceid = ri.programinstanceid ";
 
     private final static String PSI_JOIN_START = ALIAS
-        + ".psi in (select psi.uid from event psi LEFT JOIN relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid ";
+        + ".psi in (select psi.uid from event psi LEFT JOIN relationshipitem ri on psi.eventid = ri.programstageinstanceid ";
 
     private final static String TEI_RELTO_JOIN = "LEFT JOIN trackedentityinstance tei on tei.trackedentityinstanceid = ri2.trackedentityinstanceid";
 
     private final static String PI_RELTO_JOIN = "LEFT JOIN programinstance pi on pi.programinstanceid = ri2.programinstanceid";
 
-    private final static String PSI_RELTO_JOIN = "LEFT JOIN event psi on psi.programstageinstanceid = ri2.programstageinstanceid";
+    private final static String PSI_RELTO_JOIN = "LEFT JOIN event psi on psi.eventid = ri2.programstageinstanceid";
 
     private final BeanRandomizer rnd = BeanRandomizer.create();
 

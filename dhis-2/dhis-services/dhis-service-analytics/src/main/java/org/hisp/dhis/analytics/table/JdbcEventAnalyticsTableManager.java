@@ -337,7 +337,7 @@ public class JdbcEventAnalyticsTableManager
      */
     private boolean hasUpdatedLatestData( Date startDate, Date endDate, Program program )
     {
-        String sql = "select psi.programstageinstanceid " +
+        String sql = "select psi.eventid " +
             "from event psi " +
             "inner join programinstance pi on psi.programinstanceid=pi.programinstanceid " +
             "where pi.programid = " + program.getId() + " " +
@@ -598,7 +598,7 @@ public class JdbcEventAnalyticsTableManager
     private String selectForInsert( DataElement dataElement, String fromType, String dataClause )
     {
         return format(
-            "(select %s from event where programstageinstanceid=psi.programstageinstanceid " +
+            "(select %s from event where eventid=psi.eventid " +
                 dataClause + ")" + getClosingParentheses( fromType ) + " as " + quote( dataElement.getUid() ),
             fromType );
     }
@@ -621,7 +621,7 @@ public class JdbcEventAnalyticsTableManager
                 "inner join event on l.startvalue <= " + select + " " +
                 "and l.endvalue > " + select + " " +
                 "and l.maplegendsetid=" + ls.getId() + " " +
-                "and programstageinstanceid=psi.programstageinstanceid " +
+                "and eventid=psi.eventid " +
                 dataClause + ") as " + column;
             return new AnalyticsTableColumn( column, CHARACTER_11, sql );
         } ).collect( toList() );
