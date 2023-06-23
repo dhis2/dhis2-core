@@ -721,6 +721,7 @@
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-dataentry</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-approval</ignoredUnusedDeclaredDependency>
               <ignoredUnusedDeclaredDependency>org.hisp.dhis:dhis-web-apps</ignoredUnusedDeclaredDependency>
+              <ignoredUnusedDeclaredDependency>com.clickhouse:clickhouse-jdbc</ignoredUnusedDeclaredDependency>
             </ignoredUnusedDeclaredDependencies>
             <ignoredUsedUndeclaredDependencies>
               <ignoredUsedUndeclaredDependency>org.antlr:antlr4-runtime</ignoredUsedUndeclaredDependency>
@@ -734,11 +735,13 @@
               <ignoredUsedUndeclaredDependency>ognl:ognl</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.springframework.session:spring-session-core</ignoredUsedUndeclaredDependency>
               <ignoredUsedUndeclaredDependency>org.eclipse.jetty.toolchain:jetty-servlet-api</ignoredUsedUndeclaredDependency>
+              <ignoredUsedUndeclaredDependency>com.clickhouse:clickhouse-jdbc</ignoredUsedUndeclaredDependency>
             </ignoredUsedUndeclaredDependencies>
             <ignoredNonTestScopedDependencies>
               <!-- Setting the scope to test makes the build fail -->
               <ignoredNonTestScopedDependency>org.springframework:spring-beans</ignoredNonTestScopedDependency>
               <ignoredNonTestScopedDependency>io.debezium:debezium-connector-postgres</ignoredNonTestScopedDependency>
+              <ignoredNonTestScopedDependency>com.clickhouse:clickhouse-jdbc</ignoredNonTestScopedDependency>
             </ignoredNonTestScopedDependencies>
           </configuration>
         </plugin>

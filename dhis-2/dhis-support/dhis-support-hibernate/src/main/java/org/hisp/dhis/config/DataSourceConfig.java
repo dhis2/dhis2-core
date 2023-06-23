@@ -44,7 +44,6 @@ import net.ttddyy.dsproxy.listener.logging.SLF4JLogLevel;
 import net.ttddyy.dsproxy.listener.logging.SLF4JQueryLoggingListener;
 import net.ttddyy.dsproxy.support.ProxyDataSourceBuilder;
 
-import org.apache.commons.lang3.StringUtils;
 import org.hibernate.engine.jdbc.internal.FormatStyle;
 import org.hibernate.engine.jdbc.internal.Formatter;
 import org.hisp.dhis.common.CodeGenerator;
@@ -94,63 +93,19 @@ public class DataSourceConfig
 
     @Bean( "clickHouseJdbcTemplate" )
     @DependsOn( "clickHouseDataSource" )
+    @ConditionalOnClickHouseEnabled
     public JdbcTemplate clickHouseJdbcTemplate( @Qualifier( "clickHouseDataSource" ) DataSource dataSource )
     {
-        if ( dataSource == null )
-        {
-            // TODO: this is a workaround to not configure clickHouse jdbcTemplate when no JDBC url is provided
-            // however this is not a good solution, as it might cause NPEs, and all dependant components
-            // should be able to handle null datasource
-            // we should rather use a proper @Conditional annotation which could check if the property is present
-            // and only then create the bean. However this is not possible at the moment, as the property is
-            // not available in the Spring context at the time of bean creation.
-            // Investigate how to improve this
-            return null;
-        }
         JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
         jdbcTemplate.setFetchSize( 1000 );
-        return jdbcTemplate;
-    }
-
-    @Bean( "executionPlanJdbcTemplate" )
-    @DependsOn( "dataSource" )
-    public JdbcTemplate executionPlanJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
-    {
-        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
-        jdbcTemplate.setFetchSize( 1000 );
-        jdbcTemplate.setQueryTimeout( 10 );
-        return jdbcTemplate;
-    }
-
-    @Bean( "readOnlyJdbcTemplate" )
-    @DependsOn( "dataSource" )
-    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
-    {
-        DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
-
-        JdbcTemplate jdbcTemplate = new JdbcTemplate(
-            MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
-        jdbcTemplate.setFetchSize( 1000 );
-
         return jdbcTemplate;
     }
 
     @Bean( "clickHouseDataSource" )
+    @ConditionalOnClickHouseEnabled
     public DataSource clickHouseDataSource()
     {
         String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CLICKHOUSE_CONNECTION_URL );
-
-        if ( StringUtils.isBlank( jdbcUrl ) )
-        {
-            // TODO: this is a workaround to not configure clickHouse datasource when no JDBC url is provided
-            // however this is not a good solution, as it might cause NPEs, and all dependant components
-            // should be able to handle null datasource
-            // we should rather use a proper @Conditional annotation which could check if the property is present
-            // and only then create the bean. However this is not possible at the moment, as the property is
-            // not available in the Spring context at the time of bean creation.
-            // Investigate how to improve this
-            return null;
-        }
 
         String dbPoolType = dhisConfig.getProperty( ConfigurationKey.DB_POOL_TYPE );
 
@@ -174,6 +129,29 @@ public class DataSourceConfig
 
             throw new IllegalStateException( message, e );
         }
+    }
+
+    @Bean( "executionPlanJdbcTemplate" )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate executionPlanJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    {
+        JdbcTemplate jdbcTemplate = new JdbcTemplate( dataSource );
+        jdbcTemplate.setFetchSize( 1000 );
+        jdbcTemplate.setQueryTimeout( 10 );
+        return jdbcTemplate;
+    }
+
+    @Bean( "readOnlyJdbcTemplate" )
+    @DependsOn( "dataSource" )
+    public JdbcTemplate readOnlyJdbcTemplate( @Qualifier( "dataSource" ) DataSource dataSource )
+    {
+        DefaultReadOnlyDataSourceManager manager = new DefaultReadOnlyDataSourceManager( dhisConfig );
+
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(
+            MoreObjects.firstNonNull( manager.getReadOnlyDataSource(), dataSource ) );
+        jdbcTemplate.setFetchSize( 1000 );
+
+        return jdbcTemplate;
     }
 
     @Bean( "actualDataSource" )
