@@ -36,6 +36,7 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.dxf2.events.TrackedEntityInstanceParams;
 import org.hisp.dhis.dxf2.events.trackedentity.TrackedEntityInstanceService;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
@@ -97,20 +98,16 @@ public class TrackerTrackedEntitiesExportController
                 trackedEntityInstanceParams, false, false ) );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
-
         if ( criteria.isPagingRequest() )
         {
+            Long count = 0L;
+            if ( criteria.isTotalPages() )
+            {
+                count = (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true );
+            }
 
-            Long count = criteria.isTotalPages()
-                ? (long) trackedEntityInstanceService.getTrackedEntityInstanceCount( queryParams, true, true )
-                : null;
-
-            pagingWrapper = pagingWrapper.withPager(
-                PagingWrapper.Pager.builder()
-                    .page( queryParams.getPageWithDefault() )
-                    .total( count )
-                    .pageSize( queryParams.getPageSizeWithDefault() )
-                    .build() );
+            Pager pager = new Pager( criteria.getPageWithDefault(), count, criteria.getPageSizeWithDefault() );
+            pagingWrapper = pagingWrapper.withPager( PagingWrapper.Pager.fromLegacy( criteria, pager ) );
         }
 
         List<ObjectNode> objectNodes = fieldFilterService.toObjectNodes( trackedEntityInstances, fields );

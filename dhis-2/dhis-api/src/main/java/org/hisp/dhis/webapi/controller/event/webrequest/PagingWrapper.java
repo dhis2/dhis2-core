@@ -91,6 +91,9 @@ public class PagingWrapper<T>
         @JsonProperty
         private Long total;
 
+        @JsonProperty
+        private Integer pageCount;
+
         @Builder.Default
         @JsonProperty
         private Integer pageSize = org.hisp.dhis.common.Pager.DEFAULT_PAGE_SIZE;
@@ -107,6 +110,7 @@ public class PagingWrapper<T>
                 .prevPage( pager.getPrevPage() )
                 .page( pager.getPage() )
                 .pageSize( pager.getPageSize() )
+                .pageCount( pagingCriteria.isTotalPages() ? pager.getPageCount() : null )
                 .total( pagingCriteria.isTotalPages() ? pager.getTotal() : null )
                 .nextPage( pager.getNextPage() )
                 .build();
