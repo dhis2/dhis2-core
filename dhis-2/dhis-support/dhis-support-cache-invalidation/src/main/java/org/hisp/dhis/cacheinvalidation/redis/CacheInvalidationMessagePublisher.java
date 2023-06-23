@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,25 +25,12 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
-
-import io.debezium.connector.postgresql.PostgresConnector;
+package org.hisp.dhis.cacheinvalidation.redis;
 
 /**
- * Test to make sure that the Debezium Postgres connector is available. It is
- * needed for PostgreSQL cache invalidation in a DHIS2 cluster configuration.
- *
- * @author Jim Grace
+ * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class DebeziumPostgresConnectorTest
+public interface CacheInvalidationMessagePublisher
 {
-    @Test
-    void testDebeziumPostgresConnectorPresent()
-    {
-        assertEquals( "PostgresConnector", PostgresConnector.class.getSimpleName() );
-    }
+    void publish( String channel, String message );
 }

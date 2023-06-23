@@ -34,6 +34,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.Schema;
@@ -135,6 +137,14 @@ public class TestUtils
         ObjectMapper mapper = new ObjectMapper();
         JsonNode node = mapper.readTree( responseJson );
         return node.get( "response" ).get( "uid" ).asText();
+    }
+
+    public static String getMatchingGroupFromPattern( String message, String pattern, int group )
+    {
+        Pattern compiledPattern = Pattern.compile( pattern );
+        Matcher matcher = compiledPattern.matcher( message );
+        matcher.find();
+        return matcher.group( group );
     }
 
 }

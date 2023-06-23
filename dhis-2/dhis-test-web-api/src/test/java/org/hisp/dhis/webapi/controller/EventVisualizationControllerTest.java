@@ -317,7 +317,7 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/eventVisualizations/", body );
 
         // Then
-        assertEquals( "Sorting dimension cannot be blank", response.error( CONFLICT ).getMessage() );
+        assertEquals( "Sorting must have a dimension and a direction", response.error( CONFLICT ).getMessage() );
     }
 
     @Test
@@ -334,6 +334,6 @@ class EventVisualizationControllerTest extends DhisControllerConvenienceTest
         HttpResponse response = POST( "/eventVisualizations/", body );
 
         // Then
-        assertEquals( "Sorting dimension cannot be blank", response.error( CONFLICT ).getMessage() );
+        assertEquals( "Sorting must have a dimension and a direction", response.error( CONFLICT ).getMessage() );
     }
 }

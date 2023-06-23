@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,30 +27,42 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Service;
+
+import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
+import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RedisCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
+@Slf4j
+@Service
+@Profile( { "!test-postgres", "!test", "!test-h2", "!cache-invalidation-test" } )
+@Conditional( value = CacheInvalidationEnabledConditionNotTestable.class )
+public class CacheInvalidationSubscriptionService
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
+    @Autowired
+    private CacheInvalidationListener cacheInvalidationListener;
 
-        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
-    }
+    @Autowired
+    @Qualifier( "pubSubConnection" )
+    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
+    public void start()
     {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
+        log.info( "CacheInvalidationSubscriptionService starting..." );
+
+        pubSubConnection.addListener( cacheInvalidationListener );
+
+        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
+        async.subscribe( CacheInvalidationConfiguration.CHANNEL_NAME );
+
+        log.debug( "Subscribed to channel: " + CacheInvalidationConfiguration.CHANNEL_NAME );
     }
 }

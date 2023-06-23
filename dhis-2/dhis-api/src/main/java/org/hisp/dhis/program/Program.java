@@ -27,10 +27,14 @@
  */
 package org.hisp.dhis.program;
 
+import static java.util.stream.Collectors.toSet;
+import static org.hisp.dhis.util.ObjectUtils.copyOf;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -73,6 +77,10 @@ public class Program
     extends BaseNameableObject
     implements VersionedObject, MetadataObject
 {
+    static final String DEFAULT_PREFIX = "Copy of ";
+
+    static final String PREFIX_KEY = "prefix";
+
     private String formName;
 
     private int version;
@@ -280,7 +288,7 @@ public class Program
     {
         return programStages.stream()
             .flatMap( ps -> ps.getDataElements().stream() )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -295,7 +303,7 @@ public class Program
             .filter( Objects::nonNull )
             .filter( psde -> !psde.getSkipAnalytics() )
             .map( ProgramStageDataElement::getDataElement )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -306,7 +314,7 @@ public class Program
     {
         return getAnalyticsDataElements().stream()
             .filter( de -> de.hasLegendSet() && de.isNumericType() )
-            .collect( Collectors.toSet() );
+            .collect( toSet() );
     }
 
     /**
@@ -903,5 +911,56 @@ public class Program
     public void setAccessLevel( AccessLevel accessLevel )
     {
         this.accessLevel = accessLevel;
+    }
+
+    public static Program shallowCopy( Program original, Map<String, String> options )
+    {
+        Program copy = new Program();
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original, options );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( Program copy, Program original, Map<String, String> options )
+    {
+        String prefix = options.getOrDefault( PREFIX_KEY, DEFAULT_PREFIX );
+        copy.setAccessLevel( original.getAccessLevel() );
+        copy.setProgramAttributes( new ArrayList<>() );
+        copy.setCategoryCombo( original.getCategoryCombo() );
+        copy.setCompleteEventsExpiryDays( original.getCompleteEventsExpiryDays() );
+        copy.setDataEntryForm( original.getDataEntryForm() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayIncidentDate( original.getDisplayIncidentDate() );
+        copy.setDisplayFrontPageList( original.getDisplayFrontPageList() );
+        copy.setEnrollmentDateLabel( original.getEnrollmentDateLabel() );
+        copy.setExpiryDays( original.getExpiryDays() );
+        copy.setExpiryPeriodType( original.getExpiryPeriodType() );
+        copy.setFeatureType( original.getFeatureType() );
+        copy.setFormName( original.getFormName() );
+        copy.setIgnoreOverdueEvents( original.getIgnoreOverdueEvents() );
+        copy.setIncidentDateLabel( original.getIncidentDateLabel() );
+        copy.setMaxTeiCountToReturn( original.getMaxTeiCountToReturn() );
+        copy.setMinAttributesRequiredToSearch( original.getMinAttributesRequiredToSearch() );
+        copy.setName( prefix + original.getName() );
+        copy.setNotificationTemplates( copyOf( original.getNotificationTemplates() ) );
+        copy.setOnlyEnrollOnce( original.getOnlyEnrollOnce() );
+        copy.setOpenDaysAfterCoEndDate( original.getOpenDaysAfterCoEndDate() );
+        copy.setOrganisationUnits( copyOf( original.getOrganisationUnits() ) );
+        copy.setProgramType( original.getProgramType() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRelatedProgram( original.getRelatedProgram() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
+        copy.setSelectEnrollmentDatesInFuture( original.getSelectEnrollmentDatesInFuture() );
+        copy.setSelectIncidentDatesInFuture( original.getSelectIncidentDatesInFuture() );
+        copy.setSkipOffline( original.isSkipOffline() );
+        copy.setStyle( original.getStyle() );
+        copy.setTrackedEntityType( original.getTrackedEntityType() );
+        copy.setUseFirstStageDuringRegistration( original.getUseFirstStageDuringRegistration() );
+        copy.setUserRoles( copyOf( original.getUserRoles() ) );
+    }
+
+    public record ProgramStageTuple( ProgramStage original, ProgramStage copy )
+    {
     }
 }

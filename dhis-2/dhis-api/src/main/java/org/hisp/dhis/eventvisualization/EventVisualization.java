@@ -752,17 +752,16 @@ public class EventVisualization extends BaseAnalyticalObject
     public void validateSortingState()
     {
         List<String> columns = getColumnDimensions();
-        List<String> sortingDims = getSorting().stream()
-            .map( Sorting::getDimension ).toList();
+        List<Sorting> sortings = getSorting().stream().toList();
 
-        sortingDims.forEach( dim -> {
-            if ( isBlank( dim ) )
+        sortings.forEach( sorting -> {
+            if ( isBlank( sorting.getDimension() ) || sorting.getDirection() == null )
             {
-                throw new IllegalArgumentException( "Sorting dimension cannot be blank" );
+                throw new IllegalArgumentException( "Sorting is not valid" );
             }
-            else if ( !columns.contains( dim ) )
+            else if ( !columns.contains( sorting.getDimension() ) )
             {
-                throw new IllegalStateException( dim );
+                throw new IllegalStateException( sorting.getDimension() );
             }
         } );
     }

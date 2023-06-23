@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cache;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
 @Component
-public class HibernateFlushListener implements FlushEventListener
+@Profile( { "cache-invalidation-test" } )
+public class TestableMessagePublisher implements CacheInvalidationMessagePublisher
 {
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+    private final List<String> messages = new ArrayList<>();
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    public void publish( String channel, String message )
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
+        messages.add( message );
+    }
 
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+    public List<String> getMessages()
+    {
+        return messages;
     }
 }

@@ -78,16 +78,15 @@
       <groupId>org.hisp.dhis</groupId>
       <artifactId>dhis-support-artemis</artifactId>
     </dependency>
-    <dependency>
-      <groupId>org.hisp.dhis</groupId>
-      <artifactId>dhis-support-cache-invalidation</artifactId>
-    </dependency>
 
     <!-- Other -->
-
     <dependency>
       <groupId>org.hisp.dhis.parser</groupId>
       <artifactId>dhis-antlr-expression-parser</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.hisp.dhis</groupId>
+      <artifactId>json-tree</artifactId>
     </dependency>
     <dependency>
       <groupId>org.apache.commons</groupId>

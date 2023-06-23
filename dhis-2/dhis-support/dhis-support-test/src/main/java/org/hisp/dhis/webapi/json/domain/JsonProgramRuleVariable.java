@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,44 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.webapi.json.domain;
 
-import lombok.extern.slf4j.Slf4j;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author David Mackessy
  */
-@Slf4j
-@Service
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationSubscriptionService
+public interface JsonProgramRuleVariable extends JsonObject, JsonNameableObject
 {
-    @Autowired
-    private CacheInvalidationListener cacheInvalidationListener;
-
-    @Autowired
-    @Qualifier( "pubSubConnection" )
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
-
-    public void start()
-    {
-        log.info( "RedisCacheInvalidationSubscriptionService starting" );
-
-        pubSubConnection.addListener( cacheInvalidationListener );
-
-        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
-
-        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
-    }
 }

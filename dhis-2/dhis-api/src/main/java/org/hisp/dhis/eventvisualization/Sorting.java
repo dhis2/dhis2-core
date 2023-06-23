@@ -53,7 +53,7 @@ public class Sorting implements Serializable
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private String dimension;
 
-    @JsonProperty
+    @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private SortOrder direction;
 

@@ -29,6 +29,7 @@ package org.hisp.dhis.webapi.controller.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
@@ -132,10 +133,12 @@ class EventRequestParamsMapper
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
+        List<QueryItem> filters = parseDataElementQueryItems( requestParams.getFilter(), this::dataElementToQueryItem );
+
         Set<UID> eventUids = validateDeprecatedUidsParameter( "event", requestParams.getEvent(),
             "events",
             requestParams.getEvents() );
-        validateFilter( requestParams.getFilter(), eventUids, requestParams.getProgramStage(), programStage );
+        validateFilter( filters, eventUids, requestParams.getProgramStage(), programStage );
 
         Set<UID> assignedUsers = validateDeprecatedUidsParameter( "assignedUser", requestParams.getAssignedUser(),
             "assignedUsers",
@@ -156,12 +159,6 @@ class EventRequestParamsMapper
         List<QueryItem> filterAttributes = parseFilterAttributes( requestParams.getFilterAttributes(),
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
-
-        List<QueryItem> filters = new ArrayList<>();
-        for ( String eventCriteria : requestParams.getFilter() )
-        {
-            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
-        }
 
         EventSearchParams params = new EventSearchParams();
 
@@ -289,7 +286,7 @@ class EventRequestParamsMapper
         }
     }
 
-    private static void validateFilter( Set<String> filters, Set<UID> eventIds, UID programStage,
+    private static void validateFilter( List<QueryItem> filters, Set<UID> eventIds, UID programStage,
         ProgramStage ps )
         throws BadRequestException
     {
@@ -303,7 +300,7 @@ class EventRequestParamsMapper
         }
     }
 
-    private List<QueryItem> parseFilterAttributes( Set<String> filterAttributes, List<OrderParam> attributeOrderParams )
+    private List<QueryItem> parseFilterAttributes( String filterAttributes, List<OrderParam> attributeOrderParams )
         throws BadRequestException
     {
         Map<String, TrackedEntityAttribute> attributes = attributeService.getAllTrackedEntityAttributes()

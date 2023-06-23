@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,27 +25,13 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.redis;
+package org.hisp.dhis.webapi.json.domain;
 
-import org.hisp.dhis.system.startup.AbstractStartupRoutine;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
+import org.hisp.dhis.jsontree.JsonObject;
 
 /**
- * @author Morten Svanæs <msvanaes@dhis2.org>
+ * @author David Mackessy
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class StartupRedisCacheInvalidationServiceRoutine extends AbstractStartupRoutine
+public interface JsonProgramSection extends JsonObject, JsonIdentifiableObject
 {
-    @Autowired
-    private RedisCacheInvalidationSubscriptionService subscriptionService;
-
-    @Override
-    public void execute()
-        throws InterruptedException
-    {
-        subscriptionService.start();
-    }
 }

@@ -34,8 +34,8 @@ import static org.hisp.dhis.common.cache.CacheStrategy.RESPECT_SYSTEM_SETTING;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.LINE_LIST;
 import static org.hisp.dhis.eventvisualization.EventVisualizationType.PIVOT_TABLE;
-import static org.hisp.dhis.feedback.ErrorCode.E7235;
-import static org.hisp.dhis.feedback.ErrorCode.E7236;
+import static org.hisp.dhis.feedback.ErrorCode.E7237;
+import static org.hisp.dhis.feedback.ErrorCode.E7238;
 import static org.hisp.dhis.schema.descriptors.EventVisualizationSchemaDescriptor.API_ENDPOINT;
 import static org.hisp.dhis.system.util.CodecUtils.filenameEncode;
 import static org.hisp.dhis.webapi.utils.ContextUtils.CONTENT_TYPE_PNG;
@@ -244,11 +244,11 @@ public class EventVisualizationController
         }
         catch ( IllegalArgumentException e )
         {
-            throw new ConflictException( new ErrorMessage( E7235 ) );
+            throw new ConflictException( new ErrorMessage( E7237 ) );
         }
         catch ( IllegalStateException e )
         {
-            throw new ConflictException( new ErrorMessage( E7236, e.getMessage() ) );
+            throw new ConflictException( new ErrorMessage( E7238, e.getMessage() ) );
         }
     }
 
