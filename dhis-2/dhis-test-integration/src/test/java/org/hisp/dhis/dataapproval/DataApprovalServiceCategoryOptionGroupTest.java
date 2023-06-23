@@ -605,7 +605,7 @@ class DataApprovalServiceCategoryOptionGroupTest extends IntegrationTestBase
     {
         setUser( mockUserService );
         List<DataApprovalStatus> approvals = dataApprovalService.getUserDataApprovalsAndPermissions( workflow, period,
-            orgUnit, ouFilter, mechanismCategoryCombo, aoc );
+            orgUnit, ouFilter, mechanismCategoryCombo, Set.of( aoc ) );
         return approvals.stream()
             .map( status -> getStatusString( status ) )
             .sorted()
