@@ -441,6 +441,9 @@ public class AuditController
         return rootNode;
     }
 
+    /**
+     * @deprecated use {@link #getTrackedEnityAudit} instead.
+     */
     @Deprecated( since = "2.41" )
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
