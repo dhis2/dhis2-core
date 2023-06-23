@@ -40,6 +40,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -299,9 +300,10 @@ public class User
      */
     public Set<String> getAllAuthorities()
     {
-        return emptyIfNull( userRoles ).stream()
-            .flatMap( role -> emptyIfNull( role.getAuthorities() ).stream() )
-            .collect( Collectors.toUnmodifiableSet() );
+        return userRoles == null ? Set.of()
+            : userRoles.stream()
+                .flatMap( role -> emptyIfNull( role.getAuthorities() ).stream() )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     /**
@@ -311,9 +313,10 @@ public class User
      */
     public Set<String> getAllRestrictions()
     {
-        return emptyIfNull( userRoles ).stream()
-            .flatMap( role -> emptyIfNull( role.getRestrictions() ).stream() )
-            .collect( Collectors.toUnmodifiableSet() );
+        return userRoles == null ? Set.of()
+            : userRoles.stream()
+                .flatMap( role -> emptyIfNull( role.getRestrictions() ).stream() )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     /**
@@ -322,7 +325,7 @@ public class User
      */
     public boolean hasAuthorities()
     {
-        return !this.getAllAuthorities().isEmpty();
+        return getAllAuthorities().stream().anyMatch( Objects::nonNull );
     }
 
     /**
@@ -1003,14 +1006,15 @@ public class User
 
     public Set<UserGroup> getManagedGroups()
     {
-        return emptyIfNull( groups ).stream()
-            .flatMap( group -> emptyIfNull( group.getManagedGroups() ).stream() )
-            .collect( Collectors.toUnmodifiableSet() );
+        return groups == null ? Set.of()
+            : groups.stream()
+                .flatMap( group -> emptyIfNull( group.getManagedGroups() ).stream() )
+                .collect( Collectors.toUnmodifiableSet() );
     }
 
     public boolean hasManagedGroups()
     {
-        return !getManagedGroups().isEmpty();
+        return getManagedGroups().stream().anyMatch( Objects::nonNull );
     }
 
     /**

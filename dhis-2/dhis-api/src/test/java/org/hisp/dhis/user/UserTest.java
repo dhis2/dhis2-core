@@ -34,12 +34,15 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * Unit tests for {@link User}.
@@ -164,6 +167,175 @@ class UserTest
     }
 
     @Test
+    void testHasAnyAuthorityWhenUserRolesNull()
+    {
+        final User user = new User();
+        user.setUserRoles( null );
+        assertFalse( user.hasAnyAuthority( Set.of( "AUTH1", "AUTH2" ) ) );
+    }
+
+    @Test
+    void testHasAnyAuthorityWhenUserRolesHasNullAuthority()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( null );
+        user.setUserRoles( Set.of( role ) );
+        assertFalse( user.hasAnyAuthority( Set.of( "AUTH1", "AUTH2" ) ) );
+    }
+
+    @Test
+    void testHasAnyAuthorityWhenUserRolesAuthorityMatches()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertTrue( user.hasAnyAuthority( Set.of( "AUTH0", "AUTH2" ) ) );
+    }
+
+    @Test
+    void testHasAnyAuthorityWhenNoMatchingUserRoleAuthority()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertFalse( user.hasAnyAuthority( Set.of( "AUTH3", "AUTH4" ) ) );
+    }
+
+    @Test
+    void testIsAuthorizedWhenUserHasAllAuthority()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", UserRole.AUTHORITY_ALL ) );
+        user.setUserRoles( Set.of( role ) );
+        assertTrue( user.isAuthorized( "AUTH9" ) );
+    }
+
+    @Test
+    void testIsAuthorizedWhenAuthorityPassedIsNull()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", UserRole.AUTHORITY_ALL ) );
+        user.setUserRoles( Set.of( role ) );
+        String auth = null;
+        assertFalse( user.isAuthorized( auth ) );
+    }
+
+    @Test
+    void testIsAuthorizedWhenAuthorityPassedMatchesUserAuthority()
+    {
+        final User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertTrue( user.isAuthorized( "AUTH2" ) );
+    }
+
+    @Test
+    void testCanIssueUserRoleWhenGroupPassedIsNull()
+    {
+        User user = new User();
+        assertFalse( user.canIssueUserRole( null, true ) );
+    }
+
+    @Test
+    void testCanIssueUserRoleWhenHasAllAuthority()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", UserRole.AUTHORITY_ALL ) );
+        user.setUserRoles( Set.of( role ) );
+        UserRole roleToCheck = new UserRole();
+        assertTrue( user.canIssueUserRole( roleToCheck, true ) );
+    }
+
+    @Test
+    void testCanIssueUserRoleWhenCantGrantOwnUserRole()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertFalse( user.canIssueUserRole( role, false ) );
+    }
+
+    @Test
+    void testCanIssueUserRoleWhenCanGrantOwnUserRole()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertTrue( user.canIssueUserRole( role, true ) );
+    }
+
+    @Test
+    void testCanModifyUserWhenPassedNull()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2" ) );
+        user.setUserRoles( Set.of( role ) );
+        assertFalse( user.canModifyUser( null ) );
+
+    }
+
+    @Test
+    void testCanModifyUserUserHasAllAuthority()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( UserRole.AUTHORITY_ALL ) );
+        user.setUserRoles( Set.of( role ) );
+        User otherUser = new User();
+        assertTrue( user.canModifyUser( otherUser ) );
+    }
+
+    @Test
+    void testCanModifyUserWhenContainsAllOtherAuthorities()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH2", "AUTH3" ) );
+        user.setUserRoles( Set.of( role ) );
+        User otherUser = new User();
+        UserRole otherRole = new UserRole();
+        otherRole.setAuthorities( Set.of( "AUTH1", "AUTH3" ) );
+        otherUser.setUserRoles( Set.of( otherRole ) );
+        assertTrue( user.canModifyUser( otherUser ) );
+    }
+
+    @Test
+    void testCanModifyUserWhenDoesNotContainAllOtherAuthorities()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH3" ) );
+        user.setUserRoles( Set.of( role ) );
+        User otherUser = new User();
+        UserRole otherRole = new UserRole();
+        otherRole.setAuthorities( Set.of( "AUTH1", "AUTH2", "AUTH3" ) );
+        otherUser.setUserRoles( Set.of( otherRole ) );
+        assertFalse( user.canModifyUser( otherUser ) );
+    }
+
+    @Test
+    void testGetAuthorities()
+    {
+        User user = new User();
+        UserRole role = new UserRole();
+        role.setAuthorities( Set.of( "AUTH1", "AUTH3" ) );
+        user.setUserRoles( Set.of( role ) );
+        Collection<GrantedAuthority> authorities = user.getAuthorities();
+        assertTrue( authorities
+            .containsAll( Set.of( new SimpleGrantedAuthority( "AUTH1" ), new SimpleGrantedAuthority( "AUTH3" ) ) ) );
+    }
+
+    @Test
     void testGetAllRestrictionsWhenUserRolesNull()
     {
         final User user = new User();
@@ -184,6 +356,39 @@ class UserTest
     }
 
     @Test
+    void testHasAnyRestrictionsWhenUserRoleRestrictionsNull()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setRestrictions( null );
+        user.setUserRoles( Set.of( userRole ) );
+        boolean result = user.hasAnyRestrictions( Set.of( "R1", "R2" ) );
+        assertFalse( result );
+    }
+
+    @Test
+    void testHasAnyRestrictionsWhenUserRoleHasMatchingRestriction()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setRestrictions( Set.of( "R1", "R2" ) );
+        user.setUserRoles( Set.of( userRole ) );
+        boolean result = user.hasAnyRestrictions( Set.of( "R3", "R1" ) );
+        assertTrue( result );
+    }
+
+    @Test
+    void testHasAnyRestrictionsWhenUserRoleHasNoMatchingRestriction()
+    {
+        final User user = new User();
+        UserRole userRole = new UserRole();
+        userRole.setRestrictions( Set.of( "R1", "R2" ) );
+        user.setUserRoles( Set.of( userRole ) );
+        boolean result = user.hasAnyRestrictions( Set.of( "R3", "R4" ) );
+        assertFalse( result );
+    }
+
+    @Test
     void testGetAllRestrictions()
     {
         final User user = new User();
@@ -191,7 +396,7 @@ class UserTest
         userRole.setRestrictions( Set.of( "R1", "R2" ) );
         user.setUserRoles( Set.of( userRole ) );
         Set<String> restrictions = user.getAllRestrictions();
-        assertEquals( 2, restrictions.size() );
+        assertEquals( Set.of( "R1", "R2" ), restrictions );
     }
 
     @Test
