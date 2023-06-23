@@ -441,10 +441,78 @@ public class AuditController
         return rootNode;
     }
 
+    @Deprecated( since = "2.41" )
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
+        @Deprecated( since = "2.41" ) @OpenApi.Param( { UID[].class,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @OpenApi.Param( { UID[].class,
-            TrackedEntity.class } ) @RequestParam( required = false ) List<String> tei,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> trackedEntities,
+        @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
+        @RequestParam( required = false ) List<AuditType> auditType,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws BadRequestException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        List<AuditType> auditTypes = emptyIfNull( auditType );
+
+        Set<UID> teUids = validateDeprecatedUidsParameter( "tei", String.join( ";", tei ), "trackedEntities",
+            trackedEntities );
+
+        TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
+            .setTrackedEntities( UID.toValueList( teUids ) )
+            .setUsers( user )
+            .setAuditTypes( auditTypes )
+            .setStartDate( startDate )
+            .setEndDate( endDate );
+
+        List<TrackedEntityAudit> teiAudits;
+        Pager pager = null;
+
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
+        {
+            int total = trackedEntityAuditService.getTrackedEntityAuditsCount( params );
+
+            pager = new Pager( page, total, pageSize );
+
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params );
+        }
+        else
+        {
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params.setPager( pager ) );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode trackedEntityAudits = rootNode
+            .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+        trackedEntityAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
+            new FieldFilterParams( teiAudits, fields ) ).getChildren() );
+
+        return rootNode;
+
+    }
+
+    @GetMapping( "trackedEntity" )
+    public RootNode getTrackedEnityAudit(
+        @OpenApi.Param( { UID[].class,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> trackedEntities,
         @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Date startDate,
@@ -464,7 +532,7 @@ public class AuditController
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
-            .setTrackedEntities( tei )
+            .setTrackedEntities( UID.toValueList( trackedEntities ) )
             .setUsers( user )
             .setAuditTypes( auditTypes )
             .setStartDate( startDate )
@@ -483,14 +551,7 @@ public class AuditController
         }
         else
         {
-            teiAudits = trackedEntityAuditService.getTrackedEntityAudits(
-                new TrackedEntityAuditQueryParams()
-                    .setTrackedEntities( tei )
-                    .setUsers( user )
-                    .setAuditTypes( auditTypes )
-                    .setStartDate( startDate )
-                    .setEndDate( endDate )
-                    .setPager( pager ) );
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params.setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -501,7 +562,7 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAudits = rootNode
-            .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+            .addChild( new CollectionNode( "trackedEntityAudits", true ) );
         trackedEntityAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 

@@ -187,6 +187,41 @@ class AuditControllerTest extends DhisControllerConvenienceTest
             GET( "/audits/trackedEntityAttributeValue?trackedEntities={te}", te1.getUid() + "," + te2.getUid() ) );
     }
 
+    @Test
+    void shouldFailGetTrackedEntityInstanceAuditsWhenGivenTeiAndTrackedEntitiesParameters()
+    {
+        assertEquals(
+            "Only one parameter of 'tei' (deprecated; semicolon separated UIDs) and 'trackedEntities' (comma separated UIDs) must be specified. Prefer 'trackedEntities' as 'tei' will be removed.",
+            GET( "/audits/trackedEntityInstance?tei={te}&trackedEntities={te}",
+                te1.getUid() + ";" + te2.getUid(),
+                te1.getUid() + "," + te2.getUid() )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void shouldSuccessToGetTrackedEntityInstanceAuditsWhenPassingOnlyTeiParameter()
+    {
+        assertStatus( HttpStatus.OK,
+            GET( "/audits/trackedEntityInstance?tei={te}", te1.getUid() + ";" + te2.getUid() ) );
+    }
+
+    @Test
+    void shouldSuccessToGetTrackedEntityInstanceAuditsWhenPassingOnlyTrackedEntitiesParameter()
+    {
+        assertStatus( HttpStatus.OK,
+            GET( "/audits/trackedEntityInstance?trackedEntities={te}", te1.getUid() + "," + te2.getUid() ) );
+    }
+
+    @Test
+    void shouldSuccessToGetTrackedEntityAuditsGivenIgnoredLegacyTeiParamAndTrackedEntitiesParam()
+    {
+        assertStatus( HttpStatus.OK,
+            GET( "/audits/trackedEntity?tei={te}&trackedEntities={te}",
+                te1.getUid() + ";" + te2.getUid(),
+                te1.getUid() + "," + te2.getUid() ) );
+    }
+
     private TrackedEntityType trackedEntityTypeAccessible()
     {
         TrackedEntityType type = createTrackedEntityType( 'A' );
