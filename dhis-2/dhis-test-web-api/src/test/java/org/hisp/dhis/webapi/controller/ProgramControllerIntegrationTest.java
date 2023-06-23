@@ -168,4 +168,62 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest
 
         assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
     }
+
+    @Test
+    void testCopyProgramWithNoPublicSharingWithUserAddedWithWriteOnlyAccess()
+    {
+        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        switchToSuperuser();
+        manager.save( userWithPublicAuths );
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------',\n" +
+            "        'users': {\n" +
+            "           '" + userWithPublicAuths.getUid() + "': {\n" +
+            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
+            "              'access': '-w------'\n" +
+            "        }\n" +
+            "     }\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchContextToUser( userWithPublicAuths );
+
+        assertStatus( HttpStatus.NOT_FOUND, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharingWithUserAddedWithReadOnlyAccess()
+    {
+        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        switchToSuperuser();
+        manager.save( userWithPublicAuths );
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------',\n" +
+            "        'users': {\n" +
+            "           '" + userWithPublicAuths.getUid() + "': {\n" +
+            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
+            "              'access': 'r-------'\n" +
+            "        }\n" +
+            "     }\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchContextToUser( userWithPublicAuths );
+
+        assertStatus( HttpStatus.FORBIDDEN, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
 }
