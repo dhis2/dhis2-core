@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.feedback.ErrorCode.E1005;
+import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.hisp.dhis.webapi.utils.TestUtils.getMatchingGroupFromPattern;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -252,5 +254,71 @@ class ProgramControllerTest extends DhisControllerConvenienceTest
         assertEquals( "ERROR", response.getStatus() );
         assertEquals( "Program with id invalid could not be found.", response.getMessage() );
         assertEquals( E1005, response.getErrorCode() );
+    }
+
+    @Test
+    void testCopyProgramWithUserWithNoAuthorities()
+    {
+        User userWithNoAuthorities = switchToNewUser( "test1" );
+        Set<String> authorities = userWithNoAuthorities.getAllAuthorities();
+        assertEquals( 0, authorities.size() );
+
+        JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
+            .content( HttpStatus.FORBIDDEN )
+            .as( JsonWebMessage.class );
+        assertEquals( "You don't have write permissions for Program PrZMWi7rBga", response.getMessage() );
+    }
+
+    @Test
+    void testCopyProgramWithUserWithProgramPrivateAddAuthority()
+    {
+        User userWithInsufficientAuthorities = switchToNewUser( "test1", "F_PROGRAM_PRIVATE_ADD" );
+        Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
+        assertEquals( 1, authorities.size() );
+
+        JsonWebMessage response = POST( "/programs/%s/copy".formatted( PROGRAM_UID ) )
+            .content( HttpStatus.FORBIDDEN )
+            .as( JsonWebMessage.class );
+        assertEquals( "You don't have write permissions for Program PrZMWi7rBga", response.getMessage() );
+    }
+
+    @Test
+    void testCopyProgramWithUserWithProgramAuthorityOnly()
+    {
+        User userWithInsufficientAuthorities = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD" );
+        Set<String> authorities = userWithInsufficientAuthorities.getAllAuthorities();
+        assertEquals( 1, authorities.size() );
+
+        assertStatus( HttpStatus.FORBIDDEN, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithUserWithProgramAndIndicatorAuthority()
+    {
+        User userWithRequiredAuthorities = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+        Set<String> authorities = userWithRequiredAuthorities.getAllAuthorities();
+        assertEquals( 2, authorities.size() );
+
+        assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharing()
+    {
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------'\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        assertStatus( HttpStatus.NOT_FOUND, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
     }
 }

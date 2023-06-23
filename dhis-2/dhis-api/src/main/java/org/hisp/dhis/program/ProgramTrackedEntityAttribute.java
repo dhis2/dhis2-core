@@ -288,18 +288,18 @@ public class ProgramTrackedEntityAttribute
     private static void setShallowCopyValues( ProgramTrackedEntityAttribute copy,
         ProgramTrackedEntityAttribute original )
     {
-        copy.setAttribute( original.getAttribute() );
-        copy.setDisplayInList( original.isDisplayInList() );
-        copy.setSortOrder( original.getSortOrder() );
-        copy.setMandatory( original.isMandatory() );
+        copy.setAccess( original.getAccess() );
         copy.setAllowFutureDate( original.getAllowFutureDate() );
+        copy.setAttribute( original.getAttribute() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setDisplayInList( original.isDisplayInList() );
+        copy.setMandatory( original.isMandatory() );
+        copy.setPublicAccess( original.getPublicAccess() );
         copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
         copy.setRenderType( original.getRenderType() );
         copy.setSearchable( original.isSearchable() );
-        copy.setAccess( original.getAccess() );
-        copy.setPublicAccess( original.getPublicAccess() );
-        copy.setAttributeValues( original.getAttributeValues() );
         copy.setSharing( original.getSharing() );
+        copy.setSortOrder( original.getSortOrder() );
         copy.setTranslations( original.getTranslations() );
     }
 }

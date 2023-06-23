@@ -37,6 +37,7 @@ import org.hisp.dhis.association.jdbc.JdbcOrgUnitAssociationsStore;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.WebClient;
 import org.hisp.dhis.webapi.DhisControllerIntegrationTest;
@@ -137,5 +138,92 @@ class ProgramControllerIntegrationTest extends DhisControllerIntegrationTest
 
         assertEquals( 2, enrollments.size() );
         assertEquals( 1, originalProgramEnrollments.size() );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharingWithUserAdded()
+    {
+        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        switchToSuperuser();
+        manager.save( userWithPublicAuths );
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------',\n" +
+            "        'users': {\n" +
+            "           '" + userWithPublicAuths.getUid() + "': {\n" +
+            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
+            "              'access': 'rw------'\n" +
+            "        }\n" +
+            "     }\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchContextToUser( userWithPublicAuths );
+
+        assertStatus( HttpStatus.CREATED, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharingWithUserAddedWithWriteOnlyAccess()
+    {
+        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        switchToSuperuser();
+        manager.save( userWithPublicAuths );
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------',\n" +
+            "        'users': {\n" +
+            "           '" + userWithPublicAuths.getUid() + "': {\n" +
+            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
+            "              'access': '-w------'\n" +
+            "        }\n" +
+            "     }\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchContextToUser( userWithPublicAuths );
+
+        assertStatus( HttpStatus.NOT_FOUND, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
+    }
+
+    @Test
+    void testCopyProgramWithNoPublicSharingWithUserAddedWithReadOnlyAccess()
+    {
+        User userWithPublicAuths = switchToNewUser( "test1", "F_PROGRAM_PUBLIC_ADD",
+            "F_PROGRAM_INDICATOR_PUBLIC_ADD" );
+
+        switchToSuperuser();
+        manager.save( userWithPublicAuths );
+        PUT( "/programs/" + PROGRAM_UID, "{\n" +
+            "    'id': '" + PROGRAM_UID + "',\n" +
+            "    'name': 'test program',\n" +
+            "    'shortName': 'test program',\n" +
+            "    'programType': 'WITH_REGISTRATION',\n" +
+            "    'sharing': {\n" +
+            "        'public': '--------',\n" +
+            "        'users': {\n" +
+            "           '" + userWithPublicAuths.getUid() + "': {\n" +
+            "              'id': '" + userWithPublicAuths.getUid() + "',\n" +
+            "              'access': 'r-------'\n" +
+            "        }\n" +
+            "     }\n" +
+            "    }\n" +
+            "}" ).content( HttpStatus.OK );
+
+        switchContextToUser( userWithPublicAuths );
+
+        assertStatus( HttpStatus.FORBIDDEN, POST( "/programs/%s/copy".formatted( PROGRAM_UID ) ) );
     }
 }
