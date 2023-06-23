@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,46 +25,7 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import java.util.List;
-import java.util.Set;
-
-import org.hisp.dhis.common.GenericStore;
-
-/**
- * @author Ameen Mohamed
- */
-public interface TrackedEntityProgramOwnerStore extends GenericStore<TrackedEntityProgramOwner>
-{
-    String ID = TrackedEntityProgramOwnerStore.class.getName();
-
-    /**
-     * Get tracked entity program owner entity for the tei-program combination.
-     *
-     * @param teiId The tracked entity instance id.
-     * @param programId the program id
-     * @return matching tracked entity program owner entity
-     */
-    TrackedEntityProgramOwner getTrackedEntityProgramOwner( long teiId, long programId );
-
-    /**
-     * Get all Tracked entity program owner entities for the list of teis.
-     *
-     * @param teiIds The list of tracked entity instance ids.
-     * @return matching tracked entity program owner entities.
-     */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds );
-
-    /**
-     * Get all Tracked entity program owner entities for the list of teis and
-     * program.
-     *
-     * @param teiIds The list of tracked entity instance ids.
-     * @param programId The program id
-     * @return matching tracked entity program owner entities.
-     */
-    List<TrackedEntityProgramOwner> getTrackedEntityProgramOwners( List<Long> teiIds, long programId );
-
-    List<TrackedEntityProgramOwnerOrgUnit> getTrackedEntityProgramOwnerOrgUnits( Set<Long> teiIds );
+public record TrackedEntityOuInfo(Long trackerEntityId, String trackedEntityUid, Long orgUnitId) {
 }

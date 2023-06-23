@@ -6,6 +6,11 @@
       "shortName": "test program",
       "description": "program description",
       "programType": "WITH_REGISTRATION",
+      "sharing": {
+        "public": "rw------",
+        "external": false,
+        "owner": "M5zQapPyTZI"
+      },
       "organisationUnits": [
         {
           "id": "Orgunit1000"
