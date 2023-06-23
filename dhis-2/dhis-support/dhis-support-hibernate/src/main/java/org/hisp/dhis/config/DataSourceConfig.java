@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.config;
 
-import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.CLICK_HOUSE;
+import static org.hisp.dhis.datasource.DatabasePoolUtils.ConfigKeyMapper.CLICKHOUSE;
 
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
@@ -138,7 +138,7 @@ public class DataSourceConfig
     @Bean( "clickHouseDataSource" )
     public DataSource clickHouseDataSource()
     {
-        String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CLICK_HOUSE_CONNECTION_URL );
+        String jdbcUrl = dhisConfig.getProperty( ConfigurationKey.CLICKHOUSE_CONNECTION_URL );
 
         if ( StringUtils.isBlank( jdbcUrl ) )
         {
@@ -156,7 +156,7 @@ public class DataSourceConfig
 
         DatabasePoolUtils.PoolConfig poolConfig = DatabasePoolUtils.PoolConfig.builder()
             .dhisConfig( dhisConfig )
-            .mapper( CLICK_HOUSE )
+            .mapper( CLICKHOUSE )
             .dbPoolType( dbPoolType )
             .build();
 

@@ -106,7 +106,7 @@ public enum ConfigurationKey
     /**
      * Click House JDBC driver class.
      */
-    CLICK_HOUSE_CONNECTION_DRIVER_CLASS( "click-house.connection.driver_class", "ru.yandex.clickhouse.ClickHouseDriver",
+    CLICKHOUSE_CONNECTION_DRIVER_CLASS( "clickhouse.connection.driver_class", "com.clickhouse.jdbc.ClickHouseDriver",
         false ),
 
     /**
@@ -117,7 +117,7 @@ public enum ConfigurationKey
     /**
      * Click House Database connection URL.
      */
-    CLICK_HOUSE_CONNECTION_URL( "click-house.connection.url", "", false ),
+    CLICKHOUSE_CONNECTION_URL( "clickhouse.connection.url", "", false ),
 
     /**
      * Database username.
@@ -127,7 +127,7 @@ public enum ConfigurationKey
     /**
      * Click House Database username.
      */
-    CLICK_HOUSE_CONNECTION_USERNAME( "click-house.connection.username", "", false ),
+    CLICKHOUSE_CONNECTION_USERNAME( "clickhouse.connection.username", "", false ),
 
     /**
      * Database password (sensitive).
@@ -137,7 +137,7 @@ public enum ConfigurationKey
     /**
      * Click House Database password (sensitive).
      */
-    CLICK_HOUSE_CONNECTION_PASSWORD( "click-house.connection.password", "", true ),
+    CLICKHOUSE_CONNECTION_PASSWORD( "clickhouse.connection.password", "", true ),
 
     /**
      * Sets 'hibernate.cache.use_second_level_cache'. (default: true)
@@ -165,7 +165,7 @@ public enum ConfigurationKey
     /**
      * Click House Max size of connection pool (default: 80).
      */
-    CLICK_HOUSE_CONNECTION_POOL_MAX_SIZE( "click-house.connection.pool.max_size", "80", false ),
+    CLICKHOUSE_CONNECTION_POOL_MAX_SIZE( "clickhouse.connection.pool.max_size", "80", false ),
 
     /**
      * Minimum number of Connections a pool will maintain at any given time
@@ -177,7 +177,7 @@ public enum ConfigurationKey
      * Click House Minimum number of Connections a pool will maintain at any
      * given time (default: 5).
      */
-    CLICK_HOUSE_CONNECTION_POOL_MIN_SIZE( "click-house.connection.pool.min_size", "5", false ),
+    CLICKHOUSE_CONNECTION_POOL_MIN_SIZE( "clickhouse.connection.pool.min_size", "5", false ),
 
     /**
      * Number of Connections a pool will try to acquire upon startup. Should be
@@ -189,7 +189,7 @@ public enum ConfigurationKey
      * Number of Connections a pool will try to acquire upon startup. Should be
      * between minPoolSize and maxPoolSize. (default: 5).
      */
-    CLICK_HOUSE_CONNECTION_POOL_INITIAL_SIZE( "click-house.connection.pool.initial_size", "5", false ),
+    CLICKHOUSE_CONNECTION_POOL_INITIAL_SIZE( "clickhouse.connection.pool.initial_size", "5", false ),
 
     /**
      * Determines how many connections at a time will try to acquire when the
@@ -201,7 +201,7 @@ public enum ConfigurationKey
      * Determines how many connections at a time will try to acquire when the
      * pool is exhausted. (default: 5).
      */
-    CLICK_HOUSE_CONNECTION_POOL_ACQUIRE_INCR( "click-house.connection.pool.acquire_incr", "5", false ),
+    CLICKHOUSE_CONNECTION_POOL_ACQUIRE_INCR( "clickhouse.connection.pool.acquire_incr", "5", false ),
 
     /**
      * Seconds a Connection can remain pooled but unused before being discarded.
@@ -213,7 +213,7 @@ public enum ConfigurationKey
      * Seconds a Connection can remain pooled but unused before being discarded.
      * Zero means idle connections never expire (default: 7200).
      */
-    CLICK_HOUSE_CONNECTION_POOL_MAX_IDLE_TIME( "click-house.connection.pool.max_idle_time", "7200", false ),
+    CLICKHOUSE_CONNECTION_POOL_MAX_IDLE_TIME( "clickhouse.connection.pool.max_idle_time", "7200", false ),
 
     /**
      * Number of seconds that Connections in excess of minPoolSize should be
@@ -225,7 +225,7 @@ public enum ConfigurationKey
      * Number of seconds that Connections in excess of minPoolSize should be
      * permitted to remain idle in the pool before being culled (default: 0).
      */
-    CLICK_HOUSE_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON( "click-house.connection.pool.max_idle_time_excess_con", "0",
+    CLICKHOUSE_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON( "clickhouse.connection.pool.max_idle_time_excess_con", "0",
         false ),
 
     /**
@@ -238,7 +238,7 @@ public enum ConfigurationKey
      * If this is a number greater than 0, dhis2 will test all idle, pooled but
      * unchecked-out connections, every this number of seconds (default: 0).
      */
-    CLICK_HOUSE_CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "click-house.connection.pool.idle.con.test.period", "0", false ),
+    CLICKHOUSE_CONNECTION_POOL_IDLE_CON_TEST_PERIOD( "clickhouse.connection.pool.idle.con.test.period", "0", false ),
 
     /**
      * If true, an operation will be performed at every connection checkout to
@@ -250,7 +250,7 @@ public enum ConfigurationKey
      * If true, an operation will be performed at every connection checkout to
      * verify that the connection is valid (default: false).
      */
-    CLICK_HOUSE_CONNECTION_POOL_TEST_ON_CHECKOUT( "click-house.connection.pool.test.on.checkout", Constants.OFF,
+    CLICKHOUSE_CONNECTION_POOL_TEST_ON_CHECKOUT( "clickhouse.connection.pool.test.on.checkout", Constants.OFF,
         false ),
 
     /**
@@ -265,7 +265,7 @@ public enum ConfigurationKey
      * connection checkin to verify that the connection is valid (default:
      * true).
      */
-    CLICK_HOUSE_CONNECTION_POOL_TEST_ON_CHECKIN( "click-house.connection.pool.test.on.checkin", Constants.ON, false ),
+    CLICKHOUSE_CONNECTION_POOL_TEST_ON_CHECKIN( "clickhouse.connection.pool.test.on.checkin", Constants.ON, false ),
 
     /**
      * Hikari DB pool feature. Connection pool timeout: Set the maximum number
@@ -279,7 +279,7 @@ public enum ConfigurationKey
      * maximum number of milliseconds that a client will wait for a connection
      * from the pool. (default: 30s)
      */
-    CLICK_HOUSE_CONNECTION_POOL_TIMEOUT( "click-house.connection.pool.timeout",
+    CLICKHOUSE_CONNECTION_POOL_TIMEOUT( "clickhouse.connection.pool.timeout",
         String.valueOf( SECONDS.toMillis( 30 ) ), false ),
 
     /**
@@ -293,7 +293,7 @@ public enum ConfigurationKey
      * Sets the maximum number of milliseconds that the Click House Hikari pool
      * will wait for a connection to be validated as alive. (default: 5ms)
      */
-    CLICK_HOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT( "click-house.connection.pool.validation_timeout",
+    CLICKHOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT( "clickhouse.connection.pool.validation_timeout",
         String.valueOf( SECONDS.toMillis( 5 ) ),
         false ),
 
@@ -307,7 +307,7 @@ public enum ConfigurationKey
      * Configure the number of helper threads used by Click House C3P0 pool for
      * jdbc operations (default: 3).
      */
-    CLICK_HOUSE_CONNECTION_POOL_NUM_THREADS( "click-house.connection.pool.num.helper.threads", "3", false ),
+    CLICKHOUSE_CONNECTION_POOL_NUM_THREADS( "clickhouse.connection.pool.num.helper.threads", "3", false ),
 
     /**
      * Defines the query that will be executed for all connection tests. Ideally
@@ -321,7 +321,7 @@ public enum ConfigurationKey
      * Defines the query that will be executed for all Click House connection
      * tests.
      */
-    CLICK_HOUSE_CONNECTION_POOL_TEST_QUERY( "click-house.connection.pool.preferred.test.query" ),
+    CLICKHOUSE_CONNECTION_POOL_TEST_QUERY( "clickhouse.connection.pool.preferred.test.query" ),
 
     /**
      * LDAP server URL. (default: ldaps://0:1)

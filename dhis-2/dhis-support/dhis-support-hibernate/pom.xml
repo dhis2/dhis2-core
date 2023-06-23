@@ -73,6 +73,12 @@
       <artifactId>postgresql</artifactId>
     </dependency>
 
+    <!-- ClickHouse JDBC -->
+    <dependency>
+      <groupId>com.clickhouse</groupId>
+      <artifactId>clickhouse-jdbc</artifactId>
+    </dependency>
+
     <!-- Test -->
     <dependency>
       <groupId>org.hamcrest</groupId>

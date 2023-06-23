@@ -101,6 +101,7 @@
     <HikariCP.version>5.0.1</HikariCP.version>
     <postgresql-driver.version>42.6.0</postgresql-driver.version>
     <postgis-jdbc.version>2.5.1</postgis-jdbc.version>
+    <clickhouse-jdbc.version>0.4.6</clickhouse-jdbc.version>
     <datasource-proxy.version>1.9</datasource-proxy.version>
 
     <!-- Servlet -->
@@ -1686,6 +1687,12 @@
         <groupId>net.postgis</groupId>
         <artifactId>postgis-jdbc</artifactId>
         <version>${postgis-jdbc.version}</version>
+      </dependency>
+      <!-- ClickHouse JDBC -->
+      <dependency>
+        <groupId>com.clickhouse</groupId>
+        <artifactId>clickhouse-jdbc</artifactId>
+        <version>${clickhouse-jdbc.version}</version>
       </dependency>
 
       <!-- Flyway -->

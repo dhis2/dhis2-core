@@ -31,14 +31,14 @@ import static com.google.common.base.MoreObjects.firstNonNull;
 import static java.lang.Integer.parseInt;
 import static java.lang.Long.parseLong;
 import static org.hisp.dhis.external.conf.ConfigurationKey.*;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_DRIVER_CLASS;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_PASSWORD;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_POOL_MAX_SIZE;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_POOL_TEST_QUERY;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_POOL_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_URL;
-import static org.hisp.dhis.external.conf.ConfigurationKey.CLICK_HOUSE_CONNECTION_USERNAME;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_DRIVER_CLASS;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_PASSWORD;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_POOL_MAX_SIZE;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_POOL_TEST_QUERY;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_POOL_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_URL;
+import static org.hisp.dhis.external.conf.ConfigurationKey.CLICKHOUSE_CONNECTION_USERNAME;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_DRIVER_CLASS;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_PASSWORD;
 import static org.hisp.dhis.external.conf.ConfigurationKey.CONNECTION_POOL_ACQUIRE_INCR;
@@ -92,27 +92,27 @@ public class DatabasePoolUtils
     @RequiredArgsConstructor
     public enum ConfigKeyMapper
     {
-        CLICK_HOUSE( ImmutableMap.<ConfigurationKey, ConfigurationKey> builder()
+        CLICKHOUSE( ImmutableMap.<ConfigurationKey, ConfigurationKey> builder()
             /* common */
-            .put( CONNECTION_URL, CLICK_HOUSE_CONNECTION_URL )
-            .put( CONNECTION_USERNAME, CLICK_HOUSE_CONNECTION_USERNAME )
-            .put( CONNECTION_PASSWORD, CLICK_HOUSE_CONNECTION_PASSWORD )
-            .put( CONNECTION_DRIVER_CLASS, CLICK_HOUSE_CONNECTION_DRIVER_CLASS )
-            .put( CONNECTION_POOL_MAX_SIZE, CLICK_HOUSE_CONNECTION_POOL_MAX_SIZE )
-            .put( CONNECTION_POOL_TEST_QUERY, CLICK_HOUSE_CONNECTION_POOL_TEST_QUERY )
+            .put( CONNECTION_URL, CLICKHOUSE_CONNECTION_URL )
+            .put( CONNECTION_USERNAME, CLICKHOUSE_CONNECTION_USERNAME )
+            .put( CONNECTION_PASSWORD, CLICKHOUSE_CONNECTION_PASSWORD )
+            .put( CONNECTION_DRIVER_CLASS, CLICKHOUSE_CONNECTION_DRIVER_CLASS )
+            .put( CONNECTION_POOL_MAX_SIZE, CLICKHOUSE_CONNECTION_POOL_MAX_SIZE )
+            .put( CONNECTION_POOL_TEST_QUERY, CLICKHOUSE_CONNECTION_POOL_TEST_QUERY )
             /* hikari-specific */
-            .put( CONNECTION_POOL_TIMEOUT, CLICK_HOUSE_CONNECTION_POOL_TIMEOUT )
-            .put( CONNECTION_POOL_VALIDATION_TIMEOUT, CLICK_HOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT )
+            .put( CONNECTION_POOL_TIMEOUT, CLICKHOUSE_CONNECTION_POOL_TIMEOUT )
+            .put( CONNECTION_POOL_VALIDATION_TIMEOUT, CLICKHOUSE_CONNECTION_POOL_VALIDATION_TIMEOUT )
             /* C3P0-specific */
-            .put( CONNECTION_POOL_ACQUIRE_INCR, CLICK_HOUSE_CONNECTION_POOL_ACQUIRE_INCR )
-            .put( CONNECTION_POOL_MAX_IDLE_TIME, CLICK_HOUSE_CONNECTION_POOL_MAX_IDLE_TIME )
-            .put( CONNECTION_POOL_MIN_SIZE, CLICK_HOUSE_CONNECTION_POOL_MIN_SIZE )
-            .put( CONNECTION_POOL_INITIAL_SIZE, CLICK_HOUSE_CONNECTION_POOL_INITIAL_SIZE )
-            .put( CONNECTION_POOL_TEST_ON_CHECKIN, CLICK_HOUSE_CONNECTION_POOL_TEST_ON_CHECKIN )
-            .put( CONNECTION_POOL_TEST_ON_CHECKOUT, CLICK_HOUSE_CONNECTION_POOL_TEST_ON_CHECKOUT )
-            .put( CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, CLICK_HOUSE_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON )
-            .put( CONNECTION_POOL_IDLE_CON_TEST_PERIOD, CLICK_HOUSE_CONNECTION_POOL_IDLE_CON_TEST_PERIOD )
-            .put( CONNECTION_POOL_NUM_THREADS, CLICK_HOUSE_CONNECTION_POOL_NUM_THREADS )
+            .put( CONNECTION_POOL_ACQUIRE_INCR, CLICKHOUSE_CONNECTION_POOL_ACQUIRE_INCR )
+            .put( CONNECTION_POOL_MAX_IDLE_TIME, CLICKHOUSE_CONNECTION_POOL_MAX_IDLE_TIME )
+            .put( CONNECTION_POOL_MIN_SIZE, CLICKHOUSE_CONNECTION_POOL_MIN_SIZE )
+            .put( CONNECTION_POOL_INITIAL_SIZE, CLICKHOUSE_CONNECTION_POOL_INITIAL_SIZE )
+            .put( CONNECTION_POOL_TEST_ON_CHECKIN, CLICKHOUSE_CONNECTION_POOL_TEST_ON_CHECKIN )
+            .put( CONNECTION_POOL_TEST_ON_CHECKOUT, CLICKHOUSE_CONNECTION_POOL_TEST_ON_CHECKOUT )
+            .put( CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON, CLICKHOUSE_CONNECTION_POOL_MAX_IDLE_TIME_EXCESS_CON )
+            .put( CONNECTION_POOL_IDLE_CON_TEST_PERIOD, CLICKHOUSE_CONNECTION_POOL_IDLE_CON_TEST_PERIOD )
+            .put( CONNECTION_POOL_NUM_THREADS, CLICKHOUSE_CONNECTION_POOL_NUM_THREADS )
             .build() ),
         POSTGRESQL( Collections.emptyMap() );
 
