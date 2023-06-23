@@ -719,7 +719,7 @@ public class JdbcEventStore implements EventStore
             .append( " psi.uid as psi_uid, " )
             .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, " )
             .append(
-                "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
+                "psi.eventid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
             .append(
                 "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, " )
             .append(

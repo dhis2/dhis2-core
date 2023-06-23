@@ -6,7 +6,7 @@
 <hibernate-mapping>
   <class name="org.hisp.dhis.program.Event" table="event">
 
-    <id name="id" column="programstageinstanceid">
+    <id name="id" column="eventid">
       <generator class="sequence">
         <param name="sequence_name">programstageinstance_sequence</param>
       </generator>

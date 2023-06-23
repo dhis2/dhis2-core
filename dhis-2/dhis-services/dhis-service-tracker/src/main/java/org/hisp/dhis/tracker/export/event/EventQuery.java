@@ -47,7 +47,7 @@ public class EventQuery
     @RequiredArgsConstructor
     public enum COLUMNS
     {
-        ID( new TableColumn( "psi", "programstageinstanceid" ) ),
+        ID( new TableColumn( "psi", "eventid" ) ),
         UID( new TableColumn( "psi", "uid" ) ),
         STATUS( new TableColumn( "psi", "status" ) ),
         EXECUTION_DATE( new TableColumn( "psi", "executiondate" ) ),

@@ -1045,7 +1045,7 @@ public class JdbcEventStore implements EventStore
             .append( " psi.uid as psi_uid, " )
             .append( "ou.uid as ou_uid, p.uid as p_uid, ps.uid as ps_uid, " )
             .append(
-                "psi.programstageinstanceid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
+                "psi.eventid as psi_id, psi.status as psi_status, psi.executiondate as psi_executiondate, " )
             .append(
                 "psi.eventdatavalues as psi_eventdatavalues, psi.duedate as psi_duedate, psi.completedby as psi_completedby, psi.storedby as psi_storedby, " )
             .append(
@@ -1978,7 +1978,7 @@ public class JdbcEventStore implements EventStore
                 @Override
                 protected void setPrimaryKey( Map<String, Object> primaryKey, Event event )
                 {
-                    event.setId( (Long) primaryKey.get( "programstageinstanceid" ) );
+                    event.setId( (Long) primaryKey.get( "eventid" ) );
                 }
 
             } );
@@ -2004,12 +2004,12 @@ public class JdbcEventStore implements EventStore
             /* a Map where [key] -> PSI UID , [value] -> PSI ID */
             Map<String, Long> persisted = jdbcTemplate
                 .queryForList(
-                    "SELECT uid, programstageinstanceid from event where programstageinstanceid in ( "
+                    "SELECT uid, eventid from event where eventid in ( "
                         + Joiner.on( ";" ).join( eventIds )
                         + ")",
                     Maps.newHashMap() )
                 .stream().collect(
-                    Collectors.toMap( s -> (String) s.get( "uid" ), s -> (Long) s.get( "programstageinstanceid" ) ) );
+                    Collectors.toMap( s -> (String) s.get( "uid" ), s -> (Long) s.get( "eventid" ) ) );
 
             return batch.stream()
                 .filter( psi -> persisted.containsKey( psi.getUid() ) )

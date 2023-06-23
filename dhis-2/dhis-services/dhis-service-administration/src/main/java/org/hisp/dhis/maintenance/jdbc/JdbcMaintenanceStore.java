@@ -99,7 +99,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             return 0;
         }
 
-        String eventSelect = "(select programstageinstanceid from event where deleted is true)";
+        String eventSelect = "(select eventid from event where deleted is true)";
 
         String pmSelect = "(select id from programmessage where programstageinstanceid in " + eventSelect + " )";
 
@@ -177,7 +177,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         List<String> associatedEvents = getDeletionEntities(
             "select uid from event where programinstanceid in " + enrollmentSelect );
 
-        String eventSelect = "(select programstageinstanceid from event where programinstanceid in "
+        String eventSelect = "(select eventid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String pmSelect = "(select id from programmessage where programinstanceid in " + enrollmentSelect + " )";
@@ -244,7 +244,7 @@ public class JdbcMaintenanceStore implements MaintenanceStore
          * Prepare filter queries for hard delete
          */
 
-        String eventSelect = "(select programstageinstanceid from event where programinstanceid in "
+        String eventSelect = "(select eventid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String teiPmSelect = "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";

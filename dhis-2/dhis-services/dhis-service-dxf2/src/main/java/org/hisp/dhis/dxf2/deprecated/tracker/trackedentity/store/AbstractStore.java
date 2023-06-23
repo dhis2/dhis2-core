@@ -67,7 +67,7 @@ public abstract class AbstractStore
         + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
         + "where ri.relationshipitemid = r.to_relationshipitemid), (select 'psi|' || psi.uid "
         + "from event psi "
-        + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "join relationshipitem ri on psi.eventid = ri.programstageinstanceid "
         + "where ri.relationshipitemid = r.to_relationshipitemid)) to_uid, "
         + "coalesce((select 'tei|' || tei.uid from trackedentityinstance tei "
         + "join relationshipitem ri on tei.trackedentityinstanceid = ri.trackedentityinstanceid "
@@ -76,7 +76,7 @@ public abstract class AbstractStore
         + "join relationshipitem ri on pi.programinstanceid = ri.programinstanceid "
         + "where ri.relationshipitemid = r.from_relationshipitemid), (select 'psi|' || psi.uid "
         + "from event psi "
-        + "join relationshipitem ri on psi.programstageinstanceid = ri.programstageinstanceid "
+        + "join relationshipitem ri on psi.eventid = ri.programstageinstanceid "
         + "where ri.relationshipitemid = r.from_relationshipitemid)) from_uid "
         + "from relationship r join relationshiptype rst on r.relationshiptypeid = rst.relationshiptypeid "
         + "where r.relationshipid in (:ids)";
