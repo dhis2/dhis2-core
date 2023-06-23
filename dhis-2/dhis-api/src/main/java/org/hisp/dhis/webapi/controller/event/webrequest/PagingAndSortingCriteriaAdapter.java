@@ -141,6 +141,24 @@ public abstract class PagingAndSortingCriteriaAdapter implements PagingCriteria,
         return !CollectionUtils.emptyIfNull( getOrder() ).isEmpty();
     }
 
+    /**
+     * Returns the page number, falls back to default value of 1 if not
+     * specified.
+     */
+    public int getPageWithDefault()
+    {
+        return page != null && page > 0 ? page : DEFAULT_PAGE;
+    }
+
+    /**
+     * Returns the page size, falls back to default value of 50 if not
+     * specified.
+     */
+    public int getPageSizeWithDefault()
+    {
+        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+    }
+
     public interface EntityNameSupplier
     {
         String getEntityName();
