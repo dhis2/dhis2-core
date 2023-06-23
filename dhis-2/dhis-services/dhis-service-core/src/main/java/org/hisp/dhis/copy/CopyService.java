@@ -41,6 +41,7 @@ import javax.annotation.Nonnull;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentService;
@@ -57,6 +58,8 @@ import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.program.ProgramTrackedEntityAttribute;
 import org.hisp.dhis.programrule.ProgramRuleVariable;
 import org.hisp.dhis.programrule.ProgramRuleVariableService;
+import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -93,6 +96,10 @@ public class CopyService
 
     private final EnrollmentService enrollmentService;
 
+    private final AclService aclService;
+
+    private final CurrentUserService currentUserService;
+
     /**
      * Method to copy a {@link Program} from a UID
      *
@@ -102,15 +109,22 @@ public class CopyService
      *        {@link Program} name property.
      * @return {@link Program} copy
      * @throws NotFoundException if the {@link Program} is not found.
+     * @throws ForbiddenException if {@link org.hisp.dhis.user.User} has no
+     *         write access to {@link Program}
      */
     @Transactional
     public Program copyProgram( String uid, Map<String, String> copyOptions )
-        throws NotFoundException
+        throws NotFoundException,
+        ForbiddenException
     {
         Program original = programService.getProgram( uid );
         if ( original != null )
         {
-            return applyAllProgramCopySteps( original, copyOptions );
+            if ( aclService.canWrite( currentUserService.getCurrentUser(), original ) )
+            {
+                return applyAllProgramCopySteps( original, copyOptions );
+            }
+            throw new ForbiddenException( "You don't have write permissions for Program " + uid );
         }
         throw new NotFoundException( Program.class, uid );
     }

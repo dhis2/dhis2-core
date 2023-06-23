@@ -27,9 +27,6 @@
  */
 package org.hisp.dhis.trackedentity;
 
-import java.util.Collections;
-import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.organisationunit.OrganisationUnit;
@@ -310,31 +307,4 @@ public class DefaultTrackedEntityProgramOwnerService implements TrackedEntityPro
         }
         return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwner( entityInstance.getId(), program.getId() );
     }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds )
-    {
-        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityProgramOwner> getTrackedEntityProgramOwnersUsingId( List<Long> teiIds, Program program )
-    {
-        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwners( teiIds, program.getId() );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUidsUsingId( List<Long> teiIds,
-        Program program )
-    {
-        if ( teiIds.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-        return trackedEntityProgramOwnerStore.getTrackedEntityProgramOwnersUids( teiIds, program.getId() );
-    }
-
 }

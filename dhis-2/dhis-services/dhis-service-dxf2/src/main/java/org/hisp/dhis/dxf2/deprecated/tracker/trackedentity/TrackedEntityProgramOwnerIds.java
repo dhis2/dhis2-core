@@ -25,31 +25,31 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
 public class TrackedEntityProgramOwnerIds
 {
-    private final String trackedEntityId;
+    private final String trackedEntityUid;
 
-    private final String programId;
+    private final String programUid;
 
     private final String orgUnitUid;
 
-    public TrackedEntityProgramOwnerIds( String trackedEntityId, String programId, String orgUnitUid )
+    public TrackedEntityProgramOwnerIds( String trackedEntityUid, String programUid, String orgUnitUid )
     {
-        this.trackedEntityId = trackedEntityId;
-        this.programId = programId;
+        this.trackedEntityUid = trackedEntityUid;
+        this.programUid = programUid;
         this.orgUnitUid = orgUnitUid;
     }
 
-    public String getTrackedEntityId()
+    public String getTrackedEntityUid()
     {
-        return trackedEntityId;
+        return trackedEntityUid;
     }
 
-    public String getProgramId()
+    public String getProgramUid()
     {
-        return programId;
+        return programUid;
     }
 
     public String getOrgUnitUid()

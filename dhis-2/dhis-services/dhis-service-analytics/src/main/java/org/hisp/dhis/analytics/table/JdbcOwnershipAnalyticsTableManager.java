@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.table;
 
 import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.StringUtils.SPACE;
 import static org.hisp.dhis.analytics.ColumnDataType.CHARACTER_11;
 import static org.hisp.dhis.analytics.ColumnDataType.DATE;
 import static org.hisp.dhis.analytics.ColumnNotNullConstraint.NOT_NULL;
@@ -212,20 +213,25 @@ public class JdbcOwnershipAnalyticsTableManager
         // (The start date in the analytics table will be a far past date for
         // the first row for each TEI, or the previous row's end date plus one
         // day in subsequent rows for that TEI.)
+        //
+        // Rows in programownershiphistory that don't have organisationunitid
+        // will be filtered out.
 
         return sb.append( " from (" +
-            "select h.trackedentityinstanceid, '" + HISTORY_TABLE_ID
-            + "' as startdate, h.enddate as enddate, h.organisationunitid " +
+            "select h.trackedentityinstanceid, '" + HISTORY_TABLE_ID +
+            "' as startdate, h.enddate as enddate, h.organisationunitid " +
             "from programownershiphistory h " +
-            "where h.programid=" + program.getId() + " " +
+            "where h.programid=" + program.getId() + SPACE +
+            "and h.organisationunitid is not null " +
             "union " +
-            "select o.trackedentityinstanceid, '" + TEI_OWN_TABLE_ID
-            + "' as startdate, null as enddate, o.organisationunitid " +
+            "select o.trackedentityinstanceid, '" + TEI_OWN_TABLE_ID +
+            "' as startdate, null as enddate, o.organisationunitid " +
             "from trackedentityprogramowner o " +
-            "where o.programid=" + program.getId() + " " +
-            "and exists (select programid from programownershiphistory p " +
+            "where o.programid=" + program.getId() + SPACE +
+            "and exists (select 1 from programownershiphistory p " +
             "where o.trackedentityinstanceid = p.trackedentityinstanceid " +
-            "and p.programid=" + program.getId() + ")" +
+            "and p.programid=" + program.getId() + SPACE +
+            "and p.organisationunitid is not null)" +
             ") a " +
             "inner join trackedentityinstance tei on a.trackedentityinstanceid = tei.trackedentityinstanceid " +
             "inner join organisationunit ou on a.organisationunitid = ou.organisationunitid " +

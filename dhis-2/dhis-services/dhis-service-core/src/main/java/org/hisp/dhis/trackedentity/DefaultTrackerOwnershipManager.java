@@ -36,11 +36,9 @@ import java.util.function.Supplier;
 
 import lombok.extern.slf4j.Slf4j;
 
-import org.apache.commons.lang3.tuple.Pair;
 import org.hibernate.Hibernate;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -288,42 +286,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
     }
 
     @Override
-    @Transactional( readOnly = true )
-    public boolean hasAccessUsingContext( User user, String trackedEntityUid, String programUid,
-        EventContext eventContext )
-    {
-        Program program = eventContext.getProgramsByUid().get( programUid );
-
-        if ( canSkipOwnershipCheck( user, program ) )
-        {
-            return true;
-        }
-
-        EventContext.TrackedEntityOuInfo trackedEntityOuInfo = eventContext.getTrackedEntityOuInfoByUid()
-            .get( trackedEntityUid );
-
-        if ( trackedEntityOuInfo == null )
-        {
-            return true;
-        }
-
-        OrganisationUnit ou = Optional.ofNullable( eventContext.getOrgUnitByTeiUidAndProgramUidPairs().get(
-            Pair.of( trackedEntityUid, programUid ) ) )
-            .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
-            .orElseGet( () -> organisationUnitService.getOrganisationUnit( trackedEntityOuInfo.getOrgUnitId() ) );
-
-        if ( program.isOpen() || program.isAudited() )
-        {
-            return organisationUnitService.isInUserSearchHierarchyCached( user, ou );
-        }
-        else
-        {
-            return organisationUnitService.isInUserHierarchyCached( user, ou )
-                || hasTemporaryAccess( trackedEntityOuInfo, program, user );
-        }
-    }
-
-    @Override
     public boolean canSkipOwnershipCheck( User user, Program program )
     {
         return program == null || canSkipOwnershipCheck( user, program.getProgramType() );
@@ -430,29 +392,6 @@ public class DefaultTrackerOwnershipManager implements TrackerOwnershipManager
                 }
                 return (programTempOwnerService.getValidTempOwnerRecordCount( program, trackedEntity, user ) > 0);
             } );
-    }
-
-    /**
-     * Check if the user has temporary access for a specific TEI-program
-     * combination.
-     *
-     * @param trackedEntityOuInfo The tracked entity instance object
-     * @param program The program object
-     * @param user The user object against which the check has to be performed
-     * @return true if the user has temporary access, false otherwise
-     */
-    private boolean hasTemporaryAccess( EventContext.TrackedEntityOuInfo trackedEntityOuInfo,
-        Program program, User user )
-    {
-        if ( canSkipOwnershipCheck( user, program ) || trackedEntityOuInfo == null )
-        {
-            return true;
-        }
-
-        return tempOwnerCache
-            .get( getTempOwnershipCacheKey(
-                trackedEntityOuInfo.getTrackedEntityUid(), program.getUid(), user.getUid() ) )
-            .orElse( false );
     }
 
     /**
