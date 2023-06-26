@@ -208,6 +208,24 @@ class EventImportValidationTest extends TrackerTest
     }
 
     @Test
+    void shouldSuccessfullyImportRepeatedEventsInEventProgram()
+        throws IOException
+    {
+        TrackerImportParams trackerImportParams = fromJson(
+            "tracker/validations/program_events_non-repeatable-programstage_part1.json" );
+
+        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+
+        assertNoErrors( importReport );
+
+        trackerImportParams = fromJson( "tracker/validations/program_events_non-repeatable-programstage_part2.json" );
+
+        importReport = trackerImportService.importTracker( trackerImportParams );
+
+        assertNoErrors( importReport );
+    }
+
+    @Test
     void testWrongScheduledDateString()
     {
         assertThrows( IOException.class,
