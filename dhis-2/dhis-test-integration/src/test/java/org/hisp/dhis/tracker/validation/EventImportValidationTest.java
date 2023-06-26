@@ -211,12 +211,12 @@ class EventImportValidationTest extends TrackerTest
 
     @Test
     void shouldSuccessfullyImportRepeatedEventsInEventProgram()
-            throws IOException
+        throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson(
-                "tracker/validations/program_events_non-repeatable-programstage_part1.json" );
+            "tracker/validations/program_events_non-repeatable-programstage_part1.json" );
 
-        ImportReport importReport = trackerImportService.importTracker( trackerImportParams );
+        TrackerImportReport importReport = trackerImportService.importTracker( trackerImportParams );
 
         assertNoErrors( importReport );
 
