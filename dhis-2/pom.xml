@@ -173,7 +173,7 @@
     <commons-math3.version>3.6.1</commons-math3.version>
     <commons-validator.version>1.7</commons-validator.version>
     <commons-io.version>2.13.0</commons-io.version>
-    <commons-codec.version>1.15</commons-codec.version>
+    <commons-codec.version>1.16.0</commons-codec.version>
     <commons-jexl.version>2.1.1</commons-jexl.version>
     <commons-email.version>1.5</commons-email.version>
     <httpcomponents-core.version>4.4.16</httpcomponents-core.version>
