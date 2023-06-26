@@ -40,7 +40,6 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -325,7 +324,8 @@ public class User
      */
     public boolean hasAuthorities()
     {
-        return getAllAuthorities().stream().anyMatch( Objects::nonNull );
+        return userRoles != null
+            && userRoles.stream().anyMatch( role -> role != null && !role.getAuthorities().isEmpty() );
     }
 
     /**
@@ -1014,7 +1014,8 @@ public class User
 
     public boolean hasManagedGroups()
     {
-        return getManagedGroups().stream().anyMatch( Objects::nonNull );
+        return groups != null
+            && groups.stream().anyMatch( group -> group != null && !group.getManagedGroups().isEmpty() );
     }
 
     /**
