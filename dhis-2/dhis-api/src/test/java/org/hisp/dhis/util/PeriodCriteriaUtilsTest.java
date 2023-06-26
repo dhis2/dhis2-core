@@ -28,6 +28,7 @@
 package org.hisp.dhis.util;
 
 import static org.hisp.dhis.common.DimensionalObject.PERIOD_DIM_ID;
+import static org.hisp.dhis.period.RelativePeriodEnum.LAST_3_DAYS;
 import static org.hisp.dhis.period.RelativePeriodEnum.LAST_5_YEARS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -79,6 +80,36 @@ class PeriodCriteriaUtilsTest
         assertNull( eventsAnalyticsQueryCriteria.getDesc() );
         assertEquals( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().get(),
             PERIOD_DIM_ID + ":" + LAST_5_YEARS );
+    }
+
+    @Test
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Event_forNoRelativePeriod_andFilter()
+    {
+        // given
+        EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = configureEventsAnalyticsQueryCriteriaWithFilter(
+            PERIOD_DIM_ID + ":" + LAST_3_DAYS.name() );
+
+        // when
+        // then
+        assertFalse( eventsAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
+        assertTrue( eventsAnalyticsQueryCriteria.getFilter().stream().findFirst().isPresent() );
+        assertEquals( eventsAnalyticsQueryCriteria.getFilter().stream().findFirst().get(),
+            PERIOD_DIM_ID + ":" + LAST_3_DAYS );
+    }
+
+    @Test
+    void testDefineDefaultPeriodDimensionCriteriaWithOrderBy_Enrollment_forNoRelativePeriod_andFilter()
+    {
+        // given
+        EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria = configureEnrollmentsAnalyticsQueryCriteriaWithFilter(
+            PERIOD_DIM_ID + ":" + LAST_3_DAYS.name() );
+
+        // when
+        // then
+        assertFalse( enrollmentAnalyticsQueryCriteria.getDimension().stream().findFirst().isPresent() );
+        assertTrue( enrollmentAnalyticsQueryCriteria.getFilter().stream().findFirst().isPresent() );
+        assertEquals( enrollmentAnalyticsQueryCriteria.getFilter().stream().findFirst().get(),
+            PERIOD_DIM_ID + ":" + LAST_3_DAYS );
     }
 
     @Test
@@ -184,6 +215,36 @@ class PeriodCriteriaUtilsTest
         }
 
         return eventsAnalyticsQueryCriteria;
+    }
+
+    private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithFilter( String period )
+    {
+        EventsAnalyticsQueryCriteria eventsAnalyticsQueryCriteria = getDefaultEventsAnalyticsQueryCriteria();
+
+        if ( period != null )
+        {
+            Set<String> filters = new HashSet<>();
+            filters.add( period );
+            eventsAnalyticsQueryCriteria.setFilter( filters );
+            eventsAnalyticsQueryCriteria.getFilter().add( period );
+        }
+
+        return eventsAnalyticsQueryCriteria;
+    }
+
+    private EnrollmentAnalyticsQueryCriteria configureEnrollmentsAnalyticsQueryCriteriaWithFilter( String period )
+    {
+        EnrollmentAnalyticsQueryCriteria enrollmentAnalyticsQueryCriteria = getDefaultEnrollmentsAnalyticsQueryCriteria();
+
+        if ( period != null )
+        {
+            Set<String> filters = new HashSet<>();
+            filters.add( period );
+            enrollmentAnalyticsQueryCriteria.setFilter( filters );
+            enrollmentAnalyticsQueryCriteria.getFilter().add( period );
+        }
+
+        return enrollmentAnalyticsQueryCriteria;
     }
 
     private EventsAnalyticsQueryCriteria configureEventsAnalyticsQueryCriteriaWithEventDate()
