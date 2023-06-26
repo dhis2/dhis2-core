@@ -84,6 +84,7 @@ public class ProgramStageInstanceProgramStageMapSupplier
             .filter( Objects::nonNull )
             .map( preheat::getProgramStage )
             .filter( Objects::nonNull )
+            .filter( ps -> ps.getProgram().isRegistration() )
             .filter( ps -> !ps.getRepeatable() )
             .map( ProgramStage::getUid )
             .distinct()
