@@ -208,7 +208,7 @@ class EventImportValidationTest extends TrackerTest
     }
 
     @Test
-    void testNonRepeatableProgramStageForProgramEvent()
+    void shouldSuccessfullyImportRepeatedEventsInEventProgram()
         throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson(
