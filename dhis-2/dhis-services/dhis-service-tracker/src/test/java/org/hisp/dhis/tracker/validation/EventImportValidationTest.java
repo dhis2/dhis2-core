@@ -272,16 +272,16 @@ class EventImportValidationTest extends AbstractImportValidationTest
 
     @Test
     void shouldSuccessfullyImportRepeatedEventsInEventProgram()
-            throws IOException
+        throws IOException
     {
         TrackerImportParams trackerImportParams = fromJson(
-                "tracker/validations/program_events_non-repeatable-programstage_part1.json",
-                userService.getUser( ADMIN_USER_UID ) );
+            "tracker/validations/program_events_non-repeatable-programstage_part1.json",
+            userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         TrackerImportReport trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
         trackerImportParams = fromJson( "tracker/validations/program_events_non-repeatable-programstage_part2.json",
-                userService.getUser( ADMIN_USER_UID ) );
+            userService.getUser( ADMIN_USER_UID ) );
         trackerImportParams.setImportStrategy( TrackerImportStrategy.CREATE );
         trackerImportReport = trackerImportService.importTracker( trackerImportParams );
         assertEquals( 0, trackerImportReport.getValidationReport().getErrors().size() );
