@@ -1,0 +1,69 @@
+{
+  "importMode": "COMMIT",
+  "idSchemes": {
+    "dataElementIdScheme": {
+      "idScheme": "UID"
+    },
+    "orgUnitIdScheme": {
+      "idScheme": "UID"
+    },
+    "programIdScheme": {
+      "idScheme": "UID"
+    },
+    "programStageIdScheme": {
+      "idScheme": "UID"
+    },
+    "idScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionComboIdScheme": {
+      "idScheme": "UID"
+    },
+    "categoryOptionIdScheme": {
+      "idScheme": "UID"
+    }
+  },
+  "importStrategy": "CREATE",
+  "atomicMode": "ALL",
+  "flushMode": "AUTO",
+  "validationMode": "FULL",
+  "skipPatternValidation": false,
+  "skipSideEffects": false,
+  "skipRuleEngine": false,
+  "trackedEntities": [],
+  "enrollments": [],
+  "events": [
+    {
+      "event": "E8o1E9tApYY",
+      "status": "ACTIVE",
+      "program": {
+        "idScheme": "UID",
+        "identifier": "VVV1E9tAppy"
+      },
+      "programStage": {
+        "idScheme": "UID",
+        "identifier": "OOHlXaMvgX2"
+      },
+      "enrollment": "MNWZ6hnuhSw",
+      "orgUnit": {
+        "idScheme": "UID",
+        "identifier": "QfUVllTs6cS"
+      },
+      "orgUnitName": "TA org_unit lvl2",
+      "relationships": [],
+      "occurredAt": "2019-08-01T00:00:00.000",
+      "scheduledAt": "2019-08-19T13:59:13.688",
+      "storedBy": "admin",
+      "followup": false,
+      "deleted": false,
+      "createdAt": "2019-08-19T13:58:26.964",
+      "updatedAt": "2019-08-19T13:59:13.694",
+      "attributeOptionCombo": {},
+      "attributeCategoryOptions": [],
+      "dataValues": [],
+      "notes": []
+    }
+  ],
+  "relationships": [],
+  "username": "system-process"
+}
