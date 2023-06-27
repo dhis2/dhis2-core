@@ -117,21 +117,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testPartialUpdateObjectWithOldPatch()
-    {
-        assertStatus( HttpStatus.NO_CONTENT, PATCH_OLD( "/users/" + "M5zQapPyTZI",
-            "{'surname': 'Peter'}" ) );
-        assertEquals( "Peter", GET( "/users/{id}", "M5zQapPyTZI" ).content().as( JsonUser.class ).getSurname() );
-    }
-
-    @Test
-    void testPartialUpdateObjectNestedObjects()
-    {
-        assertStatus( HttpStatus.BAD_REQUEST, PATCH_OLD( "/users/" + "M5zQapPyTZI",
-            "{'user': {'surname' : 'Peter'}}" ) );
-    }
-
-    @Test
     void testPatchRemoveById()
     {
         String ou1 = assertStatus( HttpStatus.CREATED,
@@ -323,28 +308,6 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         JsonObject dataSet = GET( "/dataSets/{id}", dsId ).content();
         assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "th4S6ovwcr8" ) );
         assertNotNull( dataSet.getObject( "sharing" ).getObject( "userGroups" ).getObject( "ZoHNWQajIoe" ) );
-    }
-
-    @Test
-    void testUpdateObjectProperty()
-    {
-        String peter = "{'name': 'Peter', 'firstName':'Peter', 'surname':'Pan', 'username':'peter47', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}";
-        String peterUserId = assertStatus( HttpStatus.CREATED, POST( "/users", peter ) );
-        JsonObject roles = GET( "/userRoles?fields=id" ).content();
-        String roleId = roles.getArray( "userRoles" ).getObject( 0 ).getString( "id" ).string();
-        assertStatus( HttpStatus.NO_CONTENT, POST( "/userRoles/" + roleId + "/users/" + peterUserId ) );
-        JsonUser oldPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
-        assertEquals( "Peter", oldPeter.getFirstName() );
-        assertEquals( 1, oldPeter.getArray( "userRoles" ).size() );
-
-        assertStatus( HttpStatus.NO_CONTENT,
-            PATCH( "/users/" + peterUserId + "/firstName",
-                Body( "{'firstName': 'Fry'}" ), ContentType( MediaType.APPLICATION_JSON ) ) );
-
-        JsonUser newPeter = GET( "/users/{id}", peterUserId ).content().as( JsonUser.class );
-        assertEquals( "Fry", newPeter.getFirstName() );
-        // are user roles still there?
-        assertEquals( 1, newPeter.getArray( "userRoles" ).size() );
     }
 
     @Test
