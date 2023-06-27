@@ -62,15 +62,15 @@ public class ValidationHelper
      * @param meta
      */
     public static void validateHeader( ApiResponse response, int headerIndex, String name,
-                                       String column, String valueType, String type, boolean hidden, boolean meta )
+        String column, String valueType, String type, boolean hidden, boolean meta )
     {
         response.validate()
-                .body( "headers[" + headerIndex + "].name", equalTo( name ) )
-                .body( "headers[" + headerIndex + "].column", equalTo( column ) )
-                .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
-                .body( "headers[" + headerIndex + "].type", equalTo( type ) )
-                .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
-                .body( "headers[" + headerIndex + "].meta", is( meta ) );
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].meta", is( meta ) );
     }
 
     /**
@@ -89,16 +89,16 @@ public class ValidationHelper
      * @param optionSet
      */
     public static void validateHeader( ApiResponse response, int headerIndex, String name,
-                                       String column, String valueType, String type, boolean hidden, boolean meta, String optionSet )
+        String column, String valueType, String type, boolean hidden, boolean meta, String optionSet )
     {
         response.validate()
-                .body( "headers[" + headerIndex + "].name", equalTo( name ) )
-                .body( "headers[" + headerIndex + "].column", equalTo( column ) )
-                .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
-                .body( "headers[" + headerIndex + "].type", equalTo( type ) )
-                .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
-                .body( "headers[" + headerIndex + "].meta", is( meta ) )
-                .body( "headers[" + headerIndex + "].optionSet", is( optionSet ) );
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].meta", is( meta ) )
+            .body( "headers[" + headerIndex + "].optionSet", is( optionSet ) );
     }
 
     /**
@@ -120,18 +120,18 @@ public class ValidationHelper
      */
 
     public static void validateHeader( ApiResponse response, int headerIndex, String name,
-                                       String column, String valueType, String type, boolean hidden, boolean meta, String programStage,
-                                       String repeatableStageParams, int stageOffset )
+        String column, String valueType, String type, boolean hidden, boolean meta, String programStage,
+        String repeatableStageParams, int stageOffset )
     {
         response.validate()
-                .body( "headers[" + headerIndex + "].name", equalTo( name ) )
-                .body( "headers[" + headerIndex + "].column", equalTo( column ) )
-                .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
-                .body( "headers[" + headerIndex + "].type", equalTo( type ) )
-                .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
-                .body( "headers[" + headerIndex + "].programStage", equalTo( programStage ) )
-                .body( "headers[" + headerIndex + "].repeatableStageParams", equalTo( repeatableStageParams ) )
-                .body( "headers[" + headerIndex + "].stageOffset", equalTo( stageOffset ) );
+            .body( "headers[" + headerIndex + "].name", equalTo( name ) )
+            .body( "headers[" + headerIndex + "].column", equalTo( column ) )
+            .body( "headers[" + headerIndex + "].valueType", equalTo( valueType ) )
+            .body( "headers[" + headerIndex + "].type", equalTo( type ) )
+            .body( "headers[" + headerIndex + "].hidden", is( hidden ) )
+            .body( "headers[" + headerIndex + "].programStage", equalTo( programStage ) )
+            .body( "headers[" + headerIndex + "].repeatableStageParams", equalTo( repeatableStageParams ) )
+            .body( "headers[" + headerIndex + "].stageOffset", equalTo( stageOffset ) );
     }
 
     /**
@@ -145,11 +145,11 @@ public class ValidationHelper
      * @param repeatableStageValueStatus
      */
     public static void validateRowContext( ApiResponse response, int rowIndex, int colIndex,
-                                           String repeatableStageValueStatus )
+        String repeatableStageValueStatus )
     {
         response.validate()
-                .body( "rowContext." + rowIndex + "." + colIndex + ".valueStatus",
-                        equalTo( repeatableStageValueStatus ) );
+            .body( "rowContext." + rowIndex + "." + colIndex + ".valueStatus",
+                equalTo( repeatableStageValueStatus ) );
     }
 
     /**
