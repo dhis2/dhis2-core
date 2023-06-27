@@ -32,13 +32,11 @@ import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.importReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.objectReport;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.ok;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.typeReport;
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.validateAndThrowErrors;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 import static org.springframework.http.MediaType.APPLICATION_XML_VALUE;
 import static org.springframework.http.MediaType.TEXT_XML_VALUE;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -76,7 +74,6 @@ import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.feedback.Status;
 import org.hisp.dhis.feedback.TypeReport;
-import org.hisp.dhis.hibernate.exception.UpdateAccessDeniedException;
 import org.hisp.dhis.importexport.ImportStrategy;
 import org.hisp.dhis.jsonpatch.BulkJsonPatch;
 import org.hisp.dhis.jsonpatch.BulkPatchManager;
@@ -88,7 +85,6 @@ import org.hisp.dhis.patch.PatchParams;
 import org.hisp.dhis.patch.PatchService;
 import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.schema.MergeService;
-import org.hisp.dhis.schema.Property;
 import org.hisp.dhis.schema.validation.SchemaValidator;
 import org.hisp.dhis.sharing.SharingService;
 import org.hisp.dhis.translation.Translation;
@@ -168,119 +164,6 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
 
     @Autowired
     protected EventHookPublisher eventHookPublisher;
-
-    // --------------------------------------------------------------------------
-    // OLD PATCH
-    // --------------------------------------------------------------------------
-
-    @OpenApi.Ignore
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Param( OpenApi.EntityType.class )
-    @PatchMapping( value = "/{uid}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    @SuppressWarnings( "java:S1130" )
-    public void partialUpdateObject(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid, @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser, HttpServletRequest request )
-        throws NotFoundException,
-        ForbiddenException,
-        BadRequestException,
-        ConflictException,
-        IOException,
-        JsonPatchException
-    {
-        WebOptions options = new WebOptions( rpParameters );
-
-        T patchedObject = getEntity( pvUid, options );
-        T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
-
-        if ( !aclService.canUpdate( currentUser, patchedObject ) )
-        {
-            throw new UpdateAccessDeniedException( "You don't have the proper permissions to update this object." );
-        }
-
-        Patch patch = diff( request );
-
-        patchService.apply( patch, patchedObject );
-        prePatchEntity( persistedObject, patchedObject );
-
-        validateAndThrowErrors( () -> schemaValidator.validate( patchedObject ) );
-        manager.update( patchedObject );
-
-        postPatchEntity( null, patchedObject );
-    }
-
-    @OpenApi.Params( WebOptions.class )
-    @OpenApi.Params( MetadataImportParams.class )
-    @OpenApi.Param( OpenApi.EntityType.class )
-    @PatchMapping( "/{uid}/{property}" )
-    @ResponseStatus( value = HttpStatus.NO_CONTENT )
-    public void updateObjectProperty(
-        @OpenApi.Param( UID.class ) @PathVariable( "uid" ) String pvUid,
-        @OpenApi.Param( PropertyNames.class ) @PathVariable( "property" ) String pvProperty,
-        @RequestParam Map<String, String> rpParameters,
-        @CurrentUser User currentUser,
-        HttpServletRequest request )
-        throws NotFoundException,
-        ConflictException,
-        ForbiddenException,
-        BadRequestException,
-        IOException,
-        JsonPatchException
-    {
-        WebOptions options = new WebOptions( rpParameters );
-
-        if ( !getSchema().hasProperty( pvProperty ) )
-        {
-            throw new NotFoundException( "Property " + pvProperty + " does not exist on " + getEntityName() );
-        }
-
-        Property property = getSchema().getProperty( pvProperty );
-        T patchedObject = getEntity( pvUid, options );
-        T persistedObject = jsonPatchManager.apply( new JsonPatch( List.of() ), patchedObject );
-
-        if ( !aclService.canUpdate( currentUser, patchedObject ) )
-        {
-            throw new ForbiddenException( "You don't have the proper permissions to update this object." );
-        }
-
-        if ( !property.isWritable() )
-        {
-            throw new ForbiddenException( "This property is read-only." );
-        }
-
-        T object = deserialize( request );
-
-        if ( object == null )
-        {
-            throw new BadRequestException( "Unknown payload format." );
-        }
-
-        try
-        {
-            Object value = property.getGetterMethod().invoke( object );
-            property.getSetterMethod().invoke( patchedObject, value );
-        }
-        catch ( IllegalAccessException | InvocationTargetException ex )
-        {
-            throw new RuntimeException( ex );
-        }
-        prePatchEntity( persistedObject, patchedObject );
-
-        Map<String, List<String>> parameterValuesMap = contextService.getParameterValuesMap();
-        MetadataImportParams params = importService.getParamsFromMap( parameterValuesMap );
-        params.setUser( currentUser )
-            .setImportStrategy( ImportStrategy.UPDATE )
-            .addObject( patchedObject );
-
-        ImportReport importReport = importService.importMetadata( params );
-        if ( importReport.getStatus() != Status.OK )
-        {
-            throw new ConflictException( "Import has errors." ).setObjectReport( importReport.getFirstObjectReport() );
-        }
-
-        postPatchEntity( null, patchedObject );
-    }
 
     // --------------------------------------------------------------------------
     // PATCH
