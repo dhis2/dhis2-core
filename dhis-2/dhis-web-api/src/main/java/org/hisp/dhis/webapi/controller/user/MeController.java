@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nonnull;
 import javax.servlet.http.HttpServletRequest;
@@ -75,6 +74,8 @@ import org.hisp.dhis.render.RenderService;
 import org.hisp.dhis.security.PasswordManager;
 import org.hisp.dhis.security.acl.Access;
 import org.hisp.dhis.security.acl.AclService;
+import org.hisp.dhis.security.apikey.ApiToken;
+import org.hisp.dhis.security.apikey.ApiTokenService;
 import org.hisp.dhis.system.util.ValidationUtils;
 import org.hisp.dhis.user.CredentialsInfo;
 import org.hisp.dhis.user.CurrentUser;
@@ -174,6 +175,9 @@ public class MeController
     @Nonnull
     private final FileResourceService fileResourceService;
 
+    @Nonnull
+    private ApiTokenService apiTokenService;
+
     private static final Set<UserSettingKey> USER_SETTING_KEYS = new HashSet<>(
         Sets.newHashSet( UserSettingKey.values() ) );
 
@@ -192,12 +196,14 @@ public class MeController
             user, USER_SETTING_KEYS, true );
 
         List<String> programs = programService.getCurrentUserPrograms().stream().map( IdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+            .toList();
 
         List<String> dataSets = dataSetService.getUserDataRead( user ).stream().map( IdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+            .toList();
 
-        MeDto meDto = new MeDto( user, userSettings, programs, dataSets );
+        List<ApiToken> patTokens = apiTokenService.getAllOwning( user );
+
+        MeDto meDto = new MeDto( user, userSettings, programs, dataSets, patTokens );
         determineUserImpersonation( meDto );
 
         // TODO: To remove when we remove old UserCredentials compatibility
@@ -205,6 +211,7 @@ public class MeController
         meDto.setUserCredentials( userCredentialsDto );
 
         var params = org.hisp.dhis.fieldfiltering.FieldFilterParams.of( meDto, fields );
+
         ObjectNode jsonNodes = fieldFilterService.toObjectNodes( params ).get( 0 );
 
         return ResponseEntity.ok( jsonNodes );
