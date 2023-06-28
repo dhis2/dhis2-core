@@ -270,7 +270,7 @@ public class EventOperationParamsMapper
                 throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit.getUid() );
             }
         }
-        else if ( orgUnit.getUid() != null && !trackerAccessManager.canAccess( user, program, orgUnit ) )
+        else if ( orgUnit != null && !trackerAccessManager.canAccess( user, program, orgUnit ) )
         {
             throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit.getUid() );
         }

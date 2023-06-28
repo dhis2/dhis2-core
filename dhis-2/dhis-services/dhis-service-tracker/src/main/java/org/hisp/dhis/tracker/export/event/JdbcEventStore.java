@@ -65,6 +65,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -1693,14 +1694,15 @@ public class JdbcEventStore implements EventStore
 
     private String getAccessibleOrgUnitSql( EventSearchParams params, String ouTable )
     {
-        StringBuilder orgUnitSqlBuilder = new StringBuilder();
+        StringJoiner orgUnitSqlJoiner = new StringJoiner( " or " );
+        List<OrganisationUnit> orgUnits = params.getAccessibleOrgUnits();
 
-        for ( OrganisationUnit orgUnit : params.getAccessibleOrgUnits() )
+        for ( OrganisationUnit orgUnit : orgUnits )
         {
-            orgUnitSqlBuilder.append( " or " ).append( getSelectedOrgUnitsPath( orgUnit, ouTable ) );
+            orgUnitSqlJoiner.add( getSelectedOrgUnitsPath( orgUnit, ouTable ) );
         }
 
-        return orgUnitSqlBuilder.toString().replaceFirst( " or ", "" );
+        return orgUnitSqlJoiner.toString();
     }
 
     private String getChildrenOrgUnitsPath( EventSearchParams params, String ouTable )
