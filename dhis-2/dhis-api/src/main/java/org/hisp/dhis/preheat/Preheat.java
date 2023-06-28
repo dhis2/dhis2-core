@@ -114,8 +114,9 @@ public class Preheat
     private Map<Class<? extends IdentifiableObject>, Map<String, Attribute>> attributesByTargetObjectType = new HashMap<>();
 
     /**
-     * Map of all properties which are {@link org.hisp.dhis.common.SortableObject} mapped by class type.
-     * Value is a set of Property names.
+     * Map of all properties which are
+     * {@link org.hisp.dhis.common.SortableObject} mapped by class type. Value
+     * is a set of Property names.
      */
     private Map<Class<? extends IdentifiableObject>, Set<String>> mapSortableObjectProperties = new HashMap<>();
 
