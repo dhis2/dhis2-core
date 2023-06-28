@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -36,7 +35,6 @@ import lombok.AllArgsConstructor;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hisp.dhis.analytics.SortOrder;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeValue;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -95,7 +93,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             .forEach( property -> {
                 List<IdentifiableObject> collection = ListUtils.emptyIfNull(
                     ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
-                for ( int i=0; i < collection.size(); i++ )
+                for ( int i = 0; i < collection.size(); i++ )
                 {
                     IdentifiableObject item = collection.get( i );
                     IdentifiableObject preheatedItem = bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
@@ -112,6 +110,7 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
 
     private List<Property> findSortableProperty( Schema schema )
     {
+        // TODO: Need to improve the performance by adding Map<Class, List<String>> mapSortableObjectProperties in Preheat
         return schema.getPersistedProperties().values().stream().filter( p -> p.isCollection()
             && SortableObject.class.isAssignableFrom( p.getItemKlass() )
             && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )

@@ -220,8 +220,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         assertEquals( 2, response.getObject( "options" ).size() );
         assertEquals( 0, response.getNumber( "options[0].sortOrder" ).intValue() );
         assertEquals( 5, response.getNumber( "options[1].sortOrder" ).intValue() );
-        assertEquals( "Uh4HvjK6zg3",  response.getString( "options[0].id" ).string() );
-        assertEquals( "BQMei56UBl6",  response.getString( "options[1].id" ).string() );
+        assertEquals( "Uh4HvjK6zg3", response.getString( "options[0].id" ).string() );
+        assertEquals( "BQMei56UBl6", response.getString( "options[1].id" ).string() );
     }
 
     /**
