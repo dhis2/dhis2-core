@@ -34,6 +34,7 @@ import org.hisp.dhis.common.BaseNameableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.common.ObjectStyle;
+import org.hisp.dhis.common.SortableObject;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
@@ -48,7 +49,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 @JacksonXmlRootElement( localName = "option", namespace = DxfNamespaces.DXF_2_0 )
 public class Option
     extends BaseNameableObject
-    implements MetadataObject
+    implements MetadataObject, SortableObject
 {
     private OptionSet optionSet;
 

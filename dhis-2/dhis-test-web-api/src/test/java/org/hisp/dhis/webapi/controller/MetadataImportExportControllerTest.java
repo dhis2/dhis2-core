@@ -210,16 +210,18 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
             "    [{\"name\": \"Device category\",\"id\": \"RHqFlB1Wm4d\",\"version\": 2,\"valueType\": \"TEXT\",\"options\":[{\"id\": \"Uh4HvjK6zg3\"},{\"id\": \"BQMei56UBl6\"}]}],\n"
             +
             "\"options\":\n" +
-            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 2,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
+            "    [{\"code\": \"Vaccine freezer\",\"name\": \"Vaccine freezer\",\"id\": \"BQMei56UBl6\",\"sortOrder\": 5,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}},\n"
             +
-            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"sortOrder\": 3,\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
+            "    {\"code\": \"Icelined refrigerator\",\"name\": \"Icelined refrigerator\",\"id\": \"Uh4HvjK6zg3\",\"optionSet\":{\"id\": \"RHqFlB1Wm4d\"}}]}" )
             .content( HttpStatus.OK );
 
         JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
-        assertNotNull( response.get( "options[0].sortOrder" ) );
-        assertNotNull( response.get( "options[1].sortOrder" ) );
+        assertEquals( 0, response.getNumber( "options[0].sortOrder" ).intValue() );
+        assertEquals( 5, response.getNumber( "options[1].sortOrder" ).intValue() );
+        assertEquals( "Uh4HvjK6zg3",  response.getString( "options[0].id" ).string() );
+        assertEquals( "BQMei56UBl6",  response.getString( "options[1].id" ).string() );
     }
 
     /**
