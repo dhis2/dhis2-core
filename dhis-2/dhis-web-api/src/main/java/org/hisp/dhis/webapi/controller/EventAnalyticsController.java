@@ -28,6 +28,9 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.common.DimensionalObjectUtils.getItemsFromParam;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.AGGREGATE;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.OTHER;
+import static org.hisp.dhis.common.RequestTypeAware.EndpointAction.QUERY;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.util.List;
@@ -37,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -49,10 +53,14 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware;
+import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -124,7 +132,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, AGGREGATE );
 
         configResponseForJson( response );
 
@@ -148,7 +156,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, AGGREGATE );
 
         configResponseForJson( response );
 
@@ -248,7 +256,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, OTHER );
 
         configResponseForJson( response );
 
@@ -270,7 +278,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, OTHER );
 
         params = new EventQueryParams.Builder( params )
             .withClusterSize( clusterSize )
@@ -296,7 +304,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, true, QUERY );
 
         configResponseForJson( response );
 
@@ -318,7 +326,7 @@ public class EventAnalyticsController
         DhisApiVersion apiVersion,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         configResponseForJson( response );
 
@@ -389,20 +397,31 @@ public class EventAnalyticsController
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
-        @RequestParam String programStageId,
+        @RequestParam( required = false ) String programId,
+        @RequestParam( required = false ) String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
+        validateRequest( programId, programStageId );
+
         configResponseForJson( response );
 
         List<PrefixedDimension> dimensions = eventAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( programStageId );
+            .getQueryDimensionsByProgramStageId( programId, programStageId );
 
         List<DimensionResponse> dimResponse = dimensionMapperService.toDimensionResponse( dimensions,
             EventAnalyticsPrefixStrategy.of( programStageId ) );
 
         return dimensionFilteringAndPagingService.pageAndFilter( dimResponse, dimensionsCriteria, fields );
+    }
+
+    private void validateRequest( String programId, String programStageId )
+    {
+        if ( StringUtils.isBlank( programId ) && StringUtils.isBlank( programStageId ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7235 ) );
+        }
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,
@@ -411,7 +430,7 @@ public class EventAnalyticsController
         HttpServletResponse response )
         throws Exception
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, AGGREGATE );
 
         contextUtils.configureResponse( response, contentType,
             CacheStrategy.RESPECT_SYSTEM_SETTING, file, false );
@@ -425,7 +444,7 @@ public class EventAnalyticsController
         String contentType, String file, boolean attachment,
         HttpServletResponse response )
     {
-        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false );
+        EventQueryParams params = getEventQueryParams( program, criteria, apiVersion, false, QUERY );
 
         contextUtils.configureResponse( response, contentType, CacheStrategy.RESPECT_SYSTEM_SETTING, file, attachment );
 
@@ -433,7 +452,7 @@ public class EventAnalyticsController
     }
 
     private EventQueryParams getEventQueryParams( String program, EventsAnalyticsQueryCriteria criteria,
-        DhisApiVersion apiVersion, boolean analyzeOnly )
+        DhisApiVersion apiVersion, boolean analyzeOnly, EndpointAction endpointAction )
     {
         criteria.definePageSize( systemSettingManager.getIntSetting( SettingKey.ANALYTICS_MAX_LIMIT ) );
 
@@ -442,7 +461,7 @@ public class EventAnalyticsController
 
         EventDataQueryRequest request = EventDataQueryRequest.builder()
             .fromCriteria( (EventsAnalyticsQueryCriteria) criteria
-                .withQueryEndpointAction()
+                .withEndpointAction( endpointAction )
                 .withEndpointItem( RequestTypeAware.EndpointItem.EVENT ) )
             .program( program )
             .apiVersion( apiVersion ).build();

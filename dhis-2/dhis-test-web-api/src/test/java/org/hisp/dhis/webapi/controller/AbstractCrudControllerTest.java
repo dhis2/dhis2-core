@@ -842,6 +842,17 @@ class AbstractCrudControllerTest extends DhisControllerConvenienceTest
         assertEquals( "My data set", response.getName() );
     }
 
+    @Test
+    void testGetOrgUnitCsvWithOpeningDate()
+    {
+        assertStatus( HttpStatus.CREATED,
+            POST( "/organisationUnits/", "{'name':'My Unit 1', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
+
+        HttpResponse response = GET(
+            "/organisationUnits.csv?fields=id,name,openingDate" );
+        assertTrue( response.content( "text" ).contains( "2020-01-01T00:00:00.000" ) );
+    }
+
     private void assertUserGroupHasOnlyUser( String groupId, String userId )
     {
         JsonList<JsonUser> usersInGroup = GET( "/userGroups/{uid}/users/", groupId, userId ).content()

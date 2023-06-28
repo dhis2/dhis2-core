@@ -32,24 +32,27 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstanceService;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramService;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerService;
-import org.hisp.dhis.trackedentity.TrackedEntityService;
-import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class EventServiceContextBuilder
 {
 
-    private final TrackedEntityService entityInstanceService;
+    private final TrackedEntityInstanceService entityInstanceService;
 
     private final ProgramService programService;
 
@@ -57,17 +60,7 @@ public class EventServiceContextBuilder
 
     private final OrganisationUnitService organisationUnitService;
 
-    public EventServiceContextBuilder( TrackedEntityService entityInstanceService,
-        ProgramService programService, TrackedEntityProgramOwnerService trackedEntityProgramOwnerService,
-        OrganisationUnitService organisationUnitService )
-    {
-        this.entityInstanceService = entityInstanceService;
-        this.programService = programService;
-        this.trackedEntityProgramOwnerService = trackedEntityProgramOwnerService;
-        this.organisationUnitService = organisationUnitService;
-    }
-
-    public EventContext build( List<EventRow> eventRowList, User user )
+    public EventContext build( List<EventRow> eventRowList )
     {
         Map<String, List<EventRow>> eventsByProgramUid = eventRowList.stream()
             .collect( Collectors.groupingBy( EventRow::getProgram ) );
@@ -78,10 +71,10 @@ public class EventServiceContextBuilder
             .distinct()
             .collect( Collectors.toList() );
 
-        Map<String, EventContext.TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
-            .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids, user ).stream()
+        Map<String, TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
+            .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids ).stream()
             .collect( Collectors.toMap(
-                EventContext.TrackedEntityOuInfo::getTrackedEntityUid,
+                TrackedEntityOuInfo::trackedEntityUid,
                 trackedEntityOuInfo -> trackedEntityOuInfo ) );
 
         Map<String, Program> programsByUid = programService.getPrograms(
@@ -94,19 +87,19 @@ public class EventServiceContextBuilder
                 program -> program ) );
 
         Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs = eventsByProgramUid.keySet().stream()
-            .flatMap( programUid -> trackedEntityProgramOwnerService.getTrackedEntityProgramOwnersUidsUsingId(
+            .flatMap( programUid -> entityInstanceService.getTrackedEntityProgramOwnersUidsUsingId(
                 eventsByProgramUid.get( programUid ).stream()
                     .map( EventRow::getTrackedEntityInstance )
                     .filter( Objects::nonNull )
                     .map( trackedEntityInstanceByUid::get )
-                    .map( EventContext.TrackedEntityOuInfo::getTrackerEntityId )
+                    .map( TrackedEntityOuInfo::trackerEntityId )
                     .distinct()
                     .collect( Collectors.toList() ),
                 programsByUid.get( programUid ) ).stream() )
             .collect( Collectors.toMap(
                 trackedEntityProgramOwnerIds -> Pair.of(
-                    trackedEntityProgramOwnerIds.getTrackedEntityId(),
-                    trackedEntityProgramOwnerIds.getProgramId() ),
+                    trackedEntityProgramOwnerIds.getTrackedEntityUid(),
+                    trackedEntityProgramOwnerIds.getProgramUid() ),
                 TrackedEntityProgramOwnerIds::getOrgUnitUid ) );
 
         Map<String, OrganisationUnit> orgUnitsByUid = organisationUnitService

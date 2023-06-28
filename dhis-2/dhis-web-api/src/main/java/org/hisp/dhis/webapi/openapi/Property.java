@@ -55,7 +55,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Extracts the properties of "record" like objects.
- *
+ * <p>
  * This is based on annotations and some heuristics.
  *
  * @author Jan Bernitt

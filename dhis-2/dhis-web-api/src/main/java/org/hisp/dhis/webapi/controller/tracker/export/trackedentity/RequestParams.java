@@ -48,6 +48,7 @@ import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
+import org.hisp.dhis.webapi.controller.tracker.view.Attribute;
 import org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity;
 import org.hisp.dhis.webapi.controller.tracker.view.User;
 
@@ -64,11 +65,21 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
 {
     static final String DEFAULT_FIELDS_PARAM = "*,!relationships,!enrollments,!events,!programOwners";
 
+    /**
+     * Query filter for attributes
+     */
     private String query;
 
-    private Set<String> attribute = new HashSet<>();
+    /**
+     * Comma separated list of attribute UIDs
+     */
+    @OpenApi.Property( { UID[].class, Attribute.class } )
+    private String attribute;
 
-    private Set<String> filter = new HashSet<>();
+    /**
+     * Comma separated list of attribute filters
+     */
+    private String filter;
 
     /**
      * Semicolon-delimited list of organisation unit UIDs.
@@ -216,11 +227,6 @@ class RequestParams extends PagingAndSortingCriteriaAdapter
      * Indicates whether to include all TEI attributes
      */
     private boolean includeAllAttributes;
-
-    /**
-     * The file name in case of exporting as file
-     */
-    private String attachment;
 
     /**
      * Potential Duplicate value for TEI. If null, we don't check whether a TEI

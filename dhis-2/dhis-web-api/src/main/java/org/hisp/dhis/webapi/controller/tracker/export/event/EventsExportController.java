@@ -37,7 +37,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Collections;
 import java.util.List;
 import java.util.zip.GZIPOutputStream;
 
@@ -49,14 +48,13 @@ import lombok.RequiredArgsConstructor;
 
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfiltering.FieldFilterService;
 import org.hisp.dhis.fieldfiltering.FieldPath;
+import org.hisp.dhis.tracker.export.event.EventOperationParams;
 import org.hisp.dhis.tracker.export.event.EventParams;
-import org.hisp.dhis.tracker.export.event.EventSearchParams;
 import org.hisp.dhis.tracker.export.event.Events;
 import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingWrapper;
@@ -92,7 +90,7 @@ class EventsExportController
     private final org.hisp.dhis.tracker.export.event.EventService eventService;
 
     @Nonnull
-    private final EventRequestParamsMapper requestToSearchParams;
+    private final EventRequestParamsMapper eventParamsMapper;
 
     @Nonnull
     private final CsvService<org.hisp.dhis.webapi.controller.tracker.view.Event> csvEventService;
@@ -108,14 +106,9 @@ class EventsExportController
         throws BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
-        {
-            return new PagingWrapper<ObjectNode>().withInstances( Collections.emptyList() );
-        }
-
-        Events events = eventService.getEvents( eventSearchParams );
+        Events events = eventService.getEvents( eventOperationParams );
 
         PagingWrapper<ObjectNode> pagingWrapper = new PagingWrapper<>();
 
@@ -140,14 +133,9 @@ class EventsExportController
         BadRequestException,
         ForbiddenException
     {
-        EventSearchParams eventSearchParams = requestToSearchParams.map( requestParams );
+        EventOperationParams eventOperationParams = eventParamsMapper.map( requestParams );
 
-        if ( areAllEnrollmentsInvalid( requestParams, eventSearchParams ) )
-        {
-            return;
-        }
-
-        Events events = eventService.getEvents( eventSearchParams );
+        Events events = eventService.getEvents( eventOperationParams );
 
         OutputStream outputStream = response.getOutputStream();
         response.setContentType( CONTENT_TYPE_CSV );
@@ -162,12 +150,6 @@ class EventsExportController
         }
 
         csvEventService.write( outputStream, EVENTS_MAPPER.fromCollection( events.getEvents() ), !skipHeader );
-    }
-
-    private boolean areAllEnrollmentsInvalid( RequestParams requestParams, EventSearchParams eventSearchParams )
-    {
-        return !CollectionUtils.isEmpty( requestParams.getEnrollments() ) &&
-            CollectionUtils.isEmpty( eventSearchParams.getEnrollments() );
     }
 
     @OpenApi.Response( OpenApi.EntityType.class )

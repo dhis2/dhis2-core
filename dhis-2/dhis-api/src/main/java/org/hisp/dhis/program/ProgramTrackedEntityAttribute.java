@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.program;
 
+import java.util.function.BiFunction;
+
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.EmbeddedObject;
@@ -272,5 +274,32 @@ public class ProgramTrackedEntityAttribute
         DeviceRenderTypeMap<ValueTypeRenderingObject> renderType )
     {
         this.renderType = renderType;
+    }
+
+    public static final BiFunction<ProgramTrackedEntityAttribute, Program, ProgramTrackedEntityAttribute> copyOf = (
+        attr, prog ) -> {
+        ProgramTrackedEntityAttribute copy = new ProgramTrackedEntityAttribute();
+        copy.setProgram( prog );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, attr );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramTrackedEntityAttribute copy,
+        ProgramTrackedEntityAttribute original )
+    {
+        copy.setAccess( original.getAccess() );
+        copy.setAllowFutureDate( original.getAllowFutureDate() );
+        copy.setAttribute( original.getAttribute() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setDisplayInList( original.isDisplayInList() );
+        copy.setMandatory( original.isMandatory() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSearchable( original.isSearchable() );
+        copy.setSharing( original.getSharing() );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setTranslations( original.getTranslations() );
     }
 }

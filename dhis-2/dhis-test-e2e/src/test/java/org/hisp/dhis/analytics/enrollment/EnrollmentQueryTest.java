@@ -189,7 +189,7 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .add( "stage=edqlbukwRfQ" )
             .add( "displayProperty=NAME" )
             .add( "outputType=ENROLLMENT" )
-            .add( "desc=enrollmentdate" )
+            .add( "desc=edqlbukwRfQ[-2].vANAXwtLwcT,ounamehierarchy,enrollmentdate" )
             .add( "totalPages=false" )
             .add( "pageSize=2" )
             .add( "page=4" )
@@ -216,14 +216,14 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
         validateRowContext( response, 1, 3, "ND" );
 
         validateRow( response, 0,
-            List.of( "VFF7f43dJv4",
-                "Sierra Leone / Kambia / Mambolo / Tombo Wallah CHP",
-                "19.0",
+            List.of( "fmkqsEx6MRo",
+                "Sierra Leone / Port Loko / Koya / Mabora MCHP",
+                "25.0",
                 "" ) );
         validateRow( response, 1,
-            List.of( "fdsRQbuuAuh",
-                "Sierra Leone / Port Loko / Masimera / Nonkoba CHP",
-                "10.0",
+            List.of( "GCbYmPqcOOP",
+                "Sierra Leone / Port Loko / Bureh Kasseh Maconteh / Romeni MCHP",
+                "25.0",
                 "" ) );
     }
 }

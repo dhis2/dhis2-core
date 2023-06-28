@@ -65,16 +65,20 @@ public class OpenApiController
      */
 
     @GetMapping( value = "/openapi.yaml", produces = APPLICATION_X_YAML )
-    public void getFullOpenApiYaml( HttpServletRequest request, HttpServletResponse response )
+    public void getFullOpenApiYaml(
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, Set.of(), Set.of(), APPLICATION_X_YAML, OpenApiGenerator::generateYaml );
+        writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_X_YAML,
+            OpenApiGenerator::generateYaml );
     }
 
     @GetMapping( value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML )
-    public void getPathOpenApiYaml( @PathVariable String path, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getPathOpenApiYaml( @PathVariable String path,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, Set.of( "/" + path ), Set.of(), APPLICATION_X_YAML,
+        writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_X_YAML,
             OpenApiGenerator::generateYaml );
     }
 
@@ -82,9 +86,11 @@ public class OpenApiController
     public void getOpenApiYaml(
         @RequestParam( required = false ) Set<String> path,
         @RequestParam( required = false ) Set<String> tag,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, path, tag, APPLICATION_X_YAML, OpenApiGenerator::generateYaml );
+        writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_X_YAML,
+            OpenApiGenerator::generateYaml );
     }
 
     /*
@@ -92,16 +98,20 @@ public class OpenApiController
      */
 
     @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getFullOpenApiJson( HttpServletRequest request, HttpServletResponse response )
+    public void getFullOpenApiJson(
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, Set.of(), Set.of(), APPLICATION_JSON_VALUE, OpenApiGenerator::generateJson );
+        writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
+            OpenApiGenerator::generateJson );
     }
 
     @GetMapping( value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getPathOpenApiJson( @PathVariable String path, HttpServletRequest request,
-        HttpServletResponse response )
+    public void getPathOpenApiJson( @PathVariable String path,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
+        HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, Set.of( "/" + path ), Set.of(), APPLICATION_JSON_VALUE,
+        writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
             OpenApiGenerator::generateJson );
     }
 
@@ -109,16 +119,24 @@ public class OpenApiController
     public void getOpenApiJson(
         @RequestParam( required = false ) Set<String> path,
         @RequestParam( required = false ) Set<String> tag,
+        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
         HttpServletRequest request, HttpServletResponse response )
     {
-        writeDocument( request, response, path, tag, APPLICATION_JSON_VALUE, OpenApiGenerator::generateJson );
+        writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_JSON_VALUE,
+            OpenApiGenerator::generateJson );
     }
 
     private void writeDocument( HttpServletRequest request, HttpServletResponse response,
-        Set<String> paths, Set<String> tags, String contentType, BiFunction<Api, String, String> writer )
+        Set<String> paths, Set<String> tags, boolean failOnNameClash,
+        String contentType, BiFunction<Api, String, String> writer )
     {
-        Api api = ApiAnalyse.analyseApi( new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
-        ApiDescribe.describeApi( api );
+        Api api = ApiAnalyse.analyseApi(
+            new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
+
+        ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
+            .failOnNameClash( failOnNameClash )
+            .namePartDelimiter( "-" )
+            .build() );
         response.setContentType( contentType );
         try
         {

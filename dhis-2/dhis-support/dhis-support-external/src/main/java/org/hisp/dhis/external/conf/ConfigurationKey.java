@@ -129,9 +129,12 @@ public enum ConfigurationKey
     USE_QUERY_CACHE( "hibernate.cache.use_query_cache", "true", false ),
 
     /**
-     * Sets 'hibernate.hbm2ddl.auto', used in tests only. (default: none)
+     * Sets 'hibernate.hbm2ddl.auto' (default: validate). This can be overridden
+     * by the same property loaded by any class implementing
+     * {@link DhisConfigurationProvider} like
+     * {@link DefaultDhisConfigurationProvider} from dhis.conf at runtime
      */
-    CONNECTION_SCHEMA( "connection.schema", "none", false ),
+    CONNECTION_SCHEMA( "connection.schema", "validate", false ),
 
     /**
      * Max size of connection pool (default: 80).
@@ -641,51 +644,6 @@ public enum ConfigurationKey
      * JWT OIDC token authentication feature. Enable or disable.
      */
     ENABLE_JWT_OIDC_TOKEN_AUTHENTICATION( "oidc.jwt.token.authentication.enabled", Constants.OFF, false ),
-
-    /**
-     * Cache invalidation feature. Enable or disable.
-     */
-    DEBEZIUM_ENABLED( "debezium.enabled", Constants.OFF, false ),
-
-    /**
-     * Cache invalidation feature. DB connection username
-     */
-    DEBEZIUM_CONNECTION_USERNAME( "debezium.connection.username", "", false ),
-
-    /**
-     * Cache invalidation feature. DB connection password
-     */
-    DEBEZIUM_CONNECTION_PASSWORD( "debezium.connection.password", "", false ),
-
-    /**
-     * Cache invalidation feature. DB hostname
-     */
-    DEBEZIUM_DB_HOSTNAME( "debezium.db.hostname", "", false ),
-
-    /**
-     * Cache invalidation feature. DB port number
-     */
-    DEBEZIUM_DB_PORT( "debezium.db.port", "", false ),
-
-    /**
-     * Cache invalidation feature. DB name
-     */
-    DEBEZIUM_DB_NAME( "debezium.db.name", "", false ),
-
-    /**
-     * Cache invalidation feature. Replication slot name
-     */
-    DEBEZIUM_SLOT_NAME( "debezium.slot.name", "", false ),
-
-    /**
-     * Cache invalidation feature. Table exclude list
-     */
-    DEBEZIUM_EXCLUDE_LIST( "debezium.exclude.list", "", false ),
-
-    /**
-     * Cache invalidation feature. Shutdown server if connector loose connection
-     */
-    DEBEZIUM_SHUTDOWN_ON_CONNECTOR_STOP( "debezium.shutdown_on.connector_stop", Constants.ON, false ),
 
     /**
      * API authentication feature. Enable or disable personal access tokens.

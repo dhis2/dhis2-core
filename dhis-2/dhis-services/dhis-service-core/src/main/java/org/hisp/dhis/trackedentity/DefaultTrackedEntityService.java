@@ -69,7 +69,6 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.dxf2.deprecated.tracker.event.EventContext;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.security.Authorities;
@@ -820,17 +819,6 @@ public class DefaultTrackedEntityService
             return Collections.emptyList();
         }
         return trackedEntityStore.getTrackedEntityByUid( uids, user );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<EventContext.TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids, User user )
-    {
-        if ( uids == null || uids.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-        return trackedEntityStore.getTrackedEntityOuInfoByUid( uids, user );
     }
 
     @Override

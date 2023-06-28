@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
@@ -63,7 +64,7 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testUpdateTrackerProgramOwner()
+    void shouldUpdateTrackerProgramOwnerWhenUsingDeprecateTrackedEntityInstanceParam()
     {
         assertWebMessage( "OK", 200, "OK", "Ownership transferred",
             PUT( "/tracker/ownership/transfer?trackedEntityInstance={tei}&program={prog}&ou={ou}", teiId, pId, ouId )
@@ -71,10 +72,66 @@ class TrackerOwnershipControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
-    void testOverrideOwnershipAccess()
+    void shouldUpdateTrackerProgramOwner()
+    {
+        assertWebMessage( "OK", 200, "OK", "Ownership transferred",
+            PUT( "/tracker/ownership/transfer?trackedEntity={tei}&program={prog}&ou={ou}", teiId, pId, ouId )
+                .content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void shouldFailToUpdateWhenGivenTrackedEntityAndTrackedEntityInstanceParameters()
+    {
+        assertEquals( "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. " +
+            "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
+            PUT( "/tracker/ownership/transfer?trackedEntity={tei}&" +
+                "trackedEntityInstance={tei}&program={prog}&ou={ou}", teiId, teiId, pId, ouId )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void shouldFailToUpdateWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent()
+    {
+        assertEquals( "Required request parameter 'trackedEntity' is not present",
+            PUT( "/tracker/ownership/transfer?program={prog}&ou={ou}", pId, ouId )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void shouldOverrideOwnershipAccessWhenUsingDeprecateTrackedEntityInstanceParam()
     {
         assertWebMessage( "OK", 200, "OK", "Temporary Ownership granted",
             POST( "/tracker/ownership/override?trackedEntityInstance={tei}&program={prog}&reason=42", teiId, pId )
                 .content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void shouldOverrideOwnershipAccess()
+    {
+        assertWebMessage( "OK", 200, "OK", "Temporary Ownership granted",
+            POST( "/tracker/ownership/override?trackedEntity={tei}&program={prog}&reason=42", teiId, pId )
+                .content( HttpStatus.OK ) );
+    }
+
+    @Test
+    void shouldFailToOverrideWhenGivenTrackedEntityAndTrackedEntityInstanceParameters()
+    {
+        assertEquals( "Only one parameter of 'trackedEntityInstance' and 'trackedEntity' must be specified. " +
+            "Prefer 'trackedEntity' as 'trackedEntityInstance' will be removed.",
+            POST( "/tracker/ownership/override?trackedEntity={tei}&" +
+                "trackedEntityInstance={tei}&program={prog}&&reason=42", teiId, teiId, pId )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
+    }
+
+    @Test
+    void shouldFailToOverrideWhenNoTrackedEntityOrTrackedEntityInstanceParametersArePresent()
+    {
+        assertEquals( "Required request parameter 'trackedEntity' is not present",
+            POST( "/tracker/ownership/override?program=" + pId + "&reason=42" )
+                .error( HttpStatus.BAD_REQUEST )
+                .getMessage() );
     }
 }

@@ -42,12 +42,15 @@ import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.feedback.ObjectReport;
 import org.hisp.dhis.importexport.ImportStrategy;
+import org.hisp.dhis.security.acl.AclService;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class DashboardCheck implements ObjectValidationCheck
 {
+    private final AclService aclService;
+
     @Override
     public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass, List<T> persistedObjects,
         List<T> nonPersistedObjects, ImportStrategy importStrategy, ValidationContext context,
@@ -88,20 +91,42 @@ public class DashboardCheck implements ObjectValidationCheck
         }
 
         items.forEach( item -> {
-            if ( item.getEmbeddedItem() != null
-                && bundle.getPreheat().get( bundle.getPreheatIdentifier(), item.getEmbeddedItem() ) == null )
+            if ( item.getEmbeddedItem() != null )
             {
-                addError.accept( new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(), item.getType(),
-                    item.getEmbeddedItem().getUid() ) );
+                IdentifiableObject embedded = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                    item.getEmbeddedItem() );
+                if ( embedded == null )
+                {
+                    addError
+                        .accept( new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(), item.getType(),
+                            item.getEmbeddedItem().getUid() ) );
+                }
+                else if ( !aclService.canRead( bundle.getUser(), embedded ) )
+                {
+                    addError
+                        .accept( new ErrorReport( DashboardItem.class, ErrorCode.E4069, item.getUid(), item.getType(),
+                            item.getEmbeddedItem().getUid() ) );
+                }
             }
 
             if ( !CollectionUtils.isEmpty( item.getLinkItems() ) )
             {
                 item.getLinkItems().forEach( linkItem -> {
-                    if ( bundle.getPreheat().get( bundle.getPreheatIdentifier(), linkItem ) == null )
+
+                    IdentifiableObject linkItemObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
+                        linkItem );
+
+                    if ( linkItemObject == null )
                     {
-                        addError.accept( new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(),
-                            item.getType(), linkItem.getUid() ) );
+                        addError.accept(
+                            new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(), item.getType(),
+                                linkItem.getUid() ) );
+                    }
+                    else if ( !aclService.canRead( bundle.getUser(), linkItemObject ) )
+                    {
+                        addError.accept(
+                            new ErrorReport( DashboardItem.class, ErrorCode.E4069, item.getUid(), item.getType(),
+                                linkItem.getUid() ) );
                     }
                 } );
             }

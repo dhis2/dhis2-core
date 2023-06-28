@@ -77,8 +77,8 @@ class DashboardControllerTest extends DhisControllerIntegrationTest
         JsonMixed response = PUT( "/dashboards/f1OijtLnf8a", Body( "dashboard/update_dashboard.json" ) )
             .content( HttpStatus.CONFLICT );
         assertEquals(
-            "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not found or not accessible",
-            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4061 ).getMessage() );
+            "DashboardItem `KnmKNIFiAwC` object reference `VISUALIZATION` with id `gyYXi0rXAIc` not accessible",
+            response.find( JsonErrorReport.class, error -> error.getErrorCode() == ErrorCode.E4069 ).getMessage() );
     }
 
     @Test

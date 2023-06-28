@@ -54,7 +54,13 @@ public enum PropertyType
 
     COMPLEX,
     COLLECTION,
-    REFERENCE;
+    REFERENCE,
+
+    /**
+     * Special value that signals that the detected property type should be used
+     * and no override will be done.
+     */
+    DEFAULT;
 
     public boolean isSimple()
     {

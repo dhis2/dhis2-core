@@ -94,6 +94,15 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
     List<String> findMessagesByFileResource( @Nonnull String uid );
 
     /**
+     * Lookup of the custom icon key(s) for a custom icon file resource id.
+     *
+     * @param uid if a file resource
+     * @return key(s) of a custom icon(s) that have a file resource with the
+     *         given uid
+     */
+    List<String> findCustomIconByFileResource( @Nonnull String uid );
+
+    /**
      * Lookup of data value(s) key combinations with a given file resource
      * value.
      *
@@ -102,4 +111,5 @@ public interface FileResourceStore extends IdentifiableObjectStore<FileResource>
      *         as value.
      */
     List<DataValueKey> findDataValuesByFileResourceValue( @Nonnull String uid );
+
 }
