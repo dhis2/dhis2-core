@@ -928,14 +928,30 @@ public class JdbcEventStore implements EventStore
                 .append( " " );
         }
 
-        String orgUnitSql = getOrgUnitSql( user, params, getOuTableName( params ) );
-
-        if ( orgUnitSql != null )
+        if ( params.isOrganisationUnitMode( OrganisationUnitSelectionMode.DESCENDANTS )
+            || params.isOrganisationUnitMode( OrganisationUnitSelectionMode.CHILDREN ) )
         {
-            fromBuilder.append( hlp.whereAnd() )
-                .append( " (" )
-                .append( orgUnitSql )
-                .append( ") " );
+            if ( !params.getAccessibleOrgUnits().isEmpty() )
+            {
+                String orgUnitSql = getAccessibleOrgUnitSql( params, getOuTableName( params ) );
+
+                fromBuilder.append( hlp.whereAnd() )
+                    .append( " (" )
+                    .append( orgUnitSql )
+                    .append( ") " );
+            }
+        }
+        else
+        {
+            String orgUnitSql = getOrgUnitSql( user, params, getOuTableName( params ) );
+
+            if ( orgUnitSql != null )
+            {
+                fromBuilder.append( hlp.whereAnd() )
+                    .append( " (" )
+                    .append( orgUnitSql )
+                    .append( ") " );
+            }
         }
 
         if ( params.getStartDate() != null )
@@ -1658,7 +1674,7 @@ public class JdbcEventStore implements EventStore
         {
             if ( params.getOrgUnit() != null )
             {
-                return getSelectedOrgUnitsPath( params, ouTable );
+                return getSelectedOrgUnitsPath( params.getOrgUnit(), ouTable );
             }
 
             return getAccessibleOrgUnitsPath( params, user, ouTable );
@@ -1670,9 +1686,21 @@ public class JdbcEventStore implements EventStore
         case CHILDREN -> getChildrenOrgUnitsPath( params, ouTable );
         case DESCENDANTS -> getDescendantOrgUnitsPath( params, ouTable );
         case CAPTURE -> getCaptureOrgUnitsPath( user, ouTable );
-        case SELECTED -> getSelectedOrgUnitsPath( params, ouTable );
+        case SELECTED -> getSelectedOrgUnitsPath( params.getOrgUnit(), ouTable );
         default -> getAccessibleOrgUnitsPath( params, user, ouTable );
         };
+    }
+
+    private String getAccessibleOrgUnitSql( EventSearchParams params, String ouTable )
+    {
+        StringBuilder orgUnitSqlBuilder = new StringBuilder();
+
+        for ( OrganisationUnit orgUnit : params.getAccessibleOrgUnits() )
+        {
+            orgUnitSqlBuilder.append( " or " ).append( getSelectedOrgUnitsPath( orgUnit, ouTable ) );
+        }
+
+        return orgUnitSqlBuilder.toString().replaceFirst( " or ", "" );
     }
 
     private String getChildrenOrgUnitsPath( EventSearchParams params, String ouTable )
@@ -1681,9 +1709,9 @@ public class JdbcEventStore implements EventStore
             + "hierarchylevel = " + (params.getOrgUnit().getLevel() + 1);
     }
 
-    private String getSelectedOrgUnitsPath( EventSearchParams params, String ouTable )
+    private String getSelectedOrgUnitsPath( OrganisationUnit orgUnit, String ouTable )
     {
-        return ouTable + "." + PATH_EQ + " '" + params.getOrgUnit().getPath() + "' ";
+        return ouTable + "." + PATH_EQ + " '" + orgUnit.getPath() + "' ";
     }
 
     private String getDescendantOrgUnitsPath( EventSearchParams params, String ouTable )

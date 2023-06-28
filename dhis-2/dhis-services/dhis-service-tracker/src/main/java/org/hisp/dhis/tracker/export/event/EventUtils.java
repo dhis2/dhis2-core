@@ -28,11 +28,18 @@
 package org.hisp.dhis.tracker.export.event;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Function;
 
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hisp.dhis.common.OrganisationUnitSelectionMode;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
+import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.UserInfoSnapshot;
+import org.hisp.dhis.user.User;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -59,5 +66,58 @@ public class EventUtils
             log.error( "Parsing UserInfoSnapshot json string failed. String value: " + userInfoAsString );
             throw new IllegalArgumentException( e );
         }
+    }
+
+    /**
+     * Checks whether the user can access the requested org unit or, depending
+     * on the case, any of its offspring
+     *
+     * @param program the program the user wants to access to
+     * @param user the user to check the access of
+     * @param orgUnitDescendants function to retrieve org units, in case ou mode
+     *        is descendants
+     * @return true if there's at least one accessible org unit, false otherwise
+     */
+    public static boolean isOrgUnitAccessible( Program program, User user, OrganisationUnit orgUnit,
+        OrganisationUnitSelectionMode orgUnitMode,
+        Function<String, List<OrganisationUnit>> orgUnitDescendants )
+    {
+        List<OrganisationUnit> orgUnits = getRequestedOrgUnits( orgUnit, orgUnitMode, orgUnitDescendants );
+
+        if ( program != null
+            && (program.isClosed() || program.isProtected()) )
+        {
+            return orgUnits.stream().anyMatch( ou -> user.getOrganisationUnits().contains( ou ) );
+        }
+        else
+        {
+            return orgUnits.stream().anyMatch( ou -> user.getTeiSearchOrganisationUnitsWithFallback().contains( ou ) );
+        }
+    }
+
+    /**
+     * Gets all the descendants/children of a particular org unit
+     *
+     * @param orgUnit the org unit to get the descendants or children of
+     * @param orgUnitMode the org unit mode to be used to get the offspring
+     * @param orgUnitDescendants function to retrieve org units, in case ou mode
+     *        is descendants
+     * @return a list of the offspring of the supplied org unit
+     */
+    public static List<OrganisationUnit> getRequestedOrgUnits( OrganisationUnit orgUnit,
+        OrganisationUnitSelectionMode orgUnitMode,
+        Function<String, List<OrganisationUnit>> orgUnitDescendants )
+    {
+        if ( orgUnitMode == null || orgUnit == null )
+        {
+            return Collections.emptyList();
+        }
+
+        return switch ( orgUnitMode )
+        {
+        case DESCENDANTS -> orgUnitDescendants.apply( orgUnit.getUid() );
+        case CHILDREN -> orgUnit.getChildren().stream().toList();
+        default -> Collections.emptyList();
+        };
     }
 }

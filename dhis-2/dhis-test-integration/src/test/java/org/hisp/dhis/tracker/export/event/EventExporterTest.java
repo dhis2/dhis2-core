@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
@@ -35,9 +38,11 @@ import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -126,6 +131,8 @@ class EventExporterTest extends TrackerTest
         manager.update( categoryOption );
 
         manager.flush();
+
+        injectSecurityContext( userService.getUser( "M5zQapPyTZI" ) );
     }
 
     @BeforeEach
@@ -1119,6 +1126,95 @@ class EventExporterTest extends TrackerTest
             .collect( Collectors.toList() );
 
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
+    }
+
+    @Test
+    void shouldReturnEventsWhenProgramClosedOuModeDescendantsAndOrgUnitAccessible()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
+            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( DESCENDANTS ).build();
+
+        List<Event> events = eventService.getEvents( params ).getEvents();
+
+        assertFalse( events.isEmpty(), "Expected to find events when ou mode descendants and org units accessible" );
+        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
+            "Expected to find descendant org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
+                + " instead" ) );
+    }
+
+    @Test
+    void shouldReturnEventsWhenProgramClosedOuModeChildrenAndOrgUnitAccessible()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
+            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( CHILDREN ).build();
+
+        List<Event> events = eventService.getEvents( params ).getEvents();
+
+        assertFalse( events.isEmpty(), "Expected to find events when ou mode children and org units accessible" );
+        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
+            "Expected to find children org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
+                + " instead" ) );
+    }
+
+    @Test
+    void shouldFailWhenProgramIsOpenAndOrgUnitNotAccessible()
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( program.getUid() )
+            .orgUnitUid( "DiszpKrYNg8" ).orgUnitSelectionMode( DESCENDANTS ).build();
+
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
+            () -> eventService.getEvents( params ) );
+        assertEquals( "User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage() );
+    }
+
+    @Test
+    void shouldFailWhenProgramIsClosedAndOrgUnitNotAccessible()
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
+            .orgUnitUid( "DiszpKrYNg8" ).orgUnitSelectionMode( DESCENDANTS ).build();
+
+        ForbiddenException exception = assertThrows( ForbiddenException.class,
+            () -> eventService.getEvents( params ) );
+        assertEquals( "User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage() );
+    }
+
+    @Test
+    void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitAccessible()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
+            .orgUnitUid( "uoNW0E3xXUy" ).orgUnitSelectionMode( SELECTED ).build();
+
+        List<Event> events = eventService.getEvents( params ).getEvents();
+
+        assertFalse( events.isEmpty(), "Expected to find events when ou mode selected and org units accessible" );
+        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
+            "Expected to find selected org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
+                + " instead" ) );
+    }
+
+    @Test
+    void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoProgramEvents()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
+        EventOperationParams params = EventOperationParams.builder().programUid( "shPjYNifvMK" )
+            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( SELECTED ).build();
+
+        List<Event> events = eventService.getEvents( params ).getEvents();
+
+        assertTrue( events.isEmpty(), "Expected to find no events, but found: " + events.size() );
     }
 
     private DataElement dataElement( String uid )

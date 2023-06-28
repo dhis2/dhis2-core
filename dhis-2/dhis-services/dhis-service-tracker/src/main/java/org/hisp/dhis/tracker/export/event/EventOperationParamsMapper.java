@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
+import static org.hisp.dhis.tracker.export.event.EventUtils.isOrgUnitAccessible;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -119,7 +120,7 @@ public class EventOperationParamsMapper
         Program program = validateProgram( operationParams.getProgramUid() );
         ProgramStage programStage = validateProgramStage( operationParams.getProgramStageUid() );
         OrganisationUnit orgUnit = validateOrgUnit( operationParams.getOrgUnitUid() );
-        validateUser( user, program, programStage, operationParams.getOrgUnitUid(), orgUnit );
+        validateUser( user, program, programStage, orgUnit, operationParams.getOrgUnitSelectionMode() );
         TrackedEntity trackedEntity = validateTrackedEntity( operationParams.getTrackedEntityUid() );
 
         CategoryOptionCombo attributeOptionCombo = categoryOptionComboService.getAttributeOptionCombo(
@@ -155,6 +156,8 @@ public class EventOperationParamsMapper
         return searchParams.setProgram( program )
             .setProgramStage( programStage )
             .setOrgUnit( orgUnit )
+            .setAccessibleOrgUnits( EventUtils.getRequestedOrgUnits( orgUnit, operationParams.getOrgUnitSelectionMode(),
+                organisationUnitService::getOrganisationUnitWithChildren ) )
             .setTrackedEntity( trackedEntity )
             .setProgramStatus( operationParams.getProgramStatus() )
             .setFollowUp( operationParams.getFollowUp() )
@@ -244,22 +247,32 @@ public class EventOperationParamsMapper
         return orgUnit;
     }
 
-    private void validateUser( User user, Program pr, ProgramStage ps, String orgUnitUid, OrganisationUnit orgUnit )
+    private void validateUser( User user, Program program, ProgramStage programStage, OrganisationUnit orgUnit,
+        OrganisationUnitSelectionMode ouMode )
         throws ForbiddenException
     {
-        if ( pr != null && !user.isSuper() && !aclService.canDataRead( user, pr ) )
+        if ( program != null && !user.isSuper() && !aclService.canDataRead( user, program ) )
         {
-            throw new ForbiddenException( "User has no access to program: " + pr.getUid() );
+            throw new ForbiddenException( "User has no access to program: " + program.getUid() );
         }
 
-        if ( ps != null && !user.isSuper() && !aclService.canDataRead( user, ps ) )
+        if ( programStage != null && !user.isSuper() && !aclService.canDataRead( user, programStage ) )
         {
-            throw new ForbiddenException( "User has no access to program stage: " + ps.getUid() );
+            throw new ForbiddenException( "User has no access to program stage: " + programStage.getUid() );
         }
 
-        if ( orgUnitUid != null && !trackerAccessManager.canAccess( user, pr, orgUnit ) )
+        if ( ouMode != null && (ouMode.equals( OrganisationUnitSelectionMode.DESCENDANTS )
+            || ouMode.equals( OrganisationUnitSelectionMode.CHILDREN )) )
         {
-            throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit );
+            if ( !isOrgUnitAccessible( program, user, orgUnit, ouMode,
+                organisationUnitService::getOrganisationUnitWithChildren ) )
+            {
+                throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit.getUid() );
+            }
+        }
+        else if ( orgUnit.getUid() != null && !trackerAccessManager.canAccess( user, program, orgUnit ) )
+        {
+            throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit.getUid() );
         }
     }
 
