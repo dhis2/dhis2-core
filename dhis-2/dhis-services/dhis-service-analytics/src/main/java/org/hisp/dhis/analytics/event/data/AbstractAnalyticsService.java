@@ -29,7 +29,7 @@ package org.hisp.dhis.analytics.event.data;
 
 import static java.util.Collections.emptyList;
 import static java.util.Optional.empty;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.apache.commons.lang3.StringUtils.joinWith;
 import static org.hisp.dhis.analytics.AnalyticsMetaDataKey.DIMENSIONS;
@@ -143,6 +143,10 @@ public abstract class AbstractAnalyticsService
                 ValueType.TEXT, false, true ) );
         }
 
+        final DisplayProperty displayProperty = params.getDisplayProperty();
+        Map<String, Long> repeatedNames = params.getItems().stream()
+            .collect( groupingBy( s -> s.getItem().getDisplayProperty( displayProperty ), counting() ) );
+
         for ( QueryItem item : params.getItems() )
         {
             /**
@@ -154,12 +158,13 @@ public abstract class AbstractAnalyticsService
                 && params.getCoordinateFields().stream().anyMatch( f -> f.equals( item.getItem().getUid() ) ) )
             {
                 grid.addHeader( new GridHeader( item.getItem().getUid(),
-                    item.getItem().getDisplayProperty( params.getDisplayProperty() ), COORDINATE,
+                    item.getItem().getDisplayProperty( displayProperty ), COORDINATE,
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
             else if ( item.hasNonDefaultRepeatableProgramStageOffset() )
             {
-                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+                String itemName = item.getItem().getDisplayProperty( displayProperty );
+                String column = item.getColumnName( displayProperty, repeatedNames.get( itemName ) > 1 );
 
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
 
@@ -173,8 +178,8 @@ public abstract class AbstractAnalyticsService
             else
             {
                 String uid = getItemUid( item );
-
-                String column = item.getItem().getDisplayProperty( params.getDisplayProperty() );
+                String itemName = item.getItem().getDisplayProperty( displayProperty );
+                String column = item.getColumnName( displayProperty, repeatedNames.get( itemName ) > 1 );
 
                 grid.addHeader( new GridHeader( uid, column, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );

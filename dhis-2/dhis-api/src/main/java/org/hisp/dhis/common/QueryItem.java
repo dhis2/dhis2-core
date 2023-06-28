@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.common;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -339,6 +341,32 @@ public class QueryItem implements GroupableItem
     public String getSqlFilter( QueryFilter filter, String encodedFilter, boolean isNullValueSubstitutionAllowed )
     {
         return filter.getSqlFilter( encodedFilter, valueType, isNullValueSubstitutionAllowed );
+    }
+
+    /**
+     * Returns the name that represents this object as a column in the analytics
+     * response grid.
+     *
+     * @param displayProperty the {@link DisplayProperty}.
+     * @param appendProgramStage if true, the program stage display name is
+     *        appended.
+     * @return the column name for this object.
+     */
+    public String getColumnName( DisplayProperty displayProperty, boolean appendProgramStage )
+    {
+        if ( getItem() != null )
+        {
+            String column = getItem().getDisplayProperty( displayProperty );
+
+            if ( appendProgramStage && hasProgramStage() )
+            {
+                column = column + " - " + getProgramStage().getDisplayProperty( displayProperty );
+            }
+
+            return column;
+        }
+
+        return EMPTY;
     }
 
     // -------------------------------------------------------------------------
