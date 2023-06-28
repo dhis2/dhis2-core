@@ -705,7 +705,7 @@ class TrackerTrackedEntityCriteriaMapperTest
             .collect( Collectors.toList() );
 
         assertContainsOnly( List.of(
-            new QueryFilter( QueryOperator.LIKE, "value\\,with\\,comma" ),
+            new QueryFilter( QueryOperator.LIKE, "value,with,comma" ),
             new QueryFilter( QueryOperator.EQ, "value" ) ), actualFilters );
     }
 

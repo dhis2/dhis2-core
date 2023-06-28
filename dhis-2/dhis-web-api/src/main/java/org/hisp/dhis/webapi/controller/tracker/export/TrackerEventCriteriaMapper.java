@@ -31,6 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.applyIfNonEmpty;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAndFilterUids;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 
 import java.util.ArrayList;
@@ -162,8 +163,10 @@ class TrackerEventCriteriaMapper
             true );
         validateAttributeOptionCombo( attributeOptionCombo, user );
 
+        List<QueryItem> filters = parseDataElementQueryItems( criteria.getFilter(), this::dataElementToQueryItem );
+
         Set<String> eventIds = parseAndFilterUids( criteria.getEvent() );
-        validateFilter( criteria.getFilter(), eventIds, criteria.getProgramStage(), programStage );
+        validateFilter( filters, eventIds, criteria.getProgramStage(), programStage );
 
         Set<String> assignedUserIds = parseAndFilterUids( criteria.getAssignedUser() );
 
@@ -182,12 +185,6 @@ class TrackerEventCriteriaMapper
         List<QueryItem> filterAttributes = parseFilterAttributes( criteria.getFilterAttributes(),
             attributeOrderParams );
         validateFilterAttributes( filterAttributes );
-
-        List<QueryItem> filters = new ArrayList<>();
-        for ( String eventCriteria : criteria.getFilter() )
-        {
-            filters.add( parseQueryItem( eventCriteria, this::dataElementToQueryItem ) );
-        }
 
         Set<String> programInstances = criteria.getEnrollments().stream()
             .filter( CodeGenerator::isValidUid )
@@ -286,7 +283,7 @@ class TrackerEventCriteriaMapper
         }
     }
 
-    private static void validateFilter( Set<String> filters, Set<String> eventIds, String programStage,
+    private static void validateFilter( List<QueryItem> filters, Set<String> eventIds, String programStage,
         ProgramStage ps )
         throws BadRequestException
     {
