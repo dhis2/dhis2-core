@@ -798,10 +798,10 @@ public class DefaultDataValueSetService
             ? context.getDataValueBatchHandler().findObject( internalValue )
             : null;
 
-        // -----------------------------------------------------------------
-        // Preserve any existing created date unless overwritten by import
-        // -----------------------------------------------------------------
-        if ( existingValue != null && !dataValue.hasCreated() )
+        // -----------------------------------
+        // Preserve any existing created date
+        // -----------------------------------
+        if ( existingValue != null )
         {
             internalValue.setCreated( existingValue.getCreated() );
         }
@@ -1212,8 +1212,8 @@ public class DefaultDataValueSetService
         internalValue.setAttributeOptionCombo( valueContext.getAttrOptionCombo() );
         internalValue.setValue( trimToNull( value ) );
         internalValue.setStoredBy( context.getStoredBy( dataValue ) );
-        internalValue.setCreated( dataValue.hasCreated() ? parseDate( dataValue.getCreated() ) : now );
-        internalValue.setLastUpdated( dataValue.hasLastUpdated() ? parseDate( dataValue.getLastUpdated() ) : now );
+        internalValue.setCreated( now );
+        internalValue.setLastUpdated( now );
         internalValue.setComment( trimToNull( dataValue.getComment() ) );
         internalValue.setFollowup( dataValue.getFollowup() );
         internalValue.setDeleted( BooleanUtils.isTrue( dataValue.getDeleted() ) );

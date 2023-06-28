@@ -429,30 +429,82 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         assertDataValuesCount( 14 );
     }
 
-    /**
-     * When updating a data value with a specified created date, the specified
-     * created date should be used.
-     * <p>
-     * When updating a data value without a specified created date, the existing
-     * created date should remain unchanged.
-     */
     @Test
-    void testUpdateCreatedDate()
+    void testCreatedDateWhenDataValueCreated_IgnoreCreatedDateSupplied()
     {
-        // Insert:
-        // deC, peA, ouA created = 2010-01-01
-        // deC, peA, ouB created = 2010-01-01
-        dataValueSetService.importDataValueSetXml( readFile( "datavalueset/dataValueSetB.xml" ) );
-        // Update:
-        // deC, peA, ouA created = not specified, should remain unchanged
-        // deC, peA, ouB created = 2020-02-02
-        dataValueSetService.importDataValueSetXml( readFile( "datavalueset/dataValueSetBUpdate.xml" ) );
-
+        Date todaysDate = new Date();
+        // Confirm that no dataValue exists for these params
         CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
-        DataValue dv1 = dataValueService.getDataValue( deC, peA, ouA, cc, cc );
-        assertEquals( "2010-01-01", getMediumDateString( dv1.getCreated() ) );
-        DataValue dv2 = dataValueService.getDataValue( deC, peA, ouB, cc, cc );
-        assertEquals( "2020-02-02", getMediumDateString( dv2.getCreated() ) );
+        DataValue dv1 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertNull( dv1 );
+
+        // import data value, ignoring created date supplied - create (value = 20, comment = null, created = "1988-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDate.json" ) );
+
+        // get newly-created data value
+        DataValue dv2 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertEquals( getMediumDateString( todaysDate ), getMediumDateString( dv2.getCreated() ) );
+    }
+
+    @Test
+    void testCreatedDateWhenDataValueUpdated_IgnoreCreatedDateSupplied()
+    {
+        Date todaysDate = new Date();
+        // Confirm that no dataValue exists for these params
+        CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+        DataValue dv1 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertNull( dv1 );
+
+        // import data value for first time - create (value = 20, comment = null, created = "1988-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDate.json" ) );
+
+        // import data value for second time - update (value = 22, comment = "new comment", created = "2000-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDateUpdated.json" ) );
+
+        // check newly-updated data value
+        DataValue dv2 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertEquals( "new comment", dv2.getComment() );
+        assertEquals( "22", dv2.getValue() );
+        assertEquals( getMediumDateString( todaysDate ), getMediumDateString( dv2.getCreated() ) );
+    }
+
+    @Test
+    void testLastUpdatedDateWhenDataValueCreated_IgnoreLastUpdatedDateSupplied()
+    {
+        Date todaysDate = new Date();
+        // Confirm that no dataValue exists for these params
+        CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+        DataValue dv1 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertNull( dv1 );
+
+        // import data value, ignoring last updated date supplied - create (value = 20, comment = null, lastUpdated = "1988-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDate.json" ) );
+
+        // get newly-created data value
+        DataValue dv2 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertEquals( getMediumDateString( todaysDate ), getMediumDateString( dv2.getLastUpdated() ) );
+    }
+
+    @Test
+    void testLastUpdatedDateWhenDataValueUpdated_IgnoreLastUpdatedDateSupplied()
+    {
+        Date todaysDate = new Date();
+        // Confirm that no dataValue exists for these params
+        CategoryOptionCombo cc = categoryService.getDefaultCategoryOptionCombo();
+        DataValue dv1 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertNull( dv1 );
+
+        // import data value for first time - create (value = 20, comment = null, lastUpdated = "1988-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDate.json" ) );
+
+        // import data value for second time - update (value = 22, comment = "new comment", lastUpdated = "2000-12-21T23:59:38.000+0000")
+        dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDateUpdated.json" ) );
+
+        // check newly-updated data value
+        DataValue dv2 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
+        assertEquals( "new comment", dv2.getComment() );
+        assertEquals( "22", dv2.getValue() );
+        assertEquals( getMediumDateString( todaysDate ), getMediumDateString( dv2.getLastUpdated() ) );
     }
 
     /**
