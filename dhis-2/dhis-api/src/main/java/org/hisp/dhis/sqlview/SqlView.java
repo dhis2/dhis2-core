@@ -59,8 +59,8 @@ public class SqlView
         "users", "userinfo", "trackedentityattributevalue" );
 
     public static final Set<String> ILLEGAL_KEYWORDS = Set.of(
-        "delete", "alter", "update", "create", "drop", "commit", "createdb",
-        "createuser", "insert", "rename", "restore", "write" );
+        "alter", "commit", "create", "createdb", "createuser", "delete", "drop", "insert",
+        "rename", "restore", "truncate", "update", "write" );
 
     public static final String CURRENT_USER_ID_VARIABLE = "_current_user_id";
 
