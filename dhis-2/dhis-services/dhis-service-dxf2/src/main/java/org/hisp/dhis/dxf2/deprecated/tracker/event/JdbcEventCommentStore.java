@@ -64,7 +64,7 @@ public class JdbcEventCommentStore implements EventCommentStore
         "lastUpdated" + // 5
         ")  values ( nextval('hibernate_sequence'), ?, ?, ?, ?, ?)";
 
-    private final static String INSERT_EVENT_COMMENT_LINK = "INSERT INTO programstageinstancecomments (programstageinstanceid, "
+    private final static String INSERT_EVENT_COMMENT_LINK = "INSERT INTO eventcomments (eventid, "
         + "sort_order, trackedentitycommentid) values (?, ?, ?)";
 
     /**
@@ -121,7 +121,7 @@ public class JdbcEventCommentStore implements EventCommentStore
             // the
             // notes, to avoid conflicts
             return jdbcTemplate.queryForObject(
-                "select coalesce(max(sort_order) + 1, 1) from programstageinstancecomments where programstageinstanceid = "
+                "select coalesce(max(sort_order) + 1, 1) from eventcomments where eventid = "
                     + psi.getId(),
                 Integer.class );
         }

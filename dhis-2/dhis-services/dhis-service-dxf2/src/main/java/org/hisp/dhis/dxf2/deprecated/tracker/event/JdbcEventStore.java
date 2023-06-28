@@ -153,10 +153,10 @@ import com.google.gson.Gson;
 @RequiredArgsConstructor
 public class JdbcEventStore implements EventStore
 {
-    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.programstageinstanceid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
+    private static final String RELATIONSHIP_IDS_QUERY = " left join (select ri.eventid as ri_psi_id, json_agg(ri.relationshipid) as psi_rl FROM relationshipitem ri"
         + " GROUP by ri_psi_id)  as fgh on fgh.ri_psi_id=event.psi_id ";
 
-    private static final String PSI_EVENT_COMMENT_QUERY = "select psic.programstageinstanceid    as psic_id," +
+    private static final String PSI_EVENT_COMMENT_QUERY = "select psic.eventid    as psic_id," +
         " psinote.trackedentitycommentid as psinote_id," +
         " psinote.commenttext            as psinote_value," +
         " psinote.created                as psinote_storeddate," +
@@ -169,7 +169,7 @@ public class JdbcEventStore implements EventStore
         " userinfo.username              as usernote_username," +
         " userinfo.firstname             as userinfo_firstname," +
         " userinfo.surname               as userinfo_surname" +
-        " from programstageinstancecomments psic" +
+        " from eventcomments psic" +
         " inner join trackedentitycomment psinote" +
         " on psic.trackedentitycommentid = psinote.trackedentitycommentid" +
         " left join userinfo on psinote.lastupdatedby = userinfo.userinfoid ";

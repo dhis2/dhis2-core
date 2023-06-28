@@ -236,7 +236,7 @@ public class HibernateDbmsManager
         emptyTable( "programnotificationinstance" );
         emptyTable( "trackedentitydatavalueaudit" );
         emptyTable( "trackedentityprogramowner" );
-        emptyTable( "programstageinstancecomments" );
+        emptyTable( "eventcomments" );
         emptyTable( "programinstancecomments" );
         emptyTable( "event" );
         emptyTable( "programinstance" );
@@ -254,7 +254,7 @@ public class HibernateDbmsManager
         emptyTable( "programtempowner" );
         emptyTable( "program" );
 
-        emptyTable( "programstageinstancefilter" );
+        emptyTable( "eventfilter" );
 
         emptyTable( "trackedentityattributevalue" );
         emptyTable( "trackedentityattributevalueaudit" );

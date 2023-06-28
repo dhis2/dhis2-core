@@ -68,10 +68,10 @@ public class DefaultEventStore
     private static final String GET_NOTES_SQL = "select psi.uid as key, tec.uid, tec.commenttext, " +
         "tec.creator, tec.created " +
         "from trackedentitycomment tec " +
-        "join programstageinstancecomments psic " +
+        "join eventcomments psic " +
         "on tec.trackedentitycommentid = psic.trackedentitycommentid " +
-        "join event psi on psic.programstageinstanceid = psi.eventid " +
-        "where psic.programstageinstanceid in (:ids)";
+        "join event psi on psic.eventid = psi.eventid " +
+        "where psic.eventid in (:ids)";
 
     private static final String ACL_FILTER_SQL = "CASE WHEN p.type = 'WITH_REGISTRATION' THEN " +
         "p.trackedentitytypeid in (:trackedEntityTypeIds) else true END " +
@@ -91,7 +91,7 @@ public class DefaultEventStore
     @Override
     String getRelationshipEntityColumn()
     {
-        return "programstageinstanceid";
+        return "eventid";
     }
 
     @Override

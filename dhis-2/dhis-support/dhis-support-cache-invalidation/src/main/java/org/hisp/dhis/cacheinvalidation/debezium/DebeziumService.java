@@ -185,7 +185,7 @@ public class DebeziumService
                 + "public.orgunitgroupsetmembers,"
                 + "public.dataelementgroupmembers,"
                 + "public.programinstancecomments,"
-                + "public.programstageinstancecomments,"
+                + "public.eventcomments,"
                 + "public.messageconversation_usermessages,"
                 + "public.messageconversation_messages,"
                 + "public.trackedentityinstanceaudit,"
