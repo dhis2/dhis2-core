@@ -29,7 +29,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 
 import lombok.AllArgsConstructor;
 
@@ -112,9 +111,10 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
     private List<Property> findSortableProperty( Schema schema )
     {
         // TODO: Need to improve the performance by adding Map<Class, List<String>> mapSortableObjectProperties in Preheat
-        return schema.getPersistedProperties().values().stream().filter( p -> List.class.isAssignableFrom( p.getKlass() )
-            && SortableObject.class.isAssignableFrom( p.getItemKlass() )
-            && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
+        return schema.getPersistedProperties().values().stream()
+            .filter( p -> List.class.isAssignableFrom( p.getKlass() )
+                && SortableObject.class.isAssignableFrom( p.getItemKlass() )
+                && schemaService.getDynamicSchema( p.getItemKlass() ).hasPersistedProperty( "sortOrder" ) )
             .toList();
     }
 
