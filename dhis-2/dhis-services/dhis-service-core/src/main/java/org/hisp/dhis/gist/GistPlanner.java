@@ -319,7 +319,7 @@ class GistPlanner
             {
                 String outerPath = path.substring( 0, path.indexOf( '[' ) );
                 String innerList = path.substring( path.indexOf( '[' ) + 1, path.lastIndexOf( ']' ) );
-                for ( String innerFieldName : innerList.split( "," ) )
+                for ( String innerFieldName : innerList.split( GistQuery.FIELD_SPLIT ) )
                 {
                     Field child = Field.parse( innerFieldName );
                     expanded.add( child

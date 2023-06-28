@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.webapi.controller.tracker.export;
 
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryItem;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,6 +43,7 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
+import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -138,7 +139,7 @@ class RequestParamUtilsTest
         Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
+            () -> OperationParamUtils.parseAttributeQueryItems( param, attributes ) );
         assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
     }
 
@@ -148,7 +149,7 @@ class RequestParamUtilsTest
         String param = "JM5zWuf1mkb:eq:2";
 
         Exception exception = assertThrows( BadRequestException.class,
-            () -> RequestParamUtils.parseAttributeQueryItem( param, attributes ) );
+            () -> OperationParamUtils.parseAttributeQueryItems( param, attributes ) );
         assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
     }
 
@@ -157,7 +158,7 @@ class RequestParamUtilsTest
         throws BadRequestException
     {
         assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            RequestParamUtils.parseQueryFilter( "like:project:x" ) );
+            OperationParamUtils.parseQueryFilter( "like:project/:x" ) );
     }
 
     private TrackedEntityAttribute trackedEntityAttribute( String uid )

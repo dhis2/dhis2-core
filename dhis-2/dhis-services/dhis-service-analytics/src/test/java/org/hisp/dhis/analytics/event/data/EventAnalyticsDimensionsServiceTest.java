@@ -46,6 +46,7 @@ import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.Program;
+import org.hisp.dhis.program.ProgramService;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageService;
 import org.hisp.dhis.security.acl.AclService;
@@ -58,15 +59,20 @@ class EventAnalyticsDimensionsServiceTest
 {
     private EventAnalyticsDimensionsService eventAnalyticsDimensionsService;
 
+    private final static String PROGRAM_UID = "aProgramUid";
+
     @BeforeEach
     void setup()
     {
+        ProgramService programService = mock( ProgramService.class );
         ProgramStageService programStageService = mock( ProgramStageService.class );
         CategoryService categoryService = mock( CategoryService.class );
 
         Program program = mock( Program.class );
         ProgramStage programStage = mock( ProgramStage.class );
 
+        when( programService.getProgram( any() ) ).thenReturn( program );
+        when( program.getUid() ).thenReturn( PROGRAM_UID );
         when( programStageService.getProgramStage( any() ) ).thenReturn( programStage );
         when( programStage.getProgram() ).thenReturn( program );
         when( program.getDataElements() ).thenReturn( allValueTypeDataElements() );
@@ -74,6 +80,7 @@ class EventAnalyticsDimensionsServiceTest
         when( program.getTrackedEntityAttributes() ).thenReturn( allValueTypeTEAs() );
 
         eventAnalyticsDimensionsService = new DefaultEventAnalyticsDimensionsService( programStageService,
+            programService,
             categoryService, mock( AclService.class ), mock( CurrentUserService.class ) );
     }
 
@@ -81,7 +88,7 @@ class EventAnalyticsDimensionsServiceTest
     void testQueryDoesntContainDisallowedValueTypes()
     {
         Collection<BaseIdentifiableObject> analyticsDimensions = eventAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( "anUid" ).stream()
+            .getQueryDimensionsByProgramStageId( PROGRAM_UID, "anUid" ).stream()
             .map( PrefixedDimension::getItem )
             .collect( Collectors.toList() );
 

@@ -35,7 +35,6 @@ import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.hibernate.HibernateGenericStore;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwner;
-import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerOrgUnit;
 import org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerStore;
 import org.springframework.context.ApplicationEventPublisher;
@@ -43,7 +42,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 
 /**
  * @author Ameen Mohamed
@@ -89,23 +87,6 @@ public class HibernateTrackedEntityProgramOwnerStore
         q.setParameterList( "teiIds", teiIds );
         q.setParameter( "programId", programId );
         return q.list();
-    }
-
-    @Override
-    public List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId )
-    {
-        List<List<Long>> teiIdsPartitions = Lists.partition( teiIds, 20000 );
-        String hql = "select new org.hisp.dhis.trackedentity.TrackedEntityProgramOwnerIds(tepo.trackedEntity.uid, tepo.program.uid, tepo.organisationUnit.uid) from TrackedEntityProgramOwner tepo where tepo.trackedEntity.id in (:teiIds) and tepo.program.id=(:programId) ";
-        Query<TrackedEntityProgramOwnerIds> q = getQuery( hql, TrackedEntityProgramOwnerIds.class );
-
-        List<TrackedEntityProgramOwnerIds> trackedEntityProgramOwnerIds = new ArrayList<>();
-
-        q.setParameter( "programId", programId );
-        teiIdsPartitions.forEach( partition -> {
-            q.setParameterList( "teiIds", partition );
-            trackedEntityProgramOwnerIds.addAll( q.list() );
-        } );
-        return trackedEntityProgramOwnerIds;
     }
 
     @Override

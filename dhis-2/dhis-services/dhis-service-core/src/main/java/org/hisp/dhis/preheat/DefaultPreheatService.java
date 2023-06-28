@@ -157,6 +157,7 @@ public class DefaultPreheatService implements PreheatService
                     {
                         Query query = Query.from( schemaService.getDynamicSchema( klass ) );
                         query.setUser( preheat.getUser() );
+                        query.setSkipSharing( true );
                         query.add( Restrictions.in( "id", ids ) );
                         List<? extends IdentifiableObject> objects = queryService.query( query );
                         preheat.put( PreheatIdentifier.UID, objects );

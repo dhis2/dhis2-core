@@ -44,22 +44,19 @@ import javax.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import org.hisp.dhis.common.IllegalQueryException;
-import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.eventdatavalue.EventDataValue;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
-import org.hisp.dhis.security.Authorities;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
 import org.hisp.dhis.user.CurrentUserService;
 import org.hisp.dhis.user.User;
-import org.hisp.dhis.util.DateUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,6 +78,8 @@ public class DefaultEventService implements EventService
     private final TrackerAccessManager trackerAccessManager;
 
     private final DataElementService dataElementService;
+
+    private final EventOperationParamsMapper paramsMapper;
 
     @Override
     public Event getEvent( String uid, EventParams eventParams )
@@ -181,36 +180,36 @@ public class DefaultEventService implements EventService
     }
 
     @Override
-    public Events getEvents( EventSearchParams params )
+    public Events getEvents( EventOperationParams operationParams )
+        throws BadRequestException,
+        ForbiddenException
     {
-        User user = currentUserService.getCurrentUser();
+        EventSearchParams searchParams = paramsMapper.map( operationParams );
 
-        validate( params, user );
-
-        if ( !params.isPaging() && !params.isSkipPaging() )
+        if ( !operationParams.isPaging() && !operationParams.isSkipPaging() )
         {
-            params.setDefaultPaging();
+            operationParams.setDefaultPaging();
         }
 
         Events events = new Events();
 
-        if ( params.isSkipPaging() )
+        if ( operationParams.isSkipPaging() )
         {
-            events.setEvents( eventStore.getEvents( params, emptyMap() ) );
+            events.setEvents( eventStore.getEvents( searchParams, emptyMap() ) );
             return events;
         }
 
         Pager pager;
-        List<Event> eventList = new ArrayList<>( eventStore.getEvents( params, emptyMap() ) );
+        List<Event> eventList = new ArrayList<>( eventStore.getEvents( searchParams, emptyMap() ) );
 
-        if ( params.isTotalPages() )
+        if ( operationParams.isTotalPages() )
         {
-            int count = eventStore.getEventCount( params );
-            pager = new Pager( params.getPageWithDefault(), count, params.getPageSizeWithDefault() );
+            int count = eventStore.getEventCount( searchParams );
+            pager = new Pager( operationParams.getPageWithDefault(), count, operationParams.getPageSizeWithDefault() );
         }
         else
         {
-            pager = handleLastPageFlag( params, eventList );
+            pager = handleLastPageFlag( operationParams, eventList );
         }
 
         events.setPager( pager );
@@ -233,7 +232,7 @@ public class DefaultEventService implements EventService
      * @param eventList the reference to the list of Event
      * @return the populated SlimPager instance
      */
-    private Pager handleLastPageFlag( EventSearchParams params, List<Event> eventList )
+    private Pager handleLastPageFlag( EventOperationParams params, List<Event> eventList )
     {
         Integer originalPage = defaultIfNull( params.getPage(), FIRST_PAGE );
         Integer originalPageSize = defaultIfNull( params.getPageSize(), DEFAULT_PAGE_SIZE );
@@ -252,125 +251,5 @@ public class DefaultEventService implements EventService
         }
 
         return new SlimPager( originalPage, originalPageSize, isLastPage );
-    }
-
-    @Override
-    public void validate( EventSearchParams params, User user )
-        throws IllegalQueryException
-    {
-        String violation = null;
-
-        if ( params.hasUpdatedAtDuration() && (params.hasUpdatedAtStartDate() || params.hasUpdatedAtEndDate()) )
-        {
-            violation = "Last updated from and/or to and last updated duration cannot be specified simultaneously";
-        }
-
-        if ( violation == null && params.hasUpdatedAtDuration()
-            && DateUtils.getDuration( params.getUpdatedAtDuration() ) == null )
-        {
-            violation = "Duration is not valid: " + params.getUpdatedAtDuration();
-        }
-
-        if ( violation == null && params.getOrgUnit() != null
-            && !trackerAccessManager.canAccess( user, params.getProgram(), params.getOrgUnit() ) )
-        {
-            violation = "User does not have access to orgUnit: " + params.getOrgUnit().getUid();
-        }
-
-        if ( violation == null && params.getOrgUnitSelectionMode() != null )
-        {
-            violation = getOuModeViolation( params, user );
-        }
-
-        if ( violation != null )
-        {
-            log.warn( "Validation failed: " + violation );
-
-            throw new IllegalQueryException( violation );
-        }
-    }
-
-    private String getOuModeViolation( EventSearchParams params, User user )
-    {
-        OrganisationUnitSelectionMode selectedOuMode = params.getOrgUnitSelectionMode();
-
-        String violation;
-
-        switch ( selectedOuMode )
-        {
-        case ALL:
-            violation = userCanSearchOuModeALL( user ) ? null
-                : "Current user is not authorized to query across all organisation units";
-            break;
-        case ACCESSIBLE:
-            violation = getAccessibleScopeValidation( user, params );
-            break;
-        case CAPTURE:
-            violation = getCaptureScopeValidation( user );
-            break;
-        case CHILDREN:
-        case SELECTED:
-        case DESCENDANTS:
-            violation = params.getOrgUnit() == null
-                ? "Organisation unit is required for ouMode: " + params.getOrgUnitSelectionMode()
-                : null;
-            break;
-        default:
-            violation = "Invalid ouMode:  " + params.getOrgUnitSelectionMode();
-            break;
-        }
-
-        return violation;
-    }
-
-    private String getCaptureScopeValidation( User user )
-    {
-        String violation = null;
-
-        if ( user == null )
-        {
-            violation = "User is required for ouMode: " + OrganisationUnitSelectionMode.CAPTURE;
-        }
-        else if ( user.getOrganisationUnits().isEmpty() )
-        {
-            violation = "User needs to be assigned data capture orgunits";
-        }
-
-        return violation;
-    }
-
-    private String getAccessibleScopeValidation( User user, EventSearchParams params )
-    {
-        String violation;
-
-        if ( user == null )
-        {
-            return "User is required for ouMode: " + OrganisationUnitSelectionMode.ACCESSIBLE;
-        }
-
-        if ( params.getProgram() == null || params.getProgram().isClosed() || params.getProgram().isProtected() )
-        {
-            violation = user.getOrganisationUnits().isEmpty() ? "User needs to be assigned data capture orgunits"
-                : null;
-        }
-        else
-        {
-            violation = user.getTeiSearchOrganisationUnitsWithFallback().isEmpty()
-                ? "User needs to be assigned either TEI search, data view or data capture org units"
-                : null;
-        }
-
-        return violation;
-    }
-
-    private boolean userCanSearchOuModeALL( User user )
-    {
-        if ( user == null )
-        {
-            return false;
-        }
-
-        return user.isSuper()
-            || user.isAuthorized( Authorities.F_TRACKED_ENTITY_INSTANCE_SEARCH_IN_ALL_ORGUNITS.name() );
     }
 }

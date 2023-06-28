@@ -60,6 +60,8 @@ public class Query extends Criteria
 
     private boolean skipPaging;
 
+    private boolean skipSharing;
+
     private Integer firstResult = 0;
 
     private Integer maxResults = Integer.MAX_VALUE;
@@ -87,6 +89,7 @@ public class Query extends Criteria
     public static Query from( Query query )
     {
         Query clone = Query.from( query.getSchema(), query.getRootJunctionType() );
+        clone.setSkipSharing( query.isSkipSharing() );
         clone.setUser( query.getUser() );
         clone.setLocale( query.getLocale() );
         clone.addOrders( query.getOrders() );

@@ -49,6 +49,7 @@ import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 import org.hisp.dhis.translation.Translatable;
+import org.hisp.dhis.util.ObjectUtils;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -583,5 +584,59 @@ public class ProgramStage
     public void setReferral( boolean referral )
     {
         this.referral = referral;
+    }
+
+    public static ProgramStage shallowCopy( ProgramStage original, Program program )
+    {
+        ProgramStage copy = new ProgramStage();
+        copy.setProgram( program );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    }
+
+    public static ProgramStage deepCopy( ProgramStage original, ProgramStage copy )
+    {
+        copy.setProgramStageDataElements(
+            copySet( copy, original.getProgramStageDataElements(), ProgramStageDataElement.copyOf ) );
+        copy.setProgramStageSections(
+            copySet( copy, original.getProgramStageSections(), ProgramStageSection.copyOf ) );
+        return copy;
+    }
+
+    private static void setShallowCopyValues( ProgramStage copy, ProgramStage original )
+    {
+        copy.setAllowGenerateNextVisit( original.getAllowGenerateNextVisit() );
+        copy.setAutoGenerateEvent( original.getAutoGenerateEvent() );
+        copy.setBlockEntryForm( original.getBlockEntryForm() );
+        copy.setDataEntryForm( original.getDataEntryForm() );
+        copy.setDescription( original.getDescription() );
+        copy.setDisplayGenerateEventBox( original.getDisplayGenerateEventBox() );
+        copy.setDueDateLabel( original.getDueDateLabel() );
+        copy.setEnableUserAssignment( original.isEnableUserAssignment() );
+        copy.setExecutionDateLabel( original.getExecutionDateLabel() );
+        copy.setFeatureType( original.getFeatureType() );
+        copy.setFormName( original.getFormName() );
+        copy.setGeneratedByEnrollmentDate( original.getGeneratedByEnrollmentDate() );
+        copy.setHideDueDate( original.getHideDueDate() );
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
+        copy.setMinDaysFromStart( original.getMinDaysFromStart() );
+        copy.setNextScheduleDate( original.getNextScheduleDate() );
+        copy.setName( original.getName() );
+        copy.setNotificationTemplates( ObjectUtils.copyOf( original.getNotificationTemplates() ) );
+        copy.setOpenAfterEnrollment( original.getOpenAfterEnrollment() );
+        copy.setPeriodType( original.getPeriodType() );
+        copy.setPreGenerateUID( original.getPreGenerateUID() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setReferral( original.isReferral() );
+        copy.setRemindCompleted( original.getRemindCompleted() );
+        copy.setRepeatable( original.getRepeatable() );
+        copy.setReportDateToUse( original.getReportDateToUse() );
+        copy.setSharing( original.getSharing() );
+        copy.setShortName( original.getShortName() );
+        copy.setSortOrder( original.getSortOrder() );
+        copy.setStandardInterval( original.getStandardInterval() );
+        copy.setStyle( original.getStyle() );
+        copy.setValidationStrategy( original.getValidationStrategy() );
     }
 }
