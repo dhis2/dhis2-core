@@ -897,6 +897,19 @@ public class EventQueryParams
     }
 
     /**
+     * Checks if a value dimension with a boolean value type exists.
+     *
+     * @return true if a value dimension with a boolean value type exists, false
+     *         if not.
+     */
+    public boolean hasBooleanValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isBoolean();
+    }
+
+    /**
      * Checks if a value dimension with a text value type exists.
      *
      * @return true if a value dimension with a text value type exists, false if
