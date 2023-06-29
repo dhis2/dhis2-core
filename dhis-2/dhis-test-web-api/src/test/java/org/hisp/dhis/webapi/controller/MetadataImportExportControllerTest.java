@@ -40,7 +40,6 @@ import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonList;
-import org.hisp.dhis.jsontree.JsonMixed;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
 import org.hisp.dhis.jsontree.JsonValue;
@@ -320,13 +319,13 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
     {
         POST( "/metadata",
             Body( "metadata/category_and_categorycombo.json" ) ).content( HttpStatus.OK );
-        JsonMixed response = GET( "/categories/{uid}?fields=id,categoryCombos",
+        JsonResponse response = GET( "/categories/{uid}?fields=id,categoryCombos",
             "IjOK1aXkjVO" ).content();
         JsonList<JsonObject> catCombos = response.getList( "categoryCombos", JsonObject.class );
         assertNotNull( catCombos );
         assertFalse( catCombos.stream().anyMatch( JsonValue::isNull ) );
 
-        response = GET( "/categoryCombos/{uid}?fields=id,categoryCombos",
+        response = GET( "/categoryCombos/{uid}?fields=id,categories",
             "TIAbMD7ETV6" ).content();
         JsonList<JsonObject> categories = response.getList( "categories", JsonObject.class );
         assertNotNull( categories );
