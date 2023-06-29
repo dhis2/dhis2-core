@@ -85,7 +85,10 @@ BEGIN
     FOR rec IN (
         SELECT * FROM get_tables_missing_uid_index()
     ) LOOP
-            PERFORM alter_uid_not_null(format('%I', rec.table_name));
+            -- Check if the table name starts with '_view'
+            IF rec.table_name <> 'audit' AND rec.table_name NOT LIKE '_view%' THEN
+                PERFORM alter_uid_not_null(format('%I', rec.table_name));
+            END IF;
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -98,7 +101,7 @@ BEGIN
     FOR rec IN (
         SELECT * FROM get_tables_missing_uid_index()
     ) LOOP
-            IF rec.table_name <> 'audit' THEN
+            IF rec.table_name <> 'audit' AND rec.table_name NOT LIKE '_view%' THEN
                 PERFORM make_uid_unique(format('%I', rec.table_name));
             END IF;
         END LOOP;
