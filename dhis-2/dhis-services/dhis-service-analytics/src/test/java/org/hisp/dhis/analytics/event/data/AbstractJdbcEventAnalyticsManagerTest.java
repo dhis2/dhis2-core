@@ -47,8 +47,7 @@ import static org.hisp.dhis.common.QueryOperator.NE;
 import static org.hisp.dhis.common.QueryOperator.NEQ;
 import static org.hisp.dhis.common.QueryOperator.NIEQ;
 import static org.hisp.dhis.common.QueryOperator.NILIKE;
-import static org.hisp.dhis.common.ValueType.NUMBER;
-import static org.hisp.dhis.common.ValueType.TEXT;
+import static org.hisp.dhis.common.ValueType.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -233,6 +232,21 @@ class AbstractJdbcEventAnalyticsManagerTest extends EventAnalyticsTest
     String getTableName()
     {
         return "";
+    }
+
+    @Test
+    void verifyGetAggregateClauseWithBooleanValue()
+    {
+        DataElement booleanElement = createDataElement( 'A' );
+        booleanElement.setValueType( BOOLEAN );
+
+        EventQueryParams params = new EventQueryParams.Builder( createRequestParams() )
+            .withValue( booleanElement )
+            .build();
+
+        String clause = eventSubject.getAggregateClause( params );
+
+        assertThat( clause, is( "sum(ax.\"" + booleanElement.getUid() + "\")" ) );
     }
 
     @Test

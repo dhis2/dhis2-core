@@ -691,7 +691,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return quoteAlias( params.getValue().getUid() );
         }
-        else if ( params.hasNumericValueDimension() )
+        else if ( params.hasNumericValueDimension() || params.hasBooleanValueDimension() )
         {
             String function = params.getAggregationTypeFallback().getAggregationType().getValue();
 
