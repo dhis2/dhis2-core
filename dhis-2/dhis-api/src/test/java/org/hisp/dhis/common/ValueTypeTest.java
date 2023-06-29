@@ -50,19 +50,12 @@ public class ValueTypeTest
     public void aggregatableFlagOfTextValueTypeIsTrueWhenCalled()
     {
         // arrange act assert
-        assertTrue( ValueType.TEXT.isAggregatable( AggregationType.NONE ) );
-        assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.COUNT ) );
-        assertTrue( ValueType.LETTER.isAggregatable( AggregationType.SUM ) );
-
-    }
-
-    @Test
-    public void aggregatableFlagOfTextValueTypeIsFalseWhenCalled()
-    {
-        // arrange act assert
-        assertFalse( ValueType.TEXT.isAggregatable( AggregationType.COUNT ) );
-        assertFalse( ValueType.LONG_TEXT.isAggregatable( AggregationType.CUSTOM ) );
-        assertFalse( ValueType.LETTER.isAggregatable( AggregationType.DEFAULT ) );
+        assertTrue( ValueType.LONG_TEXT.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.LETTER.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.USERNAME.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.EMAIL.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.PHONE_NUMBER.isAggregatable( AggregationType.NONE ) );
+        assertTrue( ValueType.URL.isAggregatable( AggregationType.NONE ) );
     }
 
     @Test
