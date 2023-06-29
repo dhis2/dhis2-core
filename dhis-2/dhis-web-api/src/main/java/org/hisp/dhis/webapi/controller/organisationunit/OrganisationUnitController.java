@@ -40,6 +40,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -156,7 +157,7 @@ public class OrganisationUnitController
     {
         OrganisationUnit parent = getEntity( uid );
         return getObjectList( rpParameters, orderParams, response, currentUser, false,
-            params -> List.copyOf( parent.getChildren() ) );
+            params -> Stream.concat( Stream.of( parent ), parent.getChildren().stream() ).toList() );
     }
 
     @OpenApi.Param( name = "fields", value = String[].class )
