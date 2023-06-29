@@ -69,34 +69,35 @@ public class EventUtils
     }
 
     /**
-     * Checks whether the user can access the requested org unit or, depending
-     * on the case, any of its offspring
+     * Returns a list of all the org units the user has access to
      *
      * @param program the program the user wants to access to
      * @param user the user to check the access of
      * @param orgUnitDescendants function to retrieve org units, in case ou mode
      *        is descendants
-     * @return true if there's at least one accessible org unit, false otherwise
+     * @return a list containing the user accessible organisation units
      */
-    public static boolean isOrgUnitAccessible( Program program, User user, OrganisationUnit orgUnit,
+    public static List<OrganisationUnit> getAccessibleOrgUnits( Program program, User user, OrganisationUnit orgUnit,
         OrganisationUnitSelectionMode orgUnitMode,
         Function<String, List<OrganisationUnit>> orgUnitDescendants )
     {
-        List<OrganisationUnit> orgUnits = getRequestedOrgUnits( orgUnit, orgUnitMode, orgUnitDescendants );
+        List<OrganisationUnit> orgUnits = getRelatedOrgUnits( orgUnit, orgUnitMode, orgUnitDescendants );
 
         if ( program != null
             && (program.isClosed() || program.isProtected()) )
         {
-            return orgUnits.stream().anyMatch( ou -> user.getOrganisationUnits().contains( ou ) );
+            return orgUnits.stream().filter( ou -> user.getOrganisationUnits().contains( ou ) ).toList();
         }
         else
         {
-            return orgUnits.stream().anyMatch( ou -> user.getTeiSearchOrganisationUnitsWithFallback().contains( ou ) );
+            return orgUnits.stream().filter( ou -> user.getTeiSearchOrganisationUnitsWithFallback().contains( ou ) )
+                .toList();
         }
     }
 
     /**
-     * Gets all the descendants/children of a particular org unit
+     * Depending on the org unit mode, gets all the descendants or children of a
+     * particular org unit
      *
      * @param orgUnit the org unit to get the descendants or children of
      * @param orgUnitMode the org unit mode to be used to get the offspring
@@ -104,7 +105,7 @@ public class EventUtils
      *        is descendants
      * @return a list of the offspring of the supplied org unit
      */
-    public static List<OrganisationUnit> getRequestedOrgUnits( OrganisationUnit orgUnit,
+    private static List<OrganisationUnit> getRelatedOrgUnits( OrganisationUnit orgUnit,
         OrganisationUnitSelectionMode orgUnitMode,
         Function<String, List<OrganisationUnit>> orgUnitDescendants )
     {

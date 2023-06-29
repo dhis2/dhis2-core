@@ -31,7 +31,7 @@ import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
-import static org.hisp.dhis.tracker.export.event.EventUtils.isOrgUnitAccessible;
+import static org.hisp.dhis.tracker.export.event.EventUtils.getAccessibleOrgUnits;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -156,8 +156,9 @@ public class EventOperationParamsMapper
         return searchParams.setProgram( program )
             .setProgramStage( programStage )
             .setOrgUnit( orgUnit )
-            .setAccessibleOrgUnits( EventUtils.getRequestedOrgUnits( orgUnit, operationParams.getOrgUnitSelectionMode(),
-                organisationUnitService::getOrganisationUnitWithChildren ) )
+            .setAccessibleOrgUnits(
+                getAccessibleOrgUnits( program, user, orgUnit, operationParams.getOrgUnitSelectionMode(),
+                    organisationUnitService::getOrganisationUnitWithChildren ) )
             .setTrackedEntity( trackedEntity )
             .setProgramStatus( operationParams.getProgramStatus() )
             .setFollowUp( operationParams.getFollowUp() )
@@ -264,8 +265,8 @@ public class EventOperationParamsMapper
         if ( ouMode != null && (ouMode.equals( OrganisationUnitSelectionMode.DESCENDANTS )
             || ouMode.equals( OrganisationUnitSelectionMode.CHILDREN )) )
         {
-            if ( !isOrgUnitAccessible( program, user, orgUnit, ouMode,
-                organisationUnitService::getOrganisationUnitWithChildren ) )
+            if ( getAccessibleOrgUnits( program, user, orgUnit, ouMode,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty() )
             {
                 throw new ForbiddenException( "User does not have access to orgUnit: " + orgUnit.getUid() );
             }

@@ -31,6 +31,7 @@ import static org.hisp.dhis.common.AccessLevel.OPEN;
 import static org.hisp.dhis.common.AccessLevel.PROTECTED;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
 import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
+import static org.hisp.dhis.tracker.export.event.EventUtils.getAccessibleOrgUnits;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
@@ -82,9 +83,9 @@ class EventsUtilsTest
 
         when( organisationUnitService.getOrganisationUnitWithChildren( orgUnitId ) ).thenReturn( orgUnitDescendants );
 
-        assertTrue(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, DESCENDANTS,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertFalse(
+            getAccessibleOrgUnits( program, user, orgUnit, DESCENDANTS,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should find accessible org unit when program protected and ou mode descendants: "
                 + captureScopeOrgUnit.getName() );
     }
@@ -100,9 +101,9 @@ class EventsUtilsTest
 
         when( organisationUnitService.getOrganisationUnitWithChildren( orgUnitId ) ).thenReturn( orgUnitDescendants );
 
-        assertFalse(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, DESCENDANTS,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertTrue(
+            getAccessibleOrgUnits( program, user, orgUnit, DESCENDANTS,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should have not found any accessible organisation unit when program protected and ou mode descendants" );
     }
 
@@ -117,9 +118,9 @@ class EventsUtilsTest
 
         when( organisationUnitService.getOrganisationUnitWithChildren( orgUnitId ) ).thenReturn( orgUnitDescendants );
 
-        assertTrue(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, DESCENDANTS,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertFalse(
+            getAccessibleOrgUnits( program, user, orgUnit, DESCENDANTS,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should find accessible org unit when program open and ou mode descendants: "
                 + searchScopeOrgUnit.getName() );
     }
@@ -135,9 +136,9 @@ class EventsUtilsTest
 
         when( organisationUnitService.getOrganisationUnitWithChildren( orgUnitId ) ).thenReturn( orgUnitDescendants );
 
-        assertFalse(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, DESCENDANTS,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertTrue(
+            getAccessibleOrgUnits( program, user, orgUnit, DESCENDANTS,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should have not found any accessible organisation unit when program open and ou mode descendants" );
     }
 
@@ -150,9 +151,9 @@ class EventsUtilsTest
         User user = new User();
         user.setOrganisationUnits( Set.of( captureScopeOrgUnit ) );
 
-        assertTrue(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, CHILDREN,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertFalse(
+            getAccessibleOrgUnits( program, user, orgUnit, CHILDREN,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should find accessible org unit when program protected and ou mode children: "
                 + captureScopeOrgUnit.getName() );
     }
@@ -166,9 +167,9 @@ class EventsUtilsTest
         User user = new User();
         user.setOrganisationUnits( Set.of( captureScopeOrgUnit ) );
 
-        assertFalse(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, CHILDREN,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertTrue(
+            getAccessibleOrgUnits( program, user, orgUnit, CHILDREN,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should not find accessible org unit when program protected and ou mode children" );
     }
 
@@ -181,9 +182,9 @@ class EventsUtilsTest
         User user = new User();
         user.setTeiSearchOrganisationUnits( Set.of( searchScopeOrgUnit ) );
 
-        assertTrue(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, CHILDREN,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertFalse(
+            getAccessibleOrgUnits( program, user, orgUnit, CHILDREN,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should find accessible org unit: " + searchScopeOrgUnit.getName() );
     }
 
@@ -196,9 +197,9 @@ class EventsUtilsTest
         User user = new User();
         user.setTeiSearchOrganisationUnits( Set.of( searchScopeOrgUnit ) );
 
-        assertFalse(
-            EventUtils.isOrgUnitAccessible( program, user, orgUnit, CHILDREN,
-                organisationUnitService::getOrganisationUnitWithChildren ),
+        assertTrue(
+            getAccessibleOrgUnits( program, user, orgUnit, CHILDREN,
+                organisationUnitService::getOrganisationUnitWithChildren ).isEmpty(),
             "Should find accessible org unit: " + searchScopeOrgUnit.getName() );
     }
 
