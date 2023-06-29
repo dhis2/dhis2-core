@@ -21,7 +21,7 @@
     "https://github.com/d2-ci/scheduler-app#2.39.2",
     "https://github.com/d2-ci/sms-configuration-app#v100.0.24",
     "https://github.com/d2-ci/settings-app#2.39.2",
-    "https://github.com/d2-ci/tracker-capture-app#2.39.2",
+    "https://github.com/d2-ci/tracker-capture-app#patch/2.39.2.1",
     "https://github.com/d2-ci/translations-app#2.39.2",
     "https://github.com/d2-ci/usage-analytics-app#v101.0.30",
     "https://github.com/d2-ci/user-app#2.39.2",
