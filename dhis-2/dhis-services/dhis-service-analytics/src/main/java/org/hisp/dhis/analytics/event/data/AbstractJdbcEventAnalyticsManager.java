@@ -718,7 +718,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return function + "(value)";
         }
-        else if ( params.hasNumericValueDimension() )
+        else if ( params.hasNumericValueDimension() || params.hasBooleanValueDimension() )
         {
             Assert.isTrue( params.getAggregationTypeFallback().getAggregationType().isAggregatable(),
                 "Event query aggregation type must be aggregatable" );
