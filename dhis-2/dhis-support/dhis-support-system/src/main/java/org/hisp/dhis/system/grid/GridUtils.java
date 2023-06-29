@@ -237,7 +237,7 @@ public class GridUtils
 
         for ( GridHeader header : grid.getVisibleHeaders() )
         {
-            table.addCell( getItalicCell( header.getColumn() ) );
+            table.addCell( getItalicCell( header.getDisplayColumn() ) );
         }
 
         table.addCell( getEmptyCell( grid.getVisibleWidth(), 10 ) );
@@ -348,7 +348,7 @@ public class GridUtils
         {
             Cell cell = headerRow.createCell( columnIndex++, CellType.STRING );
             cell.setCellStyle( headerCellStyle );
-            cell.setCellValue( header.getColumn() );
+            cell.setCellValue( header.getDisplayColumn() );
         }
 
         rowNumber++;
@@ -418,7 +418,7 @@ public class GridUtils
         {
             while ( headers.hasNext() )
             {
-                csvWriter.write( headers.next().getColumn() );
+                csvWriter.write( headers.next().getDisplayColumn() );
             }
 
             csvWriter.endRecord();

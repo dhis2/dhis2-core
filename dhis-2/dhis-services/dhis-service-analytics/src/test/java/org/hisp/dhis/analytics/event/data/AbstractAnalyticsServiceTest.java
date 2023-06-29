@@ -140,10 +140,12 @@ class AbstractAnalyticsServiceTest
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );
 
-        assertHeader( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
-        assertHeader( headers.get( 1 ), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName() );
-        assertHeader( headers.get( 2 ), deB.getUid(), deB.getName(), ValueType.COORDINATE, Point.class.getName() );
-        assertHeader( headers.get( 3 ), deC.getUid(), deC.getName(), ValueType.NUMBER, Double.class.getName() );
+        assertHeaderWithColumn( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
+        assertHeaderWithColumn( headers.get( 1 ), deA.getUid(), deA.getName(), ValueType.TEXT, String.class.getName() );
+        assertHeaderWithColumn( headers.get( 2 ), deB.getUid(), deB.getName(), ValueType.COORDINATE,
+            Point.class.getName() );
+        assertHeaderWithColumn( headers.get( 3 ), deC.getUid(), deC.getName(), ValueType.NUMBER,
+            Double.class.getName() );
     }
 
     @Test
@@ -197,25 +199,34 @@ class AbstractAnalyticsServiceTest
         assertThat( headers, is( notNullValue() ) );
         assertThat( headers, hasSize( 4 ) );
 
-        assertHeader( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
+        assertHeaderWithColumn( headers.get( 0 ), "ou", "ouA", ValueType.TEXT, String.class.getName() );
 
         // Same item names with different program stages.
-        assertHeader( headers.get( 1 ), psA.getUid() + "." + deD.getUid(), deD.getName() + " - " + psA.getName(),
+        assertHeaderWithDisplayColumn( headers.get( 1 ), psA.getUid() + "." + deD.getUid(), deD.getName(),
+            deD.getName() + " - " + psA.getName(),
             ValueType.NUMBER,
             Double.class.getName() );
-        assertHeader( headers.get( 2 ), psB.getUid() + "." + deE.getUid(), deE.getName() + " - " + psB.getName(),
+        assertHeaderWithDisplayColumn( headers.get( 2 ), psB.getUid() + "." + deE.getUid(), deE.getName(),
+            deE.getName() + " - " + psB.getName(),
             ValueType.NUMBER,
-            Double.class.getName() );
-
-        // Unique name.
-        assertHeader( headers.get( 3 ), psA.getUid() + "." + deF.getUid(), deF.getName(), ValueType.NUMBER,
             Double.class.getName() );
     }
 
-    private void assertHeader( GridHeader expected, String name, String column, ValueType valueType, String type )
+    private void assertHeaderWithColumn( GridHeader expected, String name, String column, ValueType valueType,
+        String type )
     {
         assertThat( "Header name does not match", expected.getName(), is( name ) );
         assertThat( "Header column name does not match", expected.getColumn(), is( column ) );
+        assertThat( "Header value type does not match", expected.getValueType(), is( valueType ) );
+        assertThat( "Header type does not match", expected.getType(), is( type ) );
+    }
+
+    private void assertHeaderWithDisplayColumn( GridHeader expected, String name, String column, String displayColumn,
+        ValueType valueType, String type )
+    {
+        assertThat( "Header name does not match", expected.getName(), is( name ) );
+        assertThat( "Header column name does not match", expected.getColumn(), is( column ) );
+        assertThat( "Header displayColumn name does not match", expected.getDisplayColumn(), is( displayColumn ) );
         assertThat( "Header value type does not match", expected.getValueType(), is( valueType ) );
         assertThat( "Header type does not match", expected.getType(), is( type ) );
     }

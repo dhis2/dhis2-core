@@ -163,14 +163,14 @@ public abstract class AbstractAnalyticsService
             }
             else if ( item.hasNonDefaultRepeatableProgramStageOffset() )
             {
-                String itemName = item.getItem().getDisplayProperty( displayProperty );
-                String column = item.getColumnName( displayProperty, repeatedNames.get( itemName ) > 1 );
+                String column = item.getItem().getDisplayProperty( displayProperty );
+                String displayColumn = item.getColumnName( displayProperty, repeatedNames.get( column ) > 1 );
 
                 RepeatableStageParams repeatableStageParams = item.getRepeatableStageParams();
 
                 String name = repeatableStageParams.getDimension();
 
-                grid.addHeader( new GridHeader( name, column,
+                grid.addHeader( new GridHeader( name, column, displayColumn,
                     repeatableStageParams.simpleStageValueExpected() ? item.getValueType() : ValueType.REFERENCE,
                     false, true, item.getOptionSet(), item.getLegendSet(),
                     item.getProgramStage().getUid(), item.getRepeatableStageParams() ) );
@@ -178,10 +178,10 @@ public abstract class AbstractAnalyticsService
             else
             {
                 String uid = getItemUid( item );
-                String itemName = item.getItem().getDisplayProperty( displayProperty );
-                String column = item.getColumnName( displayProperty, repeatedNames.get( itemName ) > 1 );
+                String column = item.getItem().getDisplayProperty( displayProperty );
+                String displayColumn = item.getColumnName( displayProperty, repeatedNames.get( column ) > 1 );
 
-                grid.addHeader( new GridHeader( uid, column, item.getValueType(),
+                grid.addHeader( new GridHeader( uid, column, displayColumn, item.getValueType(),
                     false, true, item.getOptionSet(), item.getLegendSet() ) );
             }
         }
