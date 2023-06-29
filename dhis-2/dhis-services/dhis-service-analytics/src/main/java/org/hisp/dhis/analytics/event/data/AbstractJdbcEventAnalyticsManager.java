@@ -753,7 +753,7 @@ public abstract class AbstractJdbcEventAnalyticsManager
         {
             return function + "(value)";
         }
-        else if ( params.hasNumericValueDimension() )
+        else if ( params.hasNumericValueDimension() || params.hasBooleanValueDimension() )
         {
             String expression = quoteAlias( params.getValue().getUid() );
 
