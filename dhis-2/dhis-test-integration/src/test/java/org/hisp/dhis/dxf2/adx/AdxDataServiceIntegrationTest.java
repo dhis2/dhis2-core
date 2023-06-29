@@ -28,8 +28,11 @@
 package org.hisp.dhis.dxf2.adx;
 
 import static org.hisp.dhis.common.IdScheme.CODE;
+import static org.hisp.dhis.common.IdScheme.UID;
+import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -39,8 +42,10 @@ import java.io.InputStreamReader;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import org.awaitility.Awaitility;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
@@ -423,8 +428,53 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase
     void testGetAllDataValuesC()
         throws IOException
     {
-        testImport( "adx/importC.adx.xml", new IdSchemes().setDefaultIdScheme( CODE ).setDataSetIdScheme( "UID" )
-            .setOrgUnitIdScheme( "NAME" ).setCategoryIdScheme( "UID" ).setCategoryOptionIdScheme( "NAME" ) );
+        testImport( "adx/importDates.adx.xml",
+            new IdSchemes().setDefaultIdScheme( UID ) );
+    }
+
+    @Test
+    void testImportDataIgnoreDatesOnCreate()
+        throws IOException
+    {
+        Date today = new Date();
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        InputStream in = new ClassPathResource( "adx/importDates.adx.xml" ).getInputStream();
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+        IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme( UID );
+        importOptions.setIdSchemes( idSchemes );
+        adxDataService.saveDataValueSet( in, importOptions, null );
+
+        DataValue dataValue = dataValueService.getAllDataValues().get( 0 );
+        assertEquals( getMediumDateString( today ), getMediumDateString( dataValue.getCreated() ) );
+        assertEquals( getMediumDateString( today ), getMediumDateString( dataValue.getLastUpdated() ) );
+        assertEquals( "33", dataValue.getValue() );
+    }
+
+    @Test
+    void testImportDataIgnoreDatesOnUpdate()
+        throws IOException
+    {
+        Date today = new Date();
+        assertEquals( 0, dataValueService.getAllDataValues().size() );
+
+        InputStream in = new ClassPathResource( "adx/importDates.adx.xml" ).getInputStream();
+        ImportOptions importOptions = ImportOptions.getDefaultImportOptions();
+        IdSchemes idSchemes = new IdSchemes().setDefaultIdScheme( UID );
+        importOptions.setIdSchemes( idSchemes );
+        adxDataService.saveDataValueSet( in, importOptions, null );
+
+        // wait for a small period so created & lastUpdated times are different & can be checked
+        Awaitility.await().pollDelay( 2, TimeUnit.SECONDS ).until( () -> true );
+
+        InputStream in2 = new ClassPathResource( "adx/importDatesUpdate.adx.xml" ).getInputStream();
+        adxDataService.saveDataValueSet( in2, importOptions, null );
+
+        DataValue dataValue = dataValueService.getAllDataValues().get( 0 );
+        assertEquals( getMediumDateString( today ), getMediumDateString( dataValue.getCreated() ) );
+        assertEquals( getMediumDateString( today ), getMediumDateString( dataValue.getLastUpdated() ) );
+        assertNotEquals( dataValue.getCreated(), dataValue.getLastUpdated() );
+        assertEquals( "55", dataValue.getValue() );
     }
 
     // --------------------------------------------------------------------------

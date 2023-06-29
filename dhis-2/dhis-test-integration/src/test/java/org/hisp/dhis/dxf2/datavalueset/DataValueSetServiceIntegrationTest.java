@@ -31,6 +31,7 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,9 +46,11 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.time.DateUtils;
+import org.awaitility.Awaitility;
 import org.hisp.dhis.attribute.Attribute;
 import org.hisp.dhis.attribute.AttributeService;
 import org.hisp.dhis.attribute.AttributeValue;
@@ -458,6 +461,8 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         // import data value for first time - create (value = 20, comment = null, created = "1988-12-21T23:59:38.000+0000")
         dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDate.json" ) );
 
+        // wait for a small period so created & lastUpdated times are different & can be checked
+        Awaitility.await().pollDelay( 2, TimeUnit.SECONDS ).until( () -> true );
         // import data value for second time - update (value = 22, comment = "new comment", created = "2000-12-21T23:59:38.000+0000")
         dataValueSetService.importDataValueSetJson( readFile( "datavalueset/dataValueSetCreateDateUpdated.json" ) );
 
@@ -465,6 +470,7 @@ class DataValueSetServiceIntegrationTest extends IntegrationTestBase
         DataValue dv2 = dataValueService.getDataValue( deA, peA, ouA, cc, cc );
         assertEquals( "new comment", dv2.getComment() );
         assertEquals( "22", dv2.getValue() );
+        assertNotEquals( dv2.getCreated(), dv2.getLastUpdated() );
         assertEquals( getMediumDateString( todaysDate ), getMediumDateString( dv2.getCreated() ) );
     }
 
