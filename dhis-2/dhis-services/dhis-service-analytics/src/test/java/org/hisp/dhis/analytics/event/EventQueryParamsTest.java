@@ -29,6 +29,7 @@ package org.hisp.dhis.analytics.event;
 
 import static org.hisp.dhis.analytics.TimeField.SCHEDULED_DATE;
 import static org.hisp.dhis.common.DimensionType.PERIOD;
+import static org.hisp.dhis.common.ValueType.BOOLEAN;
 import static org.hisp.dhis.period.PeriodTypeEnum.MONTHLY;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -187,6 +188,28 @@ class EventQueryParamsTest extends DhisConvenienceTest
 
         assertTrue( paramsA.hasNumericValueDimension() );
         assertFalse( paramsB.hasNumericValueDimension() );
+    }
+
+    @Test
+    void testHasBooleanDimensionValue()
+    {
+        DataElement boolElement = createDataElement( 'A' );
+        boolElement.setValueType( BOOLEAN );
+
+        DataElement notBoolElement = createDataElement( 'B' );
+
+        EventQueryParams paramsA = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( boolElement )
+            .build();
+
+        EventQueryParams paramsB = new EventQueryParams.Builder()
+            .withOrganisationUnits( List.of( ouA, ouB ) )
+            .withValue( notBoolElement )
+            .build();
+
+        assertTrue( paramsA.hasBooleanValueDimension() );
+        assertFalse( paramsB.hasBooleanValueDimension() );
     }
 
     @Test
