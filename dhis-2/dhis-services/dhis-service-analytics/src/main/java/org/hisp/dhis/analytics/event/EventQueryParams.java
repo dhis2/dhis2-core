@@ -881,6 +881,19 @@ public class EventQueryParams
         return isNotEmpty( getEventStatus() );
     }
 
+    /**
+     * Checks if a value dimension with a boolean value type exists.
+     *
+     * @return true if a value dimension with a boolean value type exists, false
+     *         if not.
+     */
+    public boolean hasBooleanValueDimension()
+    {
+        return hasValueDimension() &&
+            value instanceof ValueTypedDimensionalItemObject &&
+            ((ValueTypedDimensionalItemObject) value).getValueType().isBoolean();
+    }
+
     public boolean hasTimeDateRanges()
     {
         return MapUtils.isNotEmpty( getTimeDateRanges() );
