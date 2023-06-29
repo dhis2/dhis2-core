@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -117,7 +118,7 @@ public class EventUtils
         return switch ( orgUnitMode )
         {
         case DESCENDANTS -> orgUnitDescendants.apply( orgUnit.getUid() );
-        case CHILDREN -> orgUnit.getChildren().stream().toList();
+        case CHILDREN -> Stream.concat( Stream.of( orgUnit ), orgUnit.getChildren().stream() ).toList();
         default -> Collections.emptyList();
         };
     }
