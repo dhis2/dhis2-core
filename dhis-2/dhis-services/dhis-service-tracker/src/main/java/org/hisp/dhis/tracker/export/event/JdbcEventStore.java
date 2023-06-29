@@ -934,12 +934,15 @@ public class JdbcEventStore implements EventStore
         {
             if ( !params.getAccessibleOrgUnits().isEmpty() )
             {
-                String orgUnitSql = getAccessibleOrgUnitSql( params, getOuTableName( params ) );
+                String orgUnitSql = getAccessibleOrgUnitSql( params.getAccessibleOrgUnits(), getOuTableName( params ) );
 
-                fromBuilder.append( hlp.whereAnd() )
-                    .append( " (" )
-                    .append( orgUnitSql )
-                    .append( ") " );
+                if ( orgUnitSql != null )
+                {
+                    fromBuilder.append( hlp.whereAnd() )
+                        .append( " (" )
+                        .append( orgUnitSql )
+                        .append( ") " );
+                }
             }
         }
         else
@@ -1692,12 +1695,11 @@ public class JdbcEventStore implements EventStore
         };
     }
 
-    private String getAccessibleOrgUnitSql( EventSearchParams params, String ouTable )
+    private String getAccessibleOrgUnitSql( List<OrganisationUnit> accessibleOrgUnits, String ouTable )
     {
         StringJoiner orgUnitSqlJoiner = new StringJoiner( " or " );
-        List<OrganisationUnit> orgUnits = params.getAccessibleOrgUnits();
 
-        for ( OrganisationUnit orgUnit : orgUnits )
+        for ( OrganisationUnit orgUnit : accessibleOrgUnits )
         {
             orgUnitSqlJoiner.add( getSelectedOrgUnitsPath( orgUnit, ouTable ) );
         }

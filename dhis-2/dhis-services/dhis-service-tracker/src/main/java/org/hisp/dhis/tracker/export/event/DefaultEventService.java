@@ -52,7 +52,6 @@ import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
-import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentity.TrackerAccessManager;
@@ -79,8 +78,6 @@ public class DefaultEventService implements EventService
     private final TrackerAccessManager trackerAccessManager;
 
     private final DataElementService dataElementService;
-
-    private final OrganisationUnitService organisationUnitService;
 
     private final EventOperationParamsMapper paramsMapper;
 
