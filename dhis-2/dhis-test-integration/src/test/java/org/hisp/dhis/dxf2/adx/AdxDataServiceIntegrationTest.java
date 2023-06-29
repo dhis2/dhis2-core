@@ -428,8 +428,8 @@ class AdxDataServiceIntegrationTest extends IntegrationTestBase
     void testGetAllDataValuesC()
         throws IOException
     {
-        testImport( "adx/importDates.adx.xml",
-            new IdSchemes().setDefaultIdScheme( UID ) );
+        testImport( "adx/importC.adx.xml", new IdSchemes().setDefaultIdScheme( CODE ).setDataSetIdScheme( "UID" )
+            .setOrgUnitIdScheme( "NAME" ).setCategoryIdScheme( "UID" ).setCategoryOptionIdScheme( "NAME" ) );
     }
 
     @Test
