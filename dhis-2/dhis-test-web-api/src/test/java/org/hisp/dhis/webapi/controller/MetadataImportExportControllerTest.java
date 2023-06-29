@@ -30,6 +30,7 @@ package org.hisp.dhis.webapi.controller;
 import static org.hisp.dhis.webapi.WebClient.Body;
 import static org.hisp.dhis.webapi.WebClient.ContentType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -38,14 +39,17 @@ import java.io.IOException;
 import org.geojson.GeoJsonObject;
 import org.geojson.Polygon;
 import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonResponse;
+import org.hisp.dhis.jsontree.JsonValue;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonAttributeValue;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonIdentifiableObject;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
@@ -307,5 +311,24 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         assertEquals( 2, response.getObject( "options" ).size() );
         assertNotNull( response.get( "options[0].sortOrder" ) );
         assertNotNull( response.get( "options[1].sortOrder" ) );
+    }
+
+    @Test
+    @DisplayName( "Should not include null objects in collection Category.categorycombos or CategoryCombo.categories after importing" )
+    void testImportCategoryComboAndCategory()
+    {
+        POST( "/metadata",
+            Body( "metadata/category_and_categorycombo.json" ) ).content( HttpStatus.OK );
+        JsonResponse response = GET( "/categories/{uid}?fields=id,categoryCombos",
+            "IjOK1aXkjVO" ).content();
+        JsonList<JsonObject> catCombos = response.getList( "categoryCombos", JsonObject.class );
+        assertNotNull( catCombos );
+        assertFalse( catCombos.stream().anyMatch( JsonValue::isNull ) );
+
+        response = GET( "/categoryCombos/{uid}?fields=id,categories",
+            "TIAbMD7ETV6" ).content();
+        JsonList<JsonObject> categories = response.getList( "categories", JsonObject.class );
+        assertNotNull( categories );
+        assertFalse( categories.stream().anyMatch( JsonValue::isNull ) );
     }
 }
