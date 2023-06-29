@@ -251,7 +251,7 @@ public abstract class AbstractCrudController<T extends IdentifiableObject> exten
                 throw new BadRequestException( "Payload can not contain objects or arrays." );
             }
         }
-        return patchService.diff( new PatchParams( mapper.readTree( request.getInputStream() ) ) );
+        return patchService.diff( new PatchParams( jsonNode ) );
     }
 
     @RequestMapping( value = "/{uid}/{property}", method = { RequestMethod.PUT, RequestMethod.PATCH } )
