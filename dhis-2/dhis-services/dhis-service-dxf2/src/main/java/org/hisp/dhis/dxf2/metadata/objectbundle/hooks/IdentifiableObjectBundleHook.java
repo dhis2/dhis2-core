@@ -93,14 +93,14 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             .forEach( property -> {
                 List<IdentifiableObject> collection = ListUtils.emptyIfNull(
                     ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
-                for ( int i = 0; i < collection.size(); i++ )
+                for ( int i = collection.size() - 1; i >= 0; i-- )
                 {
                     IdentifiableObject item = collection.get( i );
                     IdentifiableObject preheatedItem = bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
                     SortableObject sortableItem = (SortableObject) preheatedItem;
                     if ( sortableItem.getSortOrder() == null )
                     {
-                        sortableItem.setSortOrder( i );
+                        sortableItem.setSortOrder( (collection.size() - 1) - i );
                     }
 
                     bundle.getPreheat().put( bundle.getPreheatIdentifier(), item );

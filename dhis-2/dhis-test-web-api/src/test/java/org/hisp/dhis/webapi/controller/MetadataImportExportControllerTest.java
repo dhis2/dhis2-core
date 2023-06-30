@@ -265,8 +265,8 @@ class MetadataImportExportControllerTest extends DhisControllerConvenienceTest
         JsonObject response = GET( "/optionSets/{uid}?fields=options[id,sortOrder]", "RHqFlB1Wm4d" ).content();
 
         assertEquals( 2, response.getObject( "options" ).size() );
-        assertNotNull( response.get( "options[0].sortOrder" ) );
-        assertNotNull( response.get( "options[1].sortOrder" ) );
+        assertEquals( "BQMei56UBl6", response.getString( "options[0].id" ).string() );
+        assertEquals( "Uh4HvjK6zg3", response.getString( "options[1].id" ).string() );
     }
 
     /**
