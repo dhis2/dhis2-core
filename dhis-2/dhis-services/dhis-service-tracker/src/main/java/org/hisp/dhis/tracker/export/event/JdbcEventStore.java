@@ -397,15 +397,15 @@ public class JdbcEventStore implements EventStore
                     note.setCreated( resultSet.getDate( "psinote_storeddate" ) );
                     note.setCreator( resultSet.getString( "psinote_storedby" ) );
 
-                   if ( resultSet.getObject( "usernote_id" ) != null )
-                   {
+                    if ( resultSet.getObject( "usernote_id" ) != null )
+                    {
                         User userNote = new User();
                         userNote.setId( resultSet.getLong( "usernote_id" ) );
                         userNote.setCode( resultSet.getString( "usernote_code" ) );
                         userNote.setUid( resultSet.getString( "usernote_uid" ) );
                         userNote.setUsername( resultSet.getString( "usernote_username" ) );
                         note.setLastUpdatedBy( userNote );
-                   }
+                    }
 
                     note.setLastUpdated( resultSet.getDate( "psinote_lastupdated" ) );
 
