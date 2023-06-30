@@ -6,7 +6,7 @@
   <parent>
     <groupId>org.hisp.dhis</groupId>
     <artifactId>dhis-services</artifactId>
-    <version>2.39.2.1-SNAPSHOT</version>
+    <version>2.39.2.1</version>
   </parent>
 
   <artifactId>dhis-service-reporting</artifactId>
