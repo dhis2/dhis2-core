@@ -27,6 +27,9 @@
  */
 package org.hisp.dhis.useraccount.action;
 
+import javax.servlet.http.HttpSession;
+
+import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.configuration.ConfigurationService;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -41,10 +44,26 @@ public class IsSelfRegistrationAllowedAction
     @Autowired
     private ConfigurationService configurationService;
 
+    private String cspNonce = "";
+
+    public void setCspNonce( String cspNonce )
+    {
+        this.cspNonce = cspNonce;
+    }
+
+    public String getCspNonce()
+    {
+        return cspNonce;
+    }
+
     @Override
     public String execute()
         throws Exception
     {
+        HttpSession session = ServletActionContext.getRequest().getSession();
+        String nonce = (String) session.getAttribute( "nonce" );
+        setCspNonce( nonce );
+
         boolean allowed = configurationService.getConfiguration().selfRegistrationAllowed();
 
         return allowed ? SUCCESS : ERROR;
