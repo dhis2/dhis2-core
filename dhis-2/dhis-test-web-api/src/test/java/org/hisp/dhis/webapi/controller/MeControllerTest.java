@@ -28,6 +28,7 @@
 package org.hisp.dhis.webapi.controller;
 
 import static java.util.Collections.singletonList;
+import static org.hisp.dhis.security.apikey.ApiKeyTokenGenerator.generatePersonalAccessToken;
 import static org.hisp.dhis.web.WebClientUtils.assertSeries;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,9 +36,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
 import org.hisp.dhis.jsontree.JsonValue;
+import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
+import org.hisp.dhis.security.apikey.ApiTokenStore;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.web.HttpStatus.Series;
@@ -45,6 +50,7 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * Tests the {@link org.hisp.dhis.webapi.controller.user.MeController} API.
@@ -54,6 +60,9 @@ import org.junit.jupiter.api.Test;
 class MeControllerTest extends DhisControllerConvenienceTest
 {
     private User userA;
+
+    @Autowired
+    private ApiTokenStore apiTokenStore;
 
     @BeforeEach
     void setUp()
@@ -231,6 +240,20 @@ class MeControllerTest extends DhisControllerConvenienceTest
         JsonObject response = GET( "/me?fields=id,userCredentials" ).content();
         JsonObject userCredentials = response.getObject( "userCredentials" );
         JsonValue id = userCredentials.get( "id" );
+        assertTrue( id.exists() );
+    }
+
+    @Test
+    void testPersonalAccessTokensIsPresent()
+    {
+        long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
+        ApiKeyTokenGenerator.TokenWrapper wrapper = generatePersonalAccessToken( null, thirtyDaysInTheFuture );
+        apiTokenStore.save( wrapper.getApiToken() );
+
+        JsonObject response = GET( "/me?fields=patTokens" ).content();
+        JsonArray patTokens = response.getArray( "patTokens" );
+        JsonValue id = patTokens.getObject( 0 ).get( "id" );
+
         assertTrue( id.exists() );
     }
 }

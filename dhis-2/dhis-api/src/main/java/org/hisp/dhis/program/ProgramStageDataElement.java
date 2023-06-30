@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import java.util.Objects;
+import java.util.function.BiFunction;
 
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
@@ -291,5 +292,32 @@ public class ProgramStageDataElement
             ", allowFutureDate=" + allowFutureDate +
             ", renderOptionsAsRadio=" + renderOptionsAsRadio +
             '}';
+    }
+
+    public static final BiFunction<ProgramStageDataElement, ProgramStage, ProgramStageDataElement> copyOf = (
+        original, stage ) -> {
+        ProgramStageDataElement copy = new ProgramStageDataElement();
+        copy.setProgramStage( stage );
+        copy.setAutoFields();
+        setShallowCopyValues( copy, original );
+        return copy;
+    };
+
+    private static void setShallowCopyValues( ProgramStageDataElement copy, ProgramStageDataElement original )
+    {
+        copy.setAllowFutureDate( original.getAllowFutureDate() );
+        copy.setAllowProvidedElsewhere( original.getAllowProvidedElsewhere() );
+        copy.setCompulsory( original.isCompulsory() );
+        copy.setDataElement( original.getDataElement() );
+        copy.setDisplayInReports( original.getDisplayInReports() );
+        copy.setLastUpdatedBy( original.getLastUpdatedBy() );
+        copy.setName( original.getName() );
+        copy.setPublicAccess( original.getPublicAccess() );
+        copy.setRenderOptionsAsRadio( original.getRenderOptionsAsRadio() );
+        copy.setRenderType( original.getRenderType() );
+        copy.setSharing( original.getSharing() );
+        copy.setSkipAnalytics( original.getSkipAnalytics() );
+        copy.setSkipSynchronization( original.getSkipSynchronization() );
+        copy.setSortOrder( original.getSortOrder() );
     }
 }

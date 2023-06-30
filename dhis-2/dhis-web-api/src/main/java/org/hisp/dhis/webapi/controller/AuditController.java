@@ -31,6 +31,7 @@ import static org.hisp.dhis.commons.collection.CollectionUtils.emptyIfNull;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.error;
 import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.notFound;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -53,7 +54,6 @@ import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.Pager;
 import org.hisp.dhis.common.PagerUtils;
-import org.hisp.dhis.common.UID;
 import org.hisp.dhis.dataapproval.DataApprovalAudit;
 import org.hisp.dhis.dataapproval.DataApprovalAuditQueryParams;
 import org.hisp.dhis.dataapproval.DataApprovalAuditService;
@@ -68,6 +68,7 @@ import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.dxf2.webmessage.responses.FileResourceWebMessageResponse;
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fieldfilter.FieldFilterParams;
 import org.hisp.dhis.fieldfilter.FieldFilterService;
 import org.hisp.dhis.fileresource.FileResource;
@@ -94,6 +95,7 @@ import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValueAudi
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAudit;
 import org.hisp.dhis.trackedentitydatavalue.TrackedEntityDataValueAuditService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.hisp.dhis.webapi.service.ContextService;
 import org.hisp.dhis.webapi.utils.HeaderUtils;
@@ -257,8 +259,10 @@ public class AuditController
     public RootNode getTrackedEntityDataValueAudit(
         @OpenApi.Param( { UID[].class, DataElement.class } ) @RequestParam( required = false ) List<String> de,
         @OpenApi.Param( { UID[].class, OrganisationUnit.class } ) @RequestParam( required = false ) List<String> ou,
+        @Deprecated( since = "2.41" ) @OpenApi.Param( { UID[].class,
+            Event.class } ) @RequestParam( required = false, defaultValue = "" ) List<String> psi,
         @OpenApi.Param( { UID[].class,
-            Event.class } ) @RequestParam( required = false ) List<String> psi,
+            Event.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> events,
         @OpenApi.Param( { UID[].class, ProgramStage.class } ) @RequestParam( required = false ) List<String> ps,
         @RequestParam( required = false ) Date startDate,
         @RequestParam( required = false ) Date endDate,
@@ -268,6 +272,7 @@ public class AuditController
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws BadRequestException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
@@ -279,7 +284,7 @@ public class AuditController
         List<DataElement> dataElements = manager.loadByUid( DataElement.class, de );
         List<OrganisationUnit> orgUnits = manager.loadByUid( OrganisationUnit.class, ou );
         List<ProgramStage> programStages = manager.loadByUid( ProgramStage.class, ps );
-        List<Event> events = manager.loadByUid( Event.class, psi );
+        Set<UID> eventUids = validateDeprecatedUidsParameter( "psi", String.join( ";", psi ), "events", events );
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityDataValueAudit> dataValueAudits;
@@ -288,7 +293,7 @@ public class AuditController
         TrackedEntityDataValueAuditQueryParams params = new TrackedEntityDataValueAuditQueryParams()
             .setDataElements( dataElements )
             .setOrgUnits( orgUnits )
-            .setEvents( events )
+            .setEvents( manager.loadByUid( Event.class, UID.toValueSet( eventUids ) ) )
             .setProgramStages( programStages )
             .setStartDate( startDate )
             .setEndDate( endDate )
@@ -306,16 +311,7 @@ public class AuditController
             pager = new Pager( page, total, pageSize );
 
             dataValueAudits = trackedEntityDataValueAuditService.getTrackedEntityDataValueAudits(
-                new TrackedEntityDataValueAuditQueryParams()
-                    .setDataElements( dataElements )
-                    .setOrgUnits( orgUnits )
-                    .setEvents( events )
-                    .setProgramStages( programStages )
-                    .setStartDate( startDate )
-                    .setEndDate( endDate )
-                    .setOuMode( ouMode )
-                    .setAuditTypes( auditTypes )
-                    .setPager( pager ) );
+                params.setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -338,19 +334,22 @@ public class AuditController
     public RootNode getTrackedEntityAttributeValueAudit(
         @OpenApi.Param( { UID[].class,
             TrackedEntityAttribute.class } ) @RequestParam( required = false ) List<String> tea,
+        @Deprecated( since = "2.41" ) @OpenApi.Param( { UID[].class,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @OpenApi.Param( { UID[].class,
-            TrackedEntity.class } ) @RequestParam( required = false ) List<String> tei,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> trackedEntities,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Boolean skipPaging,
         @RequestParam( required = false ) Boolean paging,
         @RequestParam( required = false, defaultValue = "50" ) int pageSize,
         @RequestParam( required = false, defaultValue = "1" ) int page )
-        throws WebMessageException
+        throws BadRequestException
     {
         List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
 
         List<TrackedEntityAttribute> trackedEntityAttributes = manager.loadByUid( TrackedEntityAttribute.class, tea );
-        List<TrackedEntity> trackedEntities = manager.loadByUid( TrackedEntity.class, tei );
+        Set<UID> teUids = validateDeprecatedUidsParameter( "tei", String.join( ";", tei ), "trackedEntities",
+            trackedEntities );
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         List<TrackedEntityAttributeValueAudit> attributeValueAudits;
@@ -358,7 +357,7 @@ public class AuditController
 
         TrackedEntityAttributeValueAuditQueryParams params = new TrackedEntityAttributeValueAuditQueryParams()
             .setTrackedEntityAttributes( trackedEntityAttributes )
-            .setTrackedEntities( trackedEntities )
+            .setTrackedEntities( manager.loadByUid( TrackedEntity.class, UID.toValueList( teUids ) ) )
             .setAuditTypes( auditTypes );
 
         if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
@@ -373,11 +372,7 @@ public class AuditController
             pager = new Pager( page, total, pageSize );
 
             attributeValueAudits = trackedEntityAttributeValueAuditService.getTrackedEntityAttributeValueAudits(
-                new TrackedEntityAttributeValueAuditQueryParams()
-                    .setTrackedEntityAttributes( trackedEntityAttributes )
-                    .setTrackedEntities( trackedEntities )
-                    .setAuditTypes( auditTypes )
-                    .setPager( pager ) );
+                params.setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -446,10 +441,81 @@ public class AuditController
         return rootNode;
     }
 
+    /**
+     * @deprecated use {@link #getTrackedEnityAudit} instead.
+     */
+    @Deprecated( since = "2.41" )
     @GetMapping( "trackedEntityInstance" )
     public RootNode getTrackedEnityInstanceAudit(
+        @Deprecated( since = "2.41" ) @OpenApi.Param( { UID[].class,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) List<String> tei,
         @OpenApi.Param( { UID[].class,
-            TrackedEntity.class } ) @RequestParam( required = false ) List<String> tei,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> trackedEntities,
+        @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
+        @RequestParam( required = false ) List<AuditType> auditType,
+        @RequestParam( required = false ) Date startDate,
+        @RequestParam( required = false ) Date endDate,
+        @RequestParam( required = false ) Boolean skipPaging,
+        @RequestParam( required = false ) Boolean paging,
+        @RequestParam( required = false, defaultValue = "50" ) int pageSize,
+        @RequestParam( required = false, defaultValue = "1" ) int page )
+        throws BadRequestException
+    {
+        List<String> fields = Lists.newArrayList( contextService.getParameterValues( "fields" ) );
+
+        if ( fields.isEmpty() )
+        {
+            fields.addAll( Preset.ALL.getFields() );
+        }
+
+        List<AuditType> auditTypes = emptyIfNull( auditType );
+
+        Set<UID> teUids = validateDeprecatedUidsParameter( "tei", String.join( ";", tei ), "trackedEntities",
+            trackedEntities );
+
+        TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
+            .setTrackedEntities( UID.toValueList( teUids ) )
+            .setUsers( user )
+            .setAuditTypes( auditTypes )
+            .setStartDate( startDate )
+            .setEndDate( endDate );
+
+        List<TrackedEntityAudit> teiAudits;
+        Pager pager = null;
+
+        if ( PagerUtils.isSkipPaging( skipPaging, paging ) )
+        {
+            int total = trackedEntityAuditService.getTrackedEntityAuditsCount( params );
+
+            pager = new Pager( page, total, pageSize );
+
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params );
+        }
+        else
+        {
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params.setPager( pager ) );
+        }
+
+        RootNode rootNode = NodeUtils.createMetadata();
+
+        if ( pager != null )
+        {
+            rootNode.addChild( NodeUtils.createPager( pager ) );
+        }
+
+        CollectionNode trackedEntityAudits = rootNode
+            .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+        trackedEntityAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
+            new FieldFilterParams( teiAudits, fields ) ).getChildren() );
+
+        return rootNode;
+
+    }
+
+    @GetMapping( "trackedEntity" )
+    public RootNode getTrackedEnityAudit(
+        @OpenApi.Param( { UID[].class,
+            TrackedEntity.class } ) @RequestParam( required = false, defaultValue = "" ) Set<UID> trackedEntities,
         @OpenApi.Param( { UID[].class, User.class } ) @RequestParam( required = false ) List<String> user,
         @RequestParam( required = false ) List<AuditType> auditType,
         @RequestParam( required = false ) Date startDate,
@@ -469,7 +535,7 @@ public class AuditController
         List<AuditType> auditTypes = emptyIfNull( auditType );
 
         TrackedEntityAuditQueryParams params = new TrackedEntityAuditQueryParams()
-            .setTrackedEntities( tei )
+            .setTrackedEntities( UID.toValueList( trackedEntities ) )
             .setUsers( user )
             .setAuditTypes( auditTypes )
             .setStartDate( startDate )
@@ -488,14 +554,7 @@ public class AuditController
         }
         else
         {
-            teiAudits = trackedEntityAuditService.getTrackedEntityAudits(
-                new TrackedEntityAuditQueryParams()
-                    .setTrackedEntities( tei )
-                    .setUsers( user )
-                    .setAuditTypes( auditTypes )
-                    .setStartDate( startDate )
-                    .setEndDate( endDate )
-                    .setPager( pager ) );
+            teiAudits = trackedEntityAuditService.getTrackedEntityAudits( params.setPager( pager ) );
         }
 
         RootNode rootNode = NodeUtils.createMetadata();
@@ -506,7 +565,7 @@ public class AuditController
         }
 
         CollectionNode trackedEntityAudits = rootNode
-            .addChild( new CollectionNode( "trackedEntityInstanceAudits", true ) );
+            .addChild( new CollectionNode( "trackedEntityAudits", true ) );
         trackedEntityAudits.addChildren( fieldFilterService.toCollectionNode( TrackedEntityAudit.class,
             new FieldFilterParams( teiAudits, fields ) ).getChildren() );
 

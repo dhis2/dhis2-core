@@ -29,9 +29,9 @@ package org.hisp.dhis.webapi.controller.tracker.export.trackedentity;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
 import static org.hisp.dhis.trackedentity.TrackedEntityQueryParams.OrderColumn.findColumn;
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
+import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toOrderParams;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseAttributeQueryItems;
-import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.parseQueryFilter;
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.text.MessageFormat;

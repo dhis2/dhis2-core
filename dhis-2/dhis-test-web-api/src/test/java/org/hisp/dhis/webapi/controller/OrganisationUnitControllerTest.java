@@ -70,19 +70,21 @@ class OrganisationUnitControllerTest extends DhisControllerConvenienceTest
     @Test
     void testGetChildren()
     {
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou0 ).content(), "L1", "L1x" );
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou1 ).content(), "L21", "L22" );
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou21 ).content(), "L31" );
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou0 ).content(), "L0", "L1", "L1x" );
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou1 ).content(), "L1", "L21", "L22" );
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}/children", ou21 ).content(), "L21", "L31" );
     }
 
     @Test
     void testGetIncludeChildren()
     {
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou0 ).content(), "L1",
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou0 ).content(), "L0", "L1",
             "L1x" );
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou1 ).content(), "L21",
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou1 ).content(), "L1",
+            "L21",
             "L22" );
-        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou21 ).content(), "L31" );
+        assertListOfOrganisationUnits( GET( "/organisationUnits/{id}?includeChildren=true", ou21 ).content(), "L21",
+            "L31" );
     }
 
     @Test

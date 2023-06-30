@@ -27,8 +27,6 @@
  */
 package org.hisp.dhis.fileresource;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -141,33 +139,29 @@ public class DefaultFileResourceService
             return List.of();
         FileResource fr = maybeFr.get();
         String uid = fr.getUid();
-        switch ( fr.getDomain() )
+        return switch ( fr.getDomain() )
         {
-        case PUSH_ANALYSIS:
-            return List.of();
-        case ORG_UNIT:
-            return fileResourceStore.findOrganisationUnitsByImageFileResource( uid ).stream()
-                .map( id -> new FileResourceOwner( FileResourceDomain.ORG_UNIT, id ) )
-                .collect( toUnmodifiableList() );
-        case DOCUMENT:
-            return fileResourceStore.findDocumentsByFileResource( uid ).stream()
-                .map( id -> new FileResourceOwner( FileResourceDomain.DOCUMENT, id ) )
-                .collect( toUnmodifiableList() );
-        case MESSAGE_ATTACHMENT:
-            return fileResourceStore.findMessagesByFileResource( uid ).stream()
-                .map( id -> new FileResourceOwner( FileResourceDomain.MESSAGE_ATTACHMENT, id ) )
-                .collect( toUnmodifiableList() );
-        case USER_AVATAR:
-            return fileResourceStore.findUsersByAvatarFileResource( uid ).stream()
-                .map( id -> new FileResourceOwner( FileResourceDomain.USER_AVATAR, id ) )
-                .collect( toUnmodifiableList() );
-        case DATA_VALUE:
-            return fileResourceStore.findDataValuesByFileResourceValue( uid ).stream()
-                .map( dv -> new FileResourceOwner( dv.de(), dv.ou(), periodService.getPeriod( dv.pe() ).getIsoDate(),
-                    dv.co() ) )
-                .collect( toUnmodifiableList() );
-        }
-        return List.of();
+        case PUSH_ANALYSIS -> List.of();
+        case ORG_UNIT -> fileResourceStore.findOrganisationUnitsByImageFileResource( uid ).stream()
+            .map( id -> new FileResourceOwner( FileResourceDomain.ORG_UNIT, id ) )
+            .toList();
+        case DOCUMENT -> fileResourceStore.findDocumentsByFileResource( uid ).stream()
+            .map( id -> new FileResourceOwner( FileResourceDomain.DOCUMENT, id ) )
+            .toList();
+        case MESSAGE_ATTACHMENT -> fileResourceStore.findMessagesByFileResource( uid ).stream()
+            .map( id -> new FileResourceOwner( FileResourceDomain.MESSAGE_ATTACHMENT, id ) )
+            .toList();
+        case USER_AVATAR -> fileResourceStore.findUsersByAvatarFileResource( uid ).stream()
+            .map( id -> new FileResourceOwner( FileResourceDomain.USER_AVATAR, id ) )
+            .toList();
+        case DATA_VALUE -> fileResourceStore.findDataValuesByFileResourceValue( uid ).stream()
+            .map( dv -> new FileResourceOwner( dv.de(), dv.ou(), periodService.getPeriod( dv.pe() ).getIsoDate(),
+                dv.co() ) )
+            .toList();
+        case CUSTOM_ICON -> fileResourceStore.findCustomIconByFileResource( uid ).stream()
+            .map( key -> new FileResourceOwner( FileResourceDomain.CUSTOM_ICON, key ) )
+            .toList();
+        };
     }
 
     @Override

@@ -135,6 +135,13 @@ public class HibernateFileResourceStore
     }
 
     @Override
+    public List<String> findCustomIconByFileResource( @Nonnull String uid )
+    {
+        String sql = "select ci.key from customicon ci left join fileresource fr on fr.fileresourceid = ci.fileresourceid where fr.uid = :uid";
+        return getSession().createNativeQuery( sql ).setParameter( "uid", uid ).list();
+    }
+
+    @Override
     public List<String> findMessagesByFileResource( @Nonnull String uid )
     {
         String sql = "select m.uid from message m "

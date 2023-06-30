@@ -77,8 +77,7 @@ public class ReferencesCheck implements ValidationCheck
 
         for ( IdentifiableObject object : joinObjects( persistedObjects, nonPersistedObjects ) )
         {
-            List<PreheatErrorReport> errorReports = checkReferences( object, bundle.getPreheat(),
-                bundle.getPreheatIdentifier(), bundle.isSkipSharing(), ctx );
+            List<PreheatErrorReport> errorReports = checkReferences( bundle, object, ctx );
 
             if ( !errorReports.isEmpty() && object != null )
             {
@@ -97,8 +96,8 @@ public class ReferencesCheck implements ValidationCheck
         return typeReport;
     }
 
-    private List<PreheatErrorReport> checkReferences( IdentifiableObject object, Preheat preheat,
-        PreheatIdentifier identifier, boolean skipSharing, ValidationContext ctx )
+    private List<PreheatErrorReport> checkReferences( ObjectBundle bundle, IdentifiableObject object,
+        ValidationContext ctx )
     {
         if ( object == null )
         {
@@ -108,6 +107,7 @@ public class ReferencesCheck implements ValidationCheck
         List<PreheatErrorReport> preheatErrorReports = new ArrayList<>();
 
         Schema schema = ctx.getSchemaService().getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+
         schema.getProperties().stream().filter( p -> p.isPersisted() && p.isOwner()
             && (PropertyType.REFERENCE == p.getPropertyType() || PropertyType.REFERENCE == p.getItemPropertyType()) )
             .forEach( p -> {
@@ -116,87 +116,128 @@ public class ReferencesCheck implements ValidationCheck
                     return;
                 }
 
+                if ( p.isEmbeddedObject() )
+                {
+                    checkEmbeddedObjects( p, object, ctx, bundle, preheatErrorReports );
+                    return;
+                }
+
                 if ( !p.isCollection() )
                 {
-                    checkReference( object, preheat, identifier, skipSharing, preheatErrorReports, p );
+                    checkReference( ctx, bundle, object, preheatErrorReports, p );
                 }
                 else
                 {
-                    checkCollection( object, preheat, identifier, preheatErrorReports, p );
+                    checkCollection( ctx, bundle, object, preheatErrorReports, p );
                 }
             } );
 
         if ( schema.hasPersistedProperty( "attributeValues" ) )
         {
-            checkAttributeValues( object, preheat, identifier, preheatErrorReports );
+            checkAttributeValues( object, bundle.getPreheat(), bundle.getPreheatIdentifier(), preheatErrorReports );
         }
 
-        if ( schema.hasPersistedProperty( "sharing" ) && !skipSharing && object.getSharing() != null )
+        if ( schema.hasPersistedProperty( "sharing" ) && !bundle.isSkipSharing() && object.getSharing() != null )
         {
-            checkSharing( object, preheat, preheatErrorReports );
+            checkSharing( object, bundle.getPreheat(), preheatErrorReports );
         }
 
         return preheatErrorReports;
     }
 
-    private void checkReference( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
-        boolean skipSharing, List<PreheatErrorReport> preheatErrorReports, Property property )
+    private void checkEmbeddedObject( ValidationContext ctx, ObjectBundle bundle,
+        List<PreheatErrorReport> preheatErrorReports, Property p,
+        EmbeddedObject embeddedObject )
     {
-        IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
-        IdentifiableObject ref = preheat.get( identifier, refObject );
+        Schema embeddedSchema = ctx.getSchemaService()
+            .getDynamicSchema( p.isCollection() ? p.getItemKlass() : p.getKlass() );
+        embeddedSchema.getProperties().stream().filter( ep -> ep.isPersisted() && ep.isOwner()
+            && (PropertyType.REFERENCE == ep.getPropertyType() || PropertyType.REFERENCE == ep.getItemPropertyType()) )
+            .forEach( property -> {
+                if ( skipCheck( property.getKlass() ) || skipCheck( property.getItemKlass() ) )
+                {
+                    return;
+                }
 
-        if ( ref == null && refObject != null && !preheat.isDefault( refObject ) )
-        {
-            // HACK this needs to be redone when the move to using
-            // uuid as user identifiers is ready
-            boolean isUserReference = User.class.isAssignableFrom( property.getKlass() ) &&
-                ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() )
-                    || "createdBy".equals( property.getName() ));
-
-            if ( !(isUserReference && skipSharing) )
-            {
-                PreheatErrorReport error = new PreheatErrorReport( identifier,
-                    ErrorCode.E5002, object, property, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), property.getName() );
-
-                preheatErrorReports.add( error );
-            }
-        }
+                if ( !property.isCollection() )
+                {
+                    checkReference( ctx, bundle, embeddedObject, preheatErrorReports, property );
+                }
+                else
+                {
+                    checkCollection( ctx, bundle, embeddedObject, preheatErrorReports, property );
+                }
+            } );
     }
 
-    private void checkCollection( IdentifiableObject object, Preheat preheat, PreheatIdentifier identifier,
+    private void checkReference( ValidationContext ctx, ObjectBundle bundle, Object object,
+        List<PreheatErrorReport> preheatErrorReports, Property property )
+    {
+        IdentifiableObject refObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+        IdentifiableObject ref = bundle.getPreheat().get( bundle.getPreheatIdentifier(), refObject );
+
+        // HACK this needs to be redone when the move to using
+        // uuid as user identifiers is ready
+        boolean isUserReference = User.class.isAssignableFrom( property.getKlass() ) &&
+            ("user".equals( property.getName() ) || "lastUpdatedBy".equals( property.getName() )
+                || "createdBy".equals( property.getName() ));
+
+        if ( ref == null && refObject != null && !bundle.getPreheat().isDefault( refObject )
+            && !(isUserReference && bundle.isSkipSharing()) )
+        {
+            preheatErrorReports
+                .add( createError( bundle.getPreheatIdentifier(), ErrorCode.E5002, object, refObject, property ) );
+        }
+
+        if ( ref != null && ctx.getAclService().isShareable( ref )
+            && !ctx.getAclService().canRead( bundle.getUser(), ref ) )
+        {
+            preheatErrorReports
+                .add( createError( bundle.getPreheatIdentifier(), ErrorCode.E5008, object, refObject, property ) );
+        }
+
+    }
+
+    private void checkCollection( ValidationContext ctx, ObjectBundle bundle, Object object,
         List<PreheatErrorReport> preheatErrorReports, Property property )
     {
         Collection<IdentifiableObject> objects = ReflectionUtils.newCollectionInstance( property.getKlass() );
         Collection<IdentifiableObject> refObjects = ReflectionUtils.invokeMethod( object,
             property.getGetterMethod() );
-
-        if ( refObjects != null )
+        if ( CollectionUtils.isEmpty( refObjects ) )
         {
-            for ( IdentifiableObject refObject : refObjects )
-            {
-                if ( preheat.isDefault( refObject ) )
-                    continue;
-
-                IdentifiableObject ref = preheat.get( identifier, refObject );
-
-                if ( ref == null && refObject != null )
-                {
-                    preheatErrorReports.add( new PreheatErrorReport( identifier,
-                        ErrorCode.E5002, object, property, identifier.getIdentifiersWithName( refObject ),
-                        identifier.getIdentifiersWithName( object ), property.getName() ) );
-                }
-                else
-                {
-                    objects.add( refObject );
-                }
-            }
-
-            CollectionUtils.findDuplicates( refObjects )
-                .forEach( refObject -> preheatErrorReports.add( new PreheatErrorReport( identifier,
-                    ErrorCode.E5007, object, property, identifier.getIdentifiersWithName( refObject ),
-                    identifier.getIdentifiersWithName( object ), property.getName() ) ) );
+            return;
         }
+
+        boolean isShareable = ctx.getAclService().isShareable( refObjects.iterator().next() );
+
+        for ( IdentifiableObject refObject : refObjects )
+        {
+            if ( bundle.getPreheat().isDefault( refObject ) )
+                continue;
+
+            IdentifiableObject ref = bundle.getPreheat().get( bundle.getPreheatIdentifier(), refObject );
+
+            if ( ref == null && refObject != null )
+            {
+                preheatErrorReports.add(
+                    createError( bundle.getPreheatIdentifier(), ErrorCode.E5002, object, refObject, property ) );
+            }
+            else if ( refObject != null && isShareable && !ctx.getAclService().canRead( bundle.getUser(), ref ) )
+            {
+                preheatErrorReports.add(
+                    createError( bundle.getPreheatIdentifier(), ErrorCode.E5008, object, refObject, property ) );
+            }
+            else
+            {
+                objects.add( refObject );
+            }
+        }
+
+        CollectionUtils.findDuplicates( refObjects )
+            .forEach( refObject -> preheatErrorReports
+                .add(
+                    createError( bundle.getPreheatIdentifier(), ErrorCode.E5007, object, refObject, property ) ) );
 
         ReflectionUtils.invokeMethod( object, property.getSetterMethod(), objects );
     }
@@ -247,8 +288,44 @@ public class ReferencesCheck implements ValidationCheck
     private boolean skipCheck( Class<?> klass )
     {
         return klass != null
-            && (EmbeddedObject.class.isAssignableFrom( klass )
-                || Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
+            && (Period.class.isAssignableFrom( klass ) || PeriodType.class.isAssignableFrom( klass ));
     }
 
+    private PreheatErrorReport createError( PreheatIdentifier identifier, ErrorCode errorCode, Object object,
+        IdentifiableObject refObject,
+        Property property, String... args )
+    {
+        if ( object instanceof IdentifiableObject identifiableObject )
+        {
+            return new PreheatErrorReport( identifier,
+                errorCode, identifiableObject, property, identifier.getIdentifiersWithName( refObject ),
+                identifier.getIdentifiersWithName( identifiableObject ), property.getName() );
+        }
+
+        return new PreheatErrorReport( identifier, object.getClass(), errorCode, property, args );
+    }
+
+    private void checkEmbeddedObjects( Property property, Object object, ValidationContext ctx, ObjectBundle bundle,
+        List<PreheatErrorReport> preheatErrorReports )
+    {
+        if ( property.isCollection() )
+        {
+            Collection<EmbeddedObject> collection = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            if ( collection != null )
+            {
+                collection
+                    .forEach( embeddedObject -> checkEmbeddedObject( ctx, bundle,
+                        preheatErrorReports, property, embeddedObject ) );
+            }
+        }
+        else
+        {
+            EmbeddedObject embeddedObject = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+            if ( embeddedObject != null )
+            {
+                checkEmbeddedObject( ctx, bundle,
+                    preheatErrorReports, property, embeddedObject );
+            }
+        }
+    }
 }

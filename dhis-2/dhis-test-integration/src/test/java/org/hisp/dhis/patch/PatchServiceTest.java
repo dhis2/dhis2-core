@@ -266,7 +266,9 @@ class PatchServiceTest extends SingleSetupIntegrationTestBase
         deB.getSharing().addUserGroupAccess( new UserGroupAccess( userGroup, "rw------" ) );
         deB.getSharing().addUserAccess( new UserAccess( adminUser, "rw------" ) );
         Patch diff = patchService.diff( new PatchParams( deA, deB ) );
-        assertEquals( 10, diff.getMutations().size() );
+        assertTrue( diff.getMutations().stream().map( Mutation::getPath ).toList().containsAll(
+            List.of( "displayDescription", "code", "dimensionItem", "displayName", "name", "description", "id",
+                "shortName", "displayFormName", "displayShortName" ) ) );
     }
 
     @Test

@@ -35,6 +35,7 @@ import java.util.Set;
 
 import lombok.RequiredArgsConstructor;
 
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,7 @@ class EnrollmentRequestParamsMapper
     private final EnrollmentFieldsParamMapper fieldsParamMapper;
 
     public EnrollmentOperationParams map( RequestParams requestParams )
+        throws BadRequestException
     {
         Set<UID> orgUnits = validateDeprecatedUidsParameter( "orgUnit", requestParams.getOrgUnit(), "orgUnits",
             requestParams.getOrgUnits() );

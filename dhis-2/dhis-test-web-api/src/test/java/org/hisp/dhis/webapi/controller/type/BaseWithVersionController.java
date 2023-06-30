@@ -32,6 +32,7 @@ import java.io.IOException;
 import javax.servlet.http.HttpServletResponse;
 
 import org.hisp.dhis.common.DhisApiVersion;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -39,6 +40,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Ignore
 @ApiVersion( DhisApiVersion.V31 )
 public abstract class BaseWithVersionController
 {

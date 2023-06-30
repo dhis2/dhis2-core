@@ -72,6 +72,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -102,6 +103,7 @@ import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContextLoader;
 import org.hisp.dhis.dxf2.deprecated.tracker.relationship.RelationshipService;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRows;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.dxf2.importsummary.ImportSummaries;
@@ -546,14 +548,20 @@ public abstract class AbstractEventService implements org.hisp.dhis.dxf2.depreca
 
         List<EventRow> eventRowList = eventStore.getEventRows( params );
 
-        EventContext eventContext = eventServiceContextBuilder.build( eventRowList, user );
+        EventContext eventContext = eventServiceContextBuilder.build( eventRowList );
 
         for ( EventRow eventRow : eventRowList )
         {
-            if ( trackerOwnershipAccessManager.hasAccessUsingContext( user,
-                eventRow.getTrackedEntityInstance(),
-                eventRow.getProgram(),
-                eventContext ) )
+            Program program = eventContext.getProgramsByUid().get( eventRow.getProgram() );
+            TrackedEntityOuInfo trackedEntityOuInfo = eventContext.getTrackedEntityOuInfoByUid()
+                .get( eventRow.getTrackedEntityInstance() );
+
+            OrganisationUnit ou = Optional.ofNullable( eventContext.getOrgUnitByTeiUidAndProgramUidPairs().get(
+                Pair.of( eventRow.getTrackedEntityInstance(), eventRow.getProgram() ) ) )
+                .map( organisationUnitUid -> eventContext.getOrgUnitsByUid().get( organisationUnitUid ) )
+                .orElseGet( () -> organisationUnitService.getOrganisationUnit( trackedEntityOuInfo.orgUnitId() ) );
+
+            if ( trackerOwnershipAccessManager.hasAccess( user, trackedEntityOuInfo.trackedEntityUid(), ou, program ) )
             {
                 eventRows.getEventRows().add( eventRow );
             }

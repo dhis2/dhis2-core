@@ -35,6 +35,8 @@ import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Attribute;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.ProgramOwner;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.Relationship;
 import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityInstance;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityOuInfo;
+import org.hisp.dhis.dxf2.deprecated.tracker.trackedentity.TrackedEntityProgramOwnerIds;
 
 import com.google.common.collect.Multimap;
 
@@ -92,4 +94,8 @@ public interface TrackedEntityInstanceStore
      *         ownership
      */
     Multimap<String, String> getOwnedTeis( List<Long> ids, AggregateContext ctx );
+
+    List<TrackedEntityOuInfo> getTrackedEntityOuInfoByUid( List<String> uids );
+
+    List<TrackedEntityProgramOwnerIds> getTrackedEntityProgramOwnersUids( List<Long> teiIds, long programId );
 }
