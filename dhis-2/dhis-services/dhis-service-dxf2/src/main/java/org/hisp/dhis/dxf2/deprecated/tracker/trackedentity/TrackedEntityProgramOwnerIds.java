@@ -25,32 +25,35 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.dxf2.deprecated.tracker.trackedentity;
 
-import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
-import org.hisp.dhis.external.conf.ConfigurationKey;
-import org.springframework.context.annotation.ConditionContext;
-import org.springframework.core.type.AnnotatedTypeMetadata;
-
-/**
- * @author Morten Svanæs <msvanaes@dhis2.org>
- */
-public class DebeziumCacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
+public class TrackedEntityProgramOwnerIds
 {
-    @Override
-    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
-    {
-        if ( isTestRun( context ) )
-        {
-            return false;
-        }
+    private final String trackedEntityUid;
 
-        return getConfiguration().isEnabled( ConfigurationKey.DEBEZIUM_ENABLED );
+    private final String programUid;
+
+    private final String orgUnitUid;
+
+    public TrackedEntityProgramOwnerIds( String trackedEntityUid, String programUid, String orgUnitUid )
+    {
+        this.trackedEntityUid = trackedEntityUid;
+        this.programUid = programUid;
+        this.orgUnitUid = orgUnitUid;
     }
 
-    @Override
-    public ConfigurationPhase getConfigurationPhase()
+    public String getTrackedEntityUid()
     {
-        return ConfigurationPhase.PARSE_CONFIGURATION;
+        return trackedEntityUid;
+    }
+
+    public String getProgramUid()
+    {
+        return programUid;
+    }
+
+    public String getOrgUnitUid()
+    {
+        return orgUnitUid;
     }
 }

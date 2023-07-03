@@ -40,6 +40,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import lombok.AllArgsConstructor;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.Rectangle;
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.dimensions.AnalyticsDimensionsPagingWrapper;
@@ -52,11 +53,14 @@ import org.hisp.dhis.common.DimensionsCriteria;
 import org.hisp.dhis.common.EventDataQueryRequest;
 import org.hisp.dhis.common.EventsAnalyticsQueryCriteria;
 import org.hisp.dhis.common.Grid;
+import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.common.RequestTypeAware;
 import org.hisp.dhis.common.RequestTypeAware.EndpointAction;
 import org.hisp.dhis.common.cache.CacheStrategy;
+import org.hisp.dhis.feedback.ErrorCode;
+import org.hisp.dhis.feedback.ErrorMessage;
 import org.hisp.dhis.period.RelativePeriodEnum;
 import org.hisp.dhis.setting.SettingKey;
 import org.hisp.dhis.setting.SystemSettingManager;
@@ -393,20 +397,31 @@ public class EventAnalyticsController
     @GetMapping( value = RESOURCE_PATH + "/query/dimensions", produces = { APPLICATION_JSON_VALUE,
         "application/javascript" } )
     public AnalyticsDimensionsPagingWrapper<ObjectNode> getQueryDimensions(
-        @RequestParam String programStageId,
+        @RequestParam( required = false ) String programId,
+        @RequestParam( required = false ) String programStageId,
         @RequestParam( defaultValue = "*" ) List<String> fields,
         DimensionsCriteria dimensionsCriteria,
         HttpServletResponse response )
     {
+        validateRequest( programId, programStageId );
+
         configResponseForJson( response );
 
         List<PrefixedDimension> dimensions = eventAnalyticsDimensionsService
-            .getQueryDimensionsByProgramStageId( programStageId );
+            .getQueryDimensionsByProgramStageId( programId, programStageId );
 
         List<DimensionResponse> dimResponse = dimensionMapperService.toDimensionResponse( dimensions,
             EventAnalyticsPrefixStrategy.of( programStageId ) );
 
         return dimensionFilteringAndPagingService.pageAndFilter( dimResponse, dimensionsCriteria, fields );
+    }
+
+    private void validateRequest( String programId, String programStageId )
+    {
+        if ( StringUtils.isBlank( programId ) && StringUtils.isBlank( programStageId ) )
+        {
+            throw new IllegalQueryException( new ErrorMessage( ErrorCode.E7235 ) );
+        }
     }
 
     private Grid getAggregatedGridWithAttachment( EventsAnalyticsQueryCriteria criteria, String program,

@@ -46,6 +46,7 @@ import org.hisp.dhis.dxf2.metadata.MetadataExportParams;
 import org.hisp.dhis.dxf2.webmessage.WebMessage;
 import org.hisp.dhis.dxf2.webmessage.WebMessageException;
 import org.hisp.dhis.feedback.ConflictException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.fieldfilter.Defaults;
 import org.hisp.dhis.program.Program;
@@ -143,7 +144,8 @@ public class ProgramController
     public WebMessage copyProgram( @PathVariable( "uid" ) String uid,
         @RequestParam( required = false ) Map<String, String> copyOptions )
         throws NotFoundException,
-        ConflictException
+        ConflictException,
+        ForbiddenException
     {
         Program programCopy = null;
         try

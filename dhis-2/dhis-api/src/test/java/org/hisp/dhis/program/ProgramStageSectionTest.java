@@ -28,6 +28,7 @@
 package org.hisp.dhis.program;
 
 import static org.apache.commons.lang3.reflect.FieldUtils.getAllFields;
+import static org.hisp.dhis.program.ProgramIndicatorTest.getNewProgramIndicator;
 import static org.hisp.dhis.program.ProgramTest.notEqualsOrBothNull;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
@@ -37,7 +38,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.ObjectStyle;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.render.DeviceRenderTypeMap;
@@ -57,7 +61,7 @@ class ProgramStageSectionTest
         Program copyProgram = Program.shallowCopy( originalProgram, copyOptions );
         ProgramStage originalStage = new ProgramStage( "program stage 1", originalProgram );
         ProgramStage copyStage = ProgramStage.shallowCopy( originalStage, copyProgram );
-        ProgramStageSection original = getNewProgramStageSection( originalStage );
+        ProgramStageSection original = getNewProgramStageSection( originalStage, originalProgram );
         ProgramStageSection copy = ProgramStageSection.copyOf.apply( original, copyStage );
 
         assertNotSame( original, copy );
@@ -65,6 +69,13 @@ class ProgramStageSectionTest
         assertNotEquals( original.getProgramStage(), copy.getProgramStage() );
         assertNotSame( original.getProgramStage(), copy.getProgramStage() );
         assertNotEquals( original.getUid(), copy.getUid() );
+        Set<String> originalIndicators = original.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toSet() );
+        Set<String> copyIndicators = copy.getProgramIndicators().stream().map( BaseIdentifiableObject::getUid )
+            .collect( Collectors.toSet() );
+        assertEquals( 1, originalIndicators.size() );
+        assertEquals( 0, copyIndicators.size() );
+        assertNotEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
 
         assertTrue( notEqualsOrBothNull( original.getCode(), copy.getCode() ) );
 
@@ -72,7 +83,6 @@ class ProgramStageSectionTest
         assertEquals( original.getDescription(), copy.getDescription() );
         assertEquals( original.getFormName(), copy.getFormName() );
         assertEquals( original.getName(), copy.getName() );
-        assertEquals( original.getProgramIndicators(), copy.getProgramIndicators() );
         assertEquals( original.getPublicAccess(), copy.getPublicAccess() );
         assertEquals( original.getRenderType(), copy.getRenderType() );
         assertEquals( original.getSharing(), copy.getSharing() );
@@ -127,14 +137,14 @@ class ProgramStageSectionTest
         assertEquals( 28, allClassFieldsIncludingInherited.length );
     }
 
-    public static ProgramStageSection getNewProgramStageSection( ProgramStage original )
+    public static ProgramStageSection getNewProgramStageSection( ProgramStage original, Program program )
     {
         ProgramStageSection pss = new ProgramStageSection();
         pss.setAutoFields();
         pss.setDataElements( List.of( new DataElement( "DE1" ), new DataElement( "DE2" ) ) );
         pss.setDescription( "PSS Description" );
         pss.setFormName( "PSS form name" );
-        pss.setProgramIndicators( List.of( new ProgramIndicator() ) );
+        pss.setProgramIndicators( List.of( getNewProgramIndicator( program ) ) );
         pss.setProgramStage( original );
         pss.setPublicAccess( original.getPublicAccess() );
         pss.setRenderType( new DeviceRenderTypeMap<>() );

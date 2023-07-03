@@ -254,14 +254,14 @@ public class ProgramRuleVariable
     private static void setShallowCopyValues( ProgramRuleVariable copy, ProgramRuleVariable original )
     {
         copy.setAccess( original.getAccess() );
+        copy.setAttribute( original.getAttribute() );
+        copy.setAttributeValues( original.getAttributeValues() );
+        copy.setDataElement( original.getDataElement() );
         copy.setName( original.getName() );
         copy.setPublicAccess( original.getPublicAccess() );
-        copy.setAttributeValues( original.getAttributeValues() );
         copy.setSharing( original.getSharing() );
-        copy.setTranslations( original.getTranslations() );
         copy.setSourceType( original.getSourceType() );
-        copy.setAttribute( original.getAttribute() );
-        copy.setDataElement( original.getDataElement() );
+        copy.setTranslations( original.getTranslations() );
         copy.setUseCodeForOptionSet( original.getUseCodeForOptionSet() );
         copy.setValueType( original.getValueType() );
     }

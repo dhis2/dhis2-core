@@ -96,7 +96,7 @@ class ProgramIndicatorTest
         assertEquals( customPrefix + original.getShortName(), copy.getShortName() );
     }
 
-    private ProgramIndicator getNewProgramIndicator( Program program )
+    static ProgramIndicator getNewProgramIndicator( Program program )
     {
         ProgramIndicator pi = new ProgramIndicator();
         pi.setAutoFields();

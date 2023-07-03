@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.webapi.json.domain;
 
+import org.hisp.dhis.jsontree.JsonList;
 import org.hisp.dhis.jsontree.JsonObject;
 
 /**
@@ -34,4 +35,8 @@ import org.hisp.dhis.jsontree.JsonObject;
  */
 public interface JsonProgramStageSection extends JsonObject, JsonNameableObject
 {
+    default JsonList<JsonProgramIndicator> getProgramStageSectionIndicators()
+    {
+        return getList( "programIndicators", JsonProgramIndicator.class );
+    }
 }

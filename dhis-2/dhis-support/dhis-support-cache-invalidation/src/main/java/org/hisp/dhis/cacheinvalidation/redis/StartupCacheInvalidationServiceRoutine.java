@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,42 +27,23 @@
  */
 package org.hisp.dhis.cacheinvalidation.redis;
 
-import lombok.extern.slf4j.Slf4j;
-
+import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Service;
-
-import io.lettuce.core.pubsub.StatefulRedisPubSubConnection;
-import io.lettuce.core.pubsub.api.async.RedisPubSubAsyncCommands;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Slf4j
-@Service
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationSubscriptionService
+@Conditional( value = CacheInvalidationEnabledCondition.class )
+public class StartupCacheInvalidationServiceRoutine extends AbstractStartupRoutine
 {
     @Autowired
-    private CacheInvalidationListener cacheInvalidationListener;
+    private CacheInvalidationSubscriptionService subscriptionService;
 
-    @Autowired
-    @Qualifier( "pubSubConnection" )
-    private StatefulRedisPubSubConnection<String, String> pubSubConnection;
-
-    public void start()
+    @Override
+    public void execute()
+        throws InterruptedException
     {
-        log.info( "RedisCacheInvalidationSubscriptionService starting" );
-
-        pubSubConnection.addListener( cacheInvalidationListener );
-
-        RedisPubSubAsyncCommands<String, String> async = pubSubConnection.async();
-        async.subscribe( RedisCacheInvalidationConfiguration.CHANNEL_NAME );
-
-        log.debug( "Subscribed to channel: " + RedisCacheInvalidationConfiguration.CHANNEL_NAME );
+        subscriptionService.start();
     }
 }

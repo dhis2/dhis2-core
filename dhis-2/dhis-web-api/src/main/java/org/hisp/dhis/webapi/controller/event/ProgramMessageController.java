@@ -27,7 +27,7 @@
  */
 package org.hisp.dhis.webapi.controller.event;
 
-import static org.hisp.dhis.dxf2.webmessage.WebMessageUtils.conflict;
+import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidParameter;
 import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.IOException;
@@ -41,7 +41,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 import org.hisp.dhis.common.OpenApi;
-import org.hisp.dhis.dxf2.webmessage.WebMessageException;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ConflictException;
 import org.hisp.dhis.outboundmessage.BatchResponseStatus;
 import org.hisp.dhis.program.message.ProgramMessage;
 import org.hisp.dhis.program.message.ProgramMessageBatch;
@@ -50,6 +51,7 @@ import org.hisp.dhis.program.message.ProgramMessageService;
 import org.hisp.dhis.program.message.ProgramMessageStatus;
 import org.hisp.dhis.program.notification.ProgramNotificationInstance;
 import org.hisp.dhis.render.RenderService;
+import org.hisp.dhis.webapi.common.UID;
 import org.hisp.dhis.webapi.controller.AbstractCrudController;
 import org.hisp.dhis.webapi.mvc.annotation.ApiVersion;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -94,21 +96,30 @@ public class ProgramMessageController
     @GetMapping( produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public List<ProgramMessage> getProgramMessages( @RequestParam( required = false ) Set<String> ou,
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programInstance,
+        @RequestParam( required = false ) UID enrollment,
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programStageInstance,
+        @RequestParam( required = false ) UID event,
         @RequestParam( required = false ) ProgramMessageStatus messageStatus,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Date beforeDate,
         @RequestParam( required = false ) Integer page, @RequestParam( required = false ) Integer pageSize )
-        throws WebMessageException
+        throws BadRequestException,
+        ConflictException
     {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( ou, programInstance, programStageInstance,
-            messageStatus, page, pageSize, afterDate, beforeDate );
+        UID enrollmentUid = validateDeprecatedUidParameter( "programInstance",
+            programInstance, "enrollment", enrollment );
+        UID eventUid = validateDeprecatedUidParameter( "programStageInstance",
+            programStageInstance, "event", event );
 
-        if ( programInstance == null && programStageInstance == null )
+        if ( enrollmentUid == null && eventUid == null )
         {
-            throw new WebMessageException(
-                conflict( "Enrollment or Event must be specified." ) );
+            throw new ConflictException( "Enrollment or Event must be specified." );
         }
+
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( ou,
+            enrollmentUid == null ? null : enrollmentUid.getValue(),
+            eventUid == null ? null : eventUid.getValue(),
+            messageStatus, page, pageSize, afterDate, beforeDate );
 
         return programMessageService.getProgramMessages( params );
     }
@@ -117,13 +128,22 @@ public class ProgramMessageController
     @GetMapping( value = "/scheduled/sent", produces = APPLICATION_JSON_VALUE )
     @ResponseBody
     public List<ProgramMessage> getScheduledSentMessage(
-        @RequestParam( required = false ) String programInstance,
-        @RequestParam( required = false ) String programStageInstance,
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programInstance,
+        @RequestParam( required = false ) UID enrollment,
+        @Deprecated( since = "2.41" ) @RequestParam( required = false ) UID programStageInstance,
+        @RequestParam( required = false ) UID event,
         @RequestParam( required = false ) Date afterDate, @RequestParam( required = false ) Integer page,
         @RequestParam( required = false ) Integer pageSize )
+        throws BadRequestException
     {
-        ProgramMessageQueryParams params = programMessageService.getFromUrl( null, programInstance,
-            programStageInstance,
+        UID enrollmentUid = validateDeprecatedUidParameter( "programInstance",
+            programInstance, "enrollment", enrollment );
+        UID eventUid = validateDeprecatedUidParameter( "programStageInstance",
+            programStageInstance, "event", event );
+
+        ProgramMessageQueryParams params = programMessageService.getFromUrl( null,
+            enrollmentUid == null ? null : enrollmentUid.getValue(),
+            eventUid == null ? null : eventUid.getValue(),
             null, page, pageSize, afterDate, null );
 
         return programMessageService.getProgramMessages( params );

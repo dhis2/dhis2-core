@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -37,16 +37,12 @@ import org.hibernate.event.spi.EventType;
 import org.hibernate.internal.SessionFactoryImpl;
 import org.hisp.dhis.system.startup.AbstractStartupRoutine;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = RedisCacheInvalidationEnabledCondition.class )
-public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
+public class CacheInvalidationPreStartupRoutine extends AbstractStartupRoutine
 {
     @PersistenceUnit
     private EntityManagerFactory entityManagerFactory;
@@ -61,7 +57,7 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
     public void execute()
         throws Exception
     {
-        log.info( "Executing RedisCacheInvalidationPreStartupRoutine" );
+        log.info( "Executing CacheInvalidationPreStartupRoutine" );
 
         SessionFactoryImpl sessionFactory = entityManagerFactory.unwrap( SessionFactoryImpl.class );
         EventListenerRegistry registry = sessionFactory.getServiceRegistry().getService( EventListenerRegistry.class );
@@ -71,7 +67,5 @@ public class RedisCacheInvalidationPreStartupRoutine extends AbstractStartupRout
         registry.appendListeners( EventType.POST_COMMIT_DELETE, postCacheEventPublisher );
 
         registry.appendListeners( EventType.PRE_COLLECTION_UPDATE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.PRE_COLLECTION_REMOVE, postCollectionCacheEventPublisher );
-        registry.appendListeners( EventType.POST_COLLECTION_RECREATE, postCollectionCacheEventPublisher );
     }
 }

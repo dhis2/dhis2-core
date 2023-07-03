@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,43 +25,38 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.cacheinvalidation.debezium;
+package org.hisp.dhis.cacheinvalidation.redis;
 
-import org.hibernate.HibernateException;
-import org.hibernate.action.spi.BeforeTransactionCompletionProcess;
-import org.hibernate.event.spi.FlushEvent;
-import org.hibernate.event.spi.FlushEventListener;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Conditional;
-import org.springframework.context.annotation.Profile;
-import org.springframework.stereotype.Component;
+import org.hisp.dhis.commons.util.SystemUtils;
+import org.hisp.dhis.condition.PropertiesAwareConfigurationCondition;
+import org.hisp.dhis.external.conf.ConfigurationKey;
+import org.springframework.context.annotation.ConditionContext;
+import org.springframework.core.type.AnnotatedTypeMetadata;
 
 /**
- * HibernateFlushListener that is listening for {@link FlushEvent}s and
- * registering it before the transaction completes
- * {@link BeforeTransactionCompletionProcess} to capture the transaction ID. The
- * captured transaction ID is put in to a hash table to enable lookup of
- * incoming replication events to see if the event/ID matches local transactions
- * or if the transactions/replication event comes from another DHIS2 server
- * instance.
- *
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@Profile( { "!test", "!test-h2" } )
-@Conditional( value = DebeziumCacheInvalidationEnabledCondition.class )
-@Component
-public class HibernateFlushListener implements FlushEventListener
+public class CacheInvalidationEnabledCondition extends PropertiesAwareConfigurationCondition
 {
-    @Autowired
-    private transient KnownTransactionsService knownTransactionsService;
+    @Override
+    public boolean matches( ConditionContext context, AnnotatedTypeMetadata metadata )
+    {
+        if ( SystemUtils.isCacheInvalidationInTest( context.getEnvironment().getActiveProfiles() ) )
+        {
+            return true;
+        }
+
+        if ( SystemUtils.isTestRun( context.getEnvironment().getActiveProfiles() ) )
+        {
+            return false;
+        }
+
+        return getConfiguration().isEnabled( ConfigurationKey.REDIS_CACHE_INVALIDATION_ENABLED );
+    }
 
     @Override
-    public void onFlush( FlushEvent event )
-        throws HibernateException
+    public ConfigurationPhase getConfigurationPhase()
     {
-        BeforeTransactionCompletionProcess beforeTransactionCompletionProcess = session -> knownTransactionsService
-            .registerEvent( event );
-
-        event.getSession().getActionQueue().registerProcess( beforeTransactionCompletionProcess );
+        return ConfigurationPhase.PARSE_CONFIGURATION;
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,35 +25,32 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.trackedentity;
+package org.hisp.dhis.cache;
 
-public class TrackedEntityProgramOwnerIds
+import java.util.ArrayList;
+import java.util.List;
+
+import org.hisp.dhis.cacheinvalidation.redis.CacheInvalidationMessagePublisher;
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+/**
+ * @author Morten Svanæs <msvanaes@dhis2.org>
+ */
+@Component
+@Profile( { "cache-invalidation-test" } )
+public class TestableMessagePublisher implements CacheInvalidationMessagePublisher
 {
-    private final String trackedEntityId;
+    private final List<String> messages = new ArrayList<>();
 
-    private final String programId;
-
-    private final String orgUnitUid;
-
-    public TrackedEntityProgramOwnerIds( String trackedEntityId, String programId, String orgUnitUid )
+    @Override
+    public void publish( String channel, String message )
     {
-        this.trackedEntityId = trackedEntityId;
-        this.programId = programId;
-        this.orgUnitUid = orgUnitUid;
+        messages.add( message );
     }
 
-    public String getTrackedEntityId()
+    public List<String> getMessages()
     {
-        return trackedEntityId;
-    }
-
-    public String getProgramId()
-    {
-        return programId;
-    }
-
-    public String getOrgUnitUid()
-    {
-        return orgUnitUid;
+        return messages;
     }
 }
