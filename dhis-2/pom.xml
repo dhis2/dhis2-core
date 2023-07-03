@@ -156,7 +156,7 @@
     <jetty.version>10.0.15</jetty.version>
 
     <!-- Div. utils -->
-    <guava.version>32.0.1-jre</guava.version>
+    <guava.version>32.1.1-jre</guava.version>
     <jsr305.version>3.0.2</jsr305.version>
     <imgscalr-lib.version>4.2</imgscalr-lib.version>
     <google-api-client.version>2.2.0</google-api-client.version>
