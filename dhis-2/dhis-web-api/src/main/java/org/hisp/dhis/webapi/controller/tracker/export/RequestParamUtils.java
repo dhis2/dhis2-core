@@ -158,7 +158,7 @@ class RequestParamUtils
     {
         if ( StringUtils.isEmpty( filterItem ) )
         {
-            return List.of();
+            return new ArrayList<>();
         }
 
         List<String> uidOperatorValues = filterList( filterItem );
@@ -261,7 +261,7 @@ class RequestParamUtils
     {
         if ( StringUtils.isEmpty( filterItem ) )
         {
-            return List.of();
+            return new ArrayList<>();
         }
 
         List<String> uidOperatorValues = filterList( filterItem );
