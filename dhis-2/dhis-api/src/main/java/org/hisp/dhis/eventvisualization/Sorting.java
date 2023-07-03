@@ -32,10 +32,9 @@ import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 import java.io.Serializable;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.hisp.dhis.analytics.SortOrder;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -46,9 +45,11 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * related to sorting.
  */
 @Data
+@EqualsAndHashCode( onlyExplicitlyIncluded = true )
 @NoArgsConstructor
 public class Sorting implements Serializable
 {
+    @EqualsAndHashCode.Include
     @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private String dimension;
@@ -56,24 +57,4 @@ public class Sorting implements Serializable
     @JsonProperty( required = true )
     @JacksonXmlProperty( namespace = DXF_2_0 )
     private SortOrder direction;
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
-
-        if ( o == null || getClass() != o.getClass() )
-            return false;
-
-        Sorting sorting = (Sorting) o;
-
-        return new EqualsBuilder().append( dimension, sorting.dimension ).isEquals();
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return new HashCodeBuilder( 17, 37 ).append( dimension ).toHashCode();
-    }
 }
