@@ -135,7 +135,7 @@ public class OpenApiController
 
         ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
             .failOnNameClash( failOnNameClash )
-            .namePartDelimiter( "-" )
+            .namePartDelimiter( "_" )
             .build() );
         response.setContentType( contentType );
         try

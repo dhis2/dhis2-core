@@ -99,7 +99,7 @@ public class ApiFinalise
         // responses
         String missingDescription;
         /*
-         * .missingDescription( "[no description yet]" ) .namePartDelimiter( "-"
+         * .missingDescription( "[no description yet]" ) .namePartDelimiter( "_"
          * )
          */
     }

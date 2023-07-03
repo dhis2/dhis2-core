@@ -45,13 +45,10 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.hisp.dhis.analytics.AggregationType;
 import org.hisp.dhis.category.CategoryOption;
-import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
@@ -63,6 +60,8 @@ import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
+import org.hisp.dhis.feedback.BadRequestException;
+import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.program.Event;
 import org.hisp.dhis.program.Program;
@@ -76,12 +75,10 @@ import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
+import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -107,10 +104,6 @@ class EventExporterTest extends TrackerTest
     private ProgramStage programStage;
 
     private Program program;
-
-    final Function<EventSearchParams, List<String>> eventsFunction = ( params ) -> eventService.getEvents( params )
-        .getEvents()
-        .stream().map( Event::getUid ).collect( Collectors.toList() );
 
     private TrackedEntity trackedEntity;
 
@@ -142,19 +135,13 @@ class EventExporterTest extends TrackerTest
         injectAdminUser();
     }
 
-    private Stream<Arguments> getEventsFunctions()
-    {
-        return Stream.of(
-            Arguments.of( eventsFunction ) );
-    }
-
     @Test
     void shouldExportEventAndMapAssignedUserWhenAssignedUserIsNotNull()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setTrackedEntity( trackedEntity );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .trackedEntityUid( trackedEntity.getUid() ).enrollments( Set.of( "TvctPPhpD8z" ) ).build();
 
         List<Event> events = eventService.getEvents( params ).getEvents();
 
@@ -162,241 +149,213 @@ class EventExporterTest extends TrackerTest
             events.get( 0 ).getAssignedUser() );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEvents( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEvents()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setProgramStage( programStage );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .programStageUid( programStage.getUid() ).build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithTotalPages( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithTotalPages()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setTotalPages( true );
-        params.setProgramStage( programStage );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .programStageUid( programStage.getUid() ).totalPages( true ).build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void testExportEventsWhenFilteringByEnrollment()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setTrackedEntity( trackedEntity );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .trackedEntityUid( trackedEntity.getUid() ).enrollments( Set.of( "TvctPPhpD8z" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithExecutionAndUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithExecutionAndUpdateDates()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
+            .startDate( getDate( 2018, 1, 1 ) ).endDate( getDate( 2020, 1, 29 ) )
+            .skipChangedBefore( getDate( 2018, 1, 1 ) ).build();
 
-        params.setStartDate( getDate( 2018, 1, 1 ) );
-        params.setEndDate( getDate( 2020, 1, 29 ) );
-        params.setSkipChangedBefore( getDate( 2018, 1, 1 ) );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithLastUpdateDuration( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithLastUpdateDuration()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() ).updatedWithin( "1d" )
+            .build();
 
-        params.setUpdatedAtDuration( "1d" );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWithLastUpdateDates( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWithLastUpdateDates()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
-
         Date date = new Date();
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
+            .updatedAfter( Date.from(
+                date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) )
+            .updatedBefore( Date.from(
+                date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) )
+            .build();
 
-        params.setUpdatedAtStartDate( Date.from(
-            date.toInstant().minus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
-
-        params.setUpdatedAtEndDate( Date.from(
-            date.toInstant().plus( 1, ChronoUnit.DAYS ).atZone( ZoneId.systemDefault() ).toInstant() ) );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsLike( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsLike()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStage( programStage );
+        DataElement dataElement = dataElement( "DATAEL00001" );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .filters( "DATAEL00001:like:%val%" )
+            .build();
 
+        List<String> events = getEvents( params );
+
+        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+
+        new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
+            null, null );
+    }
+
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithStatusFilter()
+        throws ForbiddenException,
+        BadRequestException
+    {
         DataElement dataElement = dataElement( "DATAEL00001" );
 
-        params.setDataElements( Set.of(
-            new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                null, null ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .programStatus( ProgramStatus.ACTIVE )
+            .filters( dataElement.getUid() + ":like:%val%" )
+            .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithStatusFilter(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStatus( ProgramStatus.ACTIVE );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00001" );
 
-        params.setDataElements( Set.of(
-            new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                null, null ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .programType( ProgramType.WITH_REGISTRATION )
+            .filters( dataElement.getUid() + ":like:%val%" )
+            .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithProgramTypeFilter(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsEqual()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramType( ProgramType.WITH_REGISTRATION );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00001" );
 
-        params.setDataElements( Set.of(
-            new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
-                null, null ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .filters( dataElement.getUid() + ":like:%value00001%" )
+            .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsEqual( Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsIn()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStage( programStage );
-
-        DataElement dataElement = dataElement( "DATAEL00001" );
-
-        params.setDataElements( Set.of(
-            new QueryItem( dataElement, QueryOperator.EQ, "value00001", dataElement.getValueType(),
-                null,
-                null ) ) );
-
-        List<String> events = eventFunction.apply( params );
-
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
-    }
-
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsIn( Function<EventSearchParams, List<String>> eventFunction )
-    {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
-
         DataElement datael00001 = dataElement( "DATAEL00001" );
 
-        params.setDataElements( Set.of(
-            new QueryItem( datael00001, QueryOperator.IN, "value00001;value00002", datael00001.getValueType(),
-                null,
-                null ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
+            .filters( datael00001.getUid() + ":in:value00001;value00002" )
+            .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void testExportEventsWhenFilteringByDataElementsWithCategoryOptionSuperUser()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStage( programStage );
-        params.setProgram( program );
-
-        params.setCategoryOptionCombo( manager.get( CategoryOptionCombo.class, "HllvX50cXC0" ) );
-
         DataElement dataElement = dataElement( "DATAEL00001" );
 
-        params
-            .setDataElements(
-                Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00001", dataElement.getValueType(),
-                    null, dataElement.getOptionSet() ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .programUid( program.getUid() )
+            .attributeCategoryCombo( "bjDvmb4bfuf" )
+            .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
+            .filters( dataElement.getUid() + ":eq:value00001" )
+            .build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
     void shouldReturnEventsNonSuperUserIsOwnerOrHasUserAccess()
+        throws ForbiddenException,
+        BadRequestException
     {
         // given events have a COC which has a CO which the
         // user owns yMj2MnmNI8L and has user read access to OUUdG3sdOqb
         injectSecurityContext( userService.getUser( "o1HMTIzBGo7" ) );
 
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
-        params.setEvents( Set.of( "lumVtWwwy0O", "cadc5eGj0j7" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" )
+            .events( Set.of( "lumVtWwwy0O", "cadc5eGj0j7" ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -410,32 +369,31 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnNoEventsGivenUserHasNoAccess()
+        throws ForbiddenException,
+        BadRequestException
     {
         // given events have a COC which has a CO (OUUdG3sdOqb/yMj2MnmNI8L) which are not publicly readable, user is not the owner and has no user access
         injectSecurityContext( userService.getUser( "CYVgFNKCaUS" ) );
 
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
-        params.setEvents( Set.of( "lumVtWwwy0O", "cadc5eGj0j7" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" )
+            .events( Set.of( "lumVtWwwy0O", "cadc5eGj0j7" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
 
     @Test
     void shouldReturnPublicEventsWithMultipleCategoryOptionsGivenNonDefaultPageSize()
+        throws ForbiddenException,
+        BadRequestException
     {
         OrganisationUnit orgUnit = get( OrganisationUnit.class, "DiszpKrYNg8" );
         Program program = get( Program.class, "iS7eutanDry" );
 
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setProgram( program );
-
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
-        params.setPage( 1 );
-        params.setPageSize( 3 );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .programUid( program.getUid() ).orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) )
+            .page( 1 ).pageSize( 3 ).build();
 
         Events firstPage = eventService.getEvents( params );
 
@@ -443,13 +401,8 @@ class EventExporterTest extends TrackerTest
             () -> assertSlimPager( 1, 3, false, firstPage ),
             () -> assertEquals( List.of( "ck7DzdxqLqA", "OTmjvJDn0Fu", "kWjSezkXHVp" ), eventUids( firstPage ) ) );
 
-        params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setProgram( program );
-
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
-        params.setPage( 2 );
-        params.setPageSize( 3 );
+        params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() ).programUid( program.getUid() )
+            .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).page( 2 ).pageSize( 3 ).build();
 
         Events secondPage = eventService.getEvents( params );
 
@@ -457,31 +410,24 @@ class EventExporterTest extends TrackerTest
             () -> assertSlimPager( 2, 3, true, secondPage ),
             () -> assertEquals( List.of( "lumVtWwwy0O", "QRYjLTiJTrA", "cadc5eGj0j7" ), eventUids( secondPage ) ) );
 
-        params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setProgram( program );
+        params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() ).programUid( program.getUid() )
+            .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).page( 3 ).pageSize( 3 ).build();
 
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
-        params.setPage( 3 );
-        params.setPageSize( 3 );
-
-        assertIsEmpty( eventsFunction.apply( params ) );
+        assertIsEmpty( getEvents( params ) );
     }
 
     @Test
     void shouldReturnEventsWithMultipleCategoryOptionsGivenNonDefaultPageSizeAndTotalPages()
+        throws ForbiddenException,
+        BadRequestException
     {
         OrganisationUnit orgUnit = get( OrganisationUnit.class, "DiszpKrYNg8" );
         Program program = get( Program.class, "iS7eutanDry" );
 
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setProgram( program );
-
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
-        params.setPage( 1 );
-        params.setPageSize( 2 );
-        params.setTotalPages( true );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .programUid( program.getUid() )
+            .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).page( 1 ).pageSize( 2 )
+            .totalPages( true ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -492,10 +438,12 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnEventsGivenCategoryOptionCombo()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
-        params.setCategoryOptionCombo( get( CategoryOptionCombo.class, "cr89ebDZrac" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" )
+            .attributeCategoryCombo( "O4VaNks6tta" )
+            .attributeCategoryOptions( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -513,12 +461,10 @@ class EventExporterTest extends TrackerTest
     @Test
     void shouldFailIfCategoryOptionComboOfGivenEventDoesNotHaveAValueForGivenIdScheme()
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
         IdSchemes idSchemes = new IdSchemes();
         idSchemes.setCategoryOptionComboIdScheme( "ATTRIBUTE:GOLswS44mh8" );
-        params.setIdSchemes( idSchemes );
-        params.setEvents( Set.of( "kWjSezkXHVp" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" ).idSchemes( idSchemes )
+            .events( Set.of( "kWjSezkXHVp" ) ).build();
 
         IllegalStateException ex = assertThrows( IllegalStateException.class, () -> eventService.getEvents( params ) );
         assertStartsWith( "CategoryOptionCombo", ex.getMessage() );
@@ -527,16 +473,18 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnEventsGivenIdSchemeCode()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
-        params.setCategoryOptionCombo( get( CategoryOptionCombo.class, "cr89ebDZrac" ) );
         IdSchemes idSchemes = new IdSchemes();
         idSchemes.setProgramIdScheme( "code" );
         idSchemes.setProgramStageIdScheme( "code" );
         idSchemes.setOrgUnitIdScheme( "code" );
         idSchemes.setCategoryOptionComboIdScheme( "code" );
-        params.setIdSchemes( idSchemes );
+
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" ).idSchemes( idSchemes )
+            .attributeCategoryCombo( "O4VaNks6tta" )
+            .attributeCategoryOptions( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -556,16 +504,17 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnEventsGivenIdSchemeAttribute()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( get( OrganisationUnit.class, "DiszpKrYNg8" ) );
-        params.setCategoryOptionCombo( get( CategoryOptionCombo.class, "cr89ebDZrac" ) );
         IdSchemes idSchemes = new IdSchemes();
         idSchemes.setProgramIdScheme( "ATTRIBUTE:j45AR9cBQKc" );
         idSchemes.setProgramStageIdScheme( "ATTRIBUTE:j45AR9cBQKc" );
         idSchemes.setOrgUnitIdScheme( "ATTRIBUTE:j45AR9cBQKc" );
         idSchemes.setCategoryOptionComboIdScheme( "ATTRIBUTE:j45AR9cBQKc" );
-        params.setIdSchemes( idSchemes );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( "DiszpKrYNg8" ).idSchemes( idSchemes )
+            .attributeCategoryCombo( "O4VaNks6tta" )
+            .attributeCategoryOptions( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -585,122 +534,102 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testExportEventsWhenFilteringByDataElementsWithCategoryOptionNotSuperUser()
+        throws ForbiddenException,
+        BadRequestException
     {
         injectSecurityContext( createAndAddUser( false, "user", Set.of( orgUnit ), Set.of( orgUnit ),
             "F_EXPORT_DATA" ) );
-
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
-        params.setProgram( program );
-
-        params.setCategoryOptionCombo( manager.get( CategoryOptionCombo.class, "HllvX50cXC0" ) );
-
         DataElement dataElement = dataElement( "DATAEL00002" );
 
-        params
-            .setDataElements(
-                Set.of( new QueryItem( dataElement, QueryOperator.EQ, "value00002", dataElement.getValueType(),
-                    null, dataElement.getOptionSet() ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "TvctPPhpD8z" ) )
+            .programStageUid( programStage.getUid() ).programUid( program.getUid() )
+            .attributeCategoryCombo( "bjDvmb4bfuf" )
+            .attributeCategoryOptions( Set.of( "xYerKDKCefk" ) )
+            .filters( dataElement.getUid() + ":eq:value00002" )
+            .build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetEqual()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00005" );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .filters( dataElement.getUid() + ":eq:option1" )
+            .build();
 
-        params.setDataElements(
-            Set.of( new QueryItem( dataElement, QueryOperator.EQ, "option1", dataElement.getValueType(),
-                null, dataElement.getOptionSet() ) ) );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetIn()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00005" );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) )
+            .programStageUid( programStage.getUid() )
+            .filters( dataElement.getUid() + ":in:option1;option2" )
+            .build();
 
-        params.setDataElements(
-            Set.of( new QueryItem( dataElement, QueryOperator.IN, "option1;option2", dataElement.getValueType(),
-                null, dataElement.getOptionSet() ) ) );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByDataElementsWithOptionSetLike()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ" ) );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00005" );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ" ) ).programStageUid( programStage.getUid() )
+            .filters( dataElement.getUid() + ":like:%opt%" )
+            .build();
 
-        params
-            .setDataElements( Set.of( new QueryItem( dataElement, QueryOperator.LIKE, "opt", dataElement.getValueType(),
-                null, dataElement.getOptionSet() ) ) );
-
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
-    @ParameterizedTest
-    @MethodSource( "getEventsFunctions" )
-    void testExportEventsWhenFilteringByNumericDataElements(
-        Function<EventSearchParams, List<String>> eventFunction )
+    @Test
+    void testExportEventsWhenFilteringByNumericDataElements()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) );
-        params.setProgramStage( programStage );
-
         DataElement dataElement = dataElement( "DATAEL00006" );
-
         QueryItem queryItem = new QueryItem( dataElement, null, dataElement.getValueType(), null,
             dataElement.getOptionSet() );
         queryItem.addFilter( new QueryFilter( QueryOperator.LT, "77" ) );
         queryItem.addFilter( new QueryFilter( QueryOperator.GT, "8" ) );
-        params.setDataElements( Set.of( queryItem ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollments( Set.of( "nxP7UnKhomJ", "TvctPPhpD8z" ) ).programStageUid( programStage.getUid() )
+            .filters( dataElement.getUid() + ":lt:77:gt:8" )
+            .build();
 
-        List<String> events = eventFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
     void testEnrollmentEnrolledBeforeSetToBeforeFirstEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledBefore( parseDate( "2021-02-27T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -711,10 +640,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentEnrolledBeforeEqualToFirstEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledBefore( parseDate( "2021-02-28T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -725,10 +655,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentEnrolledBeforeSetToAfterFirstEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -739,10 +670,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentEnrolledAfterSetToBeforeLastEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledAfter( parseDate( "2021-03-27T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -753,10 +685,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentEnrolledAfterEqualToLastEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledAfter( parseDate( "2021-03-28T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -767,10 +700,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentEnrolledAfterSetToAfterLastEnrolledAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentEnrolledAfter( parseDate( "2021-03-28T13:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -781,10 +715,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredBeforeSetToBeforeFirstOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredBefore( parseDate( "2021-02-27T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredBefore( parseDate( "2021-02-27T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -795,10 +730,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredBeforeEqualToFirstOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredBefore( parseDate( "2021-02-28T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -809,10 +745,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredBeforeSetToAfterFirstOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -823,10 +760,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredAfterSetToBeforeLastOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredAfter( parseDate( "2021-03-27T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredAfter( parseDate( "2021-03-27T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -837,10 +775,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredAfterEqualToLastOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredAfter( parseDate( "2021-03-28T12:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -851,16 +790,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentFilterNumericAttributes()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-
-        QueryItem queryItem = numericQueryItem( "numericAttr" );
-        QueryFilter lessThan = new QueryFilter( QueryOperator.LT, "77" );
-        QueryFilter greaterThan = new QueryFilter( QueryOperator.GT, "8" );
-        queryItem.setFilters( List.of( lessThan, greaterThan ) );
-
-        params.addFilterAttributes( queryItem );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "numericAttr:lt:77:gt:8" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -871,11 +805,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentFilterAttributes()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-
-        params.addFilterAttributes( queryItem( "toUpdate000", QueryOperator.EQ, "summer day" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000:eq:summer day" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -886,13 +820,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentFilterAttributesWithMultipleFiltersOnDifferentAttributes()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-
-        params.addFilterAttributes( List.of(
-            queryItem( "toUpdate000", QueryOperator.EQ, "rainy day" ),
-            queryItem( "notUpdated0", QueryOperator.EQ, "winter day" ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000:eq:rainy day,notUpdated0:eq:winter day" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -903,13 +835,14 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentFilterAttributesWithMultipleFiltersOnTheSameAttribute()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-
         QueryItem item = queryItem( "toUpdate000", QueryOperator.LIKE, "day" );
         item.addFilter( new QueryFilter( QueryOperator.LIKE, "in" ) );
-        params.addFilterAttributes( item );
+
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000:like:day:like:in" ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -920,12 +853,13 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderEventsOnAttributeAsc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( queryItem( "toUpdate000" ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
-        params.addOrders( params.getAttributeOrders() );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
+            .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -936,12 +870,13 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderEventsOnAttributeDesc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( queryItem( "toUpdate000" ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
-        params.addOrders( params.getAttributeOrders() );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
+            .orders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) ).build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -952,13 +887,16 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderEventsOnMultipleAttributesDesc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
-            new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
-        params.addOrders( params.getAttributeOrders() );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000,toDelete000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
+                OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
+            .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
+                new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -969,13 +907,16 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderEventsOnMultipleAttributesAsc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ), queryItem( "toDelete000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
-            new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
-        params.addOrders( params.getAttributeOrders() );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000,toDelete000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toDelete000", SortDirection.DESC ),
+                OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
+            .orders( List.of( new OrderParam( "toDelete000", SortDirection.DESC ),
+                new OrderParam( "toUpdate000", SortDirection.ASC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -986,10 +927,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testEnrollmentOccurredAfterSetToAfterLastOccurredAtDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setEnrollmentOccurredAfter( parseDate( "2021-03-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .enrollmentOccurredAfter( parseDate( "2021-03-28T13:05:00.000" ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -1000,10 +942,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderByEnrolledAtDesc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ) ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -1014,10 +957,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderByEnrolledAtAsc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "enrolledAt", SortDirection.ASC ) ) ).build();
 
         List<String> enrollments = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getUid() )
@@ -1028,10 +972,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderByOccurredAtDesc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "occurredAt", SortDirection.DESC ) ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -1040,10 +985,11 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void testOrderByOccurredAtAsc()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addOrders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "occurredAt", SortDirection.ASC ) ) ).build();
 
         Events events = eventService.getEvents( params );
 
@@ -1052,61 +998,67 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldReturnNoEventsWhenParamStartDueDateLaterThanEventDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setScheduleAtStartDate( parseDate( "2021-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .scheduledAfter( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
 
     @Test
     void shouldReturnEventsWhenParamStartDueDateEarlierThanEventsDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setScheduleAtStartDate( parseDate( "2018-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .scheduledAfter( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void shouldReturnNoEventsWhenParamEndDueDateEarlierThanEventDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setScheduleAtEndDate( parseDate( "2018-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .scheduledBefore( parseDate( "2018-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertIsEmpty( events );
     }
 
     @Test
     void shouldReturnEventsWhenParamEndDueDateLaterThanEventsDueDate()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.setScheduleAtEndDate( parseDate( "2021-02-28T13:05:00.000" ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .scheduledBefore( parseDate( "2021-02-28T13:05:00.000" ) ).build();
 
-        List<String> events = eventsFunction.apply( params );
+        List<String> events = getEvents( params );
 
         assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
     void shouldSortEntitiesRespectingOrderWhenAttributeOrderSuppliedBeforeOrderParam()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ) ) );
-        params.addOrders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ),
-            new OrderParam( "enrolledAt", SortDirection.ASC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.ASC ) ) )
+            .orders( List.of( new OrderParam( "toUpdate000", SortDirection.ASC ),
+                new OrderParam( "enrolledAt", SortDirection.ASC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -1117,13 +1069,15 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeAttributeOrder()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addFilterAttributes( List.of( queryItem( "toUpdate000" ) ) );
-        params.addAttributeOrders( List.of( new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
-        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
-            new OrderParam( "toUpdate000", SortDirection.DESC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .filterAttributes( "toUpdate000" )
+            .attributeOrders( List.of( OrderCriteria.of( "toUpdate000", SortDirection.DESC ) ) )
+            .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
+                new OrderParam( "toUpdate000", SortDirection.DESC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -1134,15 +1088,14 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldSortEntitiesRespectingOrderWhenDataElementSuppliedBeforeOrderParam()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
-        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
-
-        params.addOrders( List.of( new OrderParam( "dueDate", SortDirection.DESC ),
-            new OrderParam( "DATAEL00006", SortDirection.DESC ),
-            new OrderParam( "enrolledAt", SortDirection.DESC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "dueDate", SortDirection.DESC ),
+                new OrderParam( "DATAEL00006", SortDirection.DESC ),
+                new OrderParam( "enrolledAt", SortDirection.DESC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -1153,14 +1106,13 @@ class EventExporterTest extends TrackerTest
 
     @Test
     void shouldSortEntitiesRespectingOrderWhenOrderParamSuppliedBeforeDataElement()
+        throws ForbiddenException,
+        BadRequestException
     {
-        EventSearchParams params = new EventSearchParams();
-        params.setOrgUnit( orgUnit );
-        params.addDataElements( List.of( queryItem( "DATAEL00006" ) ) );
-        params.addGridOrders( List.of( new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
-
-        params.addOrders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
-            new OrderParam( "DATAEL00006", SortDirection.DESC ) ) );
+        EventOperationParams params = EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
+            .orders( List.of( new OrderParam( "enrolledAt", SortDirection.DESC ),
+                new OrderParam( "DATAEL00006", SortDirection.DESC ) ) )
+            .build();
 
         List<String> trackedEntities = eventService.getEvents( params ).getEvents().stream()
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
@@ -1184,11 +1136,6 @@ class EventExporterTest extends TrackerTest
     private static QueryItem queryItem( String teaUid )
     {
         return queryItem( teaUid, ValueType.TEXT );
-    }
-
-    private static QueryItem numericQueryItem( String teaUid )
-    {
-        return queryItem( teaUid, ValueType.INTEGER );
     }
 
     private static QueryItem queryItem( String teaUid, ValueType valueType )
@@ -1232,5 +1179,14 @@ class EventExporterTest extends TrackerTest
             () -> assertEquals( pageNumber, pager.getPage(), "number of current page" ),
             () -> assertEquals( pageSize, pager.getPageSize(), "page size" ),
             () -> assertEquals( totalCount, pager.getTotal(), "total page count" ) );
+    }
+
+    private List<String> getEvents( EventOperationParams params )
+        throws ForbiddenException,
+        BadRequestException
+    {
+        return eventService.getEvents( params )
+            .getEvents()
+            .stream().map( Event::getUid ).collect( Collectors.toList() );
     }
 }

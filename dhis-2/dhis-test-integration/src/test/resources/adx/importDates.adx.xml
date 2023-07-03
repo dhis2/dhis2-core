@@ -1,0 +1,11 @@
+<adx xmlns="urn:ihe:qrph:adx:2015">
+    <group dataSet="MalariaDSSS" period="2020-01-01/P1M" orgUnit="P1233333333">
+        <dataValue dataElement="MalNummmmmm" ageeeeeeeee="over5555555" value="33" sexxxxxxxxx="MMMMMMMMMMM"
+                   created="1987-12-21T23:59:38.376+0000"
+                   lastUpdated="1987-12-21T23:59:38.376+0000">
+            <annotation>Text data value 33333</annotation>
+            <created>1987-12-21T23:59:38.376+0000</created>
+            <lastUpdated>1987-12-21T23:59:38.376+0000</lastUpdated>
+        </dataValue>
+    </group>
+</adx>

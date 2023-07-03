@@ -40,6 +40,7 @@ import lombok.Setter;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.security.acl.Access;
+import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.translation.Translation;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserCredentialsDto;
@@ -55,7 +56,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Setter
 public class MeDto
 {
-    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets )
+    public MeDto( User user, Map<String, Serializable> settings, List<String> programs, List<String> dataSets,
+        List<ApiToken> patTokens )
     {
         this.id = user.getUid();
         this.username = user.getUsername();
@@ -97,7 +99,7 @@ public class MeDto
         this.settings = settings;
         this.programs = programs;
         this.dataSets = dataSets;
-
+        this.patTokens = patTokens;
     }
 
     @JsonProperty( )
@@ -228,6 +230,9 @@ public class MeDto
 
     @JsonProperty( )
     private UserCredentialsDto userCredentials;
+
+    @JsonProperty( )
+    private List<ApiToken> patTokens;
 
     protected void setUserCredentials( UserCredentialsDto userCredentialsDto )
     {

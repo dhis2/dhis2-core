@@ -38,7 +38,6 @@ import lombok.Getter;
 
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserQueryParam;
-import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.common.QueryItem;
@@ -49,7 +48,6 @@ import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStatus;
 import org.hisp.dhis.program.ProgramType;
 import org.hisp.dhis.trackedentity.TrackedEntity;
-import org.hisp.dhis.user.User;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 
 /**
@@ -319,12 +317,6 @@ public class EventSearchParams
         return items;
     }
 
-    public EventSearchParams addDataElements( List<QueryItem> des )
-    {
-        dataElements.addAll( des );
-        return this;
-    }
-
     // -------------------------------------------------------------------------
     // Getters and setters
     // -------------------------------------------------------------------------
@@ -407,19 +399,14 @@ public class EventSearchParams
     }
 
     /**
-     * Set assigned user selection mode, assigned users and the current user for
-     * the query. Non-empty assigned users are only allowed with mode PROVIDED
-     * (or null).
+     * Assigns the user query params
      *
-     * @param mode assigned user mode
-     * @param current current user with which query is made
-     * @param assignedUsers assigned user uids
+     * @param assignedUserQueryParam assigned user query params
      * @return this
      */
-    public EventSearchParams setUserWithAssignedUsers( AssignedUserSelectionMode mode, User current,
-        Set<String> assignedUsers )
+    public EventSearchParams setAssignedUserQueryParam( AssignedUserQueryParam assignedUserQueryParam )
     {
-        this.assignedUserQueryParam = new AssignedUserQueryParam( mode, current, assignedUsers );
+        this.assignedUserQueryParam = assignedUserQueryParam;
         return this;
     }
 
@@ -759,9 +746,9 @@ public class EventSearchParams
         return dataElements;
     }
 
-    public EventSearchParams setDataElements( Set<QueryItem> dataElements )
+    public EventSearchParams addDataElements( Set<QueryItem> des )
     {
-        this.dataElements = dataElements;
+        dataElements.addAll( des );
         return this;
     }
 
