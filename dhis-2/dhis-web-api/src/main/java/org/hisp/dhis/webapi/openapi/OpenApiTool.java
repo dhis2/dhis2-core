@@ -176,7 +176,7 @@ public class OpenApiTool implements ToolProvider
 
             ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
                 .failOnNameClash( true )
-                .namePartDelimiter( "-" )
+                .namePartDelimiter( "_" )
                 .build() );
             Path file = Path.of( filename );
             String title = file.getFileName().toString()
