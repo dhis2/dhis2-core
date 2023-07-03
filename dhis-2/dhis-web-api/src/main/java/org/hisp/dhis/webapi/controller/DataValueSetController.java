@@ -180,7 +180,7 @@ public class DataValueSetController
             ( exportParams, out ) -> dataValueSetService.exportDataValueSetJson( exportParams, out ) );
     }
 
-    @GetMapping( produces = CONTENT_TYPE_CSV )
+    @GetMapping( produces = { CONTENT_TYPE_CSV, "text/csv" } )
     public void getDataValueSetCsv( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
