@@ -127,17 +127,10 @@ public class DataValueSetController
     {
         switch ( format )
         {
-        case "xml":
-            getDataValueSetXml( params, attachment, compression, response );
-            break;
-        case "adx+xml":
-            getDataValueSetXmlAdx( params, attachment, compression, response );
-            break;
-        case "csv":
-            getDataValueSetCsv( params, attachment, compression, response );
-            break;
-        default:
-            getDataValueSetJson( params, attachment, compression, response );
+        case "xml" -> getDataValueSetXml( params, attachment, compression, response );
+        case "adx+xml" -> getDataValueSetXmlAdx( params, attachment, compression, response );
+        case "csv" -> getDataValueSetCsv( params, attachment, compression, response );
+        default -> getDataValueSetJson( params, attachment, compression, response );
         }
     }
 
@@ -150,7 +143,7 @@ public class DataValueSetController
     {
         getDataValueSet( attachment, compression, "xml", response, CONTENT_TYPE_XML,
             () -> dataValueSetService.getFromUrl( params ),
-            ( exportParams, out ) -> dataValueSetService.exportDataValueSetXml( exportParams, out ) );
+            dataValueSetService::exportDataValueSetXml );
     }
 
     @OpenApi.Response( DataValueSet.class )
@@ -184,11 +177,11 @@ public class DataValueSetController
     {
         getDataValueSet( attachment, compression, "json", response, CONTENT_TYPE_JSON,
             () -> dataValueSetService.getFromUrl( params ),
-            ( exportParams, out ) -> dataValueSetService.exportDataValueSetJson( exportParams, out ) );
+            dataValueSetService::exportDataValueSetJson );
     }
 
     @OpenApi.Response( String.class )
-    @GetMapping( produces = CONTENT_TYPE_CSV )
+    @GetMapping( produces = { CONTENT_TYPE_CSV, "text/csv" } )
     public void getDataValueSetCsv( DataValueSetQueryParams params,
         @RequestParam( required = false ) String attachment,
         @RequestParam( required = false ) String compression,
