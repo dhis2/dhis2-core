@@ -55,7 +55,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author rajazubair
  */
-public class EventExportOrderParameterTest extends TrackerTest
+class EventExportOrderParameterTest extends TrackerTest
 {
     @Autowired
     private EventService eventService;
