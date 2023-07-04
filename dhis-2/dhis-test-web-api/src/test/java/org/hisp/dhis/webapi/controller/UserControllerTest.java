@@ -27,20 +27,24 @@
  */
 package org.hisp.dhis.webapi.controller;
 
+import static org.hisp.dhis.web.HttpStatus.Series.SUCCESSFUL;
 import static org.hisp.dhis.web.WebClient.Accept;
 import static org.hisp.dhis.web.WebClient.Body;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.category.CategoryOptionGroupSet;
+import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.jsontree.JsonArray;
 import org.hisp.dhis.jsontree.JsonObject;
@@ -54,16 +58,21 @@ import org.hisp.dhis.security.SecurityService;
 import org.hisp.dhis.user.User;
 import org.hisp.dhis.user.UserGroup;
 import org.hisp.dhis.user.UserRole;
+import org.hisp.dhis.user.sharing.Sharing;
+import org.hisp.dhis.user.sharing.UserAccess;
 import org.hisp.dhis.web.HttpStatus;
 import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.hisp.dhis.webapi.json.domain.JsonErrorReport;
 import org.hisp.dhis.webapi.json.domain.JsonImportSummary;
 import org.hisp.dhis.webapi.json.domain.JsonUser;
+import org.hisp.dhis.webapi.json.domain.JsonUserGroup;
 import org.hisp.dhis.webapi.json.domain.JsonWebMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -75,7 +84,6 @@ import com.google.gson.JsonElement;
  */
 class UserControllerTest extends DhisControllerConvenienceTest
 {
-
     @Autowired
     private MessageSender messageSender;
 
@@ -83,6 +91,9 @@ class UserControllerTest extends DhisControllerConvenienceTest
     private SecurityService securityService;
 
     private User peter;
+
+    @Autowired
+    ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp()
@@ -257,6 +268,135 @@ class UserControllerTest extends DhisControllerConvenienceTest
     }
 
     @Test
+    void testPutJsonObject_AddUserGroupLastUpdatedByUpdated()
+        throws JsonProcessingException
+    {
+        // create user
+        User newUser = createUserWithAuth( "test", "ALL" );
+
+        // create user group as admin and give new user write permission
+        UserGroup newGroup = createUserGroup( 'z', Set.of() );
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( "rw------" );
+        sharing.setUsers( Map.of( newUser.getUid(), new UserAccess( "rw------", newUser.getUid() ) ) );
+        newGroup.setSharing( sharing );
+
+        String newGroupUid = assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups", objectMapper.writeValueAsString( newGroup ) ) );
+
+        // assert lastUpdated is by admin & no users in group
+        JsonUserGroup userGroup = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
+            .as( JsonUserGroup.class );
+
+        JsonUser lastUpdatedByAdmin = userGroup.getLastUpdatedBy();
+        assertTrue( userGroup.getUsers().isEmpty() );
+        assertEquals( ADMIN_USER_UID, lastUpdatedByAdmin.getId() );
+        assertEquals( "admin", lastUpdatedByAdmin.getUsername() );
+
+        // switch to new user & add usergroup to new user
+        String role = newUser.getUserRoles().stream().map( BaseIdentifiableObject::getUid ).findFirst().get();
+        switchToNewUser( newUser );
+        PUT( "/users/" + newUser.getUid(),
+            " {" +
+                "'name': 'test'," +
+                "'username':'test'," +
+                "'userRoles': [" +
+                "{" +
+                "'id':'" + role + "'" +
+                "}]," +
+                "'userGroups': [" +
+                "{" +
+                "'id':'" + newGroupUid + "'" +
+                "}]" +
+                "}" )
+            .content( SUCCESSFUL );
+
+        // assert lastUpdated has been updated by new user & users not empty
+        JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
+            .as( JsonUserGroup.class );
+        JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
+        assertFalse( userGroupUserAdded.getUsers().isEmpty() );
+        assertEquals( newUser.getUid(), lastUpdatedByNewUser.getId() );
+        assertEquals( "test", lastUpdatedByNewUser.getUsername() );
+    }
+
+    @Test
+    void testPutJsonObject_RemoveUserGroupLastUpdatedByUpdated()
+        throws JsonProcessingException
+    {
+        // create user
+        User newUser = createUserWithAuth( "test", "ALL" );
+
+        // create user group as admin and give new user write permission
+        UserGroup newGroup = createUserGroup( 'z', Set.of() );
+        Sharing sharing = new Sharing();
+        sharing.setPublicAccess( "rw------" );
+        sharing.setUsers( Map.of( newUser.getUid(), new UserAccess( "rw------", newUser.getUid() ) ) );
+        newGroup.setSharing( sharing );
+
+        String newGroupUid = assertStatus( HttpStatus.CREATED,
+            POST( "/userGroups", objectMapper.writeValueAsString( newGroup ) ) );
+
+        // assert lastUpdated is by admin
+        JsonUserGroup userGroup = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
+            .as( JsonUserGroup.class );
+
+        JsonUser lastUpdatedByAdmin = userGroup.getLastUpdatedBy();
+        assertTrue( userGroup.getUsers().isEmpty() );
+        assertEquals( ADMIN_USER_UID, lastUpdatedByAdmin.getId() );
+        assertEquals( "admin", lastUpdatedByAdmin.getUsername() );
+
+        // switch to new user & assign usergroup to new user
+        String role = newUser.getUserRoles().stream().map( BaseIdentifiableObject::getUid ).findFirst().get();
+        switchToNewUser( newUser );
+        PUT( "/users/" + newUser.getUid(),
+            " {" +
+                "'name': 'test'," +
+                "'username':'test'," +
+                "'userRoles': [" +
+                "{" +
+                "'id':'" + role + "'" +
+                "}]," +
+                "'userGroups': [" +
+                "{" +
+                "'id':'" + newGroupUid + "'" +
+                "}]" +
+                "}" )
+            .content( SUCCESSFUL ).as( JsonWebMessage.class );
+
+        // assert lastUpdated has been updated by new user
+        JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
+            .as( JsonUserGroup.class );
+        JsonUser lastUpdatedByNewUser = userGroupUserAdded.getLastUpdatedBy();
+        assertFalse( userGroupUserAdded.getUsers().isEmpty() );
+        assertEquals( newUser.getUid(), lastUpdatedByNewUser.getId() );
+        assertEquals( "test", lastUpdatedByNewUser.getUsername() );
+
+        // switch back to admin and remove group from user
+        switchToSuperuser();
+        PUT( "/users/" + newUser.getUid(),
+            " {" +
+                "'name': 'test'," +
+                "'username':'test'," +
+                "'userRoles': [" +
+                "{" +
+                "'id':'" + role + "'" +
+                "}]," +
+                "'userGroups': []" +
+                "}" )
+            .content( SUCCESSFUL );
+
+        // assert lastUpdated has been updated by admin
+        JsonUserGroup userGroupUserRemoved = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
+            .as( JsonUserGroup.class );
+        JsonUser updatedByAdminAgain = userGroupUserRemoved.getLastUpdatedBy();
+        assertTrue( userGroupUserRemoved.getUsers().isEmpty() );
+        assertEquals( superUser.getUid(), updatedByAdminAgain.getId() );
+        assertEquals( "admin", updatedByAdminAgain.getUsername() );
+
+    }
+
+    @Test
     void testPutJsonObject_WithSettings()
     {
         JsonUser user = GET( "/users/{id}", peter.getUid() ).content().as( JsonUser.class );
@@ -297,7 +437,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/",
                 "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                    .content( HttpStatus.CREATED ) );
+                .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -422,7 +562,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
-                    .content( HttpStatus.CREATED ) );
+            .content( HttpStatus.CREATED ) );
     }
 
     @Test
