@@ -309,7 +309,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "'id':'" + newGroupUid + "'" +
                 "}]" +
                 "}" )
-            .content( SUCCESSFUL );
+                    .content( SUCCESSFUL );
 
         // assert lastUpdated has been updated by new user & users not empty
         JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
@@ -362,7 +362,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "'id':'" + newGroupUid + "'" +
                 "}]" +
                 "}" )
-            .content( SUCCESSFUL ).as( JsonWebMessage.class );
+                    .content( SUCCESSFUL ).as( JsonWebMessage.class );
 
         // assert lastUpdated has been updated by new user
         JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
@@ -384,7 +384,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "}]," +
                 "'userGroups': []" +
                 "}" )
-            .content( SUCCESSFUL );
+                    .content( SUCCESSFUL );
 
         // assert lastUpdated has been updated by admin
         JsonUserGroup userGroupUserRemoved = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
@@ -437,7 +437,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null,
             POST( "/users/",
                 "{'surname':'S.','firstName':'Harry', 'username':'harrys', 'userRoles': [{'id': 'yrB6vc5Ip3r'}]}" )
-                .content( HttpStatus.CREATED ) );
+                    .content( HttpStatus.CREATED ) );
     }
 
     @Test
@@ -562,7 +562,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
         assertWebMessage( "Created", 201, "OK", null, POST( "/users/invite",
             "{'surname':'S.','firstName':'Harry', 'email':'test@example.com', 'username':'harrys', 'userRoles': [{'id': '"
                 + roleUid + "'}]}" )
-            .content( HttpStatus.CREATED ) );
+                    .content( HttpStatus.CREATED ) );
     }
 
     @Test
