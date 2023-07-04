@@ -33,6 +33,7 @@ import java.util.Set;
 
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.event.EventStatus;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -42,6 +43,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  *
  */
+@OpenApi.Shared( name = "EventFilterInfo" )
 public class EventFilter implements Serializable
 {
     /**

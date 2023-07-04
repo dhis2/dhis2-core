@@ -1,50 +1,71 @@
 # Global Tags Descriptions
+
 This configuration is used to add descriptions to `@Tags` values.
 These are included as a `tags` array in the root of an OpenAPI configuration.
 Tag usages in the endpoints only refer to these description details by the tag name.
 
-## Tag `synthetic`
+## Tags
+
+### `synthetic`
+
 Marks Endpoints that have been merged from more than one method.
 This means there is no 1:1 relation between the REST endpoint described by OpenAPI
-and the Java controller methods that implement them. 
+and the Java controller methods that implement them.
 
-## Tag `metadata`
+### `metadata`
+
 Groups endpoints about metadata.
 
-## Tag `user`
+### `user`
+
 Groups endpoints about users.
 
-## Tag `analytics`
+### `analytics`
+
 Groups endpoints that are analytics related.
 
-## Tag `data`
+### `data`
+
 Groups endpoints about data values.
 
-## Tag `messaging`
+### `messaging`
+
 Groups endpoints about messages such as email and SMS.
 
-## Tag `system`
+### `system`
+
 Groups endpoints about general system administration.
 
-## Tag `tracker`
+### `tracker`
+
 Groups endpoints that are tracker related.
 
-## Tag `ui`
+#### `externalDocs`
+
+https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/tracker.html
+
+### `ui`
+
 Groups endpoints that are UI related.
 
-## Tag `management`
+### `management`
+
 Groups endpoints used to manage system objects.
 
-## Tag `login`
+### `login`
+
 Groups endpoints that are user login related.
 
-## Tag `query`
+### `query`
+
 Groups endpoints used to query information about system object or system state.
 
-## Tag `scheduling`
+### `scheduling`
+
 Endpoint is part of the scheduling API
 
-### `externalDocs`
+#### `externalDocs`
+
 https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/scheduling.html
 
 Job scheduling in DHIS2

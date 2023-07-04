@@ -27,7 +27,10 @@
  */
 package org.hisp.dhis.webapi.webdomain;
 
+import static org.hisp.dhis.common.OpenApi.Shared.Pattern.INFO;
+
 import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
@@ -36,6 +39,7 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
+@OpenApi.Shared( pattern = INFO )
 @JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
 public class Dashboard
 {

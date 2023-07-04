@@ -55,7 +55,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Extracts the properties of "record" like objects.
- *
+ * <p>
  * This is based on annotations and some heuristics.
  *
  * @author Jan Bernitt
@@ -173,7 +173,7 @@ class Property
             return true;
         if ( a != null && !a.defaultValue().isEmpty() )
             return false;
-        return type.isPrimitive() || type.isEnum() ? true : null;
+        return type.isPrimitive() && type != boolean.class || type.isEnum() ? true : null;
     }
 
     private static Stream<Field> fieldsIn( Class<?> type )

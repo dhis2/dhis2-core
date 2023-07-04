@@ -28,21 +28,22 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.util.Arrays.stream;
+import static java.util.Comparator.comparing;
 
 import java.io.InputStream;
-import java.lang.reflect.Modifier;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Consumer;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
+import javax.annotation.CheckForNull;
+
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
-
-import org.hisp.dhis.webapi.controller.AbstractCrudController;
 
 /**
  * Reads CommonMark markdown files into key-value pairs.
@@ -77,7 +78,13 @@ import org.hisp.dhis.webapi.controller.AbstractCrudController;
 @RequiredArgsConstructor( access = AccessLevel.PRIVATE )
 final class Descriptions
 {
-    private static final Map<Class<?>, Descriptions> SHARED_DESCRIPTIONS = new ConcurrentHashMap<>();
+    /**
+     * Note: This needs to use {@link ConcurrentSkipListMap} instead of the
+     * usual {@link ConcurrentHashMap} map that does not support inserting a key
+     * while in the function to compute the value for another insert.
+     */
+    private static final Map<Class<?>, Descriptions> CACHE = new ConcurrentSkipListMap<>(
+        comparing( Class::getCanonicalName ) );
 
     private final Class<?> target;
 
@@ -85,70 +92,61 @@ final class Descriptions
 
     static Descriptions of( Class<?> target )
     {
-        if ( Modifier.isAbstract( target.getModifiers() )
-            || !AbstractCrudController.class.isAssignableFrom( target ) )
-        {
-            return SHARED_DESCRIPTIONS.computeIfAbsent( target, Descriptions::ofNew );
-        }
-        return ofNew( target );
+        return CACHE.computeIfAbsent( target, Descriptions::ofUncached );
     }
 
-    static Descriptions ofNew( Class<?> target )
+    static Descriptions ofUncached( Class<?> target )
     {
         Descriptions res = new Descriptions( target );
+        // most abstract are "global" descriptions
+        if ( target != Descriptions.class )
+        {
+            res.entries.putAll( of( Descriptions.class ).entries );
+        }
+        // next are all super-classes starting with the base class by doing parent first
         Class<?> parent = target.getSuperclass();
-        if ( parent != null && AbstractCrudController.class.isAssignableFrom( parent ) )
+        if ( parent != null && parent != Object.class )
         {
             // inherit texts from parent
             res.entries.putAll( of( parent ).entries );
         }
-        res.read();
+        // finally adding all specific to only the target type
+        res.read( target.getSimpleName() );
         return res;
     }
 
-    void read()
+    private void read( String filename )
     {
-        String filename = "/openapi/" + target.getCanonicalName() + ".openapi.md";
-        InputStream is = target.getResourceAsStream( filename );
+        String file = "/openapi/" + filename + ".md";
+        InputStream is = target.getResourceAsStream( file );
         if ( is == null )
         {
             return;
         }
         try ( Scanner in = new Scanner( is ) )
         {
-            String rootKey = null;
             String key = null;
             StringBuilder value = new StringBuilder();
-            Consumer<String> addText = prefix -> {
-                if ( prefix != null )
-                {
-                    entries.put( prefix + ".description", trimText( value.toString() ) );
-                    value.setLength( 0 );
-                }
-            };
             while ( in.hasNextLine() )
             {
                 String line = in.nextLine();
-                if ( line.startsWith( "# " ) )
+                if ( line.startsWith( "#" ) )
                 {
-                    rootKey = null;
+                    if ( key != null && value.length() > 0 )
+                    {
+                        entries.put( key + ".description", trimText( value.toString() ) );
+                    }
                     key = null;
+                    value.setLength( 0 );
                 }
-                else if ( line.startsWith( "## " ) )
+                if ( line.startsWith( "### " ) )
                 {
-                    addText.accept( key );
-                    rootKey = toKey( line.substring( 3 ) );
-                    key = rootKey;
-                }
-                else if ( line.startsWith( "### " ) )
-                {
-                    addText.accept( key );
-                    key = rootKey + "." + toKey( line.substring( 4 ) );
+                    key = toKey( line.substring( 4 ) );
                 }
                 else
                 {
-                    if ( key != null && value.length() == 0 && (line.startsWith( "http://" ) || line.startsWith(
-                        "https://" )) )
+                    if ( key != null && value.length() == 0
+                        && (line.startsWith( "http://" ) || line.startsWith( "https://" )) )
                     {
                         entries.put( key + ".url", line.trim() );
                     }
@@ -159,7 +157,10 @@ final class Descriptions
                     }
                 }
             }
-            addText.accept( key );
+            if ( key != null && value.length() > 0 )
+            {
+                entries.put( key + ".description", trimText( value.toString() ) );
+            }
         }
     }
 
@@ -179,7 +180,7 @@ final class Descriptions
 
     private static String toKey( String line )
     {
-        return stream( line.split( ":" ) )
+        return stream( line.split( " " ) )
             .map( String::trim )
             .map( Descriptions::toKeySegment )
             .collect( Collectors.joining( "." ) );
@@ -198,14 +199,89 @@ final class Descriptions
         return entries.get( key ) != null;
     }
 
+    /**
+     * Lookup a description text by key.
+     * <p>
+     * {@link Descriptions} are per controller.
+     * <p>
+     * All text relevant for a specific controller are obtained by using
+     * {@link #of(Class)} with the controller class as target.
+     * <p>
+     * The entries will include (in order or least to highest precedence):
+     * <ol>
+     * <li>All entries in <code>Descriptions.md</code> ("global" texts)</li>
+     * <li>All entries in any superclass of the provided target class found in
+     * <code><i>{SimpleClassName}.md</i></code> starting from the base type's
+     * simple name</li>
+     * <li>All entries in target class found in
+     * <code><i>{SimpleClassName}.md</i></code></li>
+     * </ol>
+     *
+     * Within a file entries are using the endpoint method name as a namespace.
+     * <p>
+     * Key patterns are:
+     * <ul>
+     * <li><code><i>{method-name}</i>.parameter.<i>{name}</i>.description</code></li>
+     * <li><code><i>{method-name}</i>.request.description</code></li>
+     * <li><code><i>{method-name}</i>.response.<i>{http-status-code}</i>.description</code></li>
+     * </ul>
+     * OBS! The <code>.description</code> suffix is not stated in the markdown
+     * file!
+     * <p>
+     * Fallbacks to provide descriptions applying to any endpoint methods use
+     * the patterns:
+     * <ul>
+     * <li><code>*.parameter.<i>{name}</i>.description</code></li>
+     * <li><code>*.response.<i>{http-status-code}</i>.description</code></li>
+     * </ul>
+     *
+     * Shared parameters add the simple class name of the parameters class and
+     * are used as:
+     * <ul>
+     * <li><code>*.parameter.<i>{simple-class-name}</i>.</i>{name}</i>.description</code></li>
+     * </ul>
+     *
+     * @param key the complete key
+     * @return the value for the provided key
+     */
+    @CheckForNull
     String get( String key )
     {
         return entries.get( key );
     }
 
-    String get( String key, UnaryOperator<String> transformer )
+    @CheckForNull
+    String get( List<String> keys )
     {
-        String value = get( key );
-        return value == null ? null : transformer.apply( value );
+        return get( UnaryOperator.identity(), keys );
     }
+
+    @CheckForNull
+    String get( UnaryOperator<String> transformer, String... keys )
+    {
+        return get( transformer, List.of( keys ) );
+    }
+
+    /**
+     * Returns the first non-null value transformed by the provided transformer.
+     * Keys are tried in the order given.
+     *
+     * @param transformer transformer for a non-null value
+     * @param keys keys to try
+     * @return the first non-null value transformed
+     */
+    @CheckForNull
+    String get( UnaryOperator<String> transformer, List<String> keys )
+    {
+        for ( String key : keys )
+        {
+            String value = get( key );
+            if ( value != null )
+            {
+                return transformer.apply( value );
+            }
+        }
+        return null;
+    }
+
 }

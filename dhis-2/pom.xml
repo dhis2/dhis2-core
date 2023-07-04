@@ -197,6 +197,7 @@
     <testcontainers.version>1.18.3</testcontainers.version>
     <jsonassert.version>1.5.1</jsonassert.version>
     <awaitility.version>4.2.0</awaitility.version>
+    <swagger.version>2.1.16</swagger.version>
     <easy-random.version>5.0.0</easy-random.version>
     <tree.version>0.2.5</tree.version>
     <h2.version>2.1.214</h2.version>

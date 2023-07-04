@@ -29,18 +29,14 @@ package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
 import static java.util.Arrays.stream;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
-import static java.util.stream.Collectors.toList;
 
 import java.io.Serializable;
-import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URL;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
@@ -52,7 +48,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import lombok.Builder;
@@ -83,11 +79,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * Generates a <a href=
  * "https://github.com/OAI/OpenAPI-Specification/blob/main/versions/">OpenAPI
  * 3.x</a> version JSON document from an {@link Api} model.
- *
+ * <p>
  * The generation offers a dozen configuration options which concern both the
  * {@link org.hisp.dhis.webapi.openapi.JsonGenerator.Format} of the generated
- * JSON as well as the semantic {@link Configuration} content.
- *
+ * JSON as well as the semantic {@link Info} content.
+ * <p>
  * Alongside the input {@link Api} model there is a pool of known
  * {@link SimpleType}s. This is the core translation of primitives, wrapper,
  * {@link String}s but also used as a "correction" for seemingly complex types
@@ -101,19 +97,14 @@ public class OpenApiGenerator extends JsonGenerator
 {
     @Value
     @Builder( toBuilder = true )
-    static class Configuration
+    static class Info
     {
-        public static final Configuration DEFAULT = Configuration.builder()
+        public static final Info DEFAULT = Info.builder()
             .title( "DHIS2 API" )
             .version( "2.40" )
             .serverUrl( "https://play.dhis2.org/dev/api" )
             .licenseName( "BSD 3-Clause \"New\" or \"Revised\" License" )
             .licenseUrl( "https://raw.githubusercontent.com/dhis2/dhis2-core/master/LICENSE" )
-            .syntheticSummary( true )
-            .syntheticDescription( true )
-            .missingDescription( "[no description yet]" )
-            .qualifiedNameDelimiter( "-" )
-            .syntheticNamePrefixDelimiter( "-" )
             .build();
 
         String title;
@@ -131,40 +122,6 @@ public class OpenApiGenerator extends JsonGenerator
         String contactUrl;
 
         String contactEmail;
-
-        String missingDescription;
-
-        /**
-         * The characters(s) used to join the "package" part of a qualified name
-         * with the simple name.
-         *
-         * For example, the {@code -} in the below name examples:
-         *
-         * <pre>
-         *     SimpleName
-         *     FromPackage-SimpleName
-         *     FromAnotherPackage-SimpleName
-         * </pre>
-         */
-        String qualifiedNameDelimiter;
-
-        /**
-         * The character(s) used to join the prefix, like {@code Ref} or
-         * {@code UID} with the rest of the type name.
-         *
-         * For example, the {@code -} in the below examples, where simple name
-         * is what the Ref/UID refers to:
-         *
-         * <pre>
-         * Ref-SimpleName
-         * UID-SimpleName
-         * </pre>
-         */
-        String syntheticNamePrefixDelimiter;
-
-        boolean syntheticSummary;
-
-        boolean syntheticDescription;
     }
 
     @Value
@@ -193,6 +150,11 @@ public class OpenApiGenerator extends JsonGenerator
     }
 
     private static final Map<Class<?>, List<SimpleType>> SIMPLE_TYPES = new IdentityHashMap<>();
+
+    public static boolean isSimpleType( Class<?> type )
+    {
+        return SIMPLE_TYPES.containsKey( type );
+    }
 
     private static void addSimpleType( Class<?> source, Consumer<SimpleType.SimpleTypeBuilder> schema )
     {
@@ -255,109 +217,89 @@ public class OpenApiGenerator extends JsonGenerator
     public static String generateJson( Api api, String serverUrl )
     {
         return generateJson( api, Format.PRETTY_PRINT,
-            Configuration.DEFAULT.toBuilder().serverUrl( serverUrl ).build() );
+            Info.DEFAULT.toBuilder().serverUrl( serverUrl ).build() );
     }
 
-    public static String generateJson( Api api, Format format, Configuration configuration )
+    public static String generateJson( Api api, Format format, Info info )
     {
-        return generate( api, format, Language.JSON, configuration );
+        return generate( api, format, Language.JSON, info );
     }
 
     public static String generateYaml( Api api, String serverUrl )
     {
         return generateYaml( api, Format.PRETTY_PRINT,
-            Configuration.DEFAULT.toBuilder().serverUrl( serverUrl ).build() );
+            Info.DEFAULT.toBuilder().serverUrl( serverUrl ).build() );
     }
 
-    public static String generateYaml( Api api, Format format, Configuration configuration )
+    public static String generateYaml( Api api, Format format, Info info )
     {
-        return generate( api, format, Language.YAML, configuration );
+        return generate( api, format, Language.YAML, info );
     }
 
-    private static String generate( Api api, Format format, Language language, Configuration configuration )
+    private static String generate( Api api, Format format, Language language, Info info )
     {
         int endpoints = 0;
         for ( Api.Controller c : api.getControllers() )
             endpoints += c.getEndpoints().size();
         int capacity = endpoints * 256 + api.getSchemas().size() * 512;
         OpenApiGenerator gen = new OpenApiGenerator( api, language.getAdjustFormat().apply( format ), language,
-            configuration, new StringBuilder( capacity ) );
+            info, new StringBuilder( capacity ) );
         gen.generateDocument();
         return gen.toString();
     }
 
-    private static final Pattern VALID_NAME_INFIX = Pattern.compile( "^[-_a-zA-Z0-9.]*$" );
+    private static final String NO_DESCRIPTION = "[no description yet]";
 
     private final Api api;
 
-    private final Configuration configuration;
+    private final Info info;
 
-    private OpenApiGenerator( Api api, Format format, Language language, Configuration configuration,
+    private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
+
+    private OpenApiGenerator( Api api, Format format, Language language, Info info,
         StringBuilder out )
     {
         super( out, format, language );
         this.api = api;
-        this.configuration = configuration;
-        checkConfiguration( configuration );
+        this.info = info;
     }
-
-    private void checkConfiguration( Configuration configuration )
-    {
-        checkValidNameInfix( "qualifiedNameDelimiter", configuration.qualifiedNameDelimiter );
-        checkValidNameInfix( "syntheticNamePrefixDelimiter", configuration.syntheticNamePrefixDelimiter );
-    }
-
-    private void checkValidNameInfix( String name, String value )
-    {
-        if ( !VALID_NAME_INFIX.matcher( value ).matches() )
-        {
-            throw new IllegalArgumentException( format( "Configuration.%s must match pattern %s but was: %s",
-                name, VALID_NAME_INFIX.pattern(), value ) );
-        }
-    }
-
-    private final Map<String, List<Api.Endpoint>> endpointsByBaseOperationId = new HashMap<>();
-
-    private final Map<String, Class<?>> typesByName = new TreeMap<>();
-
-    private final Map<String, Api.Schema> syntheticTypesByName = new TreeMap<>();
 
     private void generateDocument()
     {
         addRootObject( () -> {
             addStringMember( "openapi", "3.0.0" );
             addObjectMember( "info", () -> {
-                addStringMember( "title", configuration.title );
-                addStringMember( "version", configuration.version );
+                addStringMember( "title", info.title );
+                addStringMember( "version", info.version );
                 addObjectMember( "license", () -> {
-                    addStringMember( "name", configuration.licenseName );
-                    addStringMember( "url", configuration.licenseUrl );
+                    addStringMember( "name", info.licenseName );
+                    addStringMember( "url", info.licenseUrl );
                 } );
                 addObjectMember( "contact", () -> {
-                    addStringMember( "name", configuration.contactName );
-                    addStringMember( "url", configuration.contactUrl );
-                    addStringMember( "email", configuration.contactEmail );
+                    addStringMember( "name", info.contactName );
+                    addStringMember( "url", info.contactUrl );
+                    addStringMember( "email", info.contactEmail );
                 } );
             } );
             addArrayMember( "tags", api.getTags().values(), tag -> addObjectMember( null, () -> {
                 addStringMember( "name", tag.getName() );
                 addStringMultilineMember( "description",
-                    tag.getDescription().orElse( configuration.missingDescription ) );
+                    tag.getDescription().orElse( NO_DESCRIPTION ) );
                 addObjectMember( "externalDocs", tag.getExternalDocsUrl().isPresent(), () -> {
                     addStringMember( "url", tag.getExternalDocsUrl().getValue() );
                     addStringMultilineMember( "description", tag.getExternalDocsDescription().getValue() );
                 } );
             } ) );
             addArrayMember( "servers",
-                () -> addObjectMember( null, () -> addStringMember( "url", configuration.serverUrl ) ) );
+                () -> addObjectMember( null, () -> addStringMember( "url", info.serverUrl ) ) );
             addArrayMember( "security",
                 () -> addObjectMember( null, () -> addArrayMember( "basicAuth",
                     () -> addArrayMember( null, List.of() ) ) ) );
             addObjectMember( "paths", this::generatePaths );
             addObjectMember( "components", () -> {
                 addObjectMember( "securitySchemes", this::generateSecuritySchemes );
-                addObjectMember( "schemas", this::generateSchemas );
-                addObjectMember( "parameters", this::generateParameters );
+                addObjectMember( "schemas", this::generateSharedSchemas );
+                addObjectMember( "parameters", this::generateSharedParameters );
             } );
         } );
         log.info( format( "OpenAPI document generated for %d controllers with %d named schemas",
@@ -366,15 +308,12 @@ public class OpenApiGenerator extends JsonGenerator
 
     private void generatePaths()
     {
-        groupEndpointsByAbsolutePath().forEach( this::generatePath );
+        api.getEndpoints().forEach( this::generatePath );
     }
 
-    private void generatePath( String path, List<Api.Endpoint> endpoints )
+    private void generatePath( String path, Map<RequestMethod, Api.Endpoint> endpoints )
     {
-        EnumMap<RequestMethod, Api.Endpoint> endpointByMethod = new EnumMap<>( RequestMethod.class );
-        endpoints.forEach( e -> e.getMethods().forEach(
-            method -> endpointByMethod.compute( method, ( k, v ) -> ApiMerger.mergeEndpoints( v, e, method ) ) ) );
-        addObjectMember( path, () -> endpointByMethod.forEach( this::generatePathMethod ) );
+        addObjectMember( path, () -> endpoints.forEach( this::generatePathMethod ) );
     }
 
     private void generatePathMethod( RequestMethod method, Api.Endpoint endpoint )
@@ -385,10 +324,10 @@ public class OpenApiGenerator extends JsonGenerator
         addObjectMember( method.name().toLowerCase(), () -> {
             addBooleanMember( "deprecated", endpoint.getDeprecated() );
             addStringMultilineMember( "description",
-                endpoint.getDescription().orElse( configuration.missingDescription ) );
+                endpoint.getDescription().orElse( NO_DESCRIPTION ) );
             addStringMember( "operationId", getUniqueOperationId( endpoint ) );
             addArrayMember( "tags", tags );
-            addArrayMember( "parameters", endpoint.getParameters().values(), this::generateParameter );
+            addArrayMember( "parameters", endpoint.getParameters().values(), this::generateParameterOrRef );
             if ( endpoint.getRequestBody().isPresent() )
             {
                 addObjectMember( "requestBody",
@@ -398,32 +337,37 @@ public class OpenApiGenerator extends JsonGenerator
         } );
     }
 
-    private void generateParameters()
+    private void generateSharedParameters()
     {
-        api.getParameters().forEach( this::generateParameter );
+        Map<String, Api.Parameter> paramBySharedName = new TreeMap<>();
+        for ( List<Api.Parameter> params : api.getComponents().getParameters().values() )
+            params.forEach( p -> paramBySharedName.put( p.getFullName(), p ) );
+        // use map to sort parameter by name
+        paramBySharedName.forEach( this::generateParameter );
     }
 
-    private void generateParameter( Api.Parameter parameter )
+    private void generateParameterOrRef( Api.Parameter parameter )
     {
-        // used as array element
-        generateParameter( null, parameter );
+        if ( parameter.isShared() )
+        {
+            // shared parameter usage: => reference object
+            addObjectMember( null,
+                () -> addStringMember( "$ref", "#/components/parameters/" + parameter.getFullName() ) );
+        }
+        else
+        {
+            generateParameter( null, parameter );
+        }
     }
 
     private void generateParameter( String name, Api.Parameter parameter )
     {
-        if ( name == null && parameter.isShared() )
-        {
-            // shared parameter usage: => reference object
-            addObjectMember( null,
-                () -> addStringMember( "$ref", "#/components/parameters/" + parameter.getGlobalName() ) );
-            return;
-        }
         // parameter definition (both shared and non-shared):
         addObjectMember( name, () -> {
             addStringMember( "name", parameter.getName() );
             addStringMember( "in", parameter.getIn().name().toLowerCase() );
             addStringMultilineMember( "description",
-                parameter.getDescription().orElse( configuration.missingDescription ) );
+                parameter.getDescription().orElse( NO_DESCRIPTION ) );
             addBooleanMember( "required", parameter.isRequired() );
             addObjectMember( "schema", () -> generateSchemaOrRef( parameter.getType() ) );
         } );
@@ -432,7 +376,7 @@ public class OpenApiGenerator extends JsonGenerator
     private void generateRequestBody( Api.RequestBody requestBody )
     {
         addStringMultilineMember( "description",
-            requestBody.getDescription().orElse( configuration.missingDescription ) );
+            requestBody.getDescription().orElse( NO_DESCRIPTION ) );
         addBooleanMember( "required", requestBody.isRequired() );
         addObjectMember( "content",
             () -> requestBody.getConsumes().forEach( ( key, value ) -> addObjectMember( key.toString(),
@@ -443,7 +387,7 @@ public class OpenApiGenerator extends JsonGenerator
     {
         addObjectMember( String.valueOf( response.getStatus().value() ), () -> {
             addStringMultilineMember( "description",
-                response.getDescription().orElse( configuration.missingDescription ) );
+                response.getDescription().orElse( NO_DESCRIPTION ) );
             addObjectMember( "headers", response.getHeaders().values(),
                 header -> addObjectMember( header.getName(), () -> {
                     addStringMultilineMember( "description", header.getDescription() );
@@ -464,56 +408,27 @@ public class OpenApiGenerator extends JsonGenerator
         } );
     }
 
-    private void generateSchemas()
+    private void generateSharedSchemas()
     {
-        // make sure all types have a unique name
-        api.getSchemas().entrySet().stream()
-            .filter( e -> isReferencableSchema( e.getValue() ) )
-            .forEach( e -> getUniqueSchemaName( e.getKey() ) );
-        // write normal schemas:
-        // we still need a copy due to Ref name being based on the referenced
-        // target
-        // name we might add to the map while generating a schema
-        new TreeMap<>( typesByName ).entrySet().stream()
-            .filter( e -> api.getSchemas().containsKey( e.getValue() ) )
-            .forEach(
-                e -> addObjectMember( e.getKey(), () -> generateSchema( api.getSchemas().get( e.getValue() ) ) ) );
-        // write ref/uid schemas:
-        syntheticTypesByName.forEach( ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
-    }
+        api.getComponents().getSchemas().forEach(
+            ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
 
-    private static boolean isReferencableSchema( Api.Schema schema )
-    {
-        return schema.isNamed()
-            && !schema.getProperties().isEmpty()
-            && !SIMPLE_TYPES.containsKey( schema.getRawType() );
+        // write ref/uid schemas:
+        api.getComponents().getAdditionalSchemas().forEach(
+            ( name, schema ) -> addObjectMember( name, () -> generateSchema( schema ) ) );
     }
 
     private void generateSchemaOrRef( Api.Schema schema )
     {
         if ( schema == null )
             return;
-        Api.Schema.Type type = schema.getType();
-        if ( type == Api.Schema.Type.REF || type == Api.Schema.Type.UID || type == Api.Schema.Type.ENUM )
+        if ( schema.getSharedName().isPresent() )
         {
-            Class<?> to = schema.getRawType();
-            Map<Api.Schema.Type, String> prefixes = Map.of(
-                Api.Schema.Type.REF, "Ref",
-                Api.Schema.Type.UID, "UID",
-                Api.Schema.Type.ENUM, ((Class<?>) schema.getSource()).getSimpleName() );
-            String prefix = prefixes.get( type );
-            String name = prefix + configuration.getSyntheticNamePrefixDelimiter() + getUniqueSchemaName( to );
-            addStringMember( "$ref", "#/components/schemas/" + name );
-            syntheticTypesByName.putIfAbsent( name, schema );
-            return;
-        }
-        if ( !isReferencableSchema( schema ) )
-        {
-            generateSchema( schema );
+            addStringMember( "$ref", "#/components/schemas/" + schema.getSharedName().getValue() );
         }
         else
         {
-            addStringMember( "$ref", "#/components/schemas/" + getUniqueSchemaName( schema.getRawType() ) );
+            generateSchema( schema );
         }
     }
 
@@ -567,7 +482,7 @@ public class OpenApiGenerator extends JsonGenerator
         {
             addStringMember( "type", "string" );
             addArrayMember( "enum", stream( type.getEnumConstants() )
-                .map( e -> ((Enum<?>) e).name() ).collect( toList() ) );
+                .map( e -> ((Enum<?>) e).name() ).collect( Collectors.toList() ) );
             return;
         }
         if ( type.isArray() || schemaType == Api.Schema.Type.ARRAY )
@@ -594,7 +509,10 @@ public class OpenApiGenerator extends JsonGenerator
             }
             addArrayMember( "required", schema.getRequiredProperties() );
             addObjectMember( "properties", schema.getProperties(),
-                property -> addObjectMember( property.getName(), () -> generateSchemaOrRef( property.getType() ) ) );
+                property -> addObjectMember( property.getName(), () -> {
+                    generateSchemaOrRef( property.getType() );
+                    addStringMember( "description", property.getDescription().orElse( null ) );
+                } ) );
         }
         else
         {
@@ -630,7 +548,7 @@ public class OpenApiGenerator extends JsonGenerator
         addStringMember( "type", "object" );
         addArrayMember( "required", List.of( "id" ) );
         addObjectMember( "properties", () -> addObjectMember( "id", () -> generateUidSchema( schema ) ) );
-        addTypeDescriptionMember( schema.getSource(), "A UID reference to a %s  \n(Java name `%s`)" );
+        addTypeDescriptionMember( schema.getRawType(), "A UID reference to a %s  \n(Java name `%s`)" );
     }
 
     private void generateUidSchema( Api.Schema schema )
@@ -643,45 +561,24 @@ public class OpenApiGenerator extends JsonGenerator
         addStringMultilineMember( "example", generateUid( schema.getRawType() ) );
         if ( schema.getType() == Api.Schema.Type.UID )
         {
-            addTypeDescriptionMember( schema.getSource(), "A UID for an %s object  \n(Java name `%s`)" );
+            addTypeDescriptionMember( schema.getRawType(), "A UID for an %s object  \n(Java name `%s`)" );
         }
     }
 
-    private void addTypeDescriptionMember( Type type, String template )
+    private void addTypeDescriptionMember( Class<?> type, String template )
     {
-        String name = type == BaseIdentifiableObject.class || type == IdentifiableObject.class
-            ? "any type of object"
-            : getUniqueSchemaName( (Class<?>) type );
+        String name = "any type of object";
+        if ( type != BaseIdentifiableObject.class && type != IdentifiableObject.class )
+        {
+            Api.Schema schema = api.getSchemas().get( type );
+            name = schema == null ? type.getSimpleName() : schema.getSharedName().getValue();
+        }
         addStringMultilineMember( "description", String.format( template, name, type.getTypeName() ) );
     }
 
     /*
      * Open API document generation helpers
      */
-
-    private String getUniqueSchemaName( Class<?> type )
-    {
-        String name = type.getSimpleName();
-        Class<?> assigned = typesByName.get( name );
-        if ( assigned == type )
-        {
-            return name;
-        }
-        if ( assigned == null )
-        {
-            typesByName.put( name, type );
-            return name;
-        }
-        // clash => use full name
-        name = type.getCanonicalName().replace( "org.hisp.dhis.", "" );
-        // replace dots (stoplight does not like it in names)
-        String[] segments = name.split( "\\." );
-        name = stream( segments ).limit( segments.length - 1L )
-            .map( word -> Character.toUpperCase( word.charAt( 0 ) ) + word.substring( 1 ) )
-            .collect( joining( "" ) ) + configuration.getQualifiedNameDelimiter() + segments[segments.length - 1];
-        typesByName.put( name, type );
-        return name;
-    }
 
     private String getUniqueOperationId( Api.Endpoint endpoint )
     {
@@ -690,33 +587,6 @@ public class OpenApiGenerator extends JsonGenerator
             key -> new ArrayList<>() );
         endpoints.add( endpoint );
         return endpoints.size() == 1 ? baseOperationId : baseOperationId + endpoints.size();
-    }
-
-    private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
-    {
-        // OBS! We use a TreeMap to also get alphabetical order/grouping
-        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
-        for ( Api.Controller c : api.getControllers() )
-        {
-            if ( c.getPaths().isEmpty() )
-                c.getPaths().add( "" );
-            for ( String cPath : c.getPaths() )
-            {
-                for ( Api.Endpoint e : c.getEndpoints() )
-                {
-                    for ( String ePath : e.getPaths() )
-                    {
-                        String absolutePath = cPath + ePath;
-                        if ( absolutePath.isEmpty() )
-                        {
-                            absolutePath = "/";
-                        }
-                        endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
-                    }
-                }
-            }
-        }
-        return endpointsByAbsolutePath;
     }
 
     /**
@@ -750,10 +620,13 @@ public class OpenApiGenerator extends JsonGenerator
         key = key.repeat( (11 / key.length()) + 1 );
         StringBuilder uid = new StringBuilder( 11 );
         int offset = fromType.getSimpleName().length();
+        int letters = 0;
         for ( int i = 0; i < 11; i++ )
         {
             int index = key.charAt( i ) + offset;
-            uid.append( chars[index % chars.length] );
+            char c = letters >= 2 ? (char) ('0' + (offset % 10)) : chars[index % chars.length];
+            letters = Character.isDigit( c ) ? 0 : letters + 1;
+            uid.append( c );
             // this is just to get more realistic character distribution
             // 13 because it is about half the alphabet
             offset += 13;
