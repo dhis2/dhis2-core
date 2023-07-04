@@ -50,4 +50,9 @@ public interface JsonUserGroup extends JsonIdentifiableObject
     {
         return getList( "managedByGroups", JsonUserGroup.class );
     }
+
+    default String getUsername()
+    {
+        return getString( "username" ).string();
+    }
 }
