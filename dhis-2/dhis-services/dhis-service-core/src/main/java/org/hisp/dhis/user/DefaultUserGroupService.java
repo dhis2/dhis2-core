@@ -206,6 +206,7 @@ public class DefaultUserGroupService
             if ( !updates.contains( userGroup ) && canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.removeUser( user );
+                userGroupStore.update( userGroup, currentUser );
             }
         }
 
@@ -214,7 +215,7 @@ public class DefaultUserGroupService
             if ( canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.addUser( user );
-                userGroupStore.updateNoAcl( userGroup );
+                userGroupStore.update( userGroup, currentUser );
             }
         }
     }
