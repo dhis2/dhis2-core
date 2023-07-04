@@ -28,7 +28,6 @@
 package org.hisp.dhis.tracker.export.event;
 
 import static org.apache.commons.lang3.BooleanUtils.toBooleanDefaultIfNull;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseAttributeQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseDataElementQueryItems;
 import static org.hisp.dhis.tracker.export.OperationParamUtils.parseQueryItem;
@@ -303,11 +302,11 @@ public class EventOperationParamsMapper
         return switch ( orgUnitMode )
         {
         case DESCENDANTS ->
-            orgUnit != null ? getAccessibleOffspring( orgUnitDescendants.apply( orgUnit.getUid() ), program, user )
+            orgUnit != null ? getAccessibleDescendants( orgUnitDescendants.apply( orgUnit.getUid() ), program, user )
                 : Collections.emptyList();
-        case CHILDREN -> orgUnit != null ? getAccessibleOffspring(
-            Stream.concat( Stream.of( orgUnit ), orgUnit.getChildren().stream() ).toList(), program, user )
-            : Collections.emptyList();
+        case CHILDREN ->
+            orgUnit != null ? getAccessibleDescendants( orgUnit.getChildren().stream().toList(), program, user )
+                : Collections.emptyList();
         case CAPTURE -> user.getOrganisationUnits().stream().toList();
         case ACCESSIBLE ->
             isProgramAccessRestricted( program ) ? user.getOrganisationUnits().stream().toList().stream().toList()
@@ -319,16 +318,16 @@ public class EventOperationParamsMapper
     }
 
     /**
-     * Returns the user org units (capture scope or search scope) whose path is
-     * contained in the supplied org units. If there's a match, it means the
-     * user org unit is at the same level or above the supplied org unit.
+     * Returns the org units whose path is contained in the user search or
+     * capture scope org unit. If there's a match, it means the user org unit is
+     * at the same level or above the supplied org unit.
      *
      * @param availableOrgUnits the org units to check if the user has access to
      * @param program the program the user wants to access to
      * @param user the user to check the access of
      * @return a list with the org units the user has access to
      */
-    private List<OrganisationUnit> getAccessibleOffspring( List<OrganisationUnit> availableOrgUnits, Program program,
+    private List<OrganisationUnit> getAccessibleDescendants( List<OrganisationUnit> availableOrgUnits, Program program,
         User user )
     {
         if ( availableOrgUnits.isEmpty() )
@@ -338,17 +337,16 @@ public class EventOperationParamsMapper
 
         if ( isProgramAccessRestricted( program ) )
         {
-            return availableOrgUnits.stream()
-                .filter( availableOrgUnit -> user.getOrganisationUnits().stream().anyMatch(
-                    captureScopeOrgUnit -> captureScopeOrgUnit.getPath().contains( availableOrgUnit.getPath() )
-                        && captureScopeOrgUnit.getLevel() <= availableOrgUnit.getLevel() ) )
+            return availableOrgUnits.stream().filter(
+                availableOrgUnit -> user.getOrganisationUnits().stream().anyMatch(
+                    captureScopeOrgUnit -> availableOrgUnit.getPath().contains( captureScopeOrgUnit.getPath() ) ) )
                 .toList();
         }
         else
         {
-            return availableOrgUnits.stream()
-                .filter( availableOrgUnit -> user.getTeiSearchOrganisationUnitsWithFallback().stream().anyMatch(
-                    searchScopeOrgUnit -> searchScopeOrgUnit.getPath().contains( availableOrgUnit.getPath() ) ) )
+            return availableOrgUnits.stream().filter(
+                availableOrgUnit -> user.getTeiSearchOrganisationUnits().stream().anyMatch(
+                    searchScopeOrgUnit -> availableOrgUnit.getPath().contains( searchScopeOrgUnit.getPath() ) ) )
                 .toList();
         }
     }

@@ -27,24 +27,16 @@
  */
 package org.hisp.dhis.tracker.export.event;
 
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.ACCESSIBLE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CAPTURE;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.CHILDREN;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.DESCENDANTS;
-import static org.hisp.dhis.common.OrganisationUnitSelectionMode.SELECTED;
 import static org.hisp.dhis.tracker.Assertions.assertNoErrors;
 import static org.hisp.dhis.util.DateUtils.parseDate;
 import static org.hisp.dhis.utils.Assertions.assertContains;
-import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 import static org.hisp.dhis.utils.Assertions.assertStartsWith;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 import java.time.ZoneId;
@@ -65,7 +57,6 @@ import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.common.SlimPager;
 import org.hisp.dhis.common.ValueType;
-import org.hisp.dhis.commons.collection.CollectionUtils;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.dataelement.DataElementService;
 import org.hisp.dhis.feedback.BadRequestException;
@@ -81,6 +72,7 @@ import org.hisp.dhis.trackedentity.TrackedEntityAttribute;
 import org.hisp.dhis.tracker.TrackerTest;
 import org.hisp.dhis.tracker.imports.TrackerImportService;
 import org.hisp.dhis.user.User;
+import org.hisp.dhis.utils.Assertions;
 import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.mapper.SortDirection;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
@@ -169,7 +161,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -182,7 +174,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -195,7 +187,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -210,7 +202,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -224,7 +216,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -243,7 +235,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -259,7 +251,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
 
         new QueryItem( dataElement, QueryOperator.LIKE, "val", dataElement.getValueType(),
             null, null );
@@ -280,7 +272,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -298,7 +290,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -315,7 +307,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -332,7 +324,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -352,7 +344,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -369,7 +361,7 @@ class EventExporterTest extends TrackerTest
 
         Events events = eventService.getEvents( params );
 
-        assertContainsOnly( List.of( "lumVtWwwy0O", "cadc5eGj0j7" ), eventUids( events ) );
+        Assertions.assertContainsOnly( List.of( "lumVtWwwy0O", "cadc5eGj0j7" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertEquals( 2, e.getAttributeOptionCombo().getCategoryOptions().size(),
                 String.format( "got category options %s", e.getAttributeOptionCombo().getCategoryOptions() ) ) )
@@ -457,11 +449,11 @@ class EventExporterTest extends TrackerTest
 
         Events events = eventService.getEvents( params );
 
-        assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
+        Assertions.assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertAll( "category options and combo of event " + e.getUid(),
                 () -> assertEquals( "cr89ebDZrac", e.getAttributeOptionCombo().getUid() ),
-                () -> assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
+                () -> Assertions.assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
                     e.getAttributeOptionCombo().getCategoryOptions().stream().map( CategoryOption::getUid )
                         .collect( Collectors.toSet() ) ) ) )
             .collect( Collectors.toList() );
@@ -498,14 +490,14 @@ class EventExporterTest extends TrackerTest
 
         Events events = eventService.getEvents( params );
 
-        assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
+        Assertions.assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
                 () -> assertEquals( "multi-program", e.getEnrollment().getProgram().getUid() ),
                 () -> assertEquals( "multi-stage", e.getProgramStage().getUid() ),
                 () -> assertEquals( "DiszpKrYNg8", e.getOrganisationUnit().getUid() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452", e.getAttributeOptionCombo().getUid() ),
-                () -> assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
+                () -> Assertions.assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
                     e.getAttributeOptionCombo().getCategoryOptions().stream().map( CategoryOption::getUid )
                         .collect( Collectors.toSet() ) ) ) )
             .collect( Collectors.toList() );
@@ -528,14 +520,14 @@ class EventExporterTest extends TrackerTest
 
         Events events = eventService.getEvents( params );
 
-        assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
+        Assertions.assertContainsOnly( List.of( "kWjSezkXHVp", "OTmjvJDn0Fu" ), eventUids( events ) );
         List<Executable> executables = events.getEvents().stream()
             .map( e -> (Executable) () -> assertAll( "event " + e.getUid(),
                 () -> assertEquals( "multi-program-attribute", e.getEnrollment().getProgram().getUid() ),
                 () -> assertEquals( "multi-program-stage-attribute", e.getProgramStage().getUid() ),
                 () -> assertEquals( "DiszpKrYNg8", e.getOrganisationUnit().getUid() ), // TODO(DHIS2-14968): this might be a bug caused by https://github.com/dhis2/dhis2-core/pull/12518
                 () -> assertEquals( "COC_1153452-attribute", e.getAttributeOptionCombo().getUid() ),
-                () -> assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
+                () -> Assertions.assertContainsOnly( Set.of( "xwZ2u3WyQR0", "M58XdOfhiJ7" ),
                     e.getAttributeOptionCombo().getCategoryOptions().stream().map( CategoryOption::getUid )
                         .collect( Collectors.toSet() ) ) ) )
             .collect( Collectors.toList() );
@@ -561,7 +553,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -577,7 +569,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -594,7 +586,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -610,7 +602,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -630,7 +622,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM" ), events );
     }
 
     @Test
@@ -660,7 +652,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -675,7 +667,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -690,7 +682,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
     }
 
     @Test
@@ -705,7 +697,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
     }
 
     @Test
@@ -750,7 +742,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -765,7 +757,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "nxP7UnKhomJ" ), enrollments );
     }
 
     @Test
@@ -780,7 +772,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
     }
 
     @Test
@@ -795,7 +787,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
+        Assertions.assertContainsOnly( List.of( "TvctPPhpD8z" ), enrollments );
     }
 
     @Test
@@ -810,7 +802,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
+        Assertions.assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
     @Test
@@ -825,7 +817,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities );
+        Assertions.assertContainsOnly( List.of( "QS6w44flWAf" ), trackedEntities );
     }
 
     @Test
@@ -840,7 +832,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
+        Assertions.assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
     @Test
@@ -858,7 +850,7 @@ class EventExporterTest extends TrackerTest
             .map( event -> event.getEnrollment().getTrackedEntity().getUid() )
             .collect( Collectors.toList() );
 
-        assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
+        Assertions.assertContainsOnly( List.of( "dUE514NMOlo" ), trackedEntities );
     }
 
     @Test
@@ -1029,7 +1021,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -1055,7 +1047,7 @@ class EventExporterTest extends TrackerTest
 
         List<String> events = getEvents( params );
 
-        assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+        Assertions.assertContainsOnly( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
     }
 
     @Test
@@ -1131,247 +1123,6 @@ class EventExporterTest extends TrackerTest
         assertEquals( List.of( "dUE514NMOlo", "QS6w44flWAf" ), trackedEntities );
     }
 
-    @Test
-    void shouldReturnEventsWhenProgramClosedOuModeDescendantsAndOrgUnitInCaptureScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( DESCENDANTS ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(),
-            "Expected to find events when ou mode descendants and org units in capture scope" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find descendant org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenNoProgramSpecifiedOuModeDescendantsAndOrgUnitInSearchScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder()
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( DESCENDANTS ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(),
-            "Expected to find events when no program specified, ou mode descendants and org units in search scope" );
-        assertContainsAllOrgUnits( events.stream().map( e -> e.getOrganisationUnit().getUid() ).toList(),
-            List.of( "uoNW0E3xXUy", "h4w96yEMlzO", "tSsGrtfRzjY" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenProgramClosedOuModeChildrenAndOrgUnitInCaptureScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( CHILDREN ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find events when ou mode children and org units in capture scope" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find children org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenNoProgramSpecifiedOuModeChildrenAndOrgUnitInSearchScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder()
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( CHILDREN ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(),
-            "Expected to find events when no program specified, ou mode children and org units in search scope" );
-        assertContainsAllOrgUnits( events.stream().map( e -> e.getOrganisationUnit().getUid() ).toList(),
-            List.of( "h4w96yEMlzO", "uoNW0E3xXUy" ) );
-    }
-
-    @Test
-    void shouldFailWhenProgramIsOpenAndOrgUnitNotInSearchScope()
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( program.getUid() )
-            .orgUnitUid( "DiszpKrYNg8" ).orgUnitSelectionMode( DESCENDANTS ).build();
-
-        ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> eventService.getEvents( params ) );
-        assertEquals( "User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage() );
-    }
-
-    @Test
-    void shouldFailWhenProgramIsClosedAndOrgUnitNotInCaptureScope()
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "DiszpKrYNg8" ).orgUnitSelectionMode( DESCENDANTS ).build();
-
-        ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> eventService.getEvents( params ) );
-        assertEquals( "User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage() );
-    }
-
-    @Test
-    void shouldReturnEventsWhenProgramClosedOuModeSelectedAndOrgUnitInCaptureScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "uoNW0E3xXUy" ).orgUnitSelectionMode( SELECTED ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find events when ou mode selected and org units in capture scope" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find selected org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenNoProgramSpecifiedOuModeSelectedAndOrgUnitInSearchScope()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder()
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( SELECTED ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(),
-            "Expected to find events when no program specified, ou mode descendants and org units in search scope" );
-
-        events.forEach( e -> assertEquals( "h4w96yEMlzO", e.getOrganisationUnit().getUid(),
-            "Expected to find selected org unit h4w96yEMlzO, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnNoEventsWhenProgramOpenOuModeSelectedAndNoProgramEvents()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "shPjYNifvMK" )
-            .orgUnitUid( orgUnit.getUid() ).orgUnitSelectionMode( SELECTED ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertTrue( events.isEmpty(), "Expected to find no events, but found: " + events.size() );
-    }
-
-    @Test
-    void shouldReturnEventsWhenProgramClosedOuModeAccessible()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "uoNW0E3xXUy" ).orgUnitSelectionMode( ACCESSIBLE ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find events when ou mode accessible and program closed" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find accessible org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenProgramOpenOuModeAccessible()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( program.getUid() )
-            .orgUnitSelectionMode( ACCESSIBLE ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find events when ou mode accessible and program open" );
-        events.forEach( e -> assertEquals( "h4w96yEMlzO", e.getOrganisationUnit().getUid(),
-            "Expected to find accessible org unit h4w96yEMlzO, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnEventsWhenProgramOpenOuModeCapture()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "uoNW0E3xXUy" ).orgUnitSelectionMode( CAPTURE ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find events when ou mode capture and program closed" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find capture org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldReturnSelectedOrgUnitEventsWhenNoOuModeSpecifiedAndUserHasAccessToOrgUnit()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "uoNW0E3xXUy" ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find selected org unit events when ou mode not specified" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find accessible org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    @Test
-    void shouldFailWhenNoOuModeSpecifiedAndUserHasNoAccessToOrgUnit()
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" )
-            .orgUnitUid( "DiszpKrYNg8" ).build();
-
-        ForbiddenException exception = assertThrows( ForbiddenException.class,
-            () -> eventService.getEvents( params ) );
-        assertEquals( "User does not have access to orgUnit: DiszpKrYNg8", exception.getMessage() );
-    }
-
-    @Test
-    void shouldReturnAccessibleOrgUnitEventsWhenNoOrgUnitSpecifiedNorOuModeSpecified()
-        throws ForbiddenException,
-        BadRequestException
-    {
-        injectSecurityContext( userService.getUser( "FIgVWzUCkpw" ) );
-        EventOperationParams params = EventOperationParams.builder().programUid( "pcxIanBWlSY" ).build();
-
-        List<Event> events = eventService.getEvents( params ).getEvents();
-
-        assertFalse( events.isEmpty(), "Expected to find accessible org unit events when ou mode not specified" );
-        events.forEach( e -> assertEquals( "uoNW0E3xXUy", e.getOrganisationUnit().getUid(),
-            "Expected to find accessible org unit uoNW0E3xXUy, but found " + e.getOrganisationUnit().getUid()
-                + " instead" ) );
-    }
-
-    //TODO Add tests for ou mode ALL?
-
     private DataElement dataElement( String uid )
     {
         return dataElementService.getDataElement( uid );
@@ -1441,15 +1192,4 @@ class EventExporterTest extends TrackerTest
             .stream().map( Event::getUid ).collect( Collectors.toList() );
     }
 
-    private void assertContainsAllOrgUnits( List<String> actualOrgUnits, List<String> expectedOrgUnits )
-    {
-        List<String> missing = CollectionUtils.difference( expectedOrgUnits, actualOrgUnits );
-        List<String> extra = CollectionUtils.difference( actualOrgUnits, expectedOrgUnits );
-
-        assertAll( "assertContainsAllOrgUnits found mismatch",
-            () -> assertTrue( missing.isEmpty(),
-                () -> String.format( "Expected %s to be in %s", missing, actualOrgUnits ) ),
-            () -> assertTrue( extra.isEmpty(),
-                () -> String.format( "Expected %s NOT to be in %s", extra, actualOrgUnits ) ) );
-    }
 }

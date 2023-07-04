@@ -572,11 +572,14 @@ class EventOperationMapperTest
     void shouldFailWhenProgramProtectedAndOuModeDescendantsAndUserHasNoAccessToCaptureScopeOrgUnit()
     {
         Program program = new Program();
+        program.setUid( PROGRAM_UID );
         program.setAccessLevel( PROTECTED );
         OrganisationUnit captureScopeOrgUnit = createOrgUnit( "made up org unit", "made up uid" );
         User user = new User();
         user.setOrganisationUnits( Set.of( captureScopeOrgUnit ) );
 
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( organisationUnitService.getOrganisationUnit( orgUnit.getUid() ) ).thenReturn( orgUnit );
         when( organisationUnitService.getOrganisationUnitWithChildren( orgUnitId ) ).thenReturn( orgUnitDescendants );
@@ -622,6 +625,7 @@ class EventOperationMapperTest
         BadRequestException
     {
         Program program = new Program();
+        program.setUid( PROGRAM_UID );
         program.setAccessLevel( PROTECTED );
         OrganisationUnit captureScopeOrgUnit = createOrgUnit( "captureScopeChild", "captureScopeChildUid" );
         User user = new User();
@@ -633,6 +637,8 @@ class EventOperationMapperTest
             .orgUnitSelectionMode( CHILDREN )
             .build();
 
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( organisationUnitService.getOrganisationUnit( orgUnit.getUid() ) ).thenReturn( orgUnit );
 
@@ -670,11 +676,14 @@ class EventOperationMapperTest
     void shouldFailWhenProgramProtectedAndOuModeChildrenAndUserHasNoAccessToCaptureScopeOrgUnit()
     {
         Program program = new Program();
+        program.setUid( PROGRAM_UID );
         program.setAccessLevel( PROTECTED );
         OrganisationUnit captureScopeOrgUnit = createOrgUnit( "made up org unit", "made up uid" );
         User user = new User();
         user.setOrganisationUnits( Set.of( captureScopeOrgUnit ) );
 
+        when( aclService.canDataRead( user, program ) ).thenReturn( true );
+        when( programService.getProgram( PROGRAM_UID ) ).thenReturn( program );
         when( currentUserService.getCurrentUser() ).thenReturn( user );
         when( organisationUnitService.getOrganisationUnit( orgUnit.getUid() ) ).thenReturn( orgUnit );
 
