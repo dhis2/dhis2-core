@@ -72,6 +72,10 @@ class EventExportOrderParameterTest extends TrackerTest
 
     private Program program;
 
+    private final List<String> asc = List.of( "D9PbzJY8bJM", "pTzf9KYMk72" );
+
+    private final List<String> desc = List.of( "pTzf9KYMk72", "D9PbzJY8bJM" );
+
     @Override
     protected void initTest()
         throws IOException
@@ -102,9 +106,7 @@ class EventExportOrderParameterTest extends TrackerTest
     {
         OrderCriteria orderCriteria = OrderCriteria.of( "occurredAt", SortDirection.DESC );
 
-        List<String> events = getEvents( getParams( orderCriteria ) );
-
-        assertEquals( List.of( "pTzf9KYMk72", "D9PbzJY8bJM" ), events );
+        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
     }
 
     @Test
@@ -114,9 +116,27 @@ class EventExportOrderParameterTest extends TrackerTest
     {
         OrderCriteria orderCriteria = OrderCriteria.of( "occurredAt", SortDirection.ASC );
 
-        List<String> events = getEvents( getParams( orderCriteria ) );
+        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
+    }
 
-        assertEquals( List.of( "D9PbzJY8bJM", "pTzf9KYMk72" ), events );
+    @Test
+    void shouldExportEventWithOrderScheduledAtDESC()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        OrderCriteria orderCriteria = OrderCriteria.of( "scheduleAt", SortDirection.DESC );
+
+        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
+    }
+
+    @Test
+    void shouldExportEventWithOrderScheduledAtASC()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        OrderCriteria orderCriteria = OrderCriteria.of( "scheduleAt", SortDirection.ASC );
+
+        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
     }
 
     private EventOperationParams getParams( OrderCriteria orderCriteria )
