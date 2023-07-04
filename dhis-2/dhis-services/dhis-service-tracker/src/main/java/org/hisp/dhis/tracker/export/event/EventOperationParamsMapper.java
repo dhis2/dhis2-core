@@ -313,7 +313,7 @@ public class EventOperationParamsMapper
                 : user.getTeiSearchOrganisationUnitsWithFallback().stream().toList();
         case SELECTED ->
             trackerAccessManager.canAccess( user, program, orgUnit ) ? List.of( orgUnit ) : Collections.emptyList();
-        default -> Collections.emptyList(); //TODO Based on the docs https://docs.dhis2.org/en/develop/using-the-api/dhis-core-version-master/tracker.html?#webapi_nti_ou_scope, ALL can also be used by non-superusers
+        default -> Collections.emptyList();
         };
     }
 
