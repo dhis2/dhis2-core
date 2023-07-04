@@ -27,14 +27,18 @@
  */
 package org.hisp.dhis.user;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
-import org.hisp.dhis.cache.*;
-import org.hisp.dhis.security.acl.*;
-import org.springframework.stereotype.*;
-import org.springframework.transaction.annotation.*;
+import org.hisp.dhis.cache.Cache;
+import org.hisp.dhis.cache.CacheProvider;
+import org.hisp.dhis.cache.HibernateCacheManager;
+import org.hisp.dhis.security.acl.AclService;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Lars Helge Overland
@@ -206,6 +210,7 @@ public class DefaultUserGroupService
             if ( !updates.contains( userGroup ) && canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.removeUser( user );
+                userGroupStore.update( userGroup, currentUser );
             }
         }
 
@@ -214,7 +219,7 @@ public class DefaultUserGroupService
             if ( canAddOrRemoveMember( userGroup.getUid(), currentUser ) )
             {
                 userGroup.addUser( user );
-                userGroupStore.updateNoAcl( userGroup );
+                userGroupStore.update( userGroup, currentUser );
             }
         }
     }

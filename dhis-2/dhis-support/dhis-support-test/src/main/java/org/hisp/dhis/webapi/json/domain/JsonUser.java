@@ -44,6 +44,11 @@ public interface JsonUser extends JsonIdentifiableObject
         return getString( "surname" ).string();
     }
 
+    default String getUsername()
+    {
+        return getString( "username" ).string();
+    }
+
     default String getFirstName()
     {
         return getString( "firstName" ).string();
