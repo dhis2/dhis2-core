@@ -376,7 +376,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "'id':'" + newGroupUid + "'" +
                 "}]" +
                 "}" )
-            .content( SUCCESSFUL );
+                    .content( SUCCESSFUL );
 
         //assert lastUpdated has been updated by new user & users not empty
         JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
@@ -429,7 +429,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "'id':'" + newGroupUid + "'" +
                 "}]" +
                 "}" )
-            .content( SUCCESSFUL ).as( JsonWebMessage.class );
+                    .content( SUCCESSFUL ).as( JsonWebMessage.class );
 
         //assert lastUpdated has been updated by new user
         JsonUserGroup userGroupUserAdded = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
@@ -451,7 +451,7 @@ class UserControllerTest extends DhisControllerConvenienceTest
                 "}]," +
                 "'userGroups': []" +
                 "}" )
-            .content( SUCCESSFUL );
+                    .content( SUCCESSFUL );
 
         //assert lastUpdated has been updated by admin
         JsonUserGroup userGroupUserRemoved = GET( "/userGroups/" + newGroupUid ).content( HttpStatus.OK )
