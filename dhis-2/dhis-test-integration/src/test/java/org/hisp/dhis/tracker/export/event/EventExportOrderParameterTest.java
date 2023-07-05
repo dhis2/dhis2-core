@@ -139,6 +139,26 @@ class EventExportOrderParameterTest extends TrackerTest
         assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
     }
 
+    @Test
+    void shouldExportEventWithOrderEventIdDESC()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        OrderCriteria orderCriteria = OrderCriteria.of( "event", SortDirection.DESC );
+
+        assertEquals( desc, getEvents( getParams( orderCriteria ) ) );
+    }
+
+    @Test
+    void shouldExportEventWithOrderEventIdASC()
+        throws ForbiddenException,
+        BadRequestException
+    {
+        OrderCriteria orderCriteria = OrderCriteria.of( "event", SortDirection.ASC );
+
+        assertEquals( asc, getEvents( getParams( orderCriteria ) ) );
+    }
+
     private EventOperationParams getParams( OrderCriteria orderCriteria )
     {
         return EventOperationParams.builder().orgUnitUid( orgUnit.getUid() )
