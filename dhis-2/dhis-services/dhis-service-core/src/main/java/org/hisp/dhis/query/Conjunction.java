@@ -32,16 +32,13 @@ import org.hisp.dhis.schema.Schema;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public final class Conjunction extends Junction
-{
-    public Conjunction( Schema schema )
-    {
-        super( schema, Type.AND );
-    }
+public final class Conjunction extends Junction {
+  public Conjunction(Schema schema) {
+    super(schema, Type.AND);
+  }
 
-    @Override
-    public String toString()
-    {
-        return "AND[" + criterions + "]";
-    }
+  @Override
+  public String toString() {
+    return "AND[" + criterions + "]";
+  }
 }

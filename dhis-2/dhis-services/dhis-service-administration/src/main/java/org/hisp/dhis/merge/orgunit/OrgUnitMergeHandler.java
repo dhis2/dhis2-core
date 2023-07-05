@@ -33,7 +33,6 @@ package org.hisp.dhis.merge.orgunit;
  * @author Lars Helge Overland
  */
 @FunctionalInterface
-public interface OrgUnitMergeHandler
-{
-    void merge( OrgUnitMergeRequest request );
+public interface OrgUnitMergeHandler {
+  void merge(OrgUnitMergeRequest request);
 }

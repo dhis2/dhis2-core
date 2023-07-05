@@ -33,19 +33,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * @author Henning Håkonsen
  */
-public class JsonJobParametersType extends JsonBinaryType
-{
-    static final ObjectMapper MAPPER = new ObjectMapper();
+public class JsonJobParametersType extends JsonBinaryType {
+  static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static
-    {
-        MAPPER.enableDefaultTyping(); // TODO remove?
-        MAPPER.setSerializationInclusion( JsonInclude.Include.NON_NULL );
-    }
+  static {
+    MAPPER.enableDefaultTyping(); // TODO remove?
+    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+  }
 
-    @Override
-    protected ObjectMapper getResultingMapper()
-    {
-        return MAPPER;
-    }
+  @Override
+  protected ObjectMapper getResultingMapper() {
+    return MAPPER;
+  }
 }

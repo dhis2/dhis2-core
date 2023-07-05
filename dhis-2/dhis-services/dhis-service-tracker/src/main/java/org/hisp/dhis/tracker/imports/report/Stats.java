@@ -29,87 +29,69 @@ package org.hisp.dhis.tracker.imports.report;
 
 import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = TRACKER )
+@OpenApi.Shared(pattern = TRACKER)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Stats
-{
-    @JsonProperty
-    @Builder.Default
-    private int created = 0;
+public class Stats {
+  @JsonProperty @Builder.Default private int created = 0;
 
-    @JsonProperty
-    @Builder.Default
-    private int updated = 0;
+  @JsonProperty @Builder.Default private int updated = 0;
 
-    @JsonProperty
-    @Builder.Default
-    private int deleted = 0;
+  @JsonProperty @Builder.Default private int deleted = 0;
 
-    @JsonProperty
-    @Builder.Default
-    private int ignored = 0;
+  @JsonProperty @Builder.Default private int ignored = 0;
 
-    @JsonProperty
-    public int getTotal()
-    {
-        return created + updated + deleted + ignored;
-    }
+  @JsonProperty
+  public int getTotal() {
+    return created + updated + deleted + ignored;
+  }
 
-    // -----------------------------------------------------------------------------------
-    // Utility Methods
-    // -----------------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------
+  // Utility Methods
+  // -----------------------------------------------------------------------------------
 
-    public void merge( Stats stats )
-    {
-        created += stats.getCreated();
-        updated += stats.getUpdated();
-        deleted += stats.getDeleted();
-        ignored += stats.getIgnored();
-    }
+  public void merge(Stats stats) {
+    created += stats.getCreated();
+    updated += stats.getUpdated();
+    deleted += stats.getDeleted();
+    ignored += stats.getIgnored();
+  }
 
-    public void ignored()
-    {
-        ignored += created;
-        ignored += updated;
-        ignored += deleted;
+  public void ignored() {
+    ignored += created;
+    ignored += updated;
+    ignored += deleted;
 
-        created = 0;
-        updated = 0;
-        deleted = 0;
-    }
+    created = 0;
+    updated = 0;
+    deleted = 0;
+  }
 
-    public void incCreated()
-    {
-        created++;
-    }
+  public void incCreated() {
+    created++;
+  }
 
-    public void incUpdated()
-    {
-        updated++;
-    }
+  public void incUpdated() {
+    updated++;
+  }
 
-    public void incDeleted()
-    {
-        deleted++;
-    }
+  public void incDeleted() {
+    deleted++;
+  }
 
-    public void incIgnored()
-    {
-        ignored++;
-    }
+  public void incIgnored() {
+    ignored++;
+  }
 }

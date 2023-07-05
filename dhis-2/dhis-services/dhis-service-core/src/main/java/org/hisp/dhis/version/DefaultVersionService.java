@@ -29,9 +29,7 @@ package org.hisp.dhis.version;
 
 import java.util.List;
 import java.util.UUID;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,81 +37,68 @@ import org.springframework.transaction.annotation.Transactional;
  * @author mortenoh
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.version.VersionService" )
-public class DefaultVersionService
-    implements VersionService
-{
-    private final VersionStore versionStore;
+@Service("org.hisp.dhis.version.VersionService")
+public class DefaultVersionService implements VersionService {
+  private final VersionStore versionStore;
 
-    // -------------------------------------------------------------------------
-    // VersionService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // VersionService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public long addVersion( Version version )
-    {
-        versionStore.save( version );
-        return version.getId();
+  @Override
+  @Transactional
+  public long addVersion(Version version) {
+    versionStore.save(version);
+    return version.getId();
+  }
+
+  @Override
+  @Transactional
+  public void updateVersion(Version version) {
+    versionStore.update(version);
+  }
+
+  @Override
+  @Transactional
+  public void updateVersion(String key) {
+    updateVersion(key, UUID.randomUUID().toString());
+  }
+
+  @Override
+  @Transactional
+  public void updateVersion(String key, String value) {
+    Version version = getVersionByKey(key);
+
+    if (version == null) {
+      version = new Version(key, value);
+      addVersion(version);
+    } else {
+      version.setValue(value);
+      updateVersion(version);
     }
+  }
 
-    @Override
-    @Transactional
-    public void updateVersion( Version version )
-    {
-        versionStore.update( version );
-    }
+  @Override
+  @Transactional
+  public void deleteVersion(Version version) {
+    versionStore.delete(version);
+  }
 
-    @Override
-    @Transactional
-    public void updateVersion( String key )
-    {
-        updateVersion( key, UUID.randomUUID().toString() );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public Version getVersion(long id) {
+    return versionStore.get(id);
+  }
 
-    @Override
-    @Transactional
-    public void updateVersion( String key, String value )
-    {
-        Version version = getVersionByKey( key );
+  @Override
+  @Transactional(readOnly = true)
+  public Version getVersionByKey(String key) {
+    return versionStore.getVersionByKey(key);
+  }
 
-        if ( version == null )
-        {
-            version = new Version( key, value );
-            addVersion( version );
-        }
-        else
-        {
-            version.setValue( value );
-            updateVersion( version );
-        }
-    }
-
-    @Override
-    @Transactional
-    public void deleteVersion( Version version )
-    {
-        versionStore.delete( version );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Version getVersion( long id )
-    {
-        return versionStore.get( id );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public Version getVersionByKey( String key )
-    {
-        return versionStore.getVersionByKey( key );
-    }
-
-    @Override
-    @Transactional( readOnly = true )
-    public List<Version> getAllVersions()
-    {
-        return versionStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<Version> getAllVersions() {
+    return versionStore.getAll();
+  }
 }

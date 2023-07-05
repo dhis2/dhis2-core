@@ -43,7 +43,6 @@ import static org.hisp.dhis.program.AnalyticsType.EVENT;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-
 import org.hisp.dhis.program.AnalyticsType;
 
 /**
@@ -77,177 +76,152 @@ import org.hisp.dhis.program.AnalyticsType;
  */
 @Getter
 @EqualsAndHashCode
-public class OrgUnitField
-{
-    public static final OrgUnitField DEFAULT_ORG_UNIT_FIELD = new OrgUnitField( null );
+public class OrgUnitField {
+  public static final OrgUnitField DEFAULT_ORG_UNIT_FIELD = new OrgUnitField(null);
 
-    private final String field;
+  private final String field;
 
-    private final OrgUnitFieldType type;
+  private final OrgUnitFieldType type;
 
-    public OrgUnitField( String field )
-    {
-        this.field = field;
+  public OrgUnitField(String field) {
+    this.field = field;
 
-        if ( isEmpty( field ) )
-        {
-            this.type = OrgUnitFieldType.DEFAULT;
-        }
-        else
-        {
-            this.type = getIfPresent( OrgUnitFieldType.class, field )
-                .or( OrgUnitFieldType.ATTRIBUTE );
-        }
+    if (isEmpty(field)) {
+      this.type = OrgUnitFieldType.DEFAULT;
+    } else {
+      this.type = getIfPresent(OrgUnitFieldType.class, field).or(OrgUnitFieldType.ATTRIBUTE);
+    }
+  }
+
+  /**
+   * Returns true if we need to join the _orgunitstructure table (and, if group set columns, the
+   * _organisationunitgroupsetstructure table).
+   *
+   * @param analyticsType EVENT or ENROLLMENT
+   * @return true if orgUnit resource table joins are needed
+   */
+  public boolean isJoinOrgUnitTables(AnalyticsType analyticsType) {
+    return type == ATTRIBUTE
+        || type == REGISTRATION
+        || analyticsType == EVENT && (type == OrgUnitFieldType.ENROLLMENT || type.isOwnership());
+  }
+
+  /**
+   * Gets table and column for selecting an orgUnit structure column.
+   *
+   * @param col the column name
+   * @param analyticsType EVENT or ENROLLMENT
+   * @param noColumnAlias true if column alias should not be added
+   * @return the table alias and column name
+   */
+  public String getOrgUnitStructCol(
+      String col, AnalyticsType analyticsType, boolean noColumnAlias) {
+    return getTableAndColumn(getOrgUnitStructAlias(analyticsType), col, noColumnAlias);
+  }
+
+  /**
+   * Gets table and column for selecting an orgUnit group set column (with column alias) or in the
+   * group by clause (without column alias).
+   *
+   * @param col the column name
+   * @param analyticsType EVENT or ENROLLMENT
+   * @param noColumnAlias true if column alias should not be added
+   * @return the table alias and column name
+   */
+  public String getOrgUnitGroupSetCol(
+      String col, AnalyticsType analyticsType, boolean noColumnAlias) {
+    return getTableAndColumn(getOrgUnitGroupSetAlias(analyticsType), col, noColumnAlias);
+  }
+
+  /**
+   * Gets table and column for orgUnit level.
+   *
+   * @param level the organisation unit level
+   * @param analyticsType EVENT or ENROLLMENT
+   * @return the table alias and column name (without column alias)
+   */
+  public String getOrgUnitLevelCol(int level, AnalyticsType analyticsType) {
+    return getOrgUnitStructCol(LEVEL_PREFIX + level, analyticsType, true);
+  }
+
+  /**
+   * Gets table and column to join the _orgunitstructure table and, if there are group set columns,
+   * the _organisationunitgroupsetstructure table.
+   *
+   * @param analyticsType EVENT or ENROLLMENT
+   * @return the table alias and column name
+   */
+  public String getOrgUnitJoinCol(AnalyticsType analyticsType) {
+    return quote(ANALYTICS_TBL_ALIAS, getOuUidColumn(analyticsType));
+  }
+
+  /**
+   * Gets table and column for orgUnit UID in forming the WHERE clause.
+   *
+   * @param analyticsType EVENT or ENROLLMENT
+   * @return the table alias and column name (without column alias)
+   */
+  public String getOrgUnitWhereCol(AnalyticsType analyticsType) {
+    return getTableAndColumn(ANALYTICS_TBL_ALIAS, getOuUidColumn(analyticsType), true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  /** Gets the table alias for the organisation unit structure columns. */
+  private String getOrgUnitStructAlias(AnalyticsType analyticsType) {
+    return (isJoinOrgUnitTables(analyticsType)) ? ORG_UNIT_STRUCT_ALIAS : ANALYTICS_TBL_ALIAS;
+  }
+
+  /** Gets the table alias for the organisation unit group set columns. */
+  private String getOrgUnitGroupSetAlias(AnalyticsType analyticsType) {
+    return (isJoinOrgUnitTables(analyticsType))
+        ? ORG_UNIT_GROUPSET_STRUCT_ALIAS
+        : ANALYTICS_TBL_ALIAS;
+  }
+
+  /**
+   * Gets the column holding the orgUnit UID (or the fallback enrollment UID in case of ownership).
+   */
+  private String getOuUidColumn(AnalyticsType analyticsType) {
+    return (analyticsType == EVENT)
+        ? firstNonNull(type.getEventColumn(), field)
+        : firstNonNull(type.getEnrollmentColumn(), field);
+  }
+
+  /**
+   * Gets an organisation unit info (structure or group set) table and column. In case of ownership,
+   * returns a coalescing between the ownership table and the fallback enrollment orgUnit column.
+   */
+  private String getTableAndColumn(String tableAlias, String col, boolean noColumnAlias) {
+    if (type.isOwnership()) {
+      return "coalesce("
+          + quote(OWNERSHIP_TBL_ALIAS, col)
+          + ","
+          + ouQuote(tableAlias, col, true)
+          + ")"
+          + ((noColumnAlias) ? "" : " as " + col);
     }
 
-    /**
-     * Returns true if we need to join the _orgunitstructure table (and, if
-     * group set columns, the _organisationunitgroupsetstructure table).
-     *
-     * @param analyticsType EVENT or ENROLLMENT
-     * @return true if orgUnit resource table joins are needed
-     */
-    public boolean isJoinOrgUnitTables( AnalyticsType analyticsType )
-    {
-        return type == ATTRIBUTE || type == REGISTRATION ||
-            analyticsType == EVENT && (type == OrgUnitFieldType.ENROLLMENT || type.isOwnership());
+    return ouQuote(tableAlias, col, noColumnAlias);
+  }
+
+  /**
+   * Quotes the table alias and column. However, if the table alias is for the _orgunitstructure
+   * table and the column is "ou", change the column to "organisationunituid" because that is how it
+   * is called in that table. Add "ou" as a column alias if requested.
+   */
+  private String ouQuote(String tableAlias, String col, boolean noColumnAlias) {
+    if (ORG_UNIT_STRUCT_ALIAS.equals(tableAlias) && DEFAULT_ORG_UNIT_COL.equals(col)) {
+      return quote(tableAlias, "organisationunituid") + ((noColumnAlias) ? "" : " as " + col);
     }
 
-    /**
-     * Gets table and column for selecting an orgUnit structure column.
-     *
-     * @param col the column name
-     * @param analyticsType EVENT or ENROLLMENT
-     * @param noColumnAlias true if column alias should not be added
-     * @return the table alias and column name
-     */
-    public String getOrgUnitStructCol( String col, AnalyticsType analyticsType, boolean noColumnAlias )
-    {
-        return getTableAndColumn( getOrgUnitStructAlias( analyticsType ), col, noColumnAlias );
-    }
+    return quote(tableAlias, col);
+  }
 
-    /**
-     * Gets table and column for selecting an orgUnit group set column (with
-     * column alias) or in the group by clause (without column alias).
-     *
-     * @param col the column name
-     * @param analyticsType EVENT or ENROLLMENT
-     * @param noColumnAlias true if column alias should not be added
-     * @return the table alias and column name
-     */
-    public String getOrgUnitGroupSetCol( String col, AnalyticsType analyticsType, boolean noColumnAlias )
-    {
-        return getTableAndColumn( getOrgUnitGroupSetAlias( analyticsType ), col, noColumnAlias );
-    }
-
-    /**
-     * Gets table and column for orgUnit level.
-     *
-     * @param level the organisation unit level
-     * @param analyticsType EVENT or ENROLLMENT
-     * @return the table alias and column name (without column alias)
-     */
-    public String getOrgUnitLevelCol( int level, AnalyticsType analyticsType )
-    {
-        return getOrgUnitStructCol( LEVEL_PREFIX + level, analyticsType, true );
-    }
-
-    /**
-     * Gets table and column to join the _orgunitstructure table and, if there
-     * are group set columns, the _organisationunitgroupsetstructure table.
-     *
-     * @param analyticsType EVENT or ENROLLMENT
-     * @return the table alias and column name
-     */
-    public String getOrgUnitJoinCol( AnalyticsType analyticsType )
-    {
-        return quote( ANALYTICS_TBL_ALIAS, getOuUidColumn( analyticsType ) );
-    }
-
-    /**
-     * Gets table and column for orgUnit UID in forming the WHERE clause.
-     *
-     * @param analyticsType EVENT or ENROLLMENT
-     * @return the table alias and column name (without column alias)
-     */
-    public String getOrgUnitWhereCol( AnalyticsType analyticsType )
-    {
-        return getTableAndColumn( ANALYTICS_TBL_ALIAS, getOuUidColumn( analyticsType ), true );
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
-
-    /**
-     * Gets the table alias for the organisation unit structure columns.
-     */
-    private String getOrgUnitStructAlias( AnalyticsType analyticsType )
-    {
-        return (isJoinOrgUnitTables( analyticsType ))
-            ? ORG_UNIT_STRUCT_ALIAS
-            : ANALYTICS_TBL_ALIAS;
-    }
-
-    /**
-     * Gets the table alias for the organisation unit group set columns.
-     */
-    private String getOrgUnitGroupSetAlias( AnalyticsType analyticsType )
-    {
-        return (isJoinOrgUnitTables( analyticsType ))
-            ? ORG_UNIT_GROUPSET_STRUCT_ALIAS
-            : ANALYTICS_TBL_ALIAS;
-    }
-
-    /**
-     * Gets the column holding the orgUnit UID (or the fallback enrollment UID
-     * in case of ownership).
-     */
-    private String getOuUidColumn( AnalyticsType analyticsType )
-    {
-        return (analyticsType == EVENT)
-            ? firstNonNull( type.getEventColumn(), field )
-            : firstNonNull( type.getEnrollmentColumn(), field );
-    }
-
-    /**
-     * Gets an organisation unit info (structure or group set) table and column.
-     * In case of ownership, returns a coalescing between the ownership table
-     * and the fallback enrollment orgUnit column.
-     */
-    private String getTableAndColumn( String tableAlias, String col, boolean noColumnAlias )
-    {
-        if ( type.isOwnership() )
-        {
-            return "coalesce("
-                + quote( OWNERSHIP_TBL_ALIAS, col ) + ","
-                + ouQuote( tableAlias, col, true ) + ")"
-                + ((noColumnAlias) ? "" : " as " + col);
-        }
-
-        return ouQuote( tableAlias, col, noColumnAlias );
-    }
-
-    /**
-     * Quotes the table alias and column. However, if the table alias is for the
-     * _orgunitstructure table and the column is "ou", change the column to
-     * "organisationunituid" because that is how it is called in that table. Add
-     * "ou" as a column alias if requested.
-     */
-    private String ouQuote( String tableAlias, String col, boolean noColumnAlias )
-    {
-        if ( ORG_UNIT_STRUCT_ALIAS.equals( tableAlias ) && DEFAULT_ORG_UNIT_COL.equals( col ) )
-        {
-            return quote( tableAlias, "organisationunituid" )
-                + ((noColumnAlias) ? "" : " as " + col);
-        }
-
-        return quote( tableAlias, col );
-    }
-
-    @Override
-    public String toString()
-    {
-        return "[" + field + "-" + type + "]";
-    }
+  @Override
+  public String toString() {
+    return "[" + field + "-" + type + "]";
+  }
 }

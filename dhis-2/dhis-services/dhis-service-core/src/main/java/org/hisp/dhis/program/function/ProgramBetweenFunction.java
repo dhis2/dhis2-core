@@ -40,33 +40,29 @@ import org.hisp.dhis.program.ProgramExpressionItem;
  *
  * @author Jim Grace
  */
-public abstract class ProgramBetweenFunction
-    extends ProgramExpressionItem
-{
-    @Override
-    public Object getDescription( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        castDate( visitor.visit( ctx.expr( 0 ) ) );
-        castDate( visitor.visit( ctx.expr( 1 ) ) );
+public abstract class ProgramBetweenFunction extends ProgramExpressionItem {
+  @Override
+  public Object getDescription(ExprContext ctx, CommonExpressionVisitor visitor) {
+    castDate(visitor.visit(ctx.expr(0)));
+    castDate(visitor.visit(ctx.expr(1)));
 
-        return DEFAULT_DOUBLE_VALUE; // Always a number of months, days, etc.
-    }
+    return DEFAULT_DOUBLE_VALUE; // Always a number of months, days, etc.
+  }
 
-    @Override
-    public final Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String startDate = castString( visitor.visitAllowingNulls( ctx.expr( 0 ) ) );
-        String endDate = castString( visitor.visitAllowingNulls( ctx.expr( 1 ) ) );
+  @Override
+  public final Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String startDate = castString(visitor.visitAllowingNulls(ctx.expr(0)));
+    String endDate = castString(visitor.visitAllowingNulls(ctx.expr(1)));
 
-        return getSqlBetweenDates( startDate, endDate );
-    }
+    return getSqlBetweenDates(startDate, endDate);
+  }
 
-    /**
-     * Generate SQL to compare dates, based on the time/date unit to compare.
-     *
-     * @param startDate starting date
-     * @param endDate ending date
-     * @return the SQL to compare the dates based on the time/date unit
-     */
-    public abstract Object getSqlBetweenDates( String startDate, String endDate );
+  /**
+   * Generate SQL to compare dates, based on the time/date unit to compare.
+   *
+   * @param startDate starting date
+   * @param endDate ending date
+   * @return the SQL to compare the dates based on the time/date unit
+   */
+  public abstract Object getSqlBetweenDates(String startDate, String endDate);
 }

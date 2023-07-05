@@ -30,51 +30,39 @@ package org.hisp.dhis.tracker.imports;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerImportStrategy
-{
-    /**
-     * Create/import objects that don't match any existing objects.
-     */
-    CREATE,
+public enum TrackerImportStrategy {
+  /** Create/import objects that don't match any existing objects. */
+  CREATE,
 
-    /**
-     * Update/import objects that match existing objects.
-     */
-    UPDATE,
+  /** Update/import objects that match existing objects. */
+  UPDATE,
 
-    /**
-     * Create/import objects that don't match any existing identifiers,
-     * update/import objects that matches existing identifiers.
-     */
-    CREATE_AND_UPDATE,
+  /**
+   * Create/import objects that don't match any existing identifiers, update/import objects that
+   * matches existing identifiers.
+   */
+  CREATE_AND_UPDATE,
 
-    /**
-     * Delete/import objects that matches identifiers.
-     */
-    DELETE;
+  /** Delete/import objects that matches identifiers. */
+  DELETE;
 
-    public boolean isCreateAndUpdate()
-    {
-        return CREATE_AND_UPDATE == this;
-    }
+  public boolean isCreateAndUpdate() {
+    return CREATE_AND_UPDATE == this;
+  }
 
-    public boolean isCreate()
-    {
-        return CREATE == this;
-    }
+  public boolean isCreate() {
+    return CREATE == this;
+  }
 
-    public boolean isUpdate()
-    {
-        return UPDATE == this;
-    }
+  public boolean isUpdate() {
+    return UPDATE == this;
+  }
 
-    public boolean isDelete()
-    {
-        return DELETE == this;
-    }
+  public boolean isDelete() {
+    return DELETE == this;
+  }
 
-    public boolean isUpdateOrDelete()
-    {
-        return UPDATE == this || DELETE == this;
-    }
+  public boolean isUpdateOrDelete() {
+    return UPDATE == this || DELETE == this;
+  }
 }

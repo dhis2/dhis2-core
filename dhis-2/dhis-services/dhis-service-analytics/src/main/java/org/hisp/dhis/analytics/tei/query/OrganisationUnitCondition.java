@@ -41,11 +41,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.params.CommonParams;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionParam;
@@ -62,113 +59,95 @@ import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
- * Provides methods responsible for generating SQL statements on top of
- * organization units, for events, enrollments and teis.
+ * Provides methods responsible for generating SQL statements on top of organization units, for
+ * events, enrollments and teis.
  */
-@RequiredArgsConstructor( staticName = "of" )
-public class OrganisationUnitCondition extends BaseRenderable
-{
-    private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES = List.of(
-        DESCENDANTS,
-        CHILDREN,
-        SELECTED );
+@RequiredArgsConstructor(staticName = "of")
+public class OrganisationUnitCondition extends BaseRenderable {
+  private static final Collection<OrganisationUnitSelectionMode> ACCEPTED_OU_MODES =
+      List.of(DESCENDANTS, CHILDREN, SELECTED);
 
-    public static final String OULEVEL = "uidlevel";
+  public static final String OULEVEL = "uidlevel";
 
-    private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
+  private final DimensionIdentifier<DimensionParam> dimensionIdentifier;
 
-    private final QueryContext queryContext;
+  private final QueryContext queryContext;
 
-    /**
-     * Renders the org. unit SQL conditions for a given enrollment. The SQL
-     * output will look like:
-     *
-     * "ou" = :1
-     *
-     * @return the SQL statement
-     */
-    @Nonnull
-    @Override
-    public String render()
-    {
-        return getCondition().render();
+  /**
+   * Renders the org. unit SQL conditions for a given enrollment. The SQL output will look like:
+   *
+   * <p>"ou" = :1
+   *
+   * @return the SQL statement
+   */
+  @Nonnull
+  @Override
+  public String render() {
+    return getCondition().render();
+  }
+
+  public Renderable getCondition() {
+    OrganisationUnitSelectionMode ouMode = getOuMode();
+
+    List<OrganisationUnit> organisationUnits = getOrganisationUnits();
+
+    if (ouMode == SELECTED) {
+      List<String> items =
+          organisationUnits.stream().map(IdentifiableObject::getUid).collect(Collectors.toList());
+
+      return isEmpty(items)
+          ? FALSE_CONDITION
+          : BinaryConditionRenderer.of(
+              Field.ofDimensionIdentifier(dimensionIdentifier), IN, items, STRING, queryContext);
+    } else if (ouMode == CHILDREN) {
+
+      List<String> items =
+          organisationUnits.stream()
+              .map(OrganisationUnit::getChildren)
+              .flatMap(Collection::stream)
+              .map(IdentifiableObject::getUid)
+              .collect(Collectors.toList());
+
+      return isEmpty(items)
+          ? FALSE_CONDITION
+          : BinaryConditionRenderer.of(
+              Field.ofDimensionIdentifier(dimensionIdentifier), IN, items, STRING, queryContext);
     }
 
-    public Renderable getCondition()
-    {
-        OrganisationUnitSelectionMode ouMode = getOuMode();
+    // ouMode = Descendants
+    List<Renderable> orgUnitConditions = new ArrayList<>();
 
-        List<OrganisationUnit> organisationUnits = getOrganisationUnits();
-
-        if ( ouMode == SELECTED )
-        {
-            List<String> items = organisationUnits.stream()
-                .map( IdentifiableObject::getUid )
-                .collect( Collectors.toList() );
-
-            return isEmpty( items ) ? FALSE_CONDITION
-                : BinaryConditionRenderer.of(
-                    Field.ofDimensionIdentifier( dimensionIdentifier ),
-                    IN,
-                    items,
-                    STRING,
-                    queryContext );
-        }
-        else if ( ouMode == CHILDREN )
-        {
-
-            List<String> items = organisationUnits.stream()
-                .map( OrganisationUnit::getChildren )
-                .flatMap( Collection::stream )
-                .map( IdentifiableObject::getUid )
-                .collect( Collectors.toList() );
-
-            return isEmpty( items ) ? FALSE_CONDITION
-                : BinaryConditionRenderer.of(
-                    Field.ofDimensionIdentifier( dimensionIdentifier ),
-                    IN,
-                    items,
-                    STRING,
-                    queryContext );
-        }
-
-        // ouMode = Descendants
-        List<Renderable> orgUnitConditions = new ArrayList<>();
-
-        for ( OrganisationUnit organisationUnit : organisationUnits )
-        {
-            orgUnitConditions.add( BinaryConditionRenderer.of(
-                Field.ofRenamedDimensionIdentifier(
-                    dimensionIdentifier,
-                    OULEVEL + organisationUnit.getLevel() ),
-                IN,
-                List.of( organisationUnit.getUid() ),
-                STRING,
-                queryContext ) );
-        }
-
-        return isEmpty( orgUnitConditions ) ? FALSE_CONDITION : OrCondition.of( orgUnitConditions );
+    for (OrganisationUnit organisationUnit : organisationUnits) {
+      orgUnitConditions.add(
+          BinaryConditionRenderer.of(
+              Field.ofRenamedDimensionIdentifier(
+                  dimensionIdentifier, OULEVEL + organisationUnit.getLevel()),
+              IN,
+              List.of(organisationUnit.getUid()),
+              STRING,
+              queryContext));
     }
 
-    private OrganisationUnitSelectionMode getOuMode()
-    {
-        return Optional.of( queryContext )
-            .map( QueryContext::getTeiQueryParams )
-            .map( TeiQueryParams::getCommonParams )
-            .map( CommonParams::getOuMode )
-            .filter( ACCEPTED_OU_MODES::contains )
-            .orElse( DEFAULT_ORG_UNIT_SELECTION_MODE );
-    }
+    return isEmpty(orgUnitConditions) ? FALSE_CONDITION : OrCondition.of(orgUnitConditions);
+  }
 
-    private List<OrganisationUnit> getOrganisationUnits()
-    {
-        return Optional.of( dimensionIdentifier )
-            .map( DimensionIdentifier::getDimension )
-            .map( DimensionParam::getDimensionalObject )
-            .map( DimensionalObject::getItems )
-            .orElse( List.of() )
-            .stream()
-            .map( OrganisationUnit.class::cast )
-            .collect( Collectors.toList() );
-    }
+  private OrganisationUnitSelectionMode getOuMode() {
+    return Optional.of(queryContext)
+        .map(QueryContext::getTeiQueryParams)
+        .map(TeiQueryParams::getCommonParams)
+        .map(CommonParams::getOuMode)
+        .filter(ACCEPTED_OU_MODES::contains)
+        .orElse(DEFAULT_ORG_UNIT_SELECTION_MODE);
+  }
+
+  private List<OrganisationUnit> getOrganisationUnits() {
+    return Optional.of(dimensionIdentifier)
+        .map(DimensionIdentifier::getDimension)
+        .map(DimensionParam::getDimensionalObject)
+        .map(DimensionalObject::getItems)
+        .orElse(List.of())
+        .stream()
+        .map(OrganisationUnit.class::cast)
+        .collect(Collectors.toList());
+  }
 }

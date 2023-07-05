@@ -30,41 +30,35 @@ package org.hisp.dhis.trackedentity;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.Grid;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.user.User;
 
 /**
- * <p>
- * This interface is responsible for retrieving tracked entities (TEI). The
- * query methods accepts a TrackedEntityQueryParams object which encapsulates
- * all arguments.
- * </p>
- * <p/>
- * <p>
- * The TEIs are returned as a Grid object, which is a two-dimensional list with
- * headers. The TEI attribute values are returned in the same order as specified
- * in the arguments. The grid has a set of columns which are always present
- * starting at index 0, followed by attributes specified for the query. All
- * values in the grid are of type String. The order is:
- * </p>
- * <p/>
- * <ul>
- * <li>0: Tracked entity UID</li>
- * <li>1: Created time stamp</li>
- * <li>2: Last updated time stamp</li>
- * <li>3: Organisation unit UID</li>
- * <li>4: Tracked entity UID</li>
- * <ul>
- * <p/>
- * <p>
- * Attributes specified in the query follows on the next column indexes. Example
- * usage for retrieving TEIs with two attributes using one attribute as filter:
- * </p>
+ * This interface is responsible for retrieving tracked entities (TEI). The query methods accepts a
+ * TrackedEntityQueryParams object which encapsulates all arguments.
  *
- * <pre>
+ * <p>
+ *
+ * <p>The TEIs are returned as a Grid object, which is a two-dimensional list with headers. The TEI
+ * attribute values are returned in the same order as specified in the arguments. The grid has a set
+ * of columns which are always present starting at index 0, followed by attributes specified for the
+ * query. All values in the grid are of type String. The order is:
+ *
+ * <p>
+ *
+ * <ul>
+ *   <li>0: Tracked entity UID
+ *   <li>1: Created time stamp
+ *   <li>2: Last updated time stamp
+ *   <li>3: Organisation unit UID
+ *   <li>4: Tracked entity UID
+ *       <ul>
+ *         <p>
+ *         <p>Attributes specified in the query follows on the next column indexes. Example usage
+ *         for retrieving TEIs with two attributes using one attribute as filter:
+ *         <pre>
  * <code>
  * TrackedEntityQueryParams params = new TrackedEntityQueryParams();
  *
@@ -88,196 +82,187 @@ import org.hisp.dhis.user.User;
  * @author Abyot Asalefew Gizaw
  * @author Lars Helge Overland
  */
-public interface TrackedEntityService
-{
-    String ID = TrackedEntityService.class.getName();
+public interface TrackedEntityService {
+  String ID = TrackedEntityService.class.getName();
 
-    int ERROR_NONE = 0;
+  int ERROR_NONE = 0;
 
-    int ERROR_DUPLICATE_IDENTIFIER = 1;
+  int ERROR_DUPLICATE_IDENTIFIER = 1;
 
-    int ERROR_ENROLLMENT = 2;
+  int ERROR_ENROLLMENT = 2;
 
-    String SEPARATOR = "_";
+  String SEPARATOR = "_";
 
-    /**
-     * Returns a grid with tracked entity values based on the given
-     * TrackedEntityQueryParams.
-     *
-     * @param params the TrackedEntityQueryParams.
-     * @return a grid.
-     */
-    Grid getTrackedEntitiesGrid( TrackedEntityQueryParams params );
+  /**
+   * Returns a grid with tracked entity values based on the given TrackedEntityQueryParams.
+   *
+   * @param params the TrackedEntityQueryParams.
+   * @return a grid.
+   */
+  Grid getTrackedEntitiesGrid(TrackedEntityQueryParams params);
 
-    /**
-     * Returns a list with tracked entity values based on the given
-     * TrackedEntityQueryParams.
-     *
-     * @param params the TrackedEntityQueryParams.
-     * @param skipAccessValidation If true, access validation is skipped. Should
-     *        be set to true only for internal tasks (e.g. currently used by
-     *        synchronization job)
-     * @param skipSearchScopeValidation if true, search scope validation is
-     *        skipped.
-     * @return List of TEIs matching the params
-     */
-    List<TrackedEntity> getTrackedEntities( TrackedEntityQueryParams params,
-        boolean skipAccessValidation, boolean skipSearchScopeValidation );
+  /**
+   * Returns a list with tracked entity values based on the given TrackedEntityQueryParams.
+   *
+   * @param params the TrackedEntityQueryParams.
+   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
+   *     for internal tasks (e.g. currently used by synchronization job)
+   * @param skipSearchScopeValidation if true, search scope validation is skipped.
+   * @return List of TEIs matching the params
+   */
+  List<TrackedEntity> getTrackedEntities(
+      TrackedEntityQueryParams params,
+      boolean skipAccessValidation,
+      boolean skipSearchScopeValidation);
 
-    /**
-     * Returns a list tracked entity primary key ids based on the given
-     * TrackedEntityQueryParams.
-     *
-     * @param params the TrackedEntityQueryParams.
-     * @param skipAccessValidation If true, access validation is skipped. Should
-     *        be set to true only for internal tasks (e.g. currently used by
-     *        synchronization job)
-     * @param skipSearchScopeValidation if true, search scope validation is
-     *        skipped.
-     * @return List of TEI IDs matching the params
-     */
-    List<Long> getTrackedEntityIds( TrackedEntityQueryParams params, boolean skipAccessValidation,
-        boolean skipSearchScopeValidation );
+  /**
+   * Returns a list tracked entity primary key ids based on the given TrackedEntityQueryParams.
+   *
+   * @param params the TrackedEntityQueryParams.
+   * @param skipAccessValidation If true, access validation is skipped. Should be set to true only
+   *     for internal tasks (e.g. currently used by synchronization job)
+   * @param skipSearchScopeValidation if true, search scope validation is skipped.
+   * @return List of TEI IDs matching the params
+   */
+  List<Long> getTrackedEntityIds(
+      TrackedEntityQueryParams params,
+      boolean skipAccessValidation,
+      boolean skipSearchScopeValidation);
 
-    /**
-     * Return the count of the Tracked entity that meet the criteria specified
-     * in params
-     *
-     * @param params Parameteres that specify searching criteria
-     * @param skipAccessValidation If true, the access validation is skipped
-     * @param skipSearchScopeValidation If true, the search scope validation is
-     *        skipped
-     * @return the count of the tracked entities that meet the criteria
-     *         specified in params
-     */
-    int getTrackedEntityCount( TrackedEntityQueryParams params, boolean skipAccessValidation,
-        boolean skipSearchScopeValidation );
+  /**
+   * Return the count of the Tracked entity that meet the criteria specified in params
+   *
+   * @param params Parameteres that specify searching criteria
+   * @param skipAccessValidation If true, the access validation is skipped
+   * @param skipSearchScopeValidation If true, the search scope validation is skipped
+   * @return the count of the tracked entities that meet the criteria specified in params
+   */
+  int getTrackedEntityCount(
+      TrackedEntityQueryParams params,
+      boolean skipAccessValidation,
+      boolean skipSearchScopeValidation);
 
-    /**
-     * Decides whether current user is authorized to perform the given query.
-     * IllegalQueryException is thrown if not.
-     *
-     * @param params the TrackedEntityQueryParams.
-     */
-    void decideAccess( TrackedEntityQueryParams params );
+  /**
+   * Decides whether current user is authorized to perform the given query. IllegalQueryException is
+   * thrown if not.
+   *
+   * @param params the TrackedEntityQueryParams.
+   */
+  void decideAccess(TrackedEntityQueryParams params);
 
-    /**
-     * Validates scope of given TrackedEntityQueryParams. The params is
-     * considered valid if no exception are thrown and the method returns
-     * normally.
-     *
-     * @param params the TrackedEntityQueryParams.
-     * @param isGridSearch specifies whether search is made for a Grid response
-     * @throws IllegalQueryException if the given params is invalid.
-     */
-    void validateSearchScope( TrackedEntityQueryParams params, boolean isGridSearch )
-        throws IllegalQueryException;
+  /**
+   * Validates scope of given TrackedEntityQueryParams. The params is considered valid if no
+   * exception are thrown and the method returns normally.
+   *
+   * @param params the TrackedEntityQueryParams.
+   * @param isGridSearch specifies whether search is made for a Grid response
+   * @throws IllegalQueryException if the given params is invalid.
+   */
+  void validateSearchScope(TrackedEntityQueryParams params, boolean isGridSearch)
+      throws IllegalQueryException;
 
-    /**
-     * Validates the given TrackedEntityQueryParams. The params is considered
-     * valid if no exception are thrown and the method returns normally.
-     *
-     * @param params the TrackedEntityQueryParams.
-     * @throws IllegalQueryException if the given params is invalid.
-     */
-    void validate( TrackedEntityQueryParams params )
-        throws IllegalQueryException;
+  /**
+   * Validates the given TrackedEntityQueryParams. The params is considered valid if no exception
+   * are thrown and the method returns normally.
+   *
+   * @param params the TrackedEntityQueryParams.
+   * @throws IllegalQueryException if the given params is invalid.
+   */
+  void validate(TrackedEntityQueryParams params) throws IllegalQueryException;
 
-    /**
-     * Adds an {@link TrackedEntity}
-     *
-     * @param trackedEntity The to TrackedEntity add.
-     * @return A generated unique id of the added {@link TrackedEntity}.
-     */
-    long addTrackedEntity( TrackedEntity trackedEntity );
+  /**
+   * Adds an {@link TrackedEntity}
+   *
+   * @param trackedEntity The to TrackedEntity add.
+   * @return A generated unique id of the added {@link TrackedEntity}.
+   */
+  long addTrackedEntity(TrackedEntity trackedEntity);
 
-    /**
-     * Soft deletes a {@link TrackedEntity}.
-     *
-     * @param trackedEntity the TrackedEntity to delete.
-     */
-    void deleteTrackedEntity( TrackedEntity trackedEntity );
+  /**
+   * Soft deletes a {@link TrackedEntity}.
+   *
+   * @param trackedEntity the TrackedEntity to delete.
+   */
+  void deleteTrackedEntity(TrackedEntity trackedEntity);
 
-    /**
-     * Updates a {@link TrackedEntity}.
-     *
-     * @param trackedEntity the TrackedEntity to update.
-     */
-    void updateTrackedEntity( TrackedEntity trackedEntity );
+  /**
+   * Updates a {@link TrackedEntity}.
+   *
+   * @param trackedEntity the TrackedEntity to update.
+   */
+  void updateTrackedEntity(TrackedEntity trackedEntity);
 
-    void updateTrackedEntity( TrackedEntity trackedEntity, User user );
+  void updateTrackedEntity(TrackedEntity trackedEntity, User user);
 
-    /**
-     * Updates a last sync timestamp on specified TrackedEntity
-     *
-     * @param trackedEntityUIDs UIDs of tracked entities where the
-     *        lastSynchronized flag should be updated
-     * @param lastSynchronized The date of last successful sync
-     */
-    void updateTrackedEntitySyncTimestamp( List<String> trackedEntityUIDs, Date lastSynchronized );
+  /**
+   * Updates a last sync timestamp on specified TrackedEntity
+   *
+   * @param trackedEntityUIDs UIDs of tracked entities where the lastSynchronized flag should be
+   *     updated
+   * @param lastSynchronized The date of last successful sync
+   */
+  void updateTrackedEntitySyncTimestamp(List<String> trackedEntityUIDs, Date lastSynchronized);
 
-    void updateTrackedEntityLastUpdated( Set<String> trackedEntityUIDs, Date lastUpdated );
+  void updateTrackedEntityLastUpdated(Set<String> trackedEntityUIDs, Date lastUpdated);
 
-    /**
-     * Returns a {@link TrackedEntity}.
-     *
-     * @param id the id of the TrackedEntity to return.
-     * @return the TrackedEntity with the given id
-     */
-    TrackedEntity getTrackedEntity( long id );
+  /**
+   * Returns a {@link TrackedEntity}.
+   *
+   * @param id the id of the TrackedEntity to return.
+   * @return the TrackedEntity with the given id
+   */
+  TrackedEntity getTrackedEntity(long id);
 
-    /**
-     * Returns the {@link TrackedEntity} with the given UID.
-     *
-     * @param uid the UID.
-     * @return the TrackedEntity with the given UID, or null if no match.
-     */
-    TrackedEntity getTrackedEntity( String uid );
+  /**
+   * Returns the {@link TrackedEntity} with the given UID.
+   *
+   * @param uid the UID.
+   * @return the TrackedEntity with the given UID, or null if no match.
+   */
+  TrackedEntity getTrackedEntity(String uid);
 
-    /**
-     * Returns the {@link TrackedEntity} with the given UID.
-     *
-     * @param uid the UID.
-     * @param user User
-     * @return the TrackedEntity with the given UID, or null if no match.
-     */
-    TrackedEntity getTrackedEntity( String uid, User user );
+  /**
+   * Returns the {@link TrackedEntity} with the given UID.
+   *
+   * @param uid the UID.
+   * @param user User
+   * @return the TrackedEntity with the given UID, or null if no match.
+   */
+  TrackedEntity getTrackedEntity(String uid, User user);
 
-    /**
-     * Checks for the existence of a TEI by UID. Deleted values are not taken
-     * into account.
-     *
-     * @param uid PSI UID to check for
-     * @return true/false depending on result
-     */
-    boolean trackedEntityExists( String uid );
+  /**
+   * Checks for the existence of a TEI by UID. Deleted values are not taken into account.
+   *
+   * @param uid PSI UID to check for
+   * @return true/false depending on result
+   */
+  boolean trackedEntityExists(String uid);
 
-    /**
-     * Checks for the existence of a TEI by UID. Takes into account also the
-     * deleted values.
-     *
-     * @param uid PSI UID to check for
-     * @return true/false depending on result
-     */
-    boolean trackedEntityExistsIncludingDeleted( String uid );
+  /**
+   * Checks for the existence of a TEI by UID. Takes into account also the deleted values.
+   *
+   * @param uid PSI UID to check for
+   * @return true/false depending on result
+   */
+  boolean trackedEntityExistsIncludingDeleted(String uid);
 
-    /**
-     * Returns UIDs of existing tracked entities (including deleted) from the
-     * provided UIDs
-     *
-     * @param uids TEI UIDs to check
-     * @return Set containing UIDs of existing TEIs (including deleted)
-     */
-    List<String> getTrackedEntitiesUidsIncludingDeleted( List<String> uids );
+  /**
+   * Returns UIDs of existing tracked entities (including deleted) from the provided UIDs
+   *
+   * @param uids TEI UIDs to check
+   * @return Set containing UIDs of existing TEIs (including deleted)
+   */
+  List<String> getTrackedEntitiesUidsIncludingDeleted(List<String> uids);
 
-    /**
-     * Register a new trackedEntity
-     *
-     * @param trackedEntity TrackedEntity
-     * @param attributeValues Set of attribute values
-     * @return The error code after registering trackedEntity
-     */
-    long createTrackedEntity( TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues );
+  /**
+   * Register a new trackedEntity
+   *
+   * @param trackedEntity TrackedEntity
+   * @param attributeValues Set of attribute values
+   * @return The error code after registering trackedEntity
+   */
+  long createTrackedEntity(
+      TrackedEntity trackedEntity, Set<TrackedEntityAttributeValue> attributeValues);
 
-    List<TrackedEntity> getTrackedEntitiesByUid( List<String> uids, User user );
+  List<TrackedEntity> getTrackedEntitiesByUid(List<String> uids, User user);
 }

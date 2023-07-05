@@ -233,20 +233,9 @@
                   <enabled>true</enabled>
               </upToDateChecking>
               <java>
-                  <eclipse>
-                      <file>${rootDir}/DHISFormatter.xml</file>
-                      <version>4.27</version>
-                  </eclipse>
-                  <trimTrailingWhitespace />
-                  <removeUnusedImports />
-                  <importOrder>
-                      <order>
-                          java,javax,lombok,net,org,com
-                      </order>
-                  </importOrder>
-                  <licenseHeader>
-                      <file>${rootDir}/license-header</file>
-                  </licenseHeader>
+                <googleJavaFormat>
+                  <style>GOOGLE</style>
+                </googleJavaFormat>
               </java>
               <lineEndings>UNIX</lineEndings>
           </configuration>

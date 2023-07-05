@@ -36,36 +36,32 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class UniqueNameContextTest
-{
+class UniqueNameContextTest {
 
-    private final UniqueNameContext context = new UniqueNameContext();
+  private final UniqueNameContext context = new UniqueNameContext();
 
-    @Test
-    void alreadyUniqueNameIsKept()
-    {
-        assertEquals( "Foo", context.uniqueName( "Foo" ) );
-        assertEquals( "Bar", context.uniqueName( "Bar" ) );
-        assertEquals( "Baz", context.uniqueName( "Baz" ) );
-    }
+  @Test
+  void alreadyUniqueNameIsKept() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Bar", context.uniqueName("Bar"));
+    assertEquals("Baz", context.uniqueName("Baz"));
+  }
 
-    @Test
-    void nonUniqueNameIsExtendedWithCounter()
-    {
-        assertEquals( "Foo", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo1", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo2", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
-    }
+  @Test
+  void nonUniqueNameIsExtendedWithCounter() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Foo1", context.uniqueName("Foo"));
+    assertEquals("Foo2", context.uniqueName("Foo"));
+    assertEquals("Foo3", context.uniqueName("Foo"));
+  }
 
-    @Test
-    void nonUniqueNameExtensionDoesNotCollideWithExistingNames()
-    {
-        assertEquals( "Foo", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo2", context.uniqueName( "Foo2" ) );
-        assertEquals( "Foo3", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo23", context.uniqueName( "Foo2" ) );
-        assertEquals( "Foo4", context.uniqueName( "Foo" ) );
-        assertEquals( "Foo25", context.uniqueName( "Foo2" ) );
-    }
+  @Test
+  void nonUniqueNameExtensionDoesNotCollideWithExistingNames() {
+    assertEquals("Foo", context.uniqueName("Foo"));
+    assertEquals("Foo2", context.uniqueName("Foo2"));
+    assertEquals("Foo3", context.uniqueName("Foo"));
+    assertEquals("Foo23", context.uniqueName("Foo2"));
+    assertEquals("Foo4", context.uniqueName("Foo"));
+    assertEquals("Foo25", context.uniqueName("Foo2"));
+  }
 }

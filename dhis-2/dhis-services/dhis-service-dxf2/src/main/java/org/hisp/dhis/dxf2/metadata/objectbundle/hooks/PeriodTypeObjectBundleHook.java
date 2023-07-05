@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.hibernate.HibernateProxyUtils;
@@ -44,48 +43,40 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject>
-{
-    private final PeriodService periodService;
+public class PeriodTypeObjectBundleHook extends AbstractObjectBundleHook<IdentifiableObject> {
+  private final PeriodService periodService;
 
-    @Override
-    public void preCreate( IdentifiableObject object, ObjectBundle bundle )
-    {
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+  @Override
+  public void preCreate(IdentifiableObject object, ObjectBundle bundle) {
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
 
-        for ( Property property : schema.getPropertyMap().values() )
-        {
-            if ( PeriodType.class.isAssignableFrom( property.getKlass() ) )
-            {
-                PeriodType periodType = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+    for (Property property : schema.getPropertyMap().values()) {
+      if (PeriodType.class.isAssignableFrom(property.getKlass())) {
+        PeriodType periodType = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
 
-                if ( periodType != null )
-                {
-                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                    periodType = periodService.reloadPeriodType( periodType );
-                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), periodType );
-                }
-            }
+        if (periodType != null) {
+          periodType = bundle.getPreheat().getPeriodTypeMap().get(periodType.getName());
+          periodType = periodService.reloadPeriodType(periodType);
+          ReflectionUtils.invokeMethod(object, property.getSetterMethod(), periodType);
         }
+      }
     }
+  }
 
-    @Override
-    public void preUpdate( IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle )
-    {
-        Schema schema = schemaService.getDynamicSchema( HibernateProxyUtils.getRealClass( object ) );
+  @Override
+  public void preUpdate(
+      IdentifiableObject object, IdentifiableObject persistedObject, ObjectBundle bundle) {
+    Schema schema = schemaService.getDynamicSchema(HibernateProxyUtils.getRealClass(object));
 
-        for ( Property property : schema.getPropertyMap().values() )
-        {
-            if ( PeriodType.class.isAssignableFrom( property.getKlass() ) )
-            {
-                PeriodType periodType = ReflectionUtils.invokeMethod( object, property.getGetterMethod() );
+    for (Property property : schema.getPropertyMap().values()) {
+      if (PeriodType.class.isAssignableFrom(property.getKlass())) {
+        PeriodType periodType = ReflectionUtils.invokeMethod(object, property.getGetterMethod());
 
-                if ( periodType != null )
-                {
-                    periodType = bundle.getPreheat().getPeriodTypeMap().get( periodType.getName() );
-                    ReflectionUtils.invokeMethod( object, property.getSetterMethod(), periodType );
-                }
-            }
+        if (periodType != null) {
+          periodType = bundle.getPreheat().getPeriodTypeMap().get(periodType.getName());
+          ReflectionUtils.invokeMethod(object, property.getSetterMethod(), periodType);
         }
+      }
     }
+  }
 }

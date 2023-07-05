@@ -33,19 +33,18 @@ import java.util.Locale;
  * @author Pham Thi Thuy
  * @author Nguyen Dang Quang
  */
-public interface I18nManager
-{
-    String ID = I18nManager.class.getName();
+public interface I18nManager {
+  String ID = I18nManager.class.getName();
 
-    I18n getI18n();
+  I18n getI18n();
 
-    I18n getI18n( Locale locale );
+  I18n getI18n(Locale locale);
 
-    I18n getI18n( Class<?> clazz );
+  I18n getI18n(Class<?> clazz);
 
-    I18n getI18n( Class<?> clazz, Locale locale );
+  I18n getI18n(Class<?> clazz, Locale locale);
 
-    I18n getI18n( String clazzName );
+  I18n getI18n(String clazzName);
 
-    I18nFormat getI18nFormat();
+  I18nFormat getI18nFormat();
 }

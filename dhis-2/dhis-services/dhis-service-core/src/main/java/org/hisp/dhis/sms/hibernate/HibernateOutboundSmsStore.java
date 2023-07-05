@@ -29,9 +29,7 @@ package org.hisp.dhis.sms.hibernate;
 
 import java.util.Date;
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.hibernate.JpaQueryParameters;
@@ -44,86 +42,85 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-@Repository( "org.hisp.dhis.sms.hibernate.OutboundSmsStore" )
-public class HibernateOutboundSmsStore
-    extends HibernateIdentifiableObjectStore<OutboundSms>
-    implements OutboundSmsStore
-{
-    public HibernateOutboundSmsStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, OutboundSms.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.sms.hibernate.OutboundSmsStore")
+public class HibernateOutboundSmsStore extends HibernateIdentifiableObjectStore<OutboundSms>
+    implements OutboundSmsStore {
+  public HibernateOutboundSmsStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        OutboundSms.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public void saveOutboundSms(OutboundSms sms) {
+    checkDate(sms);
+    save(sms);
+  }
+
+  private void checkDate(OutboundSms sms) {
+    if (sms.getDate() == null) {
+      sms.setDate(new Date());
+    }
+  }
+
+  @Override
+  public List<OutboundSms> get(OutboundSmsStatus status) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<OutboundSms> parameters =
+        new JpaQueryParameters<OutboundSms>().addOrder(root -> builder.desc(root.get("date")));
+
+    if (status != null) {
+      parameters.addPredicate(root -> builder.equal(root.get("status"), status));
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    return getList(builder, parameters);
+  }
 
-    @Override
-    public void saveOutboundSms( OutboundSms sms )
-    {
-        checkDate( sms );
-        save( sms );
+  @Override
+  public List<OutboundSms> get(
+      OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination) {
+    CriteriaBuilder builder = getCriteriaBuilder();
+
+    JpaQueryParameters<OutboundSms> parameters =
+        new JpaQueryParameters<OutboundSms>().addOrder(root -> builder.desc(root.get("date")));
+
+    if (status != null) {
+      parameters.addPredicate(root -> builder.equal(root.get("status"), status));
     }
 
-    private void checkDate( OutboundSms sms )
-    {
-        if ( sms.getDate() == null )
-        {
-            sms.setDate( new Date() );
-        }
+    if (hasPagination) {
+      parameters.setFirstResult(min).setMaxResults(max);
     }
 
-    @Override
-    public List<OutboundSms> get( OutboundSmsStatus status )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+    return getList(builder, parameters);
+  }
 
-        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
-            .addOrder( root -> builder.desc( root.get( "date" ) ) );
+  @Override
+  public List<OutboundSms> getAllOutboundSms(Integer min, Integer max, boolean hasPagination) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        if ( status != null )
-        {
-            parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
-        }
+    JpaQueryParameters<OutboundSms> parameters =
+        new JpaQueryParameters<OutboundSms>().addOrder(root -> builder.desc(root.get("date")));
 
-        return getList( builder, parameters );
+    if (hasPagination) {
+      parameters.setFirstResult(min).setMaxResults(max);
     }
 
-    @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
-            .addOrder( root -> builder.desc( root.get( "date" ) ) );
-
-        if ( status != null )
-        {
-            parameters.addPredicate( root -> builder.equal( root.get( "status" ), status ) );
-        }
-
-        if ( hasPagination )
-        {
-            parameters.setFirstResult( min ).setMaxResults( max );
-        }
-
-        return getList( builder, parameters );
-    }
-
-    @Override
-    public List<OutboundSms> getAllOutboundSms( Integer min, Integer max, boolean hasPagination )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<OutboundSms> parameters = new JpaQueryParameters<OutboundSms>()
-            .addOrder( root -> builder.desc( root.get( "date" ) ) );
-
-        if ( hasPagination )
-        {
-            parameters.setFirstResult( min ).setMaxResults( max );
-        }
-
-        return getList( builder, parameters );
-    }
+    return getList(builder, parameters);
+  }
 }

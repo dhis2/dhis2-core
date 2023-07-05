@@ -33,9 +33,7 @@ import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.SetValuedMap;
 import org.apache.commons.collections4.multimap.HashSetValuedHashMap;
 import org.hisp.dhis.association.AbstractOrganisationUnitAssociationsQueryBuilder;
@@ -45,85 +43,77 @@ import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 @RequiredArgsConstructor
-public class JdbcOrgUnitAssociationsStore
-{
-    private final CurrentUserService currentUserService;
+public class JdbcOrgUnitAssociationsStore {
+  private final CurrentUserService currentUserService;
 
-    private final JdbcTemplate jdbcTemplate;
+  private final JdbcTemplate jdbcTemplate;
 
-    private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
+  private final AbstractOrganisationUnitAssociationsQueryBuilder queryBuilder;
 
-    private final Cache<Set<String>> orgUnitAssociationCache;
+  private final Cache<Set<String>> orgUnitAssociationCache;
 
-    public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser( Set<String> uids )
-    {
-        if ( uids.isEmpty() )
-        {
-            return new HashSetValuedHashMap<>();
-        }
+  public SetValuedMap<String, String> getOrganisationUnitsAssociationsForCurrentUser(
+      Set<String> uids) {
+    if (uids.isEmpty()) {
+      return new HashSetValuedHashMap<>();
+    }
 
-        Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
+    Set<String> userOrgUnitPaths = getUserOrgUnitPaths();
 
-        return jdbcTemplate.query(
-            queryBuilder.buildSqlQuery( uids, userOrgUnitPaths, currentUserService.getCurrentUser() ),
-            resultSet -> {
-                SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
-                while ( resultSet.next() )
-                {
-                    setValuedMap.putAll(
-                        resultSet.getString( 1 ),
-                        Arrays.asList( (String[]) resultSet.getArray( 2 ).getArray() ) );
+    return jdbcTemplate.query(
+        queryBuilder.buildSqlQuery(uids, userOrgUnitPaths, currentUserService.getCurrentUser()),
+        resultSet -> {
+          SetValuedMap<String, String> setValuedMap = new HashSetValuedHashMap<>();
+          while (resultSet.next()) {
+            setValuedMap.putAll(
+                resultSet.getString(1), Arrays.asList((String[]) resultSet.getArray(2).getArray()));
+          }
+          return setValuedMap;
+        });
+  }
 
+  public boolean checkOrganisationUnitsAssociations(String program, String orgUnit) {
+    if (orgUnitAssociationCache.get(program).isEmpty()
+        || !orgUnitAssociationCache.get(program).get().contains(orgUnit)) {
+      return jdbcTemplate
+          .query(
+              queryBuilder.buildSqlQueryForRawAssociation(Set.of(program)),
+              resultSet -> {
+                SetValuedMap<String, String> programToOrgUnitsMap = new HashSetValuedHashMap<>();
+
+                while (resultSet.next()) {
+                  String programResultSet = resultSet.getString(1);
+                  Array orgUnitsResultSet = resultSet.getArray(2);
+
+                  programToOrgUnitsMap.putAll(
+                      programResultSet, Arrays.asList((String[]) orgUnitsResultSet.getArray()));
+
+                  orgUnitAssociationCache.put(
+                      programResultSet, new HashSet<>(programToOrgUnitsMap.get(programResultSet)));
                 }
-                return setValuedMap;
-            } );
+
+                return Optional.ofNullable(programToOrgUnitsMap.get(program))
+                    .orElse(new HashSet<>());
+              })
+          .contains(orgUnit);
     }
 
-    public boolean checkOrganisationUnitsAssociations( String program, String orgUnit )
-    {
-        if ( orgUnitAssociationCache.get( program ).isEmpty()
-            || !orgUnitAssociationCache.get( program ).get().contains( orgUnit ) )
-        {
-            return jdbcTemplate.query( queryBuilder
-                .buildSqlQueryForRawAssociation( Set.of( program ) ),
-                resultSet -> {
+    return true;
+  }
 
-                    SetValuedMap<String, String> programToOrgUnitsMap = new HashSetValuedHashMap<>();
+  private Set<String> getUserOrgUnitPaths() {
+    Set<String> allUserOrgUnitPaths =
+        currentUserService.getCurrentUserOrganisationUnits().stream()
+            .map(OrganisationUnit::getPath)
+            .collect(Collectors.toSet());
 
-                    while ( resultSet.next() )
-                    {
-                        String programResultSet = resultSet.getString( 1 );
-                        Array orgUnitsResultSet = resultSet.getArray( 2 );
+    return allUserOrgUnitPaths.stream()
+        .filter(orgUnitPath -> !existsAnchestor(orgUnitPath, allUserOrgUnitPaths))
+        .collect(Collectors.toSet());
+  }
 
-                        programToOrgUnitsMap.putAll( programResultSet,
-                            Arrays.asList( (String[]) orgUnitsResultSet.getArray() ) );
-
-                        orgUnitAssociationCache.put( programResultSet,
-                            new HashSet<>( programToOrgUnitsMap.get( programResultSet ) ) );
-                    }
-
-                    return Optional.ofNullable( programToOrgUnitsMap.get( program ) ).orElse( new HashSet<>() );
-
-                } ).contains( orgUnit );
-        }
-
-        return true;
-    }
-
-    private Set<String> getUserOrgUnitPaths()
-    {
-        Set<String> allUserOrgUnitPaths = currentUserService.getCurrentUserOrganisationUnits().stream()
-            .map( OrganisationUnit::getPath )
-            .collect( Collectors.toSet() );
-
-        return allUserOrgUnitPaths.stream()
-            .filter( orgUnitPath -> !existsAnchestor( orgUnitPath, allUserOrgUnitPaths ) )
-            .collect( Collectors.toSet() );
-    }
-
-    private boolean existsAnchestor( String orgUnitPath, Set<String> allUserOrgUnitPaths )
-    {
-        return allUserOrgUnitPaths.stream()
-            .anyMatch( path -> !path.equals( orgUnitPath ) && orgUnitPath.startsWith( path ) );
-    }
+  private boolean existsAnchestor(String orgUnitPath, Set<String> allUserOrgUnitPaths) {
+    return allUserOrgUnitPaths.stream()
+        .anyMatch(path -> !path.equals(orgUnitPath) && orgUnitPath.startsWith(path));
+  }
 }

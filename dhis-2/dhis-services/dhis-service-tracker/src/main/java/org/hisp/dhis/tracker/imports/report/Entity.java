@@ -27,71 +27,55 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.Data;
-
-import org.hisp.dhis.tracker.imports.TrackerType;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import org.hisp.dhis.tracker.imports.TrackerType;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Data
-public class Entity
-{
-    /**
-     * Type of object this {@link Entity} represents.
-     */
-    @JsonProperty
-    private final TrackerType trackerType;
+public class Entity {
+  /** Type of object this {@link Entity} represents. */
+  @JsonProperty private final TrackerType trackerType;
 
-    /**
-     * Index into list.
-     */
-    @JsonProperty
-    private Integer index;
+  /** Index into list. */
+  @JsonProperty private Integer index;
 
-    /**
-     * UID of entity (if object is id object).
-     */
-    @JsonProperty
-    private String uid;
+  /** UID of entity (if object is id object). */
+  @JsonProperty private String uid;
 
-    private List<Error> errorReports = new ArrayList<>();
+  private List<Error> errorReports = new ArrayList<>();
 
-    public Entity( TrackerType trackerType )
-    {
-        this.trackerType = trackerType;
+  public Entity(TrackerType trackerType) {
+    this.trackerType = trackerType;
+  }
+
+  public Entity(TrackerType trackerType, String uid, Integer index) {
+    this.trackerType = trackerType;
+    this.uid = uid;
+    this.index = index;
+  }
+
+  @JsonCreator
+  public Entity(
+      @JsonProperty("trackerType") TrackerType trackerType,
+      @JsonProperty("uid") String uid,
+      @JsonProperty("index") Integer index,
+      @JsonProperty("errorReports") List<Error> errorReports) {
+    this.trackerType = trackerType;
+    this.uid = uid;
+    this.index = index;
+    if (errorReports != null) {
+      this.errorReports = errorReports;
     }
+  }
 
-    public Entity( TrackerType trackerType, String uid, Integer index )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-    }
-
-    @JsonCreator
-    public Entity( @JsonProperty( "trackerType" ) TrackerType trackerType,
-        @JsonProperty( "uid" ) String uid, @JsonProperty( "index" ) Integer index,
-        @JsonProperty( "errorReports" ) List<Error> errorReports )
-    {
-        this.trackerType = trackerType;
-        this.uid = uid;
-        this.index = index;
-        if ( errorReports != null )
-        {
-            this.errorReports = errorReports;
-        }
-    }
-
-    @JsonProperty
-    public List<Error> getErrorReports()
-    {
-        return this.errorReports;
-    }
+  @JsonProperty
+  public List<Error> getErrorReports() {
+    return this.errorReports;
+  }
 }

@@ -27,39 +27,32 @@
  */
 package org.hisp.dhis.sms.outbound;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * @author Zubair Asghar
  */
-public class BulkSmsRequestEntity
-{
-    private Set<BulkSmsRecipient> recipients = new HashSet<>();
+public class BulkSmsRequestEntity {
+  private Set<BulkSmsRecipient> recipients = new HashSet<>();
 
-    private String body;
+  private String body;
 
-    public BulkSmsRequestEntity()
-    {
-    }
+  public BulkSmsRequestEntity() {}
 
-    public BulkSmsRequestEntity( String body, Set<String> recipients )
-    {
-        this.recipients = recipients.stream().map( BulkSmsRecipient::new ).collect( Collectors.toSet() );
-        this.body = body;
-    }
+  public BulkSmsRequestEntity(String body, Set<String> recipients) {
+    this.recipients = recipients.stream().map(BulkSmsRecipient::new).collect(Collectors.toSet());
+    this.body = body;
+  }
 
-    @JsonProperty( value = "to" )
-    public Set<BulkSmsRecipient> getRecipients()
-    {
-        return recipients;
-    }
+  @JsonProperty(value = "to")
+  public Set<BulkSmsRecipient> getRecipients() {
+    return recipients;
+  }
 
-    public String getBody()
-    {
-        return body;
-    }
+  public String getBody() {
+    return body;
+  }
 }

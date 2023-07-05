@@ -28,15 +28,13 @@
 package org.hisp.dhis.statistics;
 
 import java.util.Map;
-
 import org.hisp.dhis.common.Objects;
 
 /**
  * @author Lars Helge Overland
  */
-public interface StatisticsProvider
-{
-    String ID = StatisticsProvider.class.getName();
+public interface StatisticsProvider {
+  String ID = StatisticsProvider.class.getName();
 
-    Map<Objects, Long> getObjectCounts();
+  Map<Objects, Long> getObjectCounts();
 }

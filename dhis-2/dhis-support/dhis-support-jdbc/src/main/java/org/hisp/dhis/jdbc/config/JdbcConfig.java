@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.jdbc.config;
 
+import com.google.common.collect.Lists;
 import javax.sql.DataSource;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.hisp.dhis.jdbc.dialect.StatementDialectFactoryBean;
@@ -42,68 +42,54 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
 @Configuration
-public class JdbcConfig
-{
-    @Autowired
-    private DataSource dataSource;
+public class JdbcConfig {
+  @Autowired private DataSource dataSource;
 
-    @Autowired
-    private DhisConfigurationProvider dhisConfigurationProvider;
+  @Autowired private DhisConfigurationProvider dhisConfigurationProvider;
 
-    @Bean
-    public JdbcStatementManager statementManager()
-        throws Exception
-    {
-        JdbcStatementManager jdbcStatementManager = new JdbcStatementManager();
-        jdbcStatementManager.setJdbcConfiguration( jdbcConfiguration().getObject() );
-        return jdbcStatementManager;
-    }
+  @Bean
+  public JdbcStatementManager statementManager() throws Exception {
+    JdbcStatementManager jdbcStatementManager = new JdbcStatementManager();
+    jdbcStatementManager.setJdbcConfiguration(jdbcConfiguration().getObject());
+    return jdbcStatementManager;
+  }
 
-    @Bean( initMethod = "init" )
-    public StatementDialectFactoryBean statementDialect()
-    {
-        return new StatementDialectFactoryBean(
-            dhisConfigurationProvider.getProperty( ConfigurationKey.CONNECTION_DIALECT ) );
-    }
+  @Bean(initMethod = "init")
+  public StatementDialectFactoryBean statementDialect() {
+    return new StatementDialectFactoryBean(
+        dhisConfigurationProvider.getProperty(ConfigurationKey.CONNECTION_DIALECT));
+  }
 
-    @Bean( initMethod = "init" )
-    public JdbcConfigurationFactoryBean jdbcConfiguration()
-    {
-        JdbcConfigurationFactoryBean jdbcConf = new JdbcConfigurationFactoryBean();
-        StatementDialect statementDialect = statementDialect().getObject();
-        jdbcConf.setDialect( statementDialect );
-        jdbcConf.setDataSource( dataSource );
+  @Bean(initMethod = "init")
+  public JdbcConfigurationFactoryBean jdbcConfiguration() {
+    JdbcConfigurationFactoryBean jdbcConf = new JdbcConfigurationFactoryBean();
+    StatementDialect statementDialect = statementDialect().getObject();
+    jdbcConf.setDialect(statementDialect);
+    jdbcConf.setDataSource(dataSource);
 
-        return jdbcConf;
-    }
+    return jdbcConf;
+  }
 
-    @Bean( initMethod = "init" )
-    public StatementBuilderFactoryBean statementBuilder()
-    {
-        return new StatementBuilderFactoryBean( statementDialect().getObject() );
-    }
+  @Bean(initMethod = "init")
+  public StatementBuilderFactoryBean statementBuilder() {
+    return new StatementBuilderFactoryBean(statementDialect().getObject());
+  }
 
-    @Bean
-    public DefaultBatchHandlerFactory batchHandlerFactory()
-        throws Exception
-    {
-        DefaultBatchHandlerFactory defaultBatchHandlerFactory = new DefaultBatchHandlerFactory();
-        defaultBatchHandlerFactory.setJdbcConfiguration( jdbcConfiguration().getObject() );
-        return defaultBatchHandlerFactory;
-    }
+  @Bean
+  public DefaultBatchHandlerFactory batchHandlerFactory() throws Exception {
+    DefaultBatchHandlerFactory defaultBatchHandlerFactory = new DefaultBatchHandlerFactory();
+    defaultBatchHandlerFactory.setJdbcConfiguration(jdbcConfiguration().getObject());
+    return defaultBatchHandlerFactory;
+  }
 
-    @Bean
-    public StatementInterceptor statementInterceptor()
-        throws Exception
-    {
-        StatementInterceptor statementInterceptor = new StatementInterceptor();
-        statementInterceptor.setStatementManagers( Lists.newArrayList( statementManager() ) );
-        return statementInterceptor;
-    }
+  @Bean
+  public StatementInterceptor statementInterceptor() throws Exception {
+    StatementInterceptor statementInterceptor = new StatementInterceptor();
+    statementInterceptor.setStatementManagers(Lists.newArrayList(statementManager()));
+    return statementInterceptor;
+  }
 }

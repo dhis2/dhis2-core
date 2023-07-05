@@ -30,14 +30,9 @@ package org.hisp.dhis.scheduling;
 /**
  * @author Lars Helge Overland
  */
-public enum SchedulingType
-{
-    /**
-     * Scheduling based on a expression.
-     */
-    CRON,
-    /**
-     * Scheduling based on a fixed delay between invocations.
-     */
-    FIXED_DELAY;
+public enum SchedulingType {
+  /** Scheduling based on a expression. */
+  CRON,
+  /** Scheduling based on a fixed delay between invocations. */
+  FIXED_DELAY;
 }

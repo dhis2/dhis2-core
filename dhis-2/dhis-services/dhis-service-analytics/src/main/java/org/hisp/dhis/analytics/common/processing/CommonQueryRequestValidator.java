@@ -39,82 +39,65 @@ import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 import org.springframework.stereotype.Component;
 
-/**
- * Component responsible for generic validations on top of a
- * {@link CommonQueryRequest} object.
- */
+/** Component responsible for generic validations on top of a {@link CommonQueryRequest} object. */
 @Component
-public class CommonQueryRequestValidator implements Validator<CommonQueryRequest>
-{
-    /**
-     * Runs a validation on the given query request object
-     * {@link CommonQueryRequest}, preventing basic syntax and consistency
-     * issues.
-     *
-     * @param commonQueryRequest the {@link CommonQueryRequest}.
-     * @throws IllegalQueryException is some invalid state is found.
-     */
-    @Override
-    public void validate( CommonQueryRequest commonQueryRequest )
-    {
-        if ( !commonQueryRequest.hasPrograms() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( E7136 ) );
-        }
-
-        for ( String programUid : commonQueryRequest.getProgram() )
-        {
-            if ( !isValidUid( programUid ) )
-            {
-                throw new IllegalQueryException( new ErrorMessage( E4014, programUid, "program" ) );
-            }
-        }
-
-        validateEnrollmentDate( commonQueryRequest.getEnrollmentDate() );
-        validateEventDate( commonQueryRequest.getEventDate() );
-
-        if ( commonQueryRequest.hasProgramStatus() && commonQueryRequest.hasEnrollmentStatus() )
-        {
-            throw new IllegalQueryException( new ErrorMessage( E7139 ) );
-        }
+public class CommonQueryRequestValidator implements Validator<CommonQueryRequest> {
+  /**
+   * Runs a validation on the given query request object {@link CommonQueryRequest}, preventing
+   * basic syntax and consistency issues.
+   *
+   * @param commonQueryRequest the {@link CommonQueryRequest}.
+   * @throws IllegalQueryException is some invalid state is found.
+   */
+  @Override
+  public void validate(CommonQueryRequest commonQueryRequest) {
+    if (!commonQueryRequest.hasPrograms()) {
+      throw new IllegalQueryException(new ErrorMessage(E7136));
     }
 
-    /**
-     * The event date should have a format like:
-     * "IpHINAT79UW.A03MvHHogjR.LAST_YEAR"
-     *
-     * @param eventDate the date to validate.
-     * @throws IllegalQueryException if the format is invalid.
-     */
-    private void validateEventDate( String eventDate )
-    {
-        if ( isNotBlank( eventDate ) )
-        {
-            boolean invalidPeriodValue = countMatches( eventDate, "." ) != 2;
-
-            if ( invalidPeriodValue )
-            {
-                throw new IllegalQueryException( new ErrorMessage( E4014, eventDate, "eventDate" ) );
-            }
-        }
+    for (String programUid : commonQueryRequest.getProgram()) {
+      if (!isValidUid(programUid)) {
+        throw new IllegalQueryException(new ErrorMessage(E4014, programUid, "program"));
+      }
     }
 
-    /**
-     * The event date should have a format like: "IpHINAT79UW.LAST_YEAR".
-     *
-     * @param enrollmentDate the date to validate.
-     * @throws IllegalQueryException if the format is invalid.
-     */
-    private void validateEnrollmentDate( String enrollmentDate )
-    {
-        if ( isNotBlank( enrollmentDate ) )
-        {
-            boolean invalidPeriodValue = countMatches( enrollmentDate, "." ) != 1;
+    validateEnrollmentDate(commonQueryRequest.getEnrollmentDate());
+    validateEventDate(commonQueryRequest.getEventDate());
 
-            if ( invalidPeriodValue )
-            {
-                throw new IllegalQueryException( new ErrorMessage( E4014, enrollmentDate, "enrollmentDate" ) );
-            }
-        }
+    if (commonQueryRequest.hasProgramStatus() && commonQueryRequest.hasEnrollmentStatus()) {
+      throw new IllegalQueryException(new ErrorMessage(E7139));
     }
+  }
+
+  /**
+   * The event date should have a format like: "IpHINAT79UW.A03MvHHogjR.LAST_YEAR"
+   *
+   * @param eventDate the date to validate.
+   * @throws IllegalQueryException if the format is invalid.
+   */
+  private void validateEventDate(String eventDate) {
+    if (isNotBlank(eventDate)) {
+      boolean invalidPeriodValue = countMatches(eventDate, ".") != 2;
+
+      if (invalidPeriodValue) {
+        throw new IllegalQueryException(new ErrorMessage(E4014, eventDate, "eventDate"));
+      }
+    }
+  }
+
+  /**
+   * The event date should have a format like: "IpHINAT79UW.LAST_YEAR".
+   *
+   * @param enrollmentDate the date to validate.
+   * @throws IllegalQueryException if the format is invalid.
+   */
+  private void validateEnrollmentDate(String enrollmentDate) {
+    if (isNotBlank(enrollmentDate)) {
+      boolean invalidPeriodValue = countMatches(enrollmentDate, ".") != 1;
+
+      if (invalidPeriodValue) {
+        throw new IllegalQueryException(new ErrorMessage(E4014, enrollmentDate, "enrollmentDate"));
+      }
+    }
+  }
 }

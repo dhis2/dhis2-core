@@ -29,9 +29,7 @@ package org.hisp.dhis.sms.config;
 
 import java.io.IOException;
 import java.util.*;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.outboundmessage.OutboundMessage;
 import org.hisp.dhis.outboundmessage.OutboundMessageBatch;
 import org.hisp.dhis.outboundmessage.OutboundMessageResponse;
@@ -53,173 +51,161 @@ import org.springframework.stereotype.Component;
  * @author Zubair Asghar.
  */
 @Slf4j
-@Component( "org.hisp.dhis.sms.config.SMPPClient" )
-public class SMPPClient
-{
-    private static final String SOURCE = "DHIS2";
+@Component("org.hisp.dhis.sms.config.SMPPClient")
+public class SMPPClient {
+  private static final String SOURCE = "DHIS2";
 
-    private static final String SENDING_FAILED = "SMS sending failed";
+  private static final String SENDING_FAILED = "SMS sending failed";
 
-    private static final String SESSION_ERROR = "SMPP Session cannot be null";
+  private static final String SESSION_ERROR = "SMPP Session cannot be null";
 
-    private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
+  private static final TimeFormatter TIME_FORMATTER = new AbsoluteTimeFormatter();
 
-    public OutboundMessageResponse send( String text, Set<String> recipients, SMPPGatewayConfig config )
-    {
-        SMPPSession session = start( config );
+  public OutboundMessageResponse send(
+      String text, Set<String> recipients, SMPPGatewayConfig config) {
+    SMPPSession session = start(config);
 
-        if ( session == null )
-        {
-            return new OutboundMessageResponse( SESSION_ERROR, GatewayResponse.SMPP_SESSION_FAILURE, false );
-        }
-
-        OutboundMessageResponse response = send( session, text, recipients, config );
-
-        stop( session );
-
-        return response;
+    if (session == null) {
+      return new OutboundMessageResponse(
+          SESSION_ERROR, GatewayResponse.SMPP_SESSION_FAILURE, false);
     }
 
-    public List<OutboundMessageResponse> sendBatch( OutboundMessageBatch batch, SMPPGatewayConfig config )
-    {
-        SMPPSession session = start( config );
+    OutboundMessageResponse response = send(session, text, recipients, config);
 
-        if ( session == null )
-        {
-            return Collections.emptyList();
-        }
+    stop(session);
 
-        List<OutboundMessageResponse> responses = new ArrayList<>();
+    return response;
+  }
 
-        for ( OutboundMessage message : batch.getMessages() )
-        {
-            OutboundMessageResponse response = send( session, message.getText(), message.getRecipients(), config );
+  public List<OutboundMessageResponse> sendBatch(
+      OutboundMessageBatch batch, SMPPGatewayConfig config) {
+    SMPPSession session = start(config);
 
-            responses.add( response );
-        }
-
-        stop( session );
-
-        return responses;
+    if (session == null) {
+      return Collections.emptyList();
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive methods
-    // -------------------------------------------------------------------------
+    List<OutboundMessageResponse> responses = new ArrayList<>();
 
-    private OutboundMessageResponse send( SMPPSession session, String text, Set<String> recipients,
-        SMPPGatewayConfig config )
-    {
-        OutboundMessageResponse response = new OutboundMessageResponse();
-        SubmitMultiResult result = null;
-        try
-        {
-            result = session.submitMultiple( config.getSystemType(), config.getTypeOfNumber(),
-                config.getNumberPlanIndicator(), SOURCE, getAddresses( recipients ), new ESMClass(), (byte) 0, (byte) 1,
-                TIME_FORMATTER.format( new Date() ), null,
-                new RegisteredDelivery( SMSCDeliveryReceipt.SUCCESS_FAILURE ), ReplaceIfPresentFlag.DEFAULT,
-                new GeneralDataCoding( Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed() ), (byte) 0,
-                text.getBytes() );
+    for (OutboundMessage message : batch.getMessages()) {
+      OutboundMessageResponse response =
+          send(session, message.getText(), message.getRecipients(), config);
 
-            log.info( String.format( "Messages submitted, result is %s", result.getMessageId() ) );
-        }
-        catch ( PDUException e )
-        {
-            log.error( "Invalid PDU parameter", e );
-        }
-        catch ( ResponseTimeoutException e )
-        {
-            log.error( "Response timeout", e );
-        }
-        catch ( InvalidResponseException e )
-        {
-            log.error( "Receive invalid response", e );
-        }
-        catch ( NegativeResponseException e )
-        {
-            log.error( "Receive negative response", e );
-        }
-        catch ( IOException e )
-        {
-            log.error( "I/O error", e );
-        }
-        catch ( Exception e )
-        {
-            log.error( "Exception in submitting SMPP request", e );
-        }
-
-        if ( result != null )
-        {
-            if ( result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0 )
-            {
-                log.info( "Message pushed to broker successfully" );
-                response.setOk( true );
-                response.setDescription( result.getMessageId() );
-                response.setResponseObject( GatewayResponse.RESULT_CODE_0 );
-            }
-            else
-            {
-                String failureCause = DeliveryReceiptState
-                    .valueOf( result.getUnsuccessDeliveries()[0].getErrorStatusCode() ) + " - " + result.getMessageId();
-
-                log.error( failureCause );
-                response.setDescription( failureCause );
-                response.setResponseObject( GatewayResponse.FAILED );
-            }
-        }
-        else
-        {
-            response.setDescription( SENDING_FAILED );
-            response.setResponseObject( GatewayResponse.FAILED );
-        }
-
-        return response;
+      responses.add(response);
     }
 
-    private void stop( SMPPSession session )
-    {
-        if ( session != null )
-        {
-            session.unbindAndClose();
-        }
+    stop(session);
+
+    return responses;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive methods
+  // -------------------------------------------------------------------------
+
+  private OutboundMessageResponse send(
+      SMPPSession session, String text, Set<String> recipients, SMPPGatewayConfig config) {
+    OutboundMessageResponse response = new OutboundMessageResponse();
+    SubmitMultiResult result = null;
+    try {
+      result =
+          session.submitMultiple(
+              config.getSystemType(),
+              config.getTypeOfNumber(),
+              config.getNumberPlanIndicator(),
+              SOURCE,
+              getAddresses(recipients),
+              new ESMClass(),
+              (byte) 0,
+              (byte) 1,
+              TIME_FORMATTER.format(new Date()),
+              null,
+              new RegisteredDelivery(SMSCDeliveryReceipt.SUCCESS_FAILURE),
+              ReplaceIfPresentFlag.DEFAULT,
+              new GeneralDataCoding(
+                  Alphabet.ALPHA_DEFAULT, MessageClass.CLASS1, config.isCompressed()),
+              (byte) 0,
+              text.getBytes());
+
+      log.info(String.format("Messages submitted, result is %s", result.getMessageId()));
+    } catch (PDUException e) {
+      log.error("Invalid PDU parameter", e);
+    } catch (ResponseTimeoutException e) {
+      log.error("Response timeout", e);
+    } catch (InvalidResponseException e) {
+      log.error("Receive invalid response", e);
+    } catch (NegativeResponseException e) {
+      log.error("Receive negative response", e);
+    } catch (IOException e) {
+      log.error("I/O error", e);
+    } catch (Exception e) {
+      log.error("Exception in submitting SMPP request", e);
     }
 
-    private SMPPSession start( SMPPGatewayConfig config )
-    {
-        try
-        {
-            SMPPSession session = new SMPPSession( config.getUrlTemplate(), config.getPort(),
-                getBindParameters( config ) );
+    if (result != null) {
+      if (result.getUnsuccessDeliveries() == null || result.getUnsuccessDeliveries().length == 0) {
+        log.info("Message pushed to broker successfully");
+        response.setOk(true);
+        response.setDescription(result.getMessageId());
+        response.setResponseObject(GatewayResponse.RESULT_CODE_0);
+      } else {
+        String failureCause =
+            DeliveryReceiptState.valueOf(result.getUnsuccessDeliveries()[0].getErrorStatusCode())
+                + " - "
+                + result.getMessageId();
 
-            log.info( "SMPP client connected to SMSC: " + config.getUrlTemplate() );
-            return session;
-        }
-        catch ( IOException e )
-        {
-            log.error( "I/O error occured", e );
-        }
-
-        return null;
+        log.error(failureCause);
+        response.setDescription(failureCause);
+        response.setResponseObject(GatewayResponse.FAILED);
+      }
+    } else {
+      response.setDescription(SENDING_FAILED);
+      response.setResponseObject(GatewayResponse.FAILED);
     }
 
-    private BindParameter getBindParameters( SMPPGatewayConfig config )
-    {
-        return new BindParameter( config.getBindType(), config.getUsername(), config.getPassword(),
-            config.getSystemType(),
-            config.getTypeOfNumber(), config.getNumberPlanIndicator(), null );
+    return response;
+  }
+
+  private void stop(SMPPSession session) {
+    if (session != null) {
+      session.unbindAndClose();
+    }
+  }
+
+  private SMPPSession start(SMPPGatewayConfig config) {
+    try {
+      SMPPSession session =
+          new SMPPSession(config.getUrlTemplate(), config.getPort(), getBindParameters(config));
+
+      log.info("SMPP client connected to SMSC: " + config.getUrlTemplate());
+      return session;
+    } catch (IOException e) {
+      log.error("I/O error occured", e);
     }
 
-    private Address[] getAddresses( Set<String> recipients )
-    {
-        Address[] addresses = new Address[recipients.size()];
-        int i = 0;
+    return null;
+  }
 
-        for ( String number : recipients )
-        {
-            addresses[i] = new Address( TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number );
-            i++;
-        }
+  private BindParameter getBindParameters(SMPPGatewayConfig config) {
+    return new BindParameter(
+        config.getBindType(),
+        config.getUsername(),
+        config.getPassword(),
+        config.getSystemType(),
+        config.getTypeOfNumber(),
+        config.getNumberPlanIndicator(),
+        null);
+  }
 
-        return addresses;
+  private Address[] getAddresses(Set<String> recipients) {
+    Address[] addresses = new Address[recipients.size()];
+    int i = 0;
+
+    for (String number : recipients) {
+      addresses[i] = new Address(TypeOfNumber.NATIONAL, NumberingPlanIndicator.UNKNOWN, number);
+      i++;
     }
+
+    return addresses;
+  }
 }

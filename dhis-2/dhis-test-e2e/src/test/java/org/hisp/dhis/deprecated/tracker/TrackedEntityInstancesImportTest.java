@@ -35,8 +35,9 @@ import static org.hamcrest.Matchers.stringContainsInOrder;
 import static org.hamcrest.number.OrderingComparison.greaterThanOrEqualTo;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import java.io.File;
-
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -44,139 +45,145 @@ import org.hisp.dhis.helpers.file.FileReaderUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class TrackedEntityInstancesImportTest
-    extends DeprecatedTrackerApiTest
-{
-    JsonObject object;
+public class TrackedEntityInstancesImportTest extends DeprecatedTrackerApiTest {
+  JsonObject object;
 
-    private static final String TEI = "Kj6vYde4LHh";
+  private static final String TEI = "Kj6vYde4LHh";
 
-    private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
+  private static final String TEI_POTENTIAL_DUPLICATE = "Nav6inZRw1u";
 
-    @BeforeAll
-    void before()
-        throws Exception
-    {
-        loginActions.loginAsSuperUser();
+  @BeforeAll
+  void before() throws Exception {
+    loginActions.loginAsSuperUser();
 
-        object = new FileReaderUtils()
-            .read( new File( "src/test/resources/tracker/teis/teisWithEventsAndEnrollments.json" ) )
-            .get( JsonObject.class );
-        trackedEntityInstancesAction.post( object ).validate().statusCode( 200 );
-    }
+    object =
+        new FileReaderUtils()
+            .read(new File("src/test/resources/tracker/teis/teisWithEventsAndEnrollments.json"))
+            .get(JsonObject.class);
+    trackedEntityInstancesAction.post(object).validate().statusCode(200);
+  }
 
-    @Test
-    void teisShouldBeUpdatedAndDeletedInBulk()
-    {
-        // arrange
+  @Test
+  void teisShouldBeUpdatedAndDeletedInBulk() {
+    // arrange
 
-        JsonArray teis = object.getAsJsonArray( "trackedEntityInstances" );
+    JsonArray teis = object.getAsJsonArray("trackedEntityInstances");
 
-        JsonObject tei1event = teis.get( 0 ).getAsJsonObject()
-            .getAsJsonArray( "enrollments" ).get( 0 ).getAsJsonObject()
-            .getAsJsonArray( "events" )
-            .get( 0 )
+    JsonObject tei1event =
+        teis.get(0)
+            .getAsJsonObject()
+            .getAsJsonArray("enrollments")
+            .get(0)
+            .getAsJsonObject()
+            .getAsJsonArray("events")
+            .get(0)
             .getAsJsonObject();
 
-        JsonObject tei2enrollment = teis.get( 1 ).getAsJsonObject()
-            .getAsJsonArray( "enrollments" ).get( 0 ).getAsJsonObject();
+    JsonObject tei2enrollment =
+        teis.get(1).getAsJsonObject().getAsJsonArray("enrollments").get(0).getAsJsonObject();
 
-        tei1event.addProperty( "deleted", true );
-        tei2enrollment.addProperty( "status", "COMPLETED" );
+    tei1event.addProperty("deleted", true);
+    tei2enrollment.addProperty("status", "COMPLETED");
 
-        // act
-        ApiResponse response = trackedEntityInstancesAction.post( object,
-            new QueryParamsBuilder().addAll( "strategy=SYNC" ) );
+    // act
+    ApiResponse response =
+        trackedEntityInstancesAction.post(object, new QueryParamsBuilder().addAll("strategy=SYNC"));
 
-        // assert
-        String eventId = response.validate()
-            .statusCode( 200 )
-            .body( "response", notNullValue() )
-            .rootPath( "response" )
-            .body( "updated", greaterThanOrEqualTo( 2 ) )
-            .appendRootPath( "importSummaries[0]" )
-            .body( "importCount.updated", greaterThanOrEqualTo( 1 ) )
-            .appendRootPath( "enrollments.importSummaries[0].events.importSummaries[0]" )
+    // assert
+    String eventId =
+        response
+            .validate()
+            .statusCode(200)
+            .body("response", notNullValue())
+            .rootPath("response")
+            .body("updated", greaterThanOrEqualTo(2))
+            .appendRootPath("importSummaries[0]")
+            .body("importCount.updated", greaterThanOrEqualTo(1))
+            .appendRootPath("enrollments.importSummaries[0].events.importSummaries[0]")
             .body(
-                "status", equalTo( "SUCCESS" ),
+                "status", equalTo("SUCCESS"),
                 "reference", notNullValue(),
-                "importCount.deleted", equalTo( 1 ),
-                "description", stringContainsInOrder( "Deletion of event", "was successful" ) )
+                "importCount.deleted", equalTo(1),
+                "description", stringContainsInOrder("Deletion of event", "was successful"))
             .extract()
-            .path( "response.importSummaries[0].enrollments.importSummaries[0].events.importSummaries[0].reference" );
+            .path(
+                "response.importSummaries[0].enrollments.importSummaries[0].events.importSummaries[0].reference");
 
-        String enrollmentId = response.validate()
-            .rootPath( "response.importSummaries[1].enrollments.importSummaries[0]" )
+    String enrollmentId =
+        response
+            .validate()
+            .rootPath("response.importSummaries[1].enrollments.importSummaries[0]")
             .body(
-                "status", equalTo( "SUCCESS" ),
+                "status", equalTo("SUCCESS"),
                 "reference", notNullValue(),
-                "importCount.updated", equalTo( 1 ) )
-            .extract().path( "response.importSummaries[1].enrollments.importSummaries[0].reference" );
+                "importCount.updated", equalTo(1))
+            .extract()
+            .path("response.importSummaries[1].enrollments.importSummaries[0].reference");
 
-        // check if updates on event and enrollment were done.
+    // check if updates on event and enrollment were done.
 
-        response = enrollmentActions.get( enrollmentId );
+    response = enrollmentActions.get(enrollmentId);
 
-        response.validate().statusCode( 200 )
-            .body( "status", equalTo( "COMPLETED" ) );
+    response.validate().statusCode(200).body("status", equalTo("COMPLETED"));
 
-        response = eventActions.get( eventId );
+    response = eventActions.get(eventId);
 
-        response.validate().statusCode( 404 );
+    response.validate().statusCode(404);
+  }
 
-    }
+  @Test
+  void getTeiByPotentialDuplicateParamNull() {
+    ApiResponse response = trackedEntityInstancesAction.get(teiParamsBuilder());
 
-    @Test
-    void getTeiByPotentialDuplicateParamNull()
-    {
-        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder() );
+    response.validate().statusCode(200).body("trackedEntityInstances", iterableWithSize(2));
 
-        response.validate().statusCode( 200 )
-            .body( "trackedEntityInstances", iterableWithSize( 2 ) );
+    assertThat(
+        response.getBody().getAsJsonObject(),
+        matchesJSON(
+            new JsonObjectBuilder()
+                .addArray(
+                    "trackedEntityInstances",
+                    new JsonObjectBuilder().addProperty("trackedEntityInstance", TEI).build(),
+                    new JsonObjectBuilder()
+                        .addProperty("trackedEntityInstance", TEI_POTENTIAL_DUPLICATE)
+                        .build())
+                .build()));
+  }
 
-        assertThat( response.getBody().getAsJsonObject(),
-            matchesJSON( new JsonObjectBuilder()
-                .addArray( "trackedEntityInstances",
-                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI ).build(),
-                    new JsonObjectBuilder().addProperty( "trackedEntityInstance", TEI_POTENTIAL_DUPLICATE ).build() )
-                .build() ) );
-    }
+  @Test
+  void getTeiByPotentialDuplicateParamFalse() {
+    ApiResponse response =
+        trackedEntityInstancesAction.get(teiParamsBuilder().add("potentialDuplicate=false"));
 
-    @Test
-    void getTeiByPotentialDuplicateParamFalse()
-    {
-        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder().add( "potentialDuplicate=false" ) );
+    response
+        .validate()
+        .statusCode(200)
+        .body("trackedEntityInstances", iterableWithSize(1))
+        .body("trackedEntityInstances[0].trackedEntityInstance", equalTo(TEI))
+        .body("trackedEntityInstances[0].potentialDuplicate", equalTo(false));
+  }
 
-        response.validate().statusCode( 200 )
-            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
-            .body( "trackedEntityInstances[0].trackedEntityInstance",
-                equalTo( TEI ) )
-            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( false ) );
-    }
+  @Test
+  void getTeiByPotentialDuplicateParamTrue() {
+    ApiResponse response =
+        trackedEntityInstancesAction.get(teiParamsBuilder().add("potentialDuplicate=true"));
 
-    @Test
-    void getTeiByPotentialDuplicateParamTrue()
-    {
-        ApiResponse response = trackedEntityInstancesAction.get( teiParamsBuilder().add( "potentialDuplicate=true" ) );
+    response
+        .validate()
+        .statusCode(200)
+        .body("trackedEntityInstances", iterableWithSize(1))
+        .body("trackedEntityInstances[0].trackedEntityInstance", equalTo(TEI_POTENTIAL_DUPLICATE))
+        .body("trackedEntityInstances[0].potentialDuplicate", equalTo(true));
+  }
 
-        response.validate().statusCode( 200 )
-            .body( "trackedEntityInstances", iterableWithSize( 1 ) )
-            .body( "trackedEntityInstances[0].trackedEntityInstance",
-                equalTo( TEI_POTENTIAL_DUPLICATE ) )
-            .body( "trackedEntityInstances[0].potentialDuplicate", equalTo( true ) );
-    }
-
-    private static QueryParamsBuilder teiParamsBuilder()
-    {
-        return new QueryParamsBuilder().addAll(
+  private static QueryParamsBuilder teiParamsBuilder() {
+    return new QueryParamsBuilder()
+        .addAll(
             "trackedEntityInstance=" + TEI + ";" + TEI_POTENTIAL_DUPLICATE,
             "trackedEntityType=" + "Q9GufDoplCL",
-            "ou=" + "O6uvpzGd5pu" );
-    }
+            "ou=" + "O6uvpzGd5pu");
+  }
 }

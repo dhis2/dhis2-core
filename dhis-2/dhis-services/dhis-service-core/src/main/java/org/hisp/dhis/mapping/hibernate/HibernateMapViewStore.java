@@ -28,9 +28,7 @@
 package org.hisp.dhis.mapping.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateAnalyticalObjectStore;
 import org.hisp.dhis.mapping.MapView;
@@ -45,23 +43,32 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@Repository( "org.hisp.dhis.mapping.MapViewStore" )
-public class HibernateMapViewStore
-    extends HibernateAnalyticalObjectStore<MapView>
-    implements MapViewStore
-{
-    public HibernateMapViewStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, MapView.class, currentUserService, aclService, true );
-    }
+@Repository("org.hisp.dhis.mapping.MapViewStore")
+public class HibernateMapViewStore extends HibernateAnalyticalObjectStore<MapView>
+    implements MapViewStore {
+  public HibernateMapViewStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        MapView.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<MapView> getByOrganisationUnitGroupSet( OrganisationUnitGroupSet groupSet )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<MapView> getByOrganisationUnitGroupSet(OrganisationUnitGroupSet groupSet) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "organisationUnitGroupSet" ), groupSet ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters()
+            .addPredicate(root -> builder.equal(root.get("organisationUnitGroupSet"), groupSet)));
+  }
 }

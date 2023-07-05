@@ -41,25 +41,27 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
  * @author Enrico Colasante
  */
 class UpdatableFieldsValidator
-    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle,
-        org.hisp.dhis.tracker.imports.domain.Enrollment enrollment )
-    {
-        Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment( enrollment.getEnrollment() );
-        Program program = preheatEnrollment.getProgram();
-        TrackedEntity trackedEntity = preheatEnrollment.getTrackedEntity();
+    implements Validator<org.hisp.dhis.tracker.imports.domain.Enrollment> {
+  @Override
+  public void validate(
+      Reporter reporter,
+      TrackerBundle bundle,
+      org.hisp.dhis.tracker.imports.domain.Enrollment enrollment) {
+    Enrollment preheatEnrollment = bundle.getPreheat().getEnrollment(enrollment.getEnrollment());
+    Program program = preheatEnrollment.getProgram();
+    TrackedEntity trackedEntity = preheatEnrollment.getTrackedEntity();
 
-        reporter.addErrorIf( () -> !enrollment.getProgram().isEqualTo( program ), enrollment, E1127,
-            "program" );
-        reporter.addErrorIf( () -> !trackedEntity.getUid().equals( enrollment.getTrackedEntity() ), enrollment,
-            E1127, "trackedEntity" );
-    }
+    reporter.addErrorIf(
+        () -> !enrollment.getProgram().isEqualTo(program), enrollment, E1127, "program");
+    reporter.addErrorIf(
+        () -> !trackedEntity.getUid().equals(enrollment.getTrackedEntity()),
+        enrollment,
+        E1127,
+        "trackedEntity");
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return strategy == TrackerImportStrategy.UPDATE;
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return strategy == TrackerImportStrategy.UPDATE;
+  }
 }

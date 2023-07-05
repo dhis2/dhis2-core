@@ -30,25 +30,21 @@ package org.hisp.dhis.fileresource.events;
 /**
  * @Author Zubair Asghar.
  */
-public class BinaryFileSavedEvent
-{
-    private String fileResource;
+public class BinaryFileSavedEvent {
+  private String fileResource;
 
-    private byte[] bytes;
+  private byte[] bytes;
 
-    public BinaryFileSavedEvent( String fileResource, byte[] bytes )
-    {
-        this.fileResource = fileResource;
-        this.bytes = bytes;
-    }
+  public BinaryFileSavedEvent(String fileResource, byte[] bytes) {
+    this.fileResource = fileResource;
+    this.bytes = bytes;
+  }
 
-    public String getFileResource()
-    {
-        return fileResource;
-    }
+  public String getFileResource() {
+    return fileResource;
+  }
 
-    public byte[] getBytes()
-    {
-        return bytes;
-    }
+  public byte[] getBytes() {
+    return bytes;
+  }
 }

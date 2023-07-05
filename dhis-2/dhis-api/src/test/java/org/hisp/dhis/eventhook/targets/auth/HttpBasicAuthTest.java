@@ -37,20 +37,16 @@ import org.springframework.util.MultiValueMap;
 /**
  * @author Morten Olav Hansen
  */
-class HttpBasicAuthTest
-{
-    @Test
-    void testAuthorizationHeaderSet()
-    {
-        HttpBasicAuth auth = new HttpBasicAuth()
-            .setUsername( "admin" )
-            .setPassword( "district" );
+class HttpBasicAuthTest {
+  @Test
+  void testAuthorizationHeaderSet() {
+    HttpBasicAuth auth = new HttpBasicAuth().setUsername("admin").setPassword("district");
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        auth.apply( headers );
+    MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+    auth.apply(headers);
 
-        assertTrue( headers.containsKey( "Authorization" ) );
-        assertFalse( headers.get( "Authorization" ).isEmpty() );
-        assertEquals( "Basic YWRtaW46ZGlzdHJpY3Q=", headers.get( "Authorization" ).get( 0 ) );
-    }
+    assertTrue(headers.containsKey("Authorization"));
+    assertFalse(headers.get("Authorization").isEmpty());
+    assertEquals("Basic YWRtaW46ZGlzdHJpY3Q=", headers.get("Authorization").get(0));
+  }
 }

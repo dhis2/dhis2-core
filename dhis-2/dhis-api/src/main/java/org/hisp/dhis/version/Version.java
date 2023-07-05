@@ -30,98 +30,82 @@ package org.hisp.dhis.version;
 /**
  * @author mortenoh
  */
-public class Version
-{
-    private long id;
+public class Version {
+  private long id;
 
-    private String key;
+  private String key;
 
-    private String value;
+  private String value;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public Version()
-    {
+  public Version() {}
+
+  public Version(String key, String value) {
+    this.key = key;
+    this.value = value;
+  }
+
+  // -------------------------------------------------------------------------
+  // hashCode and equals
+  // -------------------------------------------------------------------------
+
+  @Override
+  public int hashCode() {
+    return key.hashCode();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    public Version( String key, String value )
-    {
-        this.key = key;
-        this.value = value;
+    if (o == null) {
+      return false;
     }
 
-    // -------------------------------------------------------------------------
-    // hashCode and equals
-    // -------------------------------------------------------------------------
-
-    @Override
-    public int hashCode()
-    {
-        return key.hashCode();
+    if (!(o instanceof Version)) {
+      return false;
     }
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
+    final Version other = (Version) o;
 
-        if ( o == null )
-        {
-            return false;
-        }
+    return key.equals(other.getKey());
+  }
 
-        if ( !(o instanceof Version) )
-        {
-            return false;
-        }
+  @Override
+  public String toString() {
+    return "[" + key + "]";
+  }
 
-        final Version other = (Version) o;
+  // -------------------------------------------------------------------------
+  // Getter & Setter
+  // -------------------------------------------------------------------------
 
-        return key.equals( other.getKey() );
-    }
+  public long getId() {
+    return id;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[" + key + "]";
-    }
+  public void setId(long id) {
+    this.id = id;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getter & Setter
-    // -------------------------------------------------------------------------
+  public String getKey() {
+    return key;
+  }
 
-    public long getId()
-    {
-        return id;
-    }
+  public void setKey(String key) {
+    this.key = key;
+  }
 
-    public void setId( long id )
-    {
-        this.id = id;
-    }
+  public String getValue() {
+    return value;
+  }
 
-    public String getKey()
-    {
-        return key;
-    }
-
-    public void setKey( String key )
-    {
-        this.key = key;
-    }
-
-    public String getValue()
-    {
-        return value;
-    }
-
-    public void setValue( String value )
-    {
-        this.value = value;
-    }
+  public void setValue(String value) {
+    this.value = value;
+  }
 }

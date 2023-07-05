@@ -40,88 +40,76 @@ import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.hisp.dhis.common.AnalyticsDateFilter;
 
 @Getter
 @RequiredArgsConstructor
-public enum DimensionParamType
-{
-    DIMENSIONS( CommonQueryRequest::getDimension ),
-    FILTERS( CommonQueryRequest::getFilter ),
-    HEADERS( CommonQueryRequest::getHeaders ),
-    DATE_FILTERS( commonQueryRequest -> Arrays.stream( AnalyticsDateFilter.values() )
-        .map( analyticsDateFilter -> parseDate( commonQueryRequest, analyticsDateFilter ) )
-        .filter( Objects::nonNull )
-        .flatMap( Collection::stream )
-        .collect( Collectors.toList() ) ),
+public enum DimensionParamType {
+  DIMENSIONS(CommonQueryRequest::getDimension),
+  FILTERS(CommonQueryRequest::getFilter),
+  HEADERS(CommonQueryRequest::getHeaders),
+  DATE_FILTERS(
+      commonQueryRequest ->
+          Arrays.stream(AnalyticsDateFilter.values())
+              .map(analyticsDateFilter -> parseDate(commonQueryRequest, analyticsDateFilter))
+              .filter(Objects::nonNull)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toList())),
 
-    /**
-     * The function invoked on this enum, will return a collection made of:
-     *
-     * <ul>
-     * <li>commonQueryRequest.getAsc(), suffixed by ":asc"</li>
-     * <li>commonQueryRequest.getDesc(), suffixed by ":desc"</li>
-     * </ul>
-     */
-    SORTING( commonQueryRequest -> Stream.concat(
-        commonQueryRequest.getAsc().stream()
-            .map( s -> s + ":" + ASC.getValue() ),
-        commonQueryRequest.getDesc().stream()
-            .map( s -> s + ":" + DESC.getValue() ) )
-        .collect( Collectors.toList() ) );
+  /**
+   * The function invoked on this enum, will return a collection made of:
+   *
+   * <ul>
+   *   <li>commonQueryRequest.getAsc(), suffixed by ":asc"
+   *   <li>commonQueryRequest.getDesc(), suffixed by ":desc"
+   * </ul>
+   */
+  SORTING(
+      commonQueryRequest ->
+          Stream.concat(
+                  commonQueryRequest.getAsc().stream().map(s -> s + ":" + ASC.getValue()),
+                  commonQueryRequest.getDesc().stream().map(s -> s + ":" + DESC.getValue()))
+              .collect(Collectors.toList()));
 
-    private static List<String> parseDate( CommonQueryRequest commonQueryRequest,
-        AnalyticsDateFilter analyticsDateFilter )
-    {
-        String dateFilter = analyticsDateFilter.getTeiExtractor().apply( commonQueryRequest );
-        if ( StringUtils.isEmpty( dateFilter ) )
-        {
-            return Collections.emptyList();
-        }
-        String[] dateFilterItems = dateFilter.split( ";" );
-        return Stream.of( dateFilterItems )
-            .map( dateFilterItem -> toDimensionParam( dateFilterItem, analyticsDateFilter ) )
-            .collect( Collectors.toList() );
+  private static List<String> parseDate(
+      CommonQueryRequest commonQueryRequest, AnalyticsDateFilter analyticsDateFilter) {
+    String dateFilter = analyticsDateFilter.getTeiExtractor().apply(commonQueryRequest);
+    if (StringUtils.isEmpty(dateFilter)) {
+      return Collections.emptyList();
     }
+    String[] dateFilterItems = dateFilter.split(";");
+    return Stream.of(dateFilterItems)
+        .map(dateFilterItem -> toDimensionParam(dateFilterItem, analyticsDateFilter))
+        .collect(Collectors.toList());
+  }
 
-    /**
-     * Transforms the given "dateItemFilter" into the default internal format
-     * for "pe" dimensions based on the {@link AnalyticsDateFilter} provided.
-     *
-     * @param dateItemFilter the date item filter in the format
-     *        "programUid.programStageUid.period"
-     * @param analyticsDateFilter the {@link AnalyticsDateFilter}.
-     * @return the string in the format
-     *         "programUid.programStageUid.pe:period:analyticsDateFilter"
-     */
-    private static String toDimensionParam( String dateItemFilter, AnalyticsDateFilter analyticsDateFilter )
-    {
-        // Parsing the "programUid.programStageUid.period" to
-        // programUid.programStageUid.pe:period:analyticsDateFilter.
-        StringDimensionIdentifier parsedItem = fromFullDimensionId( dateItemFilter );
+  /**
+   * Transforms the given "dateItemFilter" into the default internal format for "pe" dimensions
+   * based on the {@link AnalyticsDateFilter} provided.
+   *
+   * @param dateItemFilter the date item filter in the format "programUid.programStageUid.period"
+   * @param analyticsDateFilter the {@link AnalyticsDateFilter}.
+   * @return the string in the format "programUid.programStageUid.pe:period:analyticsDateFilter"
+   */
+  private static String toDimensionParam(
+      String dateItemFilter, AnalyticsDateFilter analyticsDateFilter) {
+    // Parsing the "programUid.programStageUid.period" to
+    // programUid.programStageUid.pe:period:analyticsDateFilter.
+    StringDimensionIdentifier parsedItem = fromFullDimensionId(dateItemFilter);
 
-        String period = parsedItem.getDimension().getUid();
+    String period = parsedItem.getDimension().getUid();
 
-        StringDimensionIdentifier dimensionIdentifier = StringDimensionIdentifier.of(
-            parsedItem.getProgram(),
-            parsedItem.getProgramStage(),
-            StringUid.of( PERIOD_DIM_ID ) );
+    StringDimensionIdentifier dimensionIdentifier =
+        StringDimensionIdentifier.of(
+            parsedItem.getProgram(), parsedItem.getProgramStage(), StringUid.of(PERIOD_DIM_ID));
 
-        return String.join( ":",
-            dimensionIdentifier.toString(),
-            period,
-            analyticsDateFilter.name() );
-    }
+    return String.join(":", dimensionIdentifier.toString(), period, analyticsDateFilter.name());
+  }
 
-    /**
-     * Getter method that retrieves the dimensions or filters from the
-     * {@link CommonQueryRequest}.
-     */
-    private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
+  /** Getter method that retrieves the dimensions or filters from the {@link CommonQueryRequest}. */
+  private final Function<CommonQueryRequest, Collection<String>> uidsGetter;
 }

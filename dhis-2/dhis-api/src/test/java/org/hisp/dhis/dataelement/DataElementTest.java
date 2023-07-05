@@ -31,11 +31,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Sets;
 import java.util.Date;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.dataset.DataSet;
@@ -47,148 +47,136 @@ import org.hisp.dhis.period.PeriodTypeEnum;
 import org.hisp.dhis.period.QuarterlyPeriodType;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Sets;
-
 /**
  * @author Lars Helge Overland
  */
-class DataElementTest
-{
+class DataElementTest {
 
-    private PeriodType periodType = new MonthlyPeriodType();
+  private PeriodType periodType = new MonthlyPeriodType();
 
-    @Test
-    void testGetCategoryCombos()
-    {
-        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
-        DataSet dsA = new DataSet( "DataSetA" );
-        DataSet dsB = new DataSet( "DataSetB" );
-        DataElement deA = new DataElement( "DataElementA" );
-        DataElement deB = new DataElement( "DataElementB" );
-        deA.setCategoryCombo( ccA );
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA, ccB );
-        assertEquals( 2, deA.getCategoryCombos().size() );
-        assertEquals( Sets.newHashSet( ccA, ccB ), deA.getCategoryCombos() );
-        deB.setCategoryCombo( ccA );
-        dsB.addDataSetElement( deB );
-        assertEquals( 1, deB.getCategoryCombos().size() );
-        assertEquals( Sets.newHashSet( ccA ), deB.getCategoryCombos() );
-    }
+  @Test
+  void testGetCategoryCombos() {
+    CategoryCombo ccA = new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION);
+    CategoryCombo ccB = new CategoryCombo("CategoryComboB", DataDimensionType.DISAGGREGATION);
+    DataSet dsA = new DataSet("DataSetA");
+    DataSet dsB = new DataSet("DataSetB");
+    DataElement deA = new DataElement("DataElementA");
+    DataElement deB = new DataElement("DataElementB");
+    deA.setCategoryCombo(ccA);
+    dsA.addDataSetElement(deA);
+    dsB.addDataSetElement(deA, ccB);
+    assertEquals(2, deA.getCategoryCombos().size());
+    assertEquals(Sets.newHashSet(ccA, ccB), deA.getCategoryCombos());
+    deB.setCategoryCombo(ccA);
+    dsB.addDataSetElement(deB);
+    assertEquals(1, deB.getCategoryCombos().size());
+    assertEquals(Sets.newHashSet(ccA), deB.getCategoryCombos());
+  }
 
-    @Test
-    void testGetCategoryComboDataSet()
-    {
-        CategoryCombo ccA = new CategoryCombo( "CategoryComboA", DataDimensionType.DISAGGREGATION );
-        CategoryCombo ccB = new CategoryCombo( "CategoryComboB", DataDimensionType.DISAGGREGATION );
-        DataSet dsA = new DataSet( "DataSetA" );
-        DataSet dsB = new DataSet( "DataSetB" );
-        DataElement deA = new DataElement( "DataElementA" );
-        DataElement deB = new DataElement( "DataElementB" );
-        deA.setCategoryCombo( ccA );
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA, ccB );
-        assertEquals( ccA, deA.getDataElementCategoryCombo( dsA ) );
-        assertEquals( ccB, deA.getDataElementCategoryCombo( dsB ) );
-        deB.setCategoryCombo( ccA );
-        dsA.addDataSetElement( deB );
-        assertEquals( ccA, deB.getDataElementCategoryCombo( dsA ) );
-        assertEquals( ccA, deB.getDataElementCategoryCombo( dsB ) );
-    }
+  @Test
+  void testGetCategoryComboDataSet() {
+    CategoryCombo ccA = new CategoryCombo("CategoryComboA", DataDimensionType.DISAGGREGATION);
+    CategoryCombo ccB = new CategoryCombo("CategoryComboB", DataDimensionType.DISAGGREGATION);
+    DataSet dsA = new DataSet("DataSetA");
+    DataSet dsB = new DataSet("DataSetB");
+    DataElement deA = new DataElement("DataElementA");
+    DataElement deB = new DataElement("DataElementB");
+    deA.setCategoryCombo(ccA);
+    dsA.addDataSetElement(deA);
+    dsB.addDataSetElement(deA, ccB);
+    assertEquals(ccA, deA.getDataElementCategoryCombo(dsA));
+    assertEquals(ccB, deA.getDataElementCategoryCombo(dsB));
+    deB.setCategoryCombo(ccA);
+    dsA.addDataSetElement(deB);
+    assertEquals(ccA, deB.getDataElementCategoryCombo(dsA));
+    assertEquals(ccA, deB.getDataElementCategoryCombo(dsB));
+  }
 
-    @Test
-    void testGetPeriodType()
-    {
-        DataElement de = new DataElement();
-        DataSet dsA = new DataSet( "A", periodType );
-        DataSet dsB = new DataSet( "B", periodType );
-        DataSet dsC = new DataSet( "C", periodType );
-        dsA.addDataSetElement( de );
-        dsB.addDataSetElement( de );
-        dsC.addDataSetElement( de );
-        assertEquals( periodType, de.getPeriodType() );
-    }
+  @Test
+  void testGetPeriodType() {
+    DataElement de = new DataElement();
+    DataSet dsA = new DataSet("A", periodType);
+    DataSet dsB = new DataSet("B", periodType);
+    DataSet dsC = new DataSet("C", periodType);
+    dsA.addDataSetElement(de);
+    dsB.addDataSetElement(de);
+    dsC.addDataSetElement(de);
+    assertEquals(periodType, de.getPeriodType());
+  }
 
-    @Test
-    void testPeriodTypeIsValid()
-    {
-        DataElement de = new DataElement();
-        DataSet dsA = new DataSet( "A", new MonthlyPeriodType() );
-        DataSet dsB = new DataSet( "B", new MonthlyPeriodType() );
-        DataSet dsC = new DataSet( "C", new QuarterlyPeriodType() );
-        dsA.addDataSetElement( de );
-        dsB.addDataSetElement( de );
-        assertTrue( de.periodTypeIsValid() );
-        dsC.addDataSetElement( de );
-        assertFalse( de.periodTypeIsValid() );
-    }
+  @Test
+  void testPeriodTypeIsValid() {
+    DataElement de = new DataElement();
+    DataSet dsA = new DataSet("A", new MonthlyPeriodType());
+    DataSet dsB = new DataSet("B", new MonthlyPeriodType());
+    DataSet dsC = new DataSet("C", new QuarterlyPeriodType());
+    dsA.addDataSetElement(de);
+    dsB.addDataSetElement(de);
+    assertTrue(de.periodTypeIsValid());
+    dsC.addDataSetElement(de);
+    assertFalse(de.periodTypeIsValid());
+  }
 
-    @Test
-    void testGetOpenFuturePeriods()
-    {
-        DataElement deA = new DataElement( "A" );
-        assertEquals( 0, deA.getOpenFuturePeriods() );
-        DataSet dsA = new DataSet( "A" );
-        DataSet dsB = new DataSet( "B" );
-        dsA.setOpenFuturePeriods( 0 );
-        dsB.setOpenFuturePeriods( 3 );
-        dsA.addDataSetElement( deA );
-        assertEquals( 0, deA.getOpenFuturePeriods() );
-        dsB.addDataSetElement( deA );
-        assertEquals( 3, deA.getOpenFuturePeriods() );
-    }
+  @Test
+  void testGetOpenFuturePeriods() {
+    DataElement deA = new DataElement("A");
+    assertEquals(0, deA.getOpenFuturePeriods());
+    DataSet dsA = new DataSet("A");
+    DataSet dsB = new DataSet("B");
+    dsA.setOpenFuturePeriods(0);
+    dsB.setOpenFuturePeriods(3);
+    dsA.addDataSetElement(deA);
+    assertEquals(0, deA.getOpenFuturePeriods());
+    dsB.addDataSetElement(deA);
+    assertEquals(3, deA.getOpenFuturePeriods());
+  }
 
-    @Test
-    void testGetLatestOpenFuturePeriod()
-    {
-        DataElement deA = new DataElement( "A" );
-        assertEquals( 0, deA.getOpenFuturePeriods() );
-        DataSet dsA = new DataSet( "A", periodType );
-        DataSet dsB = new DataSet( "B", periodType );
-        dsA.setOpenFuturePeriods( 3 );
-        dsB.setOpenFuturePeriods( 3 );
-        dsA.addDataSetElement( deA );
-        dsB.addDataSetElement( deA );
-        Period lastOpen = deA.getLatestOpenFuturePeriod();
-        assertTrue( lastOpen.isAfter( new MonthlyPeriodType().createPeriod() ) );
-    }
+  @Test
+  void testGetLatestOpenFuturePeriod() {
+    DataElement deA = new DataElement("A");
+    assertEquals(0, deA.getOpenFuturePeriods());
+    DataSet dsA = new DataSet("A", periodType);
+    DataSet dsB = new DataSet("B", periodType);
+    dsA.setOpenFuturePeriods(3);
+    dsB.setOpenFuturePeriods(3);
+    dsA.addDataSetElement(deA);
+    dsB.addDataSetElement(deA);
+    Period lastOpen = deA.getLatestOpenFuturePeriod();
+    assertTrue(lastOpen.isAfter(new MonthlyPeriodType().createPeriod()));
+  }
 
-    @Test
-    void testIsExpired_BeforeFirstDayOfPeriod()
-    {
-        assertIsExpired( false, period -> new Date( period.getStartDate().getTime() - 1L ) );
-    }
+  @Test
+  void testIsExpired_BeforeFirstDayOfPeriod() {
+    assertIsExpired(false, period -> new Date(period.getStartDate().getTime() - 1L));
+  }
 
-    @Test
-    void testIsExpired_FirstDayOfPeriod()
-    {
-        assertIsExpired( false, Period::getStartDate );
-    }
+  @Test
+  void testIsExpired_FirstDayOfPeriod() {
+    assertIsExpired(false, Period::getStartDate);
+  }
 
-    @Test
-    void testIsExpired_LastDayOfPeriod()
-    {
-        assertIsExpired( false, Period::getEndDate );
-    }
+  @Test
+  void testIsExpired_LastDayOfPeriod() {
+    assertIsExpired(false, Period::getEndDate);
+  }
 
-    @Test
-    void testIsExpired_AfterLastDayOfPeriod()
-    {
-        // expiryDays is 1 so 1 extra day after the end is still ok
-        assertIsExpired( false, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 1 ) ) );
-        // but 2 is too much
-        assertIsExpired( true, period -> new Date( period.getEndDate().getTime() + TimeUnit.DAYS.toMillis( 2 ) ) );
-    }
+  @Test
+  void testIsExpired_AfterLastDayOfPeriod() {
+    // expiryDays is 1 so 1 extra day after the end is still ok
+    assertIsExpired(
+        false, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(1)));
+    // but 2 is too much
+    assertIsExpired(
+        true, period -> new Date(period.getEndDate().getTime() + TimeUnit.DAYS.toMillis(2)));
+  }
 
-    private static void assertIsExpired( boolean expected, Function<Period, Date> actual )
-    {
-        Date now = new Date();
-        Period thisMonth = PeriodType.getPeriodType( PeriodTypeEnum.MONTHLY ).createPeriod( now );
-        DataElement de = new DataElement();
-        DataSet ds = new DataSet();
-        ds.setExpiryDays( 1 );
-        de.setDataSetElements( Set.of( new DataSetElement( ds, de ) ) );
-        assertEquals( expected, de.isExpired( thisMonth, actual.apply( thisMonth ) ) );
-    }
+  private static void assertIsExpired(boolean expected, Function<Period, Date> actual) {
+    Date now = new Date();
+    Period thisMonth = PeriodType.getPeriodType(PeriodTypeEnum.MONTHLY).createPeriod(now);
+    DataElement de = new DataElement();
+    DataSet ds = new DataSet();
+    ds.setExpiryDays(1);
+    de.setDataSetElements(Set.of(new DataSetElement(ds, de)));
+    assertEquals(expected, de.isExpired(thisMonth, actual.apply(thisMonth)));
+  }
 }

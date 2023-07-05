@@ -28,15 +28,12 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import java.util.List;
-
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
 import org.hisp.dhis.tracker.imports.preheat.TrackerPreheat;
 
 /**
- *
  * @author Luciano Fiandesio
  */
-public interface ClassBasedSupplierStrategy
-{
-    void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat );
+public interface ClassBasedSupplierStrategy {
+  void add(TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat);
 }

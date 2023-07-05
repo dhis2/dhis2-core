@@ -31,7 +31,6 @@ import static org.springframework.util.Assert.hasText;
 import static org.springframework.util.Assert.notNull;
 
 import java.util.Map;
-
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -43,25 +42,22 @@ import lombok.extern.slf4j.Slf4j;
 @EqualsAndHashCode
 @Slf4j
 @Getter
-public class SqlQuery implements Query
-{
-    private final String statement;
+public class SqlQuery implements Query {
+  private final String statement;
 
-    private final Map<String, Object> params;
+  private final Map<String, Object> params;
 
-    /**
-     * @throws IllegalArgumentException if statement or params are
-     *         null/empty/blank.
-     */
-    public SqlQuery( String statement, Map<String, Object> params )
-    {
-        hasText( statement, "The 'statement' must not be null/empty/blank" );
-        notNull( params, "The 'params' must not be null" );
+  /**
+   * @throws IllegalArgumentException if statement or params are null/empty/blank.
+   */
+  public SqlQuery(String statement, Map<String, Object> params) {
+    hasText(statement, "The 'statement' must not be null/empty/blank");
+    notNull(params, "The 'params' must not be null");
 
-        this.statement = statement;
-        this.params = params;
+    this.statement = statement;
+    this.params = params;
 
-        log.debug( "STATEMENT: " + statement );
-        log.debug( "PARAMS: " + params );
-    }
+    log.debug("STATEMENT: " + statement);
+    log.debug("PARAMS: " + params);
+  }
 }

@@ -52,46 +52,36 @@ import org.mockito.MockitoAnnotations;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class CacheInvalidationListenerTest
-{
+class CacheInvalidationListenerTest {
 
-    @Mock
-    protected SessionFactory sessionFactory;
+  @Mock protected SessionFactory sessionFactory;
 
-    @Mock
-    protected PaginationCacheManager paginationCacheManager;
+  @Mock protected PaginationCacheManager paginationCacheManager;
 
-    @Mock
-    protected QueryCacheManager queryCacheManager;
+  @Mock protected QueryCacheManager queryCacheManager;
 
-    @Mock
-    protected IdentifiableObjectManager idObjectManager;
+  @Mock protected IdentifiableObjectManager idObjectManager;
 
-    @Mock
-    protected TrackedEntityAttributeService trackedEntityAttributeService;
+  @Mock protected TrackedEntityAttributeService trackedEntityAttributeService;
 
-    @Mock
-    protected TrackedEntityService trackedEntityService;
+  @Mock protected TrackedEntityService trackedEntityService;
 
-    @Mock
-    protected PeriodService periodService;
+  @Mock protected PeriodService periodService;
 
-    @Mock
-    protected DisabledCaching disabledCaching;
+  @Mock protected DisabledCaching disabledCaching;
 
-    private CacheInvalidationListener cacheInvalidationListener;
+  private CacheInvalidationListener cacheInvalidationListener;
 
-    private AutoCloseable closeable;
+  private AutoCloseable closeable;
 
-    @Mock
-    private ServiceRegistryImplementor ServiceRegistryImplementor;
+  @Mock private ServiceRegistryImplementor ServiceRegistryImplementor;
 
-    @BeforeEach
-    void setUp()
-    {
-        closeable = MockitoAnnotations.openMocks( this );
+  @BeforeEach
+  void setUp() {
+    closeable = MockitoAnnotations.openMocks(this);
 
-        cacheInvalidationListener = new CacheInvalidationListener(
+    cacheInvalidationListener =
+        new CacheInvalidationListener(
             sessionFactory,
             paginationCacheManager,
             queryCacheManager,
@@ -99,62 +89,64 @@ class CacheInvalidationListenerTest
             trackedEntityAttributeService,
             trackedEntityService,
             periodService,
-            "SERVER_A" );
+            "SERVER_A");
 
-        lenient().when( sessionFactory.getCache() ).thenReturn( disabledCaching );
+    lenient().when(sessionFactory.getCache()).thenReturn(disabledCaching);
+  }
 
-    }
+  @AfterEach
+  void closeService() throws Exception {
+    closeable.close();
+  }
 
-    @AfterEach
-    void closeService()
-        throws Exception
-    {
-        closeable.close();
-    }
+  @Test
+  @DisplayName("Should not call evict cache on COLLECTION messages")
+  void testCollectionMessage() {
+    String message =
+        "SERVER_B"
+            + ":"
+            + "COLLECTION"
+            + ":"
+            + "org.hisp.dhis.user.User"
+            + ":"
+            + "ROLE"
+            + ":"
+            + "1";
+    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
 
-    @Test
-    @DisplayName( "Should not call evict cache on COLLECTION messages" )
-    void testCollectionMessage()
-    {
-        String message = "SERVER_B" + ":" + "COLLECTION" + ":" + "org.hisp.dhis.user.User" + ":" + "ROLE" + ":" + "1";
-        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
+    verify(queryCacheManager, times(0)).evictQueryCache(any(), any());
+    verify(sessionFactory.getCache(), times(1)).evictCollectionData(any(), any());
+    verify(paginationCacheManager, times(0)).evictCache(anyString());
+  }
 
-        verify( queryCacheManager, times( 0 ) ).evictQueryCache( any(), any() );
-        verify( sessionFactory.getCache(), times( 1 ) ).evictCollectionData( any(), any() );
-        verify( paginationCacheManager, times( 0 ) ).evictCache( anyString() );
-    }
+  @Test
+  @DisplayName("Should not call evict cache on INSERT messages")
+  void testInsertMessage() {
+    String message = "SERVER_B" + ":" + "INSERT" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
+    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
 
-    @Test
-    @DisplayName( "Should not call evict cache on INSERT messages" )
-    void testInsertMessage()
-    {
-        String message = "SERVER_B" + ":" + "INSERT" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
+    verify(queryCacheManager, times(1)).evictQueryCache(any(), any());
+    verify(sessionFactory.getCache(), times(0)).evict(any(), any());
+    verify(paginationCacheManager, times(1)).evictCache(anyString());
+  }
 
-        verify( queryCacheManager, times( 1 ) ).evictQueryCache( any(), any() );
-        verify( sessionFactory.getCache(), times( 0 ) ).evict( any(), any() );
-        verify( paginationCacheManager, times( 1 ) ).evictCache( anyString() );
-    }
+  @Test
+  @DisplayName("Should call evict cache on UPDATE messages")
+  void testUpdateMessage() {
+    String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
+    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
 
-    @Test
-    @DisplayName( "Should call evict cache on UPDATE messages" )
-    void testUpdateMessage()
-    {
-        String message = "SERVER_B" + ":" + "UPDATE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
+    verify(sessionFactory.getCache(), times(1)).evict(any(), any());
+  }
 
-        verify( sessionFactory.getCache(), times( 1 ) ).evict( any(), any() );
-    }
+  @Test
+  @DisplayName("Should call evict cache on DELETE messages")
+  void testDeleteMessage() {
+    String message = "SERVER_B" + ":" + "DELETE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
+    cacheInvalidationListener.message(CacheInvalidationConfiguration.CHANNEL_NAME, message);
 
-    @Test
-    @DisplayName( "Should call evict cache on DELETE messages" )
-    void testDeleteMessage()
-    {
-        String message = "SERVER_B" + ":" + "DELETE" + ":" + "org.hisp.dhis.user.User" + ":" + "1";
-        cacheInvalidationListener.message( CacheInvalidationConfiguration.CHANNEL_NAME, message );
-
-        verify( queryCacheManager, times( 1 ) ).evictQueryCache( any(), any() );
-        verify( sessionFactory.getCache(), times( 1 ) ).evict( any(), any() );
-        verify( paginationCacheManager, times( 1 ) ).evictCache( anyString() );
-    }
+    verify(queryCacheManager, times(1)).evictQueryCache(any(), any());
+    verify(sessionFactory.getCache(), times(1)).evict(any(), any());
+    verify(paginationCacheManager, times(1)).evictCache(anyString());
+  }
 }

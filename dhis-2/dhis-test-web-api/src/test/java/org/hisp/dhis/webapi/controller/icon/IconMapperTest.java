@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
-
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.fileresource.FileResource;
 import org.hisp.dhis.fileresource.FileResourceService;
@@ -49,82 +48,79 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-@ExtendWith( MockitoExtension.class )
-class IconMapperTest
-{
+@ExtendWith(MockitoExtension.class)
+class IconMapperTest {
 
-    @Mock
-    private FileResourceService fileResourceService;
+  @Mock private FileResourceService fileResourceService;
 
-    @Mock
-    private CurrentUserService currentUserService;
+  @Mock private CurrentUserService currentUserService;
 
-    @Mock
-    private ContextService contextService;
+  @Mock private ContextService contextService;
 
-    private static final String KEY = "icon key";
+  private static final String KEY = "icon key";
 
-    private static final String DESCRIPTION = "description";
+  private static final String DESCRIPTION = "description";
 
-    private static final String[] KEYWORDS = { "k1", "k2" };
+  private static final String[] KEYWORDS = {"k1", "k2"};
 
-    private static final FileResource fileResource = new FileResource();
+  private static final FileResource fileResource = new FileResource();
 
-    private IconMapper iconMapper;
+  private IconMapper iconMapper;
 
-    @BeforeEach
-    void setUp()
-    {
-        fileResource.setUid( "file resource uid" );
-        iconMapper = new IconMapper( fileResourceService, currentUserService, contextService );
-    }
+  @BeforeEach
+  void setUp() {
+    fileResource.setUid("file resource uid");
+    iconMapper = new IconMapper(fileResourceService, currentUserService, contextService);
+  }
 
-    @Test
-    void shouldReturnCustomIconFromIconDto()
-        throws BadRequestException
-    {
-        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid() );
-        when( fileResourceService.getFileResource( fileResource.getUid(), CUSTOM_ICON ) )
-            .thenReturn( Optional.of( fileResource ) );
-        User user = new User();
-        user.setUid( "user uid" );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
+  @Test
+  void shouldReturnCustomIconFromIconDto() throws BadRequestException {
+    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid());
+    when(fileResourceService.getFileResource(fileResource.getUid(), CUSTOM_ICON))
+        .thenReturn(Optional.of(fileResource));
+    User user = new User();
+    user.setUid("user uid");
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-        CustomIcon customIcon = iconMapper.to( iconDto );
+    CustomIcon customIcon = iconMapper.to(iconDto);
 
-        assertEquals( KEY, customIcon.getKey() );
-        assertEquals( DESCRIPTION, customIcon.getDescription() );
-        assertEquals( KEYWORDS, customIcon.getKeywords() );
-        assertEquals( fileResource.getUid(), customIcon.getFileResourceUid() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), customIcon.getCreatedByUserUid() );
-    }
+    assertEquals(KEY, customIcon.getKey());
+    assertEquals(DESCRIPTION, customIcon.getDescription());
+    assertEquals(KEYWORDS, customIcon.getKeywords());
+    assertEquals(fileResource.getUid(), customIcon.getFileResourceUid());
+    assertEquals(currentUserService.getCurrentUser().getUid(), customIcon.getCreatedByUserUid());
+  }
 
-    @Test
-    void shouldFailWhenMappingToCustomIconWithNonExistentFileResource()
-    {
-        IconDto iconDto = new IconDto( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid() );
+  @Test
+  void shouldFailWhenMappingToCustomIconWithNonExistentFileResource() {
+    IconDto iconDto = new IconDto(KEY, DESCRIPTION, KEYWORDS, fileResource.getUid());
 
-        Exception exception = assertThrows( BadRequestException.class, () -> iconMapper.to( iconDto ) );
-        assertEquals( String.format( "File resource with uid %s does not exist", iconDto.getFileResourceUid() ),
-            exception.getMessage() );
-    }
+    Exception exception = assertThrows(BadRequestException.class, () -> iconMapper.to(iconDto));
+    assertEquals(
+        String.format("File resource with uid %s does not exist", iconDto.getFileResourceUid()),
+        exception.getMessage());
+  }
 
-    @Test
-    void shouldReturnIconResponseFromIcon()
-    {
-        User user = new User();
-        user.setUid( "user uid" );
-        when( currentUserService.getCurrentUser() ).thenReturn( user );
+  @Test
+  void shouldReturnIconResponseFromIcon() {
+    User user = new User();
+    user.setUid("user uid");
+    when(currentUserService.getCurrentUser()).thenReturn(user);
 
-        Icon icon = new CustomIcon( KEY, DESCRIPTION, KEYWORDS, fileResource.getUid(),
-            currentUserService.getCurrentUser().getUid() );
+    Icon icon =
+        new CustomIcon(
+            KEY,
+            DESCRIPTION,
+            KEYWORDS,
+            fileResource.getUid(),
+            currentUserService.getCurrentUser().getUid());
 
-        IconResponse iconResponse = iconMapper.from( icon );
+    IconResponse iconResponse = iconMapper.from(icon);
 
-        assertEquals( KEY, iconResponse.getKey() );
-        assertEquals( DESCRIPTION, iconResponse.getDescription() );
-        assertEquals( KEYWORDS, iconResponse.getKeywords() );
-        assertEquals( fileResource.getUid(), iconResponse.getFileResourceUid() );
-        assertEquals( currentUserService.getCurrentUser().getUid(), iconResponse.getUserUid() );
-    }
+    assertEquals(KEY, iconResponse.getKey());
+    assertEquals(DESCRIPTION, iconResponse.getDescription());
+    assertEquals(KEYWORDS, iconResponse.getKeywords());
+    assertEquals(fileResource.getUid(), iconResponse.getFileResourceUid());
+    assertEquals(currentUserService.getCurrentUser().getUid(), iconResponse.getUserUid());
+  }
 }

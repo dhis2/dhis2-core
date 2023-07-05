@@ -33,7 +33,6 @@ import static org.hisp.dhis.dxf2.importsummary.ImportSummary.success;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.context.WorkContext;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
@@ -48,57 +47,58 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EnrollmentCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        Program program = ctx.getProgramsMap().get( event.getProgram() );
-        Enrollment enrollment = ctx.getProgramInstanceMap().get( event.getUid() );
-        final Optional<TrackedEntity> trackedEntityInstance = ctx.getTrackedEntityInstance( event.getUid() );
+public class EnrollmentCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    Program program = ctx.getProgramsMap().get(event.getProgram());
+    Enrollment enrollment = ctx.getProgramInstanceMap().get(event.getUid());
+    final Optional<TrackedEntity> trackedEntityInstance =
+        ctx.getTrackedEntityInstance(event.getUid());
 
-        String teiUid = "";
-        if ( trackedEntityInstance.isPresent() )
-        {
-            teiUid = trackedEntityInstance.get().getUid();
-        }
-
-        List<Enrollment> enrollments;
-
-        if ( enrollment == null ) // Enrollment should be NOT null,
-                                 // after the pre-processing stage
-        {
-            if ( program.isRegistration() )
-            {
-                enrollments = new ArrayList<>( ctx.getServiceDelegator().getEnrollmentStore()
-                    .get( trackedEntityInstance.orElse( null ), program, ProgramStatus.ACTIVE ) );
-
-                if ( enrollments.isEmpty() )
-                {
-                    return error( "Tracked entity instance: "
-                        + teiUid + " is not enrolled in program: " + program.getUid(),
-                        event.getEvent() );
-                }
-                else if ( enrollments.size() > 1 )
-                {
-                    return error( "Tracked entity instance: " + teiUid
-                        + " has multiple active enrollments in program: " + program.getUid(),
-                        event.getEvent() );
-                }
-            }
-            else
-            {
-                enrollments = ctx.getServiceDelegator().getEnrollmentStore().get( program,
-                    ProgramStatus.ACTIVE );
-
-                if ( enrollments.size() > 1 )
-                {
-                    return error( "Multiple active enrollments exists for program: " + program.getUid(),
-                        event.getEvent() );
-                }
-            }
-        }
-
-        return success();
+    String teiUid = "";
+    if (trackedEntityInstance.isPresent()) {
+      teiUid = trackedEntityInstance.get().getUid();
     }
+
+    List<Enrollment> enrollments;
+
+    if (enrollment == null) // Enrollment should be NOT null,
+    // after the pre-processing stage
+    {
+      if (program.isRegistration()) {
+        enrollments =
+            new ArrayList<>(
+                ctx.getServiceDelegator()
+                    .getEnrollmentStore()
+                    .get(trackedEntityInstance.orElse(null), program, ProgramStatus.ACTIVE));
+
+        if (enrollments.isEmpty()) {
+          return error(
+              "Tracked entity instance: "
+                  + teiUid
+                  + " is not enrolled in program: "
+                  + program.getUid(),
+              event.getEvent());
+        } else if (enrollments.size() > 1) {
+          return error(
+              "Tracked entity instance: "
+                  + teiUid
+                  + " has multiple active enrollments in program: "
+                  + program.getUid(),
+              event.getEvent());
+        }
+      } else {
+        enrollments =
+            ctx.getServiceDelegator().getEnrollmentStore().get(program, ProgramStatus.ACTIVE);
+
+        if (enrollments.size() > 1) {
+          return error(
+              "Multiple active enrollments exists for program: " + program.getUid(),
+              event.getEvent());
+        }
+      }
+    }
+
+    return success();
+  }
 }

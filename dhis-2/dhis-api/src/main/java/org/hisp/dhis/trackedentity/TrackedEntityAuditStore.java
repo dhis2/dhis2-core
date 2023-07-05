@@ -28,51 +28,48 @@
 package org.hisp.dhis.trackedentity;
 
 import java.util.List;
-
 import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
-public interface TrackedEntityAuditStore
-{
-    String ID = TrackedEntityAuditStore.class.getName();
+public interface TrackedEntityAuditStore {
+  String ID = TrackedEntityAuditStore.class.getName();
 
-    /**
-     * Adds the given tracked entity audit.
-     *
-     * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
-     */
-    void addTrackedEntityAudit( TrackedEntityAudit trackedEntityAudit );
+  /**
+   * Adds the given tracked entity audit.
+   *
+   * @param trackedEntityAudit the {@link TrackedEntityAudit} to add.
+   */
+  void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit);
 
-    /**
-     * Adds the given {@link TrackedEntityAudit}s.
-     *
-     * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
-     */
-    void addTrackedEntityAudit( List<TrackedEntityAudit> trackedEntityAudit );
+  /**
+   * Adds the given {@link TrackedEntityAudit}s.
+   *
+   * @param trackedEntityAudit the list of {@link TrackedEntityAudit}.
+   */
+  void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudit);
 
-    /**
-     * Deletes tracked entity audit for the given tracked entity.
-     *
-     * @param trackedEntity the {@link TrackedEntity}.
-     */
-    void deleteTrackedEntityAudit( TrackedEntity trackedEntity );
+  /**
+   * Deletes tracked entity audit for the given tracked entity.
+   *
+   * @param trackedEntity the {@link TrackedEntity}.
+   */
+  void deleteTrackedEntityAudit(TrackedEntity trackedEntity);
 
-    /**
-     * Returns tracked entity audits matching query params
-     *
-     * @param params tracked entity audit query params
-     * @return a list of {@link TrackedEntityAudit}.
-     */
-    List<TrackedEntityAudit> getTrackedEntityAudits( TrackedEntityAuditQueryParams params );
+  /**
+   * Returns tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return a list of {@link TrackedEntityAudit}.
+   */
+  List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params);
 
-    /**
-     * Returns count of tracked entity audits matching query params
-     *
-     * @param params tracked entity audit query params
-     * @return count of audits.
-     */
-    int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params );
+  /**
+   * Returns count of tracked entity audits matching query params
+   *
+   * @param params tracked entity audit query params
+   * @return count of audits.
+   */
+  int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params);
 }

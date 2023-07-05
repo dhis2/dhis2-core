@@ -34,12 +34,9 @@ import static org.hisp.dhis.parser.expression.ParserUtils.DEFAULT_DOUBLE_VALUE;
  *
  * @author Jim Grace
  */
-public abstract class ProgramDoubleVariable
-    implements ProgramVariable
-{
-    @Override
-    public final Object defaultVariableValue()
-    {
-        return DEFAULT_DOUBLE_VALUE;
-    }
+public abstract class ProgramDoubleVariable implements ProgramVariable {
+  @Override
+  public final Object defaultVariableValue() {
+    return DEFAULT_DOUBLE_VALUE;
+  }
 }

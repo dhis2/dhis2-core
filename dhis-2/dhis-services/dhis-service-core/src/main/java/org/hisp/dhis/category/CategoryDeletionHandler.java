@@ -34,30 +34,24 @@ import org.springframework.stereotype.Component;
  * @author Dang Duy Hieu
  */
 @Component
-public class CategoryDeletionHandler extends IdObjectDeletionHandler<Category>
-{
-    @Override
-    protected void registerHandler()
-    {
-        whenDeleting( CategoryOption.class, this::deleteCategoryOption );
-        whenDeleting( CategoryCombo.class, this::deleteCategoryCombo );
-    }
+public class CategoryDeletionHandler extends IdObjectDeletionHandler<Category> {
+  @Override
+  protected void registerHandler() {
+    whenDeleting(CategoryOption.class, this::deleteCategoryOption);
+    whenDeleting(CategoryCombo.class, this::deleteCategoryCombo);
+  }
 
-    private void deleteCategoryOption( CategoryOption categoryOption )
-    {
-        for ( Category category : categoryOption.getCategories() )
-        {
-            category.getCategoryOptions().remove( categoryOption );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryOption(CategoryOption categoryOption) {
+    for (Category category : categoryOption.getCategories()) {
+      category.getCategoryOptions().remove(categoryOption);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 
-    private void deleteCategoryCombo( CategoryCombo categoryCombo )
-    {
-        for ( Category category : categoryCombo.getCategories() )
-        {
-            category.getCategoryCombos().remove( categoryCombo );
-            idObjectManager.updateNoAcl( category );
-        }
+  private void deleteCategoryCombo(CategoryCombo categoryCombo) {
+    for (Category category : categoryCombo.getCategories()) {
+      category.getCategoryCombos().remove(categoryCombo);
+      idObjectManager.updateNoAcl(category);
     }
+  }
 }

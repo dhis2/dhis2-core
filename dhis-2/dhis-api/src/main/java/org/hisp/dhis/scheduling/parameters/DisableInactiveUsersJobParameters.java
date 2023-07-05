@@ -27,17 +27,14 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Optional;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.feedback.ErrorCode;
 import org.hisp.dhis.feedback.ErrorReport;
 import org.hisp.dhis.scheduling.JobParameters;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Jan Bernitt
@@ -45,32 +42,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DisableInactiveUsersJobParameters implements JobParameters
-{
-    @JsonProperty( required = true )
-    private int inactiveMonths;
+public class DisableInactiveUsersJobParameters implements JobParameters {
+  @JsonProperty(required = true)
+  private int inactiveMonths;
 
-    @JsonProperty
-    private Integer reminderDaysBefore;
+  @JsonProperty private Integer reminderDaysBefore;
 
-    public DisableInactiveUsersJobParameters( int inactiveMonths )
-    {
-        this.inactiveMonths = inactiveMonths;
+  public DisableInactiveUsersJobParameters(int inactiveMonths) {
+    this.inactiveMonths = inactiveMonths;
+  }
+
+  @Override
+  public Optional<ErrorReport> validate() {
+    if (inactiveMonths < 1 || inactiveMonths > 24) {
+      return Optional.of(
+          new ErrorReport(getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths));
     }
-
-    @Override
-    public Optional<ErrorReport> validate()
-    {
-        if ( inactiveMonths < 1 || inactiveMonths > 24 )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "inactiveMonths", 1, 24, inactiveMonths ) );
-        }
-        if ( reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28) )
-        {
-            return Optional.of(
-                new ErrorReport( getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore ) );
-        }
-        return Optional.empty();
+    if (reminderDaysBefore != null && (reminderDaysBefore < 1 || reminderDaysBefore > 28)) {
+      return Optional.of(
+          new ErrorReport(
+              getClass(), ErrorCode.E4008, "reminderDaysBefore", 1, 28, reminderDaysBefore));
     }
+    return Optional.empty();
+  }
 }

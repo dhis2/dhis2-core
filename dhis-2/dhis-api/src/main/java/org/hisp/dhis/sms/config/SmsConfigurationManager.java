@@ -27,14 +27,11 @@
  */
 package org.hisp.dhis.sms.config;
 
-/**
- * Zubair <rajazubair.asghar@gmail.com>
- */
-public interface SmsConfigurationManager
-{
-    SmsConfiguration getSmsConfiguration();
+/** Zubair <rajazubair.asghar@gmail.com> */
+public interface SmsConfigurationManager {
+  SmsConfiguration getSmsConfiguration();
 
-    void updateSmsConfiguration( SmsConfiguration config );
+  void updateSmsConfiguration(SmsConfiguration config);
 
-    SmsGatewayConfig checkInstanceOfGateway( Class<?> clazz );
+  SmsGatewayConfig checkInstanceOfGateway(Class<?> clazz);
 }

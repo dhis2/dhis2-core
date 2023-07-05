@@ -27,73 +27,63 @@
  */
 package org.hisp.dhis.security.apikey;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.schema.PropertyType;
 import org.hisp.dhis.schema.annotation.Property;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class RefererAllowedList extends ApiTokenAttribute
-{
-    private Set<String> allowedReferrers = new HashSet<>();
+public class RefererAllowedList extends ApiTokenAttribute {
+  private Set<String> allowedReferrers = new HashSet<>();
 
-    public RefererAllowedList()
-    {
-        super( "RefererAllowedList" );
+  public RefererAllowedList() {
+    super("RefererAllowedList");
+  }
+
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  @Property(value = PropertyType.COLLECTION, required = Property.Value.TRUE)
+  public Set<String> getAllowedReferrers() {
+    return allowedReferrers;
+  }
+
+  public void setAllowedReferrers(Set<String> allowedReferrers) {
+    this.allowedReferrers = allowedReferrers;
+  }
+
+  public static RefererAllowedList of(String... values) {
+    final RefererAllowedList refererAllowedList = new RefererAllowedList();
+    refererAllowedList.setAllowedReferrers(
+        new HashSet<>(
+            Stream.of(values).map(s -> s.toLowerCase(Locale.ROOT)).collect(Collectors.toSet())));
+    return refererAllowedList;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
     }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    @Property( value = PropertyType.COLLECTION, required = Property.Value.TRUE )
-    public Set<String> getAllowedReferrers()
-    {
-        return allowedReferrers;
+    if (o == null || getClass() != o.getClass()) {
+      return false;
     }
 
-    public void setAllowedReferrers( Set<String> allowedReferrers )
-    {
-        this.allowedReferrers = allowedReferrers;
-    }
+    RefererAllowedList that = (RefererAllowedList) o;
+    return Objects.equals(allowedReferrers, that.allowedReferrers);
+  }
 
-    public static RefererAllowedList of( String... values )
-    {
-        final RefererAllowedList refererAllowedList = new RefererAllowedList();
-        refererAllowedList.setAllowedReferrers( new HashSet<>(
-            Stream.of( values ).map( s -> s.toLowerCase( Locale.ROOT ) ).collect( Collectors.toSet() ) ) );
-        return refererAllowedList;
-    }
-
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-        {
-            return true;
-        }
-
-        if ( o == null || getClass() != o.getClass() )
-        {
-            return false;
-        }
-
-        RefererAllowedList that = (RefererAllowedList) o;
-        return Objects.equals( allowedReferrers, that.allowedReferrers );
-    }
-
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( allowedReferrers );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(allowedReferrers);
+  }
 }

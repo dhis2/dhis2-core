@@ -40,7 +40,6 @@ import static org.hisp.dhis.webapi.controller.dataitem.helper.FilteringHelper.se
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
-
 import org.hisp.dhis.cache.Cache;
 import org.hisp.dhis.cache.CacheProvider;
 import org.hisp.dhis.common.BaseIdentifiableObject;
@@ -59,112 +58,125 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.stereotype.Component;
 
 /**
- * This class is responsible for handling the result and pagination nodes. This
- * component is coupled to the controller class, where it's being used.
+ * This class is responsible for handling the result and pagination nodes. This component is coupled
+ * to the controller class, where it's being used.
  *
- * It also keeps an internal cache which's used to speed up the pagination
- * process.
+ * <p>It also keeps an internal cache which's used to speed up the pagination process.
  *
- * IMPORTANT: This cache should be removed once we have a new centralized
- * caching solution in place. At that stage, the new solution should be
- * favoured.
+ * <p>IMPORTANT: This cache should be removed once we have a new centralized caching solution in
+ * place. At that stage, the new solution should be favoured.
  *
  * @author maikel arabori
  */
 @Component
-class ResponseHandler
-{
-    private final QueryExecutor queryExecutor;
+class ResponseHandler {
+  private final QueryExecutor queryExecutor;
 
-    private final LinkService linkService;
+  private final LinkService linkService;
 
-    private final FieldFilterService fieldFilterService;
+  private final FieldFilterService fieldFilterService;
 
-    private final Cache<Long> pageCountingCache;
+  private final Cache<Long> pageCountingCache;
 
-    ResponseHandler( QueryExecutor queryExecutor, LinkService linkService, FieldFilterService fieldFilterService,
-        CacheProvider cacheProvider )
-    {
-        checkNotNull( queryExecutor );
-        checkNotNull( linkService );
-        checkNotNull( fieldFilterService );
-        checkNotNull( cacheProvider );
+  ResponseHandler(
+      QueryExecutor queryExecutor,
+      LinkService linkService,
+      FieldFilterService fieldFilterService,
+      CacheProvider cacheProvider) {
+    checkNotNull(queryExecutor);
+    checkNotNull(linkService);
+    checkNotNull(fieldFilterService);
+    checkNotNull(cacheProvider);
 
-        this.queryExecutor = queryExecutor;
-        this.linkService = linkService;
-        this.fieldFilterService = fieldFilterService;
-        this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
+    this.queryExecutor = queryExecutor;
+    this.linkService = linkService;
+    this.fieldFilterService = fieldFilterService;
+    this.pageCountingCache = cacheProvider.createDataItemsPaginationCache();
+  }
+
+  /**
+   * Appends the given dimensionalItemsFound (the collection of results) and fields to the rootNode.
+   *
+   * @param rootNode the main response root node
+   * @param dimensionalItemsFound the collection of results
+   * @param fields the list of fields to be returned
+   */
+  void addResultsToNode(
+      RootNode rootNode, List<DataItem> dimensionalItemsFound, Set<String> fields) {
+    CollectionNode collectionNode =
+        fieldFilterService.toConcreteClassCollectionNode(
+            DataItem.class,
+            new FieldFilterParams(dimensionalItemsFound, newArrayList(fields)),
+            "dataItems",
+            DXF_2_0);
+
+    rootNode.addChild(collectionNode);
+  }
+
+  /**
+   * This method takes care of the pagination link and their respective attributes. It will count
+   * the number of results available and base on the WebOptions will calculate the pagination
+   * output.
+   *
+   * @param rootNode the node where the the pagination will be attached to
+   * @param targetEntities the list of classes which requires pagination
+   * @param currentUser the current logged user
+   * @param options holds the pagination definitions
+   * @param filters the query filters used in the count query
+   */
+  void addPaginationToNode(
+      RootNode rootNode,
+      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      User currentUser,
+      WebOptions options,
+      Set<String> filters) {
+    if (options.hasPaging() && isNotEmpty(targetEntities)) {
+      // Defining query params map and setting common params.
+      MapSqlParameterSource paramsMap =
+          new MapSqlParameterSource().addValue(USER_UID, currentUser.getUid());
+
+      setFilteringParams(filters, options, paramsMap, currentUser);
+
+      AtomicLong count = new AtomicLong();
+
+      // Counting and summing up the results for each entity.
+      count.addAndGet(
+          pageCountingCache.get(
+              createPageCountingCacheKey(currentUser, targetEntities, filters, options),
+              p -> countEntityRowsTotal(targetEntities, options, paramsMap)));
+
+      Pager pager = new Pager(options.getPage(), count.get(), options.getPageSize());
+
+      linkService.generatePagerLinks(pager, API_RESOURCE_PATH);
+
+      rootNode.addChild(createPager(pager));
+    }
+  }
+
+  private long countEntityRowsTotal(
+      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      WebOptions options,
+      MapSqlParameterSource paramsMap) {
+    // Calculate pagination.
+    if (options.hasPaging()) {
+      int maxLimit = options.getPage() * options.getPageSize();
+      paramsMap.addValue(QueryParam.MAX_LIMIT, maxLimit);
     }
 
-    /**
-     * Appends the given dimensionalItemsFound (the collection of results) and
-     * fields to the rootNode.
-     *
-     * @param rootNode the main response root node
-     * @param dimensionalItemsFound the collection of results
-     * @param fields the list of fields to be returned
-     */
-    void addResultsToNode( RootNode rootNode, List<DataItem> dimensionalItemsFound, Set<String> fields )
-    {
-        CollectionNode collectionNode = fieldFilterService.toConcreteClassCollectionNode( DataItem.class,
-            new FieldFilterParams( dimensionalItemsFound, newArrayList( fields ) ), "dataItems", DXF_2_0 );
+    return new Long(queryExecutor.count(targetEntities, paramsMap));
+  }
 
-        rootNode.addChild( collectionNode );
-    }
-
-    /**
-     * This method takes care of the pagination link and their respective
-     * attributes. It will count the number of results available and base on the
-     * WebOptions will calculate the pagination output.
-     *
-     * @param rootNode the node where the the pagination will be attached to
-     * @param targetEntities the list of classes which requires pagination
-     * @param currentUser the current logged user
-     * @param options holds the pagination definitions
-     * @param filters the query filters used in the count query
-     */
-    void addPaginationToNode( RootNode rootNode, Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        User currentUser, WebOptions options, Set<String> filters )
-    {
-        if ( options.hasPaging() && isNotEmpty( targetEntities ) )
-        {
-            // Defining query params map and setting common params.
-            MapSqlParameterSource paramsMap = new MapSqlParameterSource().addValue( USER_UID, currentUser.getUid() );
-
-            setFilteringParams( filters, options, paramsMap, currentUser );
-
-            AtomicLong count = new AtomicLong();
-
-            // Counting and summing up the results for each entity.
-            count.addAndGet( pageCountingCache.get(
-                createPageCountingCacheKey( currentUser, targetEntities, filters, options ),
-                p -> countEntityRowsTotal( targetEntities, options, paramsMap ) ) );
-
-            Pager pager = new Pager( options.getPage(), count.get(), options.getPageSize() );
-
-            linkService.generatePagerLinks( pager, API_RESOURCE_PATH );
-
-            rootNode.addChild( createPager( pager ) );
-        }
-    }
-
-    private long countEntityRowsTotal( Set<Class<? extends BaseIdentifiableObject>> targetEntities,
-        WebOptions options, MapSqlParameterSource paramsMap )
-    {
-        // Calculate pagination.
-        if ( options.hasPaging() )
-        {
-            int maxLimit = options.getPage() * options.getPageSize();
-            paramsMap.addValue( QueryParam.MAX_LIMIT, maxLimit );
-        }
-
-        return new Long( queryExecutor.count( targetEntities, paramsMap ) );
-    }
-
-    private String createPageCountingCacheKey( User currentUser,
-        Set<Class<? extends BaseIdentifiableObject>> targetEntities, Set<String> filters, WebOptions options )
-    {
-        return currentUser.getUsername() + "." + targetEntities + "." + join( "|", filters ) + "."
-            + options.getRootJunction().name();
-    }
+  private String createPageCountingCacheKey(
+      User currentUser,
+      Set<Class<? extends BaseIdentifiableObject>> targetEntities,
+      Set<String> filters,
+      WebOptions options) {
+    return currentUser.getUsername()
+        + "."
+        + targetEntities
+        + "."
+        + join("|", filters)
+        + "."
+        + options.getRootJunction().name();
+  }
 }

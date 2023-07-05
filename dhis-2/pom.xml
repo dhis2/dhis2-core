@@ -10,9 +10,9 @@
   <url>http://dhis2.org</url>
 
   <description>
-    DHIS 2 is a system for aggregation and reporting statistical data. The 
-    goal is to allow users to analyze and use this data to guide local 
-    action. The system is based around an goals of empowering users, by 
+    DHIS 2 is a system for aggregation and reporting statistical data. The
+    goal is to allow users to analyze and use this data to guide local
+    action. The system is based around an goals of empowering users, by
     allowing them to decide what to register and report data for.
   </description>
 
@@ -42,7 +42,7 @@
   <properties>
     <!-- Build Properties -->
     <rootDir></rootDir>
-    <!-- Custom source directory property, as <build><sourceDirectory> cannot 
+    <!-- Custom source directory property, as <build><sourceDirectory> cannot
       be set in a profile. See https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDir>${project.basedir}/src/main/java</sourceDir>
 
@@ -57,7 +57,7 @@
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
     <surefireArgLine>-Xmx2024m</surefireArgLine>
 
-    <!-- Needed so we can disable running tests when the default profile 
+    <!-- Needed so we can disable running tests when the default profile
       is used (activated by default). It does not honor -DskipTests otherwise https://maven.apache.org/surefire/maven-surefire-plugin/examples/skipping-tests.html -->
     <skipTests>false</skipTests>
 
@@ -376,7 +376,7 @@
       </build>
     </profile>
 
-    <!-- Integration test profile, runs all integrations tests, not unit 
+    <!-- Integration test profile, runs all integrations tests, not unit
       tests -->
     <profile>
       <id>integration</id>
@@ -402,7 +402,7 @@
       </build>
     </profile>
 
-    <!-- IntegrationH2 test profile, runs all integrations tests with H2, 
+    <!-- IntegrationH2 test profile, runs all integrations tests with H2,
       not unit tests -->
     <profile>
       <id>integrationH2</id>
@@ -503,8 +503,8 @@
   </profiles>
 
   <build>
-    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs 
-      a custom property for overwriting it, see 
+    <!-- <build><sourceDirectory> cannot be set in a profile, so it needs
+      a custom property for overwriting it, see
       https://github.com/awhitford/lombok.maven/issues/17#issuecomment-136606104 -->
     <sourceDirectory>${sourceDir}</sourceDirectory>
 
@@ -656,20 +656,9 @@
                   <enabled>true</enabled>
               </upToDateChecking>
               <java>
-                  <eclipse>
-                      <file>${rootDir}/DHISFormatter.xml</file>
-                      <version>4.27</version>
-                  </eclipse>
-                  <trimTrailingWhitespace />
-                  <removeUnusedImports />
-                  <importOrder>
-                      <order>
-                          java,javax,lombok,net,org,com
-                      </order>
-                  </importOrder>
-                  <licenseHeader>
-                      <file>${rootDir}/license-header</file>
-                  </licenseHeader>
+                <googleJavaFormat>
+                  <style>GOOGLE</style>
+                </googleJavaFormat>
               </java>
               <lineEndings>UNIX</lineEndings>
           </configuration>
@@ -2256,8 +2245,8 @@
         <version>${mockito.version}</version>
         <scope>test</scope>
       </dependency>
-      <!-- Depend only on mockito-inline (includes mockito-core already) 
-        if you must use mockStatic (can you rewrite your code, so it's not necessary 
+      <!-- Depend only on mockito-inline (includes mockito-core already)
+        if you must use mockStatic (can you rewrite your code, so it's not necessary
         ;)), otherwise depend on mockito-core only -->
       <dependency>
         <groupId>org.mockito</groupId>
@@ -2316,9 +2305,9 @@
             <groupId>org.hamcrest</groupId>
             <artifactId>hamcrest-core</artifactId>
           </exclusion>
-          <!-- 
+          <!--
             Junit 4 cannot be excluded yet, because of this issue
-            https://github.com/testcontainers/testcontainers-java/issues/970 
+            https://github.com/testcontainers/testcontainers-java/issues/970
           -->
           <!--
           <exclusion>

@@ -33,10 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-
 import lombok.Builder;
 import lombok.Getter;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.IdScheme;
@@ -60,141 +58,125 @@ import org.hisp.dhis.user.User;
  */
 @Getter
 @Builder
-public class WorkContext
-{
-    private final ImportOptions importOptions;
+public class WorkContext {
+  private final ImportOptions importOptions;
 
-    /**
-     * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for
-     * a detailed explanation of the data kept in this map
-     *
-     * Map: key -> Program ID (based on IdScheme) value -> Program
-     */
-    private final Map<String, Program> programsMap;
+  /**
+   * Holds a Map of all Programs in the system. See {@see ProgramSupplier} for a detailed
+   * explanation of the data kept in this map
+   *
+   * <p>Map: key -> Program ID (based on IdScheme) value -> Program
+   */
+  private final Map<String, Program> programsMap;
 
-    /**
-     * Holds a Map of all {@see OrganisationUnit} associated to the Events to
-     * import. Each {@see OrganisationUnit} also contain the complete hierarchy
-     * ( via .getParent() )
-     *
-     * Map: key -> Event UID value -> OrganisationUnit
-     */
-    private final Map<String, OrganisationUnit> organisationUnitMap;
+  /**
+   * Holds a Map of all {@see OrganisationUnit} associated to the Events to import. Each {@see
+   * OrganisationUnit} also contain the complete hierarchy ( via .getParent() )
+   *
+   * <p>Map: key -> Event UID value -> OrganisationUnit
+   */
+  private final Map<String, OrganisationUnit> organisationUnitMap;
 
-    /**
-     * Holds a Map of all {@see TrackedEntity} associated to the Events to
-     * import.
-     *
-     * Map: key -> Event UID value -> Pair<TrackedEntity,
-     * canBeUpdatedByCurrentUser boolean>
-     */
-    private final Map<String, Pair<TrackedEntity, Boolean>> trackedEntityInstanceMap;
+  /**
+   * Holds a Map of all {@see TrackedEntity} associated to the Events to import.
+   *
+   * <p>Map: key -> Event UID value -> Pair<TrackedEntity, canBeUpdatedByCurrentUser boolean>
+   */
+  private final Map<String, Pair<TrackedEntity, Boolean>> trackedEntityInstanceMap;
 
-    /**
-     * Holds a Map of all {@see Enrollment} associated to the Events to import.
-     *
-     * Map: key -> Event UID value -> Enrollment
-     */
-    private final Map<String, Enrollment> programInstanceMap;
+  /**
+   * Holds a Map of all {@see Enrollment} associated to the Events to import.
+   *
+   * <p>Map: key -> Event UID value -> Enrollment
+   */
+  private final Map<String, Enrollment> programInstanceMap;
 
-    /**
-     * Holds a Map of all {@see Event} associated to the Events to import.
-     *
-     * Map: key -> Event UID value -> Event
-     */
-    private final Map<String, Event> programStageInstanceMap;
+  /**
+   * Holds a Map of all {@see Event} associated to the Events to import.
+   *
+   * <p>Map: key -> Event UID value -> Event
+   */
+  private final Map<String, Event> programStageInstanceMap;
 
-    /**
-     * Holds a Map of all {@see Event} associated to the Events to import and
-     * only contains already persisted values.
-     *
-     * Map: key -> Event UID value -> Event
-     */
-    private final Map<String, Event> persistedProgramStageInstanceMap;
+  /**
+   * Holds a Map of all {@see Event} associated to the Events to import and only contains already
+   * persisted values.
+   *
+   * <p>Map: key -> Event UID value -> Event
+   */
+  private final Map<String, Event> persistedProgramStageInstanceMap;
 
-    /**
-     * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to
-     * import.
-     *
-     * Map: key -> Event UID value -> CategoryOptionCombo
-     */
-    private final Map<String, CategoryOptionCombo> categoryOptionComboMap;
+  /**
+   * Holds a Map of all {@see CategoryOptionCombo} associated to the Events to import.
+   *
+   * <p>Map: key -> Event UID value -> CategoryOptionCombo
+   */
+  private final Map<String, CategoryOptionCombo> categoryOptionComboMap;
 
-    /**
-     * Holds a Map of all {@see DataElement} associated to the Events to import.
-     *
-     * Map: key -> DataElement ID (based on IdScheme) value -> DataElement
-     */
-    private final Map<String, DataElement> dataElementMap;
+  /**
+   * Holds a Map of all {@see DataElement} associated to the Events to import.
+   *
+   * <p>Map: key -> DataElement ID (based on IdScheme) value -> DataElement
+   */
+  private final Map<String, DataElement> dataElementMap;
 
-    /**
-     * Holds a Map of the EventDataValue for each event. Each entry value in the
-     * Map, has a Set of EventDataValue, which have been already "prepared" for
-     * update (insert/update). This means that the "incoming" Data Values have
-     * been merged with the already existing Data Values (in case of an update).
-     * This is the "reference" Map for Data Values during the Event import
-     * process, meaning that the import components should only reference this
-     * Map when dealing with Event Data Values (validation, etc)
-     *
-     */
-    private final Map<String, Set<EventDataValue>> eventDataValueMap;
+  /**
+   * Holds a Map of the EventDataValue for each event. Each entry value in the Map, has a Set of
+   * EventDataValue, which have been already "prepared" for update (insert/update). This means that
+   * the "incoming" Data Values have been merged with the already existing Data Values (in case of
+   * an update). This is the "reference" Map for Data Values during the Event import process,
+   * meaning that the import components should only reference this Map when dealing with Event Data
+   * Values (validation, etc)
+   */
+  private final Map<String, Set<EventDataValue>> eventDataValueMap;
 
-    private final Map<String, User> assignedUserMap;
+  private final Map<String, User> assignedUserMap;
 
-    private final Map<String, Note> notesMap;
+  private final Map<String, Note> notesMap;
 
-    /**
-     * Holds a Map of Program ID (primary key) and List of Org Unit ID
-     * associated to each program. Note that the List only contains the Org Unit
-     * ID of org units that are specified in the payload.
-     */
-    private final Map<Long, List<Long>> programWithOrgUnitsMap;
+  /**
+   * Holds a Map of Program ID (primary key) and List of Org Unit ID associated to each program.
+   * Note that the List only contains the Org Unit ID of org units that are specified in the
+   * payload.
+   */
+  private final Map<Long, List<Long>> programWithOrgUnitsMap;
 
-    /**
-     * Services / components
-     */
-    private final ServiceDelegator serviceDelegator;
+  /** Services / components */
+  private final ServiceDelegator serviceDelegator;
 
-    /**
-     * Checks within all the cached program for a ProgramStage having the uid
-     * matching the specified uid.
-     *
-     * @param programStageId the id according to the IdScheme of a program stage
-     * @return a ProgramStage object or null
-     */
-    public ProgramStage getProgramStage( IdScheme idScheme, String programStageId )
-    {
-        for ( Program program : programsMap.values() )
-        {
-            Set<ProgramStage> programStages = program.getProgramStages();
-            for ( ProgramStage programStage : programStages )
-            {
-                final String id = getIdentifierBasedOnIdScheme( programStage, idScheme );
+  /**
+   * Checks within all the cached program for a ProgramStage having the uid matching the specified
+   * uid.
+   *
+   * @param programStageId the id according to the IdScheme of a program stage
+   * @return a ProgramStage object or null
+   */
+  public ProgramStage getProgramStage(IdScheme idScheme, String programStageId) {
+    for (Program program : programsMap.values()) {
+      Set<ProgramStage> programStages = program.getProgramStages();
+      for (ProgramStage programStage : programStages) {
+        final String id = getIdentifierBasedOnIdScheme(programStage, idScheme);
 
-                if ( id != null && id.equals( programStageId ) )
-                {
-                    programStage.setProgram( program );
-                    return programStage;
-                }
-            }
+        if (id != null && id.equals(programStageId)) {
+          programStage.setProgram(program);
+          return programStage;
         }
-        return null;
+      }
     }
+    return null;
+  }
 
-    public Optional<TrackedEntity> getTrackedEntityInstance( String event )
-    {
-        final Pair<TrackedEntity, Boolean> teiPair = this.trackedEntityInstanceMap.get( event );
+  public Optional<TrackedEntity> getTrackedEntityInstance(String event) {
+    final Pair<TrackedEntity, Boolean> teiPair = this.trackedEntityInstanceMap.get(event);
 
-        return (teiPair != null) ? Optional.of( teiPair.getKey() ) : Optional.empty();
-    }
+    return (teiPair != null) ? Optional.of(teiPair.getKey()) : Optional.empty();
+  }
 
-    public Optional<Event> getProgramStageInstance( String event )
-    {
-        return Optional.ofNullable( this.getProgramStageInstanceMap().get( event ) );
-    }
+  public Optional<Event> getProgramStageInstance(String event) {
+    return Optional.ofNullable(this.getProgramStageInstanceMap().get(event));
+  }
 
-    public Optional<Enrollment> getProgramInstance( String event )
-    {
-        return Optional.ofNullable( this.getProgramInstanceMap().get( event ) );
-    }
+  public Optional<Enrollment> getProgramInstance(String event) {
+    return Optional.ofNullable(this.getProgramInstanceMap().get(event));
+  }
 }

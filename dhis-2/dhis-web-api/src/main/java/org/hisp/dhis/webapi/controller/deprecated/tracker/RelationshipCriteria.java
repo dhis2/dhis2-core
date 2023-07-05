@@ -29,7 +29,6 @@ package org.hisp.dhis.webapi.controller.deprecated.tracker;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteriaAdapter;
 
 /**
@@ -37,20 +36,16 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String tei;
+public class RelationshipCriteria extends PagingAndSortingCriteriaAdapter {
+  private String tei;
 
-    private String enrollment;
+  private String enrollment;
 
-    private String event;
+  private String event;
 
-    /**
-     * TODO Add Pager
-     */
-    @Override
-    public Boolean isSkipPaging()
-    {
-        return true;
-    }
+  /** TODO Add Pager */
+  @Override
+  public Boolean isSkipPaging() {
+    return true;
+  }
 }

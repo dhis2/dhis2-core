@@ -30,20 +30,13 @@ package org.hisp.dhis.dxf2.metadata.objectbundle;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum ObjectBundleStatus
-{
-    /**
-     * ObjectBundle has been created but not validated or committed.
-     */
-    CREATED,
+public enum ObjectBundleStatus {
+  /** ObjectBundle has been created but not validated or committed. */
+  CREATED,
 
-    /**
-     * ObjectBundle has been created and validated, but not yet committed.
-     */
-    VALIDATED,
+  /** ObjectBundle has been created and validated, but not yet committed. */
+  VALIDATED,
 
-    /**
-     * ObjectBundle has been created, validated and committed.
-     */
-    COMMITTED
+  /** ObjectBundle has been created, validated and committed. */
+  COMMITTED
 }

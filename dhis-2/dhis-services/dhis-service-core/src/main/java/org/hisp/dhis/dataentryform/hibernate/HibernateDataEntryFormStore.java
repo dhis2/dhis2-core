@@ -28,7 +28,6 @@
 package org.hisp.dhis.dataentryform.hibernate;
 
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.dataentryform.DataEntryForm;
@@ -43,30 +42,37 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Bharath Kumar
  */
-@Repository( "org.hisp.dhis.dataentryform.DataEntryFormStore" )
-public class HibernateDataEntryFormStore
-    extends HibernateIdentifiableObjectStore<DataEntryForm>
-    implements DataEntryFormStore
-{
-    public HibernateDataEntryFormStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher,
-        CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataEntryForm.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.dataentryform.DataEntryFormStore")
+public class HibernateDataEntryFormStore extends HibernateIdentifiableObjectStore<DataEntryForm>
+    implements DataEntryFormStore {
+  public HibernateDataEntryFormStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        DataEntryForm.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    // -------------------------------------------------------------------------
-    // DataEntryFormStore implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataEntryFormStore implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public DataEntryForm getDataEntryFormByName( String name )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public DataEntryForm getDataEntryFormByName(String name) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        JpaQueryParameters<DataEntryForm> parameters = new JpaQueryParameters<DataEntryForm>()
-            .addPredicate( root -> builder.equal( root.get( "name" ), name ) );
+    JpaQueryParameters<DataEntryForm> parameters =
+        new JpaQueryParameters<DataEntryForm>()
+            .addPredicate(root -> builder.equal(root.get("name"), name));
 
-        return getSingleResult( builder, parameters );
-    }
+    return getSingleResult(builder, parameters);
+  }
 }

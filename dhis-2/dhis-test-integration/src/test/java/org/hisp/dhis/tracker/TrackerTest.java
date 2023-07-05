@@ -32,9 +32,7 @@ import static org.hisp.dhis.feedback.Assertions.assertNoErrors;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -59,98 +57,76 @@ import org.springframework.transaction.annotation.Transactional;
  */
 @Slf4j
 @Transactional
-public abstract class TrackerTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    protected IdentifiableObjectManager manager;
+public abstract class TrackerTest extends SingleSetupIntegrationTestBase {
+  @Autowired protected IdentifiableObjectManager manager;
 
-    @Autowired
-    private RenderService _renderService;
+  @Autowired private RenderService _renderService;
 
-    @Autowired
-    protected UserService _userService;
+  @Autowired protected UserService _userService;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    @Autowired
-    private ObjectBundleService objectBundleService;
+  @Autowired private ObjectBundleService objectBundleService;
 
-    @Autowired
-    private ObjectBundleValidationService objectBundleValidationService;
+  @Autowired private ObjectBundleValidationService objectBundleValidationService;
 
-    @Override
-    protected void setUpTest()
-        throws IOException
-    {
-        userService = _userService;
-        preCreateInjectAdminUser();
-        renderService = _renderService;
-        initTest();
-    }
+  @Override
+  protected void setUpTest() throws IOException {
+    userService = _userService;
+    preCreateInjectAdminUser();
+    renderService = _renderService;
+    initTest();
+  }
 
-    protected abstract void initTest()
-        throws IOException;
+  protected abstract void initTest() throws IOException;
 
-    protected ObjectBundle setUpMetadata( String path )
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertNoErrors( objectBundleValidationService.validate( bundle ) );
-        objectBundleService.commit( bundle );
-        return bundle;
-    }
+  protected ObjectBundle setUpMetadata(String path) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertNoErrors(objectBundleValidationService.validate(bundle));
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
 
-    protected ObjectBundle setUpMetadata( String path, User user )
-        throws IOException
-    {
-        Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata = renderService
-            .fromMetadata( new ClassPathResource( path ).getInputStream(), RenderFormat.JSON );
-        ObjectBundleParams params = new ObjectBundleParams();
-        params.setObjectBundleMode( ObjectBundleMode.COMMIT );
-        params.setImportStrategy( ImportStrategy.CREATE );
-        params.setObjects( metadata );
-        params.setUser( user );
-        ObjectBundle bundle = objectBundleService.create( params );
-        assertNoErrors( objectBundleValidationService.validate( bundle ) );
-        objectBundleService.commit( bundle );
-        return bundle;
-    }
+  protected ObjectBundle setUpMetadata(String path, User user) throws IOException {
+    Map<Class<? extends IdentifiableObject>, List<IdentifiableObject>> metadata =
+        renderService.fromMetadata(new ClassPathResource(path).getInputStream(), RenderFormat.JSON);
+    ObjectBundleParams params = new ObjectBundleParams();
+    params.setObjectBundleMode(ObjectBundleMode.COMMIT);
+    params.setImportStrategy(ImportStrategy.CREATE);
+    params.setObjects(metadata);
+    params.setUser(user);
+    ObjectBundle bundle = objectBundleService.create(params);
+    assertNoErrors(objectBundleValidationService.validate(bundle));
+    objectBundleService.commit(bundle);
+    return bundle;
+  }
 
-    protected TrackerImportParams fromJson( String path )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUser( currentUserService.getCurrentUser() );
-        return trackerImportParams;
-    }
+  protected TrackerImportParams fromJson(String path) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUser(currentUserService.getCurrentUser());
+    return trackerImportParams;
+  }
 
-    protected TrackerImportParams fromJson( String path, String userUid )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUserId( userUid );
-        return trackerImportParams;
-    }
+  protected TrackerImportParams fromJson(String path, String userUid) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUserId(userUid);
+    return trackerImportParams;
+  }
 
-    protected TrackerImportParams fromJson( String path, User user )
-        throws IOException
-    {
-        TrackerImportParams trackerImportParams = _fromJson( path );
-        trackerImportParams.setUser( user );
-        return trackerImportParams;
-    }
+  protected TrackerImportParams fromJson(String path, User user) throws IOException {
+    TrackerImportParams trackerImportParams = _fromJson(path);
+    trackerImportParams.setUser(user);
+    return trackerImportParams;
+  }
 
-    private TrackerImportParams _fromJson( String path )
-        throws IOException
-    {
-        return renderService.fromJson( new ClassPathResource( path ).getInputStream(),
-            TrackerImportParams.class );
-    }
+  private TrackerImportParams _fromJson(String path) throws IOException {
+    return renderService.fromJson(
+        new ClassPathResource(path).getInputStream(), TrackerImportParams.class);
+  }
 }

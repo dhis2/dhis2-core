@@ -28,13 +28,10 @@
 package org.hisp.dhis.security.jwt;
 
 import java.io.IOException;
-
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
@@ -49,36 +46,33 @@ import org.springframework.web.servlet.HandlerExceptionResolver;
  */
 @Component
 @Slf4j
-public class DhisBearerJwtTokenAuthenticationEntryPoint implements AuthenticationEntryPoint, ApplicationContextAware
-{
-    private ApplicationContext applicationContext;
+public class DhisBearerJwtTokenAuthenticationEntryPoint
+    implements AuthenticationEntryPoint, ApplicationContextAware {
+  private ApplicationContext applicationContext;
 
-    @Override
-    public void setApplicationContext( ApplicationContext applicationContext )
-    {
-        this.applicationContext = applicationContext;
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) {
+    this.applicationContext = applicationContext;
+  }
+
+  private BearerTokenAuthenticationEntryPoint entryPoint =
+      new BearerTokenAuthenticationEntryPoint();
+
+  @Override
+  public void commence(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      AuthenticationException authException)
+      throws IOException, ServletException {
+    entryPoint.commence(request, response, authException);
+
+    HandlerExceptionResolver handlerExceptionResolver;
+    try {
+      handlerExceptionResolver =
+          (HandlerExceptionResolver) applicationContext.getBean("handlerExceptionResolver");
+      handlerExceptionResolver.resolveException(request, response, null, authException);
+    } catch (BeansException e) {
+      log.error("Could not find a HandlerExceptionResolver bean!");
     }
-
-    private BearerTokenAuthenticationEntryPoint entryPoint = new BearerTokenAuthenticationEntryPoint();
-
-    @Override
-    public void commence( HttpServletRequest request, HttpServletResponse response,
-        AuthenticationException authException )
-        throws IOException,
-        ServletException
-    {
-        entryPoint.commence( request, response, authException );
-
-        HandlerExceptionResolver handlerExceptionResolver;
-        try
-        {
-            handlerExceptionResolver = (HandlerExceptionResolver) applicationContext
-                .getBean( "handlerExceptionResolver" );
-            handlerExceptionResolver.resolveException( request, response, null, authException );
-        }
-        catch ( BeansException e )
-        {
-            log.error( "Could not find a HandlerExceptionResolver bean!" );
-        }
-    }
+  }
 }

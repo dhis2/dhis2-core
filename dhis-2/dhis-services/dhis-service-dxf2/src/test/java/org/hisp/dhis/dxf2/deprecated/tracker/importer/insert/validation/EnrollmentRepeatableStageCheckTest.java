@@ -37,7 +37,6 @@ import static org.mockito.Mockito.when;
 
 import java.util.HashMap;
 import java.util.Map;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.shared.ImmutableEvent;
@@ -56,83 +55,90 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.jdbc.core.JdbcTemplate;
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EnrollmentRepeatableStageCheckTest extends BaseValidationTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EnrollmentRepeatableStageCheckTest extends BaseValidationTest {
 
-    private EnrollmentRepeatableStageCheck rule;
+  private EnrollmentRepeatableStageCheck rule;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
+  @Mock private JdbcTemplate jdbcTemplate;
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new EnrollmentRepeatableStageCheck();
-    }
+  @BeforeEach
+  void setUp() {
+    rule = new EnrollmentRepeatableStageCheck();
+  }
 
-    @Test
-    void failOnNonRepeatableStageAndExistingEvents()
-    {
-        // Data preparation
-        Program program = createProgram( 'P' );
-        TrackedEntity tei = createTrackedEntity( 'A', createOrganisationUnit( 'A' ) );
-        event.setProgramStage( CodeGenerator.generateUid() );
-        event.setProgram( program.getUid() );
-        event.setTrackedEntityInstance( tei.getUid() );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setRepeatable( false );
-        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
-        Map<String, Enrollment> programInstanceMap = new HashMap<>();
-        Enrollment enrollment = new Enrollment();
-        programInstanceMap.put( event.getUid(), enrollment );
-        Pair<TrackedEntity, Boolean> teiPair = Pair.of( tei, true );
-        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), teiPair );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
-        when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( enrollment.getId() ),
-            eq( programStage.getId() ), eq( tei.getId() ) ) ).thenReturn( true );
-        // Method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertHasError( summary, event, "Program stage is not repeatable and an event already exists" );
-    }
+  @Test
+  void failOnNonRepeatableStageAndExistingEvents() {
+    // Data preparation
+    Program program = createProgram('P');
+    TrackedEntity tei = createTrackedEntity('A', createOrganisationUnit('A'));
+    event.setProgramStage(CodeGenerator.generateUid());
+    event.setProgram(program.getUid());
+    event.setTrackedEntityInstance(tei.getUid());
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.setRepeatable(false);
+    when(workContext.getProgramStage(programStageIdScheme, event.getProgramStage()))
+        .thenReturn(programStage);
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(program.getUid(), program);
+    Map<String, Enrollment> programInstanceMap = new HashMap<>();
+    Enrollment enrollment = new Enrollment();
+    programInstanceMap.put(event.getUid(), enrollment);
+    Pair<TrackedEntity, Boolean> teiPair = Pair.of(tei, true);
+    Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
+    teiMap.put(event.getUid(), teiPair);
+    when(workContext.getTrackedEntityInstanceMap()).thenReturn(teiMap);
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
+    when(workContext.getServiceDelegator()).thenReturn(serviceDelegator);
+    when(serviceDelegator.getJdbcTemplate()).thenReturn(jdbcTemplate);
+    when(jdbcTemplate.queryForObject(
+            anyString(),
+            eq(Boolean.class),
+            eq(enrollment.getId()),
+            eq(programStage.getId()),
+            eq(tei.getId())))
+        .thenReturn(true);
+    // Method under test
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertHasError(summary, event, "Program stage is not repeatable and an event already exists");
+  }
 
-    @Test
-    void successOnNonRepeatableStageAndExistingEventsOnNewEnrollment()
-    {
-        // Data preparation
-        Program program = createProgram( 'P' );
-        TrackedEntity tei = createTrackedEntity( 'A', createOrganisationUnit( 'A' ) );
-        event.setProgramStage( CodeGenerator.generateUid() );
-        event.setProgram( program.getUid() );
-        event.setTrackedEntityInstance( tei.getUid() );
-        ProgramStage programStage = createProgramStage( 'A', program );
-        programStage.setRepeatable( false );
-        when( workContext.getProgramStage( programStageIdScheme, event.getProgramStage() ) ).thenReturn( programStage );
-        Map<String, Program> programMap = new HashMap<>();
-        programMap.put( program.getUid(), program );
-        Map<String, Enrollment> programInstanceMap = new HashMap<>();
-        Enrollment enrollment = new Enrollment();
-        programInstanceMap.put( event.getUid(), enrollment );
-        Pair<TrackedEntity, Boolean> teiPair = Pair.of( tei, true );
-        Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
-        teiMap.put( event.getUid(), teiPair );
-        when( workContext.getTrackedEntityInstanceMap() ).thenReturn( teiMap );
-        when( workContext.getProgramsMap() ).thenReturn( programMap );
-        when( workContext.getProgramInstanceMap() ).thenReturn( programInstanceMap );
-        when( workContext.getServiceDelegator() ).thenReturn( serviceDelegator );
-        when( serviceDelegator.getJdbcTemplate() ).thenReturn( jdbcTemplate );
-        when( jdbcTemplate.queryForObject( anyString(), eq( Boolean.class ), eq( enrollment.getId() ),
-            eq( programStage.getId() ), eq( tei.getId() ) ) ).thenReturn( false );
-        // Method under test
-        ImportSummary summary = rule.check( new ImmutableEvent( event ), workContext );
-        assertNoError( summary );
-    }
+  @Test
+  void successOnNonRepeatableStageAndExistingEventsOnNewEnrollment() {
+    // Data preparation
+    Program program = createProgram('P');
+    TrackedEntity tei = createTrackedEntity('A', createOrganisationUnit('A'));
+    event.setProgramStage(CodeGenerator.generateUid());
+    event.setProgram(program.getUid());
+    event.setTrackedEntityInstance(tei.getUid());
+    ProgramStage programStage = createProgramStage('A', program);
+    programStage.setRepeatable(false);
+    when(workContext.getProgramStage(programStageIdScheme, event.getProgramStage()))
+        .thenReturn(programStage);
+    Map<String, Program> programMap = new HashMap<>();
+    programMap.put(program.getUid(), program);
+    Map<String, Enrollment> programInstanceMap = new HashMap<>();
+    Enrollment enrollment = new Enrollment();
+    programInstanceMap.put(event.getUid(), enrollment);
+    Pair<TrackedEntity, Boolean> teiPair = Pair.of(tei, true);
+    Map<String, Pair<TrackedEntity, Boolean>> teiMap = new HashMap<>();
+    teiMap.put(event.getUid(), teiPair);
+    when(workContext.getTrackedEntityInstanceMap()).thenReturn(teiMap);
+    when(workContext.getProgramsMap()).thenReturn(programMap);
+    when(workContext.getProgramInstanceMap()).thenReturn(programInstanceMap);
+    when(workContext.getServiceDelegator()).thenReturn(serviceDelegator);
+    when(serviceDelegator.getJdbcTemplate()).thenReturn(jdbcTemplate);
+    when(jdbcTemplate.queryForObject(
+            anyString(),
+            eq(Boolean.class),
+            eq(enrollment.getId()),
+            eq(programStage.getId()),
+            eq(tei.getId())))
+        .thenReturn(false);
+    // Method under test
+    ImportSummary summary = rule.check(new ImmutableEvent(event), workContext);
+    assertNoError(summary);
+  }
 }

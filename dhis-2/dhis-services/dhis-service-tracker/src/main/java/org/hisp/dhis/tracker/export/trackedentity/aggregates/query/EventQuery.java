@@ -30,105 +30,98 @@ package org.hisp.dhis.tracker.export.trackedentity.aggregates.query;
 import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.collect.ImmutableList;
 import java.util.Arrays;
 import java.util.Collection;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
-import com.google.common.collect.ImmutableList;
 
 /**
  * @author Luciano Fiandesio
  */
-public class EventQuery
-{
-    @RequiredArgsConstructor
-    public enum COLUMNS
-    {
-        ID( new TableColumn( "psi", "programstageinstanceid" ) ),
-        UID( new TableColumn( "psi", "uid" ) ),
-        STATUS( new TableColumn( "psi", "status" ) ),
-        EXECUTION_DATE( new TableColumn( "psi", "executiondate" ) ),
-        DUE_DATE( new TableColumn( "psi", "duedate" ) ),
-        STOREDBY( new TableColumn( "psi", "storedby" ) ),
-        COMPLETEDBY( new TableColumn( "psi", "completedby" ) ),
-        COMPLETEDDATE( new TableColumn( "psi", "completeddate" ) ),
-        CREATED_BY( new TableColumn( "psi", "createdbyuserinfo" ) ),
-        CREATED( new TableColumn( "psi", "created" ) ),
-        CREATEDCLIENT( new TableColumn( "psi", "createdatclient" ) ),
-        UPDATED( new TableColumn( "psi", "lastupdated" ) ),
-        UPDATEDCLIENT( new TableColumn( "psi", "lastupdatedatclient" ) ),
-        LAST_UPDATED_BY( new TableColumn( "psi", "lastupdatedbyuserinfo" ) ),
-        DELETED( new TableColumn( "psi", "deleted" ) ),
-        GEOMETRY( new Function( "ST_AsBinary", "psi", "geometry", "geometry" ) ),
-        TEI_UID( new TableColumn( "tei", "uid", "tei_uid" ) ),
-        ENROLLMENT_UID( new TableColumn( "pi", "uid", "enruid" ) ),
-        ENROLLMENT_FOLLOWUP( new TableColumn( "pi", "followup", "enrfollowup" ) ),
-        ENROLLMENT_STATUS( new TableColumn( "pi", "status", "enrstatus" ) ),
-        PROGRAM_UID( new TableColumn( "p", "uid", "prguid" ) ),
-        PROGRAM_STAGE_UID( new TableColumn( "ps", "uid", "prgstguid" ) ),
-        ORGUNIT_UID( new TableColumn( "o", "uid", "ou_uid" ) ),
-        ORGUNIT_NAME( new TableColumn( "o", "name", "ou_name" ) ),
-        COC_UID( new TableColumn( "coc", "uid", "cocuid" ) ),
-        CAT_OPTIONS( new Subselect( "( " +
-            "SELECT string_agg(opt.uid::text, ';') " +
-            "FROM dataelementcategoryoption opt " +
-            "join categoryoptioncombos_categoryoptions ccc " +
-            "on opt.categoryoptionid = ccc.categoryoptionid " +
-            "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )", "catoptions" ) ),
-        ASSIGNED_USER( new TableColumn( "ui", "uid", "userid" ) ),
-        ASSIGNED_USER_FIRST_NAME( new TableColumn( "ui", "firstname" ) ),
-        ASSIGNED_USER_SURNAME( new TableColumn( "ui", "surname" ) ),
-        ASSIGNED_USER_USERNAME( new TableColumn( "ui", "username" ) );
+public class EventQuery {
+  @RequiredArgsConstructor
+  public enum COLUMNS {
+    ID(new TableColumn("psi", "programstageinstanceid")),
+    UID(new TableColumn("psi", "uid")),
+    STATUS(new TableColumn("psi", "status")),
+    EXECUTION_DATE(new TableColumn("psi", "executiondate")),
+    DUE_DATE(new TableColumn("psi", "duedate")),
+    STOREDBY(new TableColumn("psi", "storedby")),
+    COMPLETEDBY(new TableColumn("psi", "completedby")),
+    COMPLETEDDATE(new TableColumn("psi", "completeddate")),
+    CREATED_BY(new TableColumn("psi", "createdbyuserinfo")),
+    CREATED(new TableColumn("psi", "created")),
+    CREATEDCLIENT(new TableColumn("psi", "createdatclient")),
+    UPDATED(new TableColumn("psi", "lastupdated")),
+    UPDATEDCLIENT(new TableColumn("psi", "lastupdatedatclient")),
+    LAST_UPDATED_BY(new TableColumn("psi", "lastupdatedbyuserinfo")),
+    DELETED(new TableColumn("psi", "deleted")),
+    GEOMETRY(new Function("ST_AsBinary", "psi", "geometry", "geometry")),
+    TEI_UID(new TableColumn("tei", "uid", "tei_uid")),
+    ENROLLMENT_UID(new TableColumn("pi", "uid", "enruid")),
+    ENROLLMENT_FOLLOWUP(new TableColumn("pi", "followup", "enrfollowup")),
+    ENROLLMENT_STATUS(new TableColumn("pi", "status", "enrstatus")),
+    PROGRAM_UID(new TableColumn("p", "uid", "prguid")),
+    PROGRAM_STAGE_UID(new TableColumn("ps", "uid", "prgstguid")),
+    ORGUNIT_UID(new TableColumn("o", "uid", "ou_uid")),
+    ORGUNIT_NAME(new TableColumn("o", "name", "ou_name")),
+    COC_UID(new TableColumn("coc", "uid", "cocuid")),
+    CAT_OPTIONS(
+        new Subselect(
+            "( "
+                + "SELECT string_agg(opt.uid::text, ';') "
+                + "FROM dataelementcategoryoption opt "
+                + "join categoryoptioncombos_categoryoptions ccc "
+                + "on opt.categoryoptionid = ccc.categoryoptionid "
+                + "WHERE coc.categoryoptioncomboid = ccc.categoryoptioncomboid )",
+            "catoptions")),
+    ASSIGNED_USER(new TableColumn("ui", "uid", "userid")),
+    ASSIGNED_USER_FIRST_NAME(new TableColumn("ui", "firstname")),
+    ASSIGNED_USER_SURNAME(new TableColumn("ui", "surname")),
+    ASSIGNED_USER_USERNAME(new TableColumn("ui", "username"));
 
-        @Getter
-        private final QueryElement queryElement;
+    @Getter private final QueryElement queryElement;
 
-        public String getColumnName()
-        {
-            if ( queryElement instanceof TableColumn )
-            {
-                return ((TableColumn) queryElement).getColumn();
-            }
-            if ( queryElement instanceof Function )
-            {
-                return ((Function) queryElement).getColumn();
-            }
-            throw new IllegalArgumentException( "getColumnName can only be invoked on TableColumn or Function" );
-        }
+    public String getColumnName() {
+      if (queryElement instanceof TableColumn) {
+        return ((TableColumn) queryElement).getColumn();
+      }
+      if (queryElement instanceof Function) {
+        return ((Function) queryElement).getColumn();
+      }
+      throw new IllegalArgumentException(
+          "getColumnName can only be invoked on TableColumn or Function");
     }
+  }
 
-    private static final Collection<QueryElement> QUERY_ELEMENTS;
+  private static final Collection<QueryElement> QUERY_ELEMENTS;
 
-    static
-    {
-        QUERY_ELEMENTS = Arrays.stream( COLUMNS.values() )
-            .map( COLUMNS::getQueryElement )
-            .collect( collectingAndThen( toList(), ImmutableList::copyOf ) );
-    }
+  static {
+    QUERY_ELEMENTS =
+        Arrays.stream(COLUMNS.values())
+            .map(COLUMNS::getQueryElement)
+            .collect(collectingAndThen(toList(), ImmutableList::copyOf));
+  }
 
-    public static String getQuery()
-    {
-        return getSelect() +
-            "from programstageinstance psi " +
-            "join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
-            "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
-            "join program p on pi.programid = p.programid " +
-            "join programstage ps on psi.programstageid = ps.programstageid " +
-            "join organisationunit o on psi.organisationunitid = o.organisationunitid " +
-            "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid " +
-            "left join userinfo ui on psi.assigneduserid = ui.userinfoid " +
-            "where pi.programinstanceid in (:ids)";
-    }
+  public static String getQuery() {
+    return getSelect()
+        + "from programstageinstance psi "
+        + "join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+        + "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid "
+        + "join program p on pi.programid = p.programid "
+        + "join programstage ps on psi.programstageid = ps.programstageid "
+        + "join organisationunit o on psi.organisationunitid = o.organisationunitid "
+        + "join categoryoptioncombo coc on psi.attributeoptioncomboid = coc.categoryoptioncomboid "
+        + "left join userinfo ui on psi.assigneduserid = ui.userinfoid "
+        + "where pi.programinstanceid in (:ids)";
+  }
 
-    private static String getSelect()
-    {
-        return QueryUtils.getSelect( QUERY_ELEMENTS );
-    }
+  private static String getSelect() {
+    return QueryUtils.getSelect(QUERY_ELEMENTS);
+  }
 
-    public static String getColumnName( COLUMNS columns )
-    {
-        return columns.getQueryElement().getResultsetValue();
-    }
+  public static String getColumnName(COLUMNS columns) {
+    return columns.getQueryElement().getResultsetValue();
+  }
 }

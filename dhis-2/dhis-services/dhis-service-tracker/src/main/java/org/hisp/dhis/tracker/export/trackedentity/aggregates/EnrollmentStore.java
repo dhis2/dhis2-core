@@ -27,52 +27,47 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.Multimap;
 import java.util.List;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.relationship.RelationshipItem;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
 
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-public interface EnrollmentStore
-{
-    /**
-     *
-     * @param ids a list of {@see TrackedEntity} Primary Keys
-     * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a
-     *         List of {@see Enrollment} objects
-     */
-    Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds( List<Long> ids, Context ctx );
+public interface EnrollmentStore {
+  /**
+   * @param ids a list of {@see TrackedEntity} Primary Keys
+   * @return a MultiMap where key is a {@see TrackedEntity} uid and the key a List of {@see
+   *     Enrollment} objects
+   */
+  Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(List<Long> ids, Context ctx);
 
-    /**
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Note} objects
-     */
-    Multimap<String, TrackedEntityComment> getNotes( List<Long> ids );
+  /**
+   * @param ids a list of {@see Enrollment} Primary Keys
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Note}
+   *     objects
+   */
+  Multimap<String, TrackedEntityComment> getNotes(List<Long> ids);
 
-    /**
-     * Fetches all the relationships having the enrollment id specified in the
-     * arg as "left" or "right" relationship
-     *
-     * @param ids a list of {@see Enrollment} Primary Keys
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Relationship} objects
-     */
-    Multimap<String, RelationshipItem> getRelationships( List<Long> ids, Context ctx );
+  /**
+   * Fetches all the relationships having the enrollment id specified in the arg as "left" or
+   * "right" relationship
+   *
+   * @param ids a list of {@see Enrollment} Primary Keys
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see
+   *     Relationship} objects
+   */
+  Multimap<String, RelationshipItem> getRelationships(List<Long> ids, Context ctx);
 
-    /**
-     * Fetches all the attributes
-     *
-     * @param ids a list of enrollment ids
-     * @return a MultiMap where key is a {@see Enrollment} uid and the key a
-     *         List of {@see Attribute} objects
-     */
-    Multimap<String, TrackedEntityAttributeValue> getAttributes( List<Long> ids, Context ctx );
+  /**
+   * Fetches all the attributes
+   *
+   * @param ids a list of enrollment ids
+   * @return a MultiMap where key is a {@see Enrollment} uid and the key a List of {@see Attribute}
+   *     objects
+   */
+  Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids, Context ctx);
 }

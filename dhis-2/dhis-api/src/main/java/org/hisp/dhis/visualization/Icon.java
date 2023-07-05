@@ -29,56 +29,44 @@ package org.hisp.dhis.visualization;
 
 import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.Serializable;
-
 import lombok.Data;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-
 /**
- * Representation of an icon object that can be used by clients to manage and
- * show/hide icons.
+ * Representation of an icon object that can be used by clients to manage and show/hide icons.
  *
- * We should allow only one Icon per type.
+ * <p>We should allow only one Icon per type.
  *
  * @author maikel arabori
  */
 @Data
-public class Icon implements Serializable
-{
-    public enum IconType
-    {
-        DATA_ITEM;
-    }
+public class Icon implements Serializable {
+  public enum IconType {
+    DATA_ITEM;
+  }
 
-    /**
-     * The type of this icon.
-     */
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DXF_2_0 )
-    private IconType type;
+  /** The type of this icon. */
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DXF_2_0)
+  private IconType type;
 
-    @Override
-    public boolean equals( Object o )
-    {
-        if ( this == o )
-            return true;
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
 
-        if ( o == null || getClass() != o.getClass() )
-            return false;
+    if (o == null || getClass() != o.getClass()) return false;
 
-        Icon icon = (Icon) o;
+    Icon icon = (Icon) o;
 
-        return new EqualsBuilder().append( type, icon.type ).isEquals();
-    }
+    return new EqualsBuilder().append(type, icon.type).isEquals();
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return new HashCodeBuilder( 17, 37 ).append( type ).toHashCode();
-    }
+  @Override
+  public int hashCode() {
+    return new HashCodeBuilder(17, 37).append(type).toHashCode();
+  }
 }

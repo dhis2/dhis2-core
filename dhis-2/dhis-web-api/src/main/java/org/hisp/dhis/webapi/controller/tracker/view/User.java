@@ -29,39 +29,32 @@ package org.hisp.dhis.webapi.controller.tracker.view;
 
 import static org.hisp.dhis.common.OpenApi.Shared.Pattern.TRACKER;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.webapi.common.UID;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Enrico Colasante
  */
-@OpenApi.Shared( pattern = TRACKER )
+@OpenApi.Shared(pattern = TRACKER)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class User
-{
-    @OpenApi.Property( { UID.class, User.class } )
-    @JsonProperty
-    private String uid;
+public class User {
+  @OpenApi.Property({UID.class, User.class})
+  @JsonProperty
+  private String uid;
 
-    @JsonProperty
-    private String username;
+  @JsonProperty private String username;
 
-    @JsonProperty
-    private String firstName;
+  @JsonProperty private String firstName;
 
-    @JsonProperty
-    private String surname;
+  @JsonProperty private String surname;
 
-    @JsonProperty
-    private String displayName;
+  @JsonProperty private String displayName;
 }

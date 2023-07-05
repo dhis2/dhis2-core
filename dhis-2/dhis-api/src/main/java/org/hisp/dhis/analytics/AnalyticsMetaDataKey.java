@@ -32,24 +32,21 @@ package org.hisp.dhis.analytics;
  *
  * @author Lars Helge Overland
  */
-public enum AnalyticsMetaDataKey
-{
-    ITEMS( "items" ),
-    DIMENSIONS( "dimensions" ),
-    PAGER( "pager" ),
-    ORG_UNIT_HIERARCHY( "ouHierarchy" ),
-    ORG_UNIT_NAME_HIERARCHY( "ouNameHierarchy" ),
-    ORG_UNIT_ANCESTORS( "ouAncestors" );
+public enum AnalyticsMetaDataKey {
+  ITEMS("items"),
+  DIMENSIONS("dimensions"),
+  PAGER("pager"),
+  ORG_UNIT_HIERARCHY("ouHierarchy"),
+  ORG_UNIT_NAME_HIERARCHY("ouNameHierarchy"),
+  ORG_UNIT_ANCESTORS("ouAncestors");
 
-    private String key;
+  private String key;
 
-    AnalyticsMetaDataKey( String key )
-    {
-        this.key = key;
-    }
+  AnalyticsMetaDataKey(String key) {
+    this.key = key;
+  }
 
-    public String getKey()
-    {
-        return key;
-    }
+  public String getKey() {
+    return key;
+  }
 }

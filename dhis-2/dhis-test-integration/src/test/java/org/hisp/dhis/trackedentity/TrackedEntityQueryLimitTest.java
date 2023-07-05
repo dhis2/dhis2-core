@@ -34,7 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
-
 import org.hisp.dhis.common.OrganisationUnitSelectionMode;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
@@ -53,171 +52,153 @@ import org.springframework.beans.factory.annotation.Autowired;
 /**
  * @author Zubair Asghar
  */
-class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase
-{
+class TrackedEntityQueryLimitTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Autowired
-    private TrackedEntityTypeService trackedEntityTypeService;
+  @Autowired private TrackedEntityTypeService trackedEntityTypeService;
 
-    @Autowired
-    private TrackedEntityService trackedEntityService;
+  @Autowired private TrackedEntityService trackedEntityService;
 
-    @Autowired
-    private ProgramService programService;
+  @Autowired private ProgramService programService;
 
-    @Autowired
-    private EnrollmentService enrollmentService;
+  @Autowired private EnrollmentService enrollmentService;
 
-    @Autowired
-    private SystemSettingManager systemSettingManager;
+  @Autowired private SystemSettingManager systemSettingManager;
 
-    @Autowired
-    private UserService _userService;
+  @Autowired private UserService _userService;
 
-    private OrganisationUnit orgUnitA;
+  private OrganisationUnit orgUnitA;
 
-    private Program program;
+  private Program program;
 
-    private Enrollment enrollment1;
+  private Enrollment enrollment1;
 
-    private Enrollment enrollment2;
+  private Enrollment enrollment2;
 
-    private Enrollment enrollment3;
+  private Enrollment enrollment3;
 
-    private Enrollment enrollment4;
+  private Enrollment enrollment4;
 
-    private TrackedEntity tei1;
+  private TrackedEntity tei1;
 
-    private TrackedEntity tei2;
+  private TrackedEntity tei2;
 
-    private TrackedEntity tei3;
+  private TrackedEntity tei3;
 
-    private TrackedEntity tei4;
+  private TrackedEntity tei4;
 
-    private TrackedEntityType teiType;
+  private TrackedEntityType teiType;
 
-    private User user;
+  private User user;
 
-    @Override
-    protected void setUpTest()
-        throws Exception
-    {
-        userService = _userService;
-        user = createAndInjectAdminUser();
+  @Override
+  protected void setUpTest() throws Exception {
+    userService = _userService;
+    user = createAndInjectAdminUser();
 
-        orgUnitA = createOrganisationUnit( "A" );
-        organisationUnitService.addOrganisationUnit( orgUnitA );
+    orgUnitA = createOrganisationUnit("A");
+    organisationUnitService.addOrganisationUnit(orgUnitA);
 
-        user.getOrganisationUnits().add( orgUnitA );
+    user.getOrganisationUnits().add(orgUnitA);
 
-        teiType = createTrackedEntityType( 'P' );
-        trackedEntityTypeService.addTrackedEntityType( teiType );
+    teiType = createTrackedEntityType('P');
+    trackedEntityTypeService.addTrackedEntityType(teiType);
 
-        program = createProgram( 'P' );
-        programService.addProgram( program );
+    program = createProgram('P');
+    programService.addProgram(program);
 
-        tei1 = createTrackedEntity( orgUnitA );
-        tei2 = createTrackedEntity( orgUnitA );
-        tei3 = createTrackedEntity( orgUnitA );
-        tei4 = createTrackedEntity( orgUnitA );
-        tei1.setTrackedEntityType( teiType );
-        tei2.setTrackedEntityType( teiType );
-        tei3.setTrackedEntityType( teiType );
-        tei4.setTrackedEntityType( teiType );
+    tei1 = createTrackedEntity(orgUnitA);
+    tei2 = createTrackedEntity(orgUnitA);
+    tei3 = createTrackedEntity(orgUnitA);
+    tei4 = createTrackedEntity(orgUnitA);
+    tei1.setTrackedEntityType(teiType);
+    tei2.setTrackedEntityType(teiType);
+    tei3.setTrackedEntityType(teiType);
+    tei4.setTrackedEntityType(teiType);
 
-        trackedEntityService.addTrackedEntity( tei1 );
-        trackedEntityService.addTrackedEntity( tei2 );
-        trackedEntityService.addTrackedEntity( tei3 );
-        trackedEntityService.addTrackedEntity( tei4 );
+    trackedEntityService.addTrackedEntity(tei1);
+    trackedEntityService.addTrackedEntity(tei2);
+    trackedEntityService.addTrackedEntity(tei3);
+    trackedEntityService.addTrackedEntity(tei4);
 
-        enrollment1 = createEnrollment( program, tei1, orgUnitA );
-        enrollment2 = createEnrollment( program, tei2, orgUnitA );
-        enrollment3 = createEnrollment( program, tei3, orgUnitA );
-        enrollment4 = createEnrollment( program, tei4, orgUnitA );
+    enrollment1 = createEnrollment(program, tei1, orgUnitA);
+    enrollment2 = createEnrollment(program, tei2, orgUnitA);
+    enrollment3 = createEnrollment(program, tei3, orgUnitA);
+    enrollment4 = createEnrollment(program, tei4, orgUnitA);
 
-        enrollmentService.addEnrollment( enrollment1 );
-        enrollmentService.addEnrollment( enrollment2 );
-        enrollmentService.addEnrollment( enrollment3 );
-        enrollmentService.addEnrollment( enrollment4 );
+    enrollmentService.addEnrollment(enrollment1);
+    enrollmentService.addEnrollment(enrollment2);
+    enrollmentService.addEnrollment(enrollment3);
+    enrollmentService.addEnrollment(enrollment4);
 
-        enrollmentService.enrollTrackedEntity( tei1, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntity( tei2, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntity( tei3, program, new Date(), new Date(), orgUnitA );
-        enrollmentService.enrollTrackedEntity( tei4, program, new Date(), new Date(), orgUnitA );
+    enrollmentService.enrollTrackedEntity(tei1, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(tei2, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(tei3, program, new Date(), new Date(), orgUnitA);
+    enrollmentService.enrollTrackedEntity(tei4, program, new Date(), new Date(), orgUnitA);
 
-        userService.addUser( user );
-    }
+    userService.addUser(user);
+  }
 
-    @Test
-    void testConfiguredPositiveMaxTeiLimit()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3 );
-        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-        params.setProgram( program );
-        params.setOrganisationUnits( Set.of( orgUnitA ) );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUserWithAssignedUsers( null, user, null );
-        params.setSkipPaging( true );
+  @Test
+  void testConfiguredPositiveMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 3);
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrganisationUnits(Set.of(orgUnitA));
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
 
-        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
-            false, false );
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-        assertNotNull( teis );
-        assertEquals( 3, teis.size(), "Size cannot be more than configured Tei max limit" );
-    }
+    assertNotNull(teis);
+    assertEquals(3, teis.size(), "Size cannot be more than configured Tei max limit");
+  }
 
-    @Test
-    void testConfiguredNegativeMaxTeiLimit()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1 );
+  @Test
+  void testConfiguredNegativeMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, -1);
 
-        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-        params.setProgram( program );
-        params.setOrganisationUnits( Set.of( orgUnitA ) );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUserWithAssignedUsers( null, user, null );
-        params.setSkipPaging( true );
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrganisationUnits(Set.of(orgUnitA));
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
 
-        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
-            false, false );
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
-    }
+    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+  }
 
-    @Test
-    void testDefaultMaxTeiLimit()
-    {
-        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-        params.setProgram( program );
-        params.setOrganisationUnits( Set.of( orgUnitA ) );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUserWithAssignedUsers( null, user, null );
-        params.setSkipPaging( true );
+  @Test
+  void testDefaultMaxTeiLimit() {
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrganisationUnits(Set.of(orgUnitA));
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
 
-        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
-            false, false );
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
-    }
+    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+  }
 
-    @Test
-    void testDisabledMaxTeiLimit()
-    {
-        systemSettingManager.saveSystemSetting( SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0 );
+  @Test
+  void testDisabledMaxTeiLimit() {
+    systemSettingManager.saveSystemSetting(SettingKey.TRACKED_ENTITY_MAX_LIMIT, 0);
 
-        TrackedEntityQueryParams params = new TrackedEntityQueryParams();
-        params.setProgram( program );
-        params.setOrganisationUnits( Set.of( orgUnitA ) );
-        params.setOrganisationUnitMode( OrganisationUnitSelectionMode.ALL );
-        params.setUserWithAssignedUsers( null, user, null );
-        params.setSkipPaging( true );
+    TrackedEntityQueryParams params = new TrackedEntityQueryParams();
+    params.setProgram(program);
+    params.setOrganisationUnits(Set.of(orgUnitA));
+    params.setOrganisationUnitMode(OrganisationUnitSelectionMode.ALL);
+    params.setUserWithAssignedUsers(null, user, null);
+    params.setSkipPaging(true);
 
-        List<Long> teis = trackedEntityService.getTrackedEntityIds( params,
-            false, false );
+    List<Long> teis = trackedEntityService.getTrackedEntityIds(params, false, false);
 
-        assertContainsOnly( List.of( tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId() ), teis );
-    }
+    assertContainsOnly(List.of(tei1.getId(), tei2.getId(), tei3.getId(), tei4.getId()), teis);
+  }
 }

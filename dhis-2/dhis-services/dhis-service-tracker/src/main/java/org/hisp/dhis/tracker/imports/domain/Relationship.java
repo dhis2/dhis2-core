@@ -27,16 +27,13 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerType;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -45,44 +42,32 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Relationship implements TrackerDto
-{
-    @JsonProperty
-    private String relationship;
+public class Relationship implements TrackerDto {
+  @JsonProperty private String relationship;
 
-    @JsonProperty
-    private String relationshipName;
+  @JsonProperty private String relationshipName;
 
-    @JsonProperty
-    private MetadataIdentifier relationshipType;
+  @JsonProperty private MetadataIdentifier relationshipType;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private boolean bidirectional;
+  @JsonProperty private boolean bidirectional;
 
-    @JsonProperty
-    private boolean deleted;
+  @JsonProperty private boolean deleted;
 
-    @JsonProperty
-    private RelationshipItem from;
+  @JsonProperty private RelationshipItem from;
 
-    @JsonProperty
-    private RelationshipItem to;
+  @JsonProperty private RelationshipItem to;
 
-    @Override
-    public String getUid()
-    {
-        return relationship;
-    }
+  @Override
+  public String getUid() {
+    return relationship;
+  }
 
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.RELATIONSHIP;
-    }
+  @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.RELATIONSHIP;
+  }
 }

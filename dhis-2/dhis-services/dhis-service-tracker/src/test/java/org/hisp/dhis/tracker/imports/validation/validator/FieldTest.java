@@ -40,7 +40,6 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.TrackerImportStrategy;
 import org.hisp.dhis.tracker.imports.TrackerType;
@@ -54,153 +53,129 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class FieldTest
-{
+class FieldTest {
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder()
-            .build();
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().build();
-    }
+  @BeforeEach
+  void setUp() {
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().build();
+  }
 
-    @Test
-    void testFieldWithValidator()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( "Kj6vYde4LHh" )
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+  @Test
+  void testFieldWithValidator() {
+    Enrollment enrollment =
+        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
 
-        Validator<String> isValidUid = ( r, b, uid ) -> {
-            // to demonstrate that we are getting the trackedEntity field
-            r.addError( new Error( uid, E1000, ENROLLMENT, uid ) );
+    Validator<String> isValidUid =
+        (r, b, uid) -> {
+          // to demonstrate that we are getting the trackedEntity field
+          r.addError(new Error(uid, E1000, ENROLLMENT, uid));
         };
 
-        Validator<Enrollment> validator = field( Enrollment::getTrackedEntity, isValidUid );
+    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertContainsOnly( List.of( "PuBvJxDB73z" ), actualErrorMessages() );
-    }
+    assertContainsOnly(List.of("PuBvJxDB73z"), actualErrorMessages());
+  }
 
-    @Test
-    void testFieldWithValidatorDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy()
-    {
-        bundle = TrackerBundle.builder().importStrategy( UPDATE ).build();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( "Kj6vYde4LHh" )
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+  @Test
+  void testFieldWithValidatorDoesNotCallValidatorIfItShouldNotRunOnGivenStrategy() {
+    bundle = TrackerBundle.builder().importStrategy(UPDATE).build();
+    Enrollment enrollment =
+        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
 
-        Validator<String> isValidUid = new Validator<>()
-        {
-            @Override
-            public void validate( Reporter reporter, TrackerBundle bundle, String input )
-            {
-                addError( reporter, "V1" );
-            }
+    Validator<String> isValidUid =
+        new Validator<>() {
+          @Override
+          public void validate(Reporter reporter, TrackerBundle bundle, String input) {
+            addError(reporter, "V1");
+          }
 
-            @Override
-            public boolean needsToRun( TrackerImportStrategy strategy )
-            {
-                return strategy == TrackerImportStrategy.DELETE;
-            }
+          @Override
+          public boolean needsToRun(TrackerImportStrategy strategy) {
+            return strategy == TrackerImportStrategy.DELETE;
+          }
         };
 
-        Validator<Enrollment> validator = field( Enrollment::getTrackedEntity, isValidUid );
+    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testFieldWithValidatorDoesNotCallValidatorIfItShouldNotRunOnGivenStrategyForATrackerDto()
-    {
-        bundle = TrackerBundle.builder()
-            .importStrategy( CREATE_AND_UPDATE )
-            .resolvedStrategyMap( new EnumMap<>( Map.of(
-                ENROLLMENT, Map.of( "Kj6vYde4LHh", UPDATE ) ) ) )
+  @Test
+  void testFieldWithValidatorDoesNotCallValidatorIfItShouldNotRunOnGivenStrategyForATrackerDto() {
+    bundle =
+        TrackerBundle.builder()
+            .importStrategy(CREATE_AND_UPDATE)
+            .resolvedStrategyMap(new EnumMap<>(Map.of(ENROLLMENT, Map.of("Kj6vYde4LHh", UPDATE))))
             .build();
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( "Kj6vYde4LHh" )
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+    Enrollment enrollment =
+        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
 
-        Validator<String> isValidUid = new Validator<>()
-        {
-            @Override
-            public void validate( Reporter reporter, TrackerBundle bundle, String input )
-            {
-                addError( reporter, "V1" );
-            }
+    Validator<String> isValidUid =
+        new Validator<>() {
+          @Override
+          public void validate(Reporter reporter, TrackerBundle bundle, String input) {
+            addError(reporter, "V1");
+          }
 
-            @Override
-            public boolean needsToRun( TrackerImportStrategy strategy )
-            {
-                return strategy == TrackerImportStrategy.CREATE;
-            }
+          @Override
+          public boolean needsToRun(TrackerImportStrategy strategy) {
+            return strategy == TrackerImportStrategy.CREATE;
+          }
         };
 
-        Validator<Enrollment> validator = field( Enrollment::getTrackedEntity, isValidUid );
+    Validator<Enrollment> validator = field(Enrollment::getTrackedEntity, isValidUid);
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void testFieldWithPredicateFailing()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( "Kj6vYde4LHh" )
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+  @Test
+  void testFieldWithPredicateFailing() {
+    Enrollment enrollment =
+        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
 
-        Validator<Enrollment> validator = field( Enrollment::getTrackedEntity, e -> false, E1000,
-            "wrong 1", "wrong 2" );
+    Validator<Enrollment> validator =
+        field(Enrollment::getTrackedEntity, e -> false, E1000, "wrong 1", "wrong 2");
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertHasError( reporter, enrollment, E1000, "wrong" );
-    }
+    assertHasError(reporter, enrollment, E1000, "wrong");
+  }
 
-    @Test
-    void testFieldWithPredicateSucceeding()
-    {
-        Enrollment enrollment = Enrollment.builder()
-            .enrollment( "Kj6vYde4LHh" )
-            .trackedEntity( "PuBvJxDB73z" )
-            .build();
+  @Test
+  void testFieldWithPredicateSucceeding() {
+    Enrollment enrollment =
+        Enrollment.builder().enrollment("Kj6vYde4LHh").trackedEntity("PuBvJxDB73z").build();
 
-        Validator<Enrollment> validator = field( Enrollment::getTrackedEntity, e -> true, E1000,
-            "wrong 1", "wrong 2" );
+    Validator<Enrollment> validator =
+        field(Enrollment::getTrackedEntity, e -> true, E1000, "wrong 1", "wrong 2");
 
-        validator.validate( reporter, bundle, enrollment );
+    validator.validate(reporter, bundle, enrollment);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    /**
-     * Add error with given message to {@link Reporter}. Every {@link Error} is
-     * attributed to a {@link TrackerDto}, which makes adding errors cumbersome
-     * when you do not care about any particular tracker type, uid or error
-     * code.
-     */
-    private static void addError( Reporter reporter, String message )
-    {
-        reporter.addError( new Error( message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid" ) );
-    }
+  /**
+   * Add error with given message to {@link Reporter}. Every {@link Error} is attributed to a {@link
+   * TrackerDto}, which makes adding errors cumbersome when you do not care about any particular
+   * tracker type, uid or error code.
+   */
+  private static void addError(Reporter reporter, String message) {
+    reporter.addError(new Error(message, ValidationCode.E9999, TrackerType.TRACKED_ENTITY, "uid"));
+  }
 
-    private List<String> actualErrorMessages()
-    {
-        return reporter.getErrors().stream().map( Error::getMessage ).collect( Collectors.toList() );
-    }
+  private List<String> actualErrorMessages() {
+    return reporter.getErrors().stream().map(Error::getMessage).collect(Collectors.toList());
+  }
 }

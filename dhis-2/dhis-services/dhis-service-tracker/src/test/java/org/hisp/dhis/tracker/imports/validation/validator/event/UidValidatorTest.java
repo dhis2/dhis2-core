@@ -31,6 +31,7 @@ import static org.hisp.dhis.tracker.imports.validation.ValidationCode.E1048;
 import static org.hisp.dhis.tracker.imports.validation.validator.AssertValidations.assertHasError;
 import static org.hisp.dhis.utils.Assertions.assertIsEmpty;
 
+import com.google.common.collect.Lists;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.tracker.imports.TrackerIdSchemeParams;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
@@ -41,63 +42,58 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Enrico Colasante
  */
-class UidValidatorTest
-{
+class UidValidatorTest {
 
-    private static final String INVALID_UID = "InvalidUID";
+  private static final String INVALID_UID = "InvalidUID";
 
-    private UidValidator validator;
+  private UidValidator validator;
 
-    private TrackerBundle bundle;
+  private TrackerBundle bundle;
 
-    private Reporter reporter;
+  private Reporter reporter;
 
-    @BeforeEach
-    void setUp()
-    {
-        TrackerPreheat preheat = new TrackerPreheat();
-        TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
-        preheat.setIdSchemes( idSchemes );
-        reporter = new Reporter( idSchemes );
-        bundle = TrackerBundle.builder().preheat( preheat ).build();
+  @BeforeEach
+  void setUp() {
+    TrackerPreheat preheat = new TrackerPreheat();
+    TrackerIdSchemeParams idSchemes = TrackerIdSchemeParams.builder().build();
+    preheat.setIdSchemes(idSchemes);
+    reporter = new Reporter(idSchemes);
+    bundle = TrackerBundle.builder().preheat(preheat).build();
 
-        validator = new UidValidator();
-    }
+    validator = new UidValidator();
+  }
 
-    @Test
-    void verifyEventValidationSuccess()
-    {
-        Note note = Note.builder().note( CodeGenerator.generateUid() ).build();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
+  @Test
+  void verifyEventValidationSuccess() {
+    Note note = Note.builder().note(CodeGenerator.generateUid()).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).notes(Lists.newArrayList(note)).build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertIsEmpty( reporter.getErrors() );
-    }
+    assertIsEmpty(reporter.getErrors());
+  }
 
-    @Test
-    void verifyEventWithInvalidUidFails()
-    {
-        Event event = Event.builder().event( INVALID_UID ).build();
+  @Test
+  void verifyEventWithInvalidUidFails() {
+    Event event = Event.builder().event(INVALID_UID).build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1048 );
-    }
+    assertHasError(reporter, event, E1048);
+  }
 
-    @Test
-    void verifyEventWithNoteWithInvalidUidFails()
-    {
-        Note note = Note.builder().note( INVALID_UID ).build();
-        Event event = Event.builder().event( CodeGenerator.generateUid() ).notes( Lists.newArrayList( note ) ).build();
+  @Test
+  void verifyEventWithNoteWithInvalidUidFails() {
+    Note note = Note.builder().note(INVALID_UID).build();
+    Event event =
+        Event.builder().event(CodeGenerator.generateUid()).notes(Lists.newArrayList(note)).build();
 
-        validator.validate( reporter, bundle, event );
+    validator.validate(reporter, bundle, event);
 
-        assertHasError( reporter, event, E1048 );
-    }
+    assertHasError(reporter, event, E1048);
+  }
 }

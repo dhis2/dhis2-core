@@ -31,29 +31,24 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Collections;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
-class OrConditionTest
-{
-    @Test
-    void testRenderEmpty()
-    {
-        OrCondition orCondition = OrCondition.of( Collections.emptyList() );
-        assertEquals( "", orCondition.render() );
-    }
+class OrConditionTest {
+  @Test
+  void testRenderEmpty() {
+    OrCondition orCondition = OrCondition.of(Collections.emptyList());
+    assertEquals("", orCondition.render());
+  }
 
-    @Test
-    void testRenderSingle()
-    {
-        OrCondition orCondition = OrCondition.of( List.of( () -> "c1" ) );
-        assertEquals( "c1", orCondition.render() );
-    }
+  @Test
+  void testRenderSingle() {
+    OrCondition orCondition = OrCondition.of(List.of(() -> "c1"));
+    assertEquals("c1", orCondition.render());
+  }
 
-    @Test
-    void testRenderMany()
-    {
-        OrCondition orCondition = OrCondition.of( List.of( () -> "c1", () -> "c2", () -> "c3" ) );
-        assertEquals( "(c1 or c2 or c3)", orCondition.render() );
-    }
+  @Test
+  void testRenderMany() {
+    OrCondition orCondition = OrCondition.of(List.of(() -> "c1", () -> "c2", () -> "c3"));
+    assertEquals("(c1 or c2 or c3)", orCondition.render());
+  }
 }

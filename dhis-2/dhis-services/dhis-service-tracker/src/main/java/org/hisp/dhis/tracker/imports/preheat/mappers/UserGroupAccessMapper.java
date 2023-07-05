@@ -33,15 +33,13 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
 
-@Mapper( uses = { DebugMapper.class, UserGroupMapper.class } )
-public interface UserGroupAccessMapper extends PreheatMapper<UserGroupAccess>
-{
-    UserGroupAccessMapper INSTANCE = Mappers.getMapper( UserGroupAccessMapper.class );
+@Mapper(uses = {DebugMapper.class, UserGroupMapper.class})
+public interface UserGroupAccessMapper extends PreheatMapper<UserGroupAccess> {
+  UserGroupAccessMapper INSTANCE = Mappers.getMapper(UserGroupAccessMapper.class);
 
-    @BeanMapping( ignoreByDefault = true )
-    @Mapping( target = "id" )
-    @Mapping( target = "access" )
-    @Mapping( target = "displayName" )
-    UserGroupAccess map( UserGroupAccess userGroupAccess );
-
+  @BeanMapping(ignoreByDefault = true)
+  @Mapping(target = "id")
+  @Mapping(target = "access")
+  @Mapping(target = "displayName")
+  UserGroupAccess map(UserGroupAccess userGroupAccess);
 }

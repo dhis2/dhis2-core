@@ -27,56 +27,51 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Value;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 @Value
 @Builder
-public class Error
-{
-    private final String errorMessage;
+public class Error {
+  private final String errorMessage;
 
-    private final String errorCode;
+  private final String errorCode;
 
-    private final String trackerType;
+  private final String trackerType;
 
-    private final String uid;
+  private final String uid;
 
-    @JsonCreator
-    public Error( @JsonProperty( "message" ) String errorMessage,
-        @JsonProperty( "errorCode" ) String errorCode,
-        @JsonProperty( "trackerType" ) String trackerType, @JsonProperty( "uid" ) String uid )
-    {
-        this.errorMessage = errorMessage;
-        this.errorCode = errorCode;
-        this.trackerType = trackerType;
-        this.uid = uid;
-    }
+  @JsonCreator
+  public Error(
+      @JsonProperty("message") String errorMessage,
+      @JsonProperty("errorCode") String errorCode,
+      @JsonProperty("trackerType") String trackerType,
+      @JsonProperty("uid") String uid) {
+    this.errorMessage = errorMessage;
+    this.errorCode = errorCode;
+    this.trackerType = trackerType;
+    this.uid = uid;
+  }
 
-    @JsonProperty
-    public String getErrorCode()
-    {
-        return errorCode;
-    }
+  @JsonProperty
+  public String getErrorCode() {
+    return errorCode;
+  }
 
-    @JsonProperty
-    public String getMessage()
-    {
-        return errorMessage;
-    }
+  @JsonProperty
+  public String getMessage() {
+    return errorMessage;
+  }
 
-    @JsonProperty
-    public String getTrackerType()
-    {
-        return trackerType;
-    }
+  @JsonProperty
+  public String getTrackerType() {
+    return trackerType;
+  }
 
-    @JsonProperty
-    public String getUid()
-    {
-        return uid;
-    }
+  @JsonProperty
+  public String getUid() {
+    return uid;
+  }
 }
