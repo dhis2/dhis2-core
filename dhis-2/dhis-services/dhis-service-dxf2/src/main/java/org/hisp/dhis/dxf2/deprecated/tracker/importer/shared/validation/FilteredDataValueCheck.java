@@ -35,7 +35,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.dxf2.deprecated.tracker.event.DataValue;
 import org.hisp.dhis.dxf2.deprecated.tracker.importer.Checker;
@@ -49,48 +48,49 @@ import org.springframework.stereotype.Component;
  * @author Giuseppe Nespolino
  */
 @Component
-public class FilteredDataValueCheck implements Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        final Set<String> eventDataValuesUids = Optional.ofNullable( event )
-            .map( ImmutableEvent::getDataValues )
-            .orElse( Collections.emptySet() )
+public class FilteredDataValueCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    final Set<String> eventDataValuesUids =
+        Optional.ofNullable(event)
+            .map(ImmutableEvent::getDataValues)
+            .orElse(Collections.emptySet())
             .stream()
-            .map( DataValue::getDataElement )
-            .collect( Collectors.toSet() );
+            .map(DataValue::getDataElement)
+            .collect(Collectors.toSet());
 
-        final ImportSummary importSummary = new ImportSummary();
+    final ImportSummary importSummary = new ImportSummary();
 
-        if ( !eventDataValuesUids.isEmpty() &&
-            Objects.nonNull( event ) &&
-            StringUtils.isNotBlank( event.getProgramStage() ) )
-        {
+    if (!eventDataValuesUids.isEmpty()
+        && Objects.nonNull(event)
+        && StringUtils.isNotBlank(event.getProgramStage())) {
 
-            Set<String> filteredEventDataValuesUids = getFilteredDataValues( event.getDataValues(),
-                getDataElementUidsFromProgramStage( event.getProgramStage(), ctx ) ).stream()
-                .map( DataValue::getDataElement )
-                .collect( Collectors.toSet() );
+      Set<String> filteredEventDataValuesUids =
+          getFilteredDataValues(
+                  event.getDataValues(),
+                  getDataElementUidsFromProgramStage(event.getProgramStage(), ctx))
+              .stream()
+              .map(DataValue::getDataElement)
+              .collect(Collectors.toSet());
 
-            Set<String> ignoredDataValues = eventDataValuesUids.stream()
-                .filter( uid -> !filteredEventDataValuesUids.contains( uid ) )
-                .collect( Collectors.toSet() );
+      Set<String> ignoredDataValues =
+          eventDataValuesUids.stream()
+              .filter(uid -> !filteredEventDataValuesUids.contains(uid))
+              .collect(Collectors.toSet());
 
-            if ( !ignoredDataValues.isEmpty() )
-            {
-                importSummary.setStatus( ImportStatus.WARNING );
-                importSummary.setReference( event.getUid() );
-                importSummary.setDescription( "Data Values " +
-                    ignoredDataValues.stream()
-                        .collect( Collectors.joining( ",", "[", "]" ) )
-                    + " ignored because " +
-                    "not defined in program stage " + event.getProgramStage() );
-                importSummary.incrementImported();
-            }
-        }
-
-        return importSummary;
+      if (!ignoredDataValues.isEmpty()) {
+        importSummary.setStatus(ImportStatus.WARNING);
+        importSummary.setReference(event.getUid());
+        importSummary.setDescription(
+            "Data Values "
+                + ignoredDataValues.stream().collect(Collectors.joining(",", "[", "]"))
+                + " ignored because "
+                + "not defined in program stage "
+                + event.getProgramStage());
+        importSummary.incrementImported();
+      }
     }
 
+    return importSummary;
+  }
 }

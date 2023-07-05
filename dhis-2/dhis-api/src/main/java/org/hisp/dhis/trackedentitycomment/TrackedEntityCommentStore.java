@@ -32,16 +32,12 @@ import org.hisp.dhis.common.IdentifiableObjectStore;
 /**
  * @author David Katuscak
  */
-
-public interface TrackedEntityCommentStore
-    extends IdentifiableObjectStore<TrackedEntityComment>
-{
-    /**
-     * Checks for the existence of a TrackedEntityComment by UID
-     *
-     * @param uid TrackedEntityComment UID to check for.
-     * @return true/false depending on result.
-     */
-    boolean exists( String uid );
-
+public interface TrackedEntityCommentStore extends IdentifiableObjectStore<TrackedEntityComment> {
+  /**
+   * Checks for the existence of a TrackedEntityComment by UID
+   *
+   * @param uid TrackedEntityComment UID to check for.
+   * @return true/false depending on result.
+   */
+  boolean exists(String uid);
 }

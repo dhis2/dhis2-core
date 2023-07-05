@@ -27,6 +27,7 @@
  */
 package org.hisp.dhis.predictor;
 
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,9 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsService;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -52,166 +51,153 @@ import org.hisp.dhis.period.Period;
 import org.hisp.dhis.program.AnalyticsType;
 import org.hisp.dhis.program.ProgramIndicator;
 
-import com.google.common.collect.Lists;
-
 /**
  * Fetches analytics data for predictions.
- * <p>
- * This class can fetch values from analytics and return them for a list of
- * organisation units.
+ *
+ * <p>This class can fetch values from analytics and return them for a list of organisation units.
  *
  * @author Jim Grace
  */
 @RequiredArgsConstructor
-public class PredictionAnalyticsDataFetcher
-{
-    private final AnalyticsService analyticsService;
+public class PredictionAnalyticsDataFetcher {
+  private final AnalyticsService analyticsService;
 
-    private final CategoryService categoryService;
+  private final CategoryService categoryService;
 
-    private Set<Period> periods;
+  private Set<Period> periods;
 
-    private Map<String, Period> periodLookup;
+  private Map<String, Period> periodLookup;
 
-    private Set<DimensionalItemObject> attributeOptionItems;
+  private Set<DimensionalItemObject> attributeOptionItems;
 
-    private Set<DimensionalItemObject> nonAttributeOptionItems;
+  private Set<DimensionalItemObject> nonAttributeOptionItems;
 
-    private Map<String, DimensionalItemObject> analyticsItemsLookup;
+  private Map<String, DimensionalItemObject> analyticsItemsLookup;
 
-    private CachingMap<String, CategoryOptionCombo> cocLookup;
+  private CachingMap<String, CategoryOptionCombo> cocLookup;
 
-    private Map<String, OrganisationUnit> orgUnitLookup;
+  private Map<String, OrganisationUnit> orgUnitLookup;
 
-    /**
-     * Initializes for fetching analytics data.
-     *
-     * @param periods periods to fetch
-     * @param analyticsItems analytics items to fetch
-     */
-    public void init( Set<Period> periods, Set<DimensionalItemObject> analyticsItems )
-    {
-        this.periods = periods;
+  /**
+   * Initializes for fetching analytics data.
+   *
+   * @param periods periods to fetch
+   * @param analyticsItems analytics items to fetch
+   */
+  public void init(Set<Period> periods, Set<DimensionalItemObject> analyticsItems) {
+    this.periods = periods;
 
-        categorizeAnalyticsItems( analyticsItems );
+    categorizeAnalyticsItems(analyticsItems);
 
-        periodLookup = periods.stream()
-            .collect( Collectors.toMap( Period::getIsoDate, p -> p ) );
+    periodLookup = periods.stream().collect(Collectors.toMap(Period::getIsoDate, p -> p));
 
-        analyticsItemsLookup = analyticsItems.stream()
-            .collect( Collectors.toMap( DimensionalItemObject::getDimensionItem, d -> d ) );
+    analyticsItemsLookup =
+        analyticsItems.stream()
+            .collect(Collectors.toMap(DimensionalItemObject::getDimensionItem, d -> d));
 
-        cocLookup = new CachingMap<>();
+    cocLookup = new CachingMap<>();
+  }
+
+  /**
+   * Gets analytics values.
+   *
+   * @param orgUnits organisation units to get data for
+   * @return values as fetched from analytics
+   */
+  public List<FoundDimensionItemValue> getValues(List<OrganisationUnit> orgUnits) {
+    orgUnitLookup = orgUnits.stream().collect(Collectors.toMap(OrganisationUnit::getUid, o -> o));
+
+    List<FoundDimensionItemValue> values = getValuesInternal(orgUnits, attributeOptionItems, true);
+
+    values.addAll(getValuesInternal(orgUnits, nonAttributeOptionItems, false));
+
+    return values;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive Methods
+  // -------------------------------------------------------------------------
+
+  /**
+   * Categorizes analytics items according to whether or not they are stored with an attribute
+   * option combo.
+   */
+  private void categorizeAnalyticsItems(Set<DimensionalItemObject> analyticsItems) {
+    attributeOptionItems = new HashSet<>();
+    nonAttributeOptionItems = new HashSet<>();
+
+    for (DimensionalItemObject o : analyticsItems) {
+      if (hasAttributeOptions(o)) {
+        attributeOptionItems.add(o);
+      } else {
+        nonAttributeOptionItems.add(o);
+      }
+    }
+  }
+
+  /**
+   * Checks to see if a dimensional item object has values stored in the database by attribute
+   * option combo
+   */
+  private boolean hasAttributeOptions(DimensionalItemObject o) {
+    return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
+        || ((ProgramIndicator) o).getAnalyticsType() != AnalyticsType.ENROLLMENT;
+  }
+
+  /** Queries analytics for data. */
+  private List<FoundDimensionItemValue> getValuesInternal(
+      List<OrganisationUnit> orgUnits,
+      Set<DimensionalItemObject> dimensionItems,
+      boolean hasAttributeOptions) {
+    List<FoundDimensionItemValue> values = new ArrayList<>();
+
+    if (dimensionItems.isEmpty()) {
+      return values;
     }
 
-    /**
-     * Gets analytics values.
-     *
-     * @param orgUnits organisation units to get data for
-     * @return values as fetched from analytics
-     */
-    public List<FoundDimensionItemValue> getValues( List<OrganisationUnit> orgUnits )
-    {
-        orgUnitLookup = orgUnits.stream()
-            .collect( Collectors.toMap( OrganisationUnit::getUid, o -> o ) );
+    DataQueryParams.Builder paramsBuilder =
+        DataQueryParams.newBuilder()
+            .withPeriods(Lists.newArrayList(periods))
+            .withDataDimensionItems(Lists.newArrayList(dimensionItems))
+            .withOrganisationUnits(orgUnits);
 
-        List<FoundDimensionItemValue> values = getValuesInternal( orgUnits, attributeOptionItems, true );
-
-        values.addAll( getValuesInternal( orgUnits, nonAttributeOptionItems, false ) );
-
-        return values;
+    if (hasAttributeOptions) {
+      paramsBuilder.withAttributeOptionCombos(Collections.emptyList());
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
+    Grid grid = analyticsService.getAggregatedDataValues(paramsBuilder.build());
 
-    /**
-     * Categorizes analytics items according to whether or not they are stored
-     * with an attribute option combo.
-     */
-    private void categorizeAnalyticsItems( Set<DimensionalItemObject> analyticsItems )
-    {
-        attributeOptionItems = new HashSet<>();
-        nonAttributeOptionItems = new HashSet<>();
+    int peInx = grid.getIndexOfHeader(DimensionalObject.PERIOD_DIM_ID);
+    int dxInx = grid.getIndexOfHeader(DimensionalObject.DATA_X_DIM_ID);
+    int ouInx = grid.getIndexOfHeader(DimensionalObject.ORGUNIT_DIM_ID);
+    int aoInx =
+        hasAttributeOptions
+            ? grid.getIndexOfHeader(DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID)
+            : 0;
+    int vlInx = grid.getWidth() - 1;
 
-        for ( DimensionalItemObject o : analyticsItems )
-        {
-            if ( hasAttributeOptions( o ) )
-            {
-                attributeOptionItems.add( o );
-            }
-            else
-            {
-                nonAttributeOptionItems.add( o );
-            }
-        }
+    for (List<Object> row : grid.getRows()) {
+      String pe = (String) row.get(peInx);
+      String dx = (String) row.get(dxInx);
+      String ou = (String) row.get(ouInx);
+      String ao = hasAttributeOptions ? (String) row.get(aoInx) : null;
+      Object vl = row.get(vlInx);
+
+      if (vl instanceof Number && !(vl instanceof Double)) {
+        vl = ((Number) vl).doubleValue();
+      }
+
+      Period period = periodLookup.get(pe);
+      DimensionalItemObject item = analyticsItemsLookup.get(dx);
+      OrganisationUnit orgUnit = orgUnitLookup.get(ou);
+      CategoryOptionCombo attributeOptionCombo =
+          hasAttributeOptions
+              ? cocLookup.get(ao, () -> categoryService.getCategoryOptionCombo(ao))
+              : null;
+
+      values.add(new FoundDimensionItemValue(orgUnit, period, attributeOptionCombo, item, vl));
     }
 
-    /**
-     * Checks to see if a dimensional item object has values stored in the
-     * database by attribute option combo
-     */
-    private boolean hasAttributeOptions( DimensionalItemObject o )
-    {
-        return o.getDimensionItemType() != DimensionItemType.PROGRAM_INDICATOR
-            || ((ProgramIndicator) o).getAnalyticsType() != AnalyticsType.ENROLLMENT;
-    }
-
-    /**
-     * Queries analytics for data.
-     */
-    private List<FoundDimensionItemValue> getValuesInternal( List<OrganisationUnit> orgUnits,
-        Set<DimensionalItemObject> dimensionItems, boolean hasAttributeOptions )
-    {
-        List<FoundDimensionItemValue> values = new ArrayList<>();
-
-        if ( dimensionItems.isEmpty() )
-        {
-            return values;
-        }
-
-        DataQueryParams.Builder paramsBuilder = DataQueryParams.newBuilder()
-            .withPeriods( Lists.newArrayList( periods ) )
-            .withDataDimensionItems( Lists.newArrayList( dimensionItems ) )
-            .withOrganisationUnits( orgUnits );
-
-        if ( hasAttributeOptions )
-        {
-            paramsBuilder.withAttributeOptionCombos( Collections.emptyList() );
-        }
-
-        Grid grid = analyticsService.getAggregatedDataValues( paramsBuilder.build() );
-
-        int peInx = grid.getIndexOfHeader( DimensionalObject.PERIOD_DIM_ID );
-        int dxInx = grid.getIndexOfHeader( DimensionalObject.DATA_X_DIM_ID );
-        int ouInx = grid.getIndexOfHeader( DimensionalObject.ORGUNIT_DIM_ID );
-        int aoInx = hasAttributeOptions ? grid.getIndexOfHeader( DimensionalObject.ATTRIBUTEOPTIONCOMBO_DIM_ID ) : 0;
-        int vlInx = grid.getWidth() - 1;
-
-        for ( List<Object> row : grid.getRows() )
-        {
-            String pe = (String) row.get( peInx );
-            String dx = (String) row.get( dxInx );
-            String ou = (String) row.get( ouInx );
-            String ao = hasAttributeOptions ? (String) row.get( aoInx ) : null;
-            Object vl = row.get( vlInx );
-
-            if ( vl instanceof Number && !(vl instanceof Double) )
-            {
-                vl = ((Number) vl).doubleValue();
-            }
-
-            Period period = periodLookup.get( pe );
-            DimensionalItemObject item = analyticsItemsLookup.get( dx );
-            OrganisationUnit orgUnit = orgUnitLookup.get( ou );
-            CategoryOptionCombo attributeOptionCombo = hasAttributeOptions
-                ? cocLookup.get( ao, () -> categoryService.getCategoryOptionCombo( ao ) )
-                : null;
-
-            values.add( new FoundDimensionItemValue( orgUnit, period, attributeOptionCombo, item, vl ) );
-        }
-
-        return values;
-    }
+    return values;
+  }
 }

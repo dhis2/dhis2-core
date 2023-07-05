@@ -35,73 +35,78 @@ import org.hisp.dhis.user.User;
 /**
  * @author Ameen Mohamed
  */
-public interface TrackerOwnershipManager
-{
-    String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
+public interface TrackerOwnershipManager {
+  String OWNERSHIP_ACCESS_DENIED = "OWNERSHIP_ACCESS_DENIED";
 
-    String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
+  String PROGRAM_ACCESS_CLOSED = "PROGRAM_ACCESS_CLOSED";
 
-    /**
-     * @param entityInstance The tracked entity instance object
-     * @param program The program object
-     * @param orgUnit The org unit that has to become the owner
-     * @param skipAccessValidation whether ownership access validation has to be
-     *        skipped or not.
-     */
-    void transferOwnership( TrackedEntity entityInstance, Program program, OrganisationUnit orgUnit,
-        boolean skipAccessValidation, boolean createIfNotExists );
+  /**
+   * @param entityInstance The tracked entity instance object
+   * @param program The program object
+   * @param orgUnit The org unit that has to become the owner
+   * @param skipAccessValidation whether ownership access validation has to be skipped or not.
+   */
+  void transferOwnership(
+      TrackedEntity entityInstance,
+      Program program,
+      OrganisationUnit orgUnit,
+      boolean skipAccessValidation,
+      boolean createIfNotExists);
 
-    /**
-     * @param entityInstance The tracked entity instance object
-     * @param program The program object
-     * @param organisationUnit The org unit that has to become the owner
-     */
-    void assignOwnership( TrackedEntity entityInstance, Program program, OrganisationUnit organisationUnit,
-        boolean skipAccessValidation, boolean overwriteIfExists );
+  /**
+   * @param entityInstance The tracked entity instance object
+   * @param program The program object
+   * @param organisationUnit The org unit that has to become the owner
+   */
+  void assignOwnership(
+      TrackedEntity entityInstance,
+      Program program,
+      OrganisationUnit organisationUnit,
+      boolean skipAccessValidation,
+      boolean overwriteIfExists);
 
-    /**
-     * Check whether the user has access (as owner or has temporarily broken the
-     * glass) for the tracked entity instance - program combination.
-     *
-     * @param user The user with which access has to be checked for.
-     * @param entityInstance The tracked entity instance.
-     * @param program The program.
-     * @return true if the user has access, false otherwise.
-     */
-    boolean hasAccess( User user, TrackedEntity entityInstance, Program program );
+  /**
+   * Check whether the user has access (as owner or has temporarily broken the glass) for the
+   * tracked entity instance - program combination.
+   *
+   * @param user The user with which access has to be checked for.
+   * @param entityInstance The tracked entity instance.
+   * @param program The program.
+   * @return true if the user has access, false otherwise.
+   */
+  boolean hasAccess(User user, TrackedEntity entityInstance, Program program);
 
-    boolean hasAccess( User user, String entityInstance, OrganisationUnit organisationUnit, Program program );
+  boolean hasAccess(
+      User user, String entityInstance, OrganisationUnit organisationUnit, Program program);
 
-    /**
-     * Grant temporary ownership for a user for a specific tei-program
-     * combination
-     *
-     * @param entityInstance The tracked entity instance object
-     * @param program The program object
-     * @param user The user for which temporary access is granted.
-     * @param reason The reason for requesting temporary ownership
-     */
-    void grantTemporaryOwnership( TrackedEntity entityInstance, Program program, User user, String reason );
+  /**
+   * Grant temporary ownership for a user for a specific tei-program combination
+   *
+   * @param entityInstance The tracked entity instance object
+   * @param program The program object
+   * @param user The user for which temporary access is granted.
+   * @param reason The reason for requesting temporary ownership
+   */
+  void grantTemporaryOwnership(
+      TrackedEntity entityInstance, Program program, User user, String reason);
 
-    /**
-     * Ownership check can be skipped if the user is super user or if the
-     * program type is without registration.
-     *
-     * @param user the {@User}.
-     * @param program the {@link Program}.
-     *
-     * @return true if ownership check can be skipped.
-     */
-    boolean canSkipOwnershipCheck( User user, Program program );
+  /**
+   * Ownership check can be skipped if the user is super user or if the program type is without
+   * registration.
+   *
+   * @param user the {@User}.
+   * @param program the {@link Program}.
+   * @return true if ownership check can be skipped.
+   */
+  boolean canSkipOwnershipCheck(User user, Program program);
 
-    /**
-     * Ownership check can be skipped if the user is super user or if the
-     * program type is without registration.
-     *
-     * @param user the {@User}.
-     * @param programType the {@link ProgramType}.
-     *
-     * @return true if ownership check can be skipped.
-     */
-    boolean canSkipOwnershipCheck( User user, ProgramType programType );
+  /**
+   * Ownership check can be skipped if the user is super user or if the program type is without
+   * registration.
+   *
+   * @param user the {@User}.
+   * @param programType the {@link ProgramType}.
+   * @return true if ownership check can be skipped.
+   */
+  boolean canSkipOwnershipCheck(User user, ProgramType programType);
 }

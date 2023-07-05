@@ -33,16 +33,13 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonProgramStage extends JsonObject, JsonIdentifiableObject
-{
+public interface JsonProgramStage extends JsonObject, JsonIdentifiableObject {
 
-    default JsonList<JsonProgramStageSection> getProgramStageSections()
-    {
-        return getList( "programStageSections", JsonProgramStageSection.class );
-    }
+  default JsonList<JsonProgramStageSection> getProgramStageSections() {
+    return getList("programStageSections", JsonProgramStageSection.class);
+  }
 
-    default JsonList<JsonProgramStageDataElement> getProgramStageDataElements()
-    {
-        return getList( "programStageDataElements", JsonProgramStageDataElement.class );
-    }
+  default JsonList<JsonProgramStageDataElement> getProgramStageDataElements() {
+    return getList("programStageDataElements", JsonProgramStageDataElement.class);
+  }
 }

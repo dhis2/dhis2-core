@@ -28,60 +28,48 @@
 package org.hisp.dhis.webapi.json.domain;
 
 import java.time.LocalDateTime;
-
 import org.hisp.dhis.jsontree.JsonDate;
 import org.hisp.dhis.jsontree.JsonList;
 
 /**
- * Web API equivalent of a
- * {@link org.hisp.dhis.organisationunit.OrganisationUnit}.
+ * Web API equivalent of a {@link org.hisp.dhis.organisationunit.OrganisationUnit}.
  *
  * @author Jan Bernitt
  */
-public interface JsonOrganisationUnit extends JsonIdentifiableObject
-{
-    default boolean isLeaf()
-    {
-        return getBoolean( "leaf" ).booleanValue();
-    }
+public interface JsonOrganisationUnit extends JsonIdentifiableObject {
+  default boolean isLeaf() {
+    return getBoolean("leaf").booleanValue();
+  }
 
-    default int getLevel()
-    {
-        return getNumber( "level" ).intValue();
-    }
+  default int getLevel() {
+    return getNumber("level").intValue();
+  }
 
-    default JsonPath getPath()
-    {
-        return get( "path", JsonPath.class );
-    }
+  default JsonPath getPath() {
+    return get("path", JsonPath.class);
+  }
 
-    default LocalDateTime getOpeningDate()
-    {
-        return get( "openingDate", JsonDate.class ).date();
-    }
+  default LocalDateTime getOpeningDate() {
+    return get("openingDate", JsonDate.class).date();
+  }
 
-    default LocalDateTime getClosedDate()
-    {
-        return get( "closedDate", JsonDate.class ).date();
-    }
+  default LocalDateTime getClosedDate() {
+    return get("closedDate", JsonDate.class).date();
+  }
 
-    default JsonOrganisationUnit getParent()
-    {
-        return get( "parent", JsonOrganisationUnit.class );
-    }
+  default JsonOrganisationUnit getParent() {
+    return get("parent", JsonOrganisationUnit.class);
+  }
 
-    default JsonList<JsonOrganisationUnit> getChildren()
-    {
-        return getList( "children", JsonOrganisationUnit.class );
-    }
+  default JsonList<JsonOrganisationUnit> getChildren() {
+    return getList("children", JsonOrganisationUnit.class);
+  }
 
-    default JsonList<JsonOrganisationUnit> getAncestors()
-    {
-        return getList( "ancestors", JsonOrganisationUnit.class );
-    }
+  default JsonList<JsonOrganisationUnit> getAncestors() {
+    return getList("ancestors", JsonOrganisationUnit.class);
+  }
 
-    default JsonList<JsonUser> getUsers()
-    {
-        return getList( "users", JsonUser.class );
-    }
+  default JsonList<JsonUser> getUsers() {
+    return getList("users", JsonUser.class);
+  }
 }

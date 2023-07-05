@@ -27,16 +27,14 @@
  */
 package org.hisp.dhis.common;
 
-public interface NameableObject
-    extends IdentifiableObject
-{
-    String getShortName();
+public interface NameableObject extends IdentifiableObject {
+  String getShortName();
 
-    String getDisplayShortName();
+  String getDisplayShortName();
 
-    String getDescription();
+  String getDescription();
 
-    String getDisplayDescription();
+  String getDisplayDescription();
 
-    String getDisplayProperty( DisplayProperty property );
+  String getDisplayProperty(DisplayProperty property);
 }

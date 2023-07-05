@@ -37,7 +37,6 @@ import static org.hisp.dhis.eventvisualization.SimpleDimension.Type.from;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.BaseDimensionalItemObject;
 import org.hisp.dhis.common.BaseDimensionalObject;
 import org.hisp.dhis.common.DimensionalItemObject;
@@ -45,108 +44,98 @@ import org.hisp.dhis.common.DimensionalObject;
 import org.hisp.dhis.common.EventAnalyticalObject;
 
 /**
- * Responsible for handling and associating the simple event dimensions in the
- * EventAnalyticalObject instances.
+ * Responsible for handling and associating the simple event dimensions in the EventAnalyticalObject
+ * instances.
  *
  * @author maikel arabori
  */
-public class SimpleDimensionHandler
-{
-    /**
-     * We use the EventAnalyticalObject interface because this handler is also
-     * used by the deprecated EventReport. So, in order to being able to reuse
-     * it, we make usage of the common interface.
-     *
-     * Once the EventReport is completely removed we can start using the actual
-     * EventVisualization class.
-     */
-    private final EventAnalyticalObject eventAnalyticalObject;
+public class SimpleDimensionHandler {
+  /**
+   * We use the EventAnalyticalObject interface because this handler is also used by the deprecated
+   * EventReport. So, in order to being able to reuse it, we make usage of the common interface.
+   *
+   * <p>Once the EventReport is completely removed we can start using the actual EventVisualization
+   * class.
+   */
+  private final EventAnalyticalObject eventAnalyticalObject;
 
-    public SimpleDimensionHandler( final EventAnalyticalObject eventAnalyticalObject )
-    {
-        this.eventAnalyticalObject = eventAnalyticalObject;
-    }
+  public SimpleDimensionHandler(final EventAnalyticalObject eventAnalyticalObject) {
+    this.eventAnalyticalObject = eventAnalyticalObject;
+  }
 
-    /**
-     * Based on the given dimension and parent attribute, this method will
-     * return an instance representing the associated DimensionalObject. It
-     * actually returns an instance of BaseDimensionalObject.
-     *
-     * @param dimension the dimension, ie: dx, pe, eventDate
-     * @param parent the parent attribute
-     * @return the respective dimensional object
-     * @throws IllegalArgumentException if the dimension does not exist in
-     *         {@link SimpleDimension.Type}
-     */
-    public DimensionalObject getDimensionalObject( final String dimension, final Attribute parent )
-    {
-        return new BaseDimensionalObject( dimension, from( dimension ).getParentType(),
-            loadDimensionalItems( dimension, parent ) );
-    }
+  /**
+   * Based on the given dimension and parent attribute, this method will return an instance
+   * representing the associated DimensionalObject. It actually returns an instance of
+   * BaseDimensionalObject.
+   *
+   * @param dimension the dimension, ie: dx, pe, eventDate
+   * @param parent the parent attribute
+   * @return the respective dimensional object
+   * @throws IllegalArgumentException if the dimension does not exist in {@link
+   *     SimpleDimension.Type}
+   */
+  public DimensionalObject getDimensionalObject(final String dimension, final Attribute parent) {
+    return new BaseDimensionalObject(
+        dimension, from(dimension).getParentType(), loadDimensionalItems(dimension, parent));
+  }
 
-    /**
-     * Based on the given event analytical object provided in the constructor of
-     * this class, this method will populate its respective list of simple event
-     * dimensions.
-     *
-     * It, basically, iterates through columns, rows and filters in order to
-     * extract the correct dimension and add it into the list of simple event
-     * dimensions. This is obviously done by reference on top of the current
-     * event analytical object.
-     */
-    public void associateDimensions()
-    {
-        associateDimensionalObjects( eventAnalyticalObject.getColumns(), COLUMN );
-        associateDimensionalObjects( eventAnalyticalObject.getRows(), ROW );
-        associateDimensionalObjects( eventAnalyticalObject.getFilters(), FILTER );
-    }
+  /**
+   * Based on the given event analytical object provided in the constructor of this class, this
+   * method will populate its respective list of simple event dimensions.
+   *
+   * <p>It, basically, iterates through columns, rows and filters in order to extract the correct
+   * dimension and add it into the list of simple event dimensions. This is obviously done by
+   * reference on top of the current event analytical object.
+   */
+  public void associateDimensions() {
+    associateDimensionalObjects(eventAnalyticalObject.getColumns(), COLUMN);
+    associateDimensionalObjects(eventAnalyticalObject.getRows(), ROW);
+    associateDimensionalObjects(eventAnalyticalObject.getFilters(), FILTER);
+  }
 
-    private void associateDimensionalObjects( final List<DimensionalObject> dimensionalObjects,
-        final Attribute attribute )
-    {
-        if ( isNotEmpty( dimensionalObjects ) )
-        {
-            for ( final DimensionalObject object : dimensionalObjects )
-            {
-                if ( object != null && contains( object.getUid() ) )
-                {
-                    eventAnalyticalObject.getSimpleDimensions()
-                        .add( createSimpleEventDimensionFor( object, attribute ) );
-                }
-            }
+  private void associateDimensionalObjects(
+      final List<DimensionalObject> dimensionalObjects, final Attribute attribute) {
+    if (isNotEmpty(dimensionalObjects)) {
+      for (final DimensionalObject object : dimensionalObjects) {
+        if (object != null && contains(object.getUid())) {
+          eventAnalyticalObject
+              .getSimpleDimensions()
+              .add(createSimpleEventDimensionFor(object, attribute));
         }
+      }
+    }
+  }
+
+  private List<BaseDimensionalItemObject> loadDimensionalItems(
+      final String dimension, final Attribute parent) {
+    final List<BaseDimensionalItemObject> items = new ArrayList<>();
+
+    for (final SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions()) {
+      final boolean hasSameDimension = simpleDimension.getDimension().equals(dimension);
+
+      if (simpleDimension.belongsTo(parent) && hasSameDimension) {
+        items.addAll(
+            simpleDimension.getValues().stream()
+                .map(BaseDimensionalItemObject::new)
+                .collect(toList()));
+      }
     }
 
-    private List<BaseDimensionalItemObject> loadDimensionalItems( final String dimension,
-        final Attribute parent )
-    {
-        final List<BaseDimensionalItemObject> items = new ArrayList<>();
+    return items;
+  }
 
-        for ( final SimpleDimension simpleDimension : eventAnalyticalObject.getSimpleDimensions() )
-        {
-            final boolean hasSameDimension = simpleDimension.getDimension().equals( dimension );
+  private SimpleDimension createSimpleEventDimensionFor(
+      final DimensionalObject dimensionalObject, final Attribute attribute) {
+    final SimpleDimension simpleDimension =
+        new SimpleDimension(attribute, dimensionalObject.getUid());
 
-            if ( simpleDimension.belongsTo( parent ) && hasSameDimension )
-            {
-                items.addAll( simpleDimension.getValues().stream()
-                    .map( BaseDimensionalItemObject::new ).collect( toList() ) );
-            }
-        }
-
-        return items;
+    if (isNotEmpty(dimensionalObject.getItems())) {
+      simpleDimension.setValues(
+          dimensionalObject.getItems().stream()
+              .map(DimensionalItemObject::getUid)
+              .collect(toList()));
     }
 
-    private SimpleDimension createSimpleEventDimensionFor( final DimensionalObject dimensionalObject,
-        final Attribute attribute )
-    {
-        final SimpleDimension simpleDimension = new SimpleDimension( attribute, dimensionalObject.getUid() );
-
-        if ( isNotEmpty( dimensionalObject.getItems() ) )
-        {
-            simpleDimension.setValues(
-                dimensionalObject.getItems().stream().map( DimensionalItemObject::getUid ).collect( toList() ) );
-        }
-
-        return simpleDimension;
-    }
+    return simpleDimension;
+  }
 }

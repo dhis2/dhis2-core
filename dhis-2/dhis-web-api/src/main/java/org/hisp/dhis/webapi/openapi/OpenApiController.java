@@ -35,12 +35,9 @@ import java.io.UncheckedIOException;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.stream.Stream;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Controller;
@@ -50,145 +47,178 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @RestController
-@RequestMapping( "" )
+@RequestMapping("")
 @AllArgsConstructor
-public class OpenApiController
-{
-    private static final String APPLICATION_X_YAML = "application/x-yaml";
+public class OpenApiController {
+  private static final String APPLICATION_X_YAML = "application/x-yaml";
 
-    private final ApplicationContext context;
+  private final ApplicationContext context;
 
-    /*
-     * YAML
-     */
+  /*
+   * YAML
+   */
 
-    @GetMapping( value = "/openapi.yaml", produces = APPLICATION_X_YAML )
-    public void getFullOpenApiYaml(
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_X_YAML,
-            OpenApiGenerator::generateYaml );
+  @GetMapping(value = "/openapi.yaml", produces = APPLICATION_X_YAML)
+  public void getFullOpenApiYaml(
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        Set.of(),
+        Set.of(),
+        failOnNameClash,
+        APPLICATION_X_YAML,
+        OpenApiGenerator::generateYaml);
+  }
+
+  @GetMapping(value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML)
+  public void getPathOpenApiYaml(
+      @PathVariable String path,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        Set.of("/" + path),
+        Set.of(),
+        failOnNameClash,
+        APPLICATION_X_YAML,
+        OpenApiGenerator::generateYaml);
+  }
+
+  @GetMapping(value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML)
+  public void getOpenApiYaml(
+      @RequestParam(required = false) Set<String> path,
+      @RequestParam(required = false) Set<String> tag,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        path,
+        tag,
+        failOnNameClash,
+        APPLICATION_X_YAML,
+        OpenApiGenerator::generateYaml);
+  }
+
+  /*
+   * JSON
+   */
+
+  @GetMapping(value = "/openapi.json", produces = APPLICATION_JSON_VALUE)
+  public void getFullOpenApiJson(
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        Set.of(),
+        Set.of(),
+        failOnNameClash,
+        APPLICATION_JSON_VALUE,
+        OpenApiGenerator::generateJson);
+  }
+
+  @GetMapping(value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE)
+  public void getPathOpenApiJson(
+      @PathVariable String path,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        Set.of("/" + path),
+        Set.of(),
+        failOnNameClash,
+        APPLICATION_JSON_VALUE,
+        OpenApiGenerator::generateJson);
+  }
+
+  @GetMapping(value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE)
+  public void getOpenApiJson(
+      @RequestParam(required = false) Set<String> path,
+      @RequestParam(required = false) Set<String> tag,
+      @RequestParam(required = false, defaultValue = "false") boolean failOnNameClash,
+      HttpServletRequest request,
+      HttpServletResponse response) {
+    writeDocument(
+        request,
+        response,
+        path,
+        tag,
+        failOnNameClash,
+        APPLICATION_JSON_VALUE,
+        OpenApiGenerator::generateJson);
+  }
+
+  private void writeDocument(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      Set<String> paths,
+      Set<String> tags,
+      boolean failOnNameClash,
+      String contentType,
+      BiFunction<Api, String, String> writer) {
+    Api api = ApiAnalyse.analyseApi(new ApiAnalyse.Scope(getAllControllerClasses(), paths, tags));
+
+    ApiFinalise.finaliseApi(
+        api,
+        ApiFinalise.Configuration.builder()
+            .failOnNameClash(failOnNameClash)
+            .namePartDelimiter("_")
+            .build());
+    response.setContentType(contentType);
+    try {
+      response.getWriter().write(writer.apply(api, getServerUrl(request)));
+    } catch (IOException ex) {
+      throw new UncheckedIOException(ex);
     }
+  }
 
-    @GetMapping( value = "/{path}/openapi.yaml", produces = APPLICATION_X_YAML )
-    public void getPathOpenApiYaml( @PathVariable String path,
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_X_YAML,
-            OpenApiGenerator::generateYaml );
-    }
+  private Set<Class<?>> getAllControllerClasses() {
+    return Stream.concat(
+            context.getBeansWithAnnotation(RestController.class).values().stream(),
+            context.getBeansWithAnnotation(Controller.class).values().stream())
+        .map(Object::getClass)
+        .map(OpenApiController::deProxyClass)
+        .collect(toSet());
+  }
 
-    @GetMapping( value = "/openapi/openapi.yaml", produces = APPLICATION_X_YAML )
-    public void getOpenApiYaml(
-        @RequestParam( required = false ) Set<String> path,
-        @RequestParam( required = false ) Set<String> tag,
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_X_YAML,
-            OpenApiGenerator::generateYaml );
-    }
+  /** In case the bean class is a spring-enhanced proxy this resolves the source class. */
+  private static Class<?> deProxyClass(Class<?> c) {
+    return !c.isAnnotationPresent(RestController.class) && !c.isAnnotationPresent(Controller.class)
+        ? c.getSuperclass()
+        : c;
+  }
 
-    /*
-     * JSON
-     */
-
-    @GetMapping( value = "/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getFullOpenApiJson(
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, Set.of(), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
-            OpenApiGenerator::generateJson );
-    }
-
-    @GetMapping( value = "/{path}/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getPathOpenApiJson( @PathVariable String path,
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, Set.of( "/" + path ), Set.of(), failOnNameClash, APPLICATION_JSON_VALUE,
-            OpenApiGenerator::generateJson );
-    }
-
-    @GetMapping( value = "/openapi/openapi.json", produces = APPLICATION_JSON_VALUE )
-    public void getOpenApiJson(
-        @RequestParam( required = false ) Set<String> path,
-        @RequestParam( required = false ) Set<String> tag,
-        @RequestParam( required = false, defaultValue = "false" ) boolean failOnNameClash,
-        HttpServletRequest request, HttpServletResponse response )
-    {
-        writeDocument( request, response, path, tag, failOnNameClash, APPLICATION_JSON_VALUE,
-            OpenApiGenerator::generateJson );
-    }
-
-    private void writeDocument( HttpServletRequest request, HttpServletResponse response,
-        Set<String> paths, Set<String> tags, boolean failOnNameClash,
-        String contentType, BiFunction<Api, String, String> writer )
-    {
-        Api api = ApiAnalyse.analyseApi(
-            new ApiAnalyse.Scope( getAllControllerClasses(), paths, tags ) );
-
-        ApiFinalise.finaliseApi( api, ApiFinalise.Configuration.builder()
-            .failOnNameClash( failOnNameClash )
-            .namePartDelimiter( "_" )
-            .build() );
-        response.setContentType( contentType );
-        try
-        {
-            response.getWriter().write( writer.apply( api, getServerUrl( request ) ) );
-        }
-        catch ( IOException ex )
-        {
-            throw new UncheckedIOException( ex );
-        }
-    }
-
-    private Set<Class<?>> getAllControllerClasses()
-    {
-        return Stream.concat(
-            context.getBeansWithAnnotation( RestController.class ).values().stream(),
-            context.getBeansWithAnnotation( Controller.class ).values().stream() )
-            .map( Object::getClass )
-            .map( OpenApiController::deProxyClass )
-            .collect( toSet() );
-    }
-
-    /**
-     * In case the bean class is a spring-enhanced proxy this resolves the
-     * source class.
-     */
-    private static Class<?> deProxyClass( Class<?> c )
-    {
-        return !c.isAnnotationPresent( RestController.class )
-            && !c.isAnnotationPresent( Controller.class )
-                ? c.getSuperclass()
-                : c;
-    }
-
-    /**
-     * This has to work with 3 types of URLs
-     *
-     * <pre>
-     *     http://localhost/openapi.json
-     *     http://localhost:8080/api/openapi.json
-     *     https://play.dhis2.org/dev/api/openapi.json
-     * </pre>
-     *
-     * And any of the variants when it comes to the path the controller allows
-     * to query an OpenAPI document.
-     */
-    private static String getServerUrl( HttpServletRequest request )
-    {
-        StringBuffer url = request.getRequestURL();
-        String servletPath = request.getServletPath();
-        servletPath = servletPath.substring( servletPath.indexOf( "/api" ) + 1 );
-        int apiStart = url.indexOf( "/api/" );
-        String root = apiStart < 0 ? url.substring( 0, url.indexOf( "/", 10 ) ) : url.substring( 0, apiStart );
-        return root + "/" + servletPath;
-    }
+  /**
+   * This has to work with 3 types of URLs
+   *
+   * <pre>
+   *     http://localhost/openapi.json
+   *     http://localhost:8080/api/openapi.json
+   *     https://play.dhis2.org/dev/api/openapi.json
+   * </pre>
+   *
+   * And any of the variants when it comes to the path the controller allows to query an OpenAPI
+   * document.
+   */
+  private static String getServerUrl(HttpServletRequest request) {
+    StringBuffer url = request.getRequestURL();
+    String servletPath = request.getServletPath();
+    servletPath = servletPath.substring(servletPath.indexOf("/api") + 1);
+    int apiStart = url.indexOf("/api/");
+    String root =
+        apiStart < 0 ? url.substring(0, url.indexOf("/", 10)) : url.substring(0, apiStart);
+    return root + "/" + servletPath;
+  }
 }

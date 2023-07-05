@@ -27,8 +27,8 @@
  */
 package org.hisp.dhis.audit.consumers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.jms.TextMessage;
-
 import org.hisp.dhis.artemis.Topics;
 import org.hisp.dhis.audit.AbstractAuditConsumer;
 import org.hisp.dhis.audit.AuditService;
@@ -37,30 +37,20 @@ import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.jms.annotation.JmsListener;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-/**
- * A Aggregate object consumer.
- */
+/** A Aggregate object consumer. */
 @Component
-public class AggregateAuditConsumer
-    extends AbstractAuditConsumer
-{
-    public AggregateAuditConsumer(
-        AuditService auditService,
-        ObjectMapper objectMapper,
-        DhisConfigurationProvider dhisConfig )
-    {
-        this.auditService = auditService;
-        this.objectMapper = objectMapper;
+public class AggregateAuditConsumer extends AbstractAuditConsumer {
+  public AggregateAuditConsumer(
+      AuditService auditService, ObjectMapper objectMapper, DhisConfigurationProvider dhisConfig) {
+    this.auditService = auditService;
+    this.objectMapper = objectMapper;
 
-        this.isAuditLogEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_LOGGER );
-        this.isAuditDatabaseEnabled = dhisConfig.isEnabled( ConfigurationKey.AUDIT_DATABASE );
-    }
+    this.isAuditLogEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_LOGGER);
+    this.isAuditDatabaseEnabled = dhisConfig.isEnabled(ConfigurationKey.AUDIT_DATABASE);
+  }
 
-    @JmsListener( destination = Topics.AGGREGATE_TOPIC_NAME )
-    public void consume( TextMessage message )
-    {
-        _consume( message );
-    }
+  @JmsListener(destination = Topics.AGGREGATE_TOPIC_NAME)
+  public void consume(TextMessage message) {
+    _consume(message);
+  }
 }

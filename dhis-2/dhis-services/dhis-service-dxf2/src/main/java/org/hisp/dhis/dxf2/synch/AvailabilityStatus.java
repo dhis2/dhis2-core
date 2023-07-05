@@ -27,67 +27,63 @@
  */
 package org.hisp.dhis.dxf2.synch;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.springframework.http.HttpStatus;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.springframework.http.HttpStatus;
 
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "availabilityStatus", namespace = DxfNamespaces.DXF_2_0 )
-public class AvailabilityStatus
-{
-    private boolean available;
+@JacksonXmlRootElement(localName = "availabilityStatus", namespace = DxfNamespaces.DXF_2_0)
+public class AvailabilityStatus {
+  private boolean available;
 
-    private String message;
+  private String message;
 
-    private HttpStatus httpStatus;
+  private HttpStatus httpStatus;
 
-    protected AvailabilityStatus()
-    {
-    }
+  protected AvailabilityStatus() {}
 
-    public AvailabilityStatus( boolean available, String message, HttpStatus httpStatus )
-    {
-        this.available = available;
-        this.message = message;
-        this.httpStatus = httpStatus;
-    }
+  public AvailabilityStatus(boolean available, String message, HttpStatus httpStatus) {
+    this.available = available;
+    this.message = message;
+    this.httpStatus = httpStatus;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isAvailable()
-    {
-        return available;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public boolean isAvailable() {
+    return available;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getMessage()
-    {
-        return message;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getMessage() {
+    return message;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public int getStatusCode()
-    {
-        return httpStatus != null ? httpStatus.value() : null;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public int getStatusCode() {
+    return httpStatus != null ? httpStatus.value() : null;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getStatusPhrase()
-    {
-        return httpStatus != null ? httpStatus.getReasonPhrase() : null;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getStatusPhrase() {
+    return httpStatus != null ? httpStatus.getReasonPhrase() : null;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[Available: " + available + ", message: " + message + ", HTTP status: " + httpStatus + "]";
-    }
+  @Override
+  public String toString() {
+    return "[Available: "
+        + available
+        + ", message: "
+        + message
+        + ", HTTP status: "
+        + httpStatus
+        + "]";
+  }
 }

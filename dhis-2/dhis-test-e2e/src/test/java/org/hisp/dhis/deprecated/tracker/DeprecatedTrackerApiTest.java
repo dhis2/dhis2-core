@@ -38,33 +38,28 @@ import org.junit.jupiter.api.Tag;
 
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
- *
- * @deprecated this is a base test class for "old" (deprecated) tracker which
- *             will be removed with "old" tracker
+ * @deprecated this is a base test class for "old" (deprecated) tracker which will be removed with
+ *     "old" tracker
  */
-@Deprecated( since = "2.41" )
-@Tag( "category:tracker" )
-public class DeprecatedTrackerApiTest
-    extends ApiTest
-{
-    protected RestApiActions enrollmentActions;
+@Deprecated(since = "2.41")
+@Tag("category:tracker")
+public class DeprecatedTrackerApiTest extends ApiTest {
+  protected RestApiActions enrollmentActions;
 
-    protected EventActions eventActions;
+  protected EventActions eventActions;
 
-    protected TrackedEntityInstancesAction trackedEntityInstancesAction;
+  protected TrackedEntityInstancesAction trackedEntityInstancesAction;
 
-    protected LoginActions loginActions;
+  protected LoginActions loginActions;
 
-    protected ProgramActions programActions;
+  protected ProgramActions programActions;
 
-    @BeforeAll
-    public void beforeTracker()
-    {
-        trackedEntityInstancesAction = new TrackedEntityInstancesAction();
-        loginActions = new LoginActions();
-        programActions = new ProgramActions();
-        eventActions = new EventActions();
-        enrollmentActions = new RestApiActions( "/enrollments" );
-    }
-
+  @BeforeAll
+  public void beforeTracker() {
+    trackedEntityInstancesAction = new TrackedEntityInstancesAction();
+    loginActions = new LoginActions();
+    programActions = new ProgramActions();
+    eventActions = new EventActions();
+    enrollmentActions = new RestApiActions("/enrollments");
+  }
 }

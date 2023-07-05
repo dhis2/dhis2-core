@@ -35,7 +35,6 @@ import static org.hisp.dhis.util.DateUtils.getMediumDateString;
 
 import java.util.Date;
 import java.util.List;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.analytics.TimeField;
 import org.hisp.dhis.analytics.common.params.dimension.DimensionIdentifier;
@@ -50,75 +49,68 @@ import org.hisp.dhis.common.QueryOperator;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.util.DateUtils;
 
-public class PeriodCondition extends BaseRenderable
-{
-    private final QueryContext queryContext;
+public class PeriodCondition extends BaseRenderable {
+  private final QueryContext queryContext;
 
-    private final Pair<Date, Date> interval;
+  private final Pair<Date, Date> interval;
 
-    private final TimeField timeField;
+  private final TimeField timeField;
 
-    private final String prefix;
+  private final String prefix;
 
-    private PeriodCondition( DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        this.queryContext = queryContext;
-        this.prefix = getPrefix( dimensionIdentifier );
+  private PeriodCondition(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    this.queryContext = queryContext;
+    this.prefix = getPrefix(dimensionIdentifier);
 
-        Date minDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map( Period.class::cast )
-            .map( Period::getStartDate )
-            .reduce( DateUtils::min ).orElse( null );
+    Date minDate =
+        dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
+            .map(Period.class::cast)
+            .map(Period::getStartDate)
+            .reduce(DateUtils::min)
+            .orElse(null);
 
-        Date maxDate = dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
-            .map( Period.class::cast )
-            .map( Period::getEndDate )
-            .map( this::nextDay )
-            .reduce( DateUtils::max ).orElse( null );
+    Date maxDate =
+        dimensionIdentifier.getDimension().getDimensionalObject().getItems().stream()
+            .map(Period.class::cast)
+            .map(Period::getEndDate)
+            .map(this::nextDay)
+            .reduce(DateUtils::max)
+            .orElse(null);
 
-        this.interval = Pair.of( minDate, maxDate );
-        this.timeField = TimeField.valueOf(
-            ((Period) dimensionIdentifier
-                .getDimension()
-                .getDimensionalObject()
-                .getItems()
-                .get( 0 ))
-                .getDateField() );
-    }
+    this.interval = Pair.of(minDate, maxDate);
+    this.timeField =
+        TimeField.valueOf(
+            ((Period) dimensionIdentifier.getDimension().getDimensionalObject().getItems().get(0))
+                .getDateField());
+  }
 
-    private Date nextDay( Date date )
-    {
-        return Date.from( date.toInstant().plus( 1, DAYS ) );
-    }
+  private Date nextDay(Date date) {
+    return Date.from(date.toInstant().plus(1, DAYS));
+  }
 
-    public static PeriodCondition of( DimensionIdentifier<DimensionParam> dimensionIdentifier,
-        QueryContext queryContext )
-    {
-        return new PeriodCondition( dimensionIdentifier, queryContext );
-    }
+  public static PeriodCondition of(
+      DimensionIdentifier<DimensionParam> dimensionIdentifier, QueryContext queryContext) {
+    return new PeriodCondition(dimensionIdentifier, queryContext);
+  }
 
-    @Override
-    public String render()
-    {
-        return getCondition().render();
-    }
+  @Override
+  public String render() {
+    return getCondition().render();
+  }
 
-    private AndCondition getCondition()
-    {
-        return AndCondition.of(
-            List.of(
-                BinaryConditionRenderer.of(
-                    Field.of( prefix, timeField::getField, EMPTY ),
-                    QueryOperator.GE,
-                    ConstantValuesRenderer.of(
-                        getMediumDateString( interval.getLeft() ),
-                        DATE, queryContext ) ),
-                BinaryConditionRenderer.of(
-                    Field.of( prefix, timeField::getField, EMPTY ),
-                    QueryOperator.LT,
-                    ConstantValuesRenderer.of(
-                        getMediumDateString( interval.getRight() ),
-                        DATE, queryContext ) ) ) );
-    }
+  private AndCondition getCondition() {
+    return AndCondition.of(
+        List.of(
+            BinaryConditionRenderer.of(
+                Field.of(prefix, timeField::getField, EMPTY),
+                QueryOperator.GE,
+                ConstantValuesRenderer.of(
+                    getMediumDateString(interval.getLeft()), DATE, queryContext)),
+            BinaryConditionRenderer.of(
+                Field.of(prefix, timeField::getField, EMPTY),
+                QueryOperator.LT,
+                ConstantValuesRenderer.of(
+                    getMediumDateString(interval.getRight()), DATE, queryContext))));
+  }
 }

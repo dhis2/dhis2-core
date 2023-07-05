@@ -33,31 +33,31 @@ import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE
 import static org.hisp.dhis.analytics.AnalyticsTableType.TRACKED_ENTITY_INSTANCE_EVENTS;
 
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.tei.query.context.sql.QueryContext;
 
 /**
- * Set of constants used by the {@link QueryContext} object. They mostly support
- * SQL query generation.
+ * Set of constants used by the {@link QueryContext} object. They mostly support SQL query
+ * generation.
  */
-@NoArgsConstructor( access = PRIVATE )
-public class QueryContextConstants
-{
-    public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
+@NoArgsConstructor(access = PRIVATE)
+public class QueryContextConstants {
+  public static final String ANALYTICS_TEI = TRACKED_ENTITY_INSTANCE.getTableName() + "_";
 
-    public static final String ANALYTICS_TEI_EVT = TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
+  public static final String ANALYTICS_TEI_EVT =
+      TRACKED_ENTITY_INSTANCE_EVENTS.getTableName() + "_";
 
-    public static final String ANALYTICS_TEI_ENR = TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
+  public static final String ANALYTICS_TEI_ENR =
+      TRACKED_ENTITY_INSTANCE_ENROLLMENTS.getTableName() + "_";
 
-    public static final String TEI_ALIAS = "t_1";
+  public static final String TEI_ALIAS = "t_1";
 
-    public static final String DOT = ".";
+  public static final String DOT = ".";
 
-    public static final String PI_UID = "programinstanceuid";
+  public static final String PI_UID = "programinstanceuid";
 
-    public static final String PS_UID = "programstageuid";
+  public static final String PS_UID = "programstageuid";
 
-    public static final String TEI_UID = "trackedentityinstanceuid";
+  public static final String TEI_UID = "trackedentityinstanceuid";
 
-    public static final String P_UID = "programuid";
+  public static final String P_UID = "programuid";
 }

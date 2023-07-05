@@ -34,21 +34,18 @@ import static org.hisp.dhis.user.PasswordValidationError.PASSWORD_CONTAINS_NAME_
 /**
  * @author Zubair
  */
-public class UserParameterValidationRule implements PasswordValidationRule
-{
-    @Override
-    public PasswordValidationResult validate( CredentialsInfo credentials )
-    {
-        String email = credentials.getEmail();
-        String password = credentials.getPassword();
-        String username = credentials.getUsername();
+public class UserParameterValidationRule implements PasswordValidationRule {
+  @Override
+  public PasswordValidationResult validate(CredentialsInfo credentials) {
+    String email = credentials.getEmail();
+    String password = credentials.getPassword();
+    String username = credentials.getUsername();
 
-        // Password should not contain part of either username or email
-        if ( containsIgnoreCase( password, defaultIfEmpty( username, null ) ) ||
-            containsIgnoreCase( password, defaultIfEmpty( email, null ) ) )
-        {
-            return new PasswordValidationResult( PASSWORD_CONTAINS_NAME_OR_EMAIL );
-        }
-        return PasswordValidationResult.VALID;
+    // Password should not contain part of either username or email
+    if (containsIgnoreCase(password, defaultIfEmpty(username, null))
+        || containsIgnoreCase(password, defaultIfEmpty(email, null))) {
+      return new PasswordValidationResult(PASSWORD_CONTAINS_NAME_OR_EMAIL);
     }
+    return PasswordValidationResult.VALID;
+  }
 }

@@ -27,191 +27,159 @@
  */
 package org.hisp.dhis.apphub;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.appmanager.AppStatus;
 import org.hisp.dhis.appmanager.AppType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
+/** Created by zubair@dhis2.org on 07.09.17. */
+public class WebApp {
+  private String id; // uid
 
-/**
- * Created by zubair@dhis2.org on 07.09.17.
- */
-public class WebApp
-{
-    private String id; // uid
+  private String name;
 
-    private String name;
+  private String description;
 
-    private String description;
+  private String owner;
 
-    private String owner;
+  private Date created;
 
-    private Date created;
+  private Date lastUpdated;
 
-    private Date lastUpdated;
+  private String sourceUrl;
 
-    private String sourceUrl;
+  private AppStatus status;
 
-    private AppStatus status;
+  private AppType appType;
 
-    private AppType appType;
+  private Developer developer;
 
-    private Developer developer;
+  private Set<AppVersion> versions = new HashSet<>();
 
-    private Set<AppVersion> versions = new HashSet<>();
+  private Set<Review> reviews = new HashSet<>();
 
-    private Set<Review> reviews = new HashSet<>();
+  private Set<ImageResource> images = new HashSet<>();
 
-    private Set<ImageResource> images = new HashSet<>();
+  public WebApp() {
+    // empty constructor
+  }
 
-    public WebApp()
-    {
-        // empty constructor
-    }
+  @JsonProperty
+  public AppType getAppType() {
+    return appType;
+  }
 
-    @JsonProperty
-    public AppType getAppType()
-    {
-        return appType;
-    }
+  public void setAppType(AppType appType) {
+    this.appType = appType;
+  }
 
-    public void setAppType( AppType appType )
-    {
-        this.appType = appType;
-    }
+  @JsonProperty
+  public String getDescription() {
+    return description;
+  }
 
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
+  public void setDescription(String description) {
+    this.description = description;
+  }
 
-    public void setDescription( String description )
-    {
-        this.description = description;
-    }
+  @JsonProperty
+  public Developer getDeveloper() {
+    return developer;
+  }
 
-    @JsonProperty
-    public Developer getDeveloper()
-    {
-        return developer;
-    }
+  public void setDeveloper(Developer developer) {
+    this.developer = developer;
+  }
 
-    public void setDeveloper( Developer developer )
-    {
-        this.developer = developer;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  @JsonProperty
+  public Set<ImageResource> getImages() {
+    return images;
+  }
 
-    @JsonProperty
-    public Set<ImageResource> getImages()
-    {
-        return images;
-    }
+  public void setImages(Set<ImageResource> images) {
+    this.images = images;
+  }
 
-    public void setImages( Set<ImageResource> images )
-    {
-        this.images = images;
-    }
+  @JsonProperty
+  public String getName() {
+    return name;
+  }
 
-    @JsonProperty
-    public String getName()
-    {
-        return name;
-    }
+  public void setName(String name) {
+    this.name = name;
+  }
 
-    public void setName( String name )
-    {
-        this.name = name;
-    }
+  @JsonProperty
+  public String getOwner() {
+    return owner;
+  }
 
-    @JsonProperty
-    public String getOwner()
-    {
-        return owner;
-    }
+  public void setOwner(String owner) {
+    this.owner = owner;
+  }
 
-    public void setOwner( String owner )
-    {
-        this.owner = owner;
-    }
+  @JsonProperty
+  public Set<Review> getReviews() {
+    return reviews;
+  }
 
-    @JsonProperty
-    public Set<Review> getReviews()
-    {
-        return reviews;
-    }
+  public void setReviews(Set<Review> reviews) {
+    this.reviews = reviews;
+  }
 
-    public void setReviews( Set<Review> reviews )
-    {
-        this.reviews = reviews;
-    }
+  @JsonProperty
+  public String getSourceUrl() {
+    return sourceUrl;
+  }
 
-    @JsonProperty
-    public String getSourceUrl()
-    {
-        return sourceUrl;
-    }
+  public void setSourceUrl(String sourceUrl) {
+    this.sourceUrl = sourceUrl;
+  }
 
-    public void setSourceUrl( String sourceUrl )
-    {
-        this.sourceUrl = sourceUrl;
-    }
+  @JsonProperty
+  public AppStatus getStatus() {
+    return status;
+  }
 
-    @JsonProperty
-    public AppStatus getStatus()
-    {
-        return status;
-    }
+  public void setStatus(AppStatus status) {
+    this.status = status;
+  }
 
-    public void setStatus( AppStatus status )
-    {
-        this.status = status;
-    }
+  @JsonProperty
+  public Set<AppVersion> getVersions() {
+    return versions;
+  }
 
-    @JsonProperty
-    public Set<AppVersion> getVersions()
-    {
-        return versions;
-    }
+  public void setVersions(Set<AppVersion> versions) {
+    this.versions = versions;
+  }
 
-    public void setVersions( Set<AppVersion> versions )
-    {
-        this.versions = versions;
-    }
+  @JsonProperty
+  public Date getCreated() {
+    return created;
+  }
 
-    @JsonProperty
-    public Date getCreated()
-    {
-        return created;
-    }
+  public void setCreated(Date created) {
+    this.created = created;
+  }
 
-    public void setCreated( Date created )
-    {
-        this.created = created;
-    }
+  @JsonProperty
+  public Date getLastUpdated() {
+    return lastUpdated;
+  }
 
-    @JsonProperty
-    public Date getLastUpdated()
-    {
-        return lastUpdated;
-    }
-
-    public void setLastUpdated( Date lastUpdated )
-    {
-        this.lastUpdated = lastUpdated;
-    }
+  public void setLastUpdated(Date lastUpdated) {
+    this.lastUpdated = lastUpdated;
+  }
 }

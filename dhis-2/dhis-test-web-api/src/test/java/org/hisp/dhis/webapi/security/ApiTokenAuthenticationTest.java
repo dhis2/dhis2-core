@@ -33,7 +33,6 @@ import static org.hisp.dhis.web.WebClient.Header;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.concurrent.TimeUnit;
-
 import org.hisp.dhis.security.apikey.ApiKeyTokenGenerator;
 import org.hisp.dhis.security.apikey.ApiToken;
 import org.hisp.dhis.security.apikey.ApiTokenService;
@@ -52,187 +51,184 @@ import org.springframework.test.context.ActiveProfiles;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@ActiveProfiles( { "test-h2", "cache-test" } )
-class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest
-{
-    public static final String URI = "/me?fields=settings,id";
+@ActiveProfiles({"test-h2", "cache-test"})
+class ApiTokenAuthenticationTest extends DhisControllerWithApiTokenAuthTest {
+  public static final String URI = "/me?fields=settings,id";
 
-    public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
+  public static final String CHECKSUM_VALIDATION_FAILED = "Checksum validation failed";
 
-    @Autowired
-    private ApiTokenService apiTokenService;
+  @Autowired private ApiTokenService apiTokenService;
 
-    @Autowired
-    private ApiTokenStore apiTokenStore;
+  @Autowired private ApiTokenStore apiTokenStore;
 
-    @BeforeAll
-    static void setUpClass()
-    {
-        DhisWebApiWebSecurityConfig.setApiContextPath( "" );
-    }
+  @BeforeAll
+  static void setUpClass() {
+    DhisWebApiWebSecurityConfig.setApiContextPath("");
+  }
 
-    @BeforeEach
-    public void setup()
-        throws Exception
-    {
-        super.setup();
-    }
+  @BeforeEach
+  public void setup() throws Exception {
+    super.setup();
+  }
 
-    private ApiKeyTokenGenerator.TokenWrapper createNewToken()
-    {
-        long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis( 30 );
-        ApiKeyTokenGenerator.TokenWrapper wrapper = generatePersonalAccessToken( null, thirtyDaysInTheFuture );
-        apiTokenStore.save( wrapper.getApiToken() );
-        return wrapper;
-    }
+  private ApiKeyTokenGenerator.TokenWrapper createNewToken() {
+    long thirtyDaysInTheFuture = System.currentTimeMillis() + TimeUnit.DAYS.toMillis(30);
+    ApiKeyTokenGenerator.TokenWrapper wrapper =
+        generatePersonalAccessToken(null, thirtyDaysInTheFuture);
+    apiTokenStore.save(wrapper.getApiToken());
+    return wrapper;
+  }
 
-    @Test
-    void testInvalidKeyTypeNotResolvable()
-    {
-        String errorMessage = GET( URI, ApiTokenHeader( "FAKE_KEY" ) ).error( HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
-    }
+  @Test
+  void testInvalidKeyTypeNotResolvable() {
+    String errorMessage =
+        GET(URI, ApiTokenHeader("FAKE_KEY")).error(HttpStatus.BAD_REQUEST).getMessage();
+    assertEquals(CHECKSUM_VALIDATION_FAILED, errorMessage);
+  }
 
-    @Test
-    void testInvalidKeyBadChecksum()
-    {
-        String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
-            HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
-    }
-
-    @Test
-    void testInvalidKeyBadSize()
-    {
-        String errorMessage = GET( URI, ApiTokenHeader( "d2pat_tXXXXXWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854" ) ).error(
-            HttpStatus.BAD_REQUEST ).getMessage();
-        assertEquals( CHECKSUM_VALIDATION_FAILED, errorMessage );
-    }
-
-    @Test
-    void testValidApiTokenAuthentication()
-    {
-        JsonUser user = GET( URI, ApiTokenHeader( new String( createNewToken().getPlaintextToken() ) ) )
-            .content( HttpStatus.OK )
-            .as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
-    }
-
-    @Test
-    void testAllowedIpRule()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String plaintext = new String( wrapper.getPlaintextToken() );
-        final ApiToken token = wrapper.getApiToken();
-
-        token.addIpToAllowedList( "192.168.2.1" );
-        apiTokenService.update( token );
-
-        String errorMessage = GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED )
+  @Test
+  void testInvalidKeyBadChecksum() {
+    String errorMessage =
+        GET(URI, ApiTokenHeader("d2pat_tWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854"))
+            .error(HttpStatus.BAD_REQUEST)
             .getMessage();
-        assertEquals( "Failed to authenticate API token, request ip address is not allowed.",
-            errorMessage );
-        token.addIpToAllowedList( "127.0.0.1" );
-        apiTokenService.update( token );
+    assertEquals(CHECKSUM_VALIDATION_FAILED, errorMessage);
+  }
 
-        JsonUser user = GET( URI, ApiTokenHeader( plaintext ) ).content().as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
-    }
+  @Test
+  void testInvalidKeyBadSize() {
+    String errorMessage =
+        GET(URI, ApiTokenHeader("d2pat_tXXXXXWhOu7GsXzTZYroHAmdwtBCAmA0qD5Ze383854"))
+            .error(HttpStatus.BAD_REQUEST)
+            .getMessage();
+    assertEquals(CHECKSUM_VALIDATION_FAILED, errorMessage);
+  }
 
-    @Test
-    void testAllowedMethodRule()
-    {
-        ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
-        final String plaintext = new String( tokenWrapper.getPlaintextToken() );
-        final ApiToken token = tokenWrapper.getApiToken();
+  @Test
+  void testValidApiTokenAuthentication() {
+    JsonUser user =
+        GET(URI, ApiTokenHeader(new String(createNewToken().getPlaintextToken())))
+            .content(HttpStatus.OK)
+            .as(JsonUser.class);
+    assertEquals(adminUser.getUid(), user.getId());
+  }
 
-        token.addMethodToAllowedList( "POST" );
-        apiTokenService.update( token );
+  @Test
+  void testAllowedIpRule() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+    final ApiToken token = wrapper.getApiToken();
 
-        assertEquals( "Failed to authenticate API token, request http method is not allowed.",
-            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-        token.addMethodToAllowedList( "GET" );
-        apiTokenService.update( token );
+    token.addIpToAllowedList("192.168.2.1");
+    apiTokenService.update(token);
 
-        JsonUser user = GET( URI, ApiTokenHeader( plaintext ) ).content().as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
-    }
+    String errorMessage =
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage();
+    assertEquals(
+        "Failed to authenticate API token, request ip address is not allowed.", errorMessage);
+    token.addIpToAllowedList("127.0.0.1");
+    apiTokenService.update(token);
 
-    @Test
-    void testAllowedReferrerRule()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String plaintext = new String( wrapper.getPlaintextToken() );
-        final ApiToken token = wrapper.getApiToken();
+    JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
+    assertEquals(adminUser.getUid(), user.getId());
+  }
 
-        token.addReferrerToAllowedList( "https://one.io" );
-        apiTokenService.update( token );
+  @Test
+  void testAllowedMethodRule() {
+    ApiKeyTokenGenerator.TokenWrapper tokenWrapper = createNewToken();
+    final String plaintext = new String(tokenWrapper.getPlaintextToken());
+    final ApiToken token = tokenWrapper.getApiToken();
 
-        assertEquals( "Failed to authenticate API token, request http referrer is missing or not allowed.",
-            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-        token.addReferrerToAllowedList( "https://two.io" );
-        apiTokenService.update( token );
+    token.addMethodToAllowedList("POST");
+    apiTokenService.update(token);
 
-        JsonUser user = GET( URI, ApiTokenHeader( plaintext ), Header( "referer", "https://two.io" ) ).content()
-            .as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
-    }
+    assertEquals(
+        "Failed to authenticate API token, request http method is not allowed.",
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+    token.addMethodToAllowedList("GET");
+    apiTokenService.update(token);
 
-    @Test
-    void testExpiredToken()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String plaintext = new String( wrapper.getPlaintextToken() );
-        final ApiToken token = wrapper.getApiToken();
+    JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
+    assertEquals(adminUser.getUid(), user.getId());
+  }
 
-        token.setExpire( System.currentTimeMillis() - 36000 );
+  @Test
+  void testAllowedReferrerRule() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+    final ApiToken token = wrapper.getApiToken();
 
-        assertEquals( "Failed to authenticate API token, token has expired.",
-            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-    }
+    token.addReferrerToAllowedList("https://one.io");
+    apiTokenService.update(token);
 
-    @Test
-    void testAuthWithDisabledUser()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String token = new String( wrapper.getPlaintextToken() );
+    assertEquals(
+        "Failed to authenticate API token, request http referrer is missing or not allowed.",
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+    token.addReferrerToAllowedList("https://two.io");
+    apiTokenService.update(token);
 
-        User user = adminUser;
-        user.setDisabled( true );
-        userService.updateUser( user );
+    JsonUser user =
+        GET(URI, ApiTokenHeader(plaintext), Header("referer", "https://two.io"))
+            .content()
+            .as(JsonUser.class);
+    assertEquals(adminUser.getUid(), user.getId());
+  }
 
-        assertEquals( "The API token is disabled, locked or 2FA is enabled.",
-            GET( URI, ApiTokenHeader( token ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-    }
+  @Test
+  void testExpiredToken() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+    final ApiToken token = wrapper.getApiToken();
 
-    @Test
-    void testTokenDoesNotExist()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String plaintext = new String( wrapper.getPlaintextToken() );
+    token.setExpire(System.currentTimeMillis() - 36000);
 
-        ApiToken token = wrapper.getApiToken();
+    assertEquals(
+        "Failed to authenticate API token, token has expired.",
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
 
-        apiTokenService.delete( token );
+  @Test
+  void testAuthWithDisabledUser() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String token = new String(wrapper.getPlaintextToken());
 
-        assertEquals( "The API token does not exists",
-            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-    }
+    User user = adminUser;
+    user.setDisabled(true);
+    userService.updateUser(user);
 
-    @Test
-    void testTokenDoesNotExistAndIsDeletedFromCache()
-    {
-        ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
-        final String plaintext = new String( wrapper.getPlaintextToken() );
+    assertEquals(
+        "The API token is disabled, locked or 2FA is enabled.",
+        GET(URI, ApiTokenHeader(token)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
 
-        // Do a request to cache the token
-        JsonUser user = GET( URI, ApiTokenHeader( plaintext ) ).content().as( JsonUser.class );
-        assertEquals( adminUser.getUid(), user.getId() );
+  @Test
+  void testTokenDoesNotExist() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
 
-        ApiToken token = wrapper.getApiToken();
-        apiTokenService.delete( token );
+    ApiToken token = wrapper.getApiToken();
 
-        assertEquals( "The API token does not exists",
-            GET( URI, ApiTokenHeader( plaintext ) ).error( HttpStatus.UNAUTHORIZED ).getMessage() );
-    }
+    apiTokenService.delete(token);
+
+    assertEquals(
+        "The API token does not exists",
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
+
+  @Test
+  void testTokenDoesNotExistAndIsDeletedFromCache() {
+    ApiKeyTokenGenerator.TokenWrapper wrapper = createNewToken();
+    final String plaintext = new String(wrapper.getPlaintextToken());
+
+    // Do a request to cache the token
+    JsonUser user = GET(URI, ApiTokenHeader(plaintext)).content().as(JsonUser.class);
+    assertEquals(adminUser.getUid(), user.getId());
+
+    ApiToken token = wrapper.getApiToken();
+    apiTokenService.delete(token);
+
+    assertEquals(
+        "The API token does not exists",
+        GET(URI, ApiTokenHeader(plaintext)).error(HttpStatus.UNAUTHORIZED).getMessage());
+  }
 }

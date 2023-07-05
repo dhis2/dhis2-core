@@ -30,9 +30,7 @@ package org.hisp.dhis.tracker.imports.programrule.executor.event;
 import static org.hisp.dhis.tracker.imports.programrule.IssueType.ERROR;
 
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.hisp.dhis.tracker.imports.domain.Event;
@@ -42,36 +40,30 @@ import org.hisp.dhis.tracker.imports.programrule.executor.ValidationExecutor;
 import org.hisp.dhis.tracker.imports.programrule.executor.ValidationRuleAction;
 
 /**
- * This executor shows errors on a completed event calculated by Rule Engine.
- *
- * @Author Enrico Colasante
+ * This executor shows errors on a completed event calculated by Rule Engine. @Author Enrico
+ * Colasante
  */
 @RequiredArgsConstructor
-public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event>
-{
-    private final ValidationRuleAction ruleAction;
+public class ShowErrorOnCompleteExecutor implements ValidationExecutor<Event> {
+  private final ValidationRuleAction ruleAction;
 
-    @Override
-    public IssueType getIssueType()
-    {
-        return ERROR;
-    }
+  @Override
+  public IssueType getIssueType() {
+    return ERROR;
+  }
 
-    @Override
-    public boolean needsToRun( Event event )
-    {
-        return EventStatus.COMPLETED == event.getStatus();
-    }
+  @Override
+  public boolean needsToRun(Event event) {
+    return EventStatus.COMPLETED == event.getStatus();
+  }
 
-    @Override
-    public String getDataElementUid()
-    {
-        return ruleAction.getField();
-    }
+  @Override
+  public String getDataElementUid() {
+    return ruleAction.getField();
+  }
 
-    @Override
-    public Optional<ProgramRuleIssue> executeRuleAction( TrackerBundle bundle, Event event )
-    {
-        return execute( ruleAction, event );
-    }
+  @Override
+  public Optional<ProgramRuleIssue> executeRuleAction(TrackerBundle bundle, Event event) {
+    return execute(ruleAction, event);
+  }
 }

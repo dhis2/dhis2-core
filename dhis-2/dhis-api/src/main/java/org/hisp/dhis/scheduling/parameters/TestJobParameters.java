@@ -27,80 +27,47 @@
  */
 package org.hisp.dhis.scheduling.parameters;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.Setter;
-
 import org.hisp.dhis.scheduling.JobParameters;
 import org.hisp.dhis.scheduling.JobProgress.FailurePolicy;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * Parameters for the job to test job execution by simulating runs mostly to
- * simulate errors during a run.
+ * Parameters for the job to test job execution by simulating runs mostly to simulate errors during
+ * a run.
  *
  * @author Jan Bernitt
  */
 @Getter
 @Setter
-public class TestJobParameters implements JobParameters
-{
-    /**
-     * Initial waiting time in millis (as there is no actual "work" done)
-     */
-    @JsonProperty
-    private Long waitMillis;
+public class TestJobParameters implements JobParameters {
+  /** Initial waiting time in millis (as there is no actual "work" done) */
+  @JsonProperty private Long waitMillis;
 
-    /**
-     * Number of stages in the job, zero if {@code null}
-     */
-    @JsonProperty
-    private Integer stages;
+  /** Number of stages in the job, zero if {@code null} */
+  @JsonProperty private Integer stages;
 
-    /**
-     * Stage number at which an item fails, none of {@code null}
-     */
-    @JsonProperty
-    private Integer failAtStage;
+  /** Stage number at which an item fails, none of {@code null} */
+  @JsonProperty private Integer failAtStage;
 
-    /**
-     * Number of items in each stage, none if {@code null}
-     */
-    @JsonProperty
-    private Integer items;
+  /** Number of items in each stage, none if {@code null} */
+  @JsonProperty private Integer items;
 
-    /**
-     * Item number in the failing stage at which the failure occurs, none if
-     * {@code null}
-     */
-    @JsonProperty
-    private Integer failAtItem;
+  /** Item number in the failing stage at which the failure occurs, none if {@code null} */
+  @JsonProperty private Integer failAtItem;
 
-    /**
-     * Duration each item takes in millis, zero if {@code null}
-     */
-    @JsonProperty
-    private Long itemDuration;
+  /** Duration each item takes in millis, zero if {@code null} */
+  @JsonProperty private Long itemDuration;
 
-    /**
-     * The message used when failing the item
-     */
-    @JsonProperty
-    private String failWithMessage;
+  /** The message used when failing the item */
+  @JsonProperty private String failWithMessage;
 
-    /**
-     * When true, an exception is used to fail, otherwise the progress tracking
-     * api is used
-     */
-    @JsonProperty
-    private boolean failWithException;
+  /** When true, an exception is used to fail, otherwise the progress tracking api is used */
+  @JsonProperty private boolean failWithException;
 
-    /**
-     * Stage failure policy to use, when {@code null} it is the default policy
-     */
-    @JsonProperty
-    private FailurePolicy failWithPolicy;
+  /** Stage failure policy to use, when {@code null} it is the default policy */
+  @JsonProperty private FailurePolicy failWithPolicy;
 
-    @JsonProperty
-    private boolean runStagesParallel;
+  @JsonProperty private boolean runStagesParallel;
 }

@@ -38,186 +38,237 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest
-{
+class ProgramStageWorkingListControllerTest extends DhisControllerConvenienceTest {
 
-    private String programId;
+  private String programId;
 
-    private String programStageId;
+  private String programStageId;
 
-    @BeforeEach
-    void setUp()
-    {
-        programId = assertStatus( HttpStatus.CREATED, POST( "/programs/",
-            "{'name': 'ProgramTest', 'shortName': 'ProgramTest', 'programType': 'WITHOUT_REGISTRATION'}" ) );
+  @BeforeEach
+  void setUp() {
+    programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name': 'ProgramTest', 'shortName': 'ProgramTest', 'programType': 'WITHOUT_REGISTRATION'}"));
 
-        programStageId = assertStatus( HttpStatus.CREATED,
-            POST( "/programStages/", "{'name': 'ProgramStageTest', 'program':" + "{'id': '" + programId + "'}}" ) );
-    }
+    programStageId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programStages/",
+                "{'name': 'ProgramStageTest', 'program':" + "{'id': '" + programId + "'}}"));
+  }
 
-    @Test
-    void shouldReturnWorkingListIdWhenWorkingListCreated()
-    {
-        String workingListId = createWorkingList( "Test working list" );
+  @Test
+  void shouldReturnWorkingListIdWhenWorkingListCreated() {
+    String workingListId = createWorkingList("Test working list");
 
-        assertFalse( workingListId.isEmpty(), "Expected working list id, but got nothing instead" );
-    }
+    assertFalse(workingListId.isEmpty(), "Expected working list id, but got nothing instead");
+  }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListWithoutName()
-    {
-        HttpResponse response = POST( "/programStageWorkingLists",
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}}" );
+  @Test
+  void shouldFailWhenCreatingWorkingListWithoutName() {
+    HttpResponse response =
+        POST(
+            "/programStageWorkingLists",
+            "{'program': {'id': '"
+                + programId
+                + "'}, 'programStage': {'id': '"
+                + programStageId
+                + "'}}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Missing required property `name`",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "Missing required property `name`",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListWithoutProgramId()
-    {
-        HttpResponse response = POST( "/programStageWorkingLists",
-            "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
+  @Test
+  void shouldFailWhenCreatingWorkingListWithoutProgramId() {
+    HttpResponse response =
+        POST(
+            "/programStageWorkingLists",
+            "{'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Missing required property `program`",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "Missing required property `program`",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListWithNonExistentProgramId()
-    {
-        HttpResponse response = POST( "/programStageWorkingLists",
-            "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'Test'}" );
+  @Test
+  void shouldFailWhenCreatingWorkingListWithNonExistentProgramId() {
+    HttpResponse response =
+        POST(
+            "/programStageWorkingLists",
+            "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '"
+                + programStageId
+                + "'}, 'name':'Test'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Invalid reference [madeUpProgramId]",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertContains(
+        "Invalid reference [madeUpProgramId]",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListWithoutProgramStageId()
-    {
-        HttpResponse response = POST( "/programStageWorkingLists",
-            "{'program': {'id': '" + programId + "'}, 'name':'Test'}" );
+  @Test
+  void shouldFailWhenCreatingWorkingListWithoutProgramStageId() {
+    HttpResponse response =
+        POST(
+            "/programStageWorkingLists", "{'program': {'id': '" + programId + "'}, 'name':'Test'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Missing required property `programStage`",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "Missing required property `programStage`",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenCreatingWorkingListWithNonExistentProgramStageId()
-    {
-        HttpResponse response = POST( "/programStageWorkingLists",
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}" );
+  @Test
+  void shouldFailWhenCreatingWorkingListWithNonExistentProgramStageId() {
+    HttpResponse response =
+        POST(
+            "/programStageWorkingLists",
+            "{'program': {'id': '"
+                + programId
+                + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'Test'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Invalid reference [madeUpProgramStageId]",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertContains(
+        "Invalid reference [madeUpProgramStageId]",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldReturnAllWorkingListsWhenWorkingListsRequested()
-    {
-        String workingListId1 = createWorkingList( "Test working list 1" );
-        String workingListId2 = createWorkingList( "Test working list 2" );
+  @Test
+  void shouldReturnAllWorkingListsWhenWorkingListsRequested() {
+    String workingListId1 = createWorkingList("Test working list 1");
+    String workingListId2 = createWorkingList("Test working list 2");
 
-        String response = GET( "/programStageWorkingLists?fields=id" ).content().toString();
+    String response = GET("/programStageWorkingLists?fields=id").content().toString();
 
-        assertTrue( response.contains( workingListId1 ),
-            "The working list id: " + workingListId1 + " is not present in the response" );
-        assertTrue( response.contains( workingListId2 ),
-            "The working list id: " + workingListId2 + " is not present in the response" );
-    }
+    assertTrue(
+        response.contains(workingListId1),
+        "The working list id: " + workingListId1 + " is not present in the response");
+    assertTrue(
+        response.contains(workingListId2),
+        "The working list id: " + workingListId2 + " is not present in the response");
+  }
 
-    @Test
-    void shouldUpdateWorkingListWhenUpdateRequested()
-    {
-        String workingListId = createWorkingList( "Test working list to update" );
+  @Test
+  void shouldUpdateWorkingListWhenUpdateRequested() {
+    String workingListId = createWorkingList("Test working list to update");
 
-        String updatedName = "Updated working list";
-        assertStatus( HttpStatus.OK, PUT( "/programStageWorkingLists/" + workingListId,
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
-                + updatedName + "'}" ) );
+    String updatedName = "Updated working list";
+    assertStatus(
+        HttpStatus.OK,
+        PUT(
+            "/programStageWorkingLists/" + workingListId,
+            "{'program': {'id': '"
+                + programId
+                + "'}, 'programStage': {'id': '"
+                + programStageId
+                + "'}, 'name':'"
+                + updatedName
+                + "'}"));
 
-        String response = GET( "/programStageWorkingLists/{id}", workingListId ).content().toString();
-        assertTrue( response.contains( updatedName ),
-            "Could not find the working list name: " + updatedName + " in the response" );
-    }
+    String response = GET("/programStageWorkingLists/{id}", workingListId).content().toString();
+    assertTrue(
+        response.contains(updatedName),
+        "Could not find the working list name: " + updatedName + " in the response");
+  }
 
-    @Test
-    void shouldFailWhenUpdatingWorkingListWithoutProgramId()
-    {
-        String workingListId = createWorkingList( "Test working list to update" );
+  @Test
+  void shouldFailWhenUpdatingWorkingListWithoutProgramId() {
+    String workingListId = createWorkingList("Test working list to update");
 
-        String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
-            "{'programStage': {'id': '" + programStageId + "'}, 'name':'" + updatedName + "'}" );
+    String updatedName = "Updated working list";
+    HttpResponse response =
+        PUT(
+            "/programStageWorkingLists/" + workingListId,
+            "{'programStage': {'id': '" + programStageId + "'}, 'name':'" + updatedName + "'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Missing required property `program`",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "Missing required property `program`",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenUpdatingWorkingListWithNonExistentProgramId()
-    {
-        String workingListId = createWorkingList( "Test working list to update" );
+  @Test
+  void shouldFailWhenUpdatingWorkingListWithNonExistentProgramId() {
+    String workingListId = createWorkingList("Test working list to update");
 
-        String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
-            "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
-                + updatedName + "'}" );
+    String updatedName = "Updated working list";
+    HttpResponse response =
+        PUT(
+            "/programStageWorkingLists/" + workingListId,
+            "{'program': {'id': 'madeUpProgramId'}, 'programStage': {'id': '"
+                + programStageId
+                + "'}, 'name':'"
+                + updatedName
+                + "'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Invalid reference [madeUpProgramId]",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertContains(
+        "Invalid reference [madeUpProgramId]",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenUpdatingWorkingListWithoutProgramStageId()
-    {
-        String workingListId = createWorkingList( "Test working list to update" );
+  @Test
+  void shouldFailWhenUpdatingWorkingListWithoutProgramStageId() {
+    String workingListId = createWorkingList("Test working list to update");
 
-        String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
-            "{'program': {'id': '" + programId + "'}, 'name':'" + updatedName + "'}" );
+    String updatedName = "Updated working list";
+    HttpResponse response =
+        PUT(
+            "/programStageWorkingLists/" + workingListId,
+            "{'program': {'id': '" + programId + "'}, 'name':'" + updatedName + "'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertEquals( "Missing required property `programStage`",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertEquals(
+        "Missing required property `programStage`",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldFailWhenUpdatingWorkingListWithNonExistentProgramStageId()
-    {
-        String workingListId = createWorkingList( "Test working list to update" );
+  @Test
+  void shouldFailWhenUpdatingWorkingListWithNonExistentProgramStageId() {
+    String workingListId = createWorkingList("Test working list to update");
 
-        String updatedName = "Updated working list";
-        HttpResponse response = PUT( "/programStageWorkingLists/" + workingListId,
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'"
-                + updatedName + "'}" );
+    String updatedName = "Updated working list";
+    HttpResponse response =
+        PUT(
+            "/programStageWorkingLists/" + workingListId,
+            "{'program': {'id': '"
+                + programId
+                + "'}, 'programStage': {'id': 'madeUpProgramStageId'}, 'name':'"
+                + updatedName
+                + "'}");
 
-        assertEquals( HttpStatus.CONFLICT, response.status() );
-        assertContains( "Invalid reference [madeUpProgramStageId]",
-            response.error().getTypeReport().getErrorReports().get( 0 ).getMessage() );
-    }
+    assertEquals(HttpStatus.CONFLICT, response.status());
+    assertContains(
+        "Invalid reference [madeUpProgramStageId]",
+        response.error().getTypeReport().getErrorReports().get(0).getMessage());
+  }
 
-    @Test
-    void shouldDeleteWorkingListWhenDeleteRequested()
-    {
-        String workingListId = createWorkingList( "Test working to delete" );
+  @Test
+  void shouldDeleteWorkingListWhenDeleteRequested() {
+    String workingListId = createWorkingList("Test working to delete");
 
-        HttpResponse response = DELETE( "/programStageWorkingLists/" + workingListId );
-        assertEquals( HttpStatus.OK, response.status() );
-    }
+    HttpResponse response = DELETE("/programStageWorkingLists/" + workingListId);
+    assertEquals(HttpStatus.OK, response.status());
+  }
 
-    private String createWorkingList( String workingListName )
-    {
-        return assertStatus( HttpStatus.CREATED, POST( "/programStageWorkingLists",
-            "{'program': {'id': '" + programId + "'}, 'programStage': {'id': '" + programStageId + "'}, 'name':'"
-                + workingListName + "'}" ) );
-    }
+  private String createWorkingList(String workingListName) {
+    return assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/programStageWorkingLists",
+            "{'program': {'id': '"
+                + programId
+                + "'}, 'programStage': {'id': '"
+                + programStageId
+                + "'}, 'name':'"
+                + workingListName
+                + "'}"));
+  }
 }

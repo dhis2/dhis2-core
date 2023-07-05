@@ -33,7 +33,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreQuery.Field;
 import org.junit.jupiter.api.Test;
@@ -43,126 +42,108 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class DatastoreQueryTest
-{
+class DatastoreQueryTest {
 
-    @Test
-    void testParseFields_FlatSingle()
-    {
-        assertFields( "name", "name" );
+  @Test
+  void testParseFields_FlatSingle() {
+    assertFields("name", "name");
+  }
+
+  @Test
+  void testParseFields_FlatMultiple() {
+    assertFields("name,code", "name", "code");
+    assertFields("name,code,desc", "name", "code", "desc");
+  }
+
+  @Test
+  void testParseFields_NestedSingle() {
+    assertFields("elements[name]", "elements.name");
+  }
+
+  @Test
+  void testParseFields_NestedMultiple() {
+    assertFields("elements[name,code]", "elements.name", "elements.code");
+  }
+
+  @Test
+  void testParseFields_NestedMultipleList() {
+    assertFields(
+        "elements[name,code],desc,parent[name]",
+        "elements.name",
+        "elements.code",
+        "desc",
+        "parent.name");
+  }
+
+  @Test
+  void testParseFields_DeepSingle() {
+    assertFields("elements[parents[name]]", "elements.parents.name");
+  }
+
+  @Test
+  void testParseFields_DeepMultiple() {
+    assertFields(
+        "elements[parents[name,code],desc]",
+        "elements.parents.name",
+        "elements.parents.code",
+        "elements.desc");
+  }
+
+  @Test
+  void testParseFields_DeepMultipleList() {
+    assertFields("a[x,y[Q]],b,c[z[1,2.t]],d.w", "a.x", "a.y.Q", "b", "c.z.1", "c.z.2.t", "d.w");
+  }
+
+  @Test
+  void testNormalisePath_DotIsValidRootValuePath() {
+    assertEquals(".", normalisePath("."));
+  }
+
+  @Test
+  void testNormalisePath_UnderscoreIsValidKeyPath() {
+    assertEquals("_", normalisePath("_"));
+  }
+
+  @Test
+  void testNormalisePath_simplePropertyIsValid() {
+    assertEquals("name", normalisePath("name"));
+  }
+
+  @Test
+  void testNormalisePath_deepPropertyIsValid() {
+    assertEquals("parent.child.name", normalisePath("parent.child.name"));
+  }
+
+  @Test
+  void testNormalisePath_arraySyntaxIsNormalisedToDotSyntax() {
+    assertEquals("parent.0.name", normalisePath("parent[0].name"));
+  }
+
+  @Test
+  void testNormalisePath_nullIsInvalid() {
+    assertThrows(IllegalQueryException.class, () -> normalisePath(null));
+  }
+
+  @Test
+  void testNormalisePath_mostSymbolsAreInvalid() {
+    assertEquals("name-with-x", normalisePath("name-with-x"), "to show this would be valid");
+    for (char symbol : "'\"+~*/&$!(){}[]?;:#".toCharArray()) {
+      assertThrows(IllegalQueryException.class, () -> normalisePath("name-with-" + symbol));
     }
+  }
 
-    @Test
-    void testParseFields_FlatMultiple()
-    {
-        assertFields( "name,code",
-            "name", "code" );
-        assertFields( "name,code,desc",
-            "name", "code", "desc" );
-    }
+  @Test
+  void testNormalisePath_longPathsAreInvalid() {
+    String tooLongIndividualProperty = "no".repeat(100);
+    assertThrows(IllegalQueryException.class, () -> normalisePath(tooLongIndividualProperty));
 
-    @Test
-    void testParseFields_NestedSingle()
-    {
-        assertFields( "elements[name]",
-            "elements.name" );
-    }
+    String tooManyNestingLevelsProperty = ".name".repeat(10).substring(1);
+    assertThrows(IllegalQueryException.class, () -> normalisePath(tooManyNestingLevelsProperty));
+  }
 
-    @Test
-    void testParseFields_NestedMultiple()
-    {
-        assertFields( "elements[name,code]",
-            "elements.name", "elements.code" );
-    }
-
-    @Test
-    void testParseFields_NestedMultipleList()
-    {
-        assertFields( "elements[name,code],desc,parent[name]",
-            "elements.name", "elements.code", "desc", "parent.name" );
-    }
-
-    @Test
-    void testParseFields_DeepSingle()
-    {
-        assertFields( "elements[parents[name]]",
-            "elements.parents.name" );
-    }
-
-    @Test
-    void testParseFields_DeepMultiple()
-    {
-        assertFields( "elements[parents[name,code],desc]",
-            "elements.parents.name", "elements.parents.code", "elements.desc" );
-    }
-
-    @Test
-    void testParseFields_DeepMultipleList()
-    {
-        assertFields( "a[x,y[Q]],b,c[z[1,2.t]],d.w",
-            "a.x", "a.y.Q", "b", "c.z.1", "c.z.2.t", "d.w" );
-    }
-
-    @Test
-    void testNormalisePath_DotIsValidRootValuePath()
-    {
-        assertEquals( ".", normalisePath( "." ) );
-    }
-
-    @Test
-    void testNormalisePath_UnderscoreIsValidKeyPath()
-    {
-        assertEquals( "_", normalisePath( "_" ) );
-    }
-
-    @Test
-    void testNormalisePath_simplePropertyIsValid()
-    {
-        assertEquals( "name", normalisePath( "name" ) );
-    }
-
-    @Test
-    void testNormalisePath_deepPropertyIsValid()
-    {
-        assertEquals( "parent.child.name", normalisePath( "parent.child.name" ) );
-    }
-
-    @Test
-    void testNormalisePath_arraySyntaxIsNormalisedToDotSyntax()
-    {
-        assertEquals( "parent.0.name", normalisePath( "parent[0].name" ) );
-    }
-
-    @Test
-    void testNormalisePath_nullIsInvalid()
-    {
-        assertThrows( IllegalQueryException.class, () -> normalisePath( null ) );
-    }
-
-    @Test
-    void testNormalisePath_mostSymbolsAreInvalid()
-    {
-        assertEquals( "name-with-x", normalisePath( "name-with-x" ), "to show this would be valid" );
-        for ( char symbol : "'\"+~*/&$!(){}[]?;:#".toCharArray() )
-        {
-            assertThrows( IllegalQueryException.class, () -> normalisePath( "name-with-" + symbol ) );
-        }
-    }
-
-    @Test
-    void testNormalisePath_longPathsAreInvalid()
-    {
-        String tooLongIndividualProperty = "no".repeat( 100 );
-        assertThrows( IllegalQueryException.class, () -> normalisePath( tooLongIndividualProperty ) );
-
-        String tooManyNestingLevelsProperty = ".name".repeat( 10 ).substring( 1 );
-        assertThrows( IllegalQueryException.class, () -> normalisePath( tooManyNestingLevelsProperty ) );
-    }
-
-    private static void assertFields( String expression, String... expectedPaths )
-    {
-        List<Field> fields = DatastoreQuery.parseFields( expression );
-        assertEquals( List.of( expectedPaths ),
-            fields.stream().map( Field::getPath ).collect( toUnmodifiableList() ) );
-    }
+  private static void assertFields(String expression, String... expectedPaths) {
+    List<Field> fields = DatastoreQuery.parseFields(expression);
+    assertEquals(
+        List.of(expectedPaths), fields.stream().map(Field::getPath).collect(toUnmodifiableList()));
+  }
 }

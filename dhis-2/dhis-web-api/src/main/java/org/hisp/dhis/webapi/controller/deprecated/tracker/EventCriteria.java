@@ -31,10 +31,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.CodeGenerator;
 import org.hisp.dhis.common.IdSchemes;
@@ -52,82 +50,79 @@ import org.hisp.dhis.webapi.controller.event.webrequest.PagingAndSortingCriteria
  */
 @Data
 @NoArgsConstructor
-public class EventCriteria extends PagingAndSortingCriteriaAdapter
-{
-    private String program;
+public class EventCriteria extends PagingAndSortingCriteriaAdapter {
+  private String program;
 
-    private String programStage;
+  private String programStage;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private String trackedEntityInstance;
+  private String trackedEntityInstance;
 
-    private String orgUnit;
+  private String orgUnit;
 
-    private OrganisationUnitSelectionMode ouMode;
+  private OrganisationUnitSelectionMode ouMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+  private AssignedUserSelectionMode assignedUserMode;
 
-    private String assignedUser;
+  private String assignedUser;
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private Date dueDateStart;
+  private Date dueDateStart;
 
-    private Date dueDateEnd;
+  private Date dueDateEnd;
 
-    private Date lastUpdated;
+  private Date lastUpdated;
 
-    private Date lastUpdatedStartDate;
+  private Date lastUpdatedStartDate;
 
-    private Date lastUpdatedEndDate;
+  private Date lastUpdatedEndDate;
 
-    private String lastUpdatedDuration;
+  private String lastUpdatedDuration;
 
-    private EventStatus status;
+  private EventStatus status;
 
-    private String attributeCc;
+  private String attributeCc;
 
-    private String attributeCos;
+  private String attributeCos;
 
-    private boolean skipMeta;
+  private boolean skipMeta;
 
-    private String attachment;
+  private String attachment;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private String event;
+  private String event;
 
-    private Boolean skipEventId;
+  private Boolean skipEventId;
 
-    private Set<String> filter;
+  private Set<String> filter;
 
-    private Set<String> enrollments;
+  private Set<String> enrollments;
 
-    private IdSchemes idSchemes = new IdSchemes();
+  private IdSchemes idSchemes = new IdSchemes();
 
-    public Set<String> getAssignedUsers()
-    {
-        Set<String> assignedUsers = new HashSet<>();
+  public Set<String> getAssignedUsers() {
+    Set<String> assignedUsers = new HashSet<>();
 
-        if ( assignedUser != null && !assignedUser.isEmpty() )
-        {
-            assignedUsers = TextUtils.splitToSet( assignedUser, TextUtils.SEMICOLON ).stream()
-                .filter( CodeGenerator::isValidUid ).collect( Collectors.toSet() );
-        }
-
-        return assignedUsers;
+    if (assignedUser != null && !assignedUser.isEmpty()) {
+      assignedUsers =
+          TextUtils.splitToSet(assignedUser, TextUtils.SEMICOLON).stream()
+              .filter(CodeGenerator::isValidUid)
+              .collect(Collectors.toSet());
     }
 
-    public Set<String> getEvents()
-    {
-        return CollectionUtils.emptyIfNull( TextUtils.splitToSet( event, TextUtils.SEMICOLON ) )
-            .stream()
-            .filter( CodeGenerator::isValidUid )
-            .collect( Collectors.toSet() );
-    }
+    return assignedUsers;
+  }
+
+  public Set<String> getEvents() {
+    return CollectionUtils.emptyIfNull(TextUtils.splitToSet(event, TextUtils.SEMICOLON)).stream()
+        .filter(CodeGenerator::isValidUid)
+        .collect(Collectors.toSet());
+  }
 }

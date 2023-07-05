@@ -33,7 +33,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOption;
 import org.hisp.dhis.common.OpenApi;
@@ -52,21 +51,20 @@ import org.hisp.dhis.period.Period;
 @Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class DataSetValueQueryParams
-{
-    @OpenApi.Property( { UID.class, DataElement.class } )
-    private String ds;
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class DataSetValueQueryParams {
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String ds;
 
-    @OpenApi.Property( { UID.class, CategoryCombo.class } )
-    private String cc;
+  @OpenApi.Property({UID.class, CategoryCombo.class})
+  private String cc;
 
-    @OpenApi.Property( { UID.class, CategoryOption.class } )
-    private String cp;
+  @OpenApi.Property({UID.class, CategoryOption.class})
+  private String cp;
 
-    @OpenApi.Property( Period.class )
-    private String pe;
+  @OpenApi.Property(Period.class)
+  private String pe;
 
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String ou;
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String ou;
 }

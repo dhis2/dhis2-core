@@ -39,76 +39,72 @@ import org.hisp.dhis.visualization.Visualization;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class AnalyticalObjectOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase
-{
+class AnalyticalObjectOrgUnitMergeHandlerTest extends SingleSetupIntegrationTestBase {
 
-    @Autowired
-    private IdentifiableObjectManager idObjectManager;
+  @Autowired private IdentifiableObjectManager idObjectManager;
 
-    @Autowired
-    private SessionFactory sessionFactory;
+  @Autowired private SessionFactory sessionFactory;
 
-    @Autowired
-    private AnalyticalObjectOrgUnitMergeHandler handler;
+  @Autowired private AnalyticalObjectOrgUnitMergeHandler handler;
 
-    private DataElement deA;
+  private DataElement deA;
 
-    private OrganisationUnit ouA;
+  private OrganisationUnit ouA;
 
-    private OrganisationUnit ouB;
+  private OrganisationUnit ouB;
 
-    private OrganisationUnit ouC;
+  private OrganisationUnit ouC;
 
-    @Override
-    public void setUpTest()
-    {
-        deA = createDataElement( 'A' );
-        idObjectManager.save( deA );
-        ouA = createOrganisationUnit( 'A' );
-        ouB = createOrganisationUnit( 'B' );
-        ouC = createOrganisationUnit( 'C' );
-        idObjectManager.save( ouA );
-        idObjectManager.save( ouB );
-        idObjectManager.save( ouC );
-    }
+  @Override
+  public void setUpTest() {
+    deA = createDataElement('A');
+    idObjectManager.save(deA);
+    ouA = createOrganisationUnit('A');
+    ouB = createOrganisationUnit('B');
+    ouC = createOrganisationUnit('C');
+    idObjectManager.save(ouA);
+    idObjectManager.save(ouB);
+    idObjectManager.save(ouC);
+  }
 
-    @Test
-    void testMergeVisualizations()
-    {
-        Visualization vA = createVisualization( 'A' );
-        vA.addDataDimensionItem( deA );
-        vA.getOrganisationUnits().add( ouA );
-        vA.getOrganisationUnits().add( ouB );
-        Visualization vB = createVisualization( 'B' );
-        vB.addDataDimensionItem( deA );
-        vB.getOrganisationUnits().add( ouA );
-        vB.getOrganisationUnits().add( ouB );
-        idObjectManager.save( vA );
-        idObjectManager.save( vB );
-        assertEquals( 2, getVisualizationCount( ouA ) );
-        assertEquals( 2, getVisualizationCount( ouB ) );
-        assertEquals( 0, getVisualizationCount( ouC ) );
-        OrgUnitMergeRequest request = new OrgUnitMergeRequest.Builder().addSource( ouA ).addSource( ouB )
-            .withTarget( ouC ).build();
-        handler.mergeAnalyticalObjects( request );
-        idObjectManager.update( ouC );
-        assertEquals( 0, getVisualizationCount( ouA ) );
-        assertEquals( 0, getVisualizationCount( ouB ) );
-        assertEquals( 2, getVisualizationCount( ouC ) );
-    }
+  @Test
+  void testMergeVisualizations() {
+    Visualization vA = createVisualization('A');
+    vA.addDataDimensionItem(deA);
+    vA.getOrganisationUnits().add(ouA);
+    vA.getOrganisationUnits().add(ouB);
+    Visualization vB = createVisualization('B');
+    vB.addDataDimensionItem(deA);
+    vB.getOrganisationUnits().add(ouA);
+    vB.getOrganisationUnits().add(ouB);
+    idObjectManager.save(vA);
+    idObjectManager.save(vB);
+    assertEquals(2, getVisualizationCount(ouA));
+    assertEquals(2, getVisualizationCount(ouB));
+    assertEquals(0, getVisualizationCount(ouC));
+    OrgUnitMergeRequest request =
+        new OrgUnitMergeRequest.Builder().addSource(ouA).addSource(ouB).withTarget(ouC).build();
+    handler.mergeAnalyticalObjects(request);
+    idObjectManager.update(ouC);
+    assertEquals(0, getVisualizationCount(ouA));
+    assertEquals(0, getVisualizationCount(ouB));
+    assertEquals(2, getVisualizationCount(ouC));
+  }
 
-    /**
-     * Test migrate HQL update statement with an HQL select statement to ensure
-     * the updated rows are visible by the current transaction.
-     *
-     * @param target the {@link OrganisationUnit}
-     * @return the count of interpretations.
-     */
-    private long getVisualizationCount( OrganisationUnit target )
-    {
-        return (Long) sessionFactory.getCurrentSession()
+  /**
+   * Test migrate HQL update statement with an HQL select statement to ensure the updated rows are
+   * visible by the current transaction.
+   *
+   * @param target the {@link OrganisationUnit}
+   * @return the count of interpretations.
+   */
+  private long getVisualizationCount(OrganisationUnit target) {
+    return (Long)
+        sessionFactory
+            .getCurrentSession()
             .createQuery(
-                "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)" )
-            .setParameter( "target", target ).uniqueResult();
-    }
+                "select count(distinct v) from Visualization v where :target in elements(v.organisationUnits)")
+            .setParameter("target", target)
+            .uniqueResult();
+  }
 }

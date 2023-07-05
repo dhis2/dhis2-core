@@ -32,11 +32,9 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-
-@JacksonXmlRootElement( localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0 )
-public enum DeliveryChannel
-{
-    SMS,
-    EMAIL,
-    HTTP
+@JacksonXmlRootElement(localName = "deliveryChannel", namespace = DxfNamespaces.DXF_2_0)
+public enum DeliveryChannel {
+  SMS,
+  EMAIL,
+  HTTP
 }

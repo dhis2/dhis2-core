@@ -34,12 +34,9 @@ import org.apache.commons.math3.distribution.NormalDistribution;
  *
  * @author Jim Grace
  */
-public class FunctionNormDistCum
-    extends FunctionNormDistAbstract
-{
-    @Override
-    protected Double getDistributionValue( NormalDistribution dist, Double x )
-    {
-        return dist.cumulativeProbability( x );
-    }
+public class FunctionNormDistCum extends FunctionNormDistAbstract {
+  @Override
+  protected Double getDistributionValue(NormalDistribution dist, Double x) {
+    return dist.cumulativeProbability(x);
+  }
 }

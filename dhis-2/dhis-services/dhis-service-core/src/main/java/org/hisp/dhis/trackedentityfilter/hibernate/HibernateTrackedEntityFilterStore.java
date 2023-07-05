@@ -28,9 +28,7 @@
 package org.hisp.dhis.trackedentityfilter.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.program.Program;
@@ -45,24 +43,32 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
-@Repository( "org.hisp.dhis.trackedentityfilter.TrackedEntityFilterStore" )
+@Repository("org.hisp.dhis.trackedentityfilter.TrackedEntityFilterStore")
 public class HibernateTrackedEntityFilterStore
     extends HibernateIdentifiableObjectStore<TrackedEntityFilter>
-    implements TrackedEntityFilterStore
-{
-    public HibernateTrackedEntityFilterStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, TrackedEntityFilter.class, currentUserService,
-            aclService, true );
-    }
+    implements TrackedEntityFilterStore {
+  public HibernateTrackedEntityFilterStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        TrackedEntityFilter.class,
+        currentUserService,
+        aclService,
+        true);
+  }
 
-    @Override
-    public List<TrackedEntityFilter> get( Program program )
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
+  @Override
+  public List<TrackedEntityFilter> get(Program program) {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        return getList( builder, newJpaParameters()
-            .addPredicate( root -> builder.equal( root.get( "program" ), program ) ) );
-    }
+    return getList(
+        builder,
+        newJpaParameters().addPredicate(root -> builder.equal(root.get("program"), program)));
+  }
 }

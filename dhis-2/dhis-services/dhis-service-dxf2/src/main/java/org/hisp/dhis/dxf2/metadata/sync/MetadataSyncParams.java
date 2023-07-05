@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.sync;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.metadata.version.MetadataVersion;
 
@@ -39,59 +38,49 @@ import org.hisp.dhis.metadata.version.MetadataVersion;
  *
  * @author vanyas
  */
-public class MetadataSyncParams
-{
-    private MetadataImportParams importParams;
+public class MetadataSyncParams {
+  private MetadataImportParams importParams;
 
-    private MetadataVersion version;
+  private MetadataVersion version;
 
-    private Map<String, List<String>> parameters = new HashMap<String, List<String>>();
+  private Map<String, List<String>> parameters = new HashMap<String, List<String>>();
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public MetadataSyncParams()
-    {
-    }
+  public MetadataSyncParams() {}
 
-    public MetadataSyncParams( MetadataImportParams importParams, MetadataVersion version )
-    {
-        this.importParams = importParams;
-        this.version = version;
-    }
+  public MetadataSyncParams(MetadataImportParams importParams, MetadataVersion version) {
+    this.importParams = importParams;
+    this.version = version;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    public MetadataImportParams getImportParams()
-    {
-        return importParams;
-    }
+  public MetadataImportParams getImportParams() {
+    return importParams;
+  }
 
-    public void setImportParams( MetadataImportParams importParams )
-    {
-        this.importParams = importParams;
-    }
+  public void setImportParams(MetadataImportParams importParams) {
+    this.importParams = importParams;
+  }
 
-    public MetadataVersion getVersion()
-    {
-        return version;
-    }
+  public MetadataVersion getVersion() {
+    return version;
+  }
 
-    public void setVersion( MetadataVersion version )
-    {
-        this.version = version;
-    }
+  public void setVersion(MetadataVersion version) {
+    this.version = version;
+  }
 
-    public Map<String, List<String>> getParameters()
-    {
-        return parameters;
-    }
+  public Map<String, List<String>> getParameters() {
+    return parameters;
+  }
 
-    public void setParameters( Map<String, List<String>> parameters )
-    {
-        this.parameters = parameters;
-    }
+  public void setParameters(Map<String, List<String>> parameters) {
+    this.parameters = parameters;
+  }
 }

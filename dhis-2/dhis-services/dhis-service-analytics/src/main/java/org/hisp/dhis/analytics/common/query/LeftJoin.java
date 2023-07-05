@@ -29,16 +29,14 @@ package org.hisp.dhis.analytics.common.query;
 
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class LeftJoin extends BaseRenderable
-{
-    private final Renderable tableOrSubQuery;
+@RequiredArgsConstructor(staticName = "of")
+public class LeftJoin extends BaseRenderable {
+  private final Renderable tableOrSubQuery;
 
-    private final Renderable joinCondition;
+  private final Renderable joinCondition;
 
-    @Override
-    public String render()
-    {
-        return "left join " + tableOrSubQuery.render() + " on " + joinCondition.render();
-    }
+  @Override
+  public String render() {
+    return "left join " + tableOrSubQuery.render() + " on " + joinCondition.render();
+  }
 }

@@ -42,78 +42,100 @@ import org.hisp.dhis.webapi.DhisControllerConvenienceTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 
-abstract class AbstractDataValueControllerTest
-    extends DhisControllerConvenienceTest
-{
-    protected String dataElementId;
+abstract class AbstractDataValueControllerTest extends DhisControllerConvenienceTest {
+  protected String dataElementId;
 
-    protected String orgUnitId;
+  protected String orgUnitId;
 
-    protected String categoryComboId;
+  protected String categoryComboId;
 
-    protected String categoryOptionComboId;
+  protected String categoryOptionComboId;
 
-    @Autowired
-    protected CurrentUserService currentUserService;
+  @Autowired protected CurrentUserService currentUserService;
 
-    @BeforeEach
-    void setUp()
-    {
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        // add OU to users hierarchy
-        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-            Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-        JsonObject ccDefault = GET(
-            "/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default" )
-            .content().getObject( 0 );
-        categoryComboId = ccDefault.getString( "id" ).string();
-        categoryOptionComboId = ccDefault.getArray( "categoryOptionCombos" ).getString( 0 ).string();
-        dataElementId = addDataElement( "My data element", "DE1", ValueType.INTEGER, null, categoryComboId );
+  @BeforeEach
+  void setUp() {
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    // add OU to users hierarchy
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
+    JsonObject ccDefault =
+        GET("/categoryCombos/gist?fields=id,categoryOptionCombos::ids&pageSize=1&headless=true&filter=name:eq:default")
+            .content()
+            .getObject(0);
+    categoryComboId = ccDefault.getString("id").string();
+    categoryOptionComboId = ccDefault.getArray("categoryOptionCombos").getString(0).string();
+    dataElementId =
+        addDataElement("My data element", "DE1", ValueType.INTEGER, null, categoryComboId);
 
-        // Add the newly created org unit to the superuser's hierarchy
-        OrganisationUnit unit = manager.get( OrganisationUnit.class, orgUnitId );
-        User user = userService.getUser( getSuperUser().getUid() );
-        user.addOrganisationUnit( unit );
-        userService.updateUser( user );
+    // Add the newly created org unit to the superuser's hierarchy
+    OrganisationUnit unit = manager.get(OrganisationUnit.class, orgUnitId);
+    User user = userService.getUser(getSuperUser().getUid());
+    user.addOrganisationUnit(unit);
+    userService.updateUser(user);
 
-        switchToSuperuser();
-    }
+    switchToSuperuser();
+  }
 
-    /**
-     * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
-     */
-    protected final void addDataValue( String period, String value, String comment, boolean followup )
-    {
-        addDataValue( period, value, comment, followup, dataElementId, orgUnitId );
-    }
+  /**
+   * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
+   */
+  protected final void addDataValue(String period, String value, String comment, boolean followup) {
+    addDataValue(period, value, comment, followup, dataElementId, orgUnitId);
+  }
 
-    /**
-     * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
-     */
-    protected final void addDataValue( String period, String value, String comment, boolean followup,
-        String dataElementId, String orgUnitId )
-    {
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, value, comment, followup, dataElementId, orgUnitId ) );
-    }
+  /**
+   * @return UID of the created {@link org.hisp.dhis.datavalue.DataValue}
+   */
+  protected final void addDataValue(
+      String period,
+      String value,
+      String comment,
+      boolean followup,
+      String dataElementId,
+      String orgUnitId) {
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, value, comment, followup, dataElementId, orgUnitId));
+  }
 
-    protected final HttpResponse postNewDataValue( String period, String value, String comment, boolean followup,
-        String dataElementId, String orgUnitId )
-    {
-        return POST( "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
-            dataElementId, period, orgUnitId, categoryOptionComboId, value, comment, followup );
-    }
+  protected final HttpResponse postNewDataValue(
+      String period,
+      String value,
+      String comment,
+      boolean followup,
+      String dataElementId,
+      String orgUnitId) {
+    return POST(
+        "/dataValues?de={de}&pe={pe}&ou={ou}&co={coc}&value={val}&comment={comment}&followUp={followup}",
+        dataElementId,
+        period,
+        orgUnitId,
+        categoryOptionComboId,
+        value,
+        comment,
+        followup);
+  }
 
-    protected final JsonArray getDataValues( String de, String pe, String ou )
-    {
-        return getDataValues( de, categoryOptionComboId, null, null, pe, ou );
-    }
+  protected final JsonArray getDataValues(String de, String pe, String ou) {
+    return getDataValues(de, categoryOptionComboId, null, null, pe, ou);
+  }
 
-    protected final JsonArray getDataValues( String de, String co, String cc, String cp, String pe, String ou )
-    {
-        String url = substitutePlaceholders( "/dataValues?de={de}&co={co}&cc={cc}&cp={cp}&pe={pe}&ou={ou}",
-            new Object[] { de, co, cc, cp, pe, ou } );
-        return GET( url.replaceAll( "&[a-z]{2}=&", "&" ).replace( "&&", "&" ) ).content();
-    }
+  protected final JsonArray getDataValues(
+      String de, String co, String cc, String cp, String pe, String ou) {
+    String url =
+        substitutePlaceholders(
+            "/dataValues?de={de}&co={co}&cc={cc}&cp={cp}&pe={pe}&ou={ou}",
+            new Object[] {de, co, cc, cp, pe, ou});
+    return GET(url.replaceAll("&[a-z]{2}=&", "&").replace("&&", "&")).content();
+  }
 }

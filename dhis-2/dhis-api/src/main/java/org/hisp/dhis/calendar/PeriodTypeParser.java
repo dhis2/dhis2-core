@@ -30,9 +30,8 @@ package org.hisp.dhis.calendar;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public interface PeriodTypeParser
-{
-    DateInterval parse( String period );
+public interface PeriodTypeParser {
+  DateInterval parse(String period);
 
-    DateInterval parse( Calendar calendar, String period );
+  DateInterval parse(Calendar calendar, String period);
 }

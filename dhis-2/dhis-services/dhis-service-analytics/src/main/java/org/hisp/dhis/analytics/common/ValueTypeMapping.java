@@ -43,85 +43,69 @@ import java.math.BigInteger;
 import java.util.Date;
 import java.util.List;
 import java.util.function.Function;
-
 import org.hisp.dhis.common.ValueType;
 
 /**
- * This enum helps with the mapping between the existing value types defined in
- * {@link ValueType} and the database types.
+ * This enum helps with the mapping between the existing value types defined in {@link ValueType}
+ * and the database types.
  *
- * It represents the database types associated with all possible
- * {@link ValueType}, and provides a function where it can be converted into
- * Java types.
+ * <p>It represents the database types associated with all possible {@link ValueType}, and provides
+ * a function where it can be converted into Java types.
  */
-public enum ValueTypeMapping
-{
-    NUMERIC( BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE ),
-    DECIMAL( BigDecimal::new, NUMBER ),
-    STRING( s -> s ),
-    TEXT( s -> s ),
-    DATE( ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME );
+public enum ValueTypeMapping {
+  NUMERIC(BigInteger::new, INTEGER, INTEGER_NEGATIVE, INTEGER_POSITIVE, INTEGER_ZERO_OR_POSITIVE),
+  DECIMAL(BigDecimal::new, NUMBER),
+  STRING(s -> s),
+  TEXT(s -> s),
+  DATE(ValueTypeMapping::dateConverter, ValueType.DATE, DATETIME, TIME);
 
-    private static Date dateConverter( String dateAsString )
-    {
-        return getMediumDate( dateAsString );
-    }
+  private static Date dateConverter(String dateAsString) {
+    return getMediumDate(dateAsString);
+  }
 
-    private final Function<String, Object> converter;
+  private final Function<String, Object> converter;
 
-    private final ValueType[] valueTypes;
+  private final ValueType[] valueTypes;
 
-    ValueTypeMapping( Function<String, Object> converter, ValueType... valueTypes )
-    {
-        this.converter = converter;
-        this.valueTypes = valueTypes;
-    }
+  ValueTypeMapping(Function<String, Object> converter, ValueType... valueTypes) {
+    this.converter = converter;
+    this.valueTypes = valueTypes;
+  }
 
-    /**
-     * Finds the associated {@link ValueTypeMapping} for the given
-     * {@link ValueType}.
-     *
-     * @param valueType the {@link ValueType}.
-     * @return the respective ValueTypeMapping, or default to
-     *         {@link ValueTypeMapping.TEXT}.
-     */
-    public static ValueTypeMapping fromValueType( ValueType valueType )
-    {
-        return stream( values() )
-            .filter( valueTypeMapping -> valueTypeMapping.supports( valueType ) )
-            .findFirst()
-            .orElse( TEXT );
-    }
+  /**
+   * Finds the associated {@link ValueTypeMapping} for the given {@link ValueType}.
+   *
+   * @param valueType the {@link ValueType}.
+   * @return the respective ValueTypeMapping, or default to {@link ValueTypeMapping.TEXT}.
+   */
+  public static ValueTypeMapping fromValueType(ValueType valueType) {
+    return stream(values())
+        .filter(valueTypeMapping -> valueTypeMapping.supports(valueType))
+        .findFirst()
+        .orElse(TEXT);
+  }
 
-    private boolean supports( ValueType valueType )
-    {
-        return stream( valueTypes )
-            .anyMatch( vt -> vt == valueType );
-    }
+  private boolean supports(ValueType valueType) {
+    return stream(valueTypes).anyMatch(vt -> vt == valueType);
+  }
 
-    /**
-     * Converts the "value" into a Java representation, based on the internal
-     * converter function.
-     *
-     * @param value the value to be converted
-     * @return the respective Java object
-     */
-    public Object convertSingle( String value )
-    {
-        return converter.apply( value );
-    }
+  /**
+   * Converts the "value" into a Java representation, based on the internal converter function.
+   *
+   * @param value the value to be converted
+   * @return the respective Java object
+   */
+  public Object convertSingle(String value) {
+    return converter.apply(value);
+  }
 
-    /**
-     * Converts all "values" into a Java representation, based on the internal
-     * converter function.
-     *
-     * @param values the {@link List} of values to be converted
-     * @return the respective Java object
-     */
-    public List<Object> convertMany( List<String> values )
-    {
-        return values.stream()
-            .map( converter )
-            .collect( toList() );
-    }
+  /**
+   * Converts all "values" into a Java representation, based on the internal converter function.
+   *
+   * @param values the {@link List} of values to be converted
+   * @return the respective Java object
+   */
+  public List<Object> convertMany(List<String> values) {
+    return values.stream().map(converter).collect(toList());
+  }
 }

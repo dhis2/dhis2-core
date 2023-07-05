@@ -28,15 +28,12 @@
 package org.hisp.dhis.category;
 
 import java.util.List;
-
 import org.hisp.dhis.common.DataDimensionType;
 import org.hisp.dhis.common.IdentifiableObjectStore;
 
 /**
  * @author Lars Helge Overland
  */
-public interface CategoryComboStore
-    extends IdentifiableObjectStore<CategoryCombo>
-{
-    List<CategoryCombo> getCategoryCombosByDimensionType( DataDimensionType dataDimensionType );
+public interface CategoryComboStore extends IdentifiableObjectStore<CategoryCombo> {
+  List<CategoryCombo> getCategoryCombosByDimensionType(DataDimensionType dataDimensionType);
 }

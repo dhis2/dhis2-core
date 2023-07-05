@@ -31,52 +31,46 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashSet;
 import java.util.Set;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.organisationunit.OrganisationUnitService;
 import org.hisp.dhis.test.integration.SingleSetupIntegrationTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-class UserDeletionHandlerTest extends SingleSetupIntegrationTestBase
-{
-    @Autowired
-    private UserService userService;
+class UserDeletionHandlerTest extends SingleSetupIntegrationTestBase {
+  @Autowired private UserService userService;
 
-    @Autowired
-    private OrganisationUnitService organisationUnitService;
+  @Autowired private OrganisationUnitService organisationUnitService;
 
-    @Override
-    public void setUpTest()
-    {
-        super.userService = userService;
-    }
+  @Override
+  public void setUpTest() {
+    super.userService = userService;
+  }
 
-    @Test
-    void testDeleteOrganisationUnitCleanUpOUScope()
-    {
-        OrganisationUnit OUa = createOrganisationUnit( "A" );
-        organisationUnitService.addOrganisationUnit( OUa );
+  @Test
+  void testDeleteOrganisationUnitCleanUpOUScope() {
+    OrganisationUnit OUa = createOrganisationUnit("A");
+    organisationUnitService.addOrganisationUnit(OUa);
 
-        User userA = createAndAddUser( "A" );
-        userService.addUser( userA );
+    User userA = createAndAddUser("A");
+    userService.addUser(userA);
 
-        userA.setTeiSearchOrganisationUnits( new HashSet<>( Set.of( OUa ) ) );
-        userA.setDataViewOrganisationUnits( new HashSet<>( Set.of( OUa ) ) );
-        userA.addOrganisationUnit( OUa );
+    userA.setTeiSearchOrganisationUnits(new HashSet<>(Set.of(OUa)));
+    userA.setDataViewOrganisationUnits(new HashSet<>(Set.of(OUa)));
+    userA.addOrganisationUnit(OUa);
 
-        userService.updateUser( userA );
+    userService.updateUser(userA);
 
-        User user = userService.getUser( userA.getUid() );
-        assertEquals( 1, user.getOrganisationUnits().size() );
-        assertEquals( 1, user.getTeiSearchOrganisationUnits().size() );
-        assertEquals( 1, user.getDataViewOrganisationUnits().size() );
+    User user = userService.getUser(userA.getUid());
+    assertEquals(1, user.getOrganisationUnits().size());
+    assertEquals(1, user.getTeiSearchOrganisationUnits().size());
+    assertEquals(1, user.getDataViewOrganisationUnits().size());
 
-        organisationUnitService.deleteOrganisationUnit( OUa );
+    organisationUnitService.deleteOrganisationUnit(OUa);
 
-        user = userService.getUser( userA.getUid() );
-        assertEquals( 0, user.getOrganisationUnits().size() );
-        assertEquals( 0, user.getTeiSearchOrganisationUnits().size() );
-        assertEquals( 0, user.getDataViewOrganisationUnits().size() );
-    }
+    user = userService.getUser(userA.getUid());
+    assertEquals(0, user.getOrganisationUnits().size());
+    assertEquals(0, user.getTeiSearchOrganisationUnits().size());
+    assertEquals(0, user.getDataViewOrganisationUnits().size());
+  }
 }

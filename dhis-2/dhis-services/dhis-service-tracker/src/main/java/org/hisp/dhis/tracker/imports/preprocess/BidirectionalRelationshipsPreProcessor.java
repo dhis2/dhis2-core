@@ -32,26 +32,25 @@ import org.hisp.dhis.tracker.imports.bundle.TrackerBundle;
 import org.springframework.stereotype.Component;
 
 /**
- * This preprocessor is responsible for populating the bidirectional field with
- * the value from the RelationshipType
+ * This preprocessor is responsible for populating the bidirectional field with the value from the
+ * RelationshipType
  *
  * @author Enrico Colasante
  */
 @Component
-public class BidirectionalRelationshipsPreProcessor
-    implements BundlePreProcessor
-{
+public class BidirectionalRelationshipsPreProcessor implements BundlePreProcessor {
 
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        bundle.getRelationships()
-            .forEach( rel -> {
-                RelationshipType relType = bundle.getPreheat().getRelationshipType( rel.getRelationshipType() );
-                if ( relType != null )
-                {
-                    rel.setBidirectional( relType.isBidirectional() );
-                }
-            } );
-    }
+  @Override
+  public void process(TrackerBundle bundle) {
+    bundle
+        .getRelationships()
+        .forEach(
+            rel -> {
+              RelationshipType relType =
+                  bundle.getPreheat().getRelationshipType(rel.getRelationshipType());
+              if (relType != null) {
+                rel.setBidirectional(relType.isBidirectional());
+              }
+            });
+  }
 }

@@ -34,15 +34,12 @@ import org.hisp.dhis.jsontree.JsonObject;
  *
  * @author Jan Bernitt
  */
-public interface JsonAttributeValue extends JsonObject
-{
-    default String getValue()
-    {
-        return getString( "value" ).string();
-    }
+public interface JsonAttributeValue extends JsonObject {
+  default String getValue() {
+    return getString("value").string();
+  }
 
-    default JsonIdentifiableObject getAttribute()
-    {
-        return get( "attribute", JsonIdentifiableObject.class );
-    }
+  default JsonIdentifiableObject getAttribute() {
+    return get("attribute", JsonIdentifiableObject.class);
+  }
 }

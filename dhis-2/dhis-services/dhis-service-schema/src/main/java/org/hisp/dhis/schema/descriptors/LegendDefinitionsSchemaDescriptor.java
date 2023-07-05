@@ -34,15 +34,13 @@ import org.hisp.dhis.visualization.LegendDefinitions;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class LegendDefinitionsSchemaDescriptor implements SchemaDescriptor
-{
-    public static final String SINGULAR = "legendDefinitions";
+public class LegendDefinitionsSchemaDescriptor implements SchemaDescriptor {
+  public static final String SINGULAR = "legendDefinitions";
 
-    public static final String PLURAL = "legendDefinitions";
+  public static final String PLURAL = "legendDefinitions";
 
-    @Override
-    public Schema getSchema()
-    {
-        return new Schema( LegendDefinitions.class, SINGULAR, PLURAL );
-    }
+  @Override
+  public Schema getSchema() {
+    return new Schema(LegendDefinitions.class, SINGULAR, PLURAL);
+  }
 }

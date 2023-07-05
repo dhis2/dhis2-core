@@ -31,25 +31,21 @@ import static org.hisp.dhis.DhisConvenienceTest.getDate;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Date;
-
 import org.hisp.dhis.user.User;
 import org.junit.jupiter.api.Test;
 
-class ContextUtilsTest
-{
-    @Test
-    void testGetEtag()
-    {
-        Date date = getDate( 2022, 03, 10 );
-        User user = new User();
-        user.setUid( "kYt56BgfED2" );
+class ContextUtilsTest {
+  @Test
+  void testGetEtag() {
+    Date date = getDate(2022, 03, 10);
+    User user = new User();
+    user.setUid("kYt56BgfED2");
 
-        assertEquals( "7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag( date, user ) );
-    }
+    assertEquals("7c9d6fd16b668638ca0e722aa2451054", ContextUtils.getEtag(date, user));
+  }
 
-    @Test
-    void testQuote()
-    {
-        assertEquals( "\"2022-03-10T00:00:00\"", ContextUtils.quote( "2022-03-10T00:00:00" ) );
-    }
+  @Test
+  void testQuote() {
+    assertEquals("\"2022-03-10T00:00:00\"", ContextUtils.quote("2022-03-10T00:00:00"));
+  }
 }

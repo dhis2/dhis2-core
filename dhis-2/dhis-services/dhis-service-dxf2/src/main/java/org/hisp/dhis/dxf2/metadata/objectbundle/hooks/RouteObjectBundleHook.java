@@ -30,7 +30,6 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 import static org.hisp.dhis.config.HibernateEncryptionConfig.AES_128_STRING_ENCRYPTOR;
 
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.auth.ApiTokenAuth;
 import org.hisp.dhis.common.auth.Auth;
 import org.hisp.dhis.common.auth.HttpBasicAuth;
@@ -46,50 +45,39 @@ import org.springframework.util.StringUtils;
  */
 @Component
 @AllArgsConstructor
-public class RouteObjectBundleHook
-    extends AbstractObjectBundleHook<Route>
-{
-    @Qualifier( AES_128_STRING_ENCRYPTOR )
-    private final PBEStringCleanablePasswordEncryptor encryptor;
+public class RouteObjectBundleHook extends AbstractObjectBundleHook<Route> {
+  @Qualifier(AES_128_STRING_ENCRYPTOR)
+  private final PBEStringCleanablePasswordEncryptor encryptor;
 
-    @Override
-    public void preCreate( Route route, ObjectBundle bundle )
-    {
-        encrypt( route );
+  @Override
+  public void preCreate(Route route, ObjectBundle bundle) {
+    encrypt(route);
+  }
+
+  @Override
+  public void preUpdate(Route route, Route persistedObject, ObjectBundle bundle) {
+    encrypt(route);
+  }
+
+  private void encrypt(Route route) {
+    Auth auth = route.getAuth();
+
+    if (auth == null) {
+      return;
     }
 
-    @Override
-    public void preUpdate( Route route, Route persistedObject, ObjectBundle bundle )
-    {
-        encrypt( route );
+    if (auth.getType().equals(ApiTokenAuth.TYPE)) {
+      ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
+
+      if (StringUtils.hasText(apiTokenAuth.getToken())) {
+        apiTokenAuth.setToken(encryptor.encrypt(apiTokenAuth.getToken()));
+      }
+    } else if (auth.getType().equals(HttpBasicAuth.TYPE)) {
+      HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
+
+      if (StringUtils.hasText(httpBasicAuth.getPassword())) {
+        httpBasicAuth.setPassword(encryptor.encrypt(httpBasicAuth.getPassword()));
+      }
     }
-
-    private void encrypt( Route route )
-    {
-        Auth auth = route.getAuth();
-
-        if ( auth == null )
-        {
-            return;
-        }
-
-        if ( auth.getType().equals( ApiTokenAuth.TYPE ) )
-        {
-            ApiTokenAuth apiTokenAuth = (ApiTokenAuth) auth;
-
-            if ( StringUtils.hasText( apiTokenAuth.getToken() ) )
-            {
-                apiTokenAuth.setToken( encryptor.encrypt( apiTokenAuth.getToken() ) );
-            }
-        }
-        else if ( auth.getType().equals( HttpBasicAuth.TYPE ) )
-        {
-            HttpBasicAuth httpBasicAuth = (HttpBasicAuth) auth;
-
-            if ( StringUtils.hasText( httpBasicAuth.getPassword() ) )
-            {
-                httpBasicAuth.setPassword( encryptor.encrypt( httpBasicAuth.getPassword() ) );
-            }
-        }
-    }
+  }
 }

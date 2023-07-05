@@ -29,9 +29,7 @@ package org.hisp.dhis.analytics.orgunit.data;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.analytics.data.QueryPlannerUtils;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryParams;
 import org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner;
@@ -42,48 +40,41 @@ import org.springframework.stereotype.Service;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner" )
+@Service("org.hisp.dhis.analytics.orgunit.OrgUnitQueryPlanner")
 @NoArgsConstructor
-public class DefaultOrgUnitQueryPlanner
-    implements OrgUnitQueryPlanner
-{
-    @Override
-    public List<OrgUnitQueryParams> planQuery( OrgUnitQueryParams params )
-    {
-        return groupByOrgUnitLevel( params );
+public class DefaultOrgUnitQueryPlanner implements OrgUnitQueryPlanner {
+  @Override
+  public List<OrgUnitQueryParams> planQuery(OrgUnitQueryParams params) {
+    return groupByOrgUnitLevel(params);
+  }
+
+  /**
+   * Groups the given query by organisation unit level.
+   *
+   * @param params the {@link OrgUnitQueryParams}.
+   * @return a list of {@link OrgUnitQueryParams}.
+   */
+  private List<OrgUnitQueryParams> groupByOrgUnitLevel(OrgUnitQueryParams params) {
+    List<OrgUnitQueryParams> queries = new ArrayList<>();
+
+    if (!params.getOrgUnits().isEmpty()) {
+      ListMap<Integer, OrganisationUnit> levelOrgUnitMap =
+          QueryPlannerUtils.getLevelOrgUnitTypedMap(params.getOrgUnits());
+
+      for (Integer level : levelOrgUnitMap.keySet()) {
+        OrgUnitQueryParams query =
+            new OrgUnitQueryParams.Builder(params)
+                .withOrgUnits(levelOrgUnitMap.get(level))
+                .withOrgUnitLevel(level)
+                .build();
+
+        queries.add(query);
+      }
+    } else {
+      queries.add(new OrgUnitQueryParams.Builder(params).build());
+      return queries;
     }
 
-    /**
-     * Groups the given query by organisation unit level.
-     *
-     * @param params the {@link OrgUnitQueryParams}.
-     * @return a list of {@link OrgUnitQueryParams}.
-     */
-    private List<OrgUnitQueryParams> groupByOrgUnitLevel( OrgUnitQueryParams params )
-    {
-        List<OrgUnitQueryParams> queries = new ArrayList<>();
-
-        if ( !params.getOrgUnits().isEmpty() )
-        {
-            ListMap<Integer, OrganisationUnit> levelOrgUnitMap = QueryPlannerUtils
-                .getLevelOrgUnitTypedMap( params.getOrgUnits() );
-
-            for ( Integer level : levelOrgUnitMap.keySet() )
-            {
-                OrgUnitQueryParams query = new OrgUnitQueryParams.Builder( params )
-                    .withOrgUnits( levelOrgUnitMap.get( level ) )
-                    .withOrgUnitLevel( level )
-                    .build();
-
-                queries.add( query );
-            }
-        }
-        else
-        {
-            queries.add( new OrgUnitQueryParams.Builder( params ).build() );
-            return queries;
-        }
-
-        return queries;
-    }
+    return queries;
+  }
 }

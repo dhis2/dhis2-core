@@ -31,7 +31,6 @@ import static org.hisp.dhis.dxf2.metadata.objectbundle.validation.ValidationUtil
 
 import java.util.List;
 import java.util.function.Consumer;
-
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -44,30 +43,35 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class DeletionCheck implements ObjectValidationCheck
-{
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass,
-        List<T> persistedObjects, List<T> nonPersistedObjects,
-        ImportStrategy importStrategy, ValidationContext ctx, Consumer<ObjectReport> addReports )
-    {
-        if ( nonPersistedObjects == null || nonPersistedObjects.isEmpty() )
-        {
-            return;
-        }
-
-        for ( IdentifiableObject identifiableObject : nonPersistedObjects )
-        {
-            IdentifiableObject object = bundle.getPreheat().get( bundle.getPreheatIdentifier(), identifiableObject );
-
-            if ( object == null || object.getId() == 0 )
-            {
-                ErrorReport errorReport = new ErrorReport( klass, ErrorCode.E5001, bundle.getPreheatIdentifier(),
-                    bundle.getPreheatIdentifier().getIdentifiersWithName( identifiableObject ) )
-                    .setMainId( object != null ? object.getUid() : null );
-                addReports.accept( createObjectReport( errorReport, object, bundle ) );
-                ctx.markForRemoval( object );
-            }
-        }
+public class DeletionCheck implements ObjectValidationCheck {
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext ctx,
+      Consumer<ObjectReport> addReports) {
+    if (nonPersistedObjects == null || nonPersistedObjects.isEmpty()) {
+      return;
     }
+
+    for (IdentifiableObject identifiableObject : nonPersistedObjects) {
+      IdentifiableObject object =
+          bundle.getPreheat().get(bundle.getPreheatIdentifier(), identifiableObject);
+
+      if (object == null || object.getId() == 0) {
+        ErrorReport errorReport =
+            new ErrorReport(
+                    klass,
+                    ErrorCode.E5001,
+                    bundle.getPreheatIdentifier(),
+                    bundle.getPreheatIdentifier().getIdentifiersWithName(identifiableObject))
+                .setMainId(object != null ? object.getUid() : null);
+        addReports.accept(createObjectReport(errorReport, object, bundle));
+        ctx.markForRemoval(object);
+      }
+    }
+  }
 }

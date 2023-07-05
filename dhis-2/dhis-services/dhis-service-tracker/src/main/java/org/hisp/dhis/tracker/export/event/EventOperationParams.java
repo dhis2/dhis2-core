@@ -33,12 +33,10 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AssignedUserSelectionMode;
 import org.hisp.dhis.common.IdSchemes;
@@ -50,148 +48,127 @@ import org.hisp.dhis.webapi.controller.event.mapper.OrderParam;
 import org.hisp.dhis.webapi.controller.event.webrequest.OrderCriteria;
 
 @Getter
-@Builder( toBuilder = true )
-@AllArgsConstructor( access = AccessLevel.PRIVATE )
-public class EventOperationParams
-{
-    public static final int DEFAULT_PAGE = 1;
+@Builder(toBuilder = true)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public class EventOperationParams {
+  public static final int DEFAULT_PAGE = 1;
 
-    public static final int DEFAULT_PAGE_SIZE = 50;
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    private String programUid;
+  private String programUid;
 
-    private String programStageUid;
+  private String programStageUid;
 
-    private ProgramStatus programStatus;
+  private ProgramStatus programStatus;
 
-    private ProgramType programType;
+  private ProgramType programType;
 
-    private Boolean followUp;
+  private Boolean followUp;
 
-    private String orgUnitUid;
+  private String orgUnitUid;
 
-    private OrganisationUnitSelectionMode orgUnitSelectionMode;
+  private OrganisationUnitSelectionMode orgUnitSelectionMode;
 
-    private AssignedUserSelectionMode assignedUserMode;
+  private AssignedUserSelectionMode assignedUserMode;
 
-    private Set<String> assignedUsers;
+  private Set<String> assignedUsers;
 
-    private String trackedEntityUid;
+  private String trackedEntityUid;
 
-    private Date startDate;
+  private Date startDate;
 
-    private Date endDate;
+  private Date endDate;
 
-    private EventStatus eventStatus;
+  private EventStatus eventStatus;
 
-    private Date updatedAfter;
+  private Date updatedAfter;
 
-    private Date updatedBefore;
+  private Date updatedBefore;
 
-    /**
-     * The last updated duration filter.
-     */
-    private String updatedWithin;
+  /** The last updated duration filter. */
+  private String updatedWithin;
 
-    private Date scheduledAfter;
+  private Date scheduledAfter;
 
-    private Date scheduledBefore;
+  private Date scheduledBefore;
 
-    private Date enrollmentEnrolledBefore;
+  private Date enrollmentEnrolledBefore;
 
-    private Date enrollmentEnrolledAfter;
+  private Date enrollmentEnrolledAfter;
 
-    private Date enrollmentOccurredBefore;
+  private Date enrollmentOccurredBefore;
 
-    private Date enrollmentOccurredAfter;
+  private Date enrollmentOccurredAfter;
 
-    private String attributeCategoryCombo;
+  private String attributeCategoryCombo;
 
-    @Builder.Default
-    private Set<String> attributeCategoryOptions = Collections.emptySet();
+  @Builder.Default private Set<String> attributeCategoryOptions = Collections.emptySet();
 
-    private CategoryOptionCombo categoryOptionCombo;
+  private CategoryOptionCombo categoryOptionCombo;
 
-    @Builder.Default
-    private IdSchemes idSchemes = new IdSchemes();
+  @Builder.Default private IdSchemes idSchemes = new IdSchemes();
 
-    private Integer page;
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    private boolean totalPages;
+  private boolean totalPages;
 
-    private boolean skipPaging;
+  private boolean skipPaging;
 
-    private boolean includeRelationships;
+  private boolean includeRelationships;
 
-    @Builder.Default
-    private List<OrderParam> orders = new ArrayList<>();
+  @Builder.Default private List<OrderParam> orders = new ArrayList<>();
 
-    @Builder.Default
-    private List<OrderCriteria> attributeOrders = new ArrayList<>();
+  @Builder.Default private List<OrderCriteria> attributeOrders = new ArrayList<>();
 
-    private boolean includeAttributes;
+  private boolean includeAttributes;
 
-    private boolean includeAllDataElements;
+  private boolean includeAllDataElements;
 
-    @Builder.Default
-    private Set<String> events = new HashSet<>();
+  @Builder.Default private Set<String> events = new HashSet<>();
 
-    private Boolean skipEventId;
+  private Boolean skipEventId;
 
-    /**
-     * Comma separated list of data element filters
-     */
-    private String filters;
+  /** Comma separated list of data element filters */
+  private String filters;
 
-    /**
-     * Comma separated list of attribute filters
-     */
-    private String filterAttributes;
+  /** Comma separated list of attribute filters */
+  private String filterAttributes;
 
-    private boolean includeDeleted;
+  private boolean includeDeleted;
 
-    private Set<String> accessiblePrograms;
+  private Set<String> accessiblePrograms;
 
-    private Set<String> accessibleProgramStages;
+  private Set<String> accessibleProgramStages;
 
-    private boolean synchronizationQuery;
+  private boolean synchronizationQuery;
 
-    /**
-     * Indicates a point in the time used to decide the data that should not be
-     * synchronized
-     */
-    private Date skipChangedBefore;
+  /** Indicates a point in the time used to decide the data that should not be synchronized */
+  private Date skipChangedBefore;
 
-    private Set<String> enrollments;
+  private Set<String> enrollments;
 
-    // -------------------------------------------------------------------------
-    // Logic
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Logic
+  // -------------------------------------------------------------------------
 
-    public boolean isPaging()
-    {
-        return page != null || pageSize != null;
-    }
+  public boolean isPaging() {
+    return page != null || pageSize != null;
+  }
 
-    public int getPageWithDefault()
-    {
-        return page != null && page > 0 ? page : DEFAULT_PAGE;
-    }
+  public int getPageWithDefault() {
+    return page != null && page > 0 ? page : DEFAULT_PAGE;
+  }
 
-    public int getPageSizeWithDefault()
-    {
-        return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
-    }
+  public int getPageSizeWithDefault() {
+    return pageSize != null && pageSize >= 0 ? pageSize : DEFAULT_PAGE_SIZE;
+  }
 
-    /**
-     * Sets paging properties to default values.
-     */
-    public void setDefaultPaging()
-    {
-        this.page = DEFAULT_PAGE;
-        this.pageSize = DEFAULT_PAGE_SIZE;
-        this.skipPaging = false;
-    }
+  /** Sets paging properties to default values. */
+  public void setDefaultPaging() {
+    this.page = DEFAULT_PAGE;
+    this.pageSize = DEFAULT_PAGE_SIZE;
+    this.skipPaging = false;
+  }
 }

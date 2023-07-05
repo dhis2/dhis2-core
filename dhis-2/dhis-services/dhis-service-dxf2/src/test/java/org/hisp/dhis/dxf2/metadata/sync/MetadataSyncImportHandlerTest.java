@@ -38,7 +38,6 @@ import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
-
 import org.hisp.dhis.dxf2.metadata.MetadataImportParams;
 import org.hisp.dhis.dxf2.metadata.MetadataImportService;
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
@@ -60,187 +59,193 @@ import org.mockito.junit.jupiter.MockitoExtension;
 /**
  * @author anilkumk
  */
-@ExtendWith( MockitoExtension.class )
-class MetadataSyncImportHandlerTest
-{
-    @Mock
-    MetadataImportService metadataImportService;
+@ExtendWith(MockitoExtension.class)
+class MetadataSyncImportHandlerTest {
+  @Mock MetadataImportService metadataImportService;
 
-    @Mock
-    MetadataVersionDelegate metadataVersionDelegate;
+  @Mock MetadataVersionDelegate metadataVersionDelegate;
 
-    @Mock
-    private RenderService renderService;
+  @Mock private RenderService renderService;
 
-    @InjectMocks
-    private MetadataSyncImportHandler metadataSyncImportHandler;
+  @InjectMocks private MetadataSyncImportHandler metadataSyncImportHandler;
 
-    private MetadataVersion metadataVersion;
+  private MetadataVersion metadataVersion;
 
-    private String expectedMetadataSnapshot;
+  private String expectedMetadataSnapshot;
 
-    private MetadataSyncParams syncParams;
+  private MetadataSyncParams syncParams;
 
-    private ImportReport importReport;
+  private ImportReport importReport;
 
-    @BeforeEach
-    public void setup()
-    {
-        metadataVersion = new MetadataVersion( "testVersion", VersionType.ATOMIC );
-        expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
-        syncParams = new MetadataSyncParams();
-        importReport = new ImportReport();
-    }
+  @BeforeEach
+  public void setup() {
+    metadataVersion = new MetadataVersion("testVersion", VersionType.ATOMIC);
+    expectedMetadataSnapshot = "{\"date\":\"2016-05-24T05:27:25.128+0000\"}";
+    syncParams = new MetadataSyncParams();
+    importReport = new ImportReport();
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenNoVersionSet()
-    {
-        syncParams.setImportParams( null );
-        assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
-            "MetadataImportParams for the Sync cant be null." );
-    }
+  @Test
+  void testShouldThrowExceptionWhenNoVersionSet() {
+    syncParams.setImportParams(null);
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
+        "MetadataImportParams for the Sync cant be null.");
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenNoImportParams()
-    {
-        syncParams.setVersion( metadataVersion );
-        syncParams.setImportParams( null );
+  @Test
+  void testShouldThrowExceptionWhenNoImportParams() {
+    syncParams.setVersion(metadataVersion);
+    syncParams.setImportParams(null);
 
-        assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
-            "MetadataImportParams for the Sync cant be null." );
-    }
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
+        "MetadataImportParams for the Sync cant be null.");
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenImportServiceFails()
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
+  @Test
+  void testShouldThrowExceptionWhenImportServiceFails() {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
 
-        when( metadataImportService.importMetadata( syncParams.getImportParams() ) )
-            .thenThrow( new MetadataSyncServiceException( "" ) );
-        assertThrows( MetadataSyncImportException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ) );
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-    }
+    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+        .thenThrow(new MetadataSyncServiceException(""));
+    assertThrows(
+        MetadataSyncImportException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot));
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+  }
 
-    @Test
-    void testShouldImportMetadata()
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
-        MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
-        importReport.setStatus( Status.OK );
+  @Test
+  void testShouldImportMetadata() {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
+    MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
+    importReport.setStatus(Status.OK);
 
-        when( metadataImportService.importMetadata( syncParams.getImportParams() ) ).thenReturn( importReport );
+    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+        .thenReturn(importReport);
 
-        metadataSyncSummary.setImportReport( importReport );
-        metadataSyncSummary.setMetadataVersion( metadataVersion );
+    metadataSyncSummary.setImportReport(importReport);
+    metadataSyncSummary.setMetadataVersion(metadataVersion);
 
-        doNothing().when( metadataVersionDelegate ).addNewMetadataVersion( metadataVersion );
+    doNothing().when(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
 
-        MetadataSyncSummary actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams,
-            expectedMetadataSnapshot );
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot);
 
-        verify( metadataVersionDelegate ).addNewMetadataVersion( metadataVersion );
-        assertEquals( metadataSyncSummary.getImportReport(), actualMetadataSyncSummary.getImportReport() );
-        assertEquals( metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary() );
-        assertEquals( metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion() );
-        assertEquals( metadataSyncSummary.getMetadataVersion().getType(),
-            actualMetadataSyncSummary.getMetadataVersion().getType() );
-        assertEquals( metadataSyncSummary.getImportReport().getStatus(),
-            actualMetadataSyncSummary.getImportReport().getStatus() );
-    }
+    verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
+    assertEquals(
+        metadataSyncSummary.getImportReport(), actualMetadataSyncSummary.getImportReport());
+    assertEquals(
+        metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary());
+    assertEquals(
+        metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion());
+    assertEquals(
+        metadataSyncSummary.getMetadataVersion().getType(),
+        actualMetadataSyncSummary.getMetadataVersion().getType());
+    assertEquals(
+        metadataSyncSummary.getImportReport().getStatus(),
+        actualMetadataSyncSummary.getImportReport().getStatus());
+  }
 
-    @Test
-    void testShouldImportMetadataWhenBestEffortWithWarnings()
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
-        MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
-        importReport.setStatus( Status.WARNING );
-        metadataVersion.setType( VersionType.BEST_EFFORT );
+  @Test
+  void testShouldImportMetadataWhenBestEffortWithWarnings() {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
+    MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
+    importReport.setStatus(Status.WARNING);
+    metadataVersion.setType(VersionType.BEST_EFFORT);
 
-        when( metadataImportService.importMetadata( syncParams.getImportParams() ) ).thenReturn( importReport );
+    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+        .thenReturn(importReport);
 
-        metadataSyncSummary.setImportReport( importReport );
-        metadataSyncSummary.setMetadataVersion( metadataVersion );
+    metadataSyncSummary.setImportReport(importReport);
+    metadataSyncSummary.setMetadataVersion(metadataVersion);
 
-        doNothing().when( metadataVersionDelegate ).addNewMetadataVersion( metadataVersion );
+    doNothing().when(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
 
-        MetadataSyncSummary actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams,
-            expectedMetadataSnapshot );
-        verify( metadataVersionDelegate ).addNewMetadataVersion( metadataVersion );
-        assertEquals( metadataSyncSummary.getImportReport(), actualMetadataSyncSummary.getImportReport() );
-        assertEquals( metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary() );
-        assertEquals( metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion() );
-        assertEquals( metadataSyncSummary.getMetadataVersion().getType(),
-            actualMetadataSyncSummary.getMetadataVersion().getType() );
-        assertEquals( metadataSyncSummary.getImportReport().getStatus(),
-            actualMetadataSyncSummary.getImportReport().getStatus() );
-    }
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot);
+    verify(metadataVersionDelegate).addNewMetadataVersion(metadataVersion);
+    assertEquals(
+        metadataSyncSummary.getImportReport(), actualMetadataSyncSummary.getImportReport());
+    assertEquals(
+        metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary());
+    assertEquals(
+        metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion());
+    assertEquals(
+        metadataSyncSummary.getMetadataVersion().getType(),
+        actualMetadataSyncSummary.getMetadataVersion().getType());
+    assertEquals(
+        metadataSyncSummary.getImportReport().getStatus(),
+        actualMetadataSyncSummary.getImportReport().getStatus());
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenClassListMapIsNull()
-        throws IOException
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
-        importReport.setStatus( Status.OK );
+  @Test
+  void testShouldThrowExceptionWhenClassListMapIsNull() throws IOException {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
+    importReport.setStatus(Status.OK);
 
-        when( renderService.fromMetadata( any( InputStream.class ), eq( RenderFormat.JSON ) ) ).thenReturn( null );
+    when(renderService.fromMetadata(any(InputStream.class), eq(RenderFormat.JSON)))
+        .thenReturn(null);
 
-        assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
-            "ClassListMap can't be null" );
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
+        "ClassListMap can't be null");
 
-        verify( metadataImportService, never() ).importMetadata( syncParams.getImportParams() );
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-    }
+    verify(metadataImportService, never()).importMetadata(syncParams.getImportParams());
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+  }
 
-    @Test
-    void testShouldThrowExceptionWhenParsingClassListMap()
-        throws IOException
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
-        importReport.setStatus( Status.OK );
+  @Test
+  void testShouldThrowExceptionWhenParsingClassListMap() throws IOException {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
+    importReport.setStatus(Status.OK);
 
-        when( renderService.fromMetadata( any( InputStream.class ), eq( RenderFormat.JSON ) ) )
-            .thenThrow( new IOException() );
+    when(renderService.fromMetadata(any(InputStream.class), eq(RenderFormat.JSON)))
+        .thenThrow(new IOException());
 
-        assertThrows( MetadataSyncServiceException.class,
-            () -> metadataSyncImportHandler.importMetadata( syncParams, expectedMetadataSnapshot ),
-            "Exception occurred while trying to do JSON conversion while parsing class list map" );
+    assertThrows(
+        MetadataSyncServiceException.class,
+        () -> metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot),
+        "Exception occurred while trying to do JSON conversion while parsing class list map");
 
-        verify( metadataImportService, never() ).importMetadata( syncParams.getImportParams() );
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-    }
+    verify(metadataImportService, never()).importMetadata(syncParams.getImportParams());
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+  }
 
-    @Test
-    void testShouldReturnDefaultSummaryWhenImportStatusIsError()
-    {
-        syncParams.setImportParams( new MetadataImportParams() );
-        syncParams.setVersion( metadataVersion );
-        MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
+  @Test
+  void testShouldReturnDefaultSummaryWhenImportStatusIsError() {
+    syncParams.setImportParams(new MetadataImportParams());
+    syncParams.setVersion(metadataVersion);
+    MetadataSyncSummary metadataSyncSummary = new MetadataSyncSummary();
 
-        metadataSyncSummary.setImportReport( new ImportReport() );
-        metadataSyncSummary.setMetadataVersion( metadataVersion );
+    metadataSyncSummary.setImportReport(new ImportReport());
+    metadataSyncSummary.setMetadataVersion(metadataVersion);
 
-        importReport.setStatus( Status.ERROR );
+    importReport.setStatus(Status.ERROR);
 
-        when( metadataImportService.importMetadata( syncParams.getImportParams() ) ).thenReturn( importReport );
+    when(metadataImportService.importMetadata(syncParams.getImportParams()))
+        .thenReturn(importReport);
 
-        MetadataSyncSummary actualMetadataSyncSummary = metadataSyncImportHandler.importMetadata( syncParams,
-            expectedMetadataSnapshot );
+    MetadataSyncSummary actualMetadataSyncSummary =
+        metadataSyncImportHandler.importMetadata(syncParams, expectedMetadataSnapshot);
 
-        verify( metadataVersionDelegate, never() ).addNewMetadataVersion( metadataVersion );
-        assertEquals( metadataSyncSummary.getImportReport().toString(),
-            actualMetadataSyncSummary.getImportReport().toString() );
-        assertEquals( metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary() );
-        assertEquals( metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion() );
-    }
+    verify(metadataVersionDelegate, never()).addNewMetadataVersion(metadataVersion);
+    assertEquals(
+        metadataSyncSummary.getImportReport().toString(),
+        actualMetadataSyncSummary.getImportReport().toString());
+    assertEquals(
+        metadataSyncSummary.getImportSummary(), actualMetadataSyncSummary.getImportSummary());
+    assertEquals(
+        metadataSyncSummary.getMetadataVersion(), actualMetadataSyncSummary.getMetadataVersion());
+  }
 }

@@ -29,16 +29,13 @@ package org.hisp.dhis.split.orgunit;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 
-import java.util.HashSet;
-import java.util.Set;
-
-import lombok.Getter;
-
-import org.hisp.dhis.common.IdentifiableObjectUtils;
-import org.hisp.dhis.organisationunit.OrganisationUnit;
-
 import com.google.common.base.MoreObjects;
 import com.google.common.collect.ImmutableSet;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Getter;
+import org.hisp.dhis.common.IdentifiableObjectUtils;
+import org.hisp.dhis.organisationunit.OrganisationUnit;
 
 /**
  * Encapsulation of an org unit split request.
@@ -46,76 +43,65 @@ import com.google.common.collect.ImmutableSet;
  * @author Lars Helge Overland
  */
 @Getter
-public class OrgUnitSplitRequest
-{
-    private OrganisationUnit source;
+public class OrgUnitSplitRequest {
+  private OrganisationUnit source;
 
-    private Set<OrganisationUnit> targets = new HashSet<>();
+  private Set<OrganisationUnit> targets = new HashSet<>();
 
-    private OrganisationUnit primaryTarget;
+  private OrganisationUnit primaryTarget;
 
-    private boolean deleteSource;
+  private boolean deleteSource;
 
-    public Set<OrganisationUnit> getTargets()
-    {
-        return ImmutableSet.copyOf( targets );
+  public Set<OrganisationUnit> getTargets() {
+    return ImmutableSet.copyOf(targets);
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("source", source != null ? source.getUid() : null)
+        .add("targets", IdentifiableObjectUtils.getUids(targets))
+        .add("primaryTarget", primaryTarget != null ? primaryTarget.getUid() : null)
+        .add("deleteSource", deleteSource)
+        .toString();
+  }
+
+  public static class Builder {
+    private OrgUnitSplitRequest request;
+
+    public Builder() {
+      this.request = new OrgUnitSplitRequest();
+
+      this.request.deleteSource = true;
     }
 
-    @Override
-    public String toString()
-    {
-        return MoreObjects.toStringHelper( this )
-            .add( "source", source != null ? source.getUid() : null )
-            .add( "targets", IdentifiableObjectUtils.getUids( targets ) )
-            .add( "primaryTarget", primaryTarget != null ? primaryTarget.getUid() : null )
-            .add( "deleteSource", deleteSource )
-            .toString();
+    public Builder withSource(OrganisationUnit source) {
+      this.request.source = source;
+      return this;
     }
 
-    public static class Builder
-    {
-        private OrgUnitSplitRequest request;
-
-        public Builder()
-        {
-            this.request = new OrgUnitSplitRequest();
-
-            this.request.deleteSource = true;
-        }
-
-        public Builder withSource( OrganisationUnit source )
-        {
-            this.request.source = source;
-            return this;
-        }
-
-        public Builder addTarget( OrganisationUnit target )
-        {
-            this.request.targets.add( target );
-            return this;
-        }
-
-        public Builder addTargets( Set<OrganisationUnit> targets )
-        {
-            this.request.targets.addAll( targets );
-            return this;
-        }
-
-        public Builder withPrimaryTarget( OrganisationUnit primaryTarget )
-        {
-            this.request.primaryTarget = primaryTarget;
-            return this;
-        }
-
-        public Builder withDeleteSource( Boolean deleteSource )
-        {
-            this.request.deleteSource = firstNonNull( deleteSource, this.request.deleteSource );
-            return this;
-        }
-
-        public OrgUnitSplitRequest build()
-        {
-            return request;
-        }
+    public Builder addTarget(OrganisationUnit target) {
+      this.request.targets.add(target);
+      return this;
     }
+
+    public Builder addTargets(Set<OrganisationUnit> targets) {
+      this.request.targets.addAll(targets);
+      return this;
+    }
+
+    public Builder withPrimaryTarget(OrganisationUnit primaryTarget) {
+      this.request.primaryTarget = primaryTarget;
+      return this;
+    }
+
+    public Builder withDeleteSource(Boolean deleteSource) {
+      this.request.deleteSource = firstNonNull(deleteSource, this.request.deleteSource);
+      return this;
+    }
+
+    public OrgUnitSplitRequest build() {
+      return request;
+    }
+  }
 }

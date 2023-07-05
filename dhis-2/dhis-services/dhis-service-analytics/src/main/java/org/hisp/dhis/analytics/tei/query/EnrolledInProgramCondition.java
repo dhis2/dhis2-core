@@ -32,17 +32,14 @@ import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.TE
 import static org.hisp.dhis.commons.util.TextUtils.doubleQuote;
 
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class EnrolledInProgramCondition extends BaseRenderable
-{
-    private final String program;
+@RequiredArgsConstructor(staticName = "of")
+public class EnrolledInProgramCondition extends BaseRenderable {
+  private final String program;
 
-    @Override
-    public String render()
-    {
-        return TEI_ALIAS + DOT + doubleQuote( program );
-    }
+  @Override
+  public String render() {
+    return TEI_ALIAS + DOT + doubleQuote(program);
+  }
 }

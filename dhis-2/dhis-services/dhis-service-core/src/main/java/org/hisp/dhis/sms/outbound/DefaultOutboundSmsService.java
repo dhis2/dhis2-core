@@ -28,91 +28,76 @@
 package org.hisp.dhis.sms.outbound;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Simple {@link OutboundSmsService sms service} storing the sms in a store and
- * forwards the request to a {@link org.hisp.dhis.sms.config.SmsMessageSender
- * sms transport service} for sending.
+ * Simple {@link OutboundSmsService sms service} storing the sms in a store and forwards the request
+ * to a {@link org.hisp.dhis.sms.config.SmsMessageSender sms transport service} for sending.
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.sms.outbound.OutboundSmsService" )
+@Service("org.hisp.dhis.sms.outbound.OutboundSmsService")
 @Transactional
-public class DefaultOutboundSmsService
-    implements OutboundSmsService
-{
-    private final OutboundSmsStore outboundSmsStore;
+public class DefaultOutboundSmsService implements OutboundSmsService {
+  private final OutboundSmsStore outboundSmsStore;
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    public List<OutboundSms> getAll()
-    {
-        return outboundSmsStore.getAll();
+  @Override
+  public List<OutboundSms> getAll() {
+    return outboundSmsStore.getAll();
+  }
+
+  @Override
+  public List<OutboundSms> get(OutboundSmsStatus status) {
+    return outboundSmsStore.get(status);
+  }
+
+  @Override
+  public long save(OutboundSms sms) {
+    outboundSmsStore.saveOutboundSms(sms);
+    return sms.getId();
+  }
+
+  @Override
+  public void delete(long outboundSmsId) {
+    OutboundSms sms = get(outboundSmsId);
+
+    if (sms != null) {
+      outboundSmsStore.delete(sms);
     }
+  }
 
-    @Override
-    public List<OutboundSms> get( OutboundSmsStatus status )
-    {
-        return outboundSmsStore.get( status );
+  @Override
+  public void delete(String uid) {
+    OutboundSms sms = outboundSmsStore.getByUid(uid);
+
+    if (sms != null) {
+      outboundSmsStore.delete(sms);
     }
+  }
 
-    @Override
-    public long save( OutboundSms sms )
-    {
-        outboundSmsStore.saveOutboundSms( sms );
-        return sms.getId();
-    }
+  @Override
+  public OutboundSms get(long id) {
+    return outboundSmsStore.get(id);
+  }
 
-    @Override
-    public void delete( long outboundSmsId )
-    {
-        OutboundSms sms = get( outboundSmsId );
+  @Override
+  public OutboundSms get(String uid) {
+    return outboundSmsStore.getByUid(uid);
+  }
 
-        if ( sms != null )
-        {
-            outboundSmsStore.delete( sms );
-        }
-    }
+  @Override
+  public List<OutboundSms> get(
+      OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination) {
+    return outboundSmsStore.get(status, min, max, hasPagination);
+  }
 
-    @Override
-    public void delete( String uid )
-    {
-        OutboundSms sms = outboundSmsStore.getByUid( uid );
-
-        if ( sms != null )
-        {
-            outboundSmsStore.delete( sms );
-        }
-    }
-
-    @Override
-    public OutboundSms get( long id )
-    {
-        return outboundSmsStore.get( id );
-    }
-
-    @Override
-    public OutboundSms get( String uid )
-    {
-        return outboundSmsStore.getByUid( uid );
-    }
-
-    @Override
-    public List<OutboundSms> get( OutboundSmsStatus status, Integer min, Integer max, boolean hasPagination )
-    {
-        return outboundSmsStore.get( status, min, max, hasPagination );
-    }
-
-    @Override
-    public List<OutboundSms> getAll( Integer min, Integer max, boolean hasPagination )
-    {
-        return outboundSmsStore.getAllOutboundSms( min, max, hasPagination );
-    }
+  @Override
+  public List<OutboundSms> getAll(Integer min, Integer max, boolean hasPagination) {
+    return outboundSmsStore.getAllOutboundSms(min, max, hasPagination);
+  }
 }

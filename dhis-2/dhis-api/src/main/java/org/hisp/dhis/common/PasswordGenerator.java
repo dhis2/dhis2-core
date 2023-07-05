@@ -32,138 +32,111 @@ import java.security.SecureRandom;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class PasswordGenerator
-{
-    private PasswordGenerator()
-    {
-        throw new IllegalStateException( "Utility class" );
+public class PasswordGenerator {
+  private PasswordGenerator() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  public static final String NUMERIC_CHARS = "0123456789";
+
+  public static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  public static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
+
+  public static final String LETTERS = LOWERCASE_LETTERS + UPPERCASE_LETTERS;
+
+  public static final String SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;':,./<>?©®™¢£¥€";
+
+  public static final String NUMERIC_AND_SPECIAL_CHARS = NUMERIC_CHARS + SPECIAL_CHARS;
+
+  public static final String ALL_CHARS = NUMERIC_CHARS + LETTERS + SPECIAL_CHARS;
+
+  /**
+   * Generates a random password with the given size, has to be minimum 8 characters long.
+   *
+   * <p>The password will contain at least one digit, one special character, one uppercase letter
+   * and one lowercase letter.
+   *
+   * <p>The password will not contain more than 2 consecutive letters to avoid generating words.
+   *
+   * <p>Passwords should always be greater than 4 characters, since the first 4 has predetermined
+   * lesser character sets. To avoid using it in production with size set to 4 or less, we enforce
+   * minimum size of 8, which is the default password minimum length in DHIS2.
+   *
+   * @param size the size of the password.
+   * @return a random password.
+   */
+  public static char[] generateValidPassword(int size) {
+    if (size < 8) {
+      throw new IllegalArgumentException("Password must be at least 8 characters long");
     }
 
-    public static final String NUMERIC_CHARS = "0123456789";
+    char[] chars = new char[size];
 
-    public static final String UPPERCASE_LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    chars[0] = generateCharacter(NUMERIC_CHARS);
+    chars[1] = generateCharacter(SPECIAL_CHARS);
+    chars[2] = generateCharacter(UPPERCASE_LETTERS);
+    chars[3] = generateCharacter(LOWERCASE_LETTERS);
 
-    public static final String LOWERCASE_LETTERS = "abcdefghijklmnopqrstuvwxyz";
-
-    public static final String LETTERS = LOWERCASE_LETTERS + UPPERCASE_LETTERS;
-
-    public static final String SPECIAL_CHARS = "!@#$%^&*()_+-=[]{}|;':,./<>?©®™¢£¥€";
-
-    public static final String NUMERIC_AND_SPECIAL_CHARS = NUMERIC_CHARS + SPECIAL_CHARS;
-
-    public static final String ALL_CHARS = NUMERIC_CHARS + LETTERS + SPECIAL_CHARS;
-
-    /**
-     * Generates a random password with the given size, has to be minimum 8
-     * characters long.
-     * <p>
-     * The password will contain at least one digit, one special character, one
-     * uppercase letter and one lowercase letter.
-     * <p>
-     * The password will not contain more than 2 consecutive letters to avoid
-     * generating words.
-     * <p>
-     * Passwords should always be greater than 4 characters, since the first 4
-     * has predetermined lesser character sets. To avoid using it in production
-     * with size set to 4 or less, we enforce minimum size of 8, which is the
-     * default password minimum length in DHIS2.
-     *
-     * @param size the size of the password.
-     * @return a random password.
-     */
-    public static char[] generateValidPassword( int size )
-    {
-        if ( size < 8 )
-        {
-            throw new IllegalArgumentException( "Password must be at least 8 characters long" );
+    int c = 2; // the last 2 characters are letters
+    for (int i = 4; i < size; ++i) {
+      if (c >= 2) {
+        // After 2 consecutive letters, the next character should be a number or a special character
+        chars[i] = generateCharacter(NUMERIC_AND_SPECIAL_CHARS);
+        c = 0;
+      } else {
+        chars[i] = generateCharacter(ALL_CHARS);
+        if (LETTERS.indexOf(chars[i]) >= 0) {
+          // If the character is a letter, increment the counter
+          c++;
+        } else {
+          // If the character is not a letter, reset the counter
+          c = 0;
         }
-
-        char[] chars = new char[size];
-
-        chars[0] = generateCharacter( NUMERIC_CHARS );
-        chars[1] = generateCharacter( SPECIAL_CHARS );
-        chars[2] = generateCharacter( UPPERCASE_LETTERS );
-        chars[3] = generateCharacter( LOWERCASE_LETTERS );
-
-        int c = 2; // the last 2 characters are letters
-        for ( int i = 4; i < size; ++i )
-        {
-            if ( c >= 2 )
-            {
-                // After 2 consecutive letters, the next character should be a number or a special character
-                chars[i] = generateCharacter( NUMERIC_AND_SPECIAL_CHARS );
-                c = 0;
-            }
-            else
-            {
-                chars[i] = generateCharacter( ALL_CHARS );
-                if ( LETTERS.indexOf( chars[i] ) >= 0 )
-                {
-                    // If the character is a letter, increment the counter
-                    c++;
-                }
-                else
-                {
-                    // If the character is not a letter, reset the counter
-                    c = 0;
-                }
-            }
-        }
-
-        return chars;
+      }
     }
 
-    private static char generateCharacter( String str )
-    {
-        SecureRandom sr = CodeGenerator.SecureRandomHolder.GENERATOR;
-        return str.charAt( sr.nextInt( str.length() ) );
-    }
+    return chars;
+  }
 
-    public static boolean containsDigit( char[] chars )
-    {
-        for ( char c : chars )
-        {
-            if ( c >= '0' && c <= '9' )
-            {
-                return true;
-            }
-        }
-        return false;
-    }
+  private static char generateCharacter(String str) {
+    SecureRandom sr = CodeGenerator.SecureRandomHolder.GENERATOR;
+    return str.charAt(sr.nextInt(str.length()));
+  }
 
-    public static boolean containsSpecialCharacter( char[] chars )
-    {
-        for ( char c : chars )
-        {
-            if ( SPECIAL_CHARS.indexOf( c ) >= 0 )
-            {
-                return true;
-            }
-        }
-        return false;
+  public static boolean containsDigit(char[] chars) {
+    for (char c : chars) {
+      if (c >= '0' && c <= '9') {
+        return true;
+      }
     }
+    return false;
+  }
 
-    public static boolean containsUppercaseCharacter( char[] chars )
-    {
-        for ( char c : chars )
-        {
-            if ( c >= 'A' && c <= 'Z' )
-            {
-                return true;
-            }
-        }
-        return false;
+  public static boolean containsSpecialCharacter(char[] chars) {
+    for (char c : chars) {
+      if (SPECIAL_CHARS.indexOf(c) >= 0) {
+        return true;
+      }
     }
+    return false;
+  }
 
-    public static boolean containsLowercaseCharacter( char[] chars )
-    {
-        for ( char c : chars )
-        {
-            if ( c >= 'a' && c <= 'z' )
-            {
-                return true;
-            }
-        }
-        return false;
+  public static boolean containsUppercaseCharacter(char[] chars) {
+    for (char c : chars) {
+      if (c >= 'A' && c <= 'Z') {
+        return true;
+      }
     }
+    return false;
+  }
+
+  public static boolean containsLowercaseCharacter(char[] chars) {
+    for (char c : chars) {
+      if (c >= 'a' && c <= 'z') {
+        return true;
+      }
+    }
+    return false;
+  }
 }

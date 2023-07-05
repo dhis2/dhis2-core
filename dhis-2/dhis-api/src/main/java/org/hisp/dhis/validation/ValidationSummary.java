@@ -27,45 +27,43 @@
  */
 package org.hisp.dhis.validation;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.dataelement.DataElementOperand;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.dataelement.DataElementOperand;
 
 /**
  * @author Lars Helge Overland
  */
 @Setter
 @NoArgsConstructor
-@JacksonXmlRootElement( localName = "validationSummary", namespace = DxfNamespaces.DXF_2_0 )
-public class ValidationSummary
-{
-    private List<ValidationResult> validationRuleViolations = new ArrayList<>();
+@JacksonXmlRootElement(localName = "validationSummary", namespace = DxfNamespaces.DXF_2_0)
+public class ValidationSummary {
+  private List<ValidationResult> validationRuleViolations = new ArrayList<>();
 
-    private List<DataElementOperand> commentRequiredViolations = new ArrayList<>();
+  private List<DataElementOperand> commentRequiredViolations = new ArrayList<>();
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "validationRuleViolations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "validationRuleViolation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<ValidationResult> getValidationRuleViolations()
-    {
-        return validationRuleViolations;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "validationRuleViolations",
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "validationRuleViolation", namespace = DxfNamespaces.DXF_2_0)
+  public List<ValidationResult> getValidationRuleViolations() {
+    return validationRuleViolations;
+  }
 
-    @JsonProperty
-    @JacksonXmlElementWrapper( localName = "commentRequiredViolations", namespace = DxfNamespaces.DXF_2_0 )
-    @JacksonXmlProperty( localName = "commentRequiredViolation", namespace = DxfNamespaces.DXF_2_0 )
-    public List<DataElementOperand> getCommentRequiredViolations()
-    {
-        return commentRequiredViolations;
-    }
+  @JsonProperty
+  @JacksonXmlElementWrapper(
+      localName = "commentRequiredViolations",
+      namespace = DxfNamespaces.DXF_2_0)
+  @JacksonXmlProperty(localName = "commentRequiredViolation", namespace = DxfNamespaces.DXF_2_0)
+  public List<DataElementOperand> getCommentRequiredViolations() {
+    return commentRequiredViolations;
+  }
 }

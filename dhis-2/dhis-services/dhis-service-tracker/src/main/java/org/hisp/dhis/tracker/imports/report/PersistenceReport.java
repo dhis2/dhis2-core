@@ -27,48 +27,40 @@
  */
 package org.hisp.dhis.tracker.imports.report;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.HashMap;
 import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.tracker.imports.TrackerType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
- * The Bundle Report is responsible for aggregating the outcome of the
- * persistence stage of the Tracker Import.
+ * The Bundle Report is responsible for aggregating the outcome of the persistence stage of the
+ * Tracker Import.
  *
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class PersistenceReport
-{
-    public static PersistenceReport emptyReport()
-    {
-        return new PersistenceReport( new HashMap<>() );
-    }
+public class PersistenceReport {
+  public static PersistenceReport emptyReport() {
+    return new PersistenceReport(new HashMap<>());
+  }
 
-    @JsonProperty
-    private Map<TrackerType, TrackerTypeReport> typeReportMap;
+  @JsonProperty private Map<TrackerType, TrackerTypeReport> typeReportMap;
 
-    @JsonIgnore
-    public Stats getStats()
-    {
-        Stats stats = new Stats();
-        typeReportMap.values().forEach( tr -> stats.merge( tr.getStats() ) );
+  @JsonIgnore
+  public Stats getStats() {
+    Stats stats = new Stats();
+    typeReportMap.values().forEach(tr -> stats.merge(tr.getStats()));
 
-        return stats;
-    }
+    return stats;
+  }
 
-    public boolean isEmpty()
-    {
-        return typeReportMap.values().stream().allMatch( TrackerTypeReport::isEmpty );
-    }
+  public boolean isEmpty() {
+    return typeReportMap.values().stream().allMatch(TrackerTypeReport::isEmpty);
+  }
 }

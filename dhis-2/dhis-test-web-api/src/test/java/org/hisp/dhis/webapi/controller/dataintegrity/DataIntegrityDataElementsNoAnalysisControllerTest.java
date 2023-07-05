@@ -33,82 +33,87 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for aggregate data elements which do not have any analysis. The
- * condition we test for here is whether the data element is part of an
- * indicator, which is also used in a favorite.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_no_analysis.yaml
+ * Test for aggregate data elements which do not have any analysis. The condition we test for here
+ * is whether the data element is part of an indicator, which is also used in a favorite. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_no_analysis.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsNoAnalysisControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "data_elements_aggregate_no_analysis";
+class DataIntegrityDataElementsNoAnalysisControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "data_elements_aggregate_no_analysis";
 
-    private static final String detailsIdType = "dataElements";
+  private static final String detailsIdType = "dataElements";
 
-    @Test
-    void testDataElementNoAnalysis()
-    {
+  @Test
+  void testDataElementNoAnalysis() {
 
-        String dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 100,
-            dataElementA, "ANC1", null, true );
+    assertHasDataIntegrityIssues(detailsIdType, check, 100, dataElementA, "ANC1", null, true);
+  }
 
-    }
+  @Test
+  void testDataElementHasAnalysis() {
 
-    @Test
-    void testDataElementHasAnalysis()
-    {
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        String dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+    String indicatorTypeA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST("/indicatorTypes", "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }"));
 
-        String indicatorTypeA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicatorTypes",
-                "{ 'name': 'Per cent', 'factor' : 100, 'number' : false }" ) );
-
-        String indicatorA = assertStatus( HttpStatus.CREATED,
-            POST( "/indicators",
+    String indicatorA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/indicators",
                 "{ 'name': 'Indicator A', 'shortName': 'Indicator A',  'indicatorType' : {'id' : '"
-                    + indicatorTypeA + "'}," +
-                    " 'numerator' : ' " + dataElementA +
-                    "', 'numeratorDescription' : 'ANC1', 'denominator' : '1', " +
-                    "'denominatorDescription' : '1'} }" ) );
+                    + indicatorTypeA
+                    + "'},"
+                    + " 'numerator' : ' "
+                    + dataElementA
+                    + "', 'numeratorDescription' : 'ANC1', 'denominator' : '1', "
+                    + "'denominatorDescription' : '1'} }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/visualizations?skipTranslations=true&skipSharing=true",
-                "{'type':'SINGLE_VALUE','columns':[{'dimension':'dx','items':[{'id':'" + indicatorA +
-                    "'}]}],'rows':[],'filters':[{'dimension':'ou','items':[{'id':'USER_ORGUNIT'}]}, " +
-                    "{'dimension':'pe','items':[{'id':'LAST_12_MONTHS'}]}],'axes':[],'colorSet':'DEFAULT', " +
-                    "'cumulativeValues':false,'hideEmptyRowItems':'NONE','seriesKey':{},'legend':{}," +
-                    "'noSpaceBetweenColumns':false,'percentStackedValues':false,'regressionType':'NONE', " +
-                    "'showData':true,'aggregationType':'DEFAULT','completedOnly':false,'hideSubtitle':false," +
-                    "'hideTitle':false,'sortOrder':0,'series':[],'fontStyle':{},'outlierAnalysis':null,'colTotals':false,"
-                    +
-                    "'colSubTotals':false,'rowTotals':false,'rowSubTotals':false,'showDimensionLabels':false," +
-                    "'hideEmptyColumns':false,'hideEmptyRows':false,'skipRounding':false,'numberType':'VALUE', " +
-                    "'showHierarchy':false,'displayDensity':'NORMAL','fontSize':'NORMAL','digitGroupSeparator':'SPACE',"
-                    +
-                    "'fixColumnHeaders':false,'fixRowHeaders':false,'regression':false,'cumulative':false,'topLimit':0,'"
-                    + "" +
-                    "reportingParams':{'organisationUnit':false,'reportingPeriod':false,'parentOrganisationUnit':false,"
-                    +
-                    "'grandParentOrganisationUnit':false},'name':'Test viz'}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/visualizations?skipTranslations=true&skipSharing=true",
+            "{'type':'SINGLE_VALUE','columns':[{'dimension':'dx','items':[{'id':'"
+                + indicatorA
+                + "'}]}],'rows':[],'filters':[{'dimension':'ou','items':[{'id':'USER_ORGUNIT'}]}, "
+                + "{'dimension':'pe','items':[{'id':'LAST_12_MONTHS'}]}],'axes':[],'colorSet':'DEFAULT', "
+                + "'cumulativeValues':false,'hideEmptyRowItems':'NONE','seriesKey':{},'legend':{},"
+                + "'noSpaceBetweenColumns':false,'percentStackedValues':false,'regressionType':'NONE', "
+                + "'showData':true,'aggregationType':'DEFAULT','completedOnly':false,'hideSubtitle':false,"
+                + "'hideTitle':false,'sortOrder':0,'series':[],'fontStyle':{},'outlierAnalysis':null,'colTotals':false,"
+                + "'colSubTotals':false,'rowTotals':false,'rowSubTotals':false,'showDimensionLabels':false,"
+                + "'hideEmptyColumns':false,'hideEmptyRows':false,'skipRounding':false,'numberType':'VALUE', "
+                + "'showHierarchy':false,'displayDensity':'NORMAL','fontSize':'NORMAL','digitGroupSeparator':'SPACE',"
+                + "'fixColumnHeaders':false,'fixRowHeaders':false,'regression':false,'cumulative':false,'topLimit':0,'"
+                + ""
+                + "reportingParams':{'organisationUnit':false,'reportingPeriod':false,'parentOrganisationUnit':false,"
+                + "'grandParentOrganisationUnit':false},'name':'Test viz'}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
-
-    @Test
-    void testDataElementHasAnalysisRuns()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
-    }
+  @Test
+  void testDataElementHasAnalysisRuns() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 }

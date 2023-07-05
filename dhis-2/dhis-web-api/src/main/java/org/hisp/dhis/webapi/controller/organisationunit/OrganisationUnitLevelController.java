@@ -37,10 +37,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "metadata" )
+@OpenApi.Tags("metadata")
 @Controller
-@RequestMapping( value = OrganisationUnitLevelSchemaDescriptor.API_ENDPOINT )
+@RequestMapping(value = OrganisationUnitLevelSchemaDescriptor.API_ENDPOINT)
 public class OrganisationUnitLevelController
-    extends AbstractCrudController<OrganisationUnitLevel>
-{
-}
+    extends AbstractCrudController<OrganisationUnitLevel> {}

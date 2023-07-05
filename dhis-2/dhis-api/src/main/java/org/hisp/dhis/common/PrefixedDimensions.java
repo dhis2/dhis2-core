@@ -32,64 +32,59 @@ import static lombok.AccessLevel.PRIVATE;
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.program.Program;
 import org.hisp.dhis.program.ProgramIndicator;
 import org.hisp.dhis.program.ProgramStage;
 import org.hisp.dhis.program.ProgramStageDataElement;
 
 /**
- * Helper class to convert from various
- * {@link org.hisp.dhis.common.BaseDimensionalObject} into a
+ * Helper class to convert from various {@link org.hisp.dhis.common.BaseDimensionalObject} into a
  * {@link org.hisp.dhis.common.PrefixedDimension} object.
  */
-@NoArgsConstructor( access = PRIVATE )
-public class PrefixedDimensions
-{
-    public static Collection<PrefixedDimension> ofProgramIndicators( Set<ProgramIndicator> programIndicators )
-    {
-        return programIndicators.stream()
-            .map( programIndicator -> PrefixedDimension.builder()
-                .item( programIndicator )
-                .program( programIndicator.getProgram() )
-                .build() )
-            .collect( Collectors.toList() );
-    }
+@NoArgsConstructor(access = PRIVATE)
+public class PrefixedDimensions {
+  public static Collection<PrefixedDimension> ofProgramIndicators(
+      Set<ProgramIndicator> programIndicators) {
+    return programIndicators.stream()
+        .map(
+            programIndicator ->
+                PrefixedDimension.builder()
+                    .item(programIndicator)
+                    .program(programIndicator.getProgram())
+                    .build())
+        .collect(Collectors.toList());
+  }
 
-    public static Collection<PrefixedDimension> ofDataElements( ProgramStage programStage )
-    {
-        return programStage.getDataElements().stream()
-            .map( dataElement -> PrefixedDimension.builder()
-                .item( dataElement )
-                .programStage( programStage )
-                .program( programStage.getProgram() )
-                .build() )
-            .collect( Collectors.toList() );
-    }
+  public static Collection<PrefixedDimension> ofDataElements(ProgramStage programStage) {
+    return programStage.getDataElements().stream()
+        .map(
+            dataElement ->
+                PrefixedDimension.builder()
+                    .item(dataElement)
+                    .programStage(programStage)
+                    .program(programStage.getProgram())
+                    .build())
+        .collect(Collectors.toList());
+  }
 
-    public static Collection<PrefixedDimension> ofItemsWithProgram( Program program,
-        Collection<? extends BaseIdentifiableObject> objects )
-    {
-        return objects.stream()
-            .map( item -> PrefixedDimension.builder()
-                .item( item )
-                .program( program )
-                .build() )
-            .collect( Collectors.toList() );
-    }
+  public static Collection<PrefixedDimension> ofItemsWithProgram(
+      Program program, Collection<? extends BaseIdentifiableObject> objects) {
+    return objects.stream()
+        .map(item -> PrefixedDimension.builder().item(item).program(program).build())
+        .collect(Collectors.toList());
+  }
 
-    public static Collection<PrefixedDimension> ofProgramStageDataElements(
-        Collection<ProgramStageDataElement> programStageDataElements )
-    {
-        return programStageDataElements.stream()
-            .map( programStageDataElement -> PrefixedDimension.builder()
-                .programStage( programStageDataElement.getProgramStage() )
-                .program( programStageDataElement.getProgramStage().getProgram() )
-                .item( programStageDataElement )
-                .build() )
-            .collect( Collectors.toList() );
-
-    }
+  public static Collection<PrefixedDimension> ofProgramStageDataElements(
+      Collection<ProgramStageDataElement> programStageDataElements) {
+    return programStageDataElements.stream()
+        .map(
+            programStageDataElement ->
+                PrefixedDimension.builder()
+                    .programStage(programStageDataElement.getProgramStage())
+                    .program(programStageDataElement.getProgramStage().getProgram())
+                    .item(programStageDataElement)
+                    .build())
+        .collect(Collectors.toList());
+  }
 }

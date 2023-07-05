@@ -30,35 +30,29 @@ package org.hisp.dhis.analytics.tei.query.context.sql;
 import static org.hisp.dhis.analytics.tei.query.context.QueryContextConstants.ANALYTICS_TEI;
 
 import java.util.concurrent.atomic.AtomicInteger;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
-
 import org.hisp.dhis.analytics.tei.TeiQueryParams;
 
 /**
- * This class is used to hold the context of the query and the parameters that
- * are used to build the query.
+ * This class is used to hold the context of the query and the parameters that are used to build the
+ * query.
  */
 @Getter
-@RequiredArgsConstructor( staticName = "of" )
-public class QueryContext
-{
-    private final TeiQueryParams teiQueryParams;
+@RequiredArgsConstructor(staticName = "of")
+public class QueryContext {
+  private final TeiQueryParams teiQueryParams;
 
-    @Delegate
-    private final SqlParameterManager sqlParameterManager;
+  @Delegate private final SqlParameterManager sqlParameterManager;
 
-    private final AtomicInteger sequence = new AtomicInteger( 0 );
+  private final AtomicInteger sequence = new AtomicInteger(0);
 
-    public String getMainTableName()
-    {
-        return ANALYTICS_TEI + getTetTableSuffix();
-    }
+  public String getMainTableName() {
+    return ANALYTICS_TEI + getTetTableSuffix();
+  }
 
-    public String getTetTableSuffix()
-    {
-        return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
-    }
+  public String getTetTableSuffix() {
+    return teiQueryParams.getTrackedEntityType().getUid().toLowerCase();
+  }
 }

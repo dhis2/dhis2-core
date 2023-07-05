@@ -39,39 +39,52 @@ import org.junit.jupiter.api.Test;
 
 /**
  * Tests the {@link EventAnalyticsController}.
- * <p>
- * The main purpose of this test is not to test the correct business logic but
- * to make sure the controller parameters are recognised correctly.
+ *
+ * <p>The main purpose of this test is not to test the correct business logic but to make sure the
+ * controller parameters are recognised correctly.
  *
  * @author Jan Bernitt
  */
-class EventAnalyticsControllerTest extends DhisControllerConvenienceTest
-{
+class EventAnalyticsControllerTest extends DhisControllerConvenienceTest {
 
-    private String programId;
+  private String programId;
 
-    private String orgUnitId;
+  private String orgUnitId;
 
-    @BeforeEach
-    void setUp()
-    {
-        orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        programId = assertStatus( HttpStatus.CREATED, POST( "/programs/",
-            "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
-                + orgUnitId + "'}]}" ) );
-    }
+  @BeforeEach
+  void setUp() {
+    orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    programId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/programs/",
+                "{'name':'My Program', 'shortName':'MPX1', 'programType': 'WITHOUT_REGISTRATION', 'organisationUnits': [{'id': '"
+                    + orgUnitId
+                    + "'}]}"));
+  }
 
-    @Test
-    void testGetQueryJson()
-    {
-        JsonGrid grid = GET(
-            "/analytics/events/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01", programId,
-            orgUnitId ).content().as( JsonGrid.class );
-        assertEquals( grid.getHeaderWidth(), grid.getHeaders().size() );
-        assertEquals( "My Program", grid.getMetaData().getItems().get( programId ).getString( "name" ).string() );
-        assertEquals( "My Unit", grid.getMetaData().getItems().get( orgUnitId ).getString( "name" ).string() );
-        assertEquals( orgUnitId,
-            grid.getMetaData().getDimensions().get( "ou" ).get( 0 ).as( JsonString.class ).string() );
-    }
+  @Test
+  void testGetQueryJson() {
+    JsonGrid grid =
+        GET(
+                "/analytics/events/query/{program}?dimension=ou:{unit}&startDate=2019-01-01&endDate=2021-01-01",
+                programId,
+                orgUnitId)
+            .content()
+            .as(JsonGrid.class);
+    assertEquals(grid.getHeaderWidth(), grid.getHeaders().size());
+    assertEquals(
+        "My Program", grid.getMetaData().getItems().get(programId).getString("name").string());
+    assertEquals(
+        "My Unit", grid.getMetaData().getItems().get(orgUnitId).getString("name").string());
+    assertEquals(
+        orgUnitId,
+        grid.getMetaData().getDimensions().get("ou").get(0).as(JsonString.class).string());
+  }
 }

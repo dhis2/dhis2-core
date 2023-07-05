@@ -42,32 +42,26 @@ import org.springframework.stereotype.Component;
  * @author Luciano Fiandesio
  */
 @Component
-public class EventDateCheck
-    implements
-    Checker
-{
-    @Override
-    public ImportSummary check( ImmutableEvent event, WorkContext ctx )
-    {
-        if ( EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date is required. " ).setReference( event.getEvent() )
-                .incrementIgnored();
-        }
-
-        try
-        {
-            DateUtils.parseDate( event.getDueDate() );
-            DateUtils.parseDate( event.getEventDate() );
-            DateUtils.parseDate( event.getCompletedDate() );
-        }
-        catch ( Exception e )
-        {
-            return new ImportSummary( ImportStatus.ERROR, "Event date or Execution date format is not correct. " )
-                .setReference( event.getEvent() )
-                .incrementIgnored();
-        }
-
-        return success();
+public class EventDateCheck implements Checker {
+  @Override
+  public ImportSummary check(ImmutableEvent event, WorkContext ctx) {
+    if (EventStatus.ACTIVE == event.getStatus() && event.getEventDate() == null) {
+      return new ImportSummary(ImportStatus.ERROR, "Event date is required. ")
+          .setReference(event.getEvent())
+          .incrementIgnored();
     }
+
+    try {
+      DateUtils.parseDate(event.getDueDate());
+      DateUtils.parseDate(event.getEventDate());
+      DateUtils.parseDate(event.getCompletedDate());
+    } catch (Exception e) {
+      return new ImportSummary(
+              ImportStatus.ERROR, "Event date or Execution date format is not correct. ")
+          .setReference(event.getEvent())
+          .incrementIgnored();
+    }
+
+    return success();
+  }
 }

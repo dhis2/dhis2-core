@@ -27,8 +27,10 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity.aggregates;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import java.util.List;
-
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.trackedentityattributevalue.TrackedEntityAttributeValue;
 import org.hisp.dhis.trackedentitycomment.TrackedEntityComment;
@@ -41,81 +43,79 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Multimap;
-
 /**
  * @author Luciano Fiandesio
  */
-@Repository( "org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore" )
-public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore
-{
-    private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
+@Repository("org.hisp.dhis.tracker.trackedentity.aggregates.EnrollmentStore")
+public class DefaultEnrollmentStore extends AbstractStore implements EnrollmentStore {
+  private static final String GET_ENROLLMENT_SQL_BY_TEI = EnrollmentQuery.getQuery();
 
-    private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
+  private static final String GET_ATTRIBUTES = ProgramAttributeQuery.getQuery();
 
-    private static final String GET_NOTES_SQL = "select pi.uid as key, tec.uid, tec.commenttext, " +
-        "tec.creator, tec.created " +
-        "from trackedentitycomment tec join programinstancecomments pic " +
-        "on tec.trackedentitycommentid = pic.trackedentitycommentid " +
-        "join programinstance pi on pic.programinstanceid = pi.programinstanceid " +
-        "where pic.programinstanceid in (:ids)";
+  private static final String GET_NOTES_SQL =
+      "select pi.uid as key, tec.uid, tec.commenttext, "
+          + "tec.creator, tec.created "
+          + "from trackedentitycomment tec join programinstancecomments pic "
+          + "on tec.trackedentitycommentid = pic.trackedentitycommentid "
+          + "join programinstance pi on pic.programinstanceid = pi.programinstanceid "
+          + "where pic.programinstanceid in (:ids)";
 
-    private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
+  private static final String FILTER_OUT_DELETED_ENROLLMENTS = "pi.deleted=false";
 
-    public DefaultEnrollmentStore( @Qualifier( "readOnlyJdbcTemplate" ) JdbcTemplate jdbcTemplate )
-    {
-        super( jdbcTemplate );
-    }
+  public DefaultEnrollmentStore(@Qualifier("readOnlyJdbcTemplate") JdbcTemplate jdbcTemplate) {
+    super(jdbcTemplate);
+  }
 
-    @Override
-    public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds( List<Long> ids,
-        Context ctx )
-    {
-        List<List<Long>> teiIds = Lists.partition( ids, PARITITION_SIZE );
+  @Override
+  public Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIds(
+      List<Long> ids, Context ctx) {
+    List<List<Long>> teiIds = Lists.partition(ids, PARITITION_SIZE);
 
-        Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
+    Multimap<String, Enrollment> enrollmentMultimap = ArrayListMultimap.create();
 
-        teiIds.forEach( partition -> enrollmentMultimap
-            .putAll( getEnrollmentsByTrackedEntityIdsPartitioned( partition, ctx ) ) );
+    teiIds.forEach(
+        partition ->
+            enrollmentMultimap.putAll(getEnrollmentsByTrackedEntityIdsPartitioned(partition, ctx)));
 
-        return enrollmentMultimap;
-    }
+    return enrollmentMultimap;
+  }
 
-    private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIdsPartitioned( List<Long> ids,
-        Context ctx )
-    {
-        EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
+  private Multimap<String, Enrollment> getEnrollmentsByTrackedEntityIdsPartitioned(
+      List<Long> ids, Context ctx) {
+    EnrollmentRowCallbackHandler handler = new EnrollmentRowCallbackHandler();
 
-        jdbcTemplate.query( getQuery( GET_ENROLLMENT_SQL_BY_TEI, ctx, " pi.programid IN (:programIds)",
-            FILTER_OUT_DELETED_ENROLLMENTS ),
-            createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
+    jdbcTemplate.query(
+        getQuery(
+            GET_ENROLLMENT_SQL_BY_TEI,
+            ctx,
+            " pi.programid IN (:programIds)",
+            FILTER_OUT_DELETED_ENROLLMENTS),
+        createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
+        handler);
 
-        return handler.getItems();
-    }
+    return handler.getItems();
+  }
 
-    @Override
-    public Multimap<String, TrackedEntityComment> getNotes( List<Long> ids )
-    {
-        return fetch( GET_NOTES_SQL, new NoteRowCallbackHandler(), ids );
-    }
+  @Override
+  public Multimap<String, TrackedEntityComment> getNotes(List<Long> ids) {
+    return fetch(GET_NOTES_SQL, new NoteRowCallbackHandler(), ids);
+  }
 
-    @Override
-    public Multimap<String, TrackedEntityAttributeValue> getAttributes( List<Long> ids, Context ctx )
-    {
-        ProgramAttributeRowCallbackHandler handler = new ProgramAttributeRowCallbackHandler();
+  @Override
+  public Multimap<String, TrackedEntityAttributeValue> getAttributes(List<Long> ids, Context ctx) {
+    ProgramAttributeRowCallbackHandler handler = new ProgramAttributeRowCallbackHandler();
 
-        jdbcTemplate.query( getQuery( GET_ATTRIBUTES, ctx, " pa.programid IN (:programIds)",
-            FILTER_OUT_DELETED_ENROLLMENTS ),
-            createIdsParam( ids ).addValue( "programIds", ctx.getPrograms() ), handler );
+    jdbcTemplate.query(
+        getQuery(
+            GET_ATTRIBUTES, ctx, " pa.programid IN (:programIds)", FILTER_OUT_DELETED_ENROLLMENTS),
+        createIdsParam(ids).addValue("programIds", ctx.getPrograms()),
+        handler);
 
-        return handler.getItems();
-    }
+    return handler.getItems();
+  }
 
-    @Override
-    String getRelationshipEntityColumn()
-    {
-        return "programinstanceid";
-    }
+  @Override
+  String getRelationshipEntityColumn() {
+    return "programinstanceid";
+  }
 }

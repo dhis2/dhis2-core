@@ -27,12 +27,11 @@
  */
 package org.hisp.dhis.webapi.webdomain.dataentry;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * DTO which represents a lock exception.
@@ -41,16 +40,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class LockExceptionDto
-{
-    @JsonProperty
-    private String period;
+public class LockExceptionDto {
+  @JsonProperty private String period;
 
-    @JsonProperty
-    private String orgUnit;
+  @JsonProperty private String orgUnit;
 
-    @JsonProperty
-    private String dataSet;
+  @JsonProperty private String dataSet;
 }

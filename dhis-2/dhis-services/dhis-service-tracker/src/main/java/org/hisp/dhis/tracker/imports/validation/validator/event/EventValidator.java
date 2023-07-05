@@ -39,52 +39,45 @@ import org.hisp.dhis.tracker.imports.validation.Reporter;
 import org.hisp.dhis.tracker.imports.validation.Validator;
 import org.springframework.stereotype.Component;
 
-/**
- * Validator to validate all {@link Event}s in the {@link TrackerBundle}.
- */
-@Component( "org.hisp.dhis.tracker.imports.validation.validator.event.EventValidator" )
-public class EventValidator implements Validator<TrackerBundle>
-{
-    private final Validator<TrackerBundle> validator;
+/** Validator to validate all {@link Event}s in the {@link TrackerBundle}. */
+@Component("org.hisp.dhis.tracker.imports.validation.validator.event.EventValidator")
+public class EventValidator implements Validator<TrackerBundle> {
+  private final Validator<TrackerBundle> validator;
 
-    public EventValidator( SecurityOwnershipValidator securityOwnershipValidator,
-        CategoryOptValidator categoryOptValidator )
-    {
-        // @formatter:off
-        validator = all(
-                        each( TrackerBundle::getEvents,
-                            seq(
-                                    new UidValidator(),
-                                    new ExistenceValidator(),
-                                    new MandatoryFieldsValidator(),
-                                    new MetaValidator(),
-                                    new UpdatableFieldsValidator(),
-                                    new DataRelationsValidator(),
-                                    securityOwnershipValidator,
-                                    all(
-                                        categoryOptValidator,
-                                        new DateValidator(),
-                                        new GeoValidator(),
-                                        new NoteValidator(),
-                                        new DataValuesValidator(),
-                                        new AssignedUserValidator()
-                                    )
-                            )
-                        ),
-                        field( TrackerBundle::getEvents, new RepeatedEventsValidator() )
-        );
-        // @formatter:on
-    }
+  public EventValidator(
+      SecurityOwnershipValidator securityOwnershipValidator,
+      CategoryOptValidator categoryOptValidator) {
+    // @formatter:off
+    validator =
+        all(
+            each(
+                TrackerBundle::getEvents,
+                seq(
+                    new UidValidator(),
+                    new ExistenceValidator(),
+                    new MandatoryFieldsValidator(),
+                    new MetaValidator(),
+                    new UpdatableFieldsValidator(),
+                    new DataRelationsValidator(),
+                    securityOwnershipValidator,
+                    all(
+                        categoryOptValidator,
+                        new DateValidator(),
+                        new GeoValidator(),
+                        new NoteValidator(),
+                        new DataValuesValidator(),
+                        new AssignedUserValidator()))),
+            field(TrackerBundle::getEvents, new RepeatedEventsValidator()));
+    // @formatter:on
+  }
 
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackerBundle input )
-    {
-        validator.validate( reporter, bundle, input );
-    }
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackerBundle input) {
+    validator.validate(reporter, bundle, input);
+  }
 
-    @Override
-    public boolean needsToRun( TrackerImportStrategy strategy )
-    {
-        return true; // this main validator should always run
-    }
+  @Override
+  public boolean needsToRun(TrackerImportStrategy strategy) {
+    return true; // this main validator should always run
+  }
 }

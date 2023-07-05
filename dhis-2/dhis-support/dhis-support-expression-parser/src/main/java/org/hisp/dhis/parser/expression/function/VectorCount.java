@@ -36,20 +36,16 @@ import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
  *
  * @author Jim Grace
  */
-public class VectorCount
-    extends VectorFunctionDoubleArray
-{
-    @Override
-    public Object aggregate( double[] values )
-    {
-        return Double.valueOf( values.length );
-    }
+public class VectorCount extends VectorFunctionDoubleArray {
+  @Override
+  public Object aggregate(double[] values) {
+    return Double.valueOf(values.length);
+  }
 
-    @Override
-    public Object getSql( ExprContext ctx, CommonExpressionVisitor visitor )
-    {
-        String distinct = ctx.distinct != null ? "distinct " : "";
+  @Override
+  public Object getSql(ExprContext ctx, CommonExpressionVisitor visitor) {
+    String distinct = ctx.distinct != null ? "distinct " : "";
 
-        return "count(" + distinct + visitor.visit( ctx.expr( 0 ) ) + ")";
-    }
+    return "count(" + distinct + visitor.visit(ctx.expr(0)) + ")";
+  }
 }

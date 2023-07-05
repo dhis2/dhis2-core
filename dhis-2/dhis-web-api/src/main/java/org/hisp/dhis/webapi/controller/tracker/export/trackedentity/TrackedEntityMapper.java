@@ -38,27 +38,28 @@ import org.hisp.dhis.webapi.controller.tracker.view.ViewMapper;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper( uses = {
-    AttributeMapper.class,
-    EnrollmentMapper.class,
-    InstantMapper.class,
-    ProgramOwnerMapper.class,
-    RelationshipMapper.class,
-    UserMapper.class } )
+@Mapper(
+    uses = {
+      AttributeMapper.class,
+      EnrollmentMapper.class,
+      InstantMapper.class,
+      ProgramOwnerMapper.class,
+      RelationshipMapper.class,
+      UserMapper.class
+    })
 interface TrackedEntityMapper
-    extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity>
-{
-    @Mapping( target = "trackedEntity", source = "uid" )
-    @Mapping( target = "trackedEntityType", source = "trackedEntityType.uid" )
-    @Mapping( target = "createdAt", source = "created" )
-    @Mapping( target = "createdAtClient", source = "createdAtClient" )
-    @Mapping( target = "updatedAt", source = "lastUpdated" )
-    @Mapping( target = "updatedAtClient", source = "lastUpdatedAtClient" )
-    @Mapping( target = "orgUnit", source = "organisationUnit.uid" )
-    @Mapping( target = "createdBy", source = "createdByUserInfo" )
-    @Mapping( target = "updatedBy", source = "lastUpdatedByUserInfo" )
-    @Mapping( target = "relationships", source = "relationshipItems" )
-    @Mapping( target = "attributes", source = "trackedEntityAttributeValues" )
-    @Override
-    org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from( TrackedEntity trackedEntity );
+    extends ViewMapper<TrackedEntity, org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity> {
+  @Mapping(target = "trackedEntity", source = "uid")
+  @Mapping(target = "trackedEntityType", source = "trackedEntityType.uid")
+  @Mapping(target = "createdAt", source = "created")
+  @Mapping(target = "createdAtClient", source = "createdAtClient")
+  @Mapping(target = "updatedAt", source = "lastUpdated")
+  @Mapping(target = "updatedAtClient", source = "lastUpdatedAtClient")
+  @Mapping(target = "orgUnit", source = "organisationUnit.uid")
+  @Mapping(target = "createdBy", source = "createdByUserInfo")
+  @Mapping(target = "updatedBy", source = "lastUpdatedByUserInfo")
+  @Mapping(target = "relationships", source = "relationshipItems")
+  @Mapping(target = "attributes", source = "trackedEntityAttributeValues")
+  @Override
+  org.hisp.dhis.webapi.controller.tracker.view.TrackedEntity from(TrackedEntity trackedEntity);
 }

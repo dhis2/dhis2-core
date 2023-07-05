@@ -32,52 +32,53 @@ import static org.hisp.dhis.webapi.controller.event.mapper.OrderParamsHelper.toO
 import static org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils.validateDeprecatedUidsParameter;
 
 import java.util.Set;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.tracker.export.enrollment.EnrollmentOperationParams;
 import org.hisp.dhis.webapi.common.UID;
 import org.springframework.stereotype.Component;
 
 /**
- * Maps operation parameters from {@link EnrollmentsExportController} stored in
- * {@link RequestParams} to {@link EnrollmentOperationParams} which is used to
- * fetch enrollments from the service.
+ * Maps operation parameters from {@link EnrollmentsExportController} stored in {@link
+ * RequestParams} to {@link EnrollmentOperationParams} which is used to fetch enrollments from the
+ * service.
  */
 @Component
 @RequiredArgsConstructor
-class EnrollmentRequestParamsMapper
-{
-    private final EnrollmentFieldsParamMapper fieldsParamMapper;
+class EnrollmentRequestParamsMapper {
+  private final EnrollmentFieldsParamMapper fieldsParamMapper;
 
-    public EnrollmentOperationParams map( RequestParams requestParams )
-        throws BadRequestException
-    {
-        Set<UID> orgUnits = validateDeprecatedUidsParameter( "orgUnit", requestParams.getOrgUnit(), "orgUnits",
-            requestParams.getOrgUnits() );
+  public EnrollmentOperationParams map(RequestParams requestParams) throws BadRequestException {
+    Set<UID> orgUnits =
+        validateDeprecatedUidsParameter(
+            "orgUnit", requestParams.getOrgUnit(), "orgUnits", requestParams.getOrgUnits());
 
-        return EnrollmentOperationParams.builder()
-            .programUid( requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null )
-            .programStatus( requestParams.getProgramStatus() )
-            .followUp( requestParams.getFollowUp() )
-            .lastUpdated( requestParams.getUpdatedAfter() )
-            .lastUpdatedDuration( requestParams.getUpdatedWithin() )
-            .programStartDate( requestParams.getEnrolledAfter() )
-            .programEndDate( requestParams.getEnrolledBefore() )
-            .trackedEntityTypeUid(
-                requestParams.getTrackedEntityType() != null ? requestParams.getTrackedEntityType().getValue() : null )
-            .trackedEntityUid(
-                requestParams.getTrackedEntity() != null ? requestParams.getTrackedEntity().getValue() : null )
-            .orgUnitUids( UID.toValueSet( orgUnits ) )
-            .orgUnitMode( requestParams.getOuMode() )
-            .page( requestParams.getPage() )
-            .pageSize( requestParams.getPageSize() )
-            .totalPages( requestParams.isTotalPages() )
-            .skipPaging( toBooleanDefaultIfNull( requestParams.isSkipPaging(), false ) )
-            .includeDeleted( requestParams.isIncludeDeleted() )
-            .order( toOrderParams( requestParams.getOrder() ) )
-            .enrollmentParams( fieldsParamMapper.map( requestParams.getFields() ) )
-            .build();
-    }
+    return EnrollmentOperationParams.builder()
+        .programUid(
+            requestParams.getProgram() != null ? requestParams.getProgram().getValue() : null)
+        .programStatus(requestParams.getProgramStatus())
+        .followUp(requestParams.getFollowUp())
+        .lastUpdated(requestParams.getUpdatedAfter())
+        .lastUpdatedDuration(requestParams.getUpdatedWithin())
+        .programStartDate(requestParams.getEnrolledAfter())
+        .programEndDate(requestParams.getEnrolledBefore())
+        .trackedEntityTypeUid(
+            requestParams.getTrackedEntityType() != null
+                ? requestParams.getTrackedEntityType().getValue()
+                : null)
+        .trackedEntityUid(
+            requestParams.getTrackedEntity() != null
+                ? requestParams.getTrackedEntity().getValue()
+                : null)
+        .orgUnitUids(UID.toValueSet(orgUnits))
+        .orgUnitMode(requestParams.getOuMode())
+        .page(requestParams.getPage())
+        .pageSize(requestParams.getPageSize())
+        .totalPages(requestParams.isTotalPages())
+        .skipPaging(toBooleanDefaultIfNull(requestParams.isSkipPaging(), false))
+        .includeDeleted(requestParams.isIncludeDeleted())
+        .order(toOrderParams(requestParams.getOrder()))
+        .enrollmentParams(fieldsParamMapper.map(requestParams.getFields()))
+        .build();
+  }
 }

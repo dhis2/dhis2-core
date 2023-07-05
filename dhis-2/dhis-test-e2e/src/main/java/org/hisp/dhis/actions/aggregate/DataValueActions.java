@@ -32,11 +32,8 @@ import org.hisp.dhis.actions.RestApiActions;
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class DataValueActions
-    extends RestApiActions
-{
-    public DataValueActions()
-    {
-        super( "/dataValues" );
-    }
+public class DataValueActions extends RestApiActions {
+  public DataValueActions() {
+    super("/dataValues");
+  }
 }

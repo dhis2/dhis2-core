@@ -28,9 +28,7 @@
 package org.hisp.dhis.program.hibernate;
 
 import java.util.List;
-
 import javax.persistence.criteria.CriteriaBuilder;
-
 import org.hibernate.SessionFactory;
 import org.hibernate.query.Query;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
@@ -48,113 +46,117 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
  */
-@Repository( "org.hisp.dhis.program.ProgramMessageStore" )
-public class HibernateProgramMessageStore
-    extends HibernateIdentifiableObjectStore<ProgramMessage>
-    implements ProgramMessageStore
-{
-    public HibernateProgramMessageStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, ProgramMessage.class, currentUserService, aclService, true );
+@Repository("org.hisp.dhis.program.ProgramMessageStore")
+public class HibernateProgramMessageStore extends HibernateIdentifiableObjectStore<ProgramMessage>
+    implements ProgramMessageStore {
+  public HibernateProgramMessageStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        ProgramMessage.class,
+        currentUserService,
+        aclService,
+        true);
+  }
+
+  // -------------------------------------------------------------------------
+  // Implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public List<ProgramMessage> getProgramMessages(ProgramMessageQueryParams params) {
+    Query<ProgramMessage> query = getHqlQuery(params);
+
+    if (params.hasPaging()) {
+      query.setFirstResult(params.getPage());
+      query.setMaxResults(params.getPageSize());
     }
 
-    // -------------------------------------------------------------------------
-    // Implementation
-    // -------------------------------------------------------------------------
+    return query.list();
+  }
 
-    @Override
-    public List<ProgramMessage> getProgramMessages( ProgramMessageQueryParams params )
-    {
-        Query<ProgramMessage> query = getHqlQuery( params );
+  @Override
+  public List<ProgramMessage> getAllOutboundMessages() {
+    CriteriaBuilder builder = getCriteriaBuilder();
 
-        if ( params.hasPaging() )
-        {
-            query.setFirstResult( params.getPage() );
-            query.setMaxResults( params.getPageSize() );
-        }
+    JpaQueryParameters<ProgramMessage> parameters =
+        newJpaParameters()
+            .addPredicate(
+                root ->
+                    builder.and(
+                        builder.equal(root.get("messageStatus"), "OUTBOUND"),
+                        builder.equal(root.get("messageCatagory"), "OUTGOING")));
 
-        return query.list();
+    return getList(builder, parameters);
+  }
+
+  @Override
+  public boolean exists(String uid) {
+    ProgramMessage programMessage = getByUid(uid);
+
+    return programMessage != null && programMessage.getId() > 0;
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive Methods
+  // -------------------------------------------------------------------------
+
+  private Query<ProgramMessage> getHqlQuery(ProgramMessageQueryParams params) {
+    SqlHelper helper = new SqlHelper(true);
+
+    String hql = " select distinct pm from ProgramMessage pm ";
+
+    if (params.hasEnrollment()) {
+      hql += helper.whereAnd() + "pm.enrollment = :enrollment";
     }
 
-    @Override
-    public List<ProgramMessage> getAllOutboundMessages()
-    {
-        CriteriaBuilder builder = getCriteriaBuilder();
-
-        JpaQueryParameters<ProgramMessage> parameters = newJpaParameters()
-            .addPredicate( root -> builder.and(
-                builder.equal( root.get( "messageStatus" ), "OUTBOUND" ),
-                builder.equal( root.get( "messageCatagory" ), "OUTGOING" ) ) );
-
-        return getList( builder, parameters );
+    if (params.hasEvent()) {
+      hql += helper.whereAnd() + "pm.event = :event";
     }
 
-    @Override
-    public boolean exists( String uid )
-    {
-        ProgramMessage programMessage = getByUid( uid );
-
-        return programMessage != null && programMessage.getId() > 0;
-    }
-
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
-    private Query<ProgramMessage> getHqlQuery( ProgramMessageQueryParams params )
-    {
-        SqlHelper helper = new SqlHelper( true );
-
-        String hql = " select distinct pm from ProgramMessage pm ";
-
-        if ( params.hasEnrollment() )
-        {
-            hql += helper.whereAnd() + "pm.enrollment = :enrollment";
-        }
-
-        if ( params.hasEvent() )
-        {
-            hql += helper.whereAnd() + "pm.event = :event";
-        }
-
-        hql += params.getMessageStatus() != null
+    hql +=
+        params.getMessageStatus() != null
             ? helper.whereAnd() + "pm.messageStatus = :messageStatus"
             : "";
 
-        hql += params.getAfterDate() != null ? helper.whereAnd() + "pm.processeddate > :processeddate" : "";
+    hql +=
+        params.getAfterDate() != null
+            ? helper.whereAnd() + "pm.processeddate > :processeddate"
+            : "";
 
-        hql += params.getBeforeDate() != null
+    hql +=
+        params.getBeforeDate() != null
             ? helper.whereAnd() + "pm.processeddate < :processeddate"
             : "";
 
-        Query<ProgramMessage> query = getQuery( hql );
+    Query<ProgramMessage> query = getQuery(hql);
 
-        if ( params.hasEnrollment() )
-        {
-            query.setParameter( "enrollment", params.getEnrollment() );
-        }
-
-        if ( params.hasEvent() )
-        {
-            query.setParameter( "event", params.getEvent() );
-        }
-
-        if ( params.getMessageStatus() != null )
-        {
-            query.setParameter( "messageStatus", params.getMessageStatus() );
-        }
-
-        if ( params.getAfterDate() != null )
-        {
-            query.setParameter( "processeddate", params.getAfterDate() );
-        }
-
-        if ( params.getBeforeDate() != null )
-        {
-            query.setParameter( "processeddate", params.getBeforeDate() );
-        }
-
-        return query;
+    if (params.hasEnrollment()) {
+      query.setParameter("enrollment", params.getEnrollment());
     }
+
+    if (params.hasEvent()) {
+      query.setParameter("event", params.getEvent());
+    }
+
+    if (params.getMessageStatus() != null) {
+      query.setParameter("messageStatus", params.getMessageStatus());
+    }
+
+    if (params.getAfterDate() != null) {
+      query.setParameter("processeddate", params.getAfterDate());
+    }
+
+    if (params.getBeforeDate() != null) {
+      query.setParameter("processeddate", params.getBeforeDate());
+    }
+
+    return query;
+  }
 }

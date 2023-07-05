@@ -37,14 +37,14 @@ import org.hisp.dhis.tracker.imports.validation.Validator;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-class UidValidator
-    implements Validator<TrackedEntity>
-{
-    @Override
-    public void validate( Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity )
-    {
-        checkUidFormat( trackedEntity.getTrackedEntity(), reporter, trackedEntity, trackedEntity,
-            trackedEntity.getTrackedEntity() );
-    }
-
+class UidValidator implements Validator<TrackedEntity> {
+  @Override
+  public void validate(Reporter reporter, TrackerBundle bundle, TrackedEntity trackedEntity) {
+    checkUidFormat(
+        trackedEntity.getTrackedEntity(),
+        reporter,
+        trackedEntity,
+        trackedEntity,
+        trackedEntity.getTrackedEntity());
+  }
 }

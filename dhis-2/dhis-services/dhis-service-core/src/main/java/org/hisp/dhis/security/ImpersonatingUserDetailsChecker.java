@@ -36,28 +36,25 @@ import org.springframework.security.core.userdetails.UserDetails;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker
-{
-    @Override
-    public void check( UserDetails userToImpersonate )
-    {
-        CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
-        if ( currentUser == null )
-        {
-            throw new InsufficientAuthenticationException( "User is not authenticated." );
-        }
-
-        if ( currentUser.getUsername().equals( userToImpersonate.getUsername() ) )
-        {
-            throw new InsufficientAuthenticationException( "User can not impersonate itself." );
-        }
-
-        boolean userToImpersonateIsSuper = userToImpersonate.getAuthorities().stream()
-            .anyMatch( grantedAuthority -> grantedAuthority.getAuthority().equals( "ALL" ) );
-
-        if ( (!currentUser.isSuper() && userToImpersonateIsSuper) )
-        {
-            throw new InsufficientAuthenticationException( "User is not authorized to impersonate super user." );
-        }
+public class ImpersonatingUserDetailsChecker extends AccountStatusUserDetailsChecker {
+  @Override
+  public void check(UserDetails userToImpersonate) {
+    CurrentUserDetails currentUser = CurrentUserUtil.getCurrentUserDetails();
+    if (currentUser == null) {
+      throw new InsufficientAuthenticationException("User is not authenticated.");
     }
+
+    if (currentUser.getUsername().equals(userToImpersonate.getUsername())) {
+      throw new InsufficientAuthenticationException("User can not impersonate itself.");
+    }
+
+    boolean userToImpersonateIsSuper =
+        userToImpersonate.getAuthorities().stream()
+            .anyMatch(grantedAuthority -> grantedAuthority.getAuthority().equals("ALL"));
+
+    if ((!currentUser.isSuper() && userToImpersonateIsSuper)) {
+      throw new InsufficientAuthenticationException(
+          "User is not authorized to impersonate super user.");
+    }
+  }
 }

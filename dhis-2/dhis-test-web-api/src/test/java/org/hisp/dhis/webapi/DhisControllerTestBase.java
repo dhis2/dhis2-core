@@ -51,104 +51,99 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
  *
  * @author Viet Nguyen
  */
-public class DhisControllerTestBase extends DhisMockMvcControllerTest
-{
-    protected MockMvc mvc;
+public class DhisControllerTestBase extends DhisMockMvcControllerTest {
+  protected MockMvc mvc;
 
-    protected MockHttpSession session;
+  protected MockHttpSession session;
 
-    protected User superUser;
+  protected User superUser;
 
-    protected User currentUser;
+  protected User currentUser;
 
-    protected final String getSuperuserUid()
-    {
-        return superUser.getUid();
+  protected final String getSuperuserUid() {
+    return superUser.getUid();
+  }
+
+  protected final User getCurrentUser() {
+    return currentUser;
+  }
+
+  public User getSuperUser() {
+    return superUser;
+  }
+
+  protected final User switchToSuperuser() {
+    switchContextToUser(userService.getUser(superUser.getUid()));
+    return superUser;
+  }
+
+  protected final User switchToNewUser(String username, String... authorities) {
+    if (superUser != null) {
+      // we need to be an admin to be allowed to create user groups
+      switchContextToUser(superUser);
     }
 
-    protected final User getCurrentUser()
-    {
-        return currentUser;
-    }
+    currentUser = createUserWithAuth(username, authorities);
+    switchContextToUser(currentUser);
+    return currentUser;
+  }
 
-    public User getSuperUser()
-    {
-        return superUser;
-    }
+  protected final User switchToNewUser(User user) {
+    currentUser = user;
+    switchContextToUser(currentUser);
+    return currentUser;
+  }
 
-    protected final User switchToSuperuser()
-    {
-        switchContextToUser( userService.getUser( superUser.getUid() ) );
-        return superUser;
-    }
+  protected void switchContextToUser(User user) {
+    injectSecurityContext(user);
 
-    protected final User switchToNewUser( String username, String... authorities )
-    {
-        if ( superUser != null )
-        {
-            // we need to be an admin to be allowed to create user groups
-            switchContextToUser( superUser );
-        }
+    session = new MockHttpSession();
+    session.setAttribute(
+        HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
+        SecurityContextHolder.getContext());
+  }
 
-        currentUser = createUserWithAuth( username, authorities );
-        switchContextToUser( currentUser );
-        return currentUser;
-    }
+  protected final HttpResponse POST_MULTIPART(String url, MockMultipartFile part) {
+    return webRequest(multipart(url).file(part));
+  }
 
-    protected final User switchToNewUser( User user )
-    {
-        currentUser = user;
-        switchContextToUser( currentUser );
-        return currentUser;
-    }
+  @Override
+  protected final HttpResponse webRequest(MockHttpServletRequestBuilder request) {
+    return failOnException(
+        () ->
+            new HttpResponse(
+                toResponse(mvc.perform(request.session(session)).andReturn().getResponse())));
+  }
 
-    protected void switchContextToUser( User user )
-    {
-        injectSecurityContext( user );
+  protected final MvcResult webRequestWithMvcResult(MockHttpServletRequestBuilder request) {
+    return failOnException(() -> mvc.perform(request.session(session)).andReturn());
+  }
 
-        session = new MockHttpSession();
-        session.setAttribute( HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY,
-            SecurityContextHolder.getContext() );
-    }
+  protected final void assertJson(String expected, HttpResponse actual) {
+    assertEquals(singleToDoubleQuotes(expected), actual.content().toString());
+  }
 
-    protected final HttpResponse POST_MULTIPART( String url, MockMultipartFile part )
-    {
-        return webRequest( multipart( url ).file( part ) );
-    }
+  protected final String addDataElement(
+      String name, String code, ValueType valueType, String optionSet, String categoryCombo) {
+    return assertStatus(
+        HttpStatus.CREATED, postNewDataElement(name, code, valueType, optionSet, categoryCombo));
+  }
 
-    @Override
-    protected final HttpResponse webRequest( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> new HttpResponse(
-            toResponse( mvc.perform( request.session( session ) ).andReturn().getResponse() ) ) );
-    }
-
-    protected final MvcResult webRequestWithMvcResult( MockHttpServletRequestBuilder request )
-    {
-        return failOnException( () -> mvc.perform( request.session( session ) ).andReturn() );
-    }
-
-    protected final void assertJson( String expected, HttpResponse actual )
-    {
-        assertEquals( singleToDoubleQuotes( expected ), actual.content().toString() );
-    }
-
-    protected final String addDataElement( String name, String code, ValueType valueType, String optionSet,
-        String categoryCombo )
-    {
-        return assertStatus( HttpStatus.CREATED,
-            postNewDataElement( name, code, valueType, optionSet, categoryCombo ) );
-    }
-
-    protected final HttpResponse postNewDataElement( String name, String code, ValueType valueType, String optionSet,
-        String categoryCombo )
-    {
-        return POST( "/dataElements/",
-            format( "{'name':'%s', 'shortName':'%s', 'code':'%s', 'valueType':'%s', "
+  protected final HttpResponse postNewDataElement(
+      String name, String code, ValueType valueType, String optionSet, String categoryCombo) {
+    return POST(
+        "/dataElements/",
+        format(
+            "{'name':'%s', 'shortName':'%s', 'code':'%s', 'valueType':'%s', "
                 + "'aggregationType':'SUM', 'zeroIsSignificant':false, 'domainType':'AGGREGATE', "
                 + "'categoryCombo': {'id': '%s'},"
                 + "'optionSet': %s"
-                + "}", name, code, code, valueType, categoryCombo,
-                optionSet == null ? "null" : "{'id':'" + optionSet + "'}" ) );
-    }
+                + "}",
+            name,
+            code,
+            code,
+            valueType,
+            categoryCombo,
+            optionSet == null ? "null" : "{'id':'" + optionSet + "'}"));
+  }
 }

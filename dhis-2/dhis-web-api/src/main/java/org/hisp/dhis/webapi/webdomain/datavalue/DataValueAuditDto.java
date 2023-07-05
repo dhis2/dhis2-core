@@ -27,13 +27,12 @@
  */
 package org.hisp.dhis.webapi.webdomain.datavalue;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Date;
-
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.Accessors;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.OpenApi;
@@ -42,8 +41,6 @@ import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * DTO which represents a data value audit record.
  *
@@ -51,39 +48,34 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 @Getter
 @Setter
-@Accessors( chain = true )
+@Accessors(chain = true)
 @NoArgsConstructor
-public class DataValueAuditDto
-{
-    @JsonProperty
-    @OpenApi.Property( { UID.class, DataElement.class } )
-    private String dataElement;
+public class DataValueAuditDto {
+  @JsonProperty
+  @OpenApi.Property({UID.class, DataElement.class})
+  private String dataElement;
 
-    @JsonProperty
-    @OpenApi.Property( Period.class )
-    private String period;
+  @JsonProperty
+  @OpenApi.Property(Period.class)
+  private String period;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    private String orgUnit;
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  private String orgUnit;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String categoryOptionCombo;
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String categoryOptionCombo;
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    private String attributeOptionCombo;
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  private String attributeOptionCombo;
 
-    @JsonProperty
-    private String value;
+  @JsonProperty private String value;
 
-    @JsonProperty
-    private String modifiedBy;
+  @JsonProperty private String modifiedBy;
 
-    @JsonProperty
-    private Date created;
+  @JsonProperty private Date created;
 
-    @JsonProperty
-    private AuditType auditType;
+  @JsonProperty private AuditType auditType;
 }

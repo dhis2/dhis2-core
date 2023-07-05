@@ -27,41 +27,35 @@
  */
 package org.hisp.dhis.actions.metadata;
 
+import com.google.gson.JsonObject;
 import org.hisp.dhis.actions.RestApiActions;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.utils.DataGenerator;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AttributeActions extends RestApiActions
-{
-    public AttributeActions()
-    {
-        super( "/attributes" );
-    }
+public class AttributeActions extends RestApiActions {
+  public AttributeActions() {
+    super("/attributes");
+  }
 
-    public String createUniqueAttribute( String valueType, String... metadataObjects )
-    {
-        return createAttribute( valueType, true, metadataObjects );
-    }
+  public String createUniqueAttribute(String valueType, String... metadataObjects) {
+    return createAttribute(valueType, true, metadataObjects);
+  }
 
-    public String createAttribute( String valueType, boolean unique, String... metadataObjects )
-    {
-        JsonObject ob = new JsonObjectBuilder()
-            .addProperty( "name", String.format( "TA attribute %s", DataGenerator.randomString() ) )
-            .addProperty( "unique", String.valueOf( unique ) )
-            .addProperty( "valueType", valueType )
+  public String createAttribute(String valueType, boolean unique, String... metadataObjects) {
+    JsonObject ob =
+        new JsonObjectBuilder()
+            .addProperty("name", String.format("TA attribute %s", DataGenerator.randomString()))
+            .addProperty("unique", String.valueOf(unique))
+            .addProperty("valueType", valueType)
             .addUserGroupAccess()
             .build();
 
-        for ( String metadataObject : metadataObjects )
-        {
-            ob.addProperty( metadataObject + "Attribute", "true" );
-
-        }
-        return this.create( ob );
+    for (String metadataObject : metadataObjects) {
+      ob.addProperty(metadataObject + "Attribute", "true");
     }
+    return this.create(ob);
+  }
 }

@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.metadata.jobs;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.dxf2.metadata.feedback.ImportReport;
 import org.hisp.dhis.dxf2.metadata.sync.MetadataSyncSummary;
 import org.hisp.dhis.feedback.Status;
@@ -43,58 +42,48 @@ import org.springframework.stereotype.Component;
  * @author aamerm
  */
 @Slf4j
-@Component( "metadataRetryContext" )
-@Scope( "prototype" )
-public class MetadataRetryContext
-{
-    private RetryContext retryContext;
+@Component("metadataRetryContext")
+@Scope("prototype")
+public class MetadataRetryContext {
+  private RetryContext retryContext;
 
-    public RetryContext getRetryContext()
-    {
-        return retryContext;
+  public RetryContext getRetryContext() {
+    return retryContext;
+  }
+
+  public void setRetryContext(RetryContext retryContext) {
+    this.retryContext = retryContext;
+    log.info("Now trying. Current count: " + (retryContext.getRetryCount() + 1));
+  }
+
+  public void updateRetryContext(String stepKey, String message, MetadataVersion version) {
+    retryContext.setAttribute(stepKey, message);
+
+    if (version != null) {
+      retryContext.setAttribute(MetadataSyncJob.VERSION_KEY, version);
     }
+  }
 
-    public void setRetryContext( RetryContext retryContext )
-    {
-        this.retryContext = retryContext;
-        log.info( "Now trying. Current count: " + (retryContext.getRetryCount() + 1) );
+  public void updateRetryContext(
+      String stepKey, String message, MetadataVersion version, MetadataSyncSummary summary) {
+    updateRetryContext(stepKey, message, version);
+
+    if (summary != null) {
+      setupImportReport(summary.getImportReport());
     }
+  }
 
-    public void updateRetryContext( String stepKey,
-        String message, MetadataVersion version )
-    {
-        retryContext.setAttribute( stepKey, message );
+  // ----------------------------------------------------------------------------------------
+  // Private Methods
+  // ----------------------------------------------------------------------------------------
 
-        if ( version != null )
-        {
-            retryContext.setAttribute( MetadataSyncJob.VERSION_KEY, version );
-        }
+  private void setupImportReport(ImportReport importReport) {
+    Status status = importReport.getStatus();
+
+    if (Status.ERROR == status) {
+      StringBuilder report = new StringBuilder();
+      importReport.forEachErrorReport(errorReport -> report.append(errorReport.toString() + "\n"));
+      retryContext.setAttribute(MetadataSyncJob.METADATA_SYNC_REPORT, report.toString());
     }
-
-    public void updateRetryContext( String stepKey, String message, MetadataVersion version,
-        MetadataSyncSummary summary )
-    {
-        updateRetryContext( stepKey, message, version );
-
-        if ( summary != null )
-        {
-            setupImportReport( summary.getImportReport() );
-        }
-    }
-
-    // ----------------------------------------------------------------------------------------
-    // Private Methods
-    // ----------------------------------------------------------------------------------------
-
-    private void setupImportReport( ImportReport importReport )
-    {
-        Status status = importReport.getStatus();
-
-        if ( Status.ERROR == status )
-        {
-            StringBuilder report = new StringBuilder();
-            importReport.forEachErrorReport( errorReport -> report.append( errorReport.toString() + "\n" ) );
-            retryContext.setAttribute( MetadataSyncJob.METADATA_SYNC_REPORT, report.toString() );
-        }
-    }
+  }
 }

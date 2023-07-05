@@ -28,7 +28,6 @@
 package org.hisp.dhis.dxf2.datavalueset.tasks;
 
 import java.io.InputStream;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dbms.DbmsUtils;
 import org.hisp.dhis.dxf2.adx.AdxDataService;
@@ -40,82 +39,73 @@ import org.hisp.dhis.security.SecurityContextRunnable;
 /**
  * @author Lars Helge Overland
  */
-public class ImportDataValueTask
-    extends SecurityContextRunnable
-{
-    public static final String FORMAT_XML = "xml";
+public class ImportDataValueTask extends SecurityContextRunnable {
+  public static final String FORMAT_XML = "xml";
 
-    public static final String FORMAT_JSON = "json";
+  public static final String FORMAT_JSON = "json";
 
-    public static final String FORMAT_CSV = "csv";
+  public static final String FORMAT_CSV = "csv";
 
-    public static final String FORMAT_PDF = "pdf";
+  public static final String FORMAT_PDF = "pdf";
 
-    public static final String FORMAT_ADX = "adx";
+  public static final String FORMAT_ADX = "adx";
 
-    private DataValueSetService dataValueSetService;
+  private DataValueSetService dataValueSetService;
 
-    private AdxDataService adxDataService;
+  private AdxDataService adxDataService;
 
-    private SessionFactory sessionFactory;
+  private SessionFactory sessionFactory;
 
-    private InputStream inputStream;
+  private InputStream inputStream;
 
-    private final ImportOptions importOptions;
+  private final ImportOptions importOptions;
 
-    private final JobConfiguration jobId;
+  private final JobConfiguration jobId;
 
-    private final String format;
+  private final String format;
 
-    // TODO: Re-factor as bean to avoid injecting session factory / dependencies
+  // TODO: Re-factor as bean to avoid injecting session factory / dependencies
 
-    public ImportDataValueTask( DataValueSetService dataValueSetService, AdxDataService adxDataService,
-        SessionFactory sessionFactory,
-        InputStream inputStream, ImportOptions importOptions, JobConfiguration jobId, String format )
+  public ImportDataValueTask(
+      DataValueSetService dataValueSetService,
+      AdxDataService adxDataService,
+      SessionFactory sessionFactory,
+      InputStream inputStream,
+      ImportOptions importOptions,
+      JobConfiguration jobId,
+      String format) {
+    this.dataValueSetService = dataValueSetService;
+    this.adxDataService = adxDataService;
+    this.sessionFactory = sessionFactory;
+    this.inputStream = inputStream;
+    this.importOptions = importOptions;
+    this.jobId = jobId;
+    this.format = format;
+  }
+
+  @Override
+  public void call() {
+    if (FORMAT_JSON.equals(format)) {
+      dataValueSetService.importDataValueSetJson(inputStream, importOptions, jobId);
+    } else if (FORMAT_CSV.equals(format)) {
+      dataValueSetService.importDataValueSetCsv(inputStream, importOptions, jobId);
+    } else if (FORMAT_PDF.equals(format)) {
+      dataValueSetService.importDataValueSetPdf(inputStream, importOptions, jobId);
+    } else if (FORMAT_ADX.equals(format)) {
+      adxDataService.saveDataValueSet(inputStream, importOptions, jobId);
+    } else // FORMAT_XML
     {
-        this.dataValueSetService = dataValueSetService;
-        this.adxDataService = adxDataService;
-        this.sessionFactory = sessionFactory;
-        this.inputStream = inputStream;
-        this.importOptions = importOptions;
-        this.jobId = jobId;
-        this.format = format;
+      dataValueSetService.importDataValueSetXml(inputStream, importOptions, jobId);
     }
+  }
 
-    @Override
-    public void call()
-    {
-        if ( FORMAT_JSON.equals( format ) )
-        {
-            dataValueSetService.importDataValueSetJson( inputStream, importOptions, jobId );
-        }
-        else if ( FORMAT_CSV.equals( format ) )
-        {
-            dataValueSetService.importDataValueSetCsv( inputStream, importOptions, jobId );
-        }
-        else if ( FORMAT_PDF.equals( format ) )
-        {
-            dataValueSetService.importDataValueSetPdf( inputStream, importOptions, jobId );
-        }
-        else if ( FORMAT_ADX.equals( format ) )
-        {
-            adxDataService.saveDataValueSet( inputStream, importOptions, jobId );
-        }
-        else // FORMAT_XML
-        {
-            dataValueSetService.importDataValueSetXml( inputStream, importOptions, jobId );
-        }
-    }
+  @Override
+  public void before() {
+    DbmsUtils.bindSessionToThread(sessionFactory);
+  }
 
-    @Override
-    public void before()
-    {
-        DbmsUtils.bindSessionToThread( sessionFactory );
-    }
-
-    @Override
-    public void after()
-    {
-        DbmsUtils.unbindSessionFromThread( sessionFactory );
-    }
+  @Override
+  public void after() {
+    DbmsUtils.unbindSessionFromThread(sessionFactory);
+  }
 }

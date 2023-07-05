@@ -35,26 +35,23 @@ import org.hisp.dhis.gist.GistQuery.Filter;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests the {@link GistQuery} API methods to compose a {@link GistQuery}
- * object.
+ * Tests the {@link GistQuery} API methods to compose a {@link GistQuery} object.
  *
  * @author Jan Bernitt
  */
-class GistQueryTest
-{
+class GistQueryTest {
 
-    @Test
-    void testFilterParse()
-    {
-        assertFilterEquals( Filter.parse( "name:eq:2" ), 0, "name", Comparison.EQ, "2" );
-        assertFilterEquals( Filter.parse( "1:name:eq:2" ), 1, "name", Comparison.EQ, "2" );
-    }
+  @Test
+  void testFilterParse() {
+    assertFilterEquals(Filter.parse("name:eq:2"), 0, "name", Comparison.EQ, "2");
+    assertFilterEquals(Filter.parse("1:name:eq:2"), 1, "name", Comparison.EQ, "2");
+  }
 
-    private void assertFilterEquals( Filter actual, int group, String name, Comparison op, String... value )
-    {
-        assertEquals( group, actual.getGroup() );
-        assertEquals( name, actual.getPropertyPath() );
-        assertEquals( op, actual.getOperator() );
-        assertArrayEquals( value, actual.getValue() );
-    }
+  private void assertFilterEquals(
+      Filter actual, int group, String name, Comparison op, String... value) {
+    assertEquals(group, actual.getGroup());
+    assertEquals(name, actual.getPropertyPath());
+    assertEquals(op, actual.getOperator());
+    assertArrayEquals(value, actual.getValue());
+  }
 }

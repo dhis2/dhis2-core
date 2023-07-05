@@ -42,12 +42,20 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public class HibernateEventHookStore extends HibernateIdentifiableObjectStore<EventHook>
-    implements EventHookStore
-{
-    public HibernateEventHookStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher,
-            EventHook.class, currentUserService, aclService, false );
-    }
+    implements EventHookStore {
+  public HibernateEventHookStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        EventHook.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 }

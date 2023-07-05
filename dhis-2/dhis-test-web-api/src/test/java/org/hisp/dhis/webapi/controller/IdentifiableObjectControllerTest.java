@@ -41,31 +41,27 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest
-{
+class IdentifiableObjectControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testPostJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, POST( "/identifiableObjects/", "{}" ) );
-    }
+  @Test
+  void testPostJsonObject() {
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, POST("/identifiableObjects/", "{}"));
+  }
 
-    @Test
-    void testPostJsonObject_Xml()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED,
-            POST( "/identifiableObjects/", Body( "{}" ), ContentType( APPLICATION_XML ) ) );
-    }
+  @Test
+  void testPostJsonObject_Xml() {
+    assertStatus(
+        HttpStatus.METHOD_NOT_ALLOWED,
+        POST("/identifiableObjects/", Body("{}"), ContentType(APPLICATION_XML)));
+  }
 
-    @Test
-    void testPutJsonObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, PUT( "/identifiableObjects/someId", "{}" ) );
-    }
+  @Test
+  void testPutJsonObject() {
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, PUT("/identifiableObjects/someId", "{}"));
+  }
 
-    @Test
-    void testDeleteObject()
-    {
-        assertStatus( HttpStatus.METHOD_NOT_ALLOWED, DELETE( "/identifiableObjects/someId" ) );
-    }
+  @Test
+  void testDeleteObject() {
+    assertStatus(HttpStatus.METHOD_NOT_ALLOWED, DELETE("/identifiableObjects/someId"));
+  }
 }

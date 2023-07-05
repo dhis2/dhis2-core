@@ -28,7 +28,6 @@
 package org.hisp.dhis.interpretation.hibernate;
 
 import java.util.List;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.common.hibernate.HibernateIdentifiableObjectStore;
 import org.hisp.dhis.eventvisualization.EventVisualization;
@@ -46,39 +45,46 @@ import org.springframework.stereotype.Repository;
 /**
  * @author Lars Helge Overland
  */
-@Repository( "org.hisp.dhis.interpretation.InterpretationStore" )
-public class HibernateInterpretationStore
-    extends HibernateIdentifiableObjectStore<Interpretation>
-    implements InterpretationStore
-{
-    @Autowired
-    public HibernateInterpretationStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, CurrentUserService currentUserService, AclService aclService )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, Interpretation.class, currentUserService, aclService, false );
-    }
+@Repository("org.hisp.dhis.interpretation.InterpretationStore")
+public class HibernateInterpretationStore extends HibernateIdentifiableObjectStore<Interpretation>
+    implements InterpretationStore {
+  @Autowired
+  public HibernateInterpretationStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      CurrentUserService currentUserService,
+      AclService aclService) {
+    super(
+        sessionFactory,
+        jdbcTemplate,
+        publisher,
+        Interpretation.class,
+        currentUserService,
+        aclService,
+        false);
+  }
 
-    @Override
-    public List<Interpretation> getInterpretations( Map map )
-    {
-        return getQuery( "select distinct i from Interpretation i where i.map = :map" )
-            .setParameter( "map", map )
-            .list();
-    }
+  @Override
+  public List<Interpretation> getInterpretations(Map map) {
+    return getQuery("select distinct i from Interpretation i where i.map = :map")
+        .setParameter("map", map)
+        .list();
+  }
 
-    @Override
-    public List<Interpretation> getInterpretations( Visualization visualization )
-    {
-        return getQuery( "select distinct i from Interpretation i where i.visualization = :visualization" )
-            .setParameter( "visualization", visualization )
-            .list();
-    }
+  @Override
+  public List<Interpretation> getInterpretations(Visualization visualization) {
+    return getQuery(
+            "select distinct i from Interpretation i where i.visualization = :visualization")
+        .setParameter("visualization", visualization)
+        .list();
+  }
 
-    @Override
-    public List<Interpretation> getInterpretations( EventVisualization eventVisualization )
-    {
-        return getQuery( "select distinct i from Interpretation i where i.eventVisualization = :eventVisualization" )
-            .setParameter( "eventVisualization", eventVisualization )
-            .list();
-    }
+  @Override
+  public List<Interpretation> getInterpretations(EventVisualization eventVisualization) {
+    return getQuery(
+            "select distinct i from Interpretation i where i.eventVisualization = :eventVisualization")
+        .setParameter("eventVisualization", eventVisualization)
+        .list();
+  }
 }

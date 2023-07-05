@@ -36,12 +36,10 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 @Configuration
-@Import( ConfigProviderConfiguration.class )
-public class SystemTestConfig
-{
-    @Bean
-    public LeaderManager leaderManager( DhisConfigurationProvider dhisConfigurationProvider )
-    {
-        return new NoOpLeaderManager( dhisConfigurationProvider );
-    }
+@Import(ConfigProviderConfiguration.class)
+public class SystemTestConfig {
+  @Bean
+  public LeaderManager leaderManager(DhisConfigurationProvider dhisConfigurationProvider) {
+    return new NoOpLeaderManager(dhisConfigurationProvider);
+  }
 }

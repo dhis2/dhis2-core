@@ -32,22 +32,18 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.dxf2.metadata.objectbundle.feedback.ObjectBundleValidationReport;
 
-/**
- * Assertions for feedback like metadata validation reports.
- */
-public class Assertions
-{
-    public static void assertNoErrors( ObjectBundleValidationReport report )
-    {
-        assertNotNull( report );
-        List<String> errors = new ArrayList<>();
-        report.forEachErrorReport( err -> {
-            errors.add( err.toString() );
-        } );
-        assertFalse( report.hasErrorReports(), String.format( "Expected no errors, instead got: %s\n", errors ) );
-    }
-
+/** Assertions for feedback like metadata validation reports. */
+public class Assertions {
+  public static void assertNoErrors(ObjectBundleValidationReport report) {
+    assertNotNull(report);
+    List<String> errors = new ArrayList<>();
+    report.forEachErrorReport(
+        err -> {
+          errors.add(err.toString());
+        });
+    assertFalse(
+        report.hasErrorReports(), String.format("Expected no errors, instead got: %s\n", errors));
+  }
 }

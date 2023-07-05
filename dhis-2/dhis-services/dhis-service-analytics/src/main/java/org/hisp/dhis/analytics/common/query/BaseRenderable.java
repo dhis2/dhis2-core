@@ -27,11 +27,9 @@
  */
 package org.hisp.dhis.analytics.common.query;
 
-public abstract class BaseRenderable implements Renderable
-{
-    @Override
-    public String toString()
-    {
-        return render();
-    }
+public abstract class BaseRenderable implements Renderable {
+  @Override
+  public String toString() {
+    return render();
+  }
 }

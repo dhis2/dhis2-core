@@ -27,11 +27,10 @@
  */
 package org.hisp.dhis.mapping;
 
-public enum EventStatus
-{
-    ACTIVE,
-    COMPLETED,
-    SCHEDULE,
-    OVERDUE,
-    SKIPPED
+public enum EventStatus {
+  ACTIVE,
+  COMPLETED,
+  SCHEDULE,
+  OVERDUE,
+  SKIPPED
 }

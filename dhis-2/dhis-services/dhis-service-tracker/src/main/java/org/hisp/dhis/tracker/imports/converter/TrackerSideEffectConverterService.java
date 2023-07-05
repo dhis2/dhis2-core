@@ -29,7 +29,6 @@ package org.hisp.dhis.tracker.imports.converter;
 
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.rules.models.RuleEffect;
 import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
 
@@ -38,9 +37,10 @@ import org.hisp.dhis.tracker.imports.sideeffect.TrackerRuleEngineSideEffect;
  *
  * @author Zubair Asghars
  */
-public interface TrackerSideEffectConverterService
-{
-    Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects( Map<String, List<RuleEffect>> ruleEffects );
+public interface TrackerSideEffectConverterService {
+  Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
+      Map<String, List<RuleEffect>> ruleEffects);
 
-    Map<String, List<RuleEffect>> toRuleEffects( Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects );
+  Map<String, List<RuleEffect>> toRuleEffects(
+      Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects);
 }

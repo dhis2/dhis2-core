@@ -29,24 +29,21 @@ package org.hisp.dhis.sms.config;
 
 /**
  * @author Zubair <rajazubair.asghar@gmail.com>
- *
  */
-public interface GatewayAdministrationService
-{
-    void setDefaultGateway( SmsGatewayConfig config );
+public interface GatewayAdministrationService {
+  void setDefaultGateway(SmsGatewayConfig config);
 
-    boolean removeGatewayByUid( String uid );
+  boolean removeGatewayByUid(String uid);
 
-    boolean hasGateways();
+  boolean hasGateways();
 
-    SmsGatewayConfig getDefaultGateway();
+  SmsGatewayConfig getDefaultGateway();
 
-    boolean hasDefaultGateway();
+  boolean hasDefaultGateway();
 
-    SmsGatewayConfig getByUid( String uid );
+  SmsGatewayConfig getByUid(String uid);
 
-    boolean addGateway( SmsGatewayConfig config );
+  boolean addGateway(SmsGatewayConfig config);
 
-    void updateGateway( SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig );
-
+  void updateGateway(SmsGatewayConfig persisted, SmsGatewayConfig updatedConfig);
 }

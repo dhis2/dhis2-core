@@ -30,27 +30,24 @@ package org.hisp.dhis.outlierdetection.util;
 import static org.hisp.dhis.DhisConvenienceTest.createOrganisationUnit;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Lists;
 import java.util.List;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
 
 /**
  * @author Lars Helge Overland
  */
-class OutlierDetectionUtilsTest
-{
+class OutlierDetectionUtilsTest {
 
-    @Test
-    void testGetOrgUnitPathClause()
-    {
-        OrganisationUnit ouA = createOrganisationUnit( 'A' );
-        OrganisationUnit ouB = createOrganisationUnit( 'B' );
-        OrganisationUnit ouC = createOrganisationUnit( 'C' );
-        List<OrganisationUnit> orgUnits = Lists.newArrayList( ouA, ouB, ouC );
-        String expected = "(ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%' or ou.\"path\" like '/ouabcdefghC%')";
-        assertEquals( expected, OutlierDetectionUtils.getOrgUnitPathClause( orgUnits ) );
-    }
+  @Test
+  void testGetOrgUnitPathClause() {
+    OrganisationUnit ouA = createOrganisationUnit('A');
+    OrganisationUnit ouB = createOrganisationUnit('B');
+    OrganisationUnit ouC = createOrganisationUnit('C');
+    List<OrganisationUnit> orgUnits = Lists.newArrayList(ouA, ouB, ouC);
+    String expected =
+        "(ou.\"path\" like '/ouabcdefghA%' or ou.\"path\" like '/ouabcdefghB%' or ou.\"path\" like '/ouabcdefghC%')";
+    assertEquals(expected, OutlierDetectionUtils.getOrgUnitPathClause(orgUnits));
+  }
 }
