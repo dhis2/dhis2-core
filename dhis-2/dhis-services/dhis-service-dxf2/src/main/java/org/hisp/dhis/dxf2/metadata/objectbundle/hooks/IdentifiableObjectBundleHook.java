@@ -93,20 +93,24 @@ public class IdentifiableObjectBundleHook extends AbstractObjectBundleHook<Ident
             .forEach( property -> {
                 List<IdentifiableObject> collection = ListUtils.emptyIfNull(
                     ReflectionUtils.invokeGetterMethod( property.getFieldName(), identifiableObject ) );
-                for ( int i = collection.size() - 1; i >= 0; i-- )
+
+                boolean hasSortOrder = collection.stream().anyMatch( item -> (( SortableObject ) item).getSortOrder() != null );
+                int sortOrder = 0;
+                int max = collection.size();
+                for ( IdentifiableObject item : collection )
                 {
-                    IdentifiableObject item = collection.get( i );
-                    IdentifiableObject preheatedItem = bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
-                    SortableObject sortableItem = (SortableObject) preheatedItem;
-                    if ( sortableItem.getSortOrder() == null )
+                    SortableObject sortableItem = (SortableObject) bundle.getPreheat().get( bundle.getPreheatIdentifier(), item );
+                    if ( (( SortableObject ) item).getSortOrder() == null )
                     {
-                        sortableItem.setSortOrder( (collection.size() - 1) - i );
+                        sortableItem.setSortOrder( hasSortOrder ? sortOrder++ : ++max );
                     }
 
                     bundle.getPreheat().put( bundle.getPreheatIdentifier(), item );
                 }
             } );
     }
+
+
 
     private List<Property> findSortableProperty( Schema schema )
     {
