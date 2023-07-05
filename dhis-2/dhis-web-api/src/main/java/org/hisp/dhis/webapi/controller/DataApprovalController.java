@@ -798,7 +798,7 @@ public class DataApprovalController
 
         if ( aoc == null )
         {
-            optionCombos.add( getAndValidateAttributeOptionCombo( null ) );
+            optionCombos.add( categoryService.getDefaultCategoryOptionCombo() );
         }
         else
         {
