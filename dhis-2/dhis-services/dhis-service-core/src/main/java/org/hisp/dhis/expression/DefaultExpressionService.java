@@ -29,6 +29,7 @@ package org.hisp.dhis.expression;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 import static java.lang.Boolean.FALSE;
+import static java.util.stream.Collectors.toMap;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castBoolean;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castDouble;
 import static org.hisp.dhis.antlr.AntlrParserUtils.castString;
@@ -81,6 +82,7 @@ import static org.springframework.util.ObjectUtils.isEmpty;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -131,6 +133,9 @@ import org.hisp.dhis.i18n.I18nManager;
 import org.hisp.dhis.indicator.Indicator;
 import org.hisp.dhis.indicator.IndicatorValue;
 import org.hisp.dhis.jdbc.StatementBuilder;
+import org.hisp.dhis.lib.expression.Expression.Mode;
+import org.hisp.dhis.lib.expression.spi.DataItem;
+import org.hisp.dhis.lib.expression.spi.DataItemType;
 import org.hisp.dhis.organisationunit.OrganisationUnitGroup;
 import org.hisp.dhis.parser.expression.CommonExpressionVisitor;
 import org.hisp.dhis.parser.expression.ExpressionItem;
@@ -497,17 +502,12 @@ public class DefaultExpressionService
         {
             return "";
         }
-
-        Map<String, String> itemDescriptions = getExpressionItemDescriptions( expression, parseType, dataType );
-
-        String description = expression;
-
-        for ( Map.Entry<String, String> entry : itemDescriptions.entrySet() )
-        {
-            description = description.replace( entry.getKey(), entry.getValue() );
-        }
-
-        return description;
+        org.hisp.dhis.lib.expression.Expression expr = new org.hisp.dhis.lib.expression.Expression(expression, parseType.getMode());
+        Set<DataItem> items = expr.collectDataItems();
+        Map<String, String> itemDescriptions = dimensionService.getNoAclDataItemObjectMap( items ).values().stream()
+                .collect( toMap(DimensionalItemObject::getUid, DimensionalItemObject::getDisplayName) );
+        //TODO check result type
+        return expr.describe( itemDescriptions );
     }
 
     @Override
@@ -516,8 +516,7 @@ public class DefaultExpressionService
         return getExpressionItemDescriptions( expression, parseType, parseType.getDataType() );
     }
 
-    @Override
-    public Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType,
+    private Map<String, String> getExpressionItemDescriptions( String expression, ParseType parseType,
         DataType dataType )
     {
         CommonExpressionVisitor visitor = newVisitor( ITEM_GET_DESCRIPTIONS, ExpressionParams.builder()
@@ -559,12 +558,13 @@ public class DefaultExpressionService
     }
 
     @Override
-    public Set<String> getExpressionElementAndOptionComboIds( String expression, ParseType parseType )
+    public Set<String> getValidationRuleExpressionElementAndOptionComboIds( String expression )
     {
-        return getExpressionDimensionalItemIds( expression, parseType ).stream()
-            .filter( DimensionalItemId::isDataElementOrOperand )
-            .map( i -> i.getId0() + (i.getId1() == null ? "" : Expression.SEPARATOR + i.getId1()) )
-            .collect( Collectors.toSet() );
+        org.hisp.dhis.lib.expression.Expression expr = new org.hisp.dhis.lib.expression.Expression( expression, Mode.VALIDATION_RULE_EXPRESSION );
+        return expr.collectDataItems().stream()
+            .filter( item -> item.getType() == DataItemType.DATA_ELEMENT )
+            .map( item -> item.getUid0().getValue()+ (item.getUid1().isEmpty() ? "": Expression.SEPARATOR+item.getUid1().get( 0 ).getValue()))
+            .collect( Collectors.toSet());
     }
 
     @Override
