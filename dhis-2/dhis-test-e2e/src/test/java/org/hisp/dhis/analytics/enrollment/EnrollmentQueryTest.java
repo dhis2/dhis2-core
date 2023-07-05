@@ -193,7 +193,8 @@ public class EnrollmentQueryTest extends AnalyticsApiTest
             .add( "totalPages=false" )
             .add( "pageSize=2" )
             .add( "page=4" )
-            .add( "rowContext=true" );
+            .add( "rowContext=true" )
+            .add( "relativePeriodDate=2023-06-27" );
 
         // When
         ApiResponse response = enrollmentsActions.query().get( "WSGAb5XwJ3Y", JSON, JSON, params );

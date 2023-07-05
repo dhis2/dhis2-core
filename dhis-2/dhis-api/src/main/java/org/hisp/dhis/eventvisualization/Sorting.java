@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2004-2022, University of Oslo
+ * Copyright (c) 2004-2023, University of Oslo
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -25,34 +25,36 @@
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package org.hisp.dhis.webapi.json.domain;
+package org.hisp.dhis.eventvisualization;
 
-import org.hisp.dhis.jsontree.JsonList;
+import static org.hisp.dhis.common.DxfNamespaces.DXF_2_0;
+
+import java.io.Serializable;
+
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
+
+import org.hisp.dhis.analytics.SortOrder;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 /**
- * Web API equivalent of a {@link org.hisp.dhis.user.UserGroup}.
- *
- * @author Jan Bernitt
+ * This class is responsible for the encapsulation of objects and attributes
+ * related to sorting.
  */
-public interface JsonUserGroup extends JsonIdentifiableObject
+@Data
+@EqualsAndHashCode( onlyExplicitlyIncluded = true )
+@NoArgsConstructor
+public class Sorting implements Serializable
 {
-    default JsonList<JsonUser> getUsers()
-    {
-        return getList( "users", JsonUser.class );
-    }
+    @EqualsAndHashCode.Include
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private String dimension;
 
-    default JsonList<JsonUserGroup> getManagedGroups()
-    {
-        return getList( "managedGroups", JsonUserGroup.class );
-    }
-
-    default JsonList<JsonUserGroup> getManagedByGroups()
-    {
-        return getList( "managedByGroups", JsonUserGroup.class );
-    }
-
-    default String getUsername()
-    {
-        return getString( "username" ).string();
-    }
+    @JsonProperty( required = true )
+    @JacksonXmlProperty( namespace = DXF_2_0 )
+    private SortOrder direction;
 }
