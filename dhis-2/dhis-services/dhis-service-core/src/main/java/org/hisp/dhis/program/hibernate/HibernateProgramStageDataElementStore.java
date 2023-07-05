@@ -86,7 +86,7 @@ public class HibernateProgramStageDataElementStore
         final String sql = "select ps.uid as ps_uid, de.uid as de_uid from programstagedataelement psde " +
             "join programstage ps on psde.programstageid = ps.programstageid " +
             "join dataelement de on psde.dataelementid = de.dataelementid " +
-            "where psde.programstageid in (select distinct ( programstageid ) from programstageinstance psi where psi.lastupdated > psi.lastsynchronized) "
+            "where psde.programstageid in (select distinct ( programstageid ) from event psi where psi.lastupdated > psi.lastsynchronized) "
             +
             "and psde.skipsynchronization = true";
 

@@ -1063,7 +1063,7 @@ public class HibernateTrackedEntityStore
         events
             .append( "INNER JOIN (" )
             .append( "SELECT PSI.programinstanceid " )
-            .append( "FROM programstageinstance PSI " );
+            .append( "FROM event PSI " );
 
         if ( params.getAssignedUserQueryParam().hasAssignedUsers() )
         {

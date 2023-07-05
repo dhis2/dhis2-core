@@ -93,11 +93,11 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
             return new HashMap<>();
         }
 
-        final String sql = "select psi.programinstanceid, psi.programstageid, psi.programstageinstanceid, " +
+        final String sql = "select psi.programinstanceid, psi.programstageid, psi.eventid, " +
             "psi.uid, psi.status, psi.deleted, psi.eventdatavalues, psi.duedate, psi.executiondate, " +
             "psi.completeddate, psi.attributeoptioncomboid, psi.geometry, " +
             "ou.organisationunitid, ou.uid, ou.code, ou.name, psi.attributeoptioncomboid,  c.uid as coc_uid  " +
-            "from programstageinstance psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
+            "from event psi join organisationunit ou on psi.organisationunitid = ou.organisationunitid "
             +
             "join categoryoptioncombo c on psi.attributeoptioncomboid = c.categoryoptioncomboid " +
             "where psi.uid in (:ids)";
@@ -112,7 +112,7 @@ public class ProgramStageInstanceSupplier extends AbstractSupplier<Map<String, E
             {
                 Event psi = new Event();
 
-                psi.setId( rs.getLong( "programstageinstanceid" ) );
+                psi.setId( rs.getLong( "eventid" ) );
                 psi.setUid( rs.getString( "uid" ) );
                 psi.setStatus( EventStatus.valueOf( rs.getString( "status" ) ) );
                 psi.setDeleted( rs.getBoolean( "deleted" ) );

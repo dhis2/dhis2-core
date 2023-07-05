@@ -137,8 +137,8 @@ public abstract class AbstractEventJdbcTableManager
         // Data values might be '{}' / empty object if data values existed
         // and were removed later
 
-        String sql = "select programstageinstanceid " +
-            "from programstageinstance " +
+        String sql = "select eventid " +
+            "from event " +
             "where eventdatavalues != '{}' limit 1;";
 
         boolean hasData = jdbcTemplate.queryForRowSet( sql ).next();

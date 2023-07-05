@@ -92,16 +92,16 @@ public class JdbcMaintenanceStore implements MaintenanceStore
     public int deleteSoftDeletedEvents()
     {
         List<String> deletedEvents = getDeletionEntities(
-            "(select uid from programstageinstance where deleted is true)" );
+            "(select uid from event where deleted is true)" );
 
         if ( deletedEvents.isEmpty() )
         {
             return 0;
         }
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where deleted is true)";
+        String eventSelect = "(select eventid from event where deleted is true)";
 
-        String pmSelect = "(select id from programmessage where programstageinstanceid in " + eventSelect + " )";
+        String pmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
         /*
          * Delete event values, event value audits, event comments, events
@@ -113,14 +113,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             // delete related PSIs comments
-            "delete from programstageinstancecomments where programstageinstanceid in " + eventSelect,
-            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from eventcomments where eventid in " + eventSelect,
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from programinstancecomments)",
             // delete other objects related to PSIs
-            "delete from relationshipitem where programstageinstanceid in " + eventSelect,
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + eventSelect,
-            "delete from programmessage where programstageinstanceid in " + eventSelect,
+            "delete from relationshipitem where eventid in " + eventSelect,
+            "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
+            "delete from programmessage where eventid in " + eventSelect,
             // finally delete the PSIs
-            "delete from programstageinstance where deleted is true" };
+            "delete from event where deleted is true" };
 
         int result = jdbcTemplate.batchUpdate( sqlStmts )[sqlStmts.length - 1];
 
@@ -175,9 +175,9 @@ public class JdbcMaintenanceStore implements MaintenanceStore
         }
 
         List<String> associatedEvents = getDeletionEntities(
-            "select uid from programstageinstance where programinstanceid in " + enrollmentSelect );
+            "select uid from event where programinstanceid in " + enrollmentSelect );
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+        String eventSelect = "(select eventid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String pmSelect = "(select id from programmessage where programinstanceid in " + enrollmentSelect + " )";
@@ -193,17 +193,17 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + pmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + pmSelect,
             // delete comments linked to both enrollments and PSIs
-            "delete from programstageinstancecomments where programstageinstanceid in " + eventSelect,
+            "delete from eventcomments where eventid in " + eventSelect,
             "delete from programinstancecomments where programinstanceid in " + enrollmentSelect,
-            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from programinstancecomments)",
             // delete other entries linked to PSIs
-            "delete from relationshipitem where programstageinstanceid in " + eventSelect,
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + eventSelect,
-            "delete from programmessage where programstageinstanceid in " + eventSelect,
+            "delete from relationshipitem where eventid in " + eventSelect,
+            "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
+            "delete from programmessage where eventid in " + eventSelect,
             // delete other entries linked to enrollments
             "delete from relationshipitem where programinstanceid in " + enrollmentSelect,
             "delete from programmessage where programinstanceid in " + enrollmentSelect,
-            "delete from programstageinstance where programinstanceid in " + enrollmentSelect,
+            "delete from event where programinstanceid in " + enrollmentSelect,
             // finally delete the enrollments themselves
             "delete from programinstance where deleted is true" };
 
@@ -238,18 +238,18 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "select uid from programinstance where trackedentityinstanceid in " + teiSelect );
 
         List<String> associatedEvents = getDeletionEntities(
-            "select uid from programstageinstance where programinstanceid in " + enrollmentSelect );
+            "select uid from event where programinstanceid in " + enrollmentSelect );
 
         /*
          * Prepare filter queries for hard delete
          */
 
-        String eventSelect = "(select programstageinstanceid from programstageinstance where programinstanceid in "
+        String eventSelect = "(select eventid from event where programinstanceid in "
             + enrollmentSelect + " )";
 
         String teiPmSelect = "(select id from programmessage where trackedentityinstanceid in " + teiSelect + " )";
         String piPmSelect = "(select id from programmessage where programinstanceid in " + enrollmentSelect + " )";
-        String eventPmSelect = "(select id from programmessage where programstageinstanceid in " + eventSelect + " )";
+        String eventPmSelect = "(select id from programmessage where eventid in " + eventSelect + " )";
 
         /*
          * Delete event values, event audits, event comments, events, enrollment
@@ -271,14 +271,14 @@ public class JdbcMaintenanceStore implements MaintenanceStore
             "delete from programmessage_emailaddresses where programmessageemailaddressid in " + eventPmSelect,
             "delete from programmessage_phonenumbers where programmessagephonenumberid in " + eventPmSelect,
             // delete comments related to any obsolete enrollments or PSIs
-            "delete from programstageinstancecomments where programstageinstanceid in " + eventSelect,
+            "delete from eventcomments where eventid in " + eventSelect,
             "delete from programinstancecomments where programinstanceid in " + enrollmentSelect,
-            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from programstageinstancecomments union all select trackedentitycommentid from programinstancecomments)",
+            "delete from trackedentitycomment where trackedentitycommentid not in (select trackedentitycommentid from eventcomments union all select trackedentitycommentid from programinstancecomments)",
             // delete other objects related to obsolete PSIs
-            "delete from trackedentitydatavalueaudit where programstageinstanceid in " + eventSelect,
+            "delete from trackedentitydatavalueaudit where eventid in " + eventSelect,
             // delete other objects related to obsolete enrollments
             "delete from programmessage where programinstanceid in " + enrollmentSelect,
-            "delete from programstageinstance where programinstanceid in " + enrollmentSelect,
+            "delete from event where programinstanceid in " + enrollmentSelect,
             // delete other objects related to obsolete TEIs
             "delete from programmessage where trackedentityinstanceid in " + teiSelect,
             "delete from relationshipitem where trackedentityinstanceid in " + teiSelect,

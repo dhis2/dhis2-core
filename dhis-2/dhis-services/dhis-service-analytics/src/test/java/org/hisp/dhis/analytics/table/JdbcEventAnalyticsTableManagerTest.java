@@ -155,7 +155,7 @@ class JdbcEventAnalyticsTableManagerTest
 
     private final static String TABLE_PREFIX = "analytics_event_";
 
-    private static final String FROM_CLAUSE = "from programstageinstance where programstageinstanceid=psi.programstageinstanceid";
+    private static final String FROM_CLAUSE = "from event where eventid=psi.eventid";
 
     private static final int OU_NAME_HIERARCHY_COUNT = 1;
 
@@ -351,7 +351,7 @@ class JdbcEventAnalyticsTableManagerTest
         String aliasD6 = "(select cast(eventdatavalues #>> '{%s, value}' as bigint) " + FROM_CLAUSE
             + "  and eventdatavalues #>> '{%s,value}' " + statementBuilder.getRegexpMatch()
             + " '^(-?[0-9]+)(\\.[0-9]+)?$') as \"%s\"";
-        String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from programstageinstance where programstageinstanceid=psi.programstageinstanceid ) as \"%s\"";
+        String aliasD7 = "(select ST_GeomFromGeoJSON('{\"type\":\"Point\", \"coordinates\":' || (eventdatavalues #>> '{%s, value}') || ', \"crs\":{\"type\":\"name\", \"properties\":{\"name\":\"EPSG:4326\"}}}') from event where eventid=psi.eventid ) as \"%s\"";
         String aliasD5_geo = "(select ou.geometry from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
             + d5.getUid() + ", value}' " + FROM_CLAUSE + " )) as \"" + d5.getUid() + "\"";
         String aliasD5_name = "(select ou.name from organisationunit ou where ou.uid = (select eventdatavalues #>> '{"
@@ -481,8 +481,8 @@ class JdbcEventAnalyticsTableManagerTest
         verify( jdbcTemplate ).execute( sql.capture() );
 
         String ouQuery = "(select ou.%s from organisationunit ou where ou.uid = " + "(select eventdatavalues #>> '{"
-            + d5.getUid() + ", value}' from programstageinstance where "
-            + "programstageinstanceid=psi.programstageinstanceid )) as \"" + d5.getUid() + "\"";
+            + d5.getUid() + ", value}' from event where "
+            + "eventid=psi.eventid )) as \"" + d5.getUid() + "\"";
 
         assertThat( sql.getValue(), containsString( String.format( ouQuery, "uid" ) ) );
         assertThat( sql.getValue(), containsString( String.format( ouQuery, "name" ) ) );
@@ -593,7 +593,7 @@ class JdbcEventAnalyticsTableManagerTest
         when( jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus() + ") > '1000-01-01' and psi.deleted is false ) "
                 + "as temp where temp.supportedyear >= " + startYear + " and temp.supportedyear <= " + latestYear,
@@ -748,7 +748,7 @@ class JdbcEventAnalyticsTableManagerTest
         when( jdbcTemplate.queryForList(
             "select temp.supportedyear from (select distinct extract(year from " + getDateLinkedToStatus()
                 + ") as supportedyear "
-                + "from programstageinstance psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
+                + "from event psi inner join programinstance pi on psi.programinstanceid = pi.programinstanceid "
                 + "where psi.lastupdated <= '2019-08-01T00:00:00' and pi.programid = 0 and (" + getDateLinkedToStatus()
                 + ") is not null " + "and (" + getDateLinkedToStatus()
                 + ") > '1000-01-01' and psi.deleted is false and (" + getDateLinkedToStatus() + ") >= '2018-01-01') "
@@ -789,7 +789,7 @@ class JdbcEventAnalyticsTableManagerTest
 
         String sql = "select temp.supportedyear from (select distinct "
             + "extract(year from " + getDateLinkedToStatus() + ") as supportedyear "
-            + "from programstageinstance psi inner join "
+            + "from event psi inner join "
             + "programinstance pi on psi.programinstanceid = pi.programinstanceid where psi.lastupdated <= '"
             + "2019-08-01T00:00:00' and pi.programid = " + program.getId()
             + " and (" + getDateLinkedToStatus()

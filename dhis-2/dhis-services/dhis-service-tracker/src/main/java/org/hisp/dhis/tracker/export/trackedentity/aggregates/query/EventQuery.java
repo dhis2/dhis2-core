@@ -46,7 +46,7 @@ public class EventQuery
     @RequiredArgsConstructor
     public enum COLUMNS
     {
-        ID( new TableColumn( "psi", "programstageinstanceid" ) ),
+        ID( new TableColumn( "psi", "eventid" ) ),
         UID( new TableColumn( "psi", "uid" ) ),
         STATUS( new TableColumn( "psi", "status" ) ),
         EXECUTION_DATE( new TableColumn( "psi", "executiondate" ) ),
@@ -111,7 +111,7 @@ public class EventQuery
     public static String getQuery()
     {
         return getSelect() +
-            "from programstageinstance psi " +
+            "from event psi " +
             "join programinstance pi on psi.programinstanceid = pi.programinstanceid " +
             "join trackedentityinstance tei on pi.trackedentityinstanceid = tei.trackedentityinstanceid " +
             "join program p on pi.programid = p.programid " +

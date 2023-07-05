@@ -54,9 +54,9 @@ public class EnrollmentsWithAtLeastOneEventSupplier extends JdbcAbstractPreheatS
 
     private final static String SQL = "select  " + COLUMN +
         " from programinstance " +
-        "where exists( select programstageinstanceid " +
-        "from programstageinstance " +
-        "where programinstance.programinstanceid = programstageinstance.programinstanceid " +
+        "where exists( select eventid " +
+        "from event " +
+        "where programinstance.programinstanceid = event.programinstanceid " +
         "and programinstance.deleted = false) " +
         "and programinstanceid in (:ids)";
 

@@ -79,7 +79,7 @@ class EventSupplierTest extends AbstractSupplierTest<Event>
         throws SQLException
     {
         // mock resultset data
-        when( mockResultSet.getLong( "programstageinstanceid" ) ).thenReturn( 100L );
+        when( mockResultSet.getLong( "eventid" ) ).thenReturn( 100L );
         when( mockResultSet.getString( "uid" ) ).thenReturn( "abcded" );
         when( mockResultSet.getString( "status" ) ).thenReturn( "ACTIVE" );
         when( mockResultSet.getBoolean( "deleted" ) ).thenReturn( false );

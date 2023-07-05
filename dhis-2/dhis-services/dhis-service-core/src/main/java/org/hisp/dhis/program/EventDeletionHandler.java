@@ -57,7 +57,7 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event>
     private DeletionVeto allowDeleteProgramStage( ProgramStage programStage )
     {
         return vetoIfExists( VETO,
-            "select 1 from programstageinstance where programstageid = :id limit 1",
+            "select 1 from event where programstageid = :id limit 1",
             Map.of( "id", programStage.getId() ) );
     }
 
@@ -72,13 +72,13 @@ public class EventDeletionHandler extends IdObjectDeletionHandler<Event>
     private DeletionVeto allowDeleteProgram( Program program )
     {
         return vetoIfExists( VETO,
-            "select 1 from programstageinstance psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id limit 1",
+            "select 1 from event psi join programinstance pi on pi.programinstanceid=psi.programinstanceid where pi.programid = :id limit 1",
             Map.of( "id", program.getId() ) );
     }
 
     private DeletionVeto allowDeleteDataElement( DataElement dataElement )
     {
-        return vetoIfExists( VETO, "select 1 from programstageinstance where eventdatavalues ?? :uid limit 1",
+        return vetoIfExists( VETO, "select 1 from event where eventdatavalues ?? :uid limit 1",
             Map.of( "uid", dataElement.getUid() ) );
     }
 }
