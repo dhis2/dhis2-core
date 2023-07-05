@@ -29,6 +29,7 @@ package org.hisp.dhis.dataapproval;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.hisp.dhis.category.CategoryCombo;
 import org.hisp.dhis.category.CategoryOptionCombo;
@@ -176,20 +177,21 @@ public interface DataApprovalService
         OrganisationUnit organisationUnit, CategoryOptionCombo attributeOptionCombo );
 
     /**
-     * Returns a list of approval status and permissions for all of the category
-     * option combos that the user is allowed to see.
+     * Returns a list of approval status and permissions for all the attribute
+     * option combos that the user is allowed to see or for specified attribute
+     * option combos.
      *
      * @param workflow workflow to check for approval.
      * @param period Period we are getting the status for
      * @param orgUnit Organisation unit we are getting the status for
      * @param orgUnitFilter Organisation unit filter for attribute option combos
      * @param attributeCombo attribute category combo to search within
-     * @param attributeOptionCombo Single attribute option combo to get for
+     * @param attributeOptionCombos attribute option combos to get
      * @return list of statuses and permissions
      */
     List<DataApprovalStatus> getUserDataApprovalsAndPermissions( DataApprovalWorkflow workflow,
         Period period, OrganisationUnit orgUnit, OrganisationUnit orgUnitFilter, CategoryCombo attributeCombo,
-        CategoryOptionCombo attributeOptionCombo );
+        Set<CategoryOptionCombo> attributeOptionCombos );
 
     /**
      * Deletes DataApprovals for the given organisation unit.
