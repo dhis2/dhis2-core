@@ -34,27 +34,23 @@ import java.io.InputStream;
  *
  * @author Jan Bernitt
  */
-public interface GeoJsonService
-{
-    /**
-     * Imports the data provided as {@link InputStream}.
-     *
-     * @param params on how to process and match the data to organisation units
-     * @param geoJsonData expected to be a GeoJSON feature-collection root
-     *        object
-     * @return a report with statistics and conflicts
-     */
-    GeoJsonImportReport importGeoData( GeoJsonImportParams params, InputStream geoJsonData );
+public interface GeoJsonService {
+  /**
+   * Imports the data provided as {@link InputStream}.
+   *
+   * @param params on how to process and match the data to organisation units
+   * @param geoJsonData expected to be a GeoJSON feature-collection root object
+   * @return a report with statistics and conflicts
+   */
+  GeoJsonImportReport importGeoData(GeoJsonImportParams params, InputStream geoJsonData);
 
-    /**
-     * Clears all GeoJSON data from all organisation units for the given
-     * attribute. If the attribute is null this clears the {@code geometry}
-     * field of the organisation units.
-     *
-     * @param attributeId the attribute to clear, or {@code null} to clear
-     *        geometry field
-     * @return a report with statistics of deletion and conflicts in case the
-     *         attribute ID was not valid
-     */
-    GeoJsonImportReport deleteGeoData( String attributeId );
+  /**
+   * Clears all GeoJSON data from all organisation units for the given attribute. If the attribute
+   * is null this clears the {@code geometry} field of the organisation units.
+   *
+   * @param attributeId the attribute to clear, or {@code null} to clear geometry field
+   * @return a report with statistics of deletion and conflicts in case the attribute ID was not
+   *     valid
+   */
+  GeoJsonImportReport deleteGeoData(String attributeId);
 }

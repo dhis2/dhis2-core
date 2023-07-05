@@ -29,9 +29,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.hooks;
 
 import java.util.function.Consumer;
 import java.util.regex.Pattern;
-
 import lombok.AllArgsConstructor;
-
 import org.hisp.dhis.common.IdentifiableObjectManager;
 import org.hisp.dhis.document.Document;
 import org.hisp.dhis.dxf2.metadata.objectbundle.ObjectBundle;
@@ -47,63 +45,49 @@ import org.springframework.stereotype.Component;
  */
 @Component
 @AllArgsConstructor
-public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document>
-{
+public class DocumentObjectBundleHook extends AbstractObjectBundleHook<Document> {
 
-    private static final Pattern URL_PATTERN = Pattern
-        .compile( "^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]" );
+  private static final Pattern URL_PATTERN =
+      Pattern.compile("^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]");
 
-    private final FileResourceService fileResourceService;
+  private final FileResourceService fileResourceService;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    @Override
-    public void validate( Document document, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        FileResource fileResource = fileResourceService.getFileResource( document.getUrl() );
+  @Override
+  public void validate(Document document, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    FileResource fileResource = fileResourceService.getFileResource(document.getUrl());
 
-        if ( document.getUrl() == null )
-        {
-            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4000, "url" ) );
-        }
-        else if ( document.isExternal() && !URL_PATTERN.matcher( document.getUrl() ).matches() )
-        {
-            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4004, "url", document.getUrl() ) );
-        }
-        else if ( !document.isExternal() && fileResource == null )
-        {
-            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4015, "url", document.getUrl() ) );
-        }
-        else if ( !document.isExternal() && fileResource.isAssigned() )
-        {
-            addReports.accept( new ErrorReport( Document.class, ErrorCode.E4016, "url", document.getUrl() ) );
-        }
+    if (document.getUrl() == null) {
+      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4000, "url"));
+    } else if (document.isExternal() && !URL_PATTERN.matcher(document.getUrl()).matches()) {
+      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4004, "url", document.getUrl()));
+    } else if (!document.isExternal() && fileResource == null) {
+      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4015, "url", document.getUrl()));
+    } else if (!document.isExternal() && fileResource.isAssigned()) {
+      addReports.accept(new ErrorReport(Document.class, ErrorCode.E4016, "url", document.getUrl()));
+    }
+  }
+
+  @Override
+  public void postCreate(Document document, ObjectBundle bundle) {
+    saveDocument(document);
+  }
+
+  @Override
+  public void postUpdate(Document document, ObjectBundle bundle) {
+    saveDocument(document);
+  }
+
+  private void saveDocument(Document document) {
+    if (!document.isExternal()) {
+      FileResource fileResource = fileResourceService.getFileResource(document.getUrl());
+      fileResource.setDomain(FileResourceDomain.DOCUMENT);
+      fileResource.setAssigned(true);
+      document.setFileResource(fileResource);
+      fileResourceService.updateFileResource(fileResource);
     }
 
-    @Override
-    public void postCreate( Document document, ObjectBundle bundle )
-    {
-        saveDocument( document );
-    }
-
-    @Override
-    public void postUpdate( Document document, ObjectBundle bundle )
-    {
-        saveDocument( document );
-    }
-
-    private void saveDocument( Document document )
-    {
-        if ( !document.isExternal() )
-        {
-            FileResource fileResource = fileResourceService.getFileResource( document.getUrl() );
-            fileResource.setDomain( FileResourceDomain.DOCUMENT );
-            fileResource.setAssigned( true );
-            document.setFileResource( fileResource );
-            fileResourceService.updateFileResource( fileResource );
-        }
-
-        idObjectManager.save( document );
-    }
+    idObjectManager.save(document);
+  }
 }

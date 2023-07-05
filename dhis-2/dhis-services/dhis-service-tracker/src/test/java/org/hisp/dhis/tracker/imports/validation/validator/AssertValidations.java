@@ -31,7 +31,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
-
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.hisp.dhis.tracker.imports.domain.TrackerDto;
 import org.hisp.dhis.tracker.imports.validation.Reporter;
@@ -40,91 +39,112 @@ import org.hisp.dhis.tracker.imports.validation.ValidationCode;
 import org.hisp.dhis.tracker.imports.validation.ValidationResult;
 
 /**
- * Assert that a {@link Reporter} or a {@link ValidationResult} contains a given
- * {@link Validation} error or warning for a specific {@link TrackerDto}.
+ * Assert that a {@link Reporter} or a {@link ValidationResult} contains a given {@link Validation}
+ * error or warning for a specific {@link TrackerDto}.
  */
-public class AssertValidations
-{
-    private AssertValidations()
-    {
-        throw new IllegalStateException( "utility class" );
-    }
+public class AssertValidations {
+  private AssertValidations() {
+    throw new IllegalStateException("utility class");
+  }
 
-    public static void assertMissingProperty( Reporter reporter, TrackerDto dto, ValidationCode code, String property )
-    {
-        assertHasError( reporter, dto, code,
-            "Missing required " + dto.getTrackerType().getName() + " property: `" + property + "`." );
-    }
+  public static void assertMissingProperty(
+      Reporter reporter, TrackerDto dto, ValidationCode code, String property) {
+    assertHasError(
+        reporter,
+        dto,
+        code,
+        "Missing required " + dto.getTrackerType().getName() + " property: `" + property + "`.");
+  }
 
-    public static void assertHasError( Reporter reporter, TrackerDto dto, ValidationCode code )
-    {
-        assertHasError( reporter.getErrors(), dto, code );
-    }
+  public static void assertHasError(Reporter reporter, TrackerDto dto, ValidationCode code) {
+    assertHasError(reporter.getErrors(), dto, code);
+  }
 
-    public static void assertHasError( Reporter reporter, TrackerDto dto, ValidationCode code, String messageContains )
-    {
-        assertHasError( reporter.getErrors(), dto, code, messageContains );
-    }
+  public static void assertHasError(
+      Reporter reporter, TrackerDto dto, ValidationCode code, String messageContains) {
+    assertHasError(reporter.getErrors(), dto, code, messageContains);
+  }
 
-    public static void assertHasWarning( Reporter reporter, TrackerDto dto, ValidationCode code )
-    {
-        assertHasWarning( reporter.getWarnings(), dto, code );
-    }
+  public static void assertHasWarning(Reporter reporter, TrackerDto dto, ValidationCode code) {
+    assertHasWarning(reporter.getWarnings(), dto, code);
+  }
 
-    public static void assertHasError( ValidationResult result, TrackerDto dto, ValidationCode code )
-    {
-        assertHasError( result.getErrors(), dto, code );
-    }
+  public static void assertHasError(ValidationResult result, TrackerDto dto, ValidationCode code) {
+    assertHasError(result.getErrors(), dto, code);
+  }
 
-    public static void assertHasWarning( ValidationResult result, TrackerDto dto, ValidationCode code )
-    {
-        assertHasWarning( result.getWarnings(), dto, code );
-    }
+  public static void assertHasWarning(
+      ValidationResult result, TrackerDto dto, ValidationCode code) {
+    assertHasWarning(result.getWarnings(), dto, code);
+  }
 
-    public static void assertHasError( Collection<? extends Validation> validations, TrackerDto dto,
-        ValidationCode code )
-    {
-        assertHasValidation( validations, "error", dto, code );
-    }
+  public static void assertHasError(
+      Collection<? extends Validation> validations, TrackerDto dto, ValidationCode code) {
+    assertHasValidation(validations, "error", dto, code);
+  }
 
-    public static void assertHasError( Collection<? extends Validation> validations, TrackerDto dto,
-        ValidationCode code, String messageContains )
-    {
-        assertHasValidation( validations, "error", dto, code, messageContains );
-    }
+  public static void assertHasError(
+      Collection<? extends Validation> validations,
+      TrackerDto dto,
+      ValidationCode code,
+      String messageContains) {
+    assertHasValidation(validations, "error", dto, code, messageContains);
+  }
 
-    public static void assertHasWarning( Collection<? extends Validation> validations, TrackerDto dto,
-        ValidationCode code )
-    {
-        assertHasValidation( validations, "warning", dto, code );
-    }
+  public static void assertHasWarning(
+      Collection<? extends Validation> validations, TrackerDto dto, ValidationCode code) {
+    assertHasValidation(validations, "warning", dto, code);
+  }
 
-    private static void assertHasValidation( Collection<? extends Validation> validations, String validationType,
-        TrackerDto dto, ValidationCode code )
-    {
-        TrackerType type = dto.getTrackerType();
-        String uid = dto.getUid();
-        assertFalse( validations.isEmpty(), validationType + " not found since " + validationType + "s is empty" );
-        assertTrue( validations.stream().anyMatch( v -> code.name().equals( v.getCode() ) &&
-            type.name().equals( v.getType() ) &&
-            uid.equals( v.getUid() ) ),
-            String.format( "%s with code %s for %s with uid %s not found in %s(s) %s", validationType, code,
-                type.getName(),
-                uid, validationType, validations ) );
-    }
+  private static void assertHasValidation(
+      Collection<? extends Validation> validations,
+      String validationType,
+      TrackerDto dto,
+      ValidationCode code) {
+    TrackerType type = dto.getTrackerType();
+    String uid = dto.getUid();
+    assertFalse(
+        validations.isEmpty(),
+        validationType + " not found since " + validationType + "s is empty");
+    assertTrue(
+        validations.stream()
+            .anyMatch(
+                v ->
+                    code.name().equals(v.getCode())
+                        && type.name().equals(v.getType())
+                        && uid.equals(v.getUid())),
+        String.format(
+            "%s with code %s for %s with uid %s not found in %s(s) %s",
+            validationType, code, type.getName(), uid, validationType, validations));
+  }
 
-    private static void assertHasValidation( Collection<? extends Validation> validations, String validationType,
-        TrackerDto dto, ValidationCode code, String messageContains )
-    {
-        TrackerType type = dto.getTrackerType();
-        String uid = dto.getUid();
-        assertFalse( validations.isEmpty(), validationType + " not found since " + validationType + "s is empty" );
-        assertTrue( validations.stream().anyMatch( v -> code.name().equals( v.getCode() ) &&
-            type.name().equals( v.getType() ) &&
-            uid.equals( v.getUid() ) &&
-            v.getMessage().contains( messageContains ) ),
-            String.format( "%s with code %s for %s with uid %s and (partial) message '%s' not found in %s(s) %s",
-                validationType, code, type.getName(),
-                uid, messageContains, validationType, validations ) );
-    }
+  private static void assertHasValidation(
+      Collection<? extends Validation> validations,
+      String validationType,
+      TrackerDto dto,
+      ValidationCode code,
+      String messageContains) {
+    TrackerType type = dto.getTrackerType();
+    String uid = dto.getUid();
+    assertFalse(
+        validations.isEmpty(),
+        validationType + " not found since " + validationType + "s is empty");
+    assertTrue(
+        validations.stream()
+            .anyMatch(
+                v ->
+                    code.name().equals(v.getCode())
+                        && type.name().equals(v.getType())
+                        && uid.equals(v.getUid())
+                        && v.getMessage().contains(messageContains)),
+        String.format(
+            "%s with code %s for %s with uid %s and (partial) message '%s' not found in %s(s) %s",
+            validationType,
+            code,
+            type.getName(),
+            uid,
+            messageContains,
+            validationType,
+            validations));
+  }
 }

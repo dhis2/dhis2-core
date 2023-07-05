@@ -39,9 +39,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-
 import lombok.Setter;
-
 import org.hisp.dhis.common.DimensionalItemObject;
 import org.hisp.dhis.common.FoundDimensionItemValue;
 import org.hisp.dhis.dataelement.DataElement;
@@ -50,193 +48,176 @@ import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.period.Period;
 
 /**
- * Consolidates the prediction data for one organisation unit at a time,
- * combining both aggregate data values and analytics data values.
+ * Consolidates the prediction data for one organisation unit at a time, combining both aggregate
+ * data values and analytics data values.
  *
  * @author Jim Grace
  */
-public class PredictionDataConsolidator
-{
-    private final PredictionDataValueFetcher dataValueFetcher;
+public class PredictionDataConsolidator {
+  private final PredictionDataValueFetcher dataValueFetcher;
 
-    private final PredictionAnalyticsDataFetcher analyticsFetcher;
+  private final PredictionAnalyticsDataFetcher analyticsFetcher;
 
-    private final Set<DataElement> dataElements;
+  private final Set<DataElement> dataElements;
 
-    private final Set<DataElementOperand> dataElementOperands;
+  private final Set<DataElementOperand> dataElementOperands;
 
-    private final Set<DimensionalItemObject> analyticsItems;
+  private final Set<DimensionalItemObject> analyticsItems;
 
-    private Map<Long, OrganisationUnit> orgUnitsById;
+  private Map<Long, OrganisationUnit> orgUnitsById;
 
-    private Queue<Long> orgUnitsRemaining;
+  private Queue<Long> orgUnitsRemaining;
 
-    private Queue<PredictionData> readyPredictionData;
+  private Queue<PredictionData> readyPredictionData;
 
-    @Setter // to change for testing
-    private int analyticsBatchFetchSize = 500;
+  @Setter // to change for testing
+  private int analyticsBatchFetchSize = 500;
 
-    /**
-     * @param items dimensional items to be subsequently retrieved
-     */
-    public PredictionDataConsolidator( Set<DimensionalItemObject> items, boolean includeDescendants,
-        PredictionDataValueFetcher dataValueFetcher, PredictionAnalyticsDataFetcher analyticsFetcher )
-    {
-        this.dataValueFetcher = dataValueFetcher.setIncludeDescendants( includeDescendants );
-        this.analyticsFetcher = analyticsFetcher;
+  /**
+   * @param items dimensional items to be subsequently retrieved
+   */
+  public PredictionDataConsolidator(
+      Set<DimensionalItemObject> items,
+      boolean includeDescendants,
+      PredictionDataValueFetcher dataValueFetcher,
+      PredictionAnalyticsDataFetcher analyticsFetcher) {
+    this.dataValueFetcher = dataValueFetcher.setIncludeDescendants(includeDescendants);
+    this.analyticsFetcher = analyticsFetcher;
 
-        dataElements = new HashSet<>();
-        dataElementOperands = new HashSet<>();
-        analyticsItems = new HashSet<>();
+    dataElements = new HashSet<>();
+    dataElementOperands = new HashSet<>();
+    analyticsItems = new HashSet<>();
 
-        categorizeItems( items );
+    categorizeItems(items);
+  }
+
+  /**
+   * Initializes for data retrieval.
+   *
+   * @param orgUnitLevel level of organisation units to fetch
+   * @param orgUnits organisation units to fetch
+   * @param dataValueQueryPeriods existing periods for data value queries
+   * @param analyticsQueryPeriods existing periods for analytics queries
+   * @param existingOutputPeriods existing output periods
+   * @param outputDataElementOperand prediction output data element operand
+   */
+  public void init(
+      int orgUnitLevel,
+      List<OrganisationUnit> orgUnits,
+      Set<Period> dataValueQueryPeriods,
+      Set<Period> analyticsQueryPeriods,
+      Set<Period> existingOutputPeriods,
+      DataElementOperand outputDataElementOperand) {
+    orgUnitsById = orgUnits.stream().collect(toMap(OrganisationUnit::getId, identity()));
+    orgUnitsRemaining = new ArrayDeque<>(orgUnitsById.keySet());
+
+    readyPredictionData = new ArrayDeque<>();
+
+    dataValueFetcher.init(
+        orgUnitLevel,
+        orgUnits,
+        dataValueQueryPeriods,
+        existingOutputPeriods,
+        dataElements,
+        dataElementOperands,
+        outputDataElementOperand);
+
+    analyticsFetcher.init(analyticsQueryPeriods, analyticsItems);
+  }
+
+  /**
+   * Returns the prediction data for one organisation unit, or null if prediction data has been
+   * returned for all organisation units.
+   *
+   * @return prediction data
+   */
+  public PredictionData getData() {
+    if (readyPredictionData.isEmpty() && !orgUnitsRemaining.isEmpty()) {
+      getPredictionDataBatch();
     }
 
-    /**
-     * Initializes for data retrieval.
-     *
-     * @param orgUnitLevel level of organisation units to fetch
-     * @param orgUnits organisation units to fetch
-     * @param dataValueQueryPeriods existing periods for data value queries
-     * @param analyticsQueryPeriods existing periods for analytics queries
-     * @param existingOutputPeriods existing output periods
-     * @param outputDataElementOperand prediction output data element operand
-     */
-    public void init( int orgUnitLevel, List<OrganisationUnit> orgUnits, Set<Period> dataValueQueryPeriods,
-        Set<Period> analyticsQueryPeriods, Set<Period> existingOutputPeriods,
-        DataElementOperand outputDataElementOperand )
-    {
-        orgUnitsById = orgUnits.stream().collect( toMap( OrganisationUnit::getId, identity() ) );
-        orgUnitsRemaining = new ArrayDeque<>( orgUnitsById.keySet() );
+    return readyPredictionData.poll();
+  }
 
-        readyPredictionData = new ArrayDeque<>();
+  // -------------------------------------------------------------------------
+  // Supportive Methods
+  // -------------------------------------------------------------------------
 
-        dataValueFetcher.init( orgUnitLevel, orgUnits, dataValueQueryPeriods, existingOutputPeriods, dataElements,
-            dataElementOperands, outputDataElementOperand );
-
-        analyticsFetcher.init( analyticsQueryPeriods, analyticsItems );
+  /**
+   * Categories DimensionalItemObjects found in the predictor expression (and skip test) according
+   * to how their values will be fetched from either the datavalue table (DataElement or
+   * DataElementOperand) or analytics.
+   */
+  private void categorizeItems(Set<DimensionalItemObject> items) {
+    for (DimensionalItemObject i : items) {
+      if (i instanceof DataElement) {
+        dataElements.add((DataElement) i);
+      } else if (i instanceof DataElementOperand) {
+        dataElementOperands.add((DataElementOperand) i);
+      } else {
+        analyticsItems.add(i);
+      }
     }
+  }
 
-    /**
-     * Returns the prediction data for one organisation unit, or null if
-     * prediction data has been returned for all organisation units.
-     *
-     * @return prediction data
-     */
-    public PredictionData getData()
-    {
-        if ( readyPredictionData.isEmpty() && !orgUnitsRemaining.isEmpty() )
-        {
-            getPredictionDataBatch();
-        }
+  /** Gets a batch of data from data values and analytics. */
+  private void getPredictionDataBatch() {
+    // Get a batch of orgUnits to fetch analytics data from, with any
+    // returned DataValues, up to analyticsBatchFetchSize.
 
-        return readyPredictionData.poll();
+    getDataValues();
+
+    addOrgUnitsWithoutDataValues();
+
+    // Fetch analytics data from this batch of orgUnits, add to ready data.
+
+    List<FoundDimensionItemValue> analyticsValues = analyticsFetcher.getValues(getReadyOrgUnits());
+
+    addValuesToReadyData(analyticsValues);
+  }
+
+  /** Gets DataValues for as many orgUnits as have them (up to analyticsBatchFetchSize). */
+  private void getDataValues() {
+    PredictionData data;
+
+    for (int dataCount = 0;
+        dataCount < analyticsBatchFetchSize && (data = dataValueFetcher.getData()) != null;
+        dataCount++) {
+      readyPredictionData.add(data);
+
+      orgUnitsRemaining.remove(data.getOrgUnit().getId());
     }
+  }
 
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
+  /**
+   * If more orgUnits are needed, adds them (without data values) up to analyticsBatchFetchSize or
+   * until no more orgUnits remain.
+   */
+  private void addOrgUnitsWithoutDataValues() {
+    int countToAdd =
+        Math.min(orgUnitsRemaining.size(), analyticsBatchFetchSize - readyPredictionData.size());
 
-    /**
-     * Categories DimensionalItemObjects found in the predictor expression (and
-     * skip test) according to how their values will be fetched from either the
-     * datavalue table (DataElement or DataElementOperand) or analytics.
-     */
-    private void categorizeItems( Set<DimensionalItemObject> items )
-    {
-        for ( DimensionalItemObject i : items )
-        {
-            if ( i instanceof DataElement )
-            {
-                dataElements.add( (DataElement) i );
-            }
-            else if ( i instanceof DataElementOperand )
-            {
-                dataElementOperands.add( (DataElementOperand) i );
-            }
-            else
-            {
-                analyticsItems.add( i );
-            }
-        }
+    for (int i = 0; i < countToAdd; i++) {
+      Long orgUnitId = orgUnitsRemaining.poll();
+      OrganisationUnit orgUnit = orgUnitsById.get(orgUnitId);
+
+      readyPredictionData.add(
+          new PredictionData(orgUnit, new ArrayList<>(), Collections.emptyList()));
     }
+  }
 
-    /**
-     * Gets a batch of data from data values and analytics.
-     */
-    private void getPredictionDataBatch()
-    {
-        // Get a batch of orgUnits to fetch analytics data from, with any
-        // returned DataValues, up to analyticsBatchFetchSize.
+  /** Gets a list of organisation units that are ready for analytics data. */
+  private List<OrganisationUnit> getReadyOrgUnits() {
+    return readyPredictionData.stream().map(PredictionData::getOrgUnit).collect(toList());
+  }
 
-        getDataValues();
+  /** Adds analytics values to the ready data. */
+  private void addValuesToReadyData(List<FoundDimensionItemValue> analyticsValues) {
+    Map<OrganisationUnit, PredictionData> map =
+        readyPredictionData.stream().collect(toMap(PredictionData::getOrgUnit, identity()));
 
-        addOrgUnitsWithoutDataValues();
-
-        // Fetch analytics data from this batch of orgUnits, add to ready data.
-
-        List<FoundDimensionItemValue> analyticsValues = analyticsFetcher.getValues( getReadyOrgUnits() );
-
-        addValuesToReadyData( analyticsValues );
+    for (FoundDimensionItemValue value : analyticsValues) {
+      map.get(value.getOrganisationUnit()).getValues().add(value);
     }
-
-    /**
-     * Gets DataValues for as many orgUnits as have them (up to
-     * analyticsBatchFetchSize).
-     */
-    private void getDataValues()
-    {
-        PredictionData data;
-
-        for ( int dataCount = 0; dataCount < analyticsBatchFetchSize
-            && (data = dataValueFetcher.getData()) != null; dataCount++ )
-        {
-            readyPredictionData.add( data );
-
-            orgUnitsRemaining.remove( data.getOrgUnit().getId() );
-        }
-    }
-
-    /**
-     * If more orgUnits are needed, adds them (without data values) up to
-     * analyticsBatchFetchSize or until no more orgUnits remain.
-     */
-    private void addOrgUnitsWithoutDataValues()
-    {
-        int countToAdd = Math.min(
-            orgUnitsRemaining.size(),
-            analyticsBatchFetchSize - readyPredictionData.size() );
-
-        for ( int i = 0; i < countToAdd; i++ )
-        {
-            Long orgUnitId = orgUnitsRemaining.poll();
-            OrganisationUnit orgUnit = orgUnitsById.get( orgUnitId );
-
-            readyPredictionData.add( new PredictionData( orgUnit, new ArrayList<>(), Collections.emptyList() ) );
-        }
-    }
-
-    /**
-     * Gets a list of organisation units that are ready for analytics data.
-     */
-    private List<OrganisationUnit> getReadyOrgUnits()
-    {
-        return readyPredictionData.stream()
-            .map( PredictionData::getOrgUnit )
-            .collect( toList() );
-    }
-
-    /**
-     * Adds analytics values to the ready data.
-     */
-    private void addValuesToReadyData( List<FoundDimensionItemValue> analyticsValues )
-    {
-        Map<OrganisationUnit, PredictionData> map = readyPredictionData.stream()
-            .collect( toMap( PredictionData::getOrgUnit, identity() ) );
-
-        for ( FoundDimensionItemValue value : analyticsValues )
-        {
-            map.get( value.getOrganisationUnit() ).getValues().add( value );
-        }
-    }
+  }
 }

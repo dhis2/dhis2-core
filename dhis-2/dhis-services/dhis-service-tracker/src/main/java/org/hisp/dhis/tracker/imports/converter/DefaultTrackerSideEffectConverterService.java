@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-
 import org.hisp.dhis.rules.models.RuleAction;
 import org.hisp.dhis.rules.models.RuleActionAssign;
 import org.hisp.dhis.rules.models.RuleActionScheduleMessage;
@@ -47,143 +46,146 @@ import org.springframework.stereotype.Service;
 /**
  * @author Zubair Asghar
  */
-
 @Service
-public class DefaultTrackerSideEffectConverterService implements TrackerSideEffectConverterService
-{
-    private final Map<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>> sideEffectMap = Map.of(
-        RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect,
-        RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect,
-        RuleActionAssign.class, this::toTrackerAssignSideEffect );
+public class DefaultTrackerSideEffectConverterService implements TrackerSideEffectConverterService {
+  private final Map<Class<?>, Function<RuleEffect, TrackerRuleEngineSideEffect>> sideEffectMap =
+      Map.of(
+          RuleActionSendMessage.class, this::toTrackerSendMessageSideEffect,
+          RuleActionScheduleMessage.class, this::toTrackerScheduleMessageSideEffect,
+          RuleActionAssign.class, this::toTrackerAssignSideEffect);
 
-    private final Map<Class<? extends TrackerRuleEngineSideEffect>, Function<TrackerRuleEngineSideEffect, RuleEffect>> ruleEffectMap = Map
-        .of(
-            TrackerAssignValueSideEffect.class, this::toAssignRuleEffect,
-            TrackerSendMessageSideEffect.class, this::toSendMessageRuleEffect,
-            TrackerScheduleMessageSideEffect.class, this::toScheduleMessageRuleEffect );
+  private final Map<
+          Class<? extends TrackerRuleEngineSideEffect>,
+          Function<TrackerRuleEngineSideEffect, RuleEffect>>
+      ruleEffectMap =
+          Map.of(
+              TrackerAssignValueSideEffect.class, this::toAssignRuleEffect,
+              TrackerSendMessageSideEffect.class, this::toSendMessageRuleEffect,
+              TrackerScheduleMessageSideEffect.class, this::toScheduleMessageRuleEffect);
 
-    @Override
-    public Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
-        Map<String, List<RuleEffect>> ruleEffects )
-    {
-        Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects = new HashMap<>();
+  @Override
+  public Map<String, List<TrackerRuleEngineSideEffect>> toTrackerSideEffects(
+      Map<String, List<RuleEffect>> ruleEffects) {
+    Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects = new HashMap<>();
 
-        for ( Map.Entry<String, List<RuleEffect>> entry : ruleEffects.entrySet() )
-        {
-            if ( entry.getValue() != null && !entry.getValue().isEmpty() )
-            {
-                List<RuleEffect> ruleEffectList = entry.getValue();
+    for (Map.Entry<String, List<RuleEffect>> entry : ruleEffects.entrySet()) {
+      if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+        List<RuleEffect> ruleEffectList = entry.getValue();
 
-                trackerSideEffects.put( entry.getKey(), toTrackerSideEffectList( ruleEffectList ) );
-            }
+        trackerSideEffects.put(entry.getKey(), toTrackerSideEffectList(ruleEffectList));
+      }
+    }
+
+    return trackerSideEffects;
+  }
+
+  @Override
+  public Map<String, List<RuleEffect>> toRuleEffects(
+      Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects) {
+    Map<String, List<RuleEffect>> ruleEffects = new HashMap<>();
+
+    for (Map.Entry<String, List<TrackerRuleEngineSideEffect>> entry :
+        trackerSideEffects.entrySet()) {
+      if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+        List<TrackerRuleEngineSideEffect> trackerSideEffectsList = entry.getValue();
+
+        ruleEffects.put(entry.getKey(), toRuleEffectList(trackerSideEffectsList));
+      }
+    }
+
+    return ruleEffects;
+  }
+
+  private List<TrackerRuleEngineSideEffect> toTrackerSideEffectList(List<RuleEffect> ruleEffects) {
+    List<TrackerRuleEngineSideEffect> trackerSideEffects = new ArrayList<>();
+
+    for (RuleEffect ruleEffect : ruleEffects) {
+      if (ruleEffect != null) {
+        RuleAction action = ruleEffect.ruleAction();
+
+        if (sideEffectMap.containsKey(action.getClass().getSuperclass())) {
+          trackerSideEffects.add(
+              sideEffectMap.get(action.getClass().getSuperclass()).apply(ruleEffect));
         }
-
-        return trackerSideEffects;
+      }
     }
 
-    @Override
-    public Map<String, List<RuleEffect>> toRuleEffects(
-        Map<String, List<TrackerRuleEngineSideEffect>> trackerSideEffects )
-    {
-        Map<String, List<RuleEffect>> ruleEffects = new HashMap<>();
+    return trackerSideEffects;
+  }
 
-        for ( Map.Entry<String, List<TrackerRuleEngineSideEffect>> entry : trackerSideEffects.entrySet() )
-        {
-            if ( entry.getValue() != null && !entry.getValue().isEmpty() )
-            {
-                List<TrackerRuleEngineSideEffect> trackerSideEffectsList = entry.getValue();
+  private List<RuleEffect> toRuleEffectList(List<TrackerRuleEngineSideEffect> trackerSideEffects) {
+    List<RuleEffect> ruleEffects = new ArrayList<>();
 
-                ruleEffects.put( entry.getKey(), toRuleEffectList( trackerSideEffectsList ) );
-            }
-        }
-
-        return ruleEffects;
+    for (TrackerRuleEngineSideEffect trackerSideEffect : trackerSideEffects) {
+      if (trackerSideEffect != null) {
+        ruleEffects.add(ruleEffectMap.get(trackerSideEffect.getClass()).apply(trackerSideEffect));
+      }
     }
 
-    private List<TrackerRuleEngineSideEffect> toTrackerSideEffectList( List<RuleEffect> ruleEffects )
-    {
-        List<TrackerRuleEngineSideEffect> trackerSideEffects = new ArrayList<>();
+    return ruleEffects;
+  }
 
-        for ( RuleEffect ruleEffect : ruleEffects )
-        {
-            if ( ruleEffect != null )
-            {
-                RuleAction action = ruleEffect.ruleAction();
+  private TrackerRuleEngineSideEffect toTrackerSendMessageSideEffect(RuleEffect ruleEffect) {
+    RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleEffect.ruleAction();
 
-                if ( sideEffectMap.containsKey( action.getClass().getSuperclass() ) )
-                {
-                    trackerSideEffects
-                        .add( sideEffectMap.get( action.getClass().getSuperclass() ).apply( ruleEffect ) );
-                }
-            }
-        }
+    return TrackerSendMessageSideEffect.builder()
+        .notification(ruleActionSendMessage.notification())
+        .data(ruleActionSendMessage.data())
+        .build();
+  }
 
-        return trackerSideEffects;
-    }
+  private TrackerRuleEngineSideEffect toTrackerScheduleMessageSideEffect(RuleEffect ruleEffect) {
+    RuleActionScheduleMessage ruleActionScheduleMessage =
+        (RuleActionScheduleMessage) ruleEffect.ruleAction();
 
-    private List<RuleEffect> toRuleEffectList( List<TrackerRuleEngineSideEffect> trackerSideEffects )
-    {
-        List<RuleEffect> ruleEffects = new ArrayList<>();
+    return TrackerScheduleMessageSideEffect.builder()
+        .notification(ruleActionScheduleMessage.notification())
+        .data(ruleActionScheduleMessage.data())
+        .build();
+  }
 
-        for ( TrackerRuleEngineSideEffect trackerSideEffect : trackerSideEffects )
-        {
-            if ( trackerSideEffect != null )
-            {
-                ruleEffects.add( ruleEffectMap.get( trackerSideEffect.getClass() ).apply( trackerSideEffect ) );
-            }
-        }
+  private TrackerRuleEngineSideEffect toTrackerAssignSideEffect(RuleEffect ruleEffect) {
+    RuleActionAssign ruleActionAssign = (RuleActionAssign) ruleEffect.ruleAction();
 
-        return ruleEffects;
-    }
+    return TrackerAssignValueSideEffect.builder()
+        .content(ruleActionAssign.content())
+        .field(ruleActionAssign.field())
+        .data(ruleEffect.data())
+        .build();
+  }
 
-    private TrackerRuleEngineSideEffect toTrackerSendMessageSideEffect( RuleEffect ruleEffect )
-    {
-        RuleActionSendMessage ruleActionSendMessage = (RuleActionSendMessage) ruleEffect.ruleAction();
+  private RuleEffect toAssignRuleEffect(TrackerRuleEngineSideEffect trackerSideEffect) {
+    TrackerAssignValueSideEffect assignValueSideEffect =
+        (TrackerAssignValueSideEffect) trackerSideEffect;
 
-        return TrackerSendMessageSideEffect.builder().notification( ruleActionSendMessage.notification() )
-            .data( ruleActionSendMessage.data() )
-            .build();
-    }
+    return RuleEffect.create(
+        "",
+        RuleActionAssign.create(
+            assignValueSideEffect.getContent(),
+            assignValueSideEffect.getData(),
+            assignValueSideEffect.getField()),
+        assignValueSideEffect.getData());
+  }
 
-    private TrackerRuleEngineSideEffect toTrackerScheduleMessageSideEffect( RuleEffect ruleEffect )
-    {
-        RuleActionScheduleMessage ruleActionScheduleMessage = (RuleActionScheduleMessage) ruleEffect.ruleAction();
+  private RuleEffect toSendMessageRuleEffect(TrackerRuleEngineSideEffect trackerSideEffect) {
+    TrackerSendMessageSideEffect sendMessageSideEffect =
+        (TrackerSendMessageSideEffect) trackerSideEffect;
 
-        return TrackerScheduleMessageSideEffect.builder().notification( ruleActionScheduleMessage.notification() )
-            .data( ruleActionScheduleMessage.data() )
-            .build();
-    }
+    return RuleEffect.create(
+        "",
+        RuleActionSendMessage.create(
+            sendMessageSideEffect.getNotification(), sendMessageSideEffect.getData()),
+        sendMessageSideEffect.getData());
+  }
 
-    private TrackerRuleEngineSideEffect toTrackerAssignSideEffect( RuleEffect ruleEffect )
-    {
-        RuleActionAssign ruleActionAssign = (RuleActionAssign) ruleEffect.ruleAction();
+  private RuleEffect toScheduleMessageRuleEffect(TrackerRuleEngineSideEffect trackerSideEffect) {
+    TrackerScheduleMessageSideEffect scheduleMessageSideEffect =
+        (TrackerScheduleMessageSideEffect) trackerSideEffect;
 
-        return TrackerAssignValueSideEffect
-            .builder().content( ruleActionAssign.content() ).field( ruleActionAssign.field() ).data( ruleEffect.data() )
-            .build();
-    }
-
-    private RuleEffect toAssignRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
-    {
-        TrackerAssignValueSideEffect assignValueSideEffect = (TrackerAssignValueSideEffect) trackerSideEffect;
-
-        return RuleEffect.create( "", RuleActionAssign.create( assignValueSideEffect.getContent(),
-            assignValueSideEffect.getData(), assignValueSideEffect.getField() ), assignValueSideEffect.getData() );
-    }
-
-    private RuleEffect toSendMessageRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
-    {
-        TrackerSendMessageSideEffect sendMessageSideEffect = (TrackerSendMessageSideEffect) trackerSideEffect;
-
-        return RuleEffect.create( "", RuleActionSendMessage.create( sendMessageSideEffect.getNotification(),
-            sendMessageSideEffect.getData() ), sendMessageSideEffect.getData() );
-    }
-
-    private RuleEffect toScheduleMessageRuleEffect( TrackerRuleEngineSideEffect trackerSideEffect )
-    {
-        TrackerScheduleMessageSideEffect scheduleMessageSideEffect = (TrackerScheduleMessageSideEffect) trackerSideEffect;
-
-        return RuleEffect.create( "", RuleActionScheduleMessage.create( scheduleMessageSideEffect.getNotification(),
-            scheduleMessageSideEffect.getData() ), scheduleMessageSideEffect.getData() );
-    }
+    return RuleEffect.create(
+        "",
+        RuleActionScheduleMessage.create(
+            scheduleMessageSideEffect.getNotification(), scheduleMessageSideEffect.getData()),
+        scheduleMessageSideEffect.getData());
+  }
 }

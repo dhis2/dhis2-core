@@ -30,8 +30,7 @@ package org.hisp.dhis.common.cache;
 /**
  * @author Stian Sandvold
  */
-public enum Cacheability
-{
-    PUBLIC,
-    PRIVATE
+public enum Cacheability {
+  PUBLIC,
+  PRIVATE
 }

@@ -28,25 +28,21 @@
 package org.hisp.dhis.webapi.dimension;
 
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.PrefixedDimension;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.program.ProgramStageDataElement;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class EventAnalyticsPrefixStrategy implements PrefixStrategy
-{
-    private final String programStageUid;
+@RequiredArgsConstructor(staticName = "of")
+public class EventAnalyticsPrefixStrategy implements PrefixStrategy {
+  private final String programStageUid;
 
-    @Override
-    public String apply( PrefixedDimension pDimension )
-    {
-        if ( pDimension.getItem() instanceof DataElement ||
-            pDimension.getItem() instanceof ProgramStageDataElement )
-        {
-            return programStageUid;
-        }
-        return StringUtils.EMPTY;
+  @Override
+  public String apply(PrefixedDimension pDimension) {
+    if (pDimension.getItem() instanceof DataElement
+        || pDimension.getItem() instanceof ProgramStageDataElement) {
+      return programStageUid;
     }
+    return StringUtils.EMPTY;
+  }
 }

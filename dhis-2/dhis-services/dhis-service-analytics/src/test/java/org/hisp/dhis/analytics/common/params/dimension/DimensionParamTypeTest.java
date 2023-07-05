@@ -31,33 +31,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
 import java.util.List;
-
 import org.hisp.dhis.analytics.common.CommonQueryRequest;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link DimensionParamType}.
- */
-class DimensionParamTypeTest
-{
-    @Test
-    void mapDates()
-    {
-        CommonQueryRequest request = new CommonQueryRequest()
-            .withEventDate( "IpHINAT79UW.LAST_YEAR" )
-            .withIncidentDate( "LAST_MONTH" )
-            .withEnrollmentDate( "2021-06-30" )
-            .withLastUpdated( "TODAY" )
-            .withScheduledDate( "YESTERDAY" );
-        Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply( request );
+/** Unit tests for {@link DimensionParamType}. */
+class DimensionParamTypeTest {
+  @Test
+  void mapDates() {
+    CommonQueryRequest request =
+        new CommonQueryRequest()
+            .withEventDate("IpHINAT79UW.LAST_YEAR")
+            .withIncidentDate("LAST_MONTH")
+            .withEnrollmentDate("2021-06-30")
+            .withLastUpdated("TODAY")
+            .withScheduledDate("YESTERDAY");
+    Collection<String> dateFilters = DimensionParamType.DATE_FILTERS.getUidsGetter().apply(request);
 
-        List<String> expected = List.of( "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
+    List<String> expected =
+        List.of(
+            "IpHINAT79UW.pe:LAST_YEAR:EVENT_DATE",
             "pe:2021-06-30:ENROLLMENT_DATE",
             "pe:LAST_MONTH:INCIDENT_DATE",
             "pe:YESTERDAY:SCHEDULED_DATE",
-            "pe:TODAY:LAST_UPDATED" );
+            "pe:TODAY:LAST_UPDATED");
 
-        assertTrue( expected.containsAll( dateFilters ) );
-        assertTrue( dateFilters.containsAll( expected ) );
-    }
+    assertTrue(expected.containsAll(dateFilters));
+    assertTrue(dateFilters.containsAll(expected));
+  }
 }

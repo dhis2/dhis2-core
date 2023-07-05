@@ -32,67 +32,60 @@ import lombok.With;
 
 /**
  * @author Luca Camnbi
- *
- *         Class used to define inclusion in {@link TrackedEntityInstanceParams}
- *         of {@link EnrollmentParams} properties
- *
- * @deprecated this is a class related to "old" (deprecated) tracker which will
- *             be removed with "old" tracker. Make sure to plan migrating to new
- *             tracker.
+ *     <p>Class used to define inclusion in {@link TrackedEntityInstanceParams} of {@link
+ *     EnrollmentParams} properties
+ * @deprecated this is a class related to "old" (deprecated) tracker which will be removed with
+ *     "old" tracker. Make sure to plan migrating to new tracker.
  */
 @With
 @Value
-@Deprecated( since = "2.41" )
-public class TrackedEntityInstanceEnrollmentParams
-{
-    public static final TrackedEntityInstanceEnrollmentParams FALSE = new TrackedEntityInstanceEnrollmentParams( false,
-        EnrollmentParams.FALSE );
+@Deprecated(since = "2.41")
+public class TrackedEntityInstanceEnrollmentParams {
+  public static final TrackedEntityInstanceEnrollmentParams FALSE =
+      new TrackedEntityInstanceEnrollmentParams(false, EnrollmentParams.FALSE);
 
-    public static final TrackedEntityInstanceEnrollmentParams TRUE = new TrackedEntityInstanceEnrollmentParams( true,
-        EnrollmentParams.TRUE );
+  public static final TrackedEntityInstanceEnrollmentParams TRUE =
+      new TrackedEntityInstanceEnrollmentParams(true, EnrollmentParams.TRUE);
 
-    private boolean includeEnrollments;
+  private boolean includeEnrollments;
 
-    private EnrollmentParams enrollmentParams;
+  private EnrollmentParams enrollmentParams;
 
-    public TrackedEntityInstanceEnrollmentParams withIncludeEvents( boolean includeEvents )
-    {
-        return this.enrollmentParams.isIncludeEvents() == includeEvents ? this
-            : new TrackedEntityInstanceEnrollmentParams( includeEnrollments,
-                enrollmentParams.withIncludeEvents( includeEvents ) );
-    }
+  public TrackedEntityInstanceEnrollmentParams withIncludeEvents(boolean includeEvents) {
+    return this.enrollmentParams.isIncludeEvents() == includeEvents
+        ? this
+        : new TrackedEntityInstanceEnrollmentParams(
+            includeEnrollments, enrollmentParams.withIncludeEvents(includeEvents));
+  }
 
-    public TrackedEntityInstanceEnrollmentParams withIncludeRelationships( boolean includeRelationships )
-    {
-        return this.enrollmentParams.isIncludeRelationships() == includeRelationships ? this
-            : new TrackedEntityInstanceEnrollmentParams( includeEnrollments,
-                enrollmentParams.withIncludeRelationships( includeRelationships ) );
-    }
+  public TrackedEntityInstanceEnrollmentParams withIncludeRelationships(
+      boolean includeRelationships) {
+    return this.enrollmentParams.isIncludeRelationships() == includeRelationships
+        ? this
+        : new TrackedEntityInstanceEnrollmentParams(
+            includeEnrollments, enrollmentParams.withIncludeRelationships(includeRelationships));
+  }
 
-    public TrackedEntityInstanceEnrollmentParams withIncludeAttributes( boolean includeAttributes )
-    {
-        return this.enrollmentParams.isIncludeAttributes() == includeAttributes ? this
-            : new TrackedEntityInstanceEnrollmentParams( includeEnrollments,
-                enrollmentParams.withIncludeAttributes( includeAttributes ) );
-    }
+  public TrackedEntityInstanceEnrollmentParams withIncludeAttributes(boolean includeAttributes) {
+    return this.enrollmentParams.isIncludeAttributes() == includeAttributes
+        ? this
+        : new TrackedEntityInstanceEnrollmentParams(
+            includeEnrollments, enrollmentParams.withIncludeAttributes(includeAttributes));
+  }
 
-    public boolean isIncludeEvents()
-    {
-        return enrollmentParams.isIncludeEvents();
-    }
+  public boolean isIncludeEvents() {
+    return enrollmentParams.isIncludeEvents();
+  }
 
-    public boolean isIncludeRelationships()
-    {
-        return enrollmentParams.isIncludeRelationships();
-    }
+  public boolean isIncludeRelationships() {
+    return enrollmentParams.isIncludeRelationships();
+  }
 
-    public boolean isIncludeAttributes()
-    {
-        return enrollmentParams.isIncludeAttributes();
-    }
+  public boolean isIncludeAttributes() {
+    return enrollmentParams.isIncludeAttributes();
+  }
 
-    public boolean isIncludeDeleted()
-    {
-        return enrollmentParams.isIncludeDeleted();
-    }
+  public boolean isIncludeDeleted() {
+    return enrollmentParams.isIncludeDeleted();
+  }
 }

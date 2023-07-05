@@ -27,112 +27,93 @@
  */
 package org.hisp.dhis.dxf2.geojson;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-
 import lombok.Getter;
-
 import org.hisp.dhis.dxf2.importsummary.ImportConflict;
 import org.hisp.dhis.dxf2.importsummary.ImportConflicts;
 import org.hisp.dhis.dxf2.importsummary.ImportCount;
 import org.hisp.dhis.dxf2.importsummary.ImportStatus;
 import org.hisp.dhis.webmessage.WebMessageResponse;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-
 /**
  * Tracks the conflicts during import of GeoJSON data.
  *
  * @author Jan Bernitt
  */
-public final class GeoJsonImportReport implements ImportConflicts, WebMessageResponse
-{
-    @Getter
-    @JsonProperty
-    private final ImportCount importCount;
+public final class GeoJsonImportReport implements ImportConflicts, WebMessageResponse {
+  @Getter @JsonProperty private final ImportCount importCount;
 
-    /**
-     * Number of total conflicts. In contrast to the collection of
-     * {@link ImportConflict}s which deduplicate this variable counts each
-     * conflict added.
-     */
-    @JsonProperty
-    private int totalConflictOccurrenceCount = 0;
+  /**
+   * Number of total conflicts. In contrast to the collection of {@link ImportConflict}s which
+   * deduplicate this variable counts each conflict added.
+   */
+  @JsonProperty private int totalConflictOccurrenceCount = 0;
 
-    private final Map<String, ImportConflict> conflicts;
+  private final Map<String, ImportConflict> conflicts;
 
-    public GeoJsonImportReport()
-    {
-        this( new ImportCount(), 0, List.of() );
+  public GeoJsonImportReport() {
+    this(new ImportCount(), 0, List.of());
+  }
+
+  /** Only for deserialisation (when using redis) */
+  @JsonCreator
+  public GeoJsonImportReport(
+      @JsonProperty("importCount") ImportCount importCount,
+      @JsonProperty("totalConflictOccurrenceCount") int totalConflictOccurrenceCount,
+      @JsonProperty("conflicts") List<ImportConflict> conflicts) {
+    this.importCount = importCount;
+    this.conflicts = new LinkedHashMap<>();
+    conflicts.forEach(this::addConflict);
+    // OBS! setting the total count has to be after adding the conflicts
+    this.totalConflictOccurrenceCount = totalConflictOccurrenceCount;
+  }
+
+  @JsonProperty
+  public ImportStatus getStatus() {
+    int ignored = importCount.getIgnored();
+    if (ignored == 0 && totalConflictOccurrenceCount == 0) {
+      return ImportStatus.SUCCESS;
     }
+    int imported = importCount.getImported();
+    int updated = importCount.getUpdated();
+    return imported + updated == 0 ? ImportStatus.ERROR : ImportStatus.WARNING;
+  }
 
-    /**
-     * Only for deserialisation (when using redis)
-     */
-    @JsonCreator
-    public GeoJsonImportReport(
-        @JsonProperty( "importCount" ) ImportCount importCount,
-        @JsonProperty( "totalConflictOccurrenceCount" ) int totalConflictOccurrenceCount,
-        @JsonProperty( "conflicts" ) List<ImportConflict> conflicts )
-    {
-        this.importCount = importCount;
-        this.conflicts = new LinkedHashMap<>();
-        conflicts.forEach( this::addConflict );
-        // OBS! setting the total count has to be after adding the conflicts
-        this.totalConflictOccurrenceCount = totalConflictOccurrenceCount;
-    }
+  @Override
+  @JsonProperty
+  public Iterable<ImportConflict> getConflicts() {
+    return conflicts.values();
+  }
 
-    @JsonProperty
-    public ImportStatus getStatus()
-    {
-        int ignored = importCount.getIgnored();
-        if ( ignored == 0 && totalConflictOccurrenceCount == 0 )
-        {
-            return ImportStatus.SUCCESS;
-        }
-        int imported = importCount.getImported();
-        int updated = importCount.getUpdated();
-        return imported + updated == 0 ? ImportStatus.ERROR : ImportStatus.WARNING;
-    }
+  @Override
+  public void addConflict(ImportConflict conflict) {
+    totalConflictOccurrenceCount++;
+    conflicts.compute(
+        conflict.getGroupingKey(),
+        (key, aggregate) -> aggregate == null ? conflict : aggregate.mergeWith(conflict));
+  }
 
-    @Override
-    @JsonProperty
-    public Iterable<ImportConflict> getConflicts()
-    {
-        return conflicts.values();
-    }
+  @Override
+  public String getConflictsDescription() {
+    return conflicts.toString();
+  }
 
-    @Override
-    public void addConflict( ImportConflict conflict )
-    {
-        totalConflictOccurrenceCount++;
-        conflicts.compute( conflict.getGroupingKey(),
-            ( key, aggregate ) -> aggregate == null ? conflict : aggregate.mergeWith( conflict ) );
-    }
+  @Override
+  public int getConflictCount() {
+    return conflicts.size();
+  }
 
-    @Override
-    public String getConflictsDescription()
-    {
-        return conflicts.toString();
-    }
+  @Override
+  public int getTotalConflictOccurrenceCount() {
+    return totalConflictOccurrenceCount;
+  }
 
-    @Override
-    public int getConflictCount()
-    {
-        return conflicts.size();
-    }
-
-    @Override
-    public int getTotalConflictOccurrenceCount()
-    {
-        return totalConflictOccurrenceCount;
-    }
-
-    @Override
-    public String toString()
-    {
-        return importCount + "\n" + conflicts;
-    }
+  @Override
+  public String toString() {
+    return importCount + "\n" + conflicts;
+  }
 }

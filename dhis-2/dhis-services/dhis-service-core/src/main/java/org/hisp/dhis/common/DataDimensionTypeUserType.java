@@ -32,11 +32,8 @@ import org.hisp.dhis.hibernate.EnumUserType;
 /**
  * @author Lars Helge Overland
  */
-public class DataDimensionTypeUserType
-    extends EnumUserType<DataDimensionType>
-{
-    public DataDimensionTypeUserType()
-    {
-        super( DataDimensionType.class );
-    }
+public class DataDimensionTypeUserType extends EnumUserType<DataDimensionType> {
+  public DataDimensionTypeUserType() {
+    super(DataDimensionType.class);
+  }
 }

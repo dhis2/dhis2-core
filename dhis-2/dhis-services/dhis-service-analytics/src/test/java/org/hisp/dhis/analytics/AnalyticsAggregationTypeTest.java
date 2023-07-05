@@ -50,29 +50,29 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Luciano Fiandesio
  */
-class AnalyticsAggregationTypeTest
-{
-    @Test
-    void verifyFromAggregationType()
-    {
-        assertAggregationType( fromAggregationType( AVERAGE_SUM_ORG_UNIT ), SUM, AVERAGE );
-        assertAggregationType( fromAggregationType( MAX_SUM_ORG_UNIT ), SUM, MAX );
-        assertAggregationType( fromAggregationType( MIN_SUM_ORG_UNIT ), SUM, MIN );
-        assertAggregationType( fromAggregationType( LAST ), SUM, LAST );
-        assertAggregationType( fromAggregationType( LAST_AVERAGE_ORG_UNIT ), AVERAGE, LAST );
-        assertAggregationType( fromAggregationType( LAST_LAST_ORG_UNIT ), LAST, LAST );
-        assertAggregationType( fromAggregationType( FIRST ), SUM, FIRST );
-        assertAggregationType( fromAggregationType( FIRST_AVERAGE_ORG_UNIT ), AVERAGE, FIRST );
-        assertAggregationType( fromAggregationType( FIRST_FIRST_ORG_UNIT ), FIRST, FIRST );
-        assertAggregationType( fromAggregationType( SUM ), SUM, SUM );
-        assertAggregationType( fromAggregationType( LAST_IN_PERIOD ), SUM, LAST_IN_PERIOD );
-        assertAggregationType( fromAggregationType( LAST_IN_PERIOD_AVERAGE_ORG_UNIT ), AVERAGE, LAST_IN_PERIOD );
-    }
+class AnalyticsAggregationTypeTest {
+  @Test
+  void verifyFromAggregationType() {
+    assertAggregationType(fromAggregationType(AVERAGE_SUM_ORG_UNIT), SUM, AVERAGE);
+    assertAggregationType(fromAggregationType(MAX_SUM_ORG_UNIT), SUM, MAX);
+    assertAggregationType(fromAggregationType(MIN_SUM_ORG_UNIT), SUM, MIN);
+    assertAggregationType(fromAggregationType(LAST), SUM, LAST);
+    assertAggregationType(fromAggregationType(LAST_AVERAGE_ORG_UNIT), AVERAGE, LAST);
+    assertAggregationType(fromAggregationType(LAST_LAST_ORG_UNIT), LAST, LAST);
+    assertAggregationType(fromAggregationType(FIRST), SUM, FIRST);
+    assertAggregationType(fromAggregationType(FIRST_AVERAGE_ORG_UNIT), AVERAGE, FIRST);
+    assertAggregationType(fromAggregationType(FIRST_FIRST_ORG_UNIT), FIRST, FIRST);
+    assertAggregationType(fromAggregationType(SUM), SUM, SUM);
+    assertAggregationType(fromAggregationType(LAST_IN_PERIOD), SUM, LAST_IN_PERIOD);
+    assertAggregationType(
+        fromAggregationType(LAST_IN_PERIOD_AVERAGE_ORG_UNIT), AVERAGE, LAST_IN_PERIOD);
+  }
 
-    private void assertAggregationType( AnalyticsAggregationType analyticsAggregationType,
-        AggregationType aggregationType, AggregationType periodAggregationType )
-    {
-        assertEquals( analyticsAggregationType.getAggregationType(), aggregationType );
-        assertEquals( analyticsAggregationType.getPeriodAggregationType(), periodAggregationType );
-    }
+  private void assertAggregationType(
+      AnalyticsAggregationType analyticsAggregationType,
+      AggregationType aggregationType,
+      AggregationType periodAggregationType) {
+    assertEquals(analyticsAggregationType.getAggregationType(), aggregationType);
+    assertEquals(analyticsAggregationType.getPeriodAggregationType(), periodAggregationType);
+  }
 }

@@ -27,50 +27,42 @@
  */
 package org.hisp.dhis.webapi.webdomain.approval;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.common.UID;
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+@JacksonXmlRootElement(localName = "approval", namespace = DxfNamespaces.DXF_2_0)
+public class ApprovalDto {
+  private String ou;
 
-@JacksonXmlRootElement( localName = "approval", namespace = DxfNamespaces.DXF_2_0 )
-public class ApprovalDto
-{
-    private String ou;
+  private String aoc;
 
-    private String aoc;
+  public ApprovalDto() {}
 
-    public ApprovalDto()
-    {
-    }
+  @JsonProperty
+  @OpenApi.Property({UID.class, OrganisationUnit.class})
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getOu() {
+    return ou;
+  }
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, OrganisationUnit.class } )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getOu()
-    {
-        return ou;
-    }
+  public void setOu(String ou) {
+    this.ou = ou;
+  }
 
-    public void setOu( String ou )
-    {
-        this.ou = ou;
-    }
+  @JsonProperty
+  @OpenApi.Property({UID.class, CategoryOptionCombo.class})
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public String getAoc() {
+    return aoc;
+  }
 
-    @JsonProperty
-    @OpenApi.Property( { UID.class, CategoryOptionCombo.class } )
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public String getAoc()
-    {
-        return aoc;
-    }
-
-    public void setAoc( String aoc )
-    {
-        this.aoc = aoc;
-    }
+  public void setAoc(String aoc) {
+    this.aoc = aoc;
+  }
 }

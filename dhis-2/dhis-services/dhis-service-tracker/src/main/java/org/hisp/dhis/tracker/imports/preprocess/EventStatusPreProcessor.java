@@ -38,18 +38,13 @@ import org.springframework.stereotype.Component;
  * @author Abyot Asalefew Gizaw <abyota@gmail.com>
  */
 @Component
-public class EventStatusPreProcessor
-    implements BundlePreProcessor
-{
-    @Override
-    public void process( TrackerBundle bundle )
-    {
-        for ( Event event : bundle.getEvents() )
-        {
-            if ( event.getStatus().equals( EventStatus.VISITED ) )
-            {
-                event.setStatus( EventStatus.ACTIVE );
-            }
-        }
+public class EventStatusPreProcessor implements BundlePreProcessor {
+  @Override
+  public void process(TrackerBundle bundle) {
+    for (Event event : bundle.getEvents()) {
+      if (event.getStatus().equals(EventStatus.VISITED)) {
+        event.setStatus(EventStatus.ACTIVE);
+      }
     }
+  }
 }

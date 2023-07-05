@@ -27,6 +27,8 @@
  */
 package org.hisp.dhis.de.action;
 
+import com.google.common.collect.Sets;
+import com.opensymphony.xwork2.Action;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -38,7 +40,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.struts2.ServletActionContext;
 import org.hisp.dhis.category.Category;
 import org.hisp.dhis.category.CategoryCombo;
@@ -64,266 +65,232 @@ import org.hisp.dhis.util.DateUtils;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.google.common.collect.Sets;
-import com.opensymphony.xwork2.Action;
-
 /**
  * @author Lars Helge Overland
  */
-public class GetMetaDataAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetMetaDataAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private DataElementService dataElementService;
+  private DataElementService dataElementService;
 
-    public void setDataElementService( DataElementService dataElementService )
-    {
-        this.dataElementService = dataElementService;
+  public void setDataElementService(DataElementService dataElementService) {
+    this.dataElementService = dataElementService;
+  }
+
+  private IndicatorService indicatorService;
+
+  public void setIndicatorService(IndicatorService indicatorService) {
+    this.indicatorService = indicatorService;
+  }
+
+  private ExpressionService expressionService;
+
+  public void setExpressionService(ExpressionService expressionService) {
+    this.expressionService = expressionService;
+  }
+
+  private CategoryService categoryService;
+
+  public void setCategoryService(CategoryService categoryService) {
+    this.categoryService = categoryService;
+  }
+
+  private CurrentUserService currentUserService;
+
+  public void setCurrentUserService(CurrentUserService currentUserService) {
+    this.currentUserService = currentUserService;
+  }
+
+  @Autowired private DataSetService dataSetService;
+
+  @Autowired private IdentifiableObjectManager identifiableObjectManager;
+
+  @Autowired protected UserSettingService userSettingService;
+
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
+
+  private Collection<DataElement> significantZeros;
+
+  public Collection<DataElement> getSignificantZeros() {
+    return significantZeros;
+  }
+
+  private Collection<DataElement> dataElements;
+
+  public Collection<DataElement> getDataElements() {
+    return dataElements;
+  }
+
+  private List<DataElement> dataElementsWithOptionSet = new ArrayList<>();
+
+  public List<DataElement> getDataElementsWithOptionSet() {
+    return dataElementsWithOptionSet;
+  }
+
+  private Collection<Indicator> indicators;
+
+  public Collection<Indicator> getIndicators() {
+    return indicators;
+  }
+
+  private List<DataSet> dataSets;
+
+  public List<DataSet> getDataSets() {
+    return dataSets;
+  }
+
+  private boolean emptyOrganisationUnits;
+
+  public boolean isEmptyOrganisationUnits() {
+    return emptyOrganisationUnits;
+  }
+
+  private List<CategoryCombo> categoryCombos;
+
+  public List<CategoryCombo> getCategoryCombos() {
+    return categoryCombos;
+  }
+
+  private List<Category> categories;
+
+  public List<Category> getCategories() {
+    return categories;
+  }
+
+  private CategoryCombo defaultCategoryCombo;
+
+  public CategoryCombo getDefaultCategoryCombo() {
+    return defaultCategoryCombo;
+  }
+
+  private Map<String, List<CategoryOption>> categoryOptionMap = new HashMap<>();
+
+  public Map<String, List<CategoryOption>> getCategoryOptionMap() {
+    return categoryOptionMap;
+  }
+
+  private List<LockException> lockExceptions;
+
+  public List<LockException> getLockExceptions() {
+    return lockExceptions;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    User user = currentUserService.getCurrentUser();
+
+    Locale dbLocale = getLocaleWithDefault(new TranslateParams(true));
+    CurrentUserUtil.setUserSetting(UserSettingKey.DB_LOCALE, dbLocale);
+
+    Date lastUpdated =
+        DateUtils.max(
+            Sets.newHashSet(
+                identifiableObjectManager.getLastUpdated(DataElement.class),
+                identifiableObjectManager.getLastUpdated(OptionSet.class),
+                identifiableObjectManager.getLastUpdated(Indicator.class),
+                identifiableObjectManager.getLastUpdated(DataSet.class),
+                identifiableObjectManager.getLastUpdated(CategoryCombo.class),
+                identifiableObjectManager.getLastUpdated(Category.class),
+                identifiableObjectManager.getLastUpdated(CategoryOption.class)));
+
+    String tag = ContextUtils.getEtag(lastUpdated, user);
+
+    if (ContextUtils.isNotModified(
+        ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag)) {
+      return SUCCESS;
     }
 
-    private IndicatorService indicatorService;
+    if (user != null && user.getOrganisationUnits().isEmpty()) {
+      emptyOrganisationUnits = true;
 
-    public void setIndicatorService( IndicatorService indicatorService )
-    {
-        this.indicatorService = indicatorService;
+      return SUCCESS;
     }
 
-    private ExpressionService expressionService;
+    significantZeros = dataElementService.getDataElementsByZeroIsSignificant(true);
 
-    public void setExpressionService( ExpressionService expressionService )
-    {
-        this.expressionService = expressionService;
+    dataElements = dataElementService.getDataElementsWithDataSets();
+
+    for (DataElement dataElement : dataElements) {
+      if (dataElement != null && dataElement.getOptionSet() != null) {
+        dataElementsWithOptionSet.add(dataElement);
+      }
     }
 
-    private CategoryService categoryService;
+    indicators = indicatorService.getIndicatorsWithDataSets();
 
-    public void setCategoryService( CategoryService categoryService )
-    {
-        this.categoryService = categoryService;
+    expressionService.substituteIndicatorExpressions(indicators);
+
+    dataSets = dataSetService.getUserDataWrite(user);
+
+    Set<CategoryCombo> categoryComboSet = new HashSet<>();
+    Set<Category> categorySet = new HashSet<>();
+
+    for (DataSet dataSet : dataSets) {
+      if (dataSet.getCategoryCombo() != null) {
+        categoryComboSet.add(dataSet.getCategoryCombo());
+      }
     }
 
-    private CurrentUserService currentUserService;
-
-    public void setCurrentUserService( CurrentUserService currentUserService )
-    {
-        this.currentUserService = currentUserService;
+    for (CategoryCombo categoryCombo : categoryComboSet) {
+      if (categoryCombo.getCategories() != null) {
+        categorySet.addAll(categoryCombo.getCategories());
+      }
     }
 
-    @Autowired
-    private DataSetService dataSetService;
+    categoryCombos = new ArrayList<>(categoryComboSet);
+    categories = new ArrayList<>(categorySet);
 
-    @Autowired
-    private IdentifiableObjectManager identifiableObjectManager;
-
-    @Autowired
-    protected UserSettingService userSettingService;
-
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
-
-    private Collection<DataElement> significantZeros;
-
-    public Collection<DataElement> getSignificantZeros()
-    {
-        return significantZeros;
+    for (Category category : categories) {
+      List<CategoryOption> categoryOptions =
+          new ArrayList<>(categoryService.getDataWriteCategoryOptions(category, user));
+      Collections.sort(categoryOptions);
+      categoryOptionMap.put(category.getUid(), categoryOptions);
     }
 
-    private Collection<DataElement> dataElements;
+    Set<String> nonAccessibleDataSetIds = new HashSet<>();
 
-    public Collection<DataElement> getDataElements()
-    {
-        return dataElements;
-    }
+    for (DataSet dataSet : dataSets) {
+      CategoryCombo categoryCombo = dataSet.getCategoryCombo();
 
-    private List<DataElement> dataElementsWithOptionSet = new ArrayList<>();
-
-    public List<DataElement> getDataElementsWithOptionSet()
-    {
-        return dataElementsWithOptionSet;
-    }
-
-    private Collection<Indicator> indicators;
-
-    public Collection<Indicator> getIndicators()
-    {
-        return indicators;
-    }
-
-    private List<DataSet> dataSets;
-
-    public List<DataSet> getDataSets()
-    {
-        return dataSets;
-    }
-
-    private boolean emptyOrganisationUnits;
-
-    public boolean isEmptyOrganisationUnits()
-    {
-        return emptyOrganisationUnits;
-    }
-
-    private List<CategoryCombo> categoryCombos;
-
-    public List<CategoryCombo> getCategoryCombos()
-    {
-        return categoryCombos;
-    }
-
-    private List<Category> categories;
-
-    public List<Category> getCategories()
-    {
-        return categories;
-    }
-
-    private CategoryCombo defaultCategoryCombo;
-
-    public CategoryCombo getDefaultCategoryCombo()
-    {
-        return defaultCategoryCombo;
-    }
-
-    private Map<String, List<CategoryOption>> categoryOptionMap = new HashMap<>();
-
-    public Map<String, List<CategoryOption>> getCategoryOptionMap()
-    {
-        return categoryOptionMap;
-    }
-
-    private List<LockException> lockExceptions;
-
-    public List<LockException> getLockExceptions()
-    {
-        return lockExceptions;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        User user = currentUserService.getCurrentUser();
-
-        Locale dbLocale = getLocaleWithDefault( new TranslateParams( true ) );
-        CurrentUserUtil.setUserSetting( UserSettingKey.DB_LOCALE, dbLocale );
-
-        Date lastUpdated = DateUtils.max( Sets.newHashSet(
-            identifiableObjectManager.getLastUpdated( DataElement.class ),
-            identifiableObjectManager.getLastUpdated( OptionSet.class ),
-            identifiableObjectManager.getLastUpdated( Indicator.class ),
-            identifiableObjectManager.getLastUpdated( DataSet.class ),
-            identifiableObjectManager.getLastUpdated( CategoryCombo.class ),
-            identifiableObjectManager.getLastUpdated( Category.class ),
-            identifiableObjectManager.getLastUpdated( CategoryOption.class ) ) );
-
-        String tag = ContextUtils.getEtag( lastUpdated, user );
-
-        if ( ContextUtils.isNotModified( ServletActionContext.getRequest(), ServletActionContext.getResponse(), tag ) )
-        {
-            return SUCCESS;
+      if (categoryCombo != null && categoryCombo.getCategories() != null) {
+        for (Category category : categoryCombo.getCategories()) {
+          if (!categoryOptionMap.containsKey(category.getUid())
+              || categoryOptionMap.get(category.getUid()).isEmpty()) {
+            nonAccessibleDataSetIds.add(dataSet.getUid());
+            break;
+          }
         }
-
-        if ( user != null && user.getOrganisationUnits().isEmpty() )
-        {
-            emptyOrganisationUnits = true;
-
-            return SUCCESS;
-        }
-
-        significantZeros = dataElementService.getDataElementsByZeroIsSignificant( true );
-
-        dataElements = dataElementService.getDataElementsWithDataSets();
-
-        for ( DataElement dataElement : dataElements )
-        {
-            if ( dataElement != null && dataElement.getOptionSet() != null )
-            {
-                dataElementsWithOptionSet.add( dataElement );
-            }
-        }
-
-        indicators = indicatorService.getIndicatorsWithDataSets();
-
-        expressionService.substituteIndicatorExpressions( indicators );
-
-        dataSets = dataSetService.getUserDataWrite( user );
-
-        Set<CategoryCombo> categoryComboSet = new HashSet<>();
-        Set<Category> categorySet = new HashSet<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            if ( dataSet.getCategoryCombo() != null )
-            {
-                categoryComboSet.add( dataSet.getCategoryCombo() );
-            }
-        }
-
-        for ( CategoryCombo categoryCombo : categoryComboSet )
-        {
-            if ( categoryCombo.getCategories() != null )
-            {
-                categorySet.addAll( categoryCombo.getCategories() );
-            }
-        }
-
-        categoryCombos = new ArrayList<>( categoryComboSet );
-        categories = new ArrayList<>( categorySet );
-
-        for ( Category category : categories )
-        {
-            List<CategoryOption> categoryOptions = new ArrayList<>(
-                categoryService.getDataWriteCategoryOptions( category, user ) );
-            Collections.sort( categoryOptions );
-            categoryOptionMap.put( category.getUid(), categoryOptions );
-        }
-
-        Set<String> nonAccessibleDataSetIds = new HashSet<>();
-
-        for ( DataSet dataSet : dataSets )
-        {
-            CategoryCombo categoryCombo = dataSet.getCategoryCombo();
-
-            if ( categoryCombo != null && categoryCombo.getCategories() != null )
-            {
-                for ( Category category : categoryCombo.getCategories() )
-                {
-                    if ( !categoryOptionMap.containsKey( category.getUid() )
-                        || categoryOptionMap.get( category.getUid() ).isEmpty() )
-                    {
-                        nonAccessibleDataSetIds.add( dataSet.getUid() );
-                        break;
-                    }
-                }
-            }
-        }
-
-        dataSets = dataSets.stream().filter( dataSet -> !nonAccessibleDataSetIds.contains( dataSet.getUid() ) )
-            .collect( Collectors.toList() );
-
-        lockExceptions = dataSetService.getAllLockExceptions();
-
-        Collections.sort( dataSets );
-        Collections.sort( categoryCombos );
-        Collections.sort( categories );
-
-        defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
-
-        return SUCCESS;
+      }
     }
 
-    private Locale getLocaleWithDefault( TranslateParams translateParams )
-    {
-        return translateParams.isTranslate()
-            ? translateParams.getLocaleWithDefault(
-                (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE ) )
-            : null;
-    }
+    dataSets =
+        dataSets.stream()
+            .filter(dataSet -> !nonAccessibleDataSetIds.contains(dataSet.getUid()))
+            .collect(Collectors.toList());
+
+    lockExceptions = dataSetService.getAllLockExceptions();
+
+    Collections.sort(dataSets);
+    Collections.sort(categoryCombos);
+    Collections.sort(categories);
+
+    defaultCategoryCombo = categoryService.getDefaultCategoryCombo();
+
+    return SUCCESS;
+  }
+
+  private Locale getLocaleWithDefault(TranslateParams translateParams) {
+    return translateParams.isTranslate()
+        ? translateParams.getLocaleWithDefault(
+            (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE))
+        : null;
+  }
 }

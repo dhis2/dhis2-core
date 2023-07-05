@@ -28,10 +28,8 @@
 package org.hisp.dhis.webapi.controller;
 
 import java.io.IOException;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.schema.Schema;
@@ -47,67 +45,62 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "system" )
+@OpenApi.Tags("system")
 @Controller
-public class IndexController
-{
-    private final SchemaService schemaService;
+public class IndexController {
+  private final SchemaService schemaService;
 
-    private final ContextService contextService;
+  private final ContextService contextService;
 
-    public IndexController( SchemaService schemaService,
-        ContextService contextService )
-    {
-        this.schemaService = schemaService;
-        this.contextService = contextService;
+  public IndexController(SchemaService schemaService, ContextService contextService) {
+    this.schemaService = schemaService;
+    this.contextService = contextService;
+  }
+
+  // --------------------------------------------------------------------------
+  // GET
+  // --------------------------------------------------------------------------
+
+  @GetMapping("/api")
+  public void getIndex(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    String location = response.encodeRedirectURL("/resources");
+    response.sendRedirect(ContextUtils.getRootPath(request) + location);
+  }
+
+  @GetMapping("/")
+  public void getIndexWithSlash(HttpServletRequest request, HttpServletResponse response)
+      throws IOException {
+    String location = response.encodeRedirectURL("/resources");
+    response.sendRedirect(ContextUtils.getRootPath(request) + location);
+  }
+
+  @GetMapping("/resources")
+  public @ResponseBody IndexResources getResources() {
+    return createIndexResources();
+  }
+
+  private IndexResources createIndexResources() {
+    IndexResources indexResources = new IndexResources();
+
+    for (Schema schema : schemaService.getSchemas()) {
+      if (schema.hasApiEndpoint()) {
+        indexResources
+            .getResources()
+            .add(
+                new IndexResource(
+                    beautify(schema.getPlural()),
+                    schema.getSingular(),
+                    schema.getPlural(),
+                    contextService.getApiPath() + schema.getRelativeApiEndpoint()));
+      }
     }
 
-    // --------------------------------------------------------------------------
-    // GET
-    // --------------------------------------------------------------------------
+    return indexResources;
+  }
 
-    @GetMapping( "/api" )
-    public void getIndex( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        String location = response.encodeRedirectURL( "/resources" );
-        response.sendRedirect( ContextUtils.getRootPath( request ) + location );
-    }
-
-    @GetMapping( "/" )
-    public void getIndexWithSlash( HttpServletRequest request, HttpServletResponse response )
-        throws IOException
-    {
-        String location = response.encodeRedirectURL( "/resources" );
-        response.sendRedirect( ContextUtils.getRootPath( request ) + location );
-    }
-
-    @GetMapping( "/resources" )
-    public @ResponseBody IndexResources getResources()
-    {
-        return createIndexResources();
-    }
-
-    private IndexResources createIndexResources()
-    {
-        IndexResources indexResources = new IndexResources();
-
-        for ( Schema schema : schemaService.getSchemas() )
-        {
-            if ( schema.hasApiEndpoint() )
-            {
-                indexResources.getResources()
-                    .add( new IndexResource( beautify( schema.getPlural() ), schema.getSingular(),
-                        schema.getPlural(), contextService.getApiPath() + schema.getRelativeApiEndpoint() ) );
-            }
-        }
-
-        return indexResources;
-    }
-
-    private String beautify( String name )
-    {
-        String[] camelCaseWords = StringUtils.capitalize( name ).split( "(?=[A-Z])" );
-        return StringUtils.join( camelCaseWords, " " ).trim();
-    }
+  private String beautify(String name) {
+    String[] camelCaseWords = StringUtils.capitalize(name).split("(?=[A-Z])");
+    return StringUtils.join(camelCaseWords, " ").trim();
+  }
 }

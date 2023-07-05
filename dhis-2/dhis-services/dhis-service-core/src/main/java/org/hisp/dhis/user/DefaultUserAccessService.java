@@ -28,9 +28,7 @@
 package org.hisp.dhis.user;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.GenericStore;
 import org.hisp.dhis.user.sharing.UserAccess;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -41,41 +39,36 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.user.UserAccessService" )
-public class DefaultUserAccessService implements UserAccessService
-{
-    @Qualifier( "org.hisp.dhis.user.UserAccessStore" )
-    private final GenericStore<UserAccess> userAccessStore;
+@Service("org.hisp.dhis.user.UserAccessService")
+public class DefaultUserAccessService implements UserAccessService {
+  @Qualifier("org.hisp.dhis.user.UserAccessStore")
+  private final GenericStore<UserAccess> userAccessStore;
 
-    // -------------------------------------------------------------------------
-    // UserGroupAccess
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // UserGroupAccess
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional
-    public void addUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.save( userAccess );
-    }
+  @Override
+  @Transactional
+  public void addUserAccess(UserAccess userAccess) {
+    userAccessStore.save(userAccess);
+  }
 
-    @Override
-    @Transactional
-    public void updateUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.update( userAccess );
-    }
+  @Override
+  @Transactional
+  public void updateUserAccess(UserAccess userAccess) {
+    userAccessStore.update(userAccess);
+  }
 
-    @Override
-    @Transactional
-    public void deleteUserAccess( UserAccess userAccess )
-    {
-        userAccessStore.delete( userAccess );
-    }
+  @Override
+  @Transactional
+  public void deleteUserAccess(UserAccess userAccess) {
+    userAccessStore.delete(userAccess);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<UserAccess> getAllUserAccesses()
-    {
-        return userAccessStore.getAll();
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<UserAccess> getAllUserAccesses() {
+    return userAccessStore.getAll();
+  }
 }

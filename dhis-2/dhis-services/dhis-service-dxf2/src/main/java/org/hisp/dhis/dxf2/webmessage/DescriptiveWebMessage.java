@@ -27,49 +27,38 @@
  */
 package org.hisp.dhis.dxf2.webmessage;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
-
 import org.hisp.dhis.feedback.Status;
 import org.springframework.http.HttpStatus;
-
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Lars Helge Overland
  */
-public class DescriptiveWebMessage
-    extends WebMessage
-{
-    private String description;
+public class DescriptiveWebMessage extends WebMessage {
+  private String description;
 
-    /**
-     * Only for deserialisation
-     */
-    public DescriptiveWebMessage()
-    {
-        super();
-    }
+  /** Only for deserialisation */
+  public DescriptiveWebMessage() {
+    super();
+  }
 
-    public DescriptiveWebMessage( Status status, HttpStatus httpStatus )
-    {
-        super( status, httpStatus );
-    }
+  public DescriptiveWebMessage(Status status, HttpStatus httpStatus) {
+    super(status, httpStatus);
+  }
 
-    @JsonProperty
-    public String getDescription()
-    {
-        return description;
-    }
+  @JsonProperty
+  public String getDescription() {
+    return description;
+  }
 
-    public DescriptiveWebMessage setDescription( String description )
-    {
-        this.description = description;
-        return this;
-    }
+  public DescriptiveWebMessage setDescription(String description) {
+    this.description = description;
+    return this;
+  }
 
-    public DescriptiveWebMessage setDescription( BooleanSupplier when, Supplier<String> thenValue )
-    {
-        return when.getAsBoolean() ? setDescription( thenValue.get() ) : this;
-    }
+  public DescriptiveWebMessage setDescription(BooleanSupplier when, Supplier<String> thenValue) {
+    return when.getAsBoolean() ? setDescription(thenValue.get()) : this;
+  }
 }

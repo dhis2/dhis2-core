@@ -37,44 +37,36 @@ import javax.sql.DataSource;
  * @since 2.0.0
  */
 public abstract class AbstractDataSourcePoolMetadata<T extends DataSource>
-    implements DataSourcePoolMetadata
-{
+    implements DataSourcePoolMetadata {
 
-    private final T dataSource;
+  private final T dataSource;
 
-    /**
-     * Create an instance with the data source to use.
-     *
-     * @param dataSource the data source
-     */
-    protected AbstractDataSourcePoolMetadata( T dataSource )
-    {
-        this.dataSource = dataSource;
+  /**
+   * Create an instance with the data source to use.
+   *
+   * @param dataSource the data source
+   */
+  protected AbstractDataSourcePoolMetadata(T dataSource) {
+    this.dataSource = dataSource;
+  }
+
+  @Override
+  public Float getUsage() {
+    Integer maxSize = getMax();
+    Integer currentSize = getActive();
+    if (maxSize == null || currentSize == null) {
+      return null;
     }
-
-    @Override
-    public Float getUsage()
-    {
-        Integer maxSize = getMax();
-        Integer currentSize = getActive();
-        if ( maxSize == null || currentSize == null )
-        {
-            return null;
-        }
-        if ( maxSize < 0 )
-        {
-            return -1F;
-        }
-        if ( currentSize == 0 )
-        {
-            return 0F;
-        }
-        return (float) currentSize / (float) maxSize;
+    if (maxSize < 0) {
+      return -1F;
     }
-
-    protected final T getDataSource()
-    {
-        return this.dataSource;
+    if (currentSize == 0) {
+      return 0F;
     }
+    return (float) currentSize / (float) maxSize;
+  }
 
+  protected final T getDataSource() {
+    return this.dataSource;
+  }
 }

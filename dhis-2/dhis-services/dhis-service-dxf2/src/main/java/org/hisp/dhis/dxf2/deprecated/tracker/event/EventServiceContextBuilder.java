@@ -31,9 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.tuple.Pair;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dxf2.deprecated.tracker.report.EventRow;
@@ -49,66 +47,74 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class EventServiceContextBuilder
-{
+public class EventServiceContextBuilder {
 
-    private final TrackedEntityInstanceService entityInstanceService;
+  private final TrackedEntityInstanceService entityInstanceService;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
+  private final TrackedEntityProgramOwnerService trackedEntityProgramOwnerService;
 
-    private final OrganisationUnitService organisationUnitService;
+  private final OrganisationUnitService organisationUnitService;
 
-    public EventContext build( List<EventRow> eventRowList )
-    {
-        Map<String, List<EventRow>> eventsByProgramUid = eventRowList.stream()
-            .collect( Collectors.groupingBy( EventRow::getProgram ) );
+  public EventContext build(List<EventRow> eventRowList) {
+    Map<String, List<EventRow>> eventsByProgramUid =
+        eventRowList.stream().collect(Collectors.groupingBy(EventRow::getProgram));
 
-        List<String> trackedEntityInstanceUids = eventRowList.stream()
-            .map( EventRow::getTrackedEntityInstance )
-            .filter( Objects::nonNull )
+    List<String> trackedEntityInstanceUids =
+        eventRowList.stream()
+            .map(EventRow::getTrackedEntityInstance)
+            .filter(Objects::nonNull)
             .distinct()
-            .collect( Collectors.toList() );
+            .collect(Collectors.toList());
 
-        Map<String, TrackedEntityOuInfo> trackedEntityInstanceByUid = entityInstanceService
-            .getTrackedEntityOuInfoByUid( trackedEntityInstanceUids ).stream()
-            .collect( Collectors.toMap(
-                TrackedEntityOuInfo::trackedEntityUid,
-                trackedEntityOuInfo -> trackedEntityOuInfo ) );
+    Map<String, TrackedEntityOuInfo> trackedEntityInstanceByUid =
+        entityInstanceService.getTrackedEntityOuInfoByUid(trackedEntityInstanceUids).stream()
+            .collect(
+                Collectors.toMap(
+                    TrackedEntityOuInfo::trackedEntityUid,
+                    trackedEntityOuInfo -> trackedEntityOuInfo));
 
-        Map<String, Program> programsByUid = programService.getPrograms(
-            eventRowList.stream()
-                .map( EventRow::getProgram )
-                .collect( Collectors.toSet() ) )
+    Map<String, Program> programsByUid =
+        programService
+            .getPrograms(
+                eventRowList.stream().map(EventRow::getProgram).collect(Collectors.toSet()))
             .stream()
-            .collect( Collectors.toMap(
-                IdentifiableObject::getUid,
-                program -> program ) );
+            .collect(Collectors.toMap(IdentifiableObject::getUid, program -> program));
 
-        Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs = eventsByProgramUid.keySet().stream()
-            .flatMap( programUid -> entityInstanceService.getTrackedEntityProgramOwnersUidsUsingId(
-                eventsByProgramUid.get( programUid ).stream()
-                    .map( EventRow::getTrackedEntityInstance )
-                    .filter( Objects::nonNull )
-                    .map( trackedEntityInstanceByUid::get )
-                    .map( TrackedEntityOuInfo::trackerEntityId )
-                    .distinct()
-                    .collect( Collectors.toList() ),
-                programsByUid.get( programUid ) ).stream() )
-            .collect( Collectors.toMap(
-                trackedEntityProgramOwnerIds -> Pair.of(
-                    trackedEntityProgramOwnerIds.getTrackedEntityUid(),
-                    trackedEntityProgramOwnerIds.getProgramUid() ),
-                TrackedEntityProgramOwnerIds::getOrgUnitUid ) );
+    Map<Pair<String, String>, String> orgUnitByTeiUidAndProgramUidPairs =
+        eventsByProgramUid.keySet().stream()
+            .flatMap(
+                programUid ->
+                    entityInstanceService
+                        .getTrackedEntityProgramOwnersUidsUsingId(
+                            eventsByProgramUid.get(programUid).stream()
+                                .map(EventRow::getTrackedEntityInstance)
+                                .filter(Objects::nonNull)
+                                .map(trackedEntityInstanceByUid::get)
+                                .map(TrackedEntityOuInfo::trackerEntityId)
+                                .distinct()
+                                .collect(Collectors.toList()),
+                            programsByUid.get(programUid))
+                        .stream())
+            .collect(
+                Collectors.toMap(
+                    trackedEntityProgramOwnerIds ->
+                        Pair.of(
+                            trackedEntityProgramOwnerIds.getTrackedEntityUid(),
+                            trackedEntityProgramOwnerIds.getProgramUid()),
+                    TrackedEntityProgramOwnerIds::getOrgUnitUid));
 
-        Map<String, OrganisationUnit> orgUnitsByUid = organisationUnitService
-            .getOrganisationUnitsByUid( orgUnitByTeiUidAndProgramUidPairs.values() ).stream()
-            .collect( Collectors.toMap( IdentifiableObject::getUid, ou -> ou ) );
+    Map<String, OrganisationUnit> orgUnitsByUid =
+        organisationUnitService
+            .getOrganisationUnitsByUid(orgUnitByTeiUidAndProgramUidPairs.values())
+            .stream()
+            .collect(Collectors.toMap(IdentifiableObject::getUid, ou -> ou));
 
-        return new EventContext( trackedEntityInstanceByUid, programsByUid, orgUnitByTeiUidAndProgramUidPairs,
-            orgUnitsByUid );
-
-    }
-
+    return new EventContext(
+        trackedEntityInstanceByUid,
+        programsByUid,
+        orgUnitByTeiUidAndProgramUidPairs,
+        orgUnitsByUid);
+  }
 }

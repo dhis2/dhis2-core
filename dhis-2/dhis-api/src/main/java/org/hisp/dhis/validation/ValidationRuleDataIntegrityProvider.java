@@ -32,12 +32,8 @@ import java.util.List;
 /**
  * @author Jan Bernitt
  */
-public interface ValidationRuleDataIntegrityProvider
-{
+public interface ValidationRuleDataIntegrityProvider {
 
-    /**
-     * Gets all ValidationRules which are not members fo one or more groups.
-     */
-    List<ValidationRule> getValidationRulesWithoutGroups();
-
+  /** Gets all ValidationRules which are not members fo one or more groups. */
+  List<ValidationRule> getValidationRulesWithoutGroups();
 }

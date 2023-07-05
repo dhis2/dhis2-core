@@ -38,53 +38,42 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.common.QueryOperator;
 
 @Getter
-@RequiredArgsConstructor( access = PRIVATE )
-public class DimensionParamItem
-{
-    private final QueryOperator operator;
+@RequiredArgsConstructor(access = PRIVATE)
+public class DimensionParamItem {
+  private final QueryOperator operator;
 
-    private final List<String> values;
+  private final List<String> values;
 
-    public static List<DimensionParamItem> ofStrings( List<String> items )
-    {
-        if ( items.isEmpty() )
-        {
-            return Collections.emptyList();
-        }
-        // If operator is specified, it's in the first element.
-        String firstElement = items.get( 0 );
-
-        if ( firstElement.contains( DIMENSION_NAME_SEP ) )
-        { // Has operator.
-            String[] parts = firstElement.split( DIMENSION_NAME_SEP );
-            QueryOperator queryOperator = getOperator( parts[0] );
-            return singletonList(
-                new DimensionParamItem(
-                    queryOperator,
-                    Stream.concat( Stream.of( parts[1] ),
-                        items.stream()
-                            .skip( 1 ) )
-                        .collect( Collectors.toList() ) ) );
-        }
-        else
-        {
-            return singletonList( new DimensionParamItem( null, items ) );
-        }
+  public static List<DimensionParamItem> ofStrings(List<String> items) {
+    if (items.isEmpty()) {
+      return Collections.emptyList();
     }
+    // If operator is specified, it's in the first element.
+    String firstElement = items.get(0);
 
-    private static QueryOperator getOperator( String operator )
-    {
-        return Arrays.stream( QueryOperator.values() )
-            .filter( queryOperator -> equalsIgnoreCase( queryOperator.name(), operator ) )
-            .findFirst()
-            .orElseThrow( () -> new IllegalQueryException( E2035, operator ) );
+    if (firstElement.contains(DIMENSION_NAME_SEP)) { // Has operator.
+      String[] parts = firstElement.split(DIMENSION_NAME_SEP);
+      QueryOperator queryOperator = getOperator(parts[0]);
+      return singletonList(
+          new DimensionParamItem(
+              queryOperator,
+              Stream.concat(Stream.of(parts[1]), items.stream().skip(1))
+                  .collect(Collectors.toList())));
+    } else {
+      return singletonList(new DimensionParamItem(null, items));
     }
+  }
+
+  private static QueryOperator getOperator(String operator) {
+    return Arrays.stream(QueryOperator.values())
+        .filter(queryOperator -> equalsIgnoreCase(queryOperator.name(), operator))
+        .findFirst()
+        .orElseThrow(() -> new IllegalQueryException(E2035, operator));
+  }
 }

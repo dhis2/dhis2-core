@@ -27,80 +27,67 @@
  */
 package org.hisp.dhis.organisationunit;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import org.hisp.dhis.common.BaseIdentifiableObject;
 import org.hisp.dhis.common.DxfNamespaces;
 import org.hisp.dhis.common.MetadataObject;
 import org.hisp.dhis.schema.annotation.PropertyRange;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-
 /**
  * @author Lars Helge Overland
  */
-@JacksonXmlRootElement( localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0 )
-public class OrganisationUnitLevel
-    extends BaseIdentifiableObject
-    implements MetadataObject
-{
-    private int level;
+@JacksonXmlRootElement(localName = "organisationUnitLevel", namespace = DxfNamespaces.DXF_2_0)
+public class OrganisationUnitLevel extends BaseIdentifiableObject implements MetadataObject {
+  private int level;
 
-    private Integer offlineLevels;
+  private Integer offlineLevels;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public OrganisationUnitLevel()
-    {
-    }
+  public OrganisationUnitLevel() {}
 
-    public OrganisationUnitLevel( int level, String name )
-    {
-        this.level = level;
-        this.name = name;
-    }
+  public OrganisationUnitLevel(int level, String name) {
+    this.level = level;
+    this.name = name;
+  }
 
-    public OrganisationUnitLevel( int level, String name, Integer offlineLevels )
-    {
-        this.level = level;
-        this.name = name;
-        this.offlineLevels = offlineLevels;
-    }
+  public OrganisationUnitLevel(int level, String name, Integer offlineLevels) {
+    this.level = level;
+    this.name = name;
+    this.offlineLevels = offlineLevels;
+  }
 
-    @Override
-    public String toString()
-    {
-        return "[Name: " + name + ", level: " + level + "]";
-    }
+  @Override
+  public String toString() {
+    return "[Name: " + name + ", level: " + level + "]";
+  }
 
-    // -------------------------------------------------------------------------
-    // Getters and setters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Getters and setters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( isAttribute = true )
-    @PropertyRange( min = 1, max = 999 )
-    public int getLevel()
-    {
-        return level;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(isAttribute = true)
+  @PropertyRange(min = 1, max = 999)
+  public int getLevel() {
+    return level;
+  }
 
-    public void setLevel( int level )
-    {
-        this.level = level;
-    }
+  public void setLevel(int level) {
+    this.level = level;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public Integer getOfflineLevels()
-    {
-        return offlineLevels;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public Integer getOfflineLevels() {
+    return offlineLevels;
+  }
 
-    public void setOfflineLevels( Integer offlineLevels )
-    {
-        this.offlineLevels = offlineLevels;
-    }
+  public void setOfflineLevels(Integer offlineLevels) {
+    this.offlineLevels = offlineLevels;
+  }
 }

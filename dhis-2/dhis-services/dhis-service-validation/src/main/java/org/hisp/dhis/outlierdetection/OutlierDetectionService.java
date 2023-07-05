@@ -29,7 +29,6 @@ package org.hisp.dhis.outlierdetection;
 
 import java.io.IOException;
 import java.io.OutputStream;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.feedback.ErrorMessage;
 
@@ -38,52 +37,48 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Lars Helge Overland
  */
-public interface OutlierDetectionService
-{
-    /**
-     * Validates the given request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @throws IllegalQueryException if request is invalid.
-     */
-    void validate( OutlierDetectionRequest request )
-        throws IllegalQueryException;
+public interface OutlierDetectionService {
+  /**
+   * Validates the given request.
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @throws IllegalQueryException if request is invalid.
+   */
+  void validate(OutlierDetectionRequest request) throws IllegalQueryException;
 
-    /**
-     * Validates the given request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @return an {@link ErrorMessage} if request is invalid, or null if valid.
-     */
-    ErrorMessage validateForErrorMessage( OutlierDetectionRequest request );
+  /**
+   * Validates the given request.
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return an {@link ErrorMessage} if request is invalid, or null if valid.
+   */
+  ErrorMessage validateForErrorMessage(OutlierDetectionRequest request);
 
-    /**
-     * Creates a {@link OutlierDetectionRequest} from the given query.
-     *
-     * @param query the {@link OutlierDetectionQuery}.
-     * @return a {@link OutlierDetectionRequest}.
-     */
-    OutlierDetectionRequest getFromQuery( OutlierDetectionQuery query );
+  /**
+   * Creates a {@link OutlierDetectionRequest} from the given query.
+   *
+   * @param query the {@link OutlierDetectionQuery}.
+   * @return a {@link OutlierDetectionRequest}.
+   */
+  OutlierDetectionRequest getFromQuery(OutlierDetectionQuery query);
 
-    /**
-     * Returns outlier data values for the given request.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @return a {@link OutlierDetectionResponse}.
-     * @throws IllegalQueryException if request is invalid.
-     */
-    OutlierDetectionResponse getOutlierValues( OutlierDetectionRequest request )
-        throws IllegalQueryException;
+  /**
+   * Returns outlier data values for the given request.
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @return a {@link OutlierDetectionResponse}.
+   * @throws IllegalQueryException if request is invalid.
+   */
+  OutlierDetectionResponse getOutlierValues(OutlierDetectionRequest request)
+      throws IllegalQueryException;
 
-    /**
-     * Writes outlier data values for the given request as CSV to the given
-     * output stream.
-     *
-     * @param request the {@link OutlierDetectionRequest}.
-     * @param out the {@link OutputStream} to write to.
-     * @throws IllegalQueryException if request is invalid.
-     */
-    void getOutlierValuesAsCsv( OutlierDetectionRequest request, OutputStream out )
-        throws IllegalQueryException,
-        IOException;
+  /**
+   * Writes outlier data values for the given request as CSV to the given output stream.
+   *
+   * @param request the {@link OutlierDetectionRequest}.
+   * @param out the {@link OutputStream} to write to.
+   * @throws IllegalQueryException if request is invalid.
+   */
+  void getOutlierValuesAsCsv(OutlierDetectionRequest request, OutputStream out)
+      throws IllegalQueryException, IOException;
 }

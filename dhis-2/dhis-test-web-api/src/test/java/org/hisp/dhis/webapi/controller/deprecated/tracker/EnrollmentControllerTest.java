@@ -36,69 +36,95 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jan Bernitt
  */
-class EnrollmentControllerTest extends DhisControllerConvenienceTest
-{
+class EnrollmentControllerTest extends DhisControllerConvenienceTest {
 
-    @Test
-    void testGetEnrollmentJsonWrongTei_ValidationError()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Tracked entity instance does not exist: nonexisting",
-            GET( "/enrollments?trackedEntityInstance=nonexisting", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetEnrollmentJsonWrongTei_ValidationError() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Tracked entity instance does not exist: nonexisting",
+        GET("/enrollments?trackedEntityInstance=nonexisting", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testGetEnrollmentJsonWrongTet_ValidationError()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "Tracked entity does not exist: nonexisting",
-            GET( "/enrollments?trackedEntityType=nonexisting", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testGetEnrollmentJsonWrongTet_ValidationError() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "Tracked entity does not exist: nonexisting",
+        GET("/enrollments?trackedEntityType=nonexisting", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testPostEnrollmentJson_ValidationError()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "TrackedEntity does not exist.",
-            POST( "/enrollments/", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testPostEnrollmentJson_ValidationError() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "TrackedEntity does not exist.",
+        POST("/enrollments/", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testUpdateEnrollmentForNoteJson_NoSuchObject()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            POST( "/enrollments/xyz/note", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testUpdateEnrollmentForNoteJson_NoSuchObject() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "An error occurred, please check import summary.",
+        POST("/enrollments/xyz/note", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testUpdateEnrollmentJson()
-    {
-        assertWebMessage( "Conflict", 409, "ERROR", "An error occurred, please check import summary.",
-            PUT( "/enrollments/xyz", "{}" ).content( HttpStatus.CONFLICT ) );
-    }
+  @Test
+  void testUpdateEnrollmentJson() {
+    assertWebMessage(
+        "Conflict",
+        409,
+        "ERROR",
+        "An error occurred, please check import summary.",
+        PUT("/enrollments/xyz", "{}").content(HttpStatus.CONFLICT));
+  }
 
-    @Test
-    void testCancelEnrollment()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
-            PUT( "/enrollments/xyz/cancelled" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testCancelEnrollment() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Enrollment not found for ID xyz",
+        PUT("/enrollments/xyz/cancelled").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testCompleteEnrollment()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
-            PUT( "/enrollments/xyz/completed" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testCompleteEnrollment() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Enrollment not found for ID xyz",
+        PUT("/enrollments/xyz/completed").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testIncompleteEnrollment()
-    {
-        assertWebMessage( "Not Found", 404, "ERROR", "Enrollment not found for ID xyz",
-            PUT( "/enrollments/xyz/incompleted" ).content( HttpStatus.NOT_FOUND ) );
-    }
+  @Test
+  void testIncompleteEnrollment() {
+    assertWebMessage(
+        "Not Found",
+        404,
+        "ERROR",
+        "Enrollment not found for ID xyz",
+        PUT("/enrollments/xyz/incompleted").content(HttpStatus.NOT_FOUND));
+  }
 
-    @Test
-    void testDeleteEnrollment()
-    {
-        assertWebMessage( "OK", 200, "OK", "Import was successful.",
-            DELETE( "/enrollments/xyz" ).content( HttpStatus.OK ) );
-    }
+  @Test
+  void testDeleteEnrollment() {
+    assertWebMessage(
+        "OK",
+        200,
+        "OK",
+        "Import was successful.",
+        DELETE("/enrollments/xyz").content(HttpStatus.OK));
+  }
 }

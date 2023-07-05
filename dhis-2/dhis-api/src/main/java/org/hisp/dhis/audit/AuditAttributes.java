@@ -32,6 +32,4 @@ import java.util.LinkedHashMap;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class AuditAttributes extends LinkedHashMap<String, Object>
-{
-}
+public class AuditAttributes extends LinkedHashMap<String, Object> {}

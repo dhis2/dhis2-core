@@ -39,35 +39,32 @@ import org.springframework.stereotype.Component;
  * @author maikel arabori
  */
 @Component
-public class PublishEventPostProcessor
-    implements Processor
-{
-    @Override
-    public void process( final Event event, final WorkContext ctx )
-    {
-        boolean isLinkedWithRuleVariable = false;
+public class PublishEventPostProcessor implements Processor {
+  @Override
+  public void process(final Event event, final WorkContext ctx) {
+    boolean isLinkedWithRuleVariable = false;
 
-        for ( final DataValue dv : event.getDataValues() )
-        {
-            final DataElement dataElement = ctx.getDataElementMap().get( dv.getDataElement() );
+    for (final DataValue dv : event.getDataValues()) {
+      final DataElement dataElement = ctx.getDataElementMap().get(dv.getDataElement());
 
-            if ( dataElement != null )
-            {
-                // TODO: luciano preload the value
-                isLinkedWithRuleVariable = ctx.getServiceDelegator().getProgramRuleVariableService()
-                    .isLinkedToProgramRuleVariableCached( ctx.getProgramsMap().get( event.getProgram() ), dataElement );
+      if (dataElement != null) {
+        // TODO: luciano preload the value
+        isLinkedWithRuleVariable =
+            ctx.getServiceDelegator()
+                .getProgramRuleVariableService()
+                .isLinkedToProgramRuleVariableCached(
+                    ctx.getProgramsMap().get(event.getProgram()), dataElement);
 
-                if ( isLinkedWithRuleVariable )
-                {
-                    break;
-                }
-            }
+        if (isLinkedWithRuleVariable) {
+          break;
         }
-
-        if ( !ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable )
-        {
-            ctx.getServiceDelegator().getApplicationEventPublisher().publishEvent(
-                new DataValueUpdatedEvent( this, event.getEvent() ) );
-        }
+      }
     }
+
+    if (!ctx.getImportOptions().isSkipNotifications() && isLinkedWithRuleVariable) {
+      ctx.getServiceDelegator()
+          .getApplicationEventPublisher()
+          .publishEvent(new DataValueUpdatedEvent(this, event.getEvent()));
+    }
+  }
 }

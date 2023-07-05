@@ -28,10 +28,8 @@
 package org.hisp.dhis.security;
 
 import javax.servlet.http.HttpSession;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.external.conf.ConfigurationKey;
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.context.event.EventListener;
@@ -44,24 +42,19 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class DhisHttpSessionEventListener
-{
-    private final DhisConfigurationProvider config;
+public class DhisHttpSessionEventListener {
+  private final DhisConfigurationProvider config;
 
-    @EventListener
-    public void sessionCreated( HttpSessionCreatedEvent event )
-    {
-        HttpSession session = event.getSession();
-        try
-        {
-            String property = config.getProperty( ConfigurationKey.SYSTEM_SESSION_TIMEOUT );
-            session.setMaxInactiveInterval( Integer.parseInt( property ) );
-        }
-        catch ( Exception e )
-        {
-            session.setMaxInactiveInterval(
-                Integer.parseInt( ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue() ) );
-            log.error( "Could not read session timeout value from config", e );
-        }
+  @EventListener
+  public void sessionCreated(HttpSessionCreatedEvent event) {
+    HttpSession session = event.getSession();
+    try {
+      String property = config.getProperty(ConfigurationKey.SYSTEM_SESSION_TIMEOUT);
+      session.setMaxInactiveInterval(Integer.parseInt(property));
+    } catch (Exception e) {
+      session.setMaxInactiveInterval(
+          Integer.parseInt(ConfigurationKey.SYSTEM_SESSION_TIMEOUT.getDefaultValue()));
+      log.error("Could not read session timeout value from config", e);
     }
+  }
 }

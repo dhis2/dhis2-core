@@ -36,9 +36,7 @@ import static org.hisp.dhis.feedback.ErrorCode.E7142;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.analytics.common.QueryRequest;
 import org.hisp.dhis.analytics.common.processing.CommonQueryRequestMapper;
@@ -52,98 +50,95 @@ import org.hisp.dhis.trackedentity.TrackedEntityTypeService;
 import org.springframework.stereotype.Component;
 
 /**
- * This component maps {@link QueryRequest} objects into query params objects.
- * The query params objects represents the preparation of dimensions and
- * elements that are ready to be queried at database level.
+ * This component maps {@link QueryRequest} objects into query params objects. The query params
+ * objects represents the preparation of dimensions and elements that are ready to be queried at
+ * database level.
  */
 @Component
 @RequiredArgsConstructor
-public class TeiQueryRequestMapper
-{
-    private final CommonQueryRequestMapper commonQueryRequestMapper;
+public class TeiQueryRequestMapper {
+  private final CommonQueryRequestMapper commonQueryRequestMapper;
 
-    private final TrackedEntityTypeService trackedEntityTypeService;
+  private final TrackedEntityTypeService trackedEntityTypeService;
 
-    private final Processor<TeiQueryParams> teiQueryParamPostProcessor;
+  private final Processor<TeiQueryParams> teiQueryParamPostProcessor;
 
-    private final ProgramService programService;
+  private final ProgramService programService;
 
-    /**
-     * Maps incoming query requests into a valid and usable
-     * {@link TeiQueryParams}.
-     *
-     * @param queryRequest the {@link QueryRequest} of type
-     *        {@link TeiQueryRequest}.
-     * @return the populated {@link TeiQueryParams}.
-     * @throws IllegalQueryException if the current TrackedEntityType specified
-     *         in the given request is invalid or non-existent.
-     */
-    public TeiQueryParams map( QueryRequest<TeiQueryRequest> queryRequest )
-    {
-        TrackedEntityType trackedEntityType = getTrackedEntityType( queryRequest.getRequest().getTrackedEntityType() );
+  /**
+   * Maps incoming query requests into a valid and usable {@link TeiQueryParams}.
+   *
+   * @param queryRequest the {@link QueryRequest} of type {@link TeiQueryRequest}.
+   * @return the populated {@link TeiQueryParams}.
+   * @throws IllegalQueryException if the current TrackedEntityType specified in the given request
+   *     is invalid or non-existent.
+   */
+  public TeiQueryParams map(QueryRequest<TeiQueryRequest> queryRequest) {
+    TrackedEntityType trackedEntityType =
+        getTrackedEntityType(queryRequest.getRequest().getTrackedEntityType());
 
-        checkTetForPrograms( queryRequest, trackedEntityType );
+    checkTetForPrograms(queryRequest, trackedEntityType);
 
-        // Adding tracked entity type attributes to the list of dimensions.
-        queryRequest.getCommonQueryRequest().getDimension().addAll(
-            getTrackedEntityAttributes( trackedEntityType )
-                .map( IdentifiableObject::getUid )
-                .collect( toList() ) );
+    // Adding tracked entity type attributes to the list of dimensions.
+    queryRequest
+        .getCommonQueryRequest()
+        .getDimension()
+        .addAll(
+            getTrackedEntityAttributes(trackedEntityType)
+                .map(IdentifiableObject::getUid)
+                .collect(toList()));
 
-        return teiQueryParamPostProcessor.process(
-            TeiQueryParams.builder().trackedEntityType( trackedEntityType )
-                .commonParams( commonQueryRequestMapper.map(
-                    queryRequest.getCommonQueryRequest() ) )
-                .build() );
+    return teiQueryParamPostProcessor.process(
+        TeiQueryParams.builder()
+            .trackedEntityType(trackedEntityType)
+            .commonParams(commonQueryRequestMapper.map(queryRequest.getCommonQueryRequest()))
+            .build());
+  }
+
+  /**
+   * Checks if the given programs are valid for the given tracked entity type.
+   *
+   * @param queryRequest the query request.
+   * @param trackedEntityType the tracked entity type.
+   */
+  private void checkTetForPrograms(
+      QueryRequest<TeiQueryRequest> queryRequest, TrackedEntityType trackedEntityType) {
+    Set<String> programUids = queryRequest.getCommonQueryRequest().getProgram();
+
+    Set<String> nonMatchingProgramUids =
+        programService.getPrograms(programUids).stream()
+            .filter(program -> !matchesTet(program, trackedEntityType))
+            .map(program -> program.getName() + " (" + program.getUid() + ")")
+            .collect(Collectors.toSet());
+
+    if (isNotEmpty(nonMatchingProgramUids)) {
+      throw new IllegalQueryException(
+          E7142,
+          nonMatchingProgramUids,
+          trackedEntityType.getName() + " (" + trackedEntityType.getUid() + ")");
     }
+  }
 
-    /**
-     * Checks if the given programs are valid for the given tracked entity type.
-     *
-     * @param queryRequest the query request.
-     * @param trackedEntityType the tracked entity type.
-     */
-    private void checkTetForPrograms( QueryRequest<TeiQueryRequest> queryRequest, TrackedEntityType trackedEntityType )
-    {
-        Set<String> programUids = queryRequest.getCommonQueryRequest().getProgram();
+  /**
+   * Checks if the given program TET is equals to tracked entity type.
+   *
+   * @param program the program.
+   * @param trackedEntityType the tracked entity type uid.
+   * @return true if the program matches the tracked entity type.
+   */
+  private boolean matchesTet(Program program, TrackedEntityType trackedEntityType) {
+    return StringUtils.equals(program.getTrackedEntityType().getUid(), trackedEntityType.getUid());
+  }
 
-        Set<String> nonMatchingProgramUids = programService.getPrograms( programUids ).stream()
-            .filter( program -> !matchesTet( program, trackedEntityType ) )
-            .map( program -> program.getName() + " (" + program.getUid() + ")" )
-            .collect( Collectors.toSet() );
-
-        if ( isNotEmpty( nonMatchingProgramUids ) )
-        {
-            throw new IllegalQueryException( E7142,
-                nonMatchingProgramUids,
-                trackedEntityType.getName() + " (" + trackedEntityType.getUid() + ")" );
-        }
-    }
-
-    /**
-     * Checks if the given program TET is equals to tracked entity type.
-     *
-     * @param program the program.
-     * @param trackedEntityType the tracked entity type uid.
-     * @return true if the program matches the tracked entity type.
-     */
-    private boolean matchesTet( Program program, TrackedEntityType trackedEntityType )
-    {
-        return StringUtils.equals( program.getTrackedEntityType().getUid(), trackedEntityType.getUid() );
-    }
-
-    /**
-     * Simply loads the given tracked entity type. If nothing is found, it
-     * throws an exception.
-     *
-     * @param trackedEntityTypeUid the tracked entity type uid.
-     * @throws IllegalQueryException if the tracked entity type specified is
-     *         invalid or non-existent.
-     */
-    private TrackedEntityType getTrackedEntityType( String trackedEntityTypeUid )
-    {
-        return Optional.of( trackedEntityTypeUid )
-            .map( trackedEntityTypeService::getTrackedEntityType )
-            .orElseThrow( () -> new IllegalQueryException( E7125, trackedEntityTypeUid ) );
-    }
+  /**
+   * Simply loads the given tracked entity type. If nothing is found, it throws an exception.
+   *
+   * @param trackedEntityTypeUid the tracked entity type uid.
+   * @throws IllegalQueryException if the tracked entity type specified is invalid or non-existent.
+   */
+  private TrackedEntityType getTrackedEntityType(String trackedEntityTypeUid) {
+    return Optional.of(trackedEntityTypeUid)
+        .map(trackedEntityTypeService::getTrackedEntityType)
+        .orElseThrow(() -> new IllegalQueryException(E7125, trackedEntityTypeUid));
+  }
 }

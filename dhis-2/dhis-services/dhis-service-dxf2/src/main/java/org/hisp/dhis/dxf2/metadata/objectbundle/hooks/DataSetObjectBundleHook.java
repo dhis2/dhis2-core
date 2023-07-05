@@ -31,7 +31,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-
 import org.hibernate.Session;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dataelement.DataElement;
@@ -49,83 +48,83 @@ import org.springframework.stereotype.Component;
  * @author Viet Nguyen <viet@dhis2.org>
  */
 @Component
-public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet>
-{
-    @Override
-    public void validate( DataSet dataSet, ObjectBundle bundle,
-        Consumer<ErrorReport> addReports )
-    {
-        Set<DataInputPeriod> inputPeriods = dataSet.getDataInputPeriods();
+public class DataSetObjectBundleHook extends AbstractObjectBundleHook<DataSet> {
+  @Override
+  public void validate(DataSet dataSet, ObjectBundle bundle, Consumer<ErrorReport> addReports) {
+    Set<DataInputPeriod> inputPeriods = dataSet.getDataInputPeriods();
 
-        for ( DataInputPeriod period : inputPeriods )
-        {
-            if ( ObjectUtils.allNonNull( period.getOpeningDate(), period.getClosingDate() )
-                && period.getOpeningDate().after( period.getClosingDate() ) )
-            {
-                addReports.accept( new ErrorReport( DataSet.class, ErrorCode.E4013, period.getClosingDate(),
-                    period.getOpeningDate() ) );
-            }
-        }
+    for (DataInputPeriod period : inputPeriods) {
+      if (ObjectUtils.allNonNull(period.getOpeningDate(), period.getClosingDate())
+          && period.getOpeningDate().after(period.getClosingDate())) {
+        addReports.accept(
+            new ErrorReport(
+                DataSet.class, ErrorCode.E4013, period.getClosingDate(), period.getOpeningDate()));
+      }
     }
+  }
 
-    @Override
-    public void preUpdate( DataSet object, DataSet persistedObject, ObjectBundle bundle )
-    {
-        if ( object == null || !object.getClass().isAssignableFrom( DataSet.class ) )
-            return;
+  @Override
+  public void preUpdate(DataSet object, DataSet persistedObject, ObjectBundle bundle) {
+    if (object == null || !object.getClass().isAssignableFrom(DataSet.class)) return;
 
-        deleteRemovedDataElementFromSection( persistedObject, object );
-        deleteRemovedSection( persistedObject, object, bundle );
-        deleteCompulsoryDataElementOperands( object );
-    }
+    deleteRemovedDataElementFromSection(persistedObject, object);
+    deleteRemovedSection(persistedObject, object, bundle);
+    deleteCompulsoryDataElementOperands(object);
+  }
 
-    /**
-     * Remove the {@link DataSet#getCompulsoryDataElementOperands()} if the
-     * referenced {@link DataElementOperand#getDataElement()} is being removed
-     * from DataSet.
-     *
-     * @param importDataSet the {@link DataSet} from import payload.
-     */
-    private void deleteCompulsoryDataElementOperands( DataSet importDataSet )
-    {
-        Set<String> dataElementIds = importDataSet.getDataElements().stream().map( IdentifiableObject::getUid )
-            .collect( Collectors.toSet() );
+  /**
+   * Remove the {@link DataSet#getCompulsoryDataElementOperands()} if the referenced {@link
+   * DataElementOperand#getDataElement()} is being removed from DataSet.
+   *
+   * @param importDataSet the {@link DataSet} from import payload.
+   */
+  private void deleteCompulsoryDataElementOperands(DataSet importDataSet) {
+    Set<String> dataElementIds =
+        importDataSet.getDataElements().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toSet());
 
-        importDataSet.setCompulsoryDataElementOperands(
-            importDataSet.getCompulsoryDataElementOperands().stream()
-                .filter( dop -> dataElementIds.contains( dop.getDataElement().getUid() ) )
-                .collect( Collectors.toSet() ) );
-    }
+    importDataSet.setCompulsoryDataElementOperands(
+        importDataSet.getCompulsoryDataElementOperands().stream()
+            .filter(dop -> dataElementIds.contains(dop.getDataElement().getUid()))
+            .collect(Collectors.toSet()));
+  }
 
-    private void deleteRemovedSection( DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle )
-    {
-        if ( !bundle.isMetadataSyncImport() )
-            return;
+  private void deleteRemovedSection(
+      DataSet persistedDataSet, DataSet importDataSet, ObjectBundle bundle) {
+    if (!bundle.isMetadataSyncImport()) return;
 
-        Session session = sessionFactory.getCurrentSession();
+    Session session = sessionFactory.getCurrentSession();
 
-        List<String> importIds = importDataSet.getSections().stream().map( IdentifiableObject::getUid )
-            .collect( Collectors.toList() );
+    List<String> importIds =
+        importDataSet.getSections().stream()
+            .map(IdentifiableObject::getUid)
+            .collect(Collectors.toList());
 
-        persistedDataSet.getSections().stream().filter( section -> !importIds.contains( section.getUid() ) )
-            .forEach( session::delete );
-    }
+    persistedDataSet.getSections().stream()
+        .filter(section -> !importIds.contains(section.getUid()))
+        .forEach(session::delete);
+  }
 
-    private void deleteRemovedDataElementFromSection( DataSet persistedDataSet, DataSet importDataSet )
-    {
-        Session session = sessionFactory.getCurrentSession();
+  private void deleteRemovedDataElementFromSection(
+      DataSet persistedDataSet, DataSet importDataSet) {
+    Session session = sessionFactory.getCurrentSession();
 
-        persistedDataSet.getSections().stream()
-            .peek( section -> section.setDataElements( getUpdatedDataElements( importDataSet, section ) ) )
-            .forEach( session::update );
-    }
+    persistedDataSet.getSections().stream()
+        .peek(section -> section.setDataElements(getUpdatedDataElements(importDataSet, section)))
+        .forEach(session::update);
+  }
 
-    private List<DataElement> getUpdatedDataElements( DataSet importDataSet, Section section )
-    {
-        return section.getDataElements().stream().filter( de -> {
-            Set<String> dataElements = importDataSet.getDataElements().stream()
-                .map( IdentifiableObject::getUid ).collect( Collectors.toSet() );
-            return dataElements.contains( de.getUid() );
-        } ).collect( Collectors.toList() );
-    }
+  private List<DataElement> getUpdatedDataElements(DataSet importDataSet, Section section) {
+    return section.getDataElements().stream()
+        .filter(
+            de -> {
+              Set<String> dataElements =
+                  importDataSet.getDataElements().stream()
+                      .map(IdentifiableObject::getUid)
+                      .collect(Collectors.toSet());
+              return dataElements.contains(de.getUid());
+            })
+        .collect(Collectors.toList());
+  }
 }

@@ -33,7 +33,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.hisp.dhis.organisationunit.OrganisationUnit;
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityType;
@@ -44,71 +43,53 @@ import org.springframework.jdbc.core.RowCallbackHandler;
 /**
  * @author Luciano Fiandesio
  */
-public class TrackedEntityRowCallbackHandler
-    implements
-    RowCallbackHandler
-{
-    private final Map<String, TrackedEntity> items;
+public class TrackedEntityRowCallbackHandler implements RowCallbackHandler {
+  private final Map<String, TrackedEntity> items;
 
-    public TrackedEntityRowCallbackHandler()
-    {
-        this.items = new LinkedHashMap<>();
-    }
+  public TrackedEntityRowCallbackHandler() {
+    this.items = new LinkedHashMap<>();
+  }
 
-    private TrackedEntity getTei( ResultSet rs )
-        throws SQLException
-    {
+  private TrackedEntity getTei(ResultSet rs) throws SQLException {
 
-        TrackedEntity tei = new TrackedEntity();
-        tei.setUid(
-            rs.getString( TrackedEntityQuery.getColumnName( COLUMNS.UID ) ) );
-        TrackedEntityType trackedEntityType = new TrackedEntityType();
-        trackedEntityType.setUid(
-            rs.getString( TrackedEntityQuery.getColumnName( COLUMNS.TYPE_UID ) ) );
-        tei.setTrackedEntityType( trackedEntityType );
+    TrackedEntity tei = new TrackedEntity();
+    tei.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.UID)));
+    TrackedEntityType trackedEntityType = new TrackedEntityType();
+    trackedEntityType.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.TYPE_UID)));
+    tei.setTrackedEntityType(trackedEntityType);
 
-        OrganisationUnit orgUnit = new OrganisationUnit();
-        orgUnit.setUid( rs
-            .getString( TrackedEntityQuery.getColumnName( COLUMNS.ORGUNIT_UID ) ) );
-        tei.setOrganisationUnit( orgUnit );
+    OrganisationUnit orgUnit = new OrganisationUnit();
+    orgUnit.setUid(rs.getString(TrackedEntityQuery.getColumnName(COLUMNS.ORGUNIT_UID)));
+    tei.setOrganisationUnit(orgUnit);
 
-        tei.setCreated(
-            rs.getTimestamp( TrackedEntityQuery.getColumnName( COLUMNS.CREATED ) ) );
-        tei.setCreatedAtClient( rs.getTimestamp(
-            TrackedEntityQuery.getColumnName( COLUMNS.CREATEDCLIENT ) ) );
-        setUserInfoSnapshot( rs,
-            TrackedEntityQuery.getColumnName( COLUMNS.CREATED_BY ),
-            tei::setCreatedByUserInfo );
-        tei.setLastUpdated(
-            rs.getTimestamp( TrackedEntityQuery.getColumnName( COLUMNS.UPDATED ) ) );
-        tei.setLastUpdatedAtClient( rs.getTimestamp(
-            TrackedEntityQuery.getColumnName( COLUMNS.UPDATEDCLIENT ) ) );
-        setUserInfoSnapshot( rs,
-            TrackedEntityQuery.getColumnName( COLUMNS.LAST_UPDATED_BY ),
-            tei::setLastUpdatedByUserInfo );
-        tei.setInactive(
-            rs.getBoolean( TrackedEntityQuery.getColumnName( COLUMNS.INACTIVE ) ) );
-        tei.setDeleted(
-            rs.getBoolean( TrackedEntityQuery.getColumnName( COLUMNS.DELETED ) ) );
-        tei.setPotentialDuplicate( rs.getBoolean(
-            TrackedEntityQuery.getColumnName( COLUMNS.POTENTIALDUPLICATE ) ) );
-        MapperGeoUtils
-            .resolveGeometry(
-                rs.getBytes( TrackedEntityQuery.getColumnName( COLUMNS.GEOMETRY ) ) )
-            .ifPresent( tei::setGeometry );
+    tei.setCreated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATED)));
+    tei.setCreatedAtClient(
+        rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.CREATEDCLIENT)));
+    setUserInfoSnapshot(
+        rs, TrackedEntityQuery.getColumnName(COLUMNS.CREATED_BY), tei::setCreatedByUserInfo);
+    tei.setLastUpdated(rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.UPDATED)));
+    tei.setLastUpdatedAtClient(
+        rs.getTimestamp(TrackedEntityQuery.getColumnName(COLUMNS.UPDATEDCLIENT)));
+    setUserInfoSnapshot(
+        rs,
+        TrackedEntityQuery.getColumnName(COLUMNS.LAST_UPDATED_BY),
+        tei::setLastUpdatedByUserInfo);
+    tei.setInactive(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.INACTIVE)));
+    tei.setDeleted(rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.DELETED)));
+    tei.setPotentialDuplicate(
+        rs.getBoolean(TrackedEntityQuery.getColumnName(COLUMNS.POTENTIALDUPLICATE)));
+    MapperGeoUtils.resolveGeometry(rs.getBytes(TrackedEntityQuery.getColumnName(COLUMNS.GEOMETRY)))
+        .ifPresent(tei::setGeometry);
 
-        return tei;
-    }
+    return tei;
+  }
 
-    @Override
-    public void processRow( ResultSet rs )
-        throws SQLException
-    {
-        this.items.put( rs.getString( "tei_uid" ), getTei( rs ) );
-    }
+  @Override
+  public void processRow(ResultSet rs) throws SQLException {
+    this.items.put(rs.getString("tei_uid"), getTei(rs));
+  }
 
-    public Map<String, TrackedEntity> getItems()
-    {
-        return this.items;
-    }
+  public Map<String, TrackedEntity> getItems() {
+    return this.items;
+  }
 }

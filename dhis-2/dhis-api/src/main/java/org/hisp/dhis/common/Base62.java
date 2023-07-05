@@ -32,119 +32,107 @@ import java.util.Arrays;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class Base62
-{
+public class Base62 {
 
-    private Base62()
-    {
-        throw new IllegalStateException( "Utility class" );
+  private Base62() {
+    throw new IllegalStateException("Utility class");
+  }
+
+  public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
+
+  public static final int PADDING_BASE62_UNSIGNED_32BIT_LONG = 6;
+
+  public static final int PADDING_BASE62_SIGNED_64BIT_LONG = 11;
+
+  private static final String BASE62_ALPHABET =
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+  /**
+   * Encodes an unsigned 32-bit long into base62.
+   *
+   * <p>To calculate the max length in base62, we do:
+   *
+   * <p>log_62(2^32 - 1) = 5.3743 ≈ 6
+   *
+   * <p>The encoded string is padded with leading zeros to a length of 6 characters to make the
+   * resulting strings uniform.
+   *
+   * @param num the long to encode.
+   * @return the encoded string.
+   */
+  public static String encodeUnsigned32bitToBase62(long num) {
+    if (num > MAX_UNSIGNED_32_BIT_VALUE) {
+      throw new IllegalArgumentException("Number is too large for an unsigned 32-bit long");
+    }
+    return encodeToBase62(num, PADDING_BASE62_UNSIGNED_32BIT_LONG);
+  }
+
+  /**
+   * Encodes a signed 64-bit long into base62.
+   *
+   * <p>To calculate the max length in base62, we do:
+   *
+   * <p>log_62(2^63 - 1) = 10.58 ≈ 11
+   *
+   * <p>The encoded string is padded with leading zeros to a length of 11 characters to make the
+   * resulting strings uniform.
+   *
+   * @param num the long to encode.
+   * @return the encoded string.
+   */
+  public static String encodeSigned64bitToBase62(long num) {
+    return encodeToBase62(num, PADDING_BASE62_SIGNED_64BIT_LONG);
+  }
+
+  /**
+   * Encodes a long into a Base62 encoded string.
+   *
+   * @param num the number to encode, must be positive.
+   * @param padding the length of the encoded string, will be padded with zeros prefixed to the
+   *     string if the encoded string is shorter. If padding is less than the length of the encoded
+   *     string, the output will be truncated.
+   * @return the Base62 encoded string
+   */
+  protected static String encodeToBase62(long num, int padding) {
+    if (num < 0) {
+      throw new IllegalArgumentException("Number must be non-negative");
+    }
+    if (padding <= 0) {
+      throw new IllegalArgumentException("Padding should be a non-zero positive value");
     }
 
-    public static final long MAX_UNSIGNED_32_BIT_VALUE = (1L << 32) - 1;
+    int base = BASE62_ALPHABET.length();
+    char[] chars = new char[padding];
+    Arrays.fill(chars, '0');
 
-    public static final int PADDING_BASE62_UNSIGNED_32BIT_LONG = 6;
-
-    public static final int PADDING_BASE62_SIGNED_64BIT_LONG = 11;
-
-    private static final String BASE62_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
-    /**
-     * Encodes an unsigned 32-bit long into base62.
-     * <p>
-     * To calculate the max length in base62, we do:
-     * <p>
-     * log_62(2^32 - 1) = 5.3743 ≈ 6
-     * <p>
-     * The encoded string is padded with leading zeros to a length of 6
-     * characters to make the resulting strings uniform.
-     *
-     * @param num the long to encode.
-     * @return the encoded string.
-     */
-    public static String encodeUnsigned32bitToBase62( long num )
-    {
-        if ( num > MAX_UNSIGNED_32_BIT_VALUE )
-        {
-            throw new IllegalArgumentException( "Number is too large for an unsigned 32-bit long" );
-        }
-        return encodeToBase62( num, PADDING_BASE62_UNSIGNED_32BIT_LONG );
+    long r;
+    for (int i = padding - 1; i >= 0; i--) {
+      r = num % base;
+      chars[i] = BASE62_ALPHABET.charAt((int) r);
+      num -= r;
+      num = num / base;
     }
 
-    /**
-     * Encodes a signed 64-bit long into base62.
-     * <p>
-     * To calculate the max length in base62, we do:
-     * <p>
-     * log_62(2^63 - 1) = 10.58 ≈ 11
-     * <p>
-     * The encoded string is padded with leading zeros to a length of 11
-     * characters to make the resulting strings uniform.
-     *
-     * @param num the long to encode.
-     * @return the encoded string.
-     */
-    public static String encodeSigned64bitToBase62( long num )
-    {
-        return encodeToBase62( num, PADDING_BASE62_SIGNED_64BIT_LONG );
+    return new String(chars);
+  }
+
+  /**
+   * Decodes a Base62 encoded string to a number.
+   *
+   * @param str the Base62 encoded string
+   * @return the decoded number
+   */
+  public static long decodeBase62(final String str) {
+    int base = BASE62_ALPHABET.length();
+    long num = 0;
+    for (char c : str.toCharArray()) {
+      num = num * base;
+      int index = BASE62_ALPHABET.indexOf(c);
+      if (index == -1) {
+        throw new IllegalArgumentException("Invalid character for Base62: " + c);
+      }
+      num = num + index;
     }
-
-    /**
-     * Encodes a long into a Base62 encoded string.
-     *
-     * @param num the number to encode, must be positive.
-     * @param padding the length of the encoded string, will be padded with
-     *        zeros prefixed to the string if the encoded string is shorter. If
-     *        padding is less than the length of the encoded string, the output
-     *        will be truncated.
-     * @return the Base62 encoded string
-     */
-    protected static String encodeToBase62( long num, int padding )
-    {
-        if ( num < 0 )
-        {
-            throw new IllegalArgumentException( "Number must be non-negative" );
-        }
-        if ( padding <= 0 )
-        {
-            throw new IllegalArgumentException( "Padding should be a non-zero positive value" );
-        }
-
-        int base = BASE62_ALPHABET.length();
-        char[] chars = new char[padding];
-        Arrays.fill( chars, '0' );
-
-        long r;
-        for ( int i = padding - 1; i >= 0; i-- )
-        {
-            r = num % base;
-            chars[i] = BASE62_ALPHABET.charAt( (int) r );
-            num -= r;
-            num = num / base;
-        }
-
-        return new String( chars );
-    }
-
-    /**
-     * Decodes a Base62 encoded string to a number.
-     *
-     * @param str the Base62 encoded string
-     * @return the decoded number
-     */
-    public static long decodeBase62( final String str )
-    {
-        int base = BASE62_ALPHABET.length();
-        long num = 0;
-        for ( char c : str.toCharArray() )
-        {
-            num = num * base;
-            int index = BASE62_ALPHABET.indexOf( c );
-            if ( index == -1 )
-            {
-                throw new IllegalArgumentException( "Invalid character for Base62: " + c );
-            }
-            num = num + index;
-        }
-        return num;
-    }
+    return num;
+  }
 }

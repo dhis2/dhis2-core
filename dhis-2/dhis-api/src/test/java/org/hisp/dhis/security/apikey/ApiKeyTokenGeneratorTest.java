@@ -32,7 +32,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.common.Base62;
 import org.hisp.dhis.common.CRC32Utils;
 import org.junit.jupiter.api.Test;
@@ -41,9 +40,9 @@ import org.junit.jupiter.api.Test;
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
 @Slf4j
-class ApiKeyTokenGeneratorTest
-{
-    private final static String FIXTURES_PATV1 = """
+class ApiKeyTokenGeneratorTest {
+  private static final String FIXTURES_PATV1 =
+      """
         d2pat_e0b5Y9bXWtUcfEY8BMHHj9aJZkXCQ7O50174669582
         d2pat_rxIbXljF8Pj5oFRTos4bDmPTnnRu8f4M2723141895
         d2pat_Bp5PJb63ppNCNMQVVbtyS9E6WwoeJOEo2885366845
@@ -62,7 +61,8 @@ class ApiKeyTokenGeneratorTest
         d2pat_ipIeXZVMnPmMy0GZgNJIZY4BZQOJCUb02442885064
         """;
 
-    private final static String FIXTURES_PATV2 = """
+  private static final String FIXTURES_PATV2 =
+      """
         d2p_iKrAY7sR6rPea1rub181baRzyyui2AW07ymXPRExAgwa051Mei
         d2p_z9T7lpwaWUcvi8yBWt5zvB0LMUfUayHChm7SWGeNrYOJ38vtdY
         d2p_KT73ShoY3UGXmKTN4mLIxBtbDgOz6oB1PLRibZlodP0p32ITYN
@@ -81,105 +81,126 @@ class ApiKeyTokenGeneratorTest
         d2p_JWXuAmuC97jQJEaRz1XEz2z1FSDrBvLKVmNj7oQxNLAS4M0lXY
         """;
 
-    @Test
-    void validatePATV1Fixtures()
-    {
-        for ( String token : FIXTURES_PATV1.split( "\n" ) )
-        {
-            ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
-            ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator
-                .extractCodeAndChecksum( token.toCharArray() );
-            char[] code = pair.getCode();
-            assertEquals( type.getLength(), code.length );
-            char[] checksum = pair.getChecksum();
+  @Test
+  void validatePATV1Fixtures() {
+    for (String token : FIXTURES_PATV1.split("\n")) {
+      ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
+      ApiKeyTokenGenerator.CodeAndChecksum pair =
+          ApiKeyTokenGenerator.extractCodeAndChecksum(token.toCharArray());
+      char[] code = pair.getCode();
+      assertEquals(type.getLength(), code.length);
+      char[] checksum = pair.getChecksum();
 
-            log.info( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
-                checksum ) );
+      log.info(
+          "token: "
+              + new String(token)
+              + " code: "
+              + new String(code)
+              + " checksum: "
+              + new String(checksum));
 
-            assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length() );
+      assertEquals(
+          type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length());
 
-            assertTrue( ApiKeyTokenGenerator.isValidTokenChecksum( token.toCharArray() ) );
-        }
+      assertTrue(ApiKeyTokenGenerator.isValidTokenChecksum(token.toCharArray()));
     }
+  }
 
-    @Test
-    void validatePATV2Fixtures()
-    {
-        for ( String token : FIXTURES_PATV2.split( "\n" ) )
-        {
-            ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V2;
-            ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator
-                .extractCodeAndChecksum( token.toCharArray() );
-            char[] code = pair.getCode();
-            assertEquals( type.getLength(), code.length );
-            char[] checksum = pair.getChecksum();
+  @Test
+  void validatePATV2Fixtures() {
+    for (String token : FIXTURES_PATV2.split("\n")) {
+      ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V2;
+      ApiKeyTokenGenerator.CodeAndChecksum pair =
+          ApiKeyTokenGenerator.extractCodeAndChecksum(token.toCharArray());
+      char[] code = pair.getCode();
+      assertEquals(type.getLength(), code.length);
+      char[] checksum = pair.getChecksum();
 
-            log.info( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
-                checksum ) );
+      log.info(
+          "token: "
+              + new String(token)
+              + " code: "
+              + new String(code)
+              + " checksum: "
+              + new String(checksum));
 
-            assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length() );
-            assertTrue( ApiKeyTokenGenerator.isValidTokenChecksum( token.toCharArray() ) );
-        }
+      assertEquals(
+          type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length());
+      assertTrue(ApiKeyTokenGenerator.isValidTokenChecksum(token.toCharArray()));
     }
+  }
 
-    @Test
-    void testGenerateALotOfPATV1Tokens()
-    {
-        for ( int i = 0; i < 1000; i++ )
-        {
-            ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
-            char[] token = generatePatToken( type );
+  @Test
+  void testGenerateALotOfPATV1Tokens() {
+    for (int i = 0; i < 1000; i++) {
+      ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V1;
+      char[] token = generatePatToken(type);
 
-            ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
-            char[] code = pair.getCode();
-            assertEquals( type.getLength(), code.length );
-            char[] checksum = pair.getChecksum();
+      ApiKeyTokenGenerator.CodeAndChecksum pair =
+          ApiKeyTokenGenerator.extractCodeAndChecksum(token);
+      char[] code = pair.getCode();
+      assertEquals(type.getLength(), code.length);
+      char[] checksum = pair.getChecksum();
 
-            log.error( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
-                checksum ) );
+      log.error(
+          "token: "
+              + new String(token)
+              + " code: "
+              + new String(code)
+              + " checksum: "
+              + new String(checksum));
 
-            assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length );
-            assertTrue( ApiKeyTokenGenerator.isValidTokenChecksum( token ) );
-        }
+      assertEquals(
+          type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length);
+      assertTrue(ApiKeyTokenGenerator.isValidTokenChecksum(token));
     }
+  }
 
-    @Test
-    void testGenerateALotOfPATV2Tokens()
-    {
-        for ( int i = 0; i < 1000; i++ )
-        {
-            ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V2;
-            char[] token = generatePatToken( type );
+  @Test
+  void testGenerateALotOfPATV2Tokens() {
+    for (int i = 0; i < 1000; i++) {
+      ApiTokenType type = ApiTokenType.PERSONAL_ACCESS_TOKEN_V2;
+      char[] token = generatePatToken(type);
 
-            ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
-            char[] code = pair.getCode();
-            assertEquals( type.getLength(), code.length );
+      ApiKeyTokenGenerator.CodeAndChecksum pair =
+          ApiKeyTokenGenerator.extractCodeAndChecksum(token);
+      char[] code = pair.getCode();
+      assertEquals(type.getLength(), code.length);
 
-            long crc32 = CRC32Utils.generateCRC32Checksum( code );
-            char[] checksum = pair.getChecksum();
-            long decode = Base62.decodeBase62( new String( checksum ) );
-            assertEquals( decode, crc32 );
+      long crc32 = CRC32Utils.generateCRC32Checksum(code);
+      char[] checksum = pair.getChecksum();
+      long decode = Base62.decodeBase62(new String(checksum));
+      assertEquals(decode, crc32);
 
-            log.info( "token: " + new String( token ) + " code: " + new String( code ) + " checksum: " + new String(
-                checksum ) + " decoded: " + decode + " encoded: " + crc32 );
+      log.info(
+          "token: "
+              + new String(token)
+              + " code: "
+              + new String(code)
+              + " checksum: "
+              + new String(checksum)
+              + " decoded: "
+              + decode
+              + " encoded: "
+              + crc32);
 
-            assertEquals( type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length );
-            assertTrue( ApiKeyTokenGenerator.isValidTokenChecksum( token ) );
-        }
+      assertEquals(
+          type.getPrefix().length() + "_".length() + code.length + checksum.length, token.length);
+      assertTrue(ApiKeyTokenGenerator.isValidTokenChecksum(token));
     }
+  }
 
-    @Test
-    void testGeneratePersonalAccessTokensV2CheckChecksumMatch()
-    {
-        char[] token = generatePatToken( ApiTokenType.PERSONAL_ACCESS_TOKEN_V2 );
+  @Test
+  void testGeneratePersonalAccessTokensV2CheckChecksumMatch() {
+    char[] token = generatePatToken(ApiTokenType.PERSONAL_ACCESS_TOKEN_V2);
 
-        ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum( token );
-        char[] code = pair.getCode();
-        char[] checksum = pair.getChecksum();
+    ApiKeyTokenGenerator.CodeAndChecksum pair = ApiKeyTokenGenerator.extractCodeAndChecksum(token);
+    char[] code = pair.getCode();
+    char[] checksum = pair.getChecksum();
 
-        long longChecksum = CRC32Utils.generateCRC32Checksum( code );
-        String base62EncodedLongChecksum = Base62.encodeUnsigned32bitToBase62( longChecksum );
+    long longChecksum = CRC32Utils.generateCRC32Checksum(code);
+    String base62EncodedLongChecksum = Base62.encodeUnsigned32bitToBase62(longChecksum);
 
-        assertEquals( base62EncodedLongChecksum, new String( checksum ) );
-    }
+    assertEquals(base62EncodedLongChecksum, new String(checksum));
+  }
 }

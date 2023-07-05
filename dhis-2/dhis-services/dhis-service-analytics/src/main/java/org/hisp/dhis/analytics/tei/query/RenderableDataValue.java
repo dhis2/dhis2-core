@@ -30,40 +30,40 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.Objects;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.ValueTypeMapping;
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Field;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class RenderableDataValue extends BaseRenderable
-{
-    private final String alias;
+@RequiredArgsConstructor(staticName = "of")
+public class RenderableDataValue extends BaseRenderable {
+  private final String alias;
 
-    private final String dataValue;
+  private final String dataValue;
 
-    private final ValueTypeMapping valueTypeMapping;
+  private final ValueTypeMapping valueTypeMapping;
 
-    private final String asAlias;
+  private final String asAlias;
 
-    public static RenderableDataValue of( String alias, String dataValue, ValueTypeMapping valueTypeMapping )
-    {
-        return RenderableDataValue.of( alias, dataValue, valueTypeMapping, null );
+  public static RenderableDataValue of(
+      String alias, String dataValue, ValueTypeMapping valueTypeMapping) {
+    return RenderableDataValue.of(alias, dataValue, valueTypeMapping, null);
+  }
+
+  @Override
+  public String render() {
+    String rendered =
+        "("
+            + Field.of(alias, () -> "eventdatavalues", EMPTY).render()
+            + " -> '"
+            + dataValue
+            + "' ->> 'value')::"
+            + valueTypeMapping.name();
+
+    if (Objects.nonNull(asAlias)) {
+      rendered += " as " + asAlias;
     }
 
-    @Override
-    public String render()
-    {
-        String rendered = "(" + Field.of( alias, () -> "eventdatavalues", EMPTY ).render()
-            + " -> '" + dataValue + "' ->> 'value')::" + valueTypeMapping.name();
-
-        if ( Objects.nonNull( asAlias ) )
-        {
-            rendered += " as " + asAlias;
-        }
-
-        return rendered;
-    }
+    return rendered;
+  }
 }

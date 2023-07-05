@@ -34,19 +34,17 @@ import lombok.NoArgsConstructor;
 /**
  * @author Zubair Asghar
  */
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class BaseNotificationParam
-{
-    public static final int DEFAULT_PAGE_SIZE = 50;
+public class BaseNotificationParam {
+  public static final int DEFAULT_PAGE_SIZE = 50;
 
-    public static final int DEFAULT_PAGE = 0;
+  public static final int DEFAULT_PAGE = 0;
 
-    private Integer page;
+  private Integer page;
 
-    private Integer pageSize;
+  private Integer pageSize;
 
-    private boolean skipPaging;
+  private boolean skipPaging;
 }

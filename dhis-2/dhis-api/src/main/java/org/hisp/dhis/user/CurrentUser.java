@@ -33,22 +33,20 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Can be used to annotate controller parameters of type {@link User}, if the
- * current user as returned by the {@link CurrentUserService} should be
- * injected.
+ * Can be used to annotate controller parameters of type {@link User}, if the current user as
+ * returned by the {@link CurrentUserService} should be injected.
  *
- * If the annotation is used with a {@link String} parameter the
- * {@link CurrentUserService#getCurrentUsername()} is injected.
+ * <p>If the annotation is used with a {@link String} parameter the {@link
+ * CurrentUserService#getCurrentUsername()} is injected.
  *
  * @author Jan Bernitt
  */
-@Target( ElementType.PARAMETER )
-@Retention( RetentionPolicy.RUNTIME )
-public @interface CurrentUser
-{
-    /**
-     * @return When true, the current user must be present otherwise an
-     *         exception is thrown when resolving the parameter.
-     */
-    boolean required() default false;
+@Target(ElementType.PARAMETER)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface CurrentUser {
+  /**
+   * @return When true, the current user must be present otherwise an exception is thrown when
+   *     resolving the parameter.
+   */
+  boolean required() default false;
 }

@@ -32,20 +32,16 @@ import org.hisp.dhis.jsontree.JsonObject;
 /**
  * @author David Mackessy
  */
-public interface JsonWebLocale extends JsonObject
-{
-    default String getLocale()
-    {
-        return getString( "locale" ).string();
-    }
+public interface JsonWebLocale extends JsonObject {
+  default String getLocale() {
+    return getString("locale").string();
+  }
 
-    default String getName()
-    {
-        return getString( "name" ).string();
-    }
+  default String getName() {
+    return getString("name").string();
+  }
 
-    default String getDisplayName()
-    {
-        return getString( "displayName" ).string();
-    }
+  default String getDisplayName() {
+    return getString("displayName").string();
+  }
 }

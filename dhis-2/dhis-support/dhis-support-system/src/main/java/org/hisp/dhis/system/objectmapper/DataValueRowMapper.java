@@ -29,7 +29,6 @@ package org.hisp.dhis.system.objectmapper;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-
 import org.hisp.dhis.category.CategoryOptionCombo;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValue;
@@ -42,37 +41,32 @@ import org.hisp.quick.mapper.RowMapper;
  * @version $Id$
  */
 public class DataValueRowMapper
-    implements RowMapper<DataValue>, org.springframework.jdbc.core.RowMapper<DataValue>
-{
-    @Override
-    public DataValue mapRow( ResultSet resultSet )
-        throws SQLException
-    {
-        final DataValue dataValue = new DataValue();
+    implements RowMapper<DataValue>, org.springframework.jdbc.core.RowMapper<DataValue> {
+  @Override
+  public DataValue mapRow(ResultSet resultSet) throws SQLException {
+    final DataValue dataValue = new DataValue();
 
-        dataValue.setDataElement( new DataElement() );
-        dataValue.setCategoryOptionCombo( new CategoryOptionCombo() );
-        dataValue.setAttributeOptionCombo( new CategoryOptionCombo() );
-        dataValue.setSource( new OrganisationUnit() );
-        dataValue.setPeriod( new Period() );
+    dataValue.setDataElement(new DataElement());
+    dataValue.setCategoryOptionCombo(new CategoryOptionCombo());
+    dataValue.setAttributeOptionCombo(new CategoryOptionCombo());
+    dataValue.setSource(new OrganisationUnit());
+    dataValue.setPeriod(new Period());
 
-        dataValue.getDataElement().setId( resultSet.getLong( "dataelementid" ) );
-        dataValue.getPeriod().setId( resultSet.getLong( "periodid" ) );
-        dataValue.getSource().setId( resultSet.getLong( "sourceid" ) );
-        dataValue.getCategoryOptionCombo().setId( resultSet.getLong( "categoryoptioncomboid" ) );
-        dataValue.setValue( resultSet.getString( "value" ) );
-        dataValue.setStoredBy( resultSet.getString( "storedby" ) );
-        dataValue.setCreated( resultSet.getDate( "created" ) );
-        dataValue.setLastUpdated( resultSet.getDate( "lastupdated" ) );
-        dataValue.setComment( resultSet.getString( "comment" ) );
+    dataValue.getDataElement().setId(resultSet.getLong("dataelementid"));
+    dataValue.getPeriod().setId(resultSet.getLong("periodid"));
+    dataValue.getSource().setId(resultSet.getLong("sourceid"));
+    dataValue.getCategoryOptionCombo().setId(resultSet.getLong("categoryoptioncomboid"));
+    dataValue.setValue(resultSet.getString("value"));
+    dataValue.setStoredBy(resultSet.getString("storedby"));
+    dataValue.setCreated(resultSet.getDate("created"));
+    dataValue.setLastUpdated(resultSet.getDate("lastupdated"));
+    dataValue.setComment(resultSet.getString("comment"));
 
-        return dataValue;
-    }
+    return dataValue;
+  }
 
-    @Override
-    public DataValue mapRow( ResultSet resultSet, int rowNum )
-        throws SQLException
-    {
-        return mapRow( resultSet );
-    }
+  @Override
+  public DataValue mapRow(ResultSet resultSet, int rowNum) throws SQLException {
+    return mapRow(resultSet);
+  }
 }

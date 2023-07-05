@@ -27,23 +27,20 @@
  */
 package org.hisp.dhis.tracker.imports.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.event.EventStatus;
 import org.hisp.dhis.tracker.imports.TrackerType;
 import org.locationtech.jts.geom.Geometry;
-
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
@@ -52,107 +49,74 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Event
-    implements TrackerDto
-{
-    @JsonProperty
-    private String event;
+public class Event implements TrackerDto {
+  @JsonProperty private String event;
 
-    @JsonProperty
-    @Builder.Default
-    private EventStatus status = EventStatus.ACTIVE;
+  @JsonProperty @Builder.Default private EventStatus status = EventStatus.ACTIVE;
 
-    @JsonProperty
-    private MetadataIdentifier program;
+  @JsonProperty private MetadataIdentifier program;
 
-    @JsonProperty
-    private MetadataIdentifier programStage;
+  @JsonProperty private MetadataIdentifier programStage;
 
-    @JsonProperty
-    private String enrollment;
+  @JsonProperty private String enrollment;
 
-    @JsonProperty
-    private MetadataIdentifier orgUnit;
+  @JsonProperty private MetadataIdentifier orgUnit;
 
-    @JsonProperty
-    @Builder.Default
-    private List<Relationship> relationships = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Relationship> relationships = new ArrayList<>();
 
-    @JsonProperty
-    private Instant occurredAt;
+  @JsonProperty private Instant occurredAt;
 
-    @JsonProperty
-    private Instant scheduledAt;
+  @JsonProperty private Instant scheduledAt;
 
-    @JsonProperty
-    private String storedBy;
+  @JsonProperty private String storedBy;
 
-    @JsonProperty
-    private boolean followup;
+  @JsonProperty private boolean followup;
 
-    @JsonProperty
-    private boolean deleted;
+  @JsonProperty private boolean deleted;
 
-    @JsonProperty
-    private Instant createdAt;
+  @JsonProperty private Instant createdAt;
 
-    @JsonProperty
-    private Instant createdAtClient;
+  @JsonProperty private Instant createdAtClient;
 
-    @JsonProperty
-    private Instant updatedAt;
+  @JsonProperty private Instant updatedAt;
 
-    @JsonProperty
-    private Instant updatedAtClient;
+  @JsonProperty private Instant updatedAtClient;
 
-    @JsonProperty
-    private MetadataIdentifier attributeOptionCombo;
+  @JsonProperty private MetadataIdentifier attributeOptionCombo;
 
-    @JsonProperty
-    @Builder.Default
-    private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
+  @JsonProperty @Builder.Default
+  private Set<MetadataIdentifier> attributeCategoryOptions = new HashSet<>();
 
-    @JsonProperty
-    private String completedBy;
+  @JsonProperty private String completedBy;
 
-    @JsonProperty
-    private Instant completedAt;
+  @JsonProperty private Instant completedAt;
 
-    @JsonProperty
-    private Geometry geometry;
+  @JsonProperty private Geometry geometry;
 
-    @JsonProperty
-    private User assignedUser;
+  @JsonProperty private User assignedUser;
 
-    @JsonProperty
-    private User createdBy;
+  @JsonProperty private User createdBy;
 
-    @JsonProperty
-    private User updatedBy;
+  @JsonProperty private User updatedBy;
 
-    @JsonProperty
-    @Builder.Default
-    private Set<DataValue> dataValues = new HashSet<>();
+  @JsonProperty @Builder.Default private Set<DataValue> dataValues = new HashSet<>();
 
-    @JsonProperty
-    @Builder.Default
-    private List<Note> notes = new ArrayList<>();
+  @JsonProperty @Builder.Default private List<Note> notes = new ArrayList<>();
 
-    @JsonIgnore
-    public boolean isCreatableInSearchScope()
-    {
-        return this.getStatus() == EventStatus.SCHEDULE && this.getDataValues().isEmpty() && this.occurredAt == null;
-    }
+  @JsonIgnore
+  public boolean isCreatableInSearchScope() {
+    return this.getStatus() == EventStatus.SCHEDULE
+        && this.getDataValues().isEmpty()
+        && this.occurredAt == null;
+  }
 
-    @Override
-    public String getUid()
-    {
-        return this.event;
-    }
+  @Override
+  public String getUid() {
+    return this.event;
+  }
 
-    @Override
-    public TrackerType getTrackerType()
-    {
-        return TrackerType.EVENT;
-    }
+  @Override
+  public TrackerType getTrackerType() {
+    return TrackerType.EVENT;
+  }
 }

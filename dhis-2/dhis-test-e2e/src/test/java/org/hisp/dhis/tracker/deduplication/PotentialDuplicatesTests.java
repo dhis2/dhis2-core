@@ -32,8 +32,8 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.hisp.dhis.helpers.matchers.MatchesJson.matchesJSON;
 
+import com.google.gson.JsonObject;
 import java.util.Arrays;
-
 import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.JsonObjectBuilder;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
@@ -42,128 +42,143 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.google.gson.JsonObject;
-
 /**
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest
-{
-    @BeforeEach
-    public void beforeEach()
-    {
-        loginActions.loginAsAdmin();
-    }
+public class PotentialDuplicatesTests extends PotentialDuplicatesApiTest {
+  @BeforeEach
+  public void beforeEach() {
+    loginActions.loginAsAdmin();
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "OPEN", "INVALID", "MERGED" } )
-    public void shouldFilterByStatus( String status )
-    {
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
+  @ParameterizedTest
+  @ValueSource(strings = {"OPEN", "INVALID", "MERGED"})
+  public void shouldFilterByStatus(String status) {
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(
+        createTei(), createTei(), status);
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=" + status ) )
-            .validate()
-            .body( "potentialDuplicates", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "potentialDuplicates.status", everyItem( equalTo( status ) ) );
-    }
+    potentialDuplicatesActions
+        .get("", new QueryParamsBuilder().add("status=" + status))
+        .validate()
+        .body("potentialDuplicates", hasSize(greaterThanOrEqualTo(1)))
+        .body("potentialDuplicates.status", everyItem(equalTo(status)));
+  }
 
-    @Test
-    public void shouldReturnAllStatuses()
-    {
-        Arrays.asList( "OPEN", "MERGED", "INVALID" ).forEach( status -> {
-            potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(), status );
-        } );
+  @Test
+  public void shouldReturnAllStatuses() {
+    Arrays.asList("OPEN", "MERGED", "INVALID")
+        .forEach(
+            status -> {
+              potentialDuplicatesActions.createAndValidatePotentialDuplicate(
+                  createTei(), createTei(), status);
+            });
 
-        potentialDuplicatesActions.get( "", new QueryParamsBuilder().add( "status=ALL" ) )
-            .validate()
-            .body( "potentialDuplicates", hasSize( greaterThanOrEqualTo( 1 ) ) )
-            .body( "potentialDuplicates.status",
-                allOf( hasItem( "OPEN" ), hasItem( "INVALID" ), hasItem( "MERGED" ) ) );
-    }
+    potentialDuplicatesActions
+        .get("", new QueryParamsBuilder().add("status=ALL"))
+        .validate()
+        .body("potentialDuplicates", hasSize(greaterThanOrEqualTo(1)))
+        .body(
+            "potentialDuplicates.status",
+            allOf(hasItem("OPEN"), hasItem("INVALID"), hasItem("MERGED")));
+  }
 
-    @Test
-    public void shouldRequireBothTeis()
-    {
-        potentialDuplicatesActions.postPotentialDuplicate( null, createTei(), "OPEN" )
-            .validate()
-            .statusCode( equalTo( 400 ) )
-            .body( "status", equalTo( "ERROR" ) )
-            .body( "message", containsStringIgnoringCase( "missing required input property" ) );
-    }
+  @Test
+  public void shouldRequireBothTeis() {
+    potentialDuplicatesActions
+        .postPotentialDuplicate(null, createTei(), "OPEN")
+        .validate()
+        .statusCode(equalTo(400))
+        .body("status", equalTo("ERROR"))
+        .body("message", containsStringIgnoringCase("missing required input property"));
+  }
 
-    @ParameterizedTest
-    @ValueSource( strings = { "ALL", "INVALID", "MERGED" } )
-    public void shouldNotCreateWithStatusNotAllowed( String status )
-    {
-        potentialDuplicatesActions.postPotentialDuplicate( createTei(), createTei(), status )
-            .validate()
-            .statusCode( equalTo( 409 ) )
-            .body( "httpStatus", equalTo( "Conflict" ) )
-            .body( "status", equalTo( "ERROR" ) );
-    }
+  @ParameterizedTest
+  @ValueSource(strings = {"ALL", "INVALID", "MERGED"})
+  public void shouldNotCreateWithStatusNotAllowed(String status) {
+    potentialDuplicatesActions
+        .postPotentialDuplicate(createTei(), createTei(), status)
+        .validate()
+        .statusCode(equalTo(409))
+        .body("httpStatus", equalTo("Conflict"))
+        .body("status", equalTo("ERROR"));
+  }
 
-    @Test
-    public void shouldNotUpdateToMerged()
-    {
-        String duplicateId = potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), createTei(),
-            "OPEN" );
+  @Test
+  public void shouldNotUpdateToMerged() {
+    String duplicateId =
+        potentialDuplicatesActions.createAndValidatePotentialDuplicate(
+            createTei(), createTei(), "OPEN");
 
-        ApiResponse response = potentialDuplicatesActions.update( duplicateId + "?status=" + "MERGED",
-            new JsonObjectBuilder().build() );
+    ApiResponse response =
+        potentialDuplicatesActions.update(
+            duplicateId + "?status=" + "MERGED", new JsonObjectBuilder().build());
 
-        response.validate()
-            .statusCode( 400 )
-            .body( "status", equalTo( "ERROR" ) );
-    }
+    response.validate().statusCode(400).body("status", equalTo("ERROR"));
+  }
 
-    @Test
-    public void shouldGetAllTeiPotentialDuplicatesWhenPaginationIsNotRequested()
-    {
-        String tei = createTei();
+  @Test
+  public void shouldGetAllTeiPotentialDuplicatesWhenPaginationIsNotRequested() {
+    String tei = createTei();
 
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( createTei(), tei );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(createTei(), tei);
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
 
-        potentialDuplicatesActions.get( new QueryParamsBuilder().add( "teis=" + tei ).add( "skipPaging=true" ) )
-            .validate()
-            .body( "potentialDuplicates", hasSize( equalTo( 3 ) ) )
-            .body( "potentialDuplicates.status", allOf( hasItem( "OPEN" ) ) );
-    }
+    potentialDuplicatesActions
+        .get(new QueryParamsBuilder().add("teis=" + tei).add("skipPaging=true"))
+        .validate()
+        .body("potentialDuplicates", hasSize(equalTo(3)))
+        .body("potentialDuplicates.status", allOf(hasItem("OPEN")));
+  }
 
-    @Test
-    public void shouldGetSortedPotentialDuplicatesWhenOrderAndPagingIsRequested()
-    {
-        String tei = createTei();
-        String firstDuplicate = createTei();
-        String secondDuplicate = createTei();
+  @Test
+  public void shouldGetSortedPotentialDuplicatesWhenOrderAndPagingIsRequested() {
+    String tei = createTei();
+    String firstDuplicate = createTei();
+    String secondDuplicate = createTei();
 
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, firstDuplicate );
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, secondDuplicate );
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, firstDuplicate);
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, secondDuplicate);
 
-        JsonObject response = potentialDuplicatesActions.get( new QueryParamsBuilder().add( "teis=" + tei )
-            .add( "order=created:DESC" ).add( "pageSize=2" ).add( "page=1" ) ).getBody();
+    JsonObject response =
+        potentialDuplicatesActions
+            .get(
+                new QueryParamsBuilder()
+                    .add("teis=" + tei)
+                    .add("order=created:DESC")
+                    .add("pageSize=2")
+                    .add("page=1"))
+            .getBody();
 
-        assertThat( response, matchesJSON( new JsonObjectBuilder()
-            .addArray( "potentialDuplicates",
-                new JsonObjectBuilder().addProperty( "original", tei ).addProperty( "duplicate", secondDuplicate )
-                    .build(),
-                new JsonObjectBuilder().addProperty( "original", tei ).addProperty( "duplicate", firstDuplicate )
-                    .build() )
-            .build() ) );
-    }
+    assertThat(
+        response,
+        matchesJSON(
+            new JsonObjectBuilder()
+                .addArray(
+                    "potentialDuplicates",
+                    new JsonObjectBuilder()
+                        .addProperty("original", tei)
+                        .addProperty("duplicate", secondDuplicate)
+                        .build(),
+                    new JsonObjectBuilder()
+                        .addProperty("original", tei)
+                        .addProperty("duplicate", firstDuplicate)
+                        .build())
+                .build()));
+  }
 
-    @Test
-    public void shouldGetBadRequestWhenWrongOrderField()
-    {
-        String tei = createTei();
-        potentialDuplicatesActions.createAndValidatePotentialDuplicate( tei, createTei() );
+  @Test
+  public void shouldGetBadRequestWhenWrongOrderField() {
+    String tei = createTei();
+    potentialDuplicatesActions.createAndValidatePotentialDuplicate(tei, createTei());
 
-        assertThat( potentialDuplicatesActions
-            .get( new QueryParamsBuilder().add( "teis=" + tei ).add( "order=creatd:DESC" ) ).statusCode(),
-            equalTo( 400 ) );
-    }
+    assertThat(
+        potentialDuplicatesActions
+            .get(new QueryParamsBuilder().add("teis=" + tei).add("order=creatd:DESC"))
+            .statusCode(),
+        equalTo(400));
+  }
 }

@@ -30,8 +30,7 @@ package org.hisp.dhis.query;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum Direction
-{
-    ASCENDING,
-    DESCENDING
+public enum Direction {
+  ASCENDING,
+  DESCENDING
 }

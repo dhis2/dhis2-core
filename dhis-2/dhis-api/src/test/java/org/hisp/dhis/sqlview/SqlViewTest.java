@@ -31,63 +31,57 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
 
 /**
  * @author Lars Helge Overland
  */
-class SqlViewTest
-{
-    @Test
-    void testIsValidQueryValue()
-    {
-        assertTrue( SqlView.isValidQueryValue( "east" ) );
-        assertTrue( SqlView.isValidQueryValue( "NUMBER" ) );
-        assertTrue( SqlView.isValidQueryValue( "2015-03-01" ) );
-        assertTrue( SqlView.isValidQueryValue( "John Doe" ) );
-        assertTrue( SqlView.isValidQueryValue( "anc_1" ) );
-        assertFalse( SqlView.isValidQueryValue( "../var/dir" ) );
-        assertFalse( SqlView.isValidQueryValue( "delete from table;" ) );
-    }
+class SqlViewTest {
+  @Test
+  void testIsValidQueryValue() {
+    assertTrue(SqlView.isValidQueryValue("east"));
+    assertTrue(SqlView.isValidQueryValue("NUMBER"));
+    assertTrue(SqlView.isValidQueryValue("2015-03-01"));
+    assertTrue(SqlView.isValidQueryValue("John Doe"));
+    assertTrue(SqlView.isValidQueryValue("anc_1"));
+    assertFalse(SqlView.isValidQueryValue("../var/dir"));
+    assertFalse(SqlView.isValidQueryValue("delete from table;"));
+  }
 
-    @Test
-    void testGetCriteria()
-    {
-        Set<String> params = Sets.newHashSet( "type:NUMBER", "aggregationType:AVERAGE" );
-        Map<String, String> expected = Map.of( "type", "NUMBER", "aggregationType", "AVERAGE" );
-        assertEquals( expected, SqlView.getCriteria( params ) );
-    }
+  @Test
+  void testGetCriteria() {
+    Set<String> params = Sets.newHashSet("type:NUMBER", "aggregationType:AVERAGE");
+    Map<String, String> expected = Map.of("type", "NUMBER", "aggregationType", "AVERAGE");
+    assertEquals(expected, SqlView.getCriteria(params));
+  }
 
-    @Test
-    void testCompareTo()
-    {
-        SqlView svA = new SqlView( "SqlViewA", "", SqlViewType.QUERY );
-        SqlView svB = new SqlView( "SqlViewB", "", SqlViewType.QUERY );
-        SqlView svC = new SqlView( "SqlViewC", "", SqlViewType.QUERY );
-        SqlView svD = new SqlView( "SqlViewD", "", SqlViewType.QUERY );
-        SqlView svE = new SqlView( "SqlViewE", "", SqlViewType.QUERY );
-        SqlView svF = new SqlView( null, null, SqlViewType.QUERY );
-        svA.setUid( "UidA" );
-        svB.setUid( "UidB" );
-        svC.setUid( "UidC" );
-        svD.setUid( "UidD" );
-        svE.setUid( "UidE" );
-        svF.setUid( "UidF" );
-        List<SqlView> list = Lists.newArrayList( svB, svE, svF, svC, svA, svD );
-        Collections.sort( list );
-        assertEquals( svA, list.get( 0 ) );
-        assertEquals( svB, list.get( 1 ) );
-        assertEquals( svC, list.get( 2 ) );
-        assertEquals( svD, list.get( 3 ) );
-        assertEquals( svE, list.get( 4 ) );
-        assertEquals( svF, list.get( 5 ) );
-    }
+  @Test
+  void testCompareTo() {
+    SqlView svA = new SqlView("SqlViewA", "", SqlViewType.QUERY);
+    SqlView svB = new SqlView("SqlViewB", "", SqlViewType.QUERY);
+    SqlView svC = new SqlView("SqlViewC", "", SqlViewType.QUERY);
+    SqlView svD = new SqlView("SqlViewD", "", SqlViewType.QUERY);
+    SqlView svE = new SqlView("SqlViewE", "", SqlViewType.QUERY);
+    SqlView svF = new SqlView(null, null, SqlViewType.QUERY);
+    svA.setUid("UidA");
+    svB.setUid("UidB");
+    svC.setUid("UidC");
+    svD.setUid("UidD");
+    svE.setUid("UidE");
+    svF.setUid("UidF");
+    List<SqlView> list = Lists.newArrayList(svB, svE, svF, svC, svA, svD);
+    Collections.sort(list);
+    assertEquals(svA, list.get(0));
+    assertEquals(svB, list.get(1));
+    assertEquals(svC, list.get(2));
+    assertEquals(svD, list.get(3));
+    assertEquals(svE, list.get(4));
+    assertEquals(svF, list.get(5));
+  }
 }

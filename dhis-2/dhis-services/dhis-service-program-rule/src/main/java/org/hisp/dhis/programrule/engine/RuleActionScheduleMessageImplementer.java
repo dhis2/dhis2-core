@@ -30,7 +30,6 @@ package org.hisp.dhis.programrule.engine;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.notification.logging.ExternalNotificationLogEntry;
 import org.hisp.dhis.notification.logging.NotificationLoggingService;
@@ -56,175 +55,160 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Zubair Asghar
  */
 @Slf4j
-@Component( "org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer" )
-public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer
-{
-    public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
+@Component("org.hisp.dhis.programrule.engine.RuleActionScheduleMessageImplementer")
+public class RuleActionScheduleMessageImplementer extends NotificationRuleActionImplementer {
+  public static final String LOG_MESSAGE = "Notification with id:%s has been scheduled";
 
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final ProgramNotificationInstanceService programNotificationInstanceService;
+  private final ProgramNotificationInstanceService programNotificationInstanceService;
 
-    private final NotificationTemplateService notificationTemplateService;
+  private final NotificationTemplateService notificationTemplateService;
 
-    public RuleActionScheduleMessageImplementer( ProgramNotificationTemplateService programNotificationTemplateService,
-        NotificationLoggingService notificationLoggingService,
-        EnrollmentService enrollmentService,
-        EventService eventService,
-        ProgramNotificationInstanceService programNotificationInstanceService,
-        NotificationTemplateService notificationTemplateService )
-    {
-        super( programNotificationTemplateService, notificationLoggingService, enrollmentService,
-            eventService );
-        this.programNotificationInstanceService = programNotificationInstanceService;
-        this.notificationTemplateService = notificationTemplateService;
+  public RuleActionScheduleMessageImplementer(
+      ProgramNotificationTemplateService programNotificationTemplateService,
+      NotificationLoggingService notificationLoggingService,
+      EnrollmentService enrollmentService,
+      EventService eventService,
+      ProgramNotificationInstanceService programNotificationInstanceService,
+      NotificationTemplateService notificationTemplateService) {
+    super(
+        programNotificationTemplateService,
+        notificationLoggingService,
+        enrollmentService,
+        eventService);
+    this.programNotificationInstanceService = programNotificationInstanceService;
+    this.notificationTemplateService = notificationTemplateService;
+  }
+
+  @Override
+  public boolean accept(RuleAction ruleAction) {
+    return ruleAction instanceof RuleActionScheduleMessage;
+  }
+
+  @Override
+  @Transactional
+  public void implement(RuleEffect ruleEffect, Enrollment enrollment) {
+    NotificationValidationResult result = validate(ruleEffect, enrollment);
+
+    if (!result.isValid()) {
+      return;
     }
 
-    @Override
-    public boolean accept( RuleAction ruleAction )
-    {
-        return ruleAction instanceof RuleActionScheduleMessage;
+    ProgramNotificationTemplate template = result.getTemplate();
+
+    String key = generateKey(template, enrollment);
+
+    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+
+    if (!isDateValid(date)) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void implement( RuleEffect ruleEffect, Enrollment enrollment )
-    {
-        NotificationValidationResult result = validate( ruleEffect, enrollment );
+    ProgramNotificationInstance notificationInstance =
+        notificationTemplateService.createNotificationInstance(template, date);
+    notificationInstance.setEvent(null);
+    notificationInstance.setEnrollment(enrollment);
 
-        if ( !result.isValid() )
-        {
-            return;
-        }
+    programNotificationInstanceService.save(notificationInstance);
 
-        ProgramNotificationTemplate template = result.getTemplate();
+    log.info(String.format(LOG_MESSAGE, template.getUid()));
 
-        String key = generateKey( template, enrollment );
-
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
-
-        if ( !isDateValid( date ) )
-        {
-            return;
-        }
-
-        ProgramNotificationInstance notificationInstance = notificationTemplateService
-            .createNotificationInstance( template, date );
-        notificationInstance.setEvent( null );
-        notificationInstance.setEnrollment( enrollment );
-
-        programNotificationInstanceService.save( notificationInstance );
-
-        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
-
-        if ( result.getLogEntry() != null )
-        {
-            return;
-        }
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
-        notificationLoggingService.save( entry );
+    if (result.getLogEntry() != null) {
+      return;
     }
 
-    @Override
-    @Transactional
-    public void implement( RuleEffect ruleEffect, Event event )
-    {
-        checkNotNull( event, "Event cannot be null" );
+    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM);
+    entry.setAllowMultiple(template.isSendRepeatable());
 
-        NotificationValidationResult result = validate( ruleEffect, event.getEnrollment() );
+    notificationLoggingService.save(entry);
+  }
 
-        // For program without registration
-        if ( event.getProgramStage().getProgram().isWithoutRegistration() )
-        {
-            handleSingleEvent( ruleEffect, event );
-            return;
-        }
+  @Override
+  @Transactional
+  public void implement(RuleEffect ruleEffect, Event event) {
+    checkNotNull(event, "Event cannot be null");
 
-        if ( !result.isValid() )
-        {
-            return;
-        }
+    NotificationValidationResult result = validate(ruleEffect, event.getEnrollment());
 
-        ProgramNotificationTemplate template = result.getTemplate();
-        String key = generateKey( template, event.getEnrollment() );
-
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
-
-        if ( !isDateValid( date ) )
-        {
-            return;
-        }
-
-        ProgramNotificationInstance notificationInstance = notificationTemplateService
-            .createNotificationInstance( template, date );
-        notificationInstance.setEvent( event );
-        notificationInstance.setEnrollment( null );
-
-        programNotificationInstanceService.save( notificationInstance );
-
-        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
-
-        if ( result.getLogEntry() != null )
-        {
-            return;
-        }
-
-        ExternalNotificationLogEntry entry = createLogEntry( key, template.getUid() );
-        entry.setNotificationTriggeredBy( NotificationTriggerEvent.PROGRAM_STAGE );
-        entry.setAllowMultiple( template.isSendRepeatable() );
-
-        notificationLoggingService.save( entry );
-
+    // For program without registration
+    if (event.getProgramStage().getProgram().isWithoutRegistration()) {
+      handleSingleEvent(ruleEffect, event);
+      return;
     }
 
-    // -------------------------------------------------------------------------
-    // Supportive Methods
-    // -------------------------------------------------------------------------
-
-    private void handleSingleEvent( RuleEffect ruleEffect, Event event )
-    {
-        ProgramNotificationTemplate template = getNotificationTemplate( ruleEffect.ruleAction() );
-
-        if ( template == null )
-        {
-            return;
-        }
-
-        String date = StringUtils.unwrap( ruleEffect.data(), '\'' );
-
-        if ( !isDateValid( date ) )
-        {
-            return;
-        }
-
-        ProgramNotificationInstance notificationInstance = notificationTemplateService
-            .createNotificationInstance( template, date );
-        notificationInstance.setEvent( event );
-        notificationInstance.setEnrollment( null );
-
-        programNotificationInstanceService.save( notificationInstance );
-
-        log.info( String.format( LOG_MESSAGE, template.getUid() ) );
+    if (!result.isValid()) {
+      return;
     }
 
-    private boolean isDateValid( String date )
-    {
-        if ( StringUtils.isNotBlank( date ) )
-        {
-            if ( DateUtils.dateIsValid( date ) )
-            {
-                return true;
-            }
-        }
+    ProgramNotificationTemplate template = result.getTemplate();
+    String key = generateKey(template, event.getEnrollment());
 
-        log.error( "Invalid date: " + date );
+    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
 
-        return false;
+    if (!isDateValid(date)) {
+      return;
     }
+
+    ProgramNotificationInstance notificationInstance =
+        notificationTemplateService.createNotificationInstance(template, date);
+    notificationInstance.setEvent(event);
+    notificationInstance.setEnrollment(null);
+
+    programNotificationInstanceService.save(notificationInstance);
+
+    log.info(String.format(LOG_MESSAGE, template.getUid()));
+
+    if (result.getLogEntry() != null) {
+      return;
+    }
+
+    ExternalNotificationLogEntry entry = createLogEntry(key, template.getUid());
+    entry.setNotificationTriggeredBy(NotificationTriggerEvent.PROGRAM_STAGE);
+    entry.setAllowMultiple(template.isSendRepeatable());
+
+    notificationLoggingService.save(entry);
+  }
+
+  // -------------------------------------------------------------------------
+  // Supportive Methods
+  // -------------------------------------------------------------------------
+
+  private void handleSingleEvent(RuleEffect ruleEffect, Event event) {
+    ProgramNotificationTemplate template = getNotificationTemplate(ruleEffect.ruleAction());
+
+    if (template == null) {
+      return;
+    }
+
+    String date = StringUtils.unwrap(ruleEffect.data(), '\'');
+
+    if (!isDateValid(date)) {
+      return;
+    }
+
+    ProgramNotificationInstance notificationInstance =
+        notificationTemplateService.createNotificationInstance(template, date);
+    notificationInstance.setEvent(event);
+    notificationInstance.setEnrollment(null);
+
+    programNotificationInstanceService.save(notificationInstance);
+
+    log.info(String.format(LOG_MESSAGE, template.getUid()));
+  }
+
+  private boolean isDateValid(String date) {
+    if (StringUtils.isNotBlank(date)) {
+      if (DateUtils.dateIsValid(date)) {
+        return true;
+      }
+    }
+
+    log.error("Invalid date: " + date);
+
+    return false;
+  }
 }

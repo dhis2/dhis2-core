@@ -29,9 +29,7 @@ package org.hisp.dhis.trackedentity;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.user.CurrentUserService;
 import org.springframework.scheduling.annotation.Async;
@@ -40,63 +38,59 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author Abyot Asalefew Gizaw abyota@gmail.com
- *
  */
 @RequiredArgsConstructor
-@Service( "org.hisp.dhis.trackedentity.TrackedEntityAuditService" )
-public class DefaultTrackedEntityAuditService
-    implements TrackedEntityAuditService
-{
-    private final TrackedEntityAuditStore trackedEntityAuditStore;
+@Service("org.hisp.dhis.trackedentity.TrackedEntityAuditService")
+public class DefaultTrackedEntityAuditService implements TrackedEntityAuditService {
+  private final TrackedEntityAuditStore trackedEntityAuditStore;
 
-    private final TrackedEntityStore trackedEntityStore;
+  private final TrackedEntityStore trackedEntityStore;
 
-    private final TrackerAccessManager trackerAccessManager;
+  private final TrackerAccessManager trackerAccessManager;
 
-    private final CurrentUserService currentUserService;
+  private final CurrentUserService currentUserService;
 
-    // -------------------------------------------------------------------------
-    // TrackedEntityAuditService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // TrackedEntityAuditService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Async
-    @Transactional
-    public void addTrackedEntityAudit( TrackedEntityAudit trackedEntityAudit )
-    {
-        trackedEntityAuditStore.addTrackedEntityAudit( trackedEntityAudit );
-    }
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityAudit(TrackedEntityAudit trackedEntityAudit) {
+    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudit);
+  }
 
-    @Override
-    @Async
-    @Transactional
-    public void addTrackedEntityAudit( List<TrackedEntityAudit> trackedEntityAudits )
-    {
-        trackedEntityAuditStore.addTrackedEntityAudit( trackedEntityAudits );
-    }
+  @Override
+  @Async
+  @Transactional
+  public void addTrackedEntityAudit(List<TrackedEntityAudit> trackedEntityAudits) {
+    trackedEntityAuditStore.addTrackedEntityAudit(trackedEntityAudits);
+  }
 
-    @Override
-    @Transactional
-    public void deleteTrackedEntityAudit( TrackedEntity trackedEntity )
-    {
-        trackedEntityAuditStore.deleteTrackedEntityAudit( trackedEntity );
-    }
+  @Override
+  @Transactional
+  public void deleteTrackedEntityAudit(TrackedEntity trackedEntity) {
+    trackedEntityAuditStore.deleteTrackedEntityAudit(trackedEntity);
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<TrackedEntityAudit> getTrackedEntityAudits(
-        TrackedEntityAuditQueryParams params )
-    {
-        return trackedEntityAuditStore.getTrackedEntityAudits( params ).stream()
-            .filter( a -> trackerAccessManager.canRead( currentUserService.getCurrentUser(),
-                trackedEntityStore.getByUid( a.getTrackedEntity() ) ).isEmpty() )
-            .collect( Collectors.toList() );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public List<TrackedEntityAudit> getTrackedEntityAudits(TrackedEntityAuditQueryParams params) {
+    return trackedEntityAuditStore.getTrackedEntityAudits(params).stream()
+        .filter(
+            a ->
+                trackerAccessManager
+                    .canRead(
+                        currentUserService.getCurrentUser(),
+                        trackedEntityStore.getByUid(a.getTrackedEntity()))
+                    .isEmpty())
+        .collect(Collectors.toList());
+  }
 
-    @Override
-    @Transactional( readOnly = true )
-    public int getTrackedEntityAuditsCount( TrackedEntityAuditQueryParams params )
-    {
-        return trackedEntityAuditStore.getTrackedEntityAuditsCount( params );
-    }
+  @Override
+  @Transactional(readOnly = true)
+  public int getTrackedEntityAuditsCount(TrackedEntityAuditQueryParams params) {
+    return trackedEntityAuditStore.getTrackedEntityAuditsCount(params);
+  }
 }

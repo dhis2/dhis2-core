@@ -29,12 +29,10 @@ package org.hisp.dhis.webapi.utils;
 
 import javax.servlet.http.HttpServletResponse;
 
-public class HeaderUtils
-{
-    public static void setSecurityHeaders( HttpServletResponse response, String cspHeaders )
-    {
-        response.setHeader( "Content-Security-Policy", cspHeaders );
-        response.setHeader( "X-Content-Type-Options", "nosniff" );
-        response.setHeader( "X-XSS-Protection", "1; mode=block" );
-    }
+public class HeaderUtils {
+  public static void setSecurityHeaders(HttpServletResponse response, String cspHeaders) {
+    response.setHeader("Content-Security-Policy", cspHeaders);
+    response.setHeader("X-Content-Type-Options", "nosniff");
+    response.setHeader("X-XSS-Protection", "1; mode=block");
+  }
 }

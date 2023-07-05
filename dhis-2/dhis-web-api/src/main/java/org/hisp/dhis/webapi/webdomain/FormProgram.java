@@ -32,35 +32,28 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class FormProgram
-{
-    private String id;
+public class FormProgram {
+  private String id;
 
-    private String label;
+  private String label;
 
-    public FormProgram()
-    {
-    }
+  public FormProgram() {}
 
-    @JsonProperty
-    public String getId()
-    {
-        return id;
-    }
+  @JsonProperty
+  public String getId() {
+    return id;
+  }
 
-    public void setId( String id )
-    {
-        this.id = id;
-    }
+  public void setId(String id) {
+    this.id = id;
+  }
 
-    @JsonProperty
-    public String getLabel()
-    {
-        return label;
-    }
+  @JsonProperty
+  public String getLabel() {
+    return label;
+  }
 
-    public void setLabel( String label )
-    {
-        this.label = label;
-    }
+  public void setLabel(String label) {
+    this.label = label;
+  }
 }

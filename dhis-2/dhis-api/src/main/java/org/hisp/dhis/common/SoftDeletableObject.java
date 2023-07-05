@@ -29,72 +29,59 @@ package org.hisp.dhis.common;
 
 import static org.hisp.dhis.hibernate.HibernateProxyUtils.getRealClass;
 
-import java.util.Objects;
-
-import org.hisp.dhis.audit.AuditAttribute;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import java.util.Objects;
+import org.hisp.dhis.audit.AuditAttribute;
 
 /**
  * @author Enrico Colasante
  */
-@JacksonXmlRootElement( localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0 )
-public class SoftDeletableObject extends BaseIdentifiableObject
-{
-    /**
-     * Boolean to check if the object is soft deleted.
-     */
-    @AuditAttribute
-    private boolean deleted = false;
+@JacksonXmlRootElement(localName = "softDeletableObject", namespace = DxfNamespaces.DXF_2_0)
+public class SoftDeletableObject extends BaseIdentifiableObject {
+  /** Boolean to check if the object is soft deleted. */
+  @AuditAttribute private boolean deleted = false;
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    public SoftDeletableObject()
-    {
-    }
+  public SoftDeletableObject() {}
 
-    public SoftDeletableObject( boolean deleted )
-    {
-        this.deleted = deleted;
-    }
+  public SoftDeletableObject(boolean deleted) {
+    this.deleted = deleted;
+  }
 
-    // -------------------------------------------------------------------------
-    // Setters and getters
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // Setters and getters
+  // -------------------------------------------------------------------------
 
-    @JsonProperty
-    @JacksonXmlProperty( localName = "deleted", namespace = DxfNamespaces.DXF_2_0 )
-    public boolean isDeleted()
-    {
-        return deleted;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(localName = "deleted", namespace = DxfNamespaces.DXF_2_0)
+  public boolean isDeleted() {
+    return deleted;
+  }
 
-    public void setDeleted( boolean deleted )
-    {
-        this.deleted = deleted;
-    }
+  public void setDeleted(boolean deleted) {
+    this.deleted = deleted;
+  }
 
-    @Override
-    public boolean equals( Object obj )
-    {
-        return this == obj || obj instanceof SoftDeletableObject &&
-            getRealClass( this ) == getRealClass( obj )
-            && super.equals( obj )
-            && objectEquals( (SoftDeletableObject) obj );
-    }
+  @Override
+  public boolean equals(Object obj) {
+    return this == obj
+        || obj instanceof SoftDeletableObject
+            && getRealClass(this) == getRealClass(obj)
+            && super.equals(obj)
+            && objectEquals((SoftDeletableObject) obj);
+  }
 
-    private boolean objectEquals( SoftDeletableObject that )
-    {
-        return deleted == that.deleted;
-    }
+  private boolean objectEquals(SoftDeletableObject that) {
+    return deleted == that.deleted;
+  }
 
-    @Override
-    public int hashCode()
-    {
-        return Objects.hash( super.hashCode(), deleted );
-    }
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), deleted);
+  }
 }

@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.analytics.OrgUnitField;
 import org.hisp.dhis.analytics.event.EventQueryParams;
@@ -55,200 +54,218 @@ import org.junit.jupiter.api.Test;
  *
  * @author Jim Grace
  */
-class OrgUnitTableJoinerTest
-    extends DhisConvenienceTest
-{
-    private static final OrgUnitField DEFAULT = new OrgUnitField( null );
+class OrgUnitTableJoinerTest extends DhisConvenienceTest {
+  private static final OrgUnitField DEFAULT = new OrgUnitField(null);
 
-    private static final OrgUnitField ATTRIBUTE = new OrgUnitField( "AttributeId" );
+  private static final OrgUnitField ATTRIBUTE = new OrgUnitField("AttributeId");
 
-    private static final OrgUnitField OWNER_AT_START = new OrgUnitField( "OWNER_AT_START" );
+  private static final OrgUnitField OWNER_AT_START = new OrgUnitField("OWNER_AT_START");
 
-    private static final OrgUnitField OWNER_AT_END = new OrgUnitField( "OWNER_AT_END" );
+  private static final OrgUnitField OWNER_AT_END = new OrgUnitField("OWNER_AT_END");
 
-    private static final Program programA = createProgram( 'A' );
+  private static final Program programA = createProgram('A');
 
-    private static final Period periodDaily = PeriodType.getPeriodFromIsoString( "20230101" );
+  private static final Period periodDaily = PeriodType.getPeriodFromIsoString("20230101");
 
-    private static final Period periodMonthly = PeriodType.getPeriodFromIsoString( "202201" );
+  private static final Period periodMonthly = PeriodType.getPeriodFromIsoString("202201");
 
-    private static final Period periodQuarterly = PeriodType.getPeriodFromIsoString( "2022Q1" );
+  private static final Period periodQuarterly = PeriodType.getPeriodFromIsoString("2022Q1");
 
-    private static final Date dateA = new GregorianCalendar( 2022, JANUARY, 1 ).getTime();
+  private static final Date dateA = new GregorianCalendar(2022, JANUARY, 1).getTime();
 
-    private static final Date dateB = new GregorianCalendar( 2023, JANUARY, 1 ).getTime();
+  private static final Date dateB = new GregorianCalendar(2023, JANUARY, 1).getTime();
 
-    private static final DimensionalItemObject ouA = createOrganisationUnit( 'A' );
+  private static final DimensionalItemObject ouA = createOrganisationUnit('A');
 
-    private static final DimensionalObject ouGroupSetA = new BaseDimensionalObject( "OrgUnitGrSe",
-        DimensionType.ORGANISATION_UNIT_GROUP_SET, emptyList() );
+  private static final DimensionalObject ouGroupSetA =
+      new BaseDimensionalObject(
+          "OrgUnitGrSe", DimensionType.ORGANISATION_UNIT_GROUP_SET, emptyList());
 
-    @Test
-    void testJoinOrgUnitTablesDefault()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrgUnitField( DEFAULT )
-            .withPeriods( List.of( periodMonthly ), periodMonthly.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesDefault() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrgUnitField(DEFAULT)
+            .withPeriods(
+                List.of(periodMonthly), periodMonthly.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "", joinOrgUnitTables( params, EVENT ) );
+    assertEquals("", joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "", joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals("", joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesAttribute()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( ATTRIBUTE )
-            .withPeriods( List.of( periodMonthly ), periodMonthly.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesAttribute() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(ATTRIBUTE)
+            .withPeriods(
+                List.of(periodMonthly), periodMonthly.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join _orgunitstructure as ous on ax.\"AttributeId\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join _orgunitstructure as ous on ax.\"AttributeId\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join _orgunitstructure as ous on ax.\"AttributeId\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join _orgunitstructure as ous on ax.\"AttributeId\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtStartWithDailyPeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_START )
-            .withPeriods( List.of( periodDaily ), periodDaily.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtStartWithDailyPeriods() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_START)
+            .withPeriods(List.of(periodDaily), periodDaily.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2023-01-01' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtStartWithNonDailyPeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_START )
-            .withPeriods( List.of( periodMonthly ), periodMonthly.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtStartWithNonDailyPeriods() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_START)
+            .withPeriods(
+                List.of(periodMonthly), periodMonthly.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtStartWithStartAndEndDates()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_START )
-            .withStartDate( dateA )
-            .withEndDate( dateB )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtStartWithStartAndEndDates() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_START)
+            .withStartDate(dateA)
+            .withEndDate(dateB)
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-01-01' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtEndWithDailyPeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_END )
-            .withPeriods( List.of( periodDaily ), periodDaily.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtEndWithDailyPeriods() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_END)
+            .withPeriods(List.of(periodDaily), periodDaily.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2023-01-02' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtEndWithNonDailyPeriods()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_END )
-            .withPeriods( List.of( periodMonthly ), periodMonthly.getPeriodType().getName().toLowerCase() )
-            .addDimension( ouGroupSetA )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtEndWithNonDailyPeriods() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_END)
+            .withPeriods(
+                List.of(periodMonthly), periodMonthly.getPeriodType().getName().toLowerCase())
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-02-01' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 
-    @Test
-    void testJoinOrgUnitTablesOwnerAtEndWithDateRangeByDateFilter()
-    {
-        EventQueryParams params = new EventQueryParams.Builder()
-            .withProgram( programA )
-            .withOrganisationUnits( List.of( ouA ) )
-            .withOrgUnitField( OWNER_AT_END )
-            .withPeriods( List.of( periodQuarterly ), periodQuarterly.getPeriodType().getName().toLowerCase() )
+  @Test
+  void testJoinOrgUnitTablesOwnerAtEndWithDateRangeByDateFilter() {
+    EventQueryParams params =
+        new EventQueryParams.Builder()
+            .withProgram(programA)
+            .withOrganisationUnits(List.of(ouA))
+            .withOrgUnitField(OWNER_AT_END)
+            .withPeriods(
+                List.of(periodQuarterly), periodQuarterly.getPeriodType().getName().toLowerCase())
             .withStartEndDatesForPeriods()
-            .addDimension( ouGroupSetA )
+            .addDimension(ouGroupSetA)
             .build();
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" " +
-            "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" " +
-            "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
-            joinOrgUnitTables( params, EVENT ) );
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" "
+            + "left join _orgunitstructure as ous on ax.\"enrollmentou\" = ous.\"organisationunituid\" "
+            + "left join _organisationunitgroupsetstructure as ougs on ous.\"organisationunitid\" = ougs.\"organisationunitid\" ",
+        joinOrgUnitTables(params, EVENT));
 
-        assertEquals( "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" " +
-            "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" ",
-            joinOrgUnitTables( params, ENROLLMENT ) );
-    }
+    assertEquals(
+        "left join analytics_ownership_prabcdefgha as own on ax.\"tei\" = own.\"teiuid\" "
+            + "and '2022-04-01' between own.\"startdate\" and own.\"enddate\" ",
+        joinOrgUnitTables(params, ENROLLMENT));
+  }
 }

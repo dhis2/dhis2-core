@@ -35,11 +35,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.TimeUnit;
-
 import javax.servlet.http.HttpServletRequest;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.commons.validator.routines.UrlValidator;
 import org.hisp.dhis.common.DhisApiVersion;
@@ -68,125 +65,108 @@ import org.springframework.web.bind.annotation.ResponseBody;
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-@OpenApi.Tags( { "user", "login" } )
+@OpenApi.Tags({"user", "login"})
 @Controller
-@RequestMapping( value = { ApiTokenSchemaDescriptor.API_ENDPOINT_OLD, ApiTokenSchemaDescriptor.API_ENDPOINT_NEW } )
+@RequestMapping(
+    value = {ApiTokenSchemaDescriptor.API_ENDPOINT_OLD, ApiTokenSchemaDescriptor.API_ENDPOINT_NEW})
 @RequiredArgsConstructor
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class ApiTokenController extends AbstractCrudController<ApiToken>
-{
-    public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class ApiTokenController extends AbstractCrudController<ApiToken> {
+  public static final String METHOD_TYPE_IS_NOT_SUPPORTED_MSG = "Method type is not supported";
 
-    private static final List<String> VALID_METHODS = List.of( "GET", "POST", "PATCH", "PUT", "DELETE" );
+  private static final List<String> VALID_METHODS =
+      List.of("GET", "POST", "PATCH", "PUT", "DELETE");
 
-    public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis( 30 );
+  public static final long DEFAULT_TOKEN_EXPIRE = TimeUnit.DAYS.toMillis(30);
 
-    @Override
-    @PostMapping( consumes = "application/json" )
-    @ResponseBody
-    public WebMessage postJsonObject( HttpServletRequest request )
-        throws ForbiddenException,
-        IOException,
-        ConflictException
-    {
-        User currentUser = currentUserService.getCurrentUser();
+  @Override
+  @PostMapping(consumes = "application/json")
+  @ResponseBody
+  public WebMessage postJsonObject(HttpServletRequest request)
+      throws ForbiddenException, IOException, ConflictException {
+    User currentUser = currentUserService.getCurrentUser();
 
-        if ( !aclService.canCreate( currentUser, getEntityClass() ) )
-        {
-            throw new ForbiddenException( "You don't have the proper permissions to create this object." );
-        }
-
-        ApiToken inputToken = deserializeJsonEntity( request );
-
-        try
-        {
-            validateTokenAttributes( inputToken );
-        }
-        catch ( Exception e )
-        {
-            throw new ConflictException( "Failed to validate the token's attributes, message: " + e.getMessage() );
-        }
-
-        ApiKeyTokenGenerator.TokenWrapper apiTokenPair = generatePersonalAccessToken( inputToken.getAttributes(),
-            inputToken.getExpire() );
-
-        MetadataImportParams params = importService.getParamsFromMap( contextService.getParameterValuesMap() )
-            .setImportReportMode( ImportReportMode.FULL )
-            .setUser( currentUser )
-            .setImportStrategy( ImportStrategy.CREATE )
-            .addObject( apiTokenPair.getApiToken() );
-
-        ObjectReport report = importService.importMetadata( params ).getFirstObjectReport();
-        WebMessage webMessage = objectReport( report );
-
-        if ( webMessage.getStatus() == Status.OK )
-        {
-            String uid = report.getUid();
-            webMessage.setHttpStatus( HttpStatus.CREATED );
-            webMessage.setLocation( getSchema().getRelativeApiEndpoint() + "/" + uid );
-            webMessage.setResponse( new ApiTokenCreationResponse( report, apiTokenPair.getPlaintextToken() ) );
-            Arrays.fill( apiTokenPair.getPlaintextToken(), '0' );
-        }
-        else
-        {
-            webMessage.setStatus( Status.ERROR );
-        }
-
-        return webMessage;
+    if (!aclService.canCreate(currentUser, getEntityClass())) {
+      throw new ForbiddenException("You don't have the proper permissions to create this object.");
     }
 
-    @Override
-    @PostMapping( consumes = { "application/xml", "text/xml" } )
-    @ResponseBody
-    public WebMessage postXmlObject( HttpServletRequest request )
-        throws HttpRequestMethodNotSupportedException
-    {
-        throw new HttpRequestMethodNotSupportedException( METHOD_TYPE_IS_NOT_SUPPORTED_MSG );
+    ApiToken inputToken = deserializeJsonEntity(request);
+
+    try {
+      validateTokenAttributes(inputToken);
+    } catch (Exception e) {
+      throw new ConflictException(
+          "Failed to validate the token's attributes, message: " + e.getMessage());
     }
 
-    private void validateTokenAttributes( ApiToken token )
-    {
-        if ( token.getExpire() == null )
-        {
-            token.setExpire( System.currentTimeMillis() + DEFAULT_TOKEN_EXPIRE );
-        }
-        if ( token.getIpAllowedList() != null )
-        {
-            token.getIpAllowedList().getAllowedIps().forEach( this::validateIp );
-        }
-        if ( token.getMethodAllowedList() != null )
-        {
-            token.getMethodAllowedList().getAllowedMethods().forEach( this::validateHttpMethod );
-        }
-        if ( token.getRefererAllowedList() != null )
-        {
-            token.getRefererAllowedList().getAllowedReferrers().forEach( this::validateReferrer );
-        }
+    ApiKeyTokenGenerator.TokenWrapper apiTokenPair =
+        generatePersonalAccessToken(inputToken.getAttributes(), inputToken.getExpire());
+
+    MetadataImportParams params =
+        importService
+            .getParamsFromMap(contextService.getParameterValuesMap())
+            .setImportReportMode(ImportReportMode.FULL)
+            .setUser(currentUser)
+            .setImportStrategy(ImportStrategy.CREATE)
+            .addObject(apiTokenPair.getApiToken());
+
+    ObjectReport report = importService.importMetadata(params).getFirstObjectReport();
+    WebMessage webMessage = objectReport(report);
+
+    if (webMessage.getStatus() == Status.OK) {
+      String uid = report.getUid();
+      webMessage.setHttpStatus(HttpStatus.CREATED);
+      webMessage.setLocation(getSchema().getRelativeApiEndpoint() + "/" + uid);
+      webMessage.setResponse(
+          new ApiTokenCreationResponse(report, apiTokenPair.getPlaintextToken()));
+      Arrays.fill(apiTokenPair.getPlaintextToken(), '0');
+    } else {
+      webMessage.setStatus(Status.ERROR);
     }
 
-    private void validateHttpMethod( String httpMethodName )
-    {
-        if ( !VALID_METHODS.contains( httpMethodName.toUpperCase( Locale.ROOT ) ) )
-        {
-            throw new IllegalArgumentException( "Not a valid http method, value=" + httpMethodName );
-        }
-    }
+    return webMessage;
+  }
 
-    private void validateIp( String ip )
-    {
-        InetAddressValidator validator = new InetAddressValidator();
-        if ( !validator.isValid( ip ) )
-        {
-            throw new IllegalArgumentException( "Not a valid ip address, value=" + ip );
-        }
-    }
+  @Override
+  @PostMapping(consumes = {"application/xml", "text/xml"})
+  @ResponseBody
+  public WebMessage postXmlObject(HttpServletRequest request)
+      throws HttpRequestMethodNotSupportedException {
+    throw new HttpRequestMethodNotSupportedException(METHOD_TYPE_IS_NOT_SUPPORTED_MSG);
+  }
 
-    private void validateReferrer( String referrer )
-    {
-        UrlValidator urlValidator = new UrlValidator();
-        if ( !urlValidator.isValid( referrer ) )
-        {
-            throw new IllegalArgumentException( "Not a valid referrer url, value=" + referrer );
-        }
+  private void validateTokenAttributes(ApiToken token) {
+    if (token.getExpire() == null) {
+      token.setExpire(System.currentTimeMillis() + DEFAULT_TOKEN_EXPIRE);
     }
+    if (token.getIpAllowedList() != null) {
+      token.getIpAllowedList().getAllowedIps().forEach(this::validateIp);
+    }
+    if (token.getMethodAllowedList() != null) {
+      token.getMethodAllowedList().getAllowedMethods().forEach(this::validateHttpMethod);
+    }
+    if (token.getRefererAllowedList() != null) {
+      token.getRefererAllowedList().getAllowedReferrers().forEach(this::validateReferrer);
+    }
+  }
+
+  private void validateHttpMethod(String httpMethodName) {
+    if (!VALID_METHODS.contains(httpMethodName.toUpperCase(Locale.ROOT))) {
+      throw new IllegalArgumentException("Not a valid http method, value=" + httpMethodName);
+    }
+  }
+
+  private void validateIp(String ip) {
+    InetAddressValidator validator = new InetAddressValidator();
+    if (!validator.isValid(ip)) {
+      throw new IllegalArgumentException("Not a valid ip address, value=" + ip);
+    }
+  }
+
+  private void validateReferrer(String referrer) {
+    UrlValidator urlValidator = new UrlValidator();
+    if (!urlValidator.isValid(referrer)) {
+      throw new IllegalArgumentException("Not a valid referrer url, value=" + referrer);
+    }
+  }
 }

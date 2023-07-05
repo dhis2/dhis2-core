@@ -29,49 +29,41 @@ package org.hisp.dhis.webapi.webdomain;
 
 import static org.hisp.dhis.common.OpenApi.Shared.Pattern.INFO;
 
-import org.hisp.dhis.common.DxfNamespaces;
-import org.hisp.dhis.common.OpenApi;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import org.hisp.dhis.common.DxfNamespaces;
+import org.hisp.dhis.common.OpenApi;
 
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Shared( pattern = INFO )
-@JacksonXmlRootElement( localName = "dashboard", namespace = DxfNamespaces.DXF_2_0 )
-public class Dashboard
-{
-    private long unreadMessageConversation;
+@OpenApi.Shared(pattern = INFO)
+@JacksonXmlRootElement(localName = "dashboard", namespace = DxfNamespaces.DXF_2_0)
+public class Dashboard {
+  private long unreadMessageConversation;
 
-    private long unreadInterpretations;
+  private long unreadInterpretations;
 
-    public Dashboard()
-    {
-    }
+  public Dashboard() {}
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadMessageConversations()
-    {
-        return unreadMessageConversation;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getUnreadMessageConversations() {
+    return unreadMessageConversation;
+  }
 
-    public void setUnreadMessageConversations( long unreadMessageConversation )
-    {
-        this.unreadMessageConversation = unreadMessageConversation;
-    }
+  public void setUnreadMessageConversations(long unreadMessageConversation) {
+    this.unreadMessageConversation = unreadMessageConversation;
+  }
 
-    @JsonProperty
-    @JacksonXmlProperty( namespace = DxfNamespaces.DXF_2_0 )
-    public long getUnreadInterpretations()
-    {
-        return unreadInterpretations;
-    }
+  @JsonProperty
+  @JacksonXmlProperty(namespace = DxfNamespaces.DXF_2_0)
+  public long getUnreadInterpretations() {
+    return unreadInterpretations;
+  }
 
-    public void setUnreadInterpretations( long unreadInterpretations )
-    {
-        this.unreadInterpretations = unreadInterpretations;
-    }
+  public void setUnreadInterpretations(long unreadInterpretations) {
+    this.unreadInterpretations = unreadInterpretations;
+  }
 }

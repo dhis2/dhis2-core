@@ -34,67 +34,77 @@ import org.hisp.dhis.web.WebClient;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test for data elements which have been abandoned. This is taken to mean that
- * there is no data recorded against them, and they have not been updated in the
- * last hundred days.
+ * Test for data elements which have been abandoned. This is taken to mean that there is no data
+ * recorded against them, and they have not been updated in the last hundred days.
  *
- * It is not possible to manually set the lastUpdate field for data elements, so
- * it is not possible to create a proper unit test for the scenario of
- * identifying abandoned data elements.
+ * <p>It is not possible to manually set the lastUpdate field for data elements, so it is not
+ * possible to create a proper unit test for the scenario of identifying abandoned data elements.
  *
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_abandoned.yaml
+ * <p>{@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/data_elements/aggregate_des_abandoned.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDataElementsAbandonedControllerTest extends AbstractDataIntegrityIntegrationTest
-{
-    private static final String check = "data_elements_aggregate_abandoned";
+class DataIntegrityDataElementsAbandonedControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
+  private static final String check = "data_elements_aggregate_abandoned";
 
-    private static final String detailsIdType = "dataElements";
+  private static final String detailsIdType = "dataElements";
 
-    private static final String period = "202212";
+  private static final String period = "202212";
 
-    @Test
-    void testDataElementsNotAbandoned()
-    {
+  @Test
+  void testDataElementsNotAbandoned() {
 
-        setUpTest();
+    setUpTest();
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    }
+  @Test
+  void testDataElementsAbandonedDividedByZero() {
 
-    @Test
-    void testDataElementsAbandonedDividedByZero()
-    {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+  void setUpTest() {
 
-    }
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
+    String dataElementB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-    void setUpTest()
-    {
-
-        String dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-        String dataElementB = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC2', 'shortName': 'ANC2', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
-
-        String orgUnitId = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits/", "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}" ) );
-        // add OU to users hierarchy
-        assertStatus( HttpStatus.OK, POST( "/users/{id}/organisationUnits", getCurrentUser().getUid(),
-            WebClient.Body( "{'additions':[{'id':'" + orgUnitId + "'}]}" ) ) );
-        // Add some data to dataElementB
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, "10", "Test Data", false, dataElementB, orgUnitId ) );
-        /* Both data elements should have data now */
-        assertStatus( HttpStatus.CREATED,
-            postNewDataValue( period, "20", "Test Data", false, dataElementA, orgUnitId ) );
-    }
+    String orgUnitId =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits/",
+                "{'name':'My Unit', 'shortName':'OU1', 'openingDate': '2020-01-01'}"));
+    // add OU to users hierarchy
+    assertStatus(
+        HttpStatus.OK,
+        POST(
+            "/users/{id}/organisationUnits",
+            getCurrentUser().getUid(),
+            WebClient.Body("{'additions':[{'id':'" + orgUnitId + "'}]}")));
+    // Add some data to dataElementB
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "10", "Test Data", false, dataElementB, orgUnitId));
+    /* Both data elements should have data now */
+    assertStatus(
+        HttpStatus.CREATED,
+        postNewDataValue(period, "20", "Test Data", false, dataElementA, orgUnitId));
+  }
 }

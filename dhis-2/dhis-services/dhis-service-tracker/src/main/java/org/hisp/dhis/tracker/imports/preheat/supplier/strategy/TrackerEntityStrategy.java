@@ -28,11 +28,8 @@
 package org.hisp.dhis.tracker.imports.preheat.supplier.strategy;
 
 import java.util.List;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.trackedentity.TrackedEntity;
 import org.hisp.dhis.trackedentity.TrackedEntityStore;
 import org.hisp.dhis.tracker.imports.TrackerImportParams;
@@ -46,24 +43,23 @@ import org.springframework.stereotype.Component;
  */
 @RequiredArgsConstructor
 @Component
-@StrategyFor( value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class, mapper = TrackedEntityMapper.class )
-public class TrackerEntityStrategy implements ClassBasedSupplierStrategy
-{
-    @Nonnull
-    private TrackedEntityStore trackedEntityStore;
+@StrategyFor(
+    value = org.hisp.dhis.tracker.imports.domain.TrackedEntity.class,
+    mapper = TrackedEntityMapper.class)
+public class TrackerEntityStrategy implements ClassBasedSupplierStrategy {
+  @Nonnull private TrackedEntityStore trackedEntityStore;
 
-    @Override
-    public void add( TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat )
-    {
-        for ( List<String> ids : splitList )
-        {
-            // Fetch all Tracked Entity Instance present in the payload
-            List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted( ids );
+  @Override
+  public void add(
+      TrackerImportParams params, List<List<String>> splitList, TrackerPreheat preheat) {
+    for (List<String> ids : splitList) {
+      // Fetch all Tracked Entity Instance present in the payload
+      List<TrackedEntity> trackedEntities = trackedEntityStore.getIncludingDeleted(ids);
 
-            // Add to preheat
-            preheat.putTrackedEntities(
-                DetachUtils.detach( this.getClass().getAnnotation( StrategyFor.class ).mapper(),
-                    trackedEntities ) );
-        }
+      // Add to preheat
+      preheat.putTrackedEntities(
+          DetachUtils.detach(
+              this.getClass().getAnnotation(StrategyFor.class).mapper(), trackedEntities));
     }
+  }
 }

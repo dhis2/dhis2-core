@@ -28,19 +28,14 @@
 package org.hisp.dhis.security.basic;
 
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.security.ForwardedIpAwareWebAuthenticationDetails;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public class HttpBasicWebAuthenticationDetails
-    extends ForwardedIpAwareWebAuthenticationDetails
-{
+public class HttpBasicWebAuthenticationDetails extends ForwardedIpAwareWebAuthenticationDetails {
 
-    public HttpBasicWebAuthenticationDetails( HttpServletRequest request )
-    {
-        super( request );
-    }
-
+  public HttpBasicWebAuthenticationDetails(HttpServletRequest request) {
+    super(request);
+  }
 }

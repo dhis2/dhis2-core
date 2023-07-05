@@ -30,22 +30,19 @@ package org.hisp.dhis.dataapproval;
 /**
  * @author Jim Grace
  */
-public enum DataApprovalAction
-{
-    APPROVE( "approve" ),
-    UNAPPROVE( "unapprove" ),
-    ACCEPT( "accept" ),
-    UNACCEPT( "unaccept" );
+public enum DataApprovalAction {
+  APPROVE("approve"),
+  UNAPPROVE("unapprove"),
+  ACCEPT("accept"),
+  UNACCEPT("unaccept");
 
-    private final String value;
+  private final String value;
 
-    DataApprovalAction( String value )
-    {
-        this.value = value;
-    }
+  DataApprovalAction(String value) {
+    this.value = value;
+  }
 
-    public String getValue()
-    {
-        return value;
-    }
+  public String getValue() {
+    return value;
+  }
 }

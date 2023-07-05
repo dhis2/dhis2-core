@@ -29,7 +29,6 @@ package org.hisp.dhis.datastore;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-
 import org.hisp.dhis.common.IllegalQueryException;
 import org.hisp.dhis.datastore.DatastoreQuery.Filter;
 import org.hisp.dhis.feedback.ErrorCode;
@@ -40,32 +39,25 @@ import org.hisp.dhis.feedback.ErrorMessage;
  *
  * @author Jan Bernitt
  */
-@NoArgsConstructor( access = AccessLevel.PRIVATE )
-class DatastoreQueryValidator
-{
-    public static void validate( DatastoreQuery query )
-    {
-        for ( Filter f : query.getFilters() )
-        {
-            boolean isUnary = f.getOperator().isUnary();
-            if ( f.isKeyPath() && isUnary )
-            {
-                throw filterException( f, "key filters cannot be used with unary operators" );
-            }
-            if ( !isUnary && f.getValue().isBlank() )
-            {
-                throw filterException( f, "the operator `" + f.getOperator() + "` requires a value" );
-            }
-            if ( isUnary && !f.getValue().isBlank() )
-            {
-                throw filterException( f,
-                    "the operator `" + f.getOperator() + "` is unary and does not require a value" );
-            }
-        }
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+class DatastoreQueryValidator {
+  public static void validate(DatastoreQuery query) {
+    for (Filter f : query.getFilters()) {
+      boolean isUnary = f.getOperator().isUnary();
+      if (f.isKeyPath() && isUnary) {
+        throw filterException(f, "key filters cannot be used with unary operators");
+      }
+      if (!isUnary && f.getValue().isBlank()) {
+        throw filterException(f, "the operator `" + f.getOperator() + "` requires a value");
+      }
+      if (isUnary && !f.getValue().isBlank()) {
+        throw filterException(
+            f, "the operator `" + f.getOperator() + "` is unary and does not require a value");
+      }
     }
+  }
 
-    private static IllegalQueryException filterException( Filter f, String msg )
-    {
-        return new IllegalQueryException( new ErrorMessage( ErrorCode.E7653, f.toString(), msg ) );
-    }
+  private static IllegalQueryException filterException(Filter f, String msg) {
+    return new IllegalQueryException(new ErrorMessage(ErrorCode.E7653, f.toString(), msg));
+  }
 }

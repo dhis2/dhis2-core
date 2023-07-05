@@ -37,10 +37,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.external.conf.DhisConfigurationProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.keygen.Base64StringKeyGenerator;
@@ -53,121 +51,108 @@ import org.springframework.security.oauth2.core.endpoint.PkceParameterNames;
 import org.springframework.stereotype.Component;
 
 @Component
-public class DhisCustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver
-{
-    public static final String PKCE_CHALLENGE_METHOD = "S256";
+public class DhisCustomAuthorizationRequestResolver implements OAuth2AuthorizationRequestResolver {
+  public static final String PKCE_CHALLENGE_METHOD = "S256";
 
-    public static final String HASH_DIGEST_ALGORITHM = "SHA-256";
+  public static final String HASH_DIGEST_ALGORITHM = "SHA-256";
 
-    @Autowired
-    private DhisOidcProviderRepository clientRegistrationRepository;
+  @Autowired private DhisOidcProviderRepository clientRegistrationRepository;
 
-    private DefaultOAuth2AuthorizationRequestResolver defaultResolver;
+  private DefaultOAuth2AuthorizationRequestResolver defaultResolver;
 
-    private final StringKeyGenerator secureKeyGenerator = new Base64StringKeyGenerator(
-        Base64.getUrlEncoder().withoutPadding(), 96 );
+  private final StringKeyGenerator secureKeyGenerator =
+      new Base64StringKeyGenerator(Base64.getUrlEncoder().withoutPadding(), 96);
 
-    @PostConstruct
-    public void init()
-    {
-        defaultResolver = new DefaultOAuth2AuthorizationRequestResolver( clientRegistrationRepository,
-            DEFAULT_AUTHORIZATION_REQUEST_BASE_URI );
+  @PostConstruct
+  public void init() {
+    defaultResolver =
+        new DefaultOAuth2AuthorizationRequestResolver(
+            clientRegistrationRepository, DEFAULT_AUTHORIZATION_REQUEST_BASE_URI);
+  }
+
+  @Override
+  public OAuth2AuthorizationRequest resolve(HttpServletRequest servletRequest) {
+    String requestURI = servletRequest.getRequestURI();
+    if (requestURI.contains(DEFAULT_AUTHORIZATION_REQUEST_BASE_URI)) {
+      String[] split = requestURI.split("/");
+      String clientRegistrationId = split[split.length - 1];
+      OAuth2AuthorizationRequest req =
+          defaultResolver.resolve(servletRequest, clientRegistrationId);
+      return customizeAuthorizationRequest(req, clientRegistrationId);
+    } else {
+      return this.defaultResolver.resolve(servletRequest);
+    }
+  }
+
+  @Override
+  public OAuth2AuthorizationRequest resolve(
+      HttpServletRequest servletRequest, String clientRegistrationId) {
+    OAuth2AuthorizationRequest req = defaultResolver.resolve(servletRequest, clientRegistrationId);
+    return customizeAuthorizationRequest(req, clientRegistrationId);
+  }
+
+  private OAuth2AuthorizationRequest customizeAuthorizationRequest(
+      OAuth2AuthorizationRequest req, String clientRegistrationId) {
+    if (req == null) {
+      return null;
     }
 
-    @Override
-    public OAuth2AuthorizationRequest resolve( HttpServletRequest servletRequest )
-    {
-        String requestURI = servletRequest.getRequestURI();
-        if ( requestURI.contains( DEFAULT_AUTHORIZATION_REQUEST_BASE_URI ) )
-        {
-            String[] split = requestURI.split( "/" );
-            String clientRegistrationId = split[split.length - 1];
-            OAuth2AuthorizationRequest req = defaultResolver.resolve( servletRequest, clientRegistrationId );
-            return customizeAuthorizationRequest( req, clientRegistrationId );
-        }
-        else
-        {
-            return this.defaultResolver.resolve( servletRequest );
-        }
+    Map<String, Object> attributes = new HashMap<>(req.getAttributes());
+    Map<String, Object> additionalParameters = new HashMap<>(req.getAdditionalParameters());
+
+    ClientRegistration clientRegistration =
+        clientRegistrationRepository.findByRegistrationId(clientRegistrationId);
+
+    if (clientRegistration == null) {
+      return null;
     }
 
-    @Override
-    public OAuth2AuthorizationRequest resolve( HttpServletRequest servletRequest, String clientRegistrationId )
-    {
-        OAuth2AuthorizationRequest req = defaultResolver.resolve( servletRequest, clientRegistrationId );
-        return customizeAuthorizationRequest( req, clientRegistrationId );
+    Map<String, Object> configurationMetadata =
+        clientRegistration.getProviderDetails().getConfigurationMetadata();
+
+    boolean enablePkce =
+        DhisConfigurationProvider.isOn((String) configurationMetadata.get(ENABLE_PKCE));
+    if (enablePkce) {
+      addPkceParameters(attributes, additionalParameters);
     }
 
-    private OAuth2AuthorizationRequest customizeAuthorizationRequest( OAuth2AuthorizationRequest req,
-        String clientRegistrationId )
-    {
-        if ( req == null )
-        {
-            return null;
-        }
+    @SuppressWarnings("unchecked")
+    Map<String, Object> extraRequestParameters =
+        (Map<String, Object>) configurationMetadata.get(EXTRA_REQUEST_PARAMETERS);
 
-        Map<String, Object> attributes = new HashMap<>( req.getAttributes() );
-        Map<String, Object> additionalParameters = new HashMap<>( req.getAdditionalParameters() );
-
-        ClientRegistration clientRegistration = clientRegistrationRepository
-            .findByRegistrationId( clientRegistrationId );
-
-        if ( clientRegistration == null )
-        {
-            return null;
-        }
-
-        Map<String, Object> configurationMetadata = clientRegistration.getProviderDetails().getConfigurationMetadata();
-
-        boolean enablePkce = DhisConfigurationProvider.isOn( (String) configurationMetadata.get( ENABLE_PKCE ) );
-        if ( enablePkce )
-        {
-            addPkceParameters( attributes, additionalParameters );
-        }
-
-        @SuppressWarnings( "unchecked" )
-        Map<String, Object> extraRequestParameters = (Map<String, Object>) configurationMetadata
-            .get( EXTRA_REQUEST_PARAMETERS );
-
-        if ( extraRequestParameters != null && !extraRequestParameters.isEmpty() )
-        {
-            for ( String key : extraRequestParameters.keySet() )
-            {
-                String value = (String) extraRequestParameters.get( key );
-                additionalParameters.put( key, value );
-            }
-        }
-
-        return OAuth2AuthorizationRequest.from( req )
-            .attributes( attributes )
-            .additionalParameters( additionalParameters )
-            .build();
+    if (extraRequestParameters != null && !extraRequestParameters.isEmpty()) {
+      for (String key : extraRequestParameters.keySet()) {
+        String value = (String) extraRequestParameters.get(key);
+        additionalParameters.put(key, value);
+      }
     }
 
-    private void addPkceParameters( Map<String, Object> attributes, Map<String, Object> additionalParameters )
-    {
-        String codeVerifier = this.secureKeyGenerator.generateKey();
+    return OAuth2AuthorizationRequest.from(req)
+        .attributes(attributes)
+        .additionalParameters(additionalParameters)
+        .build();
+  }
 
-        attributes.put( PkceParameterNames.CODE_VERIFIER, codeVerifier );
+  private void addPkceParameters(
+      Map<String, Object> attributes, Map<String, Object> additionalParameters) {
+    String codeVerifier = this.secureKeyGenerator.generateKey();
 
-        try
-        {
-            String codeChallenge = createHash( codeVerifier );
-            additionalParameters.put( PkceParameterNames.CODE_CHALLENGE, codeChallenge );
-            additionalParameters.put( PkceParameterNames.CODE_CHALLENGE_METHOD, PKCE_CHALLENGE_METHOD );
-        }
-        catch ( NoSuchAlgorithmException e )
-        {
-            additionalParameters.put( PkceParameterNames.CODE_CHALLENGE, codeVerifier );
-        }
+    attributes.put(PkceParameterNames.CODE_VERIFIER, codeVerifier);
+
+    try {
+      String codeChallenge = createHash(codeVerifier);
+      additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeChallenge);
+      additionalParameters.put(PkceParameterNames.CODE_CHALLENGE_METHOD, PKCE_CHALLENGE_METHOD);
+    } catch (NoSuchAlgorithmException e) {
+      additionalParameters.put(PkceParameterNames.CODE_CHALLENGE, codeVerifier);
     }
+  }
 
-    private static String createHash( String value )
-        throws NoSuchAlgorithmException
-    {
-        byte[] digest = MessageDigest.getInstance( HASH_DIGEST_ALGORITHM )
-            .digest( value.getBytes( StandardCharsets.US_ASCII ) );
+  private static String createHash(String value) throws NoSuchAlgorithmException {
+    byte[] digest =
+        MessageDigest.getInstance(HASH_DIGEST_ALGORITHM)
+            .digest(value.getBytes(StandardCharsets.US_ASCII));
 
-        return Base64.getUrlEncoder().withoutPadding().encodeToString( digest );
-    }
+    return Base64.getUrlEncoder().withoutPadding().encodeToString(digest);
+  }
 }

@@ -37,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
 import org.hisp.dhis.common.QueryFilter;
 import org.hisp.dhis.common.QueryItem;
 import org.hisp.dhis.common.QueryOperator;
@@ -47,124 +46,120 @@ import org.hisp.dhis.tracker.export.OperationParamUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * Tests
- * {@link org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils}.
- */
-class RequestParamUtilsTest
-{
+/** Tests {@link org.hisp.dhis.webapi.controller.tracker.export.RequestParamUtils}. */
+class RequestParamUtilsTest {
 
-    private static final String TEA_1_UID = "TvjwTPToKHO";
+  private static final String TEA_1_UID = "TvjwTPToKHO";
 
-    private static final String TEA_2_UID = "cy2oRh2sNr6";
+  private static final String TEA_2_UID = "cy2oRh2sNr6";
 
-    private Map<String, TrackedEntityAttribute> attributes;
+  private Map<String, TrackedEntityAttribute> attributes;
 
-    @BeforeEach
-    void setUp()
-    {
-        attributes = Map.of(
-            TEA_1_UID, trackedEntityAttribute( TEA_1_UID ),
-            TEA_2_UID, trackedEntityAttribute( TEA_2_UID ) );
-    }
+  @BeforeEach
+  void setUp() {
+    attributes =
+        Map.of(
+            TEA_1_UID, trackedEntityAttribute(TEA_1_UID),
+            TEA_2_UID, trackedEntityAttribute(TEA_2_UID));
+  }
 
-    @Test
-    void testParseQueryItem()
-        throws BadRequestException
-    {
-        String param = TEA_1_UID + ":lt:20:gt:10";
+  @Test
+  void testParseQueryItem() throws BadRequestException {
+    String param = TEA_1_UID + ":lt:20:gt:10";
 
-        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
+    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
 
-        assertNotNull( item );
-        assertAll(
-            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
-            // QueryItem equals() does not take the QueryFilter into account, so
-            // we need to assert on filters separately
-            () -> assertEquals( List.of(
-                new QueryFilter( QueryOperator.LT, "20" ),
-                new QueryFilter( QueryOperator.GT, "10" ) ), item.getFilters() ) );
-    }
+    assertNotNull(item);
+    assertAll(
+        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
+        // QueryItem equals() does not take the QueryFilter into account, so
+        // we need to assert on filters separately
+        () ->
+            assertEquals(
+                List.of(
+                    new QueryFilter(QueryOperator.LT, "20"),
+                    new QueryFilter(QueryOperator.GT, "10")),
+                item.getFilters()));
+  }
 
-    @Test
-    void testParseQueryItemWithOnlyIdentifier()
-        throws BadRequestException
-    {
-        QueryItem item = parseQueryItem( TEA_1_UID, id -> new QueryItem( attributes.get( id ) ) );
+  @Test
+  void testParseQueryItemWithOnlyIdentifier() throws BadRequestException {
+    QueryItem item = parseQueryItem(TEA_1_UID, id -> new QueryItem(attributes.get(id)));
 
-        assertNotNull( item );
-        assertAll(
-            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
-            () -> assertIsEmpty( item.getFilters() ) );
-    }
+    assertNotNull(item);
+    assertAll(
+        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
+        () -> assertIsEmpty(item.getFilters()));
+  }
 
-    @Test
-    void testParseQueryItemWithIdentifierAndTrailingColon()
-        throws BadRequestException
-    {
-        String param = TEA_1_UID + ":";
+  @Test
+  void testParseQueryItemWithIdentifierAndTrailingColon() throws BadRequestException {
+    String param = TEA_1_UID + ":";
 
-        QueryItem item = parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) );
+    QueryItem item = parseQueryItem(param, id -> new QueryItem(attributes.get(id)));
 
-        assertNotNull( item );
-        assertAll(
-            () -> assertEquals( attributes.get( TEA_1_UID ), item.getItem() ),
-            () -> assertIsEmpty( item.getFilters() ) );
-    }
+    assertNotNull(item);
+    assertAll(
+        () -> assertEquals(attributes.get(TEA_1_UID), item.getItem()),
+        () -> assertIsEmpty(item.getFilters()));
+  }
 
-    @Test
-    void testParseQueryItemWithMissingValue()
-    {
-        String param = TEA_1_UID + ":lt";
+  @Test
+  void testParseQueryItemWithMissingValue() {
+    String param = TEA_1_UID + ":lt";
 
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
-        assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
+    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
+  }
 
-    @Test
-    void testParseQueryItemWithMissingValueAndTrailingColon()
-    {
-        String param = TEA_1_UID + ":lt:";
+  @Test
+  void testParseQueryItemWithMissingValueAndTrailingColon() {
+    String param = TEA_1_UID + ":lt:";
 
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> parseQueryItem( param, id -> new QueryItem( attributes.get( id ) ) ) );
-        assertEquals( "Query item or filter is invalid: " + param, exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> parseQueryItem(param, id -> new QueryItem(attributes.get(id))));
+    assertEquals("Query item or filter is invalid: " + param, exception.getMessage());
+  }
 
-    @Test
-    void testParseAttributeQueryItemWhenNoTEAExist()
-    {
-        String param = TEA_1_UID + ":eq:2";
-        Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
+  @Test
+  void testParseAttributeQueryItemWhenNoTEAExist() {
+    String param = TEA_1_UID + ":eq:2";
+    Map<String, TrackedEntityAttribute> attributes = Collections.emptyMap();
 
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems( param, attributes ) );
-        assertEquals( "Attribute does not exist: " + TEA_1_UID, exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
+    assertEquals("Attribute does not exist: " + TEA_1_UID, exception.getMessage());
+  }
 
-    @Test
-    void testParseAttributeQueryWhenTEAInFilterDoesNotExist()
-    {
-        String param = "JM5zWuf1mkb:eq:2";
+  @Test
+  void testParseAttributeQueryWhenTEAInFilterDoesNotExist() {
+    String param = "JM5zWuf1mkb:eq:2";
 
-        Exception exception = assertThrows( BadRequestException.class,
-            () -> OperationParamUtils.parseAttributeQueryItems( param, attributes ) );
-        assertEquals( "Attribute does not exist: JM5zWuf1mkb", exception.getMessage() );
-    }
+    Exception exception =
+        assertThrows(
+            BadRequestException.class,
+            () -> OperationParamUtils.parseAttributeQueryItems(param, attributes));
+    assertEquals("Attribute does not exist: JM5zWuf1mkb", exception.getMessage());
+  }
 
-    @Test
-    void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
-        throws BadRequestException
-    {
-        assertEquals( new QueryFilter( QueryOperator.LIKE, "project:x" ),
-            OperationParamUtils.parseQueryFilter( "like:project/:x" ) );
-    }
+  @Test
+  void shouldCreateQueryFiltersWhenQueryHasOperatorAndValueWithDelimiter()
+      throws BadRequestException {
+    assertEquals(
+        new QueryFilter(QueryOperator.LIKE, "project:x"),
+        OperationParamUtils.parseQueryFilter("like:project/:x"));
+  }
 
-    private TrackedEntityAttribute trackedEntityAttribute( String uid )
-    {
-        TrackedEntityAttribute tea = new TrackedEntityAttribute();
-        tea.setUid( uid );
-        return tea;
-    }
+  private TrackedEntityAttribute trackedEntityAttribute(String uid) {
+    TrackedEntityAttribute tea = new TrackedEntityAttribute();
+    tea.setUid(uid);
+    return tea;
+  }
 }

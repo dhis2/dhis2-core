@@ -30,8 +30,7 @@ package org.hisp.dhis.legend;
 /**
  * @author Lars Helge Overland
  */
-public enum LegendDisplayStyle
-{
-    FILL,
-    TEXT
+public enum LegendDisplayStyle {
+  FILL,
+  TEXT
 }

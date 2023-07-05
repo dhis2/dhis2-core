@@ -35,109 +35,118 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.hisp.dhis.common.IllegalQueryException;
 import org.junit.jupiter.api.Test;
 
-/**
- * Unit tests for {@link DimensionIdentifierHelper}
- */
-class DimensionIdentifierHelperTest
-{
-    @Test
-    void testFromFullDimensionId()
-    {
-        // Given
-        String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n";
+/** Unit tests for {@link DimensionIdentifierHelper} */
+class DimensionIdentifierHelperTest {
+  @Test
+  void testFromFullDimensionId() {
+    // Given
+    String fullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n";
 
-        // When
-        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
-            fullDimensionId );
+    // When
+    StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(fullDimensionId);
 
-        // Then
-        assertEquals( "bh1Edk21e2n", dimensionIdentifier.getDimension().getUid(),
-            "Dimension uid should be bh1Edk21e2n" );
-        assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
-            "Program uid should be lxAQ7Zs9VYR" );
-        assertEquals( 1, dimensionIdentifier.getProgram().getOffset(),
-            "Program offset should be 1" );
-        assertEquals( "RaMbOrTys0n", dimensionIdentifier.getProgramStage().getElement().getUid(),
-            "Stage uid should be RaMbOrTys0n" );
-        assertEquals( 4, dimensionIdentifier.getProgramStage().getOffset(),
-            "Stage offset should be 4" );
-    }
+    // Then
+    assertEquals(
+        "bh1Edk21e2n",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be bh1Edk21e2n");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program uid should be lxAQ7Zs9VYR");
+    assertEquals(1, dimensionIdentifier.getProgram().getOffset(), "Program offset should be 1");
+    assertEquals(
+        "RaMbOrTys0n",
+        dimensionIdentifier.getProgramStage().getElement().getUid(),
+        "Stage uid should be RaMbOrTys0n");
+    assertEquals(4, dimensionIdentifier.getProgramStage().getOffset(), "Stage offset should be 4");
+  }
 
-    @Test
-    void testFromDimensionIdWithUnsupportedOffset()
-    {
-        // Given
-        String dimensionIdWithNumberOffset = "lxAQ7Zs9VYR[0].bh1Edk21e2n";
-        String dimensionIdWithStringOffset = "lxAQ7Zs9VYR[X].bh1Edk21e2n";
+  @Test
+  void testFromDimensionIdWithUnsupportedOffset() {
+    // Given
+    String dimensionIdWithNumberOffset = "lxAQ7Zs9VYR[0].bh1Edk21e2n";
+    String dimensionIdWithStringOffset = "lxAQ7Zs9VYR[X].bh1Edk21e2n";
 
-        // When
-        // Then
-        assertThrows( IllegalQueryException.class, () -> fromFullDimensionId( dimensionIdWithNumberOffset ) );
-        assertThrows( IllegalQueryException.class, () -> fromFullDimensionId( dimensionIdWithStringOffset ) );
-    }
+    // When
+    // Then
+    assertThrows(
+        IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithNumberOffset));
+    assertThrows(
+        IllegalQueryException.class, () -> fromFullDimensionId(dimensionIdWithStringOffset));
+  }
 
-    @Test
-    void testFromFullDimensionIdWithSingleDimension()
-    {
-        // Given
-        String singleDimensionId = "bh1Edk21e2n";
+  @Test
+  void testFromFullDimensionIdWithSingleDimension() {
+    // Given
+    String singleDimensionId = "bh1Edk21e2n";
 
-        // When
-        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
-            singleDimensionId );
+    // When
+    StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(singleDimensionId);
 
-        // Then
-        assertEquals( "bh1Edk21e2n", dimensionIdentifier.getDimension().getUid(),
-            "Dimension uid should be bh1Edk21e2n" );
-        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgram(), "Program should be empty" );
-        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty" );
-    }
+    // Then
+    assertEquals(
+        "bh1Edk21e2n",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be bh1Edk21e2n");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgram(), "Program should be empty");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty");
+  }
 
-    @Test
-    void testFromFullDimensionIdWithProgramAndDimension()
-    {
-        // Given
-        String singleDimensionId = "lxAQ7Zs9VYR.bh1Edk21e2n";
+  @Test
+  void testFromFullDimensionIdWithProgramAndDimension() {
+    // Given
+    String singleDimensionId = "lxAQ7Zs9VYR.bh1Edk21e2n";
 
-        // When
-        StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(
-            singleDimensionId );
+    // When
+    StringDimensionIdentifier dimensionIdentifier = fromFullDimensionId(singleDimensionId);
 
-        // Then
-        assertEquals( "bh1Edk21e2n", dimensionIdentifier.getDimension().getUid(),
-            "Dimension uid should be bh1Edk21e2n" );
-        assertEquals( "lxAQ7Zs9VYR", dimensionIdentifier.getProgram().getElement().getUid(),
-            "Program should be lxAQ7Zs9VYR" );
-        assertEquals( emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty" );
-    }
+    // Then
+    assertEquals(
+        "bh1Edk21e2n",
+        dimensionIdentifier.getDimension().getUid(),
+        "Dimension uid should be bh1Edk21e2n");
+    assertEquals(
+        "lxAQ7Zs9VYR",
+        dimensionIdentifier.getProgram().getElement().getUid(),
+        "Program should be lxAQ7Zs9VYR");
+    assertEquals(
+        emptyElementWithOffset(), dimensionIdentifier.getProgramStage(), "Stage should be empty");
+  }
 
-    @Test
-    void testFromFullDimensionIdWhenSingleDimensionHasOffset()
-    {
-        // Given
-        String singleDimensionWithOffset = "bh1Edk21e2n[2]";
+  @Test
+  void testFromFullDimensionIdWhenSingleDimensionHasOffset() {
+    // Given
+    String singleDimensionWithOffset = "bh1Edk21e2n[2]";
 
-        // When
-        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> fromFullDimensionId( singleDimensionWithOffset ) );
+    // When
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> fromFullDimensionId(singleDimensionWithOffset));
 
-        // Then
-        assertEquals( "Only program and program stage can have offset", thrown.getMessage(),
-            "Exception message does not match." );
-    }
+    // Then
+    assertEquals(
+        "Only program and program stage can have offset",
+        thrown.getMessage(),
+        "Exception message does not match.");
+  }
 
-    @Test
-    void testFromFullDimensionIdWhenDimensionHasInvalidFormat()
-    {
-        // Given
-        String invalidFullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n.invalid-id";
+  @Test
+  void testFromFullDimensionIdWhenDimensionHasInvalidFormat() {
+    // Given
+    String invalidFullDimensionId = "lxAQ7Zs9VYR[1].RaMbOrTys0n[4].bh1Edk21e2n.invalid-id";
 
-        // When
-        IllegalArgumentException thrown = assertThrows( IllegalArgumentException.class,
-            () -> fromFullDimensionId( invalidFullDimensionId ) );
+    // When
+    IllegalArgumentException thrown =
+        assertThrows(
+            IllegalArgumentException.class, () -> fromFullDimensionId(invalidFullDimensionId));
 
-        // Then
-        assertEquals( "Invalid dimension identifier: " + invalidFullDimensionId, thrown.getMessage(),
-            "Exception message does not match." );
-    }
+    // Then
+    assertEquals(
+        "Invalid dimension identifier: " + invalidFullDimensionId,
+        thrown.getMessage(),
+        "Exception message does not match.");
+  }
 }

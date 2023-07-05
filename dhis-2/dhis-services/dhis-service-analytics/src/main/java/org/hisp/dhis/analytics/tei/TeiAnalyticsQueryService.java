@@ -35,12 +35,9 @@ import static org.springframework.util.Assert.notNull;
 
 import java.util.List;
 import java.util.Optional;
-
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-
 import org.hisp.dhis.analytics.analyze.ExecutionPlanStore;
 import org.hisp.dhis.analytics.common.GridAdaptor;
 import org.hisp.dhis.analytics.common.QueryExecutor;
@@ -58,118 +55,100 @@ import org.springframework.jdbc.BadSqlGrammarException;
 import org.springframework.stereotype.Service;
 
 /**
- * Service responsible exclusively for querying. Methods present on this class
- * must not change any state.
+ * Service responsible exclusively for querying. Methods present on this class must not change any
+ * state.
  *
  * @author maikel arabori
  */
 @Service
 @Slf4j
 @RequiredArgsConstructor
-public class TeiAnalyticsQueryService
-{
-    private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
+public class TeiAnalyticsQueryService {
+  private final QueryExecutor<SqlQuery, SqlQueryResult> queryExecutor;
 
-    private final GridAdaptor gridAdaptor;
+  private final GridAdaptor gridAdaptor;
 
-    private final SqlQueryCreatorService sqlQueryCreatorService;
+  private final SqlQueryCreatorService sqlQueryCreatorService;
 
-    private final ExecutionPlanStore executionPlanStore;
+  private final ExecutionPlanStore executionPlanStore;
 
-    private final CommonParamsSecurityManager securityManager;
+  private final CommonParamsSecurityManager securityManager;
 
-    /**
-     * This method will create a query, based on the teiParams, and execute it
-     * against the underline data provider and return. The results found will be
-     * added to the {@link Grid} object returned.
-     *
-     * @param queryParams the {@link TeiQueryParams}.
-     * @return the populated {@link Grid} object.
-     * @throws IllegalArgumentException if the given queryParams is null.
-     */
-    public Grid getGrid( @Nonnull TeiQueryParams queryParams )
-    {
-        notNull( queryParams, "The 'queryParams' must not be null" );
+  /**
+   * This method will create a query, based on the teiParams, and execute it against the underline
+   * data provider and return. The results found will be added to the {@link Grid} object returned.
+   *
+   * @param queryParams the {@link TeiQueryParams}.
+   * @return the populated {@link Grid} object.
+   * @throws IllegalArgumentException if the given queryParams is null.
+   */
+  public Grid getGrid(@Nonnull TeiQueryParams queryParams) {
+    notNull(queryParams, "The 'queryParams' must not be null");
 
-        securityManager.decideAccess( queryParams.getCommonParams(), singleton( queryParams.getTrackedEntityType() ) );
-        securityManager.applyOrganisationUnitConstraint( queryParams.getCommonParams() );
-        securityManager.applyDimensionConstraints( queryParams.getCommonParams() );
+    securityManager.decideAccess(
+        queryParams.getCommonParams(), singleton(queryParams.getTrackedEntityType()));
+    securityManager.applyOrganisationUnitConstraint(queryParams.getCommonParams());
+    securityManager.applyDimensionConstraints(queryParams.getCommonParams());
 
-        SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
+    SqlQueryCreator queryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-        Optional<SqlQueryResult> result = Optional.empty();
-        long rowsCount = 0;
+    Optional<SqlQueryResult> result = Optional.empty();
+    long rowsCount = 0;
 
-        try
-        {
-            result = Optional.of( queryExecutor.find( queryCreator.createForSelect() ) );
+    try {
+      result = Optional.of(queryExecutor.find(queryCreator.createForSelect()));
 
-            AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
+      AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
-            if ( pagingParams.showTotalPages() )
-            {
-                rowsCount = queryExecutor.count( queryCreator.createForCount() );
-            }
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( ERR_MSG_TABLE_NOT_EXISTING, ex );
-        }
-        catch ( DataAccessResourceFailureException ex )
-        {
-            log.warn( E7131.getMessage(), ex );
-            throw new QueryRuntimeException( E7131 );
-        }
-
-        List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
-
-        return gridAdaptor.createGrid( result, rowsCount, queryParams, fields );
+      if (pagingParams.showTotalPages()) {
+        rowsCount = queryExecutor.count(queryCreator.createForCount());
+      }
+    } catch (BadSqlGrammarException ex) {
+      log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+    } catch (DataAccessResourceFailureException ex) {
+      log.warn(E7131.getMessage(), ex);
+      throw new QueryRuntimeException(E7131);
     }
 
-    /**
-     * This method will only return the data/analysis generated by the "explain"
-     * Postgres tool. The result of the analysis will be returned inside a
-     * {@link Grid} object.
-     *
-     * @param queryParams the {@link TeiQueryParams}.
-     * @return the populated {@link Grid} object.
-     * @throws IllegalArgumentException if the given queryParams is null.
-     */
-    public Grid getGridExplain( @Nonnull TeiQueryParams queryParams )
-    {
-        notNull( queryParams, "The 'queryParams' must not be null" );
+    List<Field> fields = queryCreator.getRenderableSqlQuery().getSelectFields();
 
-        Grid grid = new ListGrid();
+    return gridAdaptor.createGrid(result, rowsCount, queryParams, fields);
+  }
 
-        try
-        {
-            String explainId = randomUUID().toString();
+  /**
+   * This method will only return the data/analysis generated by the "explain" Postgres tool. The
+   * result of the analysis will be returned inside a {@link Grid} object.
+   *
+   * @param queryParams the {@link TeiQueryParams}.
+   * @return the populated {@link Grid} object.
+   * @throws IllegalArgumentException if the given queryParams is null.
+   */
+  public Grid getGridExplain(@Nonnull TeiQueryParams queryParams) {
+    notNull(queryParams, "The 'queryParams' must not be null");
 
-            SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator( queryParams );
+    Grid grid = new ListGrid();
 
-            executionPlanStore.addExecutionPlan( explainId,
-                sqlQueryCreator.createForSelect() );
+    try {
+      String explainId = randomUUID().toString();
 
-            AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
+      SqlQueryCreator sqlQueryCreator = sqlQueryCreatorService.getSqlQueryCreator(queryParams);
 
-            if ( pagingParams.showTotalPages() )
-            {
-                executionPlanStore.addExecutionPlan( explainId,
-                    sqlQueryCreator.createForCount() );
-            }
+      executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForSelect());
 
-            grid.addPerformanceMetrics( executionPlanStore.getExecutionPlans( explainId ) );
-        }
-        catch ( BadSqlGrammarException ex )
-        {
-            log.info( ERR_MSG_TABLE_NOT_EXISTING, ex );
-        }
-        catch ( DataAccessResourceFailureException ex )
-        {
-            log.warn( E7131.getMessage(), ex );
-            throw new QueryRuntimeException( E7131 );
-        }
+      AnalyticsPagingParams pagingParams = queryParams.getCommonParams().getPagingParams();
 
-        return grid;
+      if (pagingParams.showTotalPages()) {
+        executionPlanStore.addExecutionPlan(explainId, sqlQueryCreator.createForCount());
+      }
+
+      grid.addPerformanceMetrics(executionPlanStore.getExecutionPlans(explainId));
+    } catch (BadSqlGrammarException ex) {
+      log.info(ERR_MSG_TABLE_NOT_EXISTING, ex);
+    } catch (DataAccessResourceFailureException ex) {
+      log.warn(E7131.getMessage(), ex);
+      throw new QueryRuntimeException(E7131);
     }
+
+    return grid;
+  }
 }

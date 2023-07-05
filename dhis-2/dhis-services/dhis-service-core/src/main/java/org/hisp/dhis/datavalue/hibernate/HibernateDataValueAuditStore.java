@@ -32,11 +32,9 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
-
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.hibernate.SessionFactory;
 import org.hisp.dhis.dataelement.DataElement;
 import org.hisp.dhis.datavalue.DataValueAudit;
@@ -56,153 +54,141 @@ import org.springframework.transaction.annotation.Transactional;
  * @author Quang Nguyen
  * @author Halvdan Hoem Grelland
  */
-@Repository( "org.hisp.dhis.datavalue.DataValueAuditStore" )
+@Repository("org.hisp.dhis.datavalue.DataValueAuditStore")
 public class HibernateDataValueAuditStore extends HibernateGenericStore<DataValueAudit>
-    implements DataValueAuditStore
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+    implements DataValueAuditStore {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private final PeriodStore periodStore;
+  private final PeriodStore periodStore;
 
-    public HibernateDataValueAuditStore( SessionFactory sessionFactory, JdbcTemplate jdbcTemplate,
-        ApplicationEventPublisher publisher, PeriodStore periodStore )
-    {
-        super( sessionFactory, jdbcTemplate, publisher, DataValueAudit.class, false );
+  public HibernateDataValueAuditStore(
+      SessionFactory sessionFactory,
+      JdbcTemplate jdbcTemplate,
+      ApplicationEventPublisher publisher,
+      PeriodStore periodStore) {
+    super(sessionFactory, jdbcTemplate, publisher, DataValueAudit.class, false);
 
-        checkNotNull( periodStore );
+    checkNotNull(periodStore);
 
-        this.periodStore = periodStore;
+    this.periodStore = periodStore;
+  }
+
+  // -------------------------------------------------------------------------
+  // DataValueAuditStore implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  @Transactional
+  public void updateDataValueAudit(DataValueAudit dataValueAudit) {
+    getSession().update(dataValueAudit);
+  }
+
+  @Override
+  public void addDataValueAudit(DataValueAudit dataValueAudit) {
+    getSession().save(dataValueAudit);
+  }
+
+  @Override
+  public void deleteDataValueAudits(OrganisationUnit organisationUnit) {
+    String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
+
+    getSession().createQuery(hql).setParameter("unit", organisationUnit).executeUpdate();
+  }
+
+  @Override
+  public void deleteDataValueAudits(DataElement dataElement) {
+    String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
+
+    getSession().createQuery(hql).setParameter("dataElement", dataElement).executeUpdate();
+  }
+
+  @Override
+  public List<DataValueAudit> getDataValueAudits(DataValueAuditQueryParams params) {
+    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+
+    JpaQueryParameters<DataValueAudit> queryParams =
+        newJpaParameters()
+            .addPredicates(getDataValueAuditPredicates(builder, params))
+            .addOrder(root -> builder.desc(root.get("created")));
+
+    if (params.hasPaging()) {
+      queryParams
+          .setFirstResult(params.getPager().getOffset())
+          .setMaxResults(params.getPager().getPageSize());
     }
 
-    // -------------------------------------------------------------------------
-    // DataValueAuditStore implementation
-    // -------------------------------------------------------------------------
+    return getList(builder, queryParams);
+  }
 
-    @Override
-    @Transactional
-    public void updateDataValueAudit( DataValueAudit dataValueAudit )
-    {
-        getSession().update( dataValueAudit );
+  @Override
+  public int countDataValueAudits(DataValueAuditQueryParams params) {
+    CriteriaBuilder builder = getSession().getCriteriaBuilder();
+
+    List<Function<Root<DataValueAudit>, Predicate>> predicates =
+        getDataValueAuditPredicates(builder, params);
+
+    return getCount(
+            builder,
+            newJpaParameters()
+                .addPredicates(predicates)
+                .count(root -> builder.countDistinct(root.get("id"))))
+        .intValue();
+  }
+
+  /**
+   * Returns a list of Predicates generated from given parameters. Returns an empty list if given
+   * Period does not exist in database.
+   *
+   * @param builder the {@link CriteriaBuilder}.
+   * @param params the {@link DataValueAuditQueryParams}.
+   */
+  private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates(
+      CriteriaBuilder builder, DataValueAuditQueryParams params) {
+    List<Period> storedPeriods = new ArrayList<>();
+
+    if (!params.getPeriods().isEmpty()) {
+      for (Period period : params.getPeriods()) {
+        Period storedPeriod = periodStore.reloadPeriod(period);
+
+        if (storedPeriod != null) {
+          storedPeriods.add(storedPeriod);
+        }
+      }
     }
 
-    @Override
-    public void addDataValueAudit( DataValueAudit dataValueAudit )
-    {
-        getSession().save( dataValueAudit );
+    List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
+
+    if (!storedPeriods.isEmpty()) {
+      predicates.add(root -> root.get("period").in(storedPeriods));
+    } else if (!params.getPeriods().isEmpty()) {
+      return predicates;
     }
 
-    @Override
-    public void deleteDataValueAudits( OrganisationUnit organisationUnit )
-    {
-        String hql = "delete from DataValueAudit d where d.organisationUnit = :unit";
-
-        getSession().createQuery( hql ).setParameter( "unit", organisationUnit ).executeUpdate();
+    if (!params.getDataElements().isEmpty()) {
+      predicates.add(root -> root.get("dataElement").in(params.getDataElements()));
     }
 
-    @Override
-    public void deleteDataValueAudits( DataElement dataElement )
-    {
-        String hql = "delete from DataValueAudit d where d.dataElement = :dataElement";
-
-        getSession().createQuery( hql ).setParameter( "dataElement", dataElement ).executeUpdate();
+    if (!params.getOrgUnits().isEmpty()) {
+      predicates.add(root -> root.get("organisationUnit").in(params.getOrgUnits()));
     }
 
-    @Override
-    public List<DataValueAudit> getDataValueAudits( DataValueAuditQueryParams params )
-    {
-        CriteriaBuilder builder = getSession().getCriteriaBuilder();
-
-        JpaQueryParameters<DataValueAudit> queryParams = newJpaParameters()
-            .addPredicates( getDataValueAuditPredicates( builder, params ) )
-            .addOrder( root -> builder.desc( root.get( "created" ) ) );
-
-        if ( params.hasPaging() )
-        {
-            queryParams
-                .setFirstResult( params.getPager().getOffset() )
-                .setMaxResults( params.getPager().getPageSize() );
-        }
-
-        return getList( builder, queryParams );
+    if (params.getCategoryOptionCombo() != null) {
+      predicates.add(
+          root -> builder.equal(root.get("categoryOptionCombo"), params.getCategoryOptionCombo()));
     }
 
-    @Override
-    public int countDataValueAudits( DataValueAuditQueryParams params )
-    {
-        CriteriaBuilder builder = getSession().getCriteriaBuilder();
-
-        List<Function<Root<DataValueAudit>, Predicate>> predicates = getDataValueAuditPredicates( builder, params );
-
-        return getCount( builder, newJpaParameters()
-            .addPredicates( predicates )
-            .count( root -> builder.countDistinct( root.get( "id" ) ) ) ).intValue();
+    if (params.getAttributeOptionCombo() != null) {
+      predicates.add(
+          root ->
+              builder.equal(root.get("attributeOptionCombo"), params.getAttributeOptionCombo()));
     }
 
-    /**
-     * Returns a list of Predicates generated from given parameters. Returns an
-     * empty list if given Period does not exist in database.
-     *
-     * @param builder the {@link CriteriaBuilder}.
-     * @param params the {@link DataValueAuditQueryParams}.
-     */
-    private List<Function<Root<DataValueAudit>, Predicate>> getDataValueAuditPredicates( CriteriaBuilder builder,
-        DataValueAuditQueryParams params )
-    {
-        List<Period> storedPeriods = new ArrayList<>();
-
-        if ( !params.getPeriods().isEmpty() )
-        {
-            for ( Period period : params.getPeriods() )
-            {
-                Period storedPeriod = periodStore.reloadPeriod( period );
-
-                if ( storedPeriod != null )
-                {
-                    storedPeriods.add( storedPeriod );
-                }
-            }
-        }
-
-        List<Function<Root<DataValueAudit>, Predicate>> predicates = new ArrayList<>();
-
-        if ( !storedPeriods.isEmpty() )
-        {
-            predicates.add( root -> root.get( "period" ).in( storedPeriods ) );
-        }
-        else if ( !params.getPeriods().isEmpty() )
-        {
-            return predicates;
-        }
-
-        if ( !params.getDataElements().isEmpty() )
-        {
-            predicates.add( root -> root.get( "dataElement" ).in( params.getDataElements() ) );
-        }
-
-        if ( !params.getOrgUnits().isEmpty() )
-        {
-            predicates.add( root -> root.get( "organisationUnit" ).in( params.getOrgUnits() ) );
-        }
-
-        if ( params.getCategoryOptionCombo() != null )
-        {
-            predicates
-                .add( root -> builder.equal( root.get( "categoryOptionCombo" ), params.getCategoryOptionCombo() ) );
-        }
-
-        if ( params.getAttributeOptionCombo() != null )
-        {
-            predicates
-                .add( root -> builder.equal( root.get( "attributeOptionCombo" ), params.getAttributeOptionCombo() ) );
-        }
-
-        if ( !params.getAuditTypes().isEmpty() )
-        {
-            predicates.add( root -> root.get( "auditType" ).in( params.getAuditTypes() ) );
-        }
-
-        return predicates;
+    if (!params.getAuditTypes().isEmpty()) {
+      predicates.add(root -> root.get("auditType").in(params.getAuditTypes()));
     }
+
+    return predicates;
+  }
 }

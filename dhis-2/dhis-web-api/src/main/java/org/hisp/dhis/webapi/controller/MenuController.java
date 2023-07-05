@@ -31,7 +31,6 @@ import static org.springframework.http.MediaType.APPLICATION_JSON_VALUE;
 
 import java.io.InputStream;
 import java.util.List;
-
 import org.hisp.dhis.common.DhisApiVersion;
 import org.hisp.dhis.common.OpenApi;
 import org.hisp.dhis.render.RenderService;
@@ -46,39 +45,32 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@OpenApi.Tags( "ui" )
+@OpenApi.Tags("ui")
 @Controller
-@RequestMapping( value = MenuController.RESOURCE_PATH )
-@ApiVersion( { DhisApiVersion.DEFAULT, DhisApiVersion.ALL } )
-public class MenuController
-{
-    public static final String RESOURCE_PATH = "/menu";
+@RequestMapping(value = MenuController.RESOURCE_PATH)
+@ApiVersion({DhisApiVersion.DEFAULT, DhisApiVersion.ALL})
+public class MenuController {
+  public static final String RESOURCE_PATH = "/menu";
 
-    @Autowired
-    private CurrentUserService currentUserService;
+  @Autowired private CurrentUserService currentUserService;
 
-    @Autowired
-    private UserService userService;
+  @Autowired private UserService userService;
 
-    @Autowired
-    private RenderService renderService;
+  @Autowired private RenderService renderService;
 
-    @ResponseStatus( HttpStatus.NO_CONTENT )
-    @SuppressWarnings( "unchecked" )
-    @PostMapping( consumes = APPLICATION_JSON_VALUE )
-    public void saveMenuOrder( InputStream input )
-        throws Exception
-    {
-        List<String> apps = renderService.fromJson( input, List.class );
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @SuppressWarnings("unchecked")
+  @PostMapping(consumes = APPLICATION_JSON_VALUE)
+  public void saveMenuOrder(InputStream input) throws Exception {
+    List<String> apps = renderService.fromJson(input, List.class);
 
-        User user = currentUserService.getCurrentUser();
+    User user = currentUserService.getCurrentUser();
 
-        if ( apps != null && !apps.isEmpty() && user != null )
-        {
-            user.getApps().clear();
-            user.getApps().addAll( apps );
+    if (apps != null && !apps.isEmpty() && user != null) {
+      user.getApps().clear();
+      user.getApps().addAll(apps);
 
-            userService.updateUser( user );
-        }
+      userService.updateUser(user);
     }
+  }
 }

@@ -27,64 +27,54 @@
  */
 package org.hisp.dhis.webapi.mvc.messageconverter;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javax.servlet.http.HttpServletRequest;
-
 import org.hisp.dhis.webapi.security.config.WebMvcConfig;
 import org.hisp.dhis.webapi.utils.ContextUtils;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.xml.MappingJackson2XmlHttpMessageConverter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
- * Custom {@link MappingJackson2XmlHttpMessageConverter} that only supports XML
- * for certain endpoints.
+ * Custom {@link MappingJackson2XmlHttpMessageConverter} that only supports XML for certain
+ * endpoints.
  *
  * @author Morten Olav Hansen
  */
-public class XmlPathMappingJackson2XmlHttpMessageConverter extends MappingJackson2XmlHttpMessageConverter
-{
-    public XmlPathMappingJackson2XmlHttpMessageConverter( ObjectMapper objectMapper )
-    {
-        super( objectMapper );
+public class XmlPathMappingJackson2XmlHttpMessageConverter
+    extends MappingJackson2XmlHttpMessageConverter {
+  public XmlPathMappingJackson2XmlHttpMessageConverter(ObjectMapper objectMapper) {
+    super(objectMapper);
+  }
+
+  @Override
+  public boolean canRead(Class<?> clazz, MediaType mediaType) {
+    HttpServletRequest request = ContextUtils.getRequest();
+    String pathInfo = request.getPathInfo();
+
+    for (var pathPattern : WebMvcConfig.XML_PATTERNS) {
+      if (pathPattern.matcher(pathInfo).matches()) {
+        return super.canRead(clazz, mediaType);
+      }
     }
 
-    @Override
-    public boolean canRead( Class<?> clazz, MediaType mediaType )
-    {
-        HttpServletRequest request = ContextUtils.getRequest();
-        String pathInfo = request.getPathInfo();
+    return false;
+  }
 
-        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.canRead( clazz, mediaType );
-            }
-        }
-
-        return false;
+  @Override
+  public boolean canWrite(Class<?> clazz, MediaType mediaType) {
+    HttpServletRequest request = ContextUtils.getRequest();
+    if (request == null) {
+      return false;
     }
 
-    @Override
-    public boolean canWrite( Class<?> clazz, MediaType mediaType )
-    {
-        HttpServletRequest request = ContextUtils.getRequest();
-        if ( request == null )
-        {
-            return false;
-        }
+    String pathInfo = request.getPathInfo();
 
-        String pathInfo = request.getPathInfo();
-
-        for ( var pathPattern : WebMvcConfig.XML_PATTERNS )
-        {
-            if ( pathPattern.matcher( pathInfo ).matches() )
-            {
-                return super.canWrite( clazz, mediaType );
-            }
-        }
-
-        return false;
+    for (var pathPattern : WebMvcConfig.XML_PATTERNS) {
+      if (pathPattern.matcher(pathInfo).matches()) {
+        return super.canWrite(clazz, mediaType);
+      }
     }
+
+    return false;
+  }
 }

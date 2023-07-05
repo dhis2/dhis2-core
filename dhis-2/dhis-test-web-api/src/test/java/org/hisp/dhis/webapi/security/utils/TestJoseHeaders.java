@@ -30,44 +30,38 @@ package org.hisp.dhis.webapi.security.utils;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 
 /**
  * @author Morten Svanæs <msvanaes@dhis2.org>
  */
-public final class TestJoseHeaders
-{
-    private TestJoseHeaders()
-    {
-    }
+public final class TestJoseHeaders {
+  private TestJoseHeaders() {}
 
-    public static JoseHeader.Builder joseHeader( String provider )
-    {
-        return joseHeader( SignatureAlgorithm.RS256, provider );
-    }
+  public static JoseHeader.Builder joseHeader(String provider) {
+    return joseHeader(SignatureAlgorithm.RS256, provider);
+  }
 
-    public static JoseHeader.Builder joseHeader( SignatureAlgorithm signatureAlgorithm, String provider )
-    {
-        return JoseHeader.withAlgorithm( signatureAlgorithm )
-            .jwkSetUri( "https://" + provider + "/oauth2/jwks" )
-            .jwk( rsaJwk() )
-            .keyId( "keyId" )
-            .x509Uri( "https://" + provider + "/oauth2/x509" )
-            .x509CertificateChain( Arrays.asList( "x509Cert1", "x509Cert2" ) )
-            .x509SHA1Thumbprint( "x509SHA1Thumbprint" )
-            .x509SHA256Thumbprint( "x509SHA256Thumbprint" )
-            .type( "JWT" )
-            .contentType( "jwt-content-type" )
-            .header( "custom-header-name", "custom-header-value" );
-    }
+  public static JoseHeader.Builder joseHeader(
+      SignatureAlgorithm signatureAlgorithm, String provider) {
+    return JoseHeader.withAlgorithm(signatureAlgorithm)
+        .jwkSetUri("https://" + provider + "/oauth2/jwks")
+        .jwk(rsaJwk())
+        .keyId("keyId")
+        .x509Uri("https://" + provider + "/oauth2/x509")
+        .x509CertificateChain(Arrays.asList("x509Cert1", "x509Cert2"))
+        .x509SHA1Thumbprint("x509SHA1Thumbprint")
+        .x509SHA256Thumbprint("x509SHA256Thumbprint")
+        .type("JWT")
+        .contentType("jwt-content-type")
+        .header("custom-header-name", "custom-header-value");
+  }
 
-    private static Map<String, Object> rsaJwk()
-    {
-        Map<String, Object> rsaJwk = new HashMap<>();
-        rsaJwk.put( "kty", "RSA" );
-        rsaJwk.put( "n", "modulus" );
-        rsaJwk.put( "e", "exponent" );
-        return rsaJwk;
-    }
+  private static Map<String, Object> rsaJwk() {
+    Map<String, Object> rsaJwk = new HashMap<>();
+    rsaJwk.put("kty", "RSA");
+    rsaJwk.put("n", "modulus");
+    rsaJwk.put("e", "exponent");
+    return rsaJwk;
+  }
 }

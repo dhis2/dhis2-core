@@ -30,34 +30,28 @@ package org.hisp.dhis.analytics.common.query;
 import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.util.List;
-
 import lombok.RequiredArgsConstructor;
 
-@RequiredArgsConstructor( staticName = "of" )
-public class AndCondition extends BaseRenderable
-{
-    private final List<Renderable> conditions;
+@RequiredArgsConstructor(staticName = "of")
+public class AndCondition extends BaseRenderable {
+  private final List<Renderable> conditions;
 
-    @Override
-    /**
-     * Renders a list of conditions joined by "and". If the list is empty,
-     * returns an empty string. If the list has only one element, returns the
-     * rendered element. Otherwise, returns the rendered elements joined by
-     * "and".
-     */
-    public String render()
-    {
-        List<String> renderedConditions = RenderableHelper.renderCollection( conditions );
-        if ( renderedConditions.isEmpty() )
-        {
-            return EMPTY;
-        }
-
-        if ( renderedConditions.size() == 1 )
-        {
-            return renderedConditions.get( 0 );
-        }
-
-        return String.join( " and ", renderedConditions );
+  @Override
+  /**
+   * Renders a list of conditions joined by "and". If the list is empty, returns an empty string. If
+   * the list has only one element, returns the rendered element. Otherwise, returns the rendered
+   * elements joined by "and".
+   */
+  public String render() {
+    List<String> renderedConditions = RenderableHelper.renderCollection(conditions);
+    if (renderedConditions.isEmpty()) {
+      return EMPTY;
     }
+
+    if (renderedConditions.size() == 1) {
+      return renderedConditions.get(0);
+    }
+
+    return String.join(" and ", renderedConditions);
+  }
 }

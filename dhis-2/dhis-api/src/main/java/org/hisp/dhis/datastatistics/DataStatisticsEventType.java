@@ -33,27 +33,24 @@ package org.hisp.dhis.datastatistics;
  * @author Yrjan A. F. Fraschetti
  * @author Julie Hill Roa
  */
-public enum DataStatisticsEventType
-{
-    VISUALIZATION_VIEW( "visualization" ),
-    MAP_VIEW( "map" ),
-    EVENT_REPORT_VIEW( "eventreport" ),
-    EVENT_CHART_VIEW( "eventchart" ),
-    EVENT_VISUALIZATION_VIEW( "eventvisualization" ),
-    DASHBOARD_VIEW( "dashboard" ),
-    PASSIVE_DASHBOARD_VIEW( "dashboard" ),
-    DATA_SET_REPORT_VIEW( "dataset" ),
-    TOTAL_VIEW( null );
+public enum DataStatisticsEventType {
+  VISUALIZATION_VIEW("visualization"),
+  MAP_VIEW("map"),
+  EVENT_REPORT_VIEW("eventreport"),
+  EVENT_CHART_VIEW("eventchart"),
+  EVENT_VISUALIZATION_VIEW("eventvisualization"),
+  DASHBOARD_VIEW("dashboard"),
+  PASSIVE_DASHBOARD_VIEW("dashboard"),
+  DATA_SET_REPORT_VIEW("dataset"),
+  TOTAL_VIEW(null);
 
-    private String table;
+  private String table;
 
-    DataStatisticsEventType( String table )
-    {
-        this.table = table;
-    }
+  DataStatisticsEventType(String table) {
+    this.table = table;
+  }
 
-    public String getTable()
-    {
-        return table;
-    }
+  public String getTable() {
+    return table;
+  }
 }

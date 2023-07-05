@@ -28,22 +28,18 @@
 package org.hisp.dhis.userdatastore;
 
 import java.util.Map;
-
 import org.hisp.dhis.system.deletion.JdbcDeletionHandler;
 import org.hisp.dhis.user.User;
 import org.springframework.stereotype.Component;
 
 @Component
-public class UserDatastoreDeletionHandler extends JdbcDeletionHandler
-{
-    @Override
-    protected void register()
-    {
-        whenDeleting( User.class, this::deleteUser );
-    }
+public class UserDatastoreDeletionHandler extends JdbcDeletionHandler {
+  @Override
+  protected void register() {
+    whenDeleting(User.class, this::deleteUser);
+  }
 
-    private void deleteUser( User user )
-    {
-        delete( "delete from userkeyjsonvalue where userid = :id", Map.of( "id", user.getId() ) );
-    }
+  private void deleteUser(User user) {
+    delete("delete from userkeyjsonvalue where userid = :id", Map.of("id", user.getId()));
+  }
 }

@@ -37,29 +37,27 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Lars Helge Overland
  */
-class DataValueTest
-{
+class DataValueTest {
 
-    @Test
-    void testIsZero()
-    {
-        DataElement dataElement = new DataElement( "A" );
-        dataElement.setValueType( ValueType.NUMBER );
-        DataValue dataValue = new DataValue();
-        dataValue.setDataElement( dataElement );
-        dataValue.setValue( "5" );
-        assertFalse( dataValue.isZero() );
-        dataValue.setValue( "0.2" );
-        assertFalse( dataValue.isZero() );
-        dataValue.setValue( "0.00001" );
-        assertFalse( dataValue.isZero() );
-        dataValue.setValue( "String" );
-        assertFalse( dataValue.isZero() );
-        dataValue.setValue( "0" );
-        assertTrue( dataValue.isZero() );
-        dataValue.setValue( "0.0" );
-        assertTrue( dataValue.isZero() );
-        dataValue.setValue( "0.0000" );
-        assertTrue( dataValue.isZero() );
-    }
+  @Test
+  void testIsZero() {
+    DataElement dataElement = new DataElement("A");
+    dataElement.setValueType(ValueType.NUMBER);
+    DataValue dataValue = new DataValue();
+    dataValue.setDataElement(dataElement);
+    dataValue.setValue("5");
+    assertFalse(dataValue.isZero());
+    dataValue.setValue("0.2");
+    assertFalse(dataValue.isZero());
+    dataValue.setValue("0.00001");
+    assertFalse(dataValue.isZero());
+    dataValue.setValue("String");
+    assertFalse(dataValue.isZero());
+    dataValue.setValue("0");
+    assertTrue(dataValue.isZero());
+    dataValue.setValue("0.0");
+    assertTrue(dataValue.isZero());
+    dataValue.setValue("0.0000");
+    assertTrue(dataValue.isZero());
+  }
 }

@@ -28,32 +28,26 @@
 package org.hisp.dhis.mock;
 
 import java.util.Date;
-
 import org.hisp.dhis.i18n.I18nFormat;
 import org.hisp.dhis.period.Period;
 
 /**
  * @author Lars Helge Overland
  */
-public class MockI18nFormat
-    extends I18nFormat
-{
-    public MockI18nFormat()
-    {
-        super( null );
-    }
+public class MockI18nFormat extends I18nFormat {
+  public MockI18nFormat() {
+    super(null);
+  }
 
-    @Override
-    public String formatPeriod( Period period )
-    {
-        String name = period.getStartDate() + "-" + period.getEndDate();
+  @Override
+  public String formatPeriod(Period period) {
+    String name = period.getStartDate() + "-" + period.getEndDate();
 
-        return name.toLowerCase().trim();
-    }
+    return name.toLowerCase().trim();
+  }
 
-    @Override
-    public String formatDate( Date date )
-    {
-        return date.toString().toLowerCase().trim();
-    }
+  @Override
+  public String formatDate(Date date) {
+    return date.toString().toLowerCase().trim();
+  }
 }

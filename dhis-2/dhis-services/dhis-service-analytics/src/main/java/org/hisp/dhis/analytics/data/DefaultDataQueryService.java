@@ -64,9 +64,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.AnalyticsSecurityManager;
 import org.hisp.dhis.analytics.DataQueryParams;
 import org.hisp.dhis.analytics.DataQueryService;
@@ -93,307 +91,333 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * @author Lars Helge Overland
  */
-@Service( "org.hisp.dhis.analytics.DataQueryService" )
+@Service("org.hisp.dhis.analytics.DataQueryService")
 @RequiredArgsConstructor
-public class DefaultDataQueryService
-    implements DataQueryService
-{
-    private final DimensionalObjectProducer dimensionalObjectProducer;
+public class DefaultDataQueryService implements DataQueryService {
+  private final DimensionalObjectProducer dimensionalObjectProducer;
 
-    private final IdentifiableObjectManager idObjectManager;
+  private final IdentifiableObjectManager idObjectManager;
 
-    private final AnalyticsSecurityManager securityManager;
+  private final AnalyticsSecurityManager securityManager;
 
-    private final UserSettingService userSettingService;
+  private final UserSettingService userSettingService;
 
-    // -------------------------------------------------------------------------
-    // DataQueryService implementation
-    // -------------------------------------------------------------------------
+  // -------------------------------------------------------------------------
+  // DataQueryService implementation
+  // -------------------------------------------------------------------------
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataQueryParams getFromRequest( DataQueryRequest request )
-    {
-        DataQueryParams.Builder params = DataQueryParams.newBuilder();
+  @Override
+  @Transactional(readOnly = true)
+  public DataQueryParams getFromRequest(DataQueryRequest request) {
+    DataQueryParams.Builder params = DataQueryParams.newBuilder();
 
-        IdScheme inputIdScheme = firstNonNull( request.getInputIdScheme(), UID );
+    IdScheme inputIdScheme = firstNonNull(request.getInputIdScheme(), UID);
 
-        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
+    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
 
-        if ( isNotEmpty( request.getDimension() ) )
-        {
-            params.addDimensions( getDimensionalObjects( request ) );
-        }
-
-        if ( isNotEmpty( request.getFilter() ) )
-        {
-            params.addFilters( getDimensionalObjects( request.getFilter(), request.getRelativePeriodDate(),
-                request.getUserOrgUnit(), request.getDisplayProperty(), inputIdScheme ) );
-        }
-
-        if ( isNotEmpty( request.getMeasureCriteria() ) )
-        {
-            params.withMeasureCriteria( getMeasureCriteriaFromParam( request.getMeasureCriteria() ) );
-        }
-
-        if ( isNotEmpty( request.getPreAggregationMeasureCriteria() ) )
-        {
-            params.withPreAggregationMeasureCriteria(
-                getMeasureCriteriaFromParam( request.getPreAggregationMeasureCriteria() ) );
-        }
-
-        if ( request.hasAggregationType() )
-        {
-            params.withAggregationType( fromAggregationType( request.getAggregationType() ) );
-        }
-
-        return params
-            .withStartDate( request.getStartDate() )
-            .withEndDate( request.getEndDate() )
-            .withOrder( request.getOrder() )
-            .withTimeField( request.getTimeField() )
-            .withOrgUnitField( new OrgUnitField( request.getOrgUnitField() ) )
-            .withSkipMeta( request.isSkipMeta() )
-            .withSkipData( request.isSkipData() )
-            .withSkipRounding( request.isSkipRounding() )
-            .withCompletedOnly( request.isCompletedOnly() )
-            .withIgnoreLimit( request.isIgnoreLimit() )
-            .withHierarchyMeta( request.isHierarchyMeta() )
-            .withHideEmptyRows( request.isHideEmptyRows() )
-            .withHideEmptyColumns( request.isHideEmptyColumns() )
-            .withShowHierarchy( request.isShowHierarchy() )
-            .withIncludeNumDen( request.isIncludeNumDen() )
-            .withIncludeMetadataDetails( request.isIncludeMetadataDetails() )
-            .withDisplayProperty( request.getDisplayProperty() )
-            .withOutputIdScheme( request.getOutputIdScheme() )
-            .withOutputDataElementIdScheme( request.getOutputDataElementIdScheme() )
-            .withOutputOrgUnitIdScheme( request.getOutputOrgUnitIdScheme() )
-            .withDuplicatesOnly( request.isDuplicatesOnly() )
-            .withApprovalLevel( request.getApprovalLevel() )
-            .withUserOrgUnitType( request.getUserOrgUnitType() )
-            .withApiVersion( request.getApiVersion() )
-            .withLocale( locale )
-            .withOutputFormat( ANALYTICS )
-            .build();
+    if (isNotEmpty(request.getDimension())) {
+      params.addDimensions(getDimensionalObjects(request));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DataQueryParams getFromAnalyticalObject( AnalyticalObject object )
-    {
-        notNull( object );
+    if (isNotEmpty(request.getFilter())) {
+      params.addFilters(
+          getDimensionalObjects(
+              request.getFilter(),
+              request.getRelativePeriodDate(),
+              request.getUserOrgUnit(),
+              request.getDisplayProperty(),
+              inputIdScheme));
+    }
 
-        DataQueryParams.Builder params = DataQueryParams.newBuilder();
+    if (isNotEmpty(request.getMeasureCriteria())) {
+      params.withMeasureCriteria(getMeasureCriteriaFromParam(request.getMeasureCriteria()));
+    }
 
-        IdScheme idScheme = UID;
+    if (isNotEmpty(request.getPreAggregationMeasureCriteria())) {
+      params.withPreAggregationMeasureCriteria(
+          getMeasureCriteriaFromParam(request.getPreAggregationMeasureCriteria()));
+    }
 
-        Date date = object.getRelativePeriodDate();
+    if (request.hasAggregationType()) {
+      params.withAggregationType(fromAggregationType(request.getAggregationType()));
+    }
 
-        Locale locale = (Locale) userSettingService.getUserSetting( UserSettingKey.DB_LOCALE );
+    return params
+        .withStartDate(request.getStartDate())
+        .withEndDate(request.getEndDate())
+        .withOrder(request.getOrder())
+        .withTimeField(request.getTimeField())
+        .withOrgUnitField(new OrgUnitField(request.getOrgUnitField()))
+        .withSkipMeta(request.isSkipMeta())
+        .withSkipData(request.isSkipData())
+        .withSkipRounding(request.isSkipRounding())
+        .withCompletedOnly(request.isCompletedOnly())
+        .withIgnoreLimit(request.isIgnoreLimit())
+        .withHierarchyMeta(request.isHierarchyMeta())
+        .withHideEmptyRows(request.isHideEmptyRows())
+        .withHideEmptyColumns(request.isHideEmptyColumns())
+        .withShowHierarchy(request.isShowHierarchy())
+        .withIncludeNumDen(request.isIncludeNumDen())
+        .withIncludeMetadataDetails(request.isIncludeMetadataDetails())
+        .withDisplayProperty(request.getDisplayProperty())
+        .withOutputIdScheme(request.getOutputIdScheme())
+        .withOutputDataElementIdScheme(request.getOutputDataElementIdScheme())
+        .withOutputOrgUnitIdScheme(request.getOutputOrgUnitIdScheme())
+        .withDuplicatesOnly(request.isDuplicatesOnly())
+        .withApprovalLevel(request.getApprovalLevel())
+        .withUserOrgUnitType(request.getUserOrgUnitType())
+        .withApiVersion(request.getApiVersion())
+        .withLocale(locale)
+        .withOutputFormat(ANALYTICS)
+        .build();
+  }
 
-        String userOrgUnit = object.getRelativeOrganisationUnit() != null
+  @Override
+  @Transactional(readOnly = true)
+  public DataQueryParams getFromAnalyticalObject(AnalyticalObject object) {
+    notNull(object);
+
+    DataQueryParams.Builder params = DataQueryParams.newBuilder();
+
+    IdScheme idScheme = UID;
+
+    Date date = object.getRelativePeriodDate();
+
+    Locale locale = (Locale) userSettingService.getUserSetting(UserSettingKey.DB_LOCALE);
+
+    String userOrgUnit =
+        object.getRelativeOrganisationUnit() != null
             ? object.getRelativeOrganisationUnit().getUid()
             : null;
 
-        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, userOrgUnit );
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, userOrgUnit);
 
-        object.populateAnalyticalProperties();
+    object.populateAnalyticalProperties();
 
-        for ( DimensionalObject column : object.getColumns() )
-        {
-            params.addDimension( getDimension( column.getDimension(), getDimensionalItemIds( column.getItems() ), date,
-                userOrgUnits, false, null, idScheme ) );
-        }
-
-        for ( DimensionalObject row : object.getRows() )
-        {
-            params.addDimension( getDimension( row.getDimension(), getDimensionalItemIds( row.getItems() ), date,
-                userOrgUnits, false, null, idScheme ) );
-        }
-
-        for ( DimensionalObject filter : object.getFilters() )
-        {
-            params.addFilter( getDimension( filter.getDimension(), getDimensionalItemIds( filter.getItems() ), date,
-                userOrgUnits, false, null, idScheme ) );
-        }
-
-        return params
-            .withCompletedOnly( object.isCompletedOnly() )
-            .withTimeField( object.getTimeField() )
-            .withLocale( locale )
-            .build();
+    for (DimensionalObject column : object.getColumns()) {
+      params.addDimension(
+          getDimension(
+              column.getDimension(),
+              getDimensionalItemIds(column.getItems()),
+              date,
+              userOrgUnits,
+              false,
+              null,
+              idScheme));
     }
 
-    // TODO Optimize so that org unit levels + boundary are used in query
-    // instead of fetching all org units one by one.
-
-    @Override
-    @Transactional( readOnly = true )
-    public DimensionalObject getDimension( String dimension, List<String> items, EventDataQueryRequest request,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, IdScheme inputIdScheme )
-    {
-        return getDimension( dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
-            userOrgUnits, allowNull, inputIdScheme );
+    for (DimensionalObject row : object.getRows()) {
+      params.addDimension(
+          getDimension(
+              row.getDimension(),
+              getDimensionalItemIds(row.getItems()),
+              date,
+              userOrgUnits,
+              false,
+              null,
+              idScheme));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        List<OrganisationUnit> userOrgUnits, boolean allowNull, DisplayProperty displayProperty,
-        IdScheme inputIdScheme )
-    {
-        return getDimension( dimension, items, relativePeriodDate, displayProperty,
-            userOrgUnits, allowNull, inputIdScheme );
+    for (DimensionalObject filter : object.getFilters()) {
+      params.addFilter(
+          getDimension(
+              filter.getDimension(),
+              getDimensionalItemIds(filter.getItems()),
+              date,
+              userOrgUnits,
+              false,
+              null,
+              idScheme));
     }
 
-    @Override
-    @Transactional( readOnly = true )
-    public List<OrganisationUnit> getUserOrgUnits( DataQueryParams params, String userOrgUnit )
-    {
-        List<OrganisationUnit> units = new ArrayList<>();
+    return params
+        .withCompletedOnly(object.isCompletedOnly())
+        .withTimeField(object.getTimeField())
+        .withLocale(locale)
+        .build();
+  }
 
-        User currentUser = securityManager.getCurrentUser( params );
+  // TODO Optimize so that org unit levels + boundary are used in query
+  // instead of fetching all org units one by one.
 
-        if ( userOrgUnit != null )
-        {
-            units.addAll( getItemsFromParam( userOrgUnit ).stream()
-                .map( ou -> idObjectManager.get( OrganisationUnit.class, ou ) )
-                .filter( Objects::nonNull )
-                .collect( toList() ) );
-        }
-        else if ( currentUser != null && params != null && params.getUserOrgUnitType() != null )
-        {
-            switch ( params.getUserOrgUnitType() )
-            {
-            case DATA_CAPTURE:
-                units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case DATA_OUTPUT:
-                units.addAll(
-                    currentUser.getDataViewOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            case TEI_SEARCH:
-                units.addAll( currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect( toList() ) );
-                break;
-            }
-        }
-        else if ( currentUser != null )
-        {
-            units.addAll( currentUser.getOrganisationUnits().stream().sorted().collect( toList() ) );
-        }
+  @Override
+  @Transactional(readOnly = true)
+  public DimensionalObject getDimension(
+      String dimension,
+      List<String> items,
+      EventDataQueryRequest request,
+      List<OrganisationUnit> userOrgUnits,
+      boolean allowNull,
+      IdScheme inputIdScheme) {
+    return getDimension(
+        dimension,
+        items,
+        request.getRelativePeriodDate(),
+        request.getDisplayProperty(),
+        userOrgUnits,
+        allowNull,
+        inputIdScheme);
+  }
 
-        return units;
+  @Override
+  @Transactional(readOnly = true)
+  public DimensionalObject getDimension(
+      String dimension,
+      List<String> items,
+      Date relativePeriodDate,
+      List<OrganisationUnit> userOrgUnits,
+      boolean allowNull,
+      DisplayProperty displayProperty,
+      IdScheme inputIdScheme) {
+    return getDimension(
+        dimension,
+        items,
+        relativePeriodDate,
+        displayProperty,
+        userOrgUnits,
+        allowNull,
+        inputIdScheme);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public List<OrganisationUnit> getUserOrgUnits(DataQueryParams params, String userOrgUnit) {
+    List<OrganisationUnit> units = new ArrayList<>();
+
+    User currentUser = securityManager.getCurrentUser(params);
+
+    if (userOrgUnit != null) {
+      units.addAll(
+          getItemsFromParam(userOrgUnit).stream()
+              .map(ou -> idObjectManager.get(OrganisationUnit.class, ou))
+              .filter(Objects::nonNull)
+              .collect(toList()));
+    } else if (currentUser != null && params != null && params.getUserOrgUnitType() != null) {
+      switch (params.getUserOrgUnitType()) {
+        case DATA_CAPTURE:
+          units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
+          break;
+        case DATA_OUTPUT:
+          units.addAll(
+              currentUser.getDataViewOrganisationUnits().stream().sorted().collect(toList()));
+          break;
+        case TEI_SEARCH:
+          units.addAll(
+              currentUser.getTeiSearchOrganisationUnits().stream().sorted().collect(toList()));
+          break;
+      }
+    } else if (currentUser != null) {
+      units.addAll(currentUser.getOrganisationUnits().stream().sorted().collect(toList()));
     }
 
-    private List<DimensionalObject> getDimensionalObjects( DataQueryRequest request )
-    {
-        List<DimensionalObject> list = new ArrayList<>();
-        List<OrganisationUnit> userOrgUnits = getUserOrgUnits( null, request.getUserOrgUnit() );
+    return units;
+  }
 
-        if ( request.getDimension() != null )
-        {
-            for ( String param : request.getDimension() )
-            {
-                String dimension = getDimensionFromParam( param );
-                List<String> items = getDimensionItemsFromParam( param );
+  private List<DimensionalObject> getDimensionalObjects(DataQueryRequest request) {
+    List<DimensionalObject> list = new ArrayList<>();
+    List<OrganisationUnit> userOrgUnits = getUserOrgUnits(null, request.getUserOrgUnit());
 
-                if ( dimension != null && items != null )
-                {
-                    addIgnoreNull( list, getDimension(
-                        dimension, items, request.getRelativePeriodDate(), request.getDisplayProperty(),
-                        userOrgUnits, false, firstNonNull( request.getInputIdScheme(), UID ) ) );
-                }
-            }
+    if (request.getDimension() != null) {
+      for (String param : request.getDimension()) {
+        String dimension = getDimensionFromParam(param);
+        List<String> items = getDimensionItemsFromParam(param);
+
+        if (dimension != null && items != null) {
+          addIgnoreNull(
+              list,
+              getDimension(
+                  dimension,
+                  items,
+                  request.getRelativePeriodDate(),
+                  request.getDisplayProperty(),
+                  userOrgUnits,
+                  false,
+                  firstNonNull(request.getInputIdScheme(), UID)));
         }
-
-        return list;
+      }
     }
 
-    /**
-     * Returns a {@link DimensionalObject}.
-     *
-     * @param dimension the dimension identifier.
-     * @param items the dimension items.
-     * @param relativePeriodDate the relative period date.
-     * @param displayProperty the relative period date.
-     * @param userOrgUnits the list of user {@link OrganisationUnit}.
-     * @param allowNull whether to allow returning null.
-     * @param inputIdScheme the input {@link IdScheme}.
-     * @return a {@link DimensionalObject}.
-     */
-    private DimensionalObject getDimension( String dimension, List<String> items, Date relativePeriodDate,
-        DisplayProperty displayProperty, List<OrganisationUnit> userOrgUnits, boolean allowNull,
-        IdScheme inputIdScheme )
-    {
-        if ( DATA_X_DIM_ID.equals( dimension ) )
-        {
-            return dimensionalObjectProducer.getDimension( items, inputIdScheme );
-        }
-        else if ( CATEGORYOPTIONCOMBO_DIM_ID.equals( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, CATEGORY_OPTION_COMBO, null,
-                DISPLAY_NAME_CATEGORYOPTIONCOMBO, getCategoryOptionComboList( items, inputIdScheme ) );
-        }
-        else if ( ATTRIBUTEOPTIONCOMBO_DIM_ID.equals( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, ATTRIBUTE_OPTION_COMBO, null,
-                DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO, getCategoryOptionComboList( items, inputIdScheme ) );
-        }
-        else if ( PERIOD_DIM_ID.equals( dimension ) )
-        {
-            return dimensionalObjectProducer.getPeriodDimension( items, relativePeriodDate );
-        }
-        else if ( ORGUNIT_DIM_ID.equals( dimension ) )
-        {
-            return dimensionalObjectProducer.getOrgUnitDimension( items, displayProperty, userOrgUnits,
-                inputIdScheme );
-        }
-        else if ( ORGUNIT_GROUP_DIM_ID.equals( dimension ) )
-        {
-            return dimensionalObjectProducer.getOrgUnitGroupDimension( items, inputIdScheme );
-        }
-        else if ( LONGITUDE_DIM_ID.contains( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, STATIC, null, DISPLAY_NAME_LONGITUDE,
-                new ArrayList<>() );
-        }
-        else if ( LATITUDE_DIM_ID.contains( dimension ) )
-        {
-            return new BaseDimensionalObject( dimension, STATIC, null, DISPLAY_NAME_LATITUDE,
-                new ArrayList<>() );
-        }
-        else
-        {
-            Optional<BaseDimensionalObject> baseDimensionalObject = dimensionalObjectProducer.getDynamicDimension(
-                dimension, items, displayProperty, inputIdScheme );
+    return list;
+  }
 
-            if ( baseDimensionalObject.isPresent() )
-            {
-                return baseDimensionalObject.get();
-            }
-        }
+  /**
+   * Returns a {@link DimensionalObject}.
+   *
+   * @param dimension the dimension identifier.
+   * @param items the dimension items.
+   * @param relativePeriodDate the relative period date.
+   * @param displayProperty the relative period date.
+   * @param userOrgUnits the list of user {@link OrganisationUnit}.
+   * @param allowNull whether to allow returning null.
+   * @param inputIdScheme the input {@link IdScheme}.
+   * @return a {@link DimensionalObject}.
+   */
+  private DimensionalObject getDimension(
+      String dimension,
+      List<String> items,
+      Date relativePeriodDate,
+      DisplayProperty displayProperty,
+      List<OrganisationUnit> userOrgUnits,
+      boolean allowNull,
+      IdScheme inputIdScheme) {
+    if (DATA_X_DIM_ID.equals(dimension)) {
+      return dimensionalObjectProducer.getDimension(items, inputIdScheme);
+    } else if (CATEGORYOPTIONCOMBO_DIM_ID.equals(dimension)) {
+      return new BaseDimensionalObject(
+          dimension,
+          CATEGORY_OPTION_COMBO,
+          null,
+          DISPLAY_NAME_CATEGORYOPTIONCOMBO,
+          getCategoryOptionComboList(items, inputIdScheme));
+    } else if (ATTRIBUTEOPTIONCOMBO_DIM_ID.equals(dimension)) {
+      return new BaseDimensionalObject(
+          dimension,
+          ATTRIBUTE_OPTION_COMBO,
+          null,
+          DISPLAY_NAME_ATTRIBUTEOPTIONCOMBO,
+          getCategoryOptionComboList(items, inputIdScheme));
+    } else if (PERIOD_DIM_ID.equals(dimension)) {
+      return dimensionalObjectProducer.getPeriodDimension(items, relativePeriodDate);
+    } else if (ORGUNIT_DIM_ID.equals(dimension)) {
+      return dimensionalObjectProducer.getOrgUnitDimension(
+          items, displayProperty, userOrgUnits, inputIdScheme);
+    } else if (ORGUNIT_GROUP_DIM_ID.equals(dimension)) {
+      return dimensionalObjectProducer.getOrgUnitGroupDimension(items, inputIdScheme);
+    } else if (LONGITUDE_DIM_ID.contains(dimension)) {
+      return new BaseDimensionalObject(
+          dimension, STATIC, null, DISPLAY_NAME_LONGITUDE, new ArrayList<>());
+    } else if (LATITUDE_DIM_ID.contains(dimension)) {
+      return new BaseDimensionalObject(
+          dimension, STATIC, null, DISPLAY_NAME_LATITUDE, new ArrayList<>());
+    } else {
+      Optional<BaseDimensionalObject> baseDimensionalObject =
+          dimensionalObjectProducer.getDynamicDimension(
+              dimension, items, displayProperty, inputIdScheme);
 
-        if ( allowNull )
-        {
-            return null;
-        }
-
-        throw new IllegalQueryException( new ErrorMessage( E7125, dimension ) );
+      if (baseDimensionalObject.isPresent()) {
+        return baseDimensionalObject.get();
+      }
     }
 
-    /**
-     * Returns a list of category option combinations based on the given item
-     * identifiers.
-     *
-     * @param items the item identifiers.
-     * @param inputIdScheme the {@link IdScheme}.
-     * @return a list of {@link DimensionalItemObject}.
-     */
-    private List<DimensionalItemObject> getCategoryOptionComboList( List<String> items, IdScheme inputIdScheme )
-    {
-        return items.stream()
-            .map( item -> idObjectManager.getObject( CategoryOptionCombo.class, inputIdScheme, item ) )
-            .filter( Objects::nonNull )
-            .collect( toList() );
+    if (allowNull) {
+      return null;
     }
+
+    throw new IllegalQueryException(new ErrorMessage(E7125, dimension));
+  }
+
+  /**
+   * Returns a list of category option combinations based on the given item identifiers.
+   *
+   * @param items the item identifiers.
+   * @param inputIdScheme the {@link IdScheme}.
+   * @return a list of {@link DimensionalItemObject}.
+   */
+  private List<DimensionalItemObject> getCategoryOptionComboList(
+      List<String> items, IdScheme inputIdScheme) {
+    return items.stream()
+        .map(item -> idObjectManager.getObject(CategoryOptionCombo.class, inputIdScheme, item))
+        .filter(Objects::nonNull)
+        .collect(toList());
+  }
 }

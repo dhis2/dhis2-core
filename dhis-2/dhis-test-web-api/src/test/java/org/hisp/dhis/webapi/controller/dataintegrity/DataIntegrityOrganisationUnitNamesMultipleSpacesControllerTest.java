@@ -30,81 +30,87 @@ package org.hisp.dhis.webapi.controller.dataintegrity;
 import static org.hisp.dhis.web.WebClientUtils.assertStatus;
 
 import java.util.Set;
-
 import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * Tests for orgunits which have multiple spaces in their names or shortnames
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_spaces.yaml}
+ * Tests for orgunits which have multiple spaces in their names or shortnames {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/orgunits/orgunits_multiple_spaces.yaml}
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityOrganisationUnitNamesMultipleSpacesControllerTest
+    extends AbstractDataIntegrityIntegrationTest {
 
-    private String orgunitA;
+  private String orgunitA;
 
-    private String orgunitB;
+  private String orgunitB;
 
-    private String orgunitC;
+  private String orgunitC;
 
-    private static final String check = "orgunits_multiple_spaces";
+  private static final String check = "orgunits_multiple_spaces";
 
-    private static final String detailsIdType = "organisationUnits";
+  private static final String detailsIdType = "organisationUnits";
 
-    @Test
-    void testOrgUnitMultipleSpaces()
-    {
+  @Test
+  void testOrgUnitMultipleSpaces() {
 
-        orgunitA = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'Space    District', 'shortName': 'Space    District', 'openingDate' : '2022-01-01'}" ) );
+    orgunitA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'Space    District', 'shortName': 'Space    District', 'openingDate' : '2022-01-01'}"));
 
-        orgunitB = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'TwoSpace District', 'shortName': 'Two  Space  District', 'openingDate' : '2022-01-01', " +
-                    "'parent': {'id' : '" + orgunitA + "'}}" ) );
+    orgunitB =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'TwoSpace District', 'shortName': 'Two  Space  District', 'openingDate' : '2022-01-01', "
+                    + "'parent': {'id' : '"
+                    + orgunitA
+                    + "'}}"));
 
-        orgunitC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+    orgunitC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}"));
 
-        assertHasDataIntegrityIssues( detailsIdType, check, 66,
-            Set.of( orgunitA, orgunitB ), Set.of(), Set.of(), true );
-    }
+    assertHasDataIntegrityIssues(
+        detailsIdType, check, 66, Set.of(orgunitA, orgunitB), Set.of(), Set.of(), true);
+  }
 
-    @Test
-    void orgunitsNoMultipleSpaces()
-    {
-        orgunitC = assertStatus( HttpStatus.CREATED,
-            POST( "/organisationUnits",
-                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}" ) );
+  @Test
+  void orgunitsNoMultipleSpaces() {
+    orgunitC =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/organisationUnits",
+                "{ 'name': 'NospaceDistrict', 'shortName': 'NospaceDistrict', 'openingDate' : '2022-01-01'}"));
 
-        assertHasNoDataIntegrityIssues( detailsIdType, check, true );
-    }
+    assertHasNoDataIntegrityIssues(detailsIdType, check, true);
+  }
 
-    @Test
-    void testOrgunitsMultipleSpacesZeroCase()
-    {
-        assertHasNoDataIntegrityIssues( detailsIdType, check, false );
+  @Test
+  void testOrgunitsMultipleSpacesZeroCase() {
+    assertHasNoDataIntegrityIssues(detailsIdType, check, false);
+  }
 
-    }
+  @BeforeEach
+  void setUp() {
+    deleteAllOrgUnits();
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        deleteAllOrgUnits();
-    }
-
-    @AfterEach
-    void tearDown()
-    {
-        deleteMetadataObject( "organisationUnits", orgunitC );
-        deleteMetadataObject( "organisationUnits", orgunitB );
-        deleteMetadataObject( "organisationUnits", orgunitA );
-
-    }
+  @AfterEach
+  void tearDown() {
+    deleteMetadataObject("organisationUnits", orgunitC);
+    deleteMetadataObject("organisationUnits", orgunitB);
+    deleteMetadataObject("organisationUnits", orgunitA);
+  }
 }

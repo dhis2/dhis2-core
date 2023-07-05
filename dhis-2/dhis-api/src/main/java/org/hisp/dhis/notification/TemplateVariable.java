@@ -30,9 +30,8 @@ package org.hisp.dhis.notification;
 /**
  * @author Halvdan Hoem Grelland
  */
-public interface TemplateVariable
-{
-    String name();
+public interface TemplateVariable {
+  String name();
 
-    String getVariableName();
+  String getVariableName();
 }

@@ -34,9 +34,11 @@ import static org.hisp.dhis.DhisConvenienceTest.createProgramStageDataElement;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.common.IdScheme;
 import org.hisp.dhis.common.ValueType;
 import org.hisp.dhis.dataelement.DataElement;
@@ -56,153 +58,146 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
+@MockitoSettings(strictness = Strictness.LENIENT)
+class DataValueCheckTest extends BaseValidationTest {
 
-@MockitoSettings( strictness = Strictness.LENIENT )
-class DataValueCheckTest extends BaseValidationTest
-{
+  private DataValueCheck rule;
 
-    private DataValueCheck rule;
+  private ProgramStage programStageA;
 
-    private ProgramStage programStageA;
+  @BeforeEach
+  void setUp() {
+    rule = new DataValueCheck();
+    final Program programA = createProgram('A');
+    programStageA = createProgramStage('A', programA);
+    // THIS TRIGGERS THE MANDATORY DATA ELEMENT VALIDATION
+    programStageA.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    when(workContext.getProgramStage(IdScheme.UID, "prgstg1")).thenReturn(programStageA);
+  }
 
-    @BeforeEach
-    void setUp()
-    {
-        rule = new DataValueCheck();
-        final Program programA = createProgram( 'A' );
-        programStageA = createProgramStage( 'A', programA );
-        // THIS TRIGGERS THE MANDATORY DATA ELEMENT VALIDATION
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        when( workContext.getProgramStage( IdScheme.UID, "prgstg1" ) ).thenReturn( programStageA );
-    }
+  @Test
+  void verifyNoErrorOnNoDataValues() {
+    assertNoError(rule.check(new ImmutableEvent(event), this.workContext));
+  }
 
-    @Test
-    void verifyNoErrorOnNoDataValues()
-    {
-        assertNoError( rule.check( new ImmutableEvent( event ), this.workContext ) );
-    }
+  @Test
+  void verifyDataValuesWithOptionSetOk() {
+    DataElement dataElement = createDataElement('A');
+    dataElement.setValueType(ValueType.TEXT);
 
-    @Test
-    void verifyDataValuesWithOptionSetOk()
-    {
-        DataElement dataElement = createDataElement( 'A' );
-        dataElement.setValueType( ValueType.TEXT );
+    List<Option> optionList = new ArrayList<>();
 
-        List<Option> optionList = new ArrayList<>();
+    Option option = new Option();
+    option.setCode("CODE");
+    optionList.add(option);
+    optionList.add(null);
 
-        Option option = new Option();
-        option.setCode( "CODE" );
-        optionList.add( option );
-        optionList.add( null );
+    OptionSet optionSet = new OptionSet("OptionSet", ValueType.TEXT, optionList);
 
-        OptionSet optionSet = new OptionSet( "OptionSet", ValueType.TEXT, optionList );
+    dataElement.setOptionSet(optionSet);
 
-        dataElement.setOptionSet( optionSet );
+    DataElement de1 = addToDataElementMap(dataElement);
 
-        DataElement de1 = addToDataElementMap( dataElement );
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "CODE");
+    event.setDataValues(Sets.newHashSet(dv1));
 
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "CODE" );
-        event.setDataValues( Sets.newHashSet( dv1 ) );
+    assertNoError(rule.check(new ImmutableEvent(event), this.workContext));
+  }
 
-        assertNoError( rule.check( new ImmutableEvent( event ), this.workContext ) );
-    }
+  @Test
+  void verifyNoMandatoryCheckHasNoErrors() {
+    programStageA.setValidationStrategy(ValidationStrategy.ON_COMPLETE);
+    event.setProgramStage("prgstg1");
+    DataElement de1 = addToDataElementMap(createDataElement('A'));
+    DataElement de2 = addToDataElementMap(createDataElement('B'));
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "1");
+    DataValue dv2 = EventTestUtils.createDataValue(de2.getUid(), "2");
+    event.setDataValues(Sets.newHashSet(dv1, dv2));
+    assertNoError(rule.check(new ImmutableEvent(event), this.workContext));
+  }
 
-    @Test
-    void verifyNoMandatoryCheckHasNoErrors()
-    {
-        programStageA.setValidationStrategy( ValidationStrategy.ON_COMPLETE );
-        event.setProgramStage( "prgstg1" );
-        DataElement de1 = addToDataElementMap( createDataElement( 'A' ) );
-        DataElement de2 = addToDataElementMap( createDataElement( 'B' ) );
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "1" );
-        DataValue dv2 = EventTestUtils.createDataValue( de2.getUid(), "2" );
-        event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
-        assertNoError( rule.check( new ImmutableEvent( event ), this.workContext ) );
-    }
+  @Test
+  void verifyMandatoryCheckFailsOnMandatoryDataElement() {
+    event.setProgramStage("prgstg1");
+    DataElement de1 = addToDataElementMap(createDataElement('A'));
+    DataElement de2 = addToDataElementMap(createDataElement('B'));
+    DataElement de3 = addToDataElementMap(createDataElement('C'));
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(
+            createProgramStageDataElement(programStageA, de1, 1, true),
+            createProgramStageDataElement(programStageA, de2, 2, true),
+            createProgramStageDataElement(programStageA, de3, 3, true)));
+    addToDataValueMap(
+        event.getUid(),
+        EventTestUtils.createEventDataValue(de1.getUid(), "1"),
+        EventTestUtils.createEventDataValue(de2.getUid(), "2"));
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "1");
+    DataValue dv2 = EventTestUtils.createDataValue(de2.getUid(), "2");
+    event.setDataValues(Sets.newHashSet(dv1, dv2));
+    final ImportSummary summary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertHasError(summary, event, null);
+    assertHasConflict(summary, "value_required_but_not_provided", de3.getUid());
+  }
 
-    @Test
-    void verifyMandatoryCheckFailsOnMandatoryDataElement()
-    {
-        event.setProgramStage( "prgstg1" );
-        DataElement de1 = addToDataElementMap( createDataElement( 'A' ) );
-        DataElement de2 = addToDataElementMap( createDataElement( 'B' ) );
-        DataElement de3 = addToDataElementMap( createDataElement( 'C' ) );
-        programStageA
-            .setProgramStageDataElements( Sets.newHashSet( createProgramStageDataElement( programStageA, de1, 1, true ),
-                createProgramStageDataElement( programStageA, de2, 2, true ),
-                createProgramStageDataElement( programStageA, de3, 3, true ) ) );
-        addToDataValueMap( event.getUid(), EventTestUtils.createEventDataValue( de1.getUid(), "1" ),
-            EventTestUtils.createEventDataValue( de2.getUid(), "2" ) );
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "1" );
-        DataValue dv2 = EventTestUtils.createDataValue( de2.getUid(), "2" );
-        event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
-        final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertHasError( summary, event, null );
-        assertHasConflict( summary, "value_required_but_not_provided", de3.getUid() );
-    }
+  @Test
+  void verifyMandatoryCheckSucceeds() {
+    event.setProgramStage("prgstg1");
+    DataElement de1 = addToDataElementMap(createDataElement('A'));
+    DataElement de2 = addToDataElementMap(createDataElement('B'));
+    programStageA.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(
+            createProgramStageDataElement(programStageA, de1, 1, true),
+            createProgramStageDataElement(programStageA, de2, 2, true)));
+    addToDataValueMap(
+        event.getUid(),
+        EventTestUtils.createEventDataValue(de1.getUid(), "1"),
+        EventTestUtils.createEventDataValue(de2.getUid(), "2"));
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "1");
+    DataValue dv2 = EventTestUtils.createDataValue(de2.getUid(), "2");
+    event.setDataValues(Sets.newHashSet(dv1, dv2));
+    final ImportSummary summary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertNoError(summary);
+  }
 
-    @Test
-    void verifyMandatoryCheckSucceeds()
-    {
-        event.setProgramStage( "prgstg1" );
-        DataElement de1 = addToDataElementMap( createDataElement( 'A' ) );
-        DataElement de2 = addToDataElementMap( createDataElement( 'B' ) );
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        programStageA
-            .setProgramStageDataElements( Sets.newHashSet( createProgramStageDataElement( programStageA, de1, 1, true ),
-                createProgramStageDataElement( programStageA, de2, 2, true ) ) );
-        addToDataValueMap( event.getUid(), EventTestUtils.createEventDataValue( de1.getUid(), "1" ),
-            EventTestUtils.createEventDataValue( de2.getUid(), "2" ) );
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "1" );
-        DataValue dv2 = EventTestUtils.createDataValue( de2.getUid(), "2" );
-        event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
-        final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertNoError( summary );
-    }
+  @Test
+  void verifyValidationFailOnMissingDataElement() {
+    event.setProgramStage("prgstg1");
+    DataElement de1 = addToDataElementMap(createDataElement('A'));
+    programStageA.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, de1, 1, true)));
+    addToDataValueMap(
+        event.getUid(),
+        EventTestUtils.createEventDataValue(de1.getUid(), "1"),
+        EventTestUtils.createEventDataValue("iDontExist", "2"));
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "1");
+    DataValue dv2 = EventTestUtils.createDataValue("iDontExist", "2");
+    event.setDataValues(Sets.newHashSet(dv1, dv2));
+    final ImportSummary summary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertHasError(summary, event, null);
+    assertHasConflict(summary, "iDontExist is not a valid data element", "dataElement");
+  }
 
-    @Test
-    void verifyValidationFailOnMissingDataElement()
-    {
-        event.setProgramStage( "prgstg1" );
-        DataElement de1 = addToDataElementMap( createDataElement( 'A' ) );
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, de1, 1, true ) ) );
-        addToDataValueMap( event.getUid(), EventTestUtils.createEventDataValue( de1.getUid(), "1" ),
-            EventTestUtils.createEventDataValue( "iDontExist", "2" ) );
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "1" );
-        DataValue dv2 = EventTestUtils.createDataValue( "iDontExist", "2" );
-        event.setDataValues( Sets.newHashSet( dv1, dv2 ) );
-        final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertHasError( summary, event, null );
-        assertHasConflict( summary, "iDontExist is not a valid data element", "dataElement" );
-    }
-
-    @Test
-    void verifyValidationFailOnJsonSerializationError()
-        throws JsonProcessingException
-    {
-        ObjectMapper localObjectMapper = mock( ObjectMapper.class );
-        when( serviceDelegator.getJsonMapper() ).thenReturn( localObjectMapper );
-        when( localObjectMapper.writeValueAsString( Mockito.any() ) ).thenThrow( new JsonProcessingException( "Error" )
-        {
-        } );
-        event.setProgramStage( "prgstg1" );
-        DataElement de1 = addToDataElementMap( createDataElement( 'A' ) );
-        final Program programA = createProgram( 'A' );
-        final ProgramStage programStageA = createProgramStage( 'A', programA );
-        programStageA.setValidationStrategy( ValidationStrategy.ON_UPDATE_AND_INSERT );
-        programStageA.setProgramStageDataElements(
-            Sets.newHashSet( createProgramStageDataElement( programStageA, de1, 1, true ) ) );
-        when( workContext.getProgramStage( IdScheme.UID, "prgstg1" ) ).thenReturn( programStageA );
-        addToDataValueMap( event.getUid(), EventTestUtils.createEventDataValue( de1.getUid(), "1" ) );
-        DataValue dv1 = EventTestUtils.createDataValue( de1.getUid(), "1" );
-        event.setDataValues( Sets.newHashSet( dv1 ) );
-        final ImportSummary summary = rule.check( new ImmutableEvent( event ), this.workContext );
-        assertHasError( summary, event, null );
-        assertHasConflict( summary, "Invalid data value found.", de1.getUid() );
-    }
+  @Test
+  void verifyValidationFailOnJsonSerializationError() throws JsonProcessingException {
+    ObjectMapper localObjectMapper = mock(ObjectMapper.class);
+    when(serviceDelegator.getJsonMapper()).thenReturn(localObjectMapper);
+    when(localObjectMapper.writeValueAsString(Mockito.any()))
+        .thenThrow(new JsonProcessingException("Error") {});
+    event.setProgramStage("prgstg1");
+    DataElement de1 = addToDataElementMap(createDataElement('A'));
+    final Program programA = createProgram('A');
+    final ProgramStage programStageA = createProgramStage('A', programA);
+    programStageA.setValidationStrategy(ValidationStrategy.ON_UPDATE_AND_INSERT);
+    programStageA.setProgramStageDataElements(
+        Sets.newHashSet(createProgramStageDataElement(programStageA, de1, 1, true)));
+    when(workContext.getProgramStage(IdScheme.UID, "prgstg1")).thenReturn(programStageA);
+    addToDataValueMap(event.getUid(), EventTestUtils.createEventDataValue(de1.getUid(), "1"));
+    DataValue dv1 = EventTestUtils.createDataValue(de1.getUid(), "1");
+    event.setDataValues(Sets.newHashSet(dv1));
+    final ImportSummary summary = rule.check(new ImmutableEvent(event), this.workContext);
+    assertHasError(summary, event, null);
+    assertHasConflict(summary, "Invalid data value found.", de1.getUid());
+  }
 }

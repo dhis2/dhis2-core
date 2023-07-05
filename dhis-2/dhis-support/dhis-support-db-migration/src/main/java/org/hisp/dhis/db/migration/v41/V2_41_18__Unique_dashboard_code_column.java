@@ -38,13 +38,10 @@ import org.hisp.dhis.db.migration.helper.UniqueValueUtils.UniqueValueParams;
  *
  * @author Jan Bernitt
  */
-@SuppressWarnings( "java:S101" )
-public class V2_41_18__Unique_dashboard_code_column extends BaseJavaMigration
-{
-    @Override
-    public void migrate( Context context )
-        throws Exception
-    {
-        updateUniqueValue( context, new UniqueValueParams( "dashboard", "dashboardid", "code", 50, true ) );
-    }
+@SuppressWarnings("java:S101")
+public class V2_41_18__Unique_dashboard_code_column extends BaseJavaMigration {
+  @Override
+  public void migrate(Context context) throws Exception {
+    updateUniqueValue(context, new UniqueValueParams("dashboard", "dashboardid", "code", 50, true));
+  }
 }

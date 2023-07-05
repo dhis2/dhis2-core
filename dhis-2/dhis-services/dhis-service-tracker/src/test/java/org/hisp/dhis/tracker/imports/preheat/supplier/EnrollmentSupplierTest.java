@@ -33,9 +33,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.when;
 
+import com.google.common.collect.Lists;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hisp.dhis.DhisConvenienceTest;
 import org.hisp.dhis.program.Enrollment;
 import org.hisp.dhis.program.EnrollmentStore;
@@ -54,114 +54,103 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
-import com.google.common.collect.Lists;
-
 /**
  * @author Luciano Fiandesio
  */
-@MockitoSettings( strictness = Strictness.LENIENT )
-@ExtendWith( MockitoExtension.class )
-class EnrollmentSupplierTest extends DhisConvenienceTest
-{
+@MockitoSettings(strictness = Strictness.LENIENT)
+@ExtendWith(MockitoExtension.class)
+class EnrollmentSupplierTest extends DhisConvenienceTest {
 
-    @InjectMocks
-    private EnrollmentSupplier supplier;
+  @InjectMocks private EnrollmentSupplier supplier;
 
-    @Mock
-    private EnrollmentStore enrollmentStore;
+  @Mock private EnrollmentStore enrollmentStore;
 
-    @Mock
-    private ProgramStore programStore;
+  @Mock private ProgramStore programStore;
 
-    private List<Enrollment> enrollments;
+  private List<Enrollment> enrollments;
 
-    private Program programWithRegistration;
+  private Program programWithRegistration;
 
-    private Program programWithoutRegistration;
+  private Program programWithoutRegistration;
 
-    private TrackerImportParams params;
+  private TrackerImportParams params;
 
-    private final BeanRandomizer rnd = BeanRandomizer.create();
+  private final BeanRandomizer rnd = BeanRandomizer.create();
 
-    private TrackerPreheat preheat;
+  private TrackerPreheat preheat;
 
-    private Enrollment enrollmentWithoutRegistration;
+  private Enrollment enrollmentWithoutRegistration;
 
-    @BeforeEach
-    public void setUp()
-    {
-        enrollments = rnd.objects( Enrollment.class, 2 ).collect( Collectors.toList() );
-        // set the OrgUnit parent to null to avoid recursive errors when mapping
-        enrollments.forEach( p -> p.getOrganisationUnit().setParent( null ) );
+  @BeforeEach
+  public void setUp() {
+    enrollments = rnd.objects(Enrollment.class, 2).collect(Collectors.toList());
+    // set the OrgUnit parent to null to avoid recursive errors when mapping
+    enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
 
-        programWithRegistration = createProgram( 'A' );
-        programWithRegistration.setProgramType( WITH_REGISTRATION );
-        Enrollment enrollmentWithRegistration = enrollments.get( 0 );
-        enrollmentWithRegistration.setProgram( programWithRegistration );
+    programWithRegistration = createProgram('A');
+    programWithRegistration.setProgramType(WITH_REGISTRATION);
+    Enrollment enrollmentWithRegistration = enrollments.get(0);
+    enrollmentWithRegistration.setProgram(programWithRegistration);
 
-        programWithoutRegistration = createProgram( 'B' );
-        programWithoutRegistration.setProgramType( WITHOUT_REGISTRATION );
-        enrollmentWithoutRegistration = enrollments.get( 1 );
-        enrollmentWithoutRegistration.setProgram( programWithoutRegistration );
+    programWithoutRegistration = createProgram('B');
+    programWithoutRegistration.setProgramType(WITHOUT_REGISTRATION);
+    enrollmentWithoutRegistration = enrollments.get(1);
+    enrollmentWithoutRegistration.setProgram(programWithoutRegistration);
 
-        when( enrollmentStore.getByPrograms( Lists.newArrayList( programWithoutRegistration ) ) )
-            .thenReturn( enrollments );
+    when(enrollmentStore.getByPrograms(Lists.newArrayList(programWithoutRegistration)))
+        .thenReturn(enrollments);
 
-        params = TrackerImportParams.builder().build();
-        preheat = new TrackerPreheat();
+    params = TrackerImportParams.builder().build();
+    preheat = new TrackerPreheat();
+  }
+
+  @Test
+  void verifySupplierWhenNoEventProgramArePresent() {
+    preheat.put(TrackerIdSchemeParam.UID, programWithRegistration);
+
+    this.supplier.preheatAdd(params, preheat);
+
+    final List<String> programUids =
+        enrollments.stream().map(enrollment -> enrollment.getProgram().getUid()).toList();
+    for (String programUid : programUids) {
+      assertNull(preheat.getEnrollmentsWithoutRegistration(programUid));
     }
+  }
 
-    @Test
-    void verifySupplierWhenNoEventProgramArePresent()
-    {
-        preheat.put( TrackerIdSchemeParam.UID, programWithRegistration );
+  @Test
+  void verifySupplierWhenNoProgramsArePresent() {
+    when(programStore.getByType(WITHOUT_REGISTRATION))
+        .thenReturn(List.of(programWithoutRegistration));
+    enrollments = rnd.objects(Enrollment.class, 1).collect(Collectors.toList());
+    // set the OrgUnit parent to null to avoid recursive errors when mapping
+    enrollments.forEach(p -> p.getOrganisationUnit().setParent(null));
+    Enrollment enrollment = enrollments.get(0);
+    enrollment.setProgram(programWithoutRegistration);
+    when(enrollmentStore.getByPrograms(List.of(programWithoutRegistration)))
+        .thenReturn(enrollments);
 
-        this.supplier.preheatAdd( params, preheat );
+    this.supplier.preheatAdd(params, preheat);
 
-        final List<String> programUids = enrollments
-            .stream()
-            .map( enrollment -> enrollment.getProgram().getUid() )
-            .toList();
-        for ( String programUid : programUids )
-        {
-            assertNull( preheat.getEnrollmentsWithoutRegistration( programUid ) );
-        }
-    }
+    assertEnrollmentInPreheat(
+        enrollment, preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
+  }
 
-    @Test
-    void verifySupplierWhenNoProgramsArePresent()
-    {
-        when( programStore.getByType( WITHOUT_REGISTRATION ) ).thenReturn( List.of( programWithoutRegistration ) );
-        enrollments = rnd.objects( Enrollment.class, 1 ).collect( Collectors.toList() );
-        // set the OrgUnit parent to null to avoid recursive errors when mapping
-        enrollments.forEach( p -> p.getOrganisationUnit().setParent( null ) );
-        Enrollment enrollment = enrollments.get( 0 );
-        enrollment.setProgram( programWithoutRegistration );
-        when( enrollmentStore.getByPrograms( List.of( programWithoutRegistration ) ) )
-            .thenReturn( enrollments );
+  @Test
+  void verifySupplier() {
+    preheat.put(
+        TrackerIdSchemeParam.UID,
+        Lists.newArrayList(programWithRegistration, programWithoutRegistration));
 
-        this.supplier.preheatAdd( params, preheat );
+    this.supplier.preheatAdd(params, preheat);
 
-        assertEnrollmentInPreheat( enrollment,
-            preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
-    }
+    assertEnrollmentInPreheat(
+        enrollmentWithoutRegistration,
+        preheat.getEnrollmentsWithoutRegistration(programWithoutRegistration.getUid()));
+  }
 
-    @Test
-    void verifySupplier()
-    {
-        preheat.put( TrackerIdSchemeParam.UID,
-            Lists.newArrayList( programWithRegistration, programWithoutRegistration ) );
-
-        this.supplier.preheatAdd( params, preheat );
-
-        assertEnrollmentInPreheat( enrollmentWithoutRegistration,
-            preheat.getEnrollmentsWithoutRegistration( programWithoutRegistration.getUid() ) );
-    }
-
-    private void assertEnrollmentInPreheat( Enrollment expected, Enrollment actual )
-    {
-        assertEquals( expected.getUid(), actual.getUid() );
-        assertEquals( expected.getProgram().getUid(), actual.getProgram().getUid() );
-        assertEquals( actual, preheat.getEnrollment( actual.getUid() ) );
-    }
+  private void assertEnrollmentInPreheat(Enrollment expected, Enrollment actual) {
+    assertEquals(expected.getUid(), actual.getUid());
+    assertEquals(expected.getProgram().getUid(), actual.getProgram().getUid());
+    assertEquals(actual, preheat.getEnrollment(actual.getUid()));
+  }
 }

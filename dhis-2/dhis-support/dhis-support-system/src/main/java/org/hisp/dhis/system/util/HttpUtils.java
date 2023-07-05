@@ -33,9 +33,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
@@ -56,264 +54,222 @@ import org.apache.http.util.EntityUtils;
 import org.springframework.http.HttpHeaders;
 
 /**
- * This class has the utility methods to invoke REST endpoints for various HTTP
- * methods.
+ * This class has the utility methods to invoke REST endpoints for various HTTP methods.
  *
  * @author vanyas
  */
 @Slf4j
-public class HttpUtils
-{
-    private static final String CONTENT_TYPE_ZIP = "application/gzip";
+public class HttpUtils {
+  private static final String CONTENT_TYPE_ZIP = "application/gzip";
 
-    /**
-     * Method to make an HTTP GET call to a given URL with/without
-     * authentication.
-     *
-     * @throws Exception
-     *         </pre>
-     */
-    public static DhisHttpResponse httpGET( String requestURL, boolean authorize, String username, String password,
-        Map<String, String> headers, int timeout, boolean processResponse )
-        throws Exception
-    {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+  /**
+   * Method to make an HTTP GET call to a given URL with/without authentication.
+   *
+   * @throws Exception </pre>
+   */
+  public static DhisHttpResponse httpGET(
+      String requestURL,
+      boolean authorize,
+      String username,
+      String password,
+      Map<String, String> headers,
+      int timeout,
+      boolean processResponse)
+      throws Exception {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout( timeout )
-            .setSocketTimeout( timeout )
-            .build();
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
 
-        DhisHttpResponse dhisHttpResponse;
+    DhisHttpResponse dhisHttpResponse;
 
-        try
-        {
-            HttpGet httpGet = new HttpGet( requestURL );
-            httpGet.setConfig( requestConfig );
+    try {
+      HttpGet httpGet = new HttpGet(requestURL);
+      httpGet.setConfig(requestConfig);
 
-            if ( headers instanceof Map )
-            {
-                for ( Map.Entry<String, String> e : headers.entrySet() )
-                {
-                    httpGet.addHeader( e.getKey(), e.getValue() );
-                }
-            }
-
-            if ( authorize )
-            {
-                httpGet.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
-            }
-
-            HttpResponse response = httpClient.execute( httpGet );
-
-            if ( processResponse )
-            {
-                dhisHttpResponse = processResponse( requestURL, username, response );
-            }
-            else
-            {
-                dhisHttpResponse = new DhisHttpResponse( response, null, response.getStatusLine().getStatusCode() );
-            }
+      if (headers instanceof Map) {
+        for (Map.Entry<String, String> e : headers.entrySet()) {
+          httpGet.addHeader(e.getKey(), e.getValue());
         }
-        catch ( Exception e )
-        {
-            log.error( "Exception occurred in the httpGET call with username " + username, e );
-            throw e;
-        }
-        finally
-        {
-            if ( httpClient != null )
-            {
-                httpClient.close();
-            }
-        }
+      }
 
-        return dhisHttpResponse;
+      if (authorize) {
+        httpGet.setHeader("Authorization", CodecUtils.getBasicAuthString(username, password));
+      }
+
+      HttpResponse response = httpClient.execute(httpGet);
+
+      if (processResponse) {
+        dhisHttpResponse = processResponse(requestURL, username, response);
+      } else {
+        dhisHttpResponse =
+            new DhisHttpResponse(response, null, response.getStatusLine().getStatusCode());
+      }
+    } catch (Exception e) {
+      log.error("Exception occurred in the httpGET call with username " + username, e);
+      throw e;
+    } finally {
+      if (httpClient != null) {
+        httpClient.close();
+      }
     }
 
-    /**
-     * Method to make an HTTP POST call to a given URL with/without
-     * authentication.
-     *
-     */
-    public static DhisHttpResponse httpPOST( String requestURL, Object body, boolean authorize, String username,
-        String password,
-        String contentType, int timeout )
-        throws Exception
-    {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+    return dhisHttpResponse;
+  }
 
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout( timeout )
-            .setSocketTimeout( timeout )
-            .build();
+  /** Method to make an HTTP POST call to a given URL with/without authentication. */
+  public static DhisHttpResponse httpPOST(
+      String requestURL,
+      Object body,
+      boolean authorize,
+      String username,
+      String password,
+      String contentType,
+      int timeout)
+      throws Exception {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-        DhisHttpResponse dhisHttpResponse;
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
 
-        try
-        {
-            HttpPost httpPost = new HttpPost( requestURL );
-            httpPost.setConfig( requestConfig );
+    List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+    DhisHttpResponse dhisHttpResponse;
 
-            if ( body instanceof Map )
-            {
-                @SuppressWarnings( "unchecked" )
-                Map<String, String> parameters = (Map<String, String>) body;
-                for ( Map.Entry<String, String> parameter : parameters.entrySet() )
-                {
-                    if ( parameter.getValue() != null )
-                    {
-                        pairs.add( new BasicNameValuePair( parameter.getKey(), parameter.getValue() ) );
-                    }
-                }
-                httpPost.setEntity( new UrlEncodedFormEntity( pairs, "UTF-8" ) );
-            }
-            else if ( body instanceof String )
-            {
-                httpPost.setEntity( new StringEntity( (String) body ) );
-            }
+    try {
+      HttpPost httpPost = new HttpPost(requestURL);
+      httpPost.setConfig(requestConfig);
 
-            if ( !StringUtils.isNotEmpty( contentType ) )
-            {
-                httpPost.setHeader( HttpHeaders.CONTENT_TYPE, contentType );
-            }
-
-            if ( authorize )
-            {
-                httpPost.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
-            }
-
-            HttpResponse response = httpClient.execute( httpPost );
-            log.info( "Successfully got response from http POST." );
-            dhisHttpResponse = processResponse( requestURL, username, response );
+      if (body instanceof Map) {
+        @SuppressWarnings("unchecked")
+        Map<String, String> parameters = (Map<String, String>) body;
+        for (Map.Entry<String, String> parameter : parameters.entrySet()) {
+          if (parameter.getValue() != null) {
+            pairs.add(new BasicNameValuePair(parameter.getKey(), parameter.getValue()));
+          }
         }
-        catch ( Exception e )
-        {
-            log.error( "Exception occurred in httpPOST call with username " + username, e );
-            throw e;
+        httpPost.setEntity(new UrlEncodedFormEntity(pairs, "UTF-8"));
+      } else if (body instanceof String) {
+        httpPost.setEntity(new StringEntity((String) body));
+      }
 
-        }
-        finally
-        {
-            if ( httpClient != null )
-            {
-                httpClient.close();
-            }
-        }
+      if (!StringUtils.isNotEmpty(contentType)) {
+        httpPost.setHeader(HttpHeaders.CONTENT_TYPE, contentType);
+      }
 
-        return dhisHttpResponse;
+      if (authorize) {
+        httpPost.setHeader("Authorization", CodecUtils.getBasicAuthString(username, password));
+      }
+
+      HttpResponse response = httpClient.execute(httpPost);
+      log.info("Successfully got response from http POST.");
+      dhisHttpResponse = processResponse(requestURL, username, response);
+    } catch (Exception e) {
+      log.error("Exception occurred in httpPOST call with username " + username, e);
+      throw e;
+
+    } finally {
+      if (httpClient != null) {
+        httpClient.close();
+      }
     }
 
-    /**
-     * Method to make an HTTP DELETE call to a given URL with/without
-     * authentication.
-     *
-     * @throws Exception
-     *         </pre>
-     */
-    public static DhisHttpResponse httpDELETE( String requestURL, boolean authorize, String username, String password,
-        Map<String, String> headers, int timeout )
-        throws Exception
-    {
-        CloseableHttpClient httpClient = HttpClients.createDefault();
+    return dhisHttpResponse;
+  }
 
-        RequestConfig requestConfig = RequestConfig.custom()
-            .setConnectTimeout( timeout )
-            .setSocketTimeout( timeout )
-            .build();
+  /**
+   * Method to make an HTTP DELETE call to a given URL with/without authentication.
+   *
+   * @throws Exception </pre>
+   */
+  public static DhisHttpResponse httpDELETE(
+      String requestURL,
+      boolean authorize,
+      String username,
+      String password,
+      Map<String, String> headers,
+      int timeout)
+      throws Exception {
+    CloseableHttpClient httpClient = HttpClients.createDefault();
 
-        DhisHttpResponse dhisHttpResponse = null;
+    RequestConfig requestConfig =
+        RequestConfig.custom().setConnectTimeout(timeout).setSocketTimeout(timeout).build();
 
-        try
-        {
-            HttpDelete httpDelete = new HttpDelete( requestURL );
-            httpDelete.setConfig( requestConfig );
+    DhisHttpResponse dhisHttpResponse = null;
 
-            if ( headers instanceof Map )
-            {
-                for ( Map.Entry<String, String> e : headers.entrySet() )
-                {
-                    httpDelete.addHeader( e.getKey(), e.getValue() );
-                }
-            }
+    try {
+      HttpDelete httpDelete = new HttpDelete(requestURL);
+      httpDelete.setConfig(requestConfig);
 
-            if ( authorize )
-            {
-                httpDelete.setHeader( "Authorization", CodecUtils.getBasicAuthString( username, password ) );
-            }
-
-            HttpResponse response = httpClient.execute( httpDelete );
-            dhisHttpResponse = processResponse( requestURL, username, response );
-
-            return dhisHttpResponse;
+      if (headers instanceof Map) {
+        for (Map.Entry<String, String> e : headers.entrySet()) {
+          httpDelete.addHeader(e.getKey(), e.getValue());
         }
-        catch ( Exception e )
-        {
-            log.error( "exception occurred in httpDELETE call with username " + username, e );
-            throw e;
+      }
+
+      if (authorize) {
+        httpDelete.setHeader("Authorization", CodecUtils.getBasicAuthString(username, password));
+      }
+
+      HttpResponse response = httpClient.execute(httpDelete);
+      dhisHttpResponse = processResponse(requestURL, username, response);
+
+      return dhisHttpResponse;
+    } catch (Exception e) {
+      log.error("exception occurred in httpDELETE call with username " + username, e);
+      throw e;
+    } finally {
+      if (httpClient != null) {
+        httpClient.close();
+      }
+    }
+  }
+
+  /**
+   * Processes the HttpResponse to create a DHisHttpResponse object.
+   *
+   * @throws IOException </pre>
+   */
+  private static DhisHttpResponse processResponse(
+      String requestURL, String username, HttpResponse response) throws Exception {
+    DhisHttpResponse dhisHttpResponse;
+    String output;
+    int statusCode;
+    if (response != null) {
+      HttpEntity responseEntity = response.getEntity();
+
+      if (responseEntity != null && responseEntity.getContent() != null) {
+        Header contentType = response.getEntity().getContentType();
+
+        if (contentType != null && checkIfGzipContentType(contentType)) {
+          GzipDecompressingEntity gzipDecompressingEntity =
+              new GzipDecompressingEntity(response.getEntity());
+          InputStream content = gzipDecompressingEntity.getContent();
+          output = IOUtils.toString(content, StandardCharsets.UTF_8);
+        } else {
+          output = EntityUtils.toString(response.getEntity());
         }
-        finally
-        {
-            if ( httpClient != null )
-            {
-                httpClient.close();
-            }
-        }
+        statusCode = response.getStatusLine().getStatusCode();
+      } else {
+        throw new Exception(
+            "No content found in the response received from http POST call to "
+                + requestURL
+                + " with username "
+                + username);
+      }
+
+      dhisHttpResponse = new DhisHttpResponse(response, output, statusCode);
+    } else {
+      throw new Exception(
+          "NULL response received from http POST call to "
+              + requestURL
+              + " with username "
+              + username);
     }
 
-    /**
-     * Processes the HttpResponse to create a DHisHttpResponse object.
-     *
-     * @throws IOException
-     *         </pre>
-     */
-    private static DhisHttpResponse processResponse( String requestURL, String username, HttpResponse response )
-        throws Exception
-    {
-        DhisHttpResponse dhisHttpResponse;
-        String output;
-        int statusCode;
-        if ( response != null )
-        {
-            HttpEntity responseEntity = response.getEntity();
+    return dhisHttpResponse;
+  }
 
-            if ( responseEntity != null && responseEntity.getContent() != null )
-            {
-                Header contentType = response.getEntity().getContentType();
-
-                if ( contentType != null && checkIfGzipContentType( contentType ) )
-                {
-                    GzipDecompressingEntity gzipDecompressingEntity = new GzipDecompressingEntity(
-                        response.getEntity() );
-                    InputStream content = gzipDecompressingEntity.getContent();
-                    output = IOUtils.toString( content, StandardCharsets.UTF_8 );
-                }
-                else
-                {
-                    output = EntityUtils.toString( response.getEntity() );
-                }
-                statusCode = response.getStatusLine().getStatusCode();
-            }
-            else
-            {
-                throw new Exception( "No content found in the response received from http POST call to " + requestURL
-                    + " with username " + username );
-            }
-
-            dhisHttpResponse = new DhisHttpResponse( response, output, statusCode );
-        }
-        else
-        {
-            throw new Exception(
-                "NULL response received from http POST call to " + requestURL + " with username " + username );
-        }
-
-        return dhisHttpResponse;
-    }
-
-    private static boolean checkIfGzipContentType( Header contentType )
-    {
-        return contentType.getValue().contains( CONTENT_TYPE_ZIP );
-    }
+  private static boolean checkIfGzipContentType(Header contentType) {
+    return contentType.getValue().contains(CONTENT_TYPE_ZIP);
+  }
 }

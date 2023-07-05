@@ -27,62 +27,54 @@
  */
 package org.hisp.dhis.commons.action;
 
+import com.opensymphony.xwork2.Action;
 import org.hisp.dhis.period.Period;
 import org.hisp.dhis.period.PeriodService;
-
-import com.opensymphony.xwork2.Action;
 
 /**
  * @author Lars Helge Overland
  */
-public class GetPeriodAction extends BaseAction
-    implements Action
-{
-    // -------------------------------------------------------------------------
-    // Dependencies
-    // -------------------------------------------------------------------------
+public class GetPeriodAction extends BaseAction implements Action {
+  // -------------------------------------------------------------------------
+  // Dependencies
+  // -------------------------------------------------------------------------
 
-    private PeriodService periodService;
+  private PeriodService periodService;
 
-    public void setPeriodService( PeriodService periodService )
-    {
-        this.periodService = periodService;
+  public void setPeriodService(PeriodService periodService) {
+    this.periodService = periodService;
+  }
+
+  // -------------------------------------------------------------------------
+  // Input & Output
+  // -------------------------------------------------------------------------
+
+  private Integer id;
+
+  public void setId(Integer id) {
+    this.id = id;
+  }
+
+  private Period period;
+
+  public Period getPeriod() {
+    return period;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() {
+    canReadType(Period.class);
+
+    if (id != null) {
+      period = periodService.getPeriod(id);
     }
 
-    // -------------------------------------------------------------------------
-    // Input & Output
-    // -------------------------------------------------------------------------
+    canReadInstance(period, currentUserService.getCurrentUser());
 
-    private Integer id;
-
-    public void setId( Integer id )
-    {
-        this.id = id;
-    }
-
-    private Period period;
-
-    public Period getPeriod()
-    {
-        return period;
-    }
-
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-    {
-        canReadType( Period.class );
-
-        if ( id != null )
-        {
-            period = periodService.getPeriod( id );
-        }
-
-        canReadInstance( period, currentUserService.getCurrentUser() );
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

@@ -30,27 +30,21 @@ package org.hisp.dhis.analytics.tei.query;
 import static org.hisp.dhis.commons.util.TextUtils.SPACE;
 
 import javax.annotation.Nonnull;
-
 import lombok.RequiredArgsConstructor;
-
 import org.hisp.dhis.analytics.common.query.BaseRenderable;
 import org.hisp.dhis.analytics.common.query.Renderable;
 
-/**
- * a Renderer that renders a condition that checks if a value is not null
- */
-@RequiredArgsConstructor( staticName = "of" )
-public class IsNotNullCondition extends BaseRenderable
-{
+/** a Renderer that renders a condition that checks if a value is not null */
+@RequiredArgsConstructor(staticName = "of")
+public class IsNotNullCondition extends BaseRenderable {
 
-    public static final String IS_NOT_NULL = "is not null";
+  public static final String IS_NOT_NULL = "is not null";
 
-    private final Renderable item;
+  private final Renderable item;
 
-    @Nonnull
-    @Override
-    public String render()
-    {
-        return item.render() + SPACE + IS_NOT_NULL;
-    }
+  @Nonnull
+  @Override
+  public String render() {
+    return item.render() + SPACE + IS_NOT_NULL;
+  }
 }

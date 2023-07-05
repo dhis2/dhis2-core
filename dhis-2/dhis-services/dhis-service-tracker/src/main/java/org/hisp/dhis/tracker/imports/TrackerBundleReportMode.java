@@ -30,22 +30,13 @@ package org.hisp.dhis.tracker.imports;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public enum TrackerBundleReportMode
-{
-    /**
-     * Gives full tracker bundle report.
-     */
-    FULL,
+public enum TrackerBundleReportMode {
+  /** Gives full tracker bundle report. */
+  FULL,
 
-    /**
-     * Returns tracker bundle report with errors and warnings but without
-     * timings.
-     */
-    ERRORS,
+  /** Returns tracker bundle report with errors and warnings but without timings. */
+  ERRORS,
 
-    /**
-     * Returns tracker bundle report with warnings but without errors and
-     * timings.
-     */
-    WARNINGS;
+  /** Returns tracker bundle report with warnings but without errors and timings. */
+  WARNINGS;
 }

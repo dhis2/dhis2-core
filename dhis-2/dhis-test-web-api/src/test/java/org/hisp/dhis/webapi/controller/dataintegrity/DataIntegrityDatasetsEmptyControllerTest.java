@@ -33,57 +33,64 @@ import org.hisp.dhis.web.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 /**
- *
- * Tests for aggregate datasets with no data elements.
- * {@see dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_empty.yaml
+ * Tests for aggregate datasets with no data elements. {@see
+ * dhis-2/dhis-services/dhis-service-administration/src/main/resources/data-integrity-checks/analytical_objects/dashboards_empty.yaml
  * }
  *
  * @author Jason P. Pickering
  */
-class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityIntegrationTest
-{
+class DataIntegrityDatasetsEmptyControllerTest extends AbstractDataIntegrityIntegrationTest {
 
-    private static final String check = "datasets_empty";
+  private static final String check = "datasets_empty";
 
-    private static final String dataSetUID = "CowXAwmulDG";
+  private static final String dataSetUID = "CowXAwmulDG";
 
-    @Test
-    void testEmptyDataSetExists()
-    {
+  @Test
+  void testEmptyDataSetExists() {
 
-        String defaultCatCombo = getDefaultCatCombo();
-        String datasetA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets",
+    String defaultCatCombo = getDefaultCatCombo();
+    String datasetA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataSets",
                 "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
-                    + defaultCatCombo + "'}}" ) );
+                    + defaultCatCombo
+                    + "'}}"));
 
-        assertHasDataIntegrityIssues( "dataSets", check, 100, datasetA, "Test", null, true );
-    }
+    assertHasDataIntegrityIssues("dataSets", check, 100, datasetA, "Test", null, true);
+  }
 
-    @Test
-    void testDataSetHasDataElements()
-    {
+  @Test
+  void testDataSetHasDataElements() {
 
-        String defaultCatCombo = getDefaultCatCombo();
-        String dataElementA = assertStatus( HttpStatus.CREATED,
-            POST( "/dataElements",
-                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER'," +
-                    "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }" ) );
+    String defaultCatCombo = getDefaultCatCombo();
+    String dataElementA =
+        assertStatus(
+            HttpStatus.CREATED,
+            POST(
+                "/dataElements",
+                "{ 'name': 'ANC1', 'shortName': 'ANC1', 'valueType' : 'NUMBER',"
+                    + "'domainType' : 'AGGREGATE', 'aggregationType' : 'SUM'  }"));
 
-        assertStatus( HttpStatus.CREATED,
-            POST( "/dataSets",
-                "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
-                    + defaultCatCombo + "'}, " +
-                    " 'dataSetElements': [{ 'dataSet': { 'id': '" + dataSetUID + "'}, 'dataElement': { 'id': '"
-                    + dataElementA + "'}}]}" ) );
+    assertStatus(
+        HttpStatus.CREATED,
+        POST(
+            "/dataSets",
+            "{ 'name': 'Test', 'shortName': 'Test', 'periodType' : 'Monthly', 'categoryCombo' : {'id': '"
+                + defaultCatCombo
+                + "'}, "
+                + " 'dataSetElements': [{ 'dataSet': { 'id': '"
+                + dataSetUID
+                + "'}, 'dataElement': { 'id': '"
+                + dataElementA
+                + "'}}]}"));
 
-        assertHasNoDataIntegrityIssues( "dataSets", check, true );
-    }
+    assertHasNoDataIntegrityIssues("dataSets", check, true);
+  }
 
-    @Test
-    void testEmptyDataSetsRuns()
-    {
-        assertHasNoDataIntegrityIssues( "dataSets", check, false );
-    }
-
+  @Test
+  void testEmptyDataSetsRuns() {
+    assertHasNoDataIntegrityIssues("dataSets", check, false);
+  }
 }

@@ -27,54 +27,42 @@
  */
 package org.hisp.dhis.sms.config;
 
+import com.fasterxml.jackson.annotation.JsonView;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.xml.bind.annotation.XmlRootElement;
-
 import org.hisp.dhis.sms.config.views.SmsConfigurationViews;
 
-import com.fasterxml.jackson.annotation.JsonView;
+/** Serializable configuration object for Sms. */
+@XmlRootElement(name = "smsConfiguration")
+public class SmsConfiguration implements Serializable {
+  private static final long serialVersionUID = 7460688383539123303L;
 
-/**
- * Serializable configuration object for Sms.
- */
+  private List<SmsGatewayConfig> gateways = new ArrayList<>();
 
-@XmlRootElement( name = "smsConfiguration" )
-public class SmsConfiguration
-    implements Serializable
-{
-    private static final long serialVersionUID = 7460688383539123303L;
+  // -------------------------------------------------------------------------
+  // Constructors
+  // -------------------------------------------------------------------------
 
-    private List<SmsGatewayConfig> gateways = new ArrayList<>();
+  public SmsConfiguration() {
+    this.gateways = new ArrayList<>();
+  }
 
-    // -------------------------------------------------------------------------
-    // Constructors
-    // -------------------------------------------------------------------------
+  public SmsConfiguration(boolean enabled) {
+    this.gateways = new ArrayList<>();
+  }
 
-    public SmsConfiguration()
-    {
-        this.gateways = new ArrayList<>();
-    }
+  // -------------------------------------------------------------------------
+  // Getter && Setter
+  // -------------------------------------------------------------------------
 
-    public SmsConfiguration( boolean enabled )
-    {
-        this.gateways = new ArrayList<>();
-    }
+  @JsonView(SmsConfigurationViews.Public.class)
+  public List<SmsGatewayConfig> getGateways() {
+    return gateways;
+  }
 
-    // -------------------------------------------------------------------------
-    // Getter && Setter
-    // -------------------------------------------------------------------------
-
-    @JsonView( SmsConfigurationViews.Public.class )
-    public List<SmsGatewayConfig> getGateways()
-    {
-        return gateways;
-    }
-
-    public void setGateways( List<SmsGatewayConfig> gateways )
-    {
-        this.gateways = gateways;
-    }
+  public void setGateways(List<SmsGatewayConfig> gateways) {
+    this.gateways = gateways;
+  }
 }

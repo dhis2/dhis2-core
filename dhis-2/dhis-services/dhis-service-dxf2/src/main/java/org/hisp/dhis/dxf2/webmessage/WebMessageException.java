@@ -30,17 +30,14 @@ package org.hisp.dhis.dxf2.webmessage;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-public class WebMessageException extends Exception
-{
-    private WebMessage webMessage;
+public class WebMessageException extends Exception {
+  private WebMessage webMessage;
 
-    public WebMessageException( WebMessage webMessage )
-    {
-        this.webMessage = webMessage;
-    }
+  public WebMessageException(WebMessage webMessage) {
+    this.webMessage = webMessage;
+  }
 
-    public WebMessage getWebMessage()
-    {
-        return webMessage;
-    }
+  public WebMessage getWebMessage() {
+    return webMessage;
+  }
 }

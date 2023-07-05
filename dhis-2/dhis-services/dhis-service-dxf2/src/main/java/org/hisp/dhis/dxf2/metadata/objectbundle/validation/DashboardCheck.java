@@ -30,9 +30,7 @@ package org.hisp.dhis.dxf2.metadata.objectbundle.validation;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
-
 import lombok.RequiredArgsConstructor;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.hisp.dhis.common.IdentifiableObject;
 import org.hisp.dhis.dashboard.Dashboard;
@@ -47,89 +45,98 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class DashboardCheck implements ObjectValidationCheck
-{
-    private final AclService aclService;
+public class DashboardCheck implements ObjectValidationCheck {
+  private final AclService aclService;
 
-    @Override
-    public <T extends IdentifiableObject> void check( ObjectBundle bundle, Class<T> klass, List<T> persistedObjects,
-        List<T> nonPersistedObjects, ImportStrategy importStrategy, ValidationContext context,
-        Consumer<ObjectReport> addReports )
-    {
-        if ( !klass.isAssignableFrom( Dashboard.class ) || CollectionUtils.isEmpty( persistedObjects ) )
-        {
-            return;
-        }
-
-        persistedObjects.forEach( dashboard -> {
-            List<ErrorReport> errors = new ArrayList<>();
-            checkDashboardItemHasObject( bundle, ((Dashboard) dashboard).getItems(), errors::add );
-            if ( !errors.isEmpty() )
-            {
-                ObjectReport objectReport = new ObjectReport( klass, 0, dashboard.getUid() );
-                objectReport.addErrorReports( errors );
-                addReports.accept( objectReport );
-            }
-        } );
+  @Override
+  public <T extends IdentifiableObject> void check(
+      ObjectBundle bundle,
+      Class<T> klass,
+      List<T> persistedObjects,
+      List<T> nonPersistedObjects,
+      ImportStrategy importStrategy,
+      ValidationContext context,
+      Consumer<ObjectReport> addReports) {
+    if (!klass.isAssignableFrom(Dashboard.class) || CollectionUtils.isEmpty(persistedObjects)) {
+      return;
     }
 
-    /**
-     * Check if all objects associate with given {@link DashboardItem} are
-     * available in Preheat.
-     *
-     * @param bundle {@link ObjectBundle}
-     * @param items {@link DashboardItem} for checking.
-     * @param addError add {@link ErrorCode#E4061} if cannot find associate
-     *        object of DashboardItem in Preheat.
-     */
-    private void checkDashboardItemHasObject( ObjectBundle bundle, List<DashboardItem> items,
-        Consumer<ErrorReport> addError )
-    {
-        if ( CollectionUtils.isEmpty( items ) )
-        {
-            return;
-        }
+    persistedObjects.forEach(
+        dashboard -> {
+          List<ErrorReport> errors = new ArrayList<>();
+          checkDashboardItemHasObject(bundle, ((Dashboard) dashboard).getItems(), errors::add);
+          if (!errors.isEmpty()) {
+            ObjectReport objectReport = new ObjectReport(klass, 0, dashboard.getUid());
+            objectReport.addErrorReports(errors);
+            addReports.accept(objectReport);
+          }
+        });
+  }
 
-        items.forEach( item -> {
-            if ( item.getEmbeddedItem() != null )
-            {
-                IdentifiableObject embedded = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                    item.getEmbeddedItem() );
-                if ( embedded == null )
-                {
-                    addError
-                        .accept( new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(), item.getType(),
-                            item.getEmbeddedItem().getUid() ) );
-                }
-                else if ( !aclService.canRead( bundle.getUser(), embedded ) )
-                {
-                    addError
-                        .accept( new ErrorReport( DashboardItem.class, ErrorCode.E4069, item.getUid(), item.getType(),
-                            item.getEmbeddedItem().getUid() ) );
-                }
-            }
-
-            if ( !CollectionUtils.isEmpty( item.getLinkItems() ) )
-            {
-                item.getLinkItems().forEach( linkItem -> {
-
-                    IdentifiableObject linkItemObject = bundle.getPreheat().get( bundle.getPreheatIdentifier(),
-                        linkItem );
-
-                    if ( linkItemObject == null )
-                    {
-                        addError.accept(
-                            new ErrorReport( DashboardItem.class, ErrorCode.E4061, item.getUid(), item.getType(),
-                                linkItem.getUid() ) );
-                    }
-                    else if ( !aclService.canRead( bundle.getUser(), linkItemObject ) )
-                    {
-                        addError.accept(
-                            new ErrorReport( DashboardItem.class, ErrorCode.E4069, item.getUid(), item.getType(),
-                                linkItem.getUid() ) );
-                    }
-                } );
-            }
-        } );
+  /**
+   * Check if all objects associate with given {@link DashboardItem} are available in Preheat.
+   *
+   * @param bundle {@link ObjectBundle}
+   * @param items {@link DashboardItem} for checking.
+   * @param addError add {@link ErrorCode#E4061} if cannot find associate object of DashboardItem in
+   *     Preheat.
+   */
+  private void checkDashboardItemHasObject(
+      ObjectBundle bundle, List<DashboardItem> items, Consumer<ErrorReport> addError) {
+    if (CollectionUtils.isEmpty(items)) {
+      return;
     }
+
+    items.forEach(
+        item -> {
+          if (item.getEmbeddedItem() != null) {
+            IdentifiableObject embedded =
+                bundle.getPreheat().get(bundle.getPreheatIdentifier(), item.getEmbeddedItem());
+            if (embedded == null) {
+              addError.accept(
+                  new ErrorReport(
+                      DashboardItem.class,
+                      ErrorCode.E4061,
+                      item.getUid(),
+                      item.getType(),
+                      item.getEmbeddedItem().getUid()));
+            } else if (!aclService.canRead(bundle.getUser(), embedded)) {
+              addError.accept(
+                  new ErrorReport(
+                      DashboardItem.class,
+                      ErrorCode.E4069,
+                      item.getUid(),
+                      item.getType(),
+                      item.getEmbeddedItem().getUid()));
+            }
+          }
+
+          if (!CollectionUtils.isEmpty(item.getLinkItems())) {
+            item.getLinkItems()
+                .forEach(
+                    linkItem -> {
+                      IdentifiableObject linkItemObject =
+                          bundle.getPreheat().get(bundle.getPreheatIdentifier(), linkItem);
+
+                      if (linkItemObject == null) {
+                        addError.accept(
+                            new ErrorReport(
+                                DashboardItem.class,
+                                ErrorCode.E4061,
+                                item.getUid(),
+                                item.getType(),
+                                linkItem.getUid()));
+                      } else if (!aclService.canRead(bundle.getUser(), linkItemObject)) {
+                        addError.accept(
+                            new ErrorReport(
+                                DashboardItem.class,
+                                ErrorCode.E4069,
+                                item.getUid(),
+                                item.getType(),
+                                linkItem.getUid()));
+                      }
+                    });
+          }
+        });
+  }
 }

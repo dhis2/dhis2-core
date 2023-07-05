@@ -28,16 +28,14 @@
 package org.hisp.dhis.eventhook;
 
 import java.util.List;
-
 import org.hisp.dhis.user.User;
 
 /**
  * @author Morten Olav Hansen
  */
 @FunctionalInterface
-public interface EventHookPublisher
-{
-    List<? extends Class<?>> BLOCKLIST = List.of( User.class );
+public interface EventHookPublisher {
+  List<? extends Class<?>> BLOCKLIST = List.of(User.class);
 
-    void publishEvent( Event event );
+  void publishEvent(Event event);
 }

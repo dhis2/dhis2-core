@@ -29,44 +29,37 @@ package org.hisp.dhis.commons.action;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import org.hisp.dhis.paging.ActionPagingSupport;
 import org.hisp.dhis.period.PeriodType;
 
 /**
  * @author Tran Thanh Tri
  */
-public class GetPeriodTypesAction
-    extends ActionPagingSupport<PeriodType>
-{
-    // -------------------------------------------------------------------------
-    // Output
-    // -------------------------------------------------------------------------
+public class GetPeriodTypesAction extends ActionPagingSupport<PeriodType> {
+  // -------------------------------------------------------------------------
+  // Output
+  // -------------------------------------------------------------------------
 
-    private List<PeriodType> periodTypes;
+  private List<PeriodType> periodTypes;
 
-    public List<PeriodType> getPeriodTypes()
-    {
-        return periodTypes;
+  public List<PeriodType> getPeriodTypes() {
+    return periodTypes;
+  }
+
+  // -------------------------------------------------------------------------
+  // Action implementation
+  // -------------------------------------------------------------------------
+
+  @Override
+  public String execute() throws Exception {
+    periodTypes = new ArrayList<>(PeriodType.getAvailablePeriodTypes());
+
+    if (usePaging) {
+      this.paging = createPaging(periodTypes.size());
+
+      periodTypes = periodTypes.subList(paging.getStartPos(), paging.getEndPos());
     }
 
-    // -------------------------------------------------------------------------
-    // Action implementation
-    // -------------------------------------------------------------------------
-
-    @Override
-    public String execute()
-        throws Exception
-    {
-        periodTypes = new ArrayList<>( PeriodType.getAvailablePeriodTypes() );
-
-        if ( usePaging )
-        {
-            this.paging = createPaging( periodTypes.size() );
-
-            periodTypes = periodTypes.subList( paging.getStartPos(), paging.getEndPos() );
-        }
-
-        return SUCCESS;
-    }
+    return SUCCESS;
+  }
 }

@@ -37,10 +37,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 /**
  * @author Morten Olav Hansen <mortenoh@gmail.com>
  */
-@OpenApi.Tags( "data" )
+@OpenApi.Tags("data")
 @Controller
-@RequestMapping( value = ValidationRuleGroupSchemaDescriptor.API_ENDPOINT )
-public class ValidationRuleGroupController
-    extends AbstractCrudController<ValidationRuleGroup>
-{
-}
+@RequestMapping(value = ValidationRuleGroupSchemaDescriptor.API_ENDPOINT)
+public class ValidationRuleGroupController extends AbstractCrudController<ValidationRuleGroup> {}

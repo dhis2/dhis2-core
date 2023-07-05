@@ -32,52 +32,43 @@ import org.hisp.dhis.dto.ApiResponse;
 import org.hisp.dhis.helpers.QueryParamsBuilder;
 
 /**
- * Provides enrollment endpoints/operations associated to the parent
- * "analytics/enrollments".
+ * Provides enrollment endpoints/operations associated to the parent "analytics/enrollments".
  *
  * @author Gintare Vilkelyte <vilkelyte.gintare@gmail.com>
  */
-public class AnalyticsEnrollmentsActions
-    extends RestApiActions
-{
-    public AnalyticsEnrollmentsActions()
-    {
-        super( "/analytics/enrollments" );
-    }
+public class AnalyticsEnrollmentsActions extends RestApiActions {
+  public AnalyticsEnrollmentsActions() {
+    super("/analytics/enrollments");
+  }
 
-    public AnalyticsEnrollmentsActions( String endpoint )
-    {
-        super( "/analytics/enrollments" + endpoint );
-    }
+  public AnalyticsEnrollmentsActions(String endpoint) {
+    super("/analytics/enrollments" + endpoint);
+  }
 
-    public AnalyticsEnrollmentsActions query()
-    {
-        return new AnalyticsEnrollmentsActions( "/query" );
-    }
+  public AnalyticsEnrollmentsActions query() {
+    return new AnalyticsEnrollmentsActions("/query");
+  }
 
-    public AnalyticsEnrollmentsActions aggregate()
-    {
-        return new AnalyticsEnrollmentsActions( "/aggregate" );
-    }
+  public AnalyticsEnrollmentsActions aggregate() {
+    return new AnalyticsEnrollmentsActions("/aggregate");
+  }
 
-    public ApiResponse getDimensions( String programId )
-    {
-        return this.get( "/dimensions", new QueryParamsBuilder().add( "programId", programId ) )
-            .validateStatus( 200 );
-    }
+  public ApiResponse getDimensions(String programId) {
+    return this.get("/dimensions", new QueryParamsBuilder().add("programId", programId))
+        .validateStatus(200);
+  }
 
-    public ApiResponse getDimensions( String programId, QueryParamsBuilder queryParamsBuilder )
-    {
-        queryParamsBuilder.add( "programId", programId );
-        return this.get( "/dimensions", queryParamsBuilder )
-            .validateStatus( 200 );
-    }
+  public ApiResponse getDimensions(String programId, QueryParamsBuilder queryParamsBuilder) {
+    queryParamsBuilder.add("programId", programId);
+    return this.get("/dimensions", queryParamsBuilder).validateStatus(200);
+  }
 
-    public ApiResponse getDimensionsByDimensionType( String programId, String dimensionType )
-    {
-        return this.get( "/dimensions",
-            new QueryParamsBuilder().add( "programId", programId ).add( "filter",
-                "dimensionType:eq:" + dimensionType ) )
-            .validateStatus( 200 );
-    }
+  public ApiResponse getDimensionsByDimensionType(String programId, String dimensionType) {
+    return this.get(
+            "/dimensions",
+            new QueryParamsBuilder()
+                .add("programId", programId)
+                .add("filter", "dimensionType:eq:" + dimensionType))
+        .validateStatus(200);
+  }
 }

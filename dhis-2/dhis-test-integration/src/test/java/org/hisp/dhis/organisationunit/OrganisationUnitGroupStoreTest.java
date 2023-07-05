@@ -30,50 +30,44 @@ package org.hisp.dhis.organisationunit;
 import static org.hisp.dhis.utils.Assertions.assertContainsOnly;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Sets;
 import java.util.List;
 import java.util.Set;
-
 import org.junit.jupiter.api.Test;
-
-import com.google.common.collect.Sets;
 
 /**
  * @author Jan Bernitt
  */
-class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest
-{
+class OrganisationUnitGroupStoreTest extends OrganisationUnitBaseSpringTest {
 
-    @Test
-    void testGetOrganisationUnitGroupsWithoutGroupSets()
-    {
-        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
-        OrganisationUnitGroup noSet = addOrganisationUnitGroup( 'X', someUnit );
-        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        addOrganisationUnitGroupSet( 'S', withSet );
-        assertContainsOnly( List.of( noSet ), groupStore.getOrganisationUnitGroupsWithoutGroupSets() );
-    }
+  @Test
+  void testGetOrganisationUnitGroupsWithoutGroupSets() {
+    OrganisationUnit someUnit = addOrganisationUnit('A');
+    OrganisationUnitGroup noSet = addOrganisationUnitGroup('X', someUnit);
+    OrganisationUnitGroup withSet = addOrganisationUnitGroup('W', someUnit);
+    addOrganisationUnitGroupSet('S', withSet);
+    assertContainsOnly(List.of(noSet), groupStore.getOrganisationUnitGroupsWithoutGroupSets());
+  }
 
-    @Test
-    void testGetOrganisationUnitGroupsWithGroupSets()
-    {
-        OrganisationUnit someUnit = addOrganisationUnit( 'A' );
-        addOrganisationUnitGroup( 'X', someUnit );
-        OrganisationUnitGroup withSet = addOrganisationUnitGroup( 'W', someUnit );
-        addOrganisationUnitGroupSet( 'S', withSet );
-        assertContainsOnly( List.of( withSet ), groupStore.getOrganisationUnitGroupsWithGroupSets() );
-    }
+  @Test
+  void testGetOrganisationUnitGroupsWithGroupSets() {
+    OrganisationUnit someUnit = addOrganisationUnit('A');
+    addOrganisationUnitGroup('X', someUnit);
+    OrganisationUnitGroup withSet = addOrganisationUnitGroup('W', someUnit);
+    addOrganisationUnitGroupSet('S', withSet);
+    assertContainsOnly(List.of(withSet), groupStore.getOrganisationUnitGroupsWithGroupSets());
+  }
 
-    @Test
-    void testGetOrgUnitGroupInGroupSet()
-    {
-        OrganisationUnit organisationUnitA = addOrganisationUnit( 'A' );
-        OrganisationUnit organisationUnitB = addOrganisationUnit( 'B' );
-        OrganisationUnit organisationUnitC = addOrganisationUnit( 'C' );
-        OrganisationUnitGroup groupA = addOrganisationUnitGroup( 'A', organisationUnitA );
-        OrganisationUnitGroup groupB = addOrganisationUnitGroup( 'B', organisationUnitB );
-        OrganisationUnitGroup groupC = addOrganisationUnitGroup( 'C', organisationUnitC );
-        Set<OrganisationUnitGroup> groups = Sets.newHashSet( groupA, groupB );
-        OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet( 'A', groupA, groupC );
-        assertEquals( groupA, groupStore.getOrgUnitGroupInGroupSet( groups, groupSet ) );
-    }
+  @Test
+  void testGetOrgUnitGroupInGroupSet() {
+    OrganisationUnit organisationUnitA = addOrganisationUnit('A');
+    OrganisationUnit organisationUnitB = addOrganisationUnit('B');
+    OrganisationUnit organisationUnitC = addOrganisationUnit('C');
+    OrganisationUnitGroup groupA = addOrganisationUnitGroup('A', organisationUnitA);
+    OrganisationUnitGroup groupB = addOrganisationUnitGroup('B', organisationUnitB);
+    OrganisationUnitGroup groupC = addOrganisationUnitGroup('C', organisationUnitC);
+    Set<OrganisationUnitGroup> groups = Sets.newHashSet(groupA, groupB);
+    OrganisationUnitGroupSet groupSet = addOrganisationUnitGroupSet('A', groupA, groupC);
+    assertEquals(groupA, groupStore.getOrgUnitGroupInGroupSet(groups, groupSet));
+  }
 }

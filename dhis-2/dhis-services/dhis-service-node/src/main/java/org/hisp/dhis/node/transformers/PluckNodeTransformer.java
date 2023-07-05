@@ -30,7 +30,6 @@ package org.hisp.dhis.node.transformers;
 import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.util.List;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.node.Node;
 import org.hisp.dhis.node.NodeTransformer;
@@ -40,57 +39,50 @@ import org.hisp.dhis.schema.Property;
 import org.springframework.stereotype.Component;
 
 /**
- * Transforms a collection node with complex nodes to a list with the the first
- * field values of the includes simple nodes.
+ * Transforms a collection node with complex nodes to a list with the the first field values of the
+ * includes simple nodes.
  *
  * @author Volker Schmidt
  */
 @Component
-public class PluckNodeTransformer implements NodeTransformer
-{
-    @Override
-    public String name()
-    {
-        return "pluck";
-    }
+public class PluckNodeTransformer implements NodeTransformer {
+  @Override
+  public String name() {
+    return "pluck";
+  }
 
-    @Override
-    public Node transform( Node node, List<String> args )
-    {
-        checkNotNull( node );
-        checkNotNull( node.getProperty() );
+  @Override
+  public Node transform(Node node, List<String> args) {
+    checkNotNull(node);
+    checkNotNull(node.getProperty());
 
-        Property property = node.getProperty();
+    Property property = node.getProperty();
 
-        if ( property.isCollection() )
-        {
-            final String fieldName = (args == null || args.isEmpty()) ? null
-                : StringUtils.defaultIfEmpty( args.get( 0 ), null );
+    if (property.isCollection()) {
+      final String fieldName =
+          (args == null || args.isEmpty()) ? null : StringUtils.defaultIfEmpty(args.get(0), null);
 
-            final CollectionNode collectionNode = new CollectionNode( node.getName(),
-                node.getUnorderedChildren().size() );
-            collectionNode.setNamespace( node.getNamespace() );
+      final CollectionNode collectionNode =
+          new CollectionNode(node.getName(), node.getUnorderedChildren().size());
+      collectionNode.setNamespace(node.getNamespace());
 
-            for ( final Node objectNode : node.getUnorderedChildren() )
-            {
-                for ( final Node fieldNode : objectNode.getUnorderedChildren() )
-                {
-                    if ( fieldNode instanceof SimpleNode
-                        && (fieldName == null || fieldName.equals( fieldNode.getName() )) )
-                    {
-                        final SimpleNode childNode = new SimpleNode( fieldNode.getName(),
-                            ((SimpleNode) fieldNode).getValue() );
-                        childNode.setProperty( collectionNode.getProperty() );
-                        collectionNode.addChild( childNode );
+      for (final Node objectNode : node.getUnorderedChildren()) {
+        for (final Node fieldNode : objectNode.getUnorderedChildren()) {
+          if (fieldNode instanceof SimpleNode
+              && (fieldName == null || fieldName.equals(fieldNode.getName()))) {
+            final SimpleNode childNode =
+                new SimpleNode(fieldNode.getName(), ((SimpleNode) fieldNode).getValue());
+            childNode.setProperty(collectionNode.getProperty());
+            collectionNode.addChild(childNode);
 
-                        break;
-                    }
-                }
-            }
-
-            return collectionNode;
+            break;
+          }
         }
+      }
 
-        return node;
+      return collectionNode;
     }
+
+    return node;
+  }
 }
