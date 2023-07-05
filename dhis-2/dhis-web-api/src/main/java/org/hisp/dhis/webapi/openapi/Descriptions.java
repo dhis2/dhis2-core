@@ -132,7 +132,7 @@ final class Descriptions
                 String line = in.nextLine();
                 if ( line.startsWith( "#" ) )
                 {
-                    if ( key != null && value.length() > 0 )
+                    if ( isDescAtEnd( key, value ) )
                     {
                         entries.put( key + ".description", trimText( value.toString() ) );
                     }
@@ -145,8 +145,7 @@ final class Descriptions
                 }
                 else
                 {
-                    if ( key != null && value.length() == 0
-                        && (line.startsWith( "http://" ) || line.startsWith( "https://" )) )
+                    if ( isUrl( key, value, line ) )
                     {
                         entries.put( key + ".url", line.trim() );
                     }
@@ -157,11 +156,22 @@ final class Descriptions
                     }
                 }
             }
-            if ( key != null && value.length() > 0 )
+            if ( isDescAtEnd( key, value ) )
             {
                 entries.put( key + ".description", trimText( value.toString() ) );
             }
         }
+    }
+
+    private boolean isDescAtEnd( String key, StringBuilder value )
+    {
+        return key != null && value.length() > 0;
+    }
+
+    private boolean isUrl( String key, StringBuilder value, String line )
+    {
+        return key != null && value.length() == 0
+            && (line.startsWith( "http://" ) || line.startsWith( "https://" ));
     }
 
     private String trimText( String value )

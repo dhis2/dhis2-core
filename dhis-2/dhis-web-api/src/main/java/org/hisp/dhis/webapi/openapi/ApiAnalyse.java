@@ -284,7 +284,7 @@ final class ApiAnalyse
         List<HttpStatus> statuses = response.status().length == 0
             ? defaultStatuses
             : stream( response.status() ).map( s -> HttpStatus.resolve( s.getCode() ) ).collect( toList() );
-        ;
+
         Set<Api.Header> headers = stream( response.headers() )
             .map( header -> new Api.Header( header.name(), header.description(),
                 analyseParamSchema( endpoint, null, response.value() ) ) )
@@ -892,6 +892,7 @@ final class ApiAnalyse
 
         private final List<String> produces;
 
+        @SuppressWarnings( "java:S107" )
         public EndpointMapping( Method source, String name, String[] path, RequestMethod[] method, String[] params,
             String[] headers, String[] consumes, String[] produces )
         {

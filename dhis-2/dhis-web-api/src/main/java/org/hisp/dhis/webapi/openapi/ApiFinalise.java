@@ -28,10 +28,14 @@
 package org.hisp.dhis.webapi.openapi;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.groupingBy;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.mapping;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.lang.reflect.Member;
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.HashMap;
@@ -50,6 +54,7 @@ import lombok.Data;
 import lombok.Value;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
 import org.hisp.dhis.common.OpenApi;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -441,29 +446,22 @@ public class ApiFinalise
 
     private Map<String, List<Api.Endpoint>> groupEndpointsByAbsolutePath()
     {
+        Stream<AbstractMap.SimpleImmutableEntry<List<String>, List<Api.Endpoint>>> endpointsByControllerPathsStream = api
+            .getControllers()
+            .stream().flatMap( c -> c.getPaths().isEmpty()
+                ? Stream.of( new AbstractMap.SimpleImmutableEntry<>( List.of( "" ), c.getEndpoints() ) )
+                : Stream.of( new AbstractMap.SimpleImmutableEntry<>( c.getPaths(), c.getEndpoints() ) ) );
+
+        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = endpointsByControllerPathsStream
+            .flatMap( ec -> ec.getValue().stream()
+                .flatMap( e -> e.getPaths().stream()
+                    .flatMap( ep -> ec.getKey().stream().map( cp -> StringUtils.defaultIfEmpty( cp + ep, "/" ) )
+                        .map( k -> new AbstractMap.SimpleImmutableEntry<>( k, e ) ) ) ) )
+            .collect( groupingBy( AbstractMap.SimpleImmutableEntry::getKey, mapping(
+                AbstractMap.SimpleImmutableEntry::getValue, toList() ) ) );
+
         // OBS! We use a TreeMap to also get alphabetical order/grouping
-        Map<String, List<Api.Endpoint>> endpointsByAbsolutePath = new TreeMap<>();
-        for ( Api.Controller c : api.getControllers() )
-        {
-            if ( c.getPaths().isEmpty() )
-                c.getPaths().add( "" );
-            for ( String cPath : c.getPaths() )
-            {
-                for ( Api.Endpoint e : c.getEndpoints() )
-                {
-                    for ( String ePath : e.getPaths() )
-                    {
-                        String absolutePath = cPath + ePath;
-                        if ( absolutePath.isEmpty() )
-                        {
-                            absolutePath = "/";
-                        }
-                        endpointsByAbsolutePath.computeIfAbsent( absolutePath, key -> new ArrayList<>() ).add( e );
-                    }
-                }
-            }
-        }
-        return endpointsByAbsolutePath;
+        return new TreeMap<>( endpointsByAbsolutePath );
     }
 
     /**
