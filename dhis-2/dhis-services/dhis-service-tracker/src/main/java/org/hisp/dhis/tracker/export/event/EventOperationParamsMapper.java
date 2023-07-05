@@ -75,8 +75,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 /**
- * Maps {@link EventOperationParams} to {@link EventSearchParams} which is used to fetch enrollments
- * from the DB.
+ * Maps {@link EventOperationParams} to {@link EventSearchParams} which is used to fetch events from
+ * the DB.
  */
 @Slf4j
 @Component

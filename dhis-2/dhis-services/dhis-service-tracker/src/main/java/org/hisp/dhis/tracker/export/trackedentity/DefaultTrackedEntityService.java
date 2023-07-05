@@ -43,6 +43,7 @@ import org.hisp.dhis.audit.payloads.TrackedEntityAudit;
 import org.hisp.dhis.common.AccessLevel;
 import org.hisp.dhis.common.AuditType;
 import org.hisp.dhis.common.BaseIdentifiableObject;
+import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
 import org.hisp.dhis.program.Enrollment;
@@ -96,6 +97,8 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   private final EnrollmentService enrollmentService;
 
   private final EventService eventService;
+
+  private final TrackedEntityOperationParamsMapper mapper;
 
   @Override
   public TrackedEntity getTrackedEntity(String uid, TrackedEntityParams params)
@@ -276,13 +279,9 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
   }
 
   @Override
-  public List<TrackedEntity> getTrackedEntities(
-      TrackedEntityQueryParams queryParams, TrackedEntityParams params)
-      throws ForbiddenException, NotFoundException {
-    if (queryParams == null) {
-      return Collections.emptyList();
-    }
-
+  public List<TrackedEntity> getTrackedEntities(TrackedEntityOperationParams operationParams)
+      throws ForbiddenException, NotFoundException, BadRequestException {
+    TrackedEntityQueryParams queryParams = mapper.map(operationParams);
     final List<Long> ids = teiService.getTrackedEntityIds(queryParams, false, false);
 
     if (ids.isEmpty()) {
@@ -290,9 +289,10 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
     }
 
     List<TrackedEntity> trackedEntities =
-        this.trackedEntityAggregate.find(ids, params, queryParams);
+        this.trackedEntityAggregate.find(
+            ids, operationParams.getTrackedEntityParams(), queryParams);
 
-    mapRelationshipItems(trackedEntities, params);
+    mapRelationshipItems(trackedEntities, operationParams.getTrackedEntityParams());
 
     addSearchAudit(trackedEntities, queryParams.getUser());
 
@@ -406,10 +406,11 @@ public class DefaultTrackedEntityService implements TrackedEntityService {
 
   @Override
   public int getTrackedEntityCount(
-      TrackedEntityQueryParams params,
+      TrackedEntityOperationParams operationParams,
       boolean skipAccessValidation,
-      boolean skipSearchScopeValidation) {
+      boolean skipSearchScopeValidation)
+      throws ForbiddenException, BadRequestException {
     return teiService.getTrackedEntityCount(
-        params, skipAccessValidation, skipSearchScopeValidation);
+        mapper.map(operationParams), skipAccessValidation, skipSearchScopeValidation);
   }
 }
